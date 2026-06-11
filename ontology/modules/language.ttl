@@ -143,3 +143,20 @@ gmeow:TransliterationScheme
     rdfs:label "Transliteration Scheme"@x-gmeow-english ;
     skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CONTENT LANGUAGE (#287 surgery — generalized from the software module)
+# The generic written-in relation GMEOW never minted (its own languages
+# doctrine names `inLanguage "ja"` as the anti-pattern, yet only a
+# software-shaped writtenInLanguage existed). FRBR's language-of-expression,
+# domain-wide: a document, an expression, a source tree, an inscription
+# reading — anything informational — is written in a first-class Language.
+# =========================================================================== #
+
+gmeow:writtenInLanguage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InformationObject ;
+    rdfs:range gmeow:Language ;
+    rdfs:label "written in language"@x-gmeow-english ;
+    skos:definition "Relates an information object — an expression, a document, a source tree, an inscription reading — to a first-class gmeow:Language it is written in. The registry-independent replacement for flat inLanguage tags: the object is a Language IRI, never a code literal (codes are alignments via gmeow:languageCode). Non-functional: content mixes languages, and a codebase uses several."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

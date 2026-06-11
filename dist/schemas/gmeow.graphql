@@ -2250,6 +2250,7 @@ type Article
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -2402,6 +2403,7 @@ type Attachment
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     charset: String
     contentId: String
     hasContentDisposition: ContentDisposition
@@ -2478,6 +2480,7 @@ type AttestationArtifact
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     artifactMediaType: String
   }
 
@@ -2541,6 +2544,7 @@ type AuthenticationResult
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     authMethod: String
     authResult: String
     authServer: String
@@ -2598,6 +2602,7 @@ type AuthorIdentity
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     authorIdentityString: String
     canonicalizedIdentity: [Agent]
   }
@@ -2746,6 +2751,7 @@ type Blob
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type Block
@@ -2800,6 +2806,7 @@ type Block
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     blockHash: String
     blockNumber: Int
   }
@@ -2961,6 +2968,7 @@ type BodyPart
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     charset: String
     contentId: String
     hasContentDisposition: ContentDisposition
@@ -3029,6 +3037,7 @@ type BookRelease
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -3117,6 +3126,7 @@ type Branch
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type BranchConditionType
@@ -3245,6 +3255,7 @@ type CadastralReference
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     referenceAuthority: Agent
     referenceJurisdiction: Place
     referenceType: [CadastralReferenceType]
@@ -3435,6 +3446,7 @@ type CharacterArc
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     arcEvidence: [InformationObject]
     arcFrame: NarrativeReferenceFrame
     arcSubject: Entity
@@ -3562,6 +3574,7 @@ type Collection
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -3648,6 +3661,7 @@ type Comment
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasWikilink: [Note]
     mentions: [Entity]
     noteAuthor: [Agent]
@@ -3805,6 +3819,7 @@ type ContentSegment
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     segmentIndex: Int
     segmentOf: [Entity]
     segmentType: ContentSegmentType
@@ -3947,6 +3962,7 @@ type CreativeWork
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -4102,6 +4118,7 @@ type CryptographicKey
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     fingerprint: String
     keyAlgorithm: String
     keyExpiresAt: String
@@ -4162,6 +4179,7 @@ type CryptographicSignature
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     signatureAlgorithm: String
     signatureOf: [String]
     signedBy: [Agent]
@@ -4222,6 +4240,7 @@ type CryptoWallet
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     accountBalance: [MonetaryAmount]
     accountCurrency: [ReferenceFrame]
     accountHolder: [Agent]
@@ -4293,6 +4312,7 @@ type Dataset
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -4405,6 +4425,7 @@ type Diff
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     diffFrom: Commit
     diffTo: Commit
   }
@@ -4465,6 +4486,7 @@ type Distribution
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     distributionFormat: String
   }
 
@@ -4520,6 +4542,7 @@ type DKIMSignature
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     signatureAlgorithm: String
     signatureOf: [String]
     signedBy: [Agent]
@@ -4580,6 +4603,7 @@ type Document
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -4736,6 +4760,7 @@ type EmailMessage
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasAttachment: [Attachment]
     hasAuthenticationResult: [AuthenticationResult]
     hasBodyPart: [BodyPart]
@@ -4835,6 +4860,7 @@ type EmailPatchDiff
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     charset: String
     contentId: String
     hasContentDisposition: ContentDisposition
@@ -5107,6 +5133,7 @@ type EvidenceSpan
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type ExceptionType
@@ -5219,6 +5246,7 @@ type Expression
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -5371,6 +5399,7 @@ type FinancialAccount
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     accountBalance: [MonetaryAmount]
     accountCurrency: [ReferenceFrame]
     accountHolder: [Agent]
@@ -5537,6 +5566,7 @@ type FormalLanguage
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     bcp47Tag: String
     designGoal: String
     hasNotationSystem: [NotationSystem]
@@ -5921,6 +5951,7 @@ type ImageRegion
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     regionLabel: String
     regionOf: MediaObject
     regionSelector: RegionSelector
@@ -6026,6 +6057,7 @@ type InformationObject
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type InlinePart
@@ -6080,6 +6112,7 @@ type InlinePart
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     charset: String
     contentId: String
     hasContentDisposition: ContentDisposition
@@ -6140,6 +6173,7 @@ type Inscription
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     inscriptionCarrier: PhysicalObject
   }
 
@@ -6229,6 +6263,7 @@ type Invoice
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -6324,6 +6359,7 @@ type Issue
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type Item
@@ -6378,6 +6414,7 @@ type Item
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -6542,6 +6579,7 @@ type Language
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     bcp47Tag: String
     designGoal: String
     hasNotationSystem: [NotationSystem]
@@ -6735,6 +6773,7 @@ type LanguageVariety
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     bcp47Tag: String
     designGoal: String
     hasNotationSystem: [NotationSystem]
@@ -6804,6 +6843,7 @@ type LanguageVersion
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     bcp47Tag: String
     designGoal: String
     hasNotationSystem: [NotationSystem]
@@ -6867,6 +6907,7 @@ type LedgerAccount
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     ledgerAccountCurrency: [ReferenceFrame]
     ledgerAccountHolder: [Agent]
     ledgerAccountType: LedgerAccountType
@@ -6979,6 +7020,7 @@ type LedgerTransaction
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     transactionHash: String
   }
 
@@ -7038,6 +7080,7 @@ type LexicalForm
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     formOf: [LexicalItem]
     formRepresentation: String
     formTransliterationScheme: [TransliterationScheme]
@@ -7100,6 +7143,7 @@ type LexicalItem
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasLexicalForm: [LexicalForm]
     lexicalItemLanguage: Language
   }
@@ -7220,6 +7264,7 @@ type LiteraryWork
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -7440,6 +7485,7 @@ type Mailbox
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     childMailbox: [Mailbox]
     mailboxName: String
     mailboxOfAccount: OnlineAccount
@@ -7514,6 +7560,7 @@ type Manifestation
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -7606,6 +7653,7 @@ type Mark
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     markText: String
   }
 
@@ -7731,6 +7779,7 @@ type MediaObject
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -7950,6 +7999,7 @@ type MergeRequest
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type Message
@@ -8004,6 +8054,7 @@ type Message
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasAttachment: [Attachment]
     hasAuthenticationResult: [AuthenticationResult]
     hasBodyPart: [BodyPart]
@@ -8076,6 +8127,7 @@ type MessageHeader
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     headerName: String
     headerValue: String
   }
@@ -8214,6 +8266,7 @@ type MultipartBodyPart
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     charset: String
     contentId: String
     hasContentDisposition: ContentDisposition
@@ -8392,6 +8445,7 @@ type NamePart
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     namePartType: NamePartType
     partExpansion: String
     partOrder: String
@@ -8611,6 +8665,7 @@ type NotationSystem
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     symbolicSystemKind: [SymbolicSystemKind]
     notationSystemFor: [Language]
     notationSystemKind: [SymbolicSystemKind]
@@ -8680,6 +8735,7 @@ type Note
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasWikilink: [Note]
     mentions: [Entity]
     noteAuthor: [Agent]
@@ -8883,6 +8939,7 @@ type OnlineAccount
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     accountKey: [CryptographicKey]
     accountName: String
     activityPubActor: String
@@ -9063,6 +9120,7 @@ type Package
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasDistribution: [Distribution]
     packageOf: [SoftwareProduct]
   }
@@ -9137,6 +9195,7 @@ type Patent
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -9340,6 +9399,7 @@ type PGPSignature
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     signatureAlgorithm: String
     signatureOf: [String]
     signedBy: [Agent]
@@ -9654,6 +9714,7 @@ type PrivacyNotice
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type Procedure
@@ -9708,6 +9769,7 @@ type Procedure
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasProcedureStep: [ProcedureStep]
     hasSubProcedure: [Procedure]
     inquiryPriority: Int
@@ -9771,6 +9833,7 @@ type ProcedureStep
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     procedureStepOf: [Procedure]
     procedureStepType: [StepType]
     stepEnactsProcedure: [Procedure]
@@ -9854,6 +9917,7 @@ type Profile
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     profileAppliesTo: [String]
     profileDescriptor: String
     profileOpenValue: [String]
@@ -9911,6 +9975,7 @@ type ProgrammingLanguage
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     bcp47Tag: String
     designGoal: String
     hasNotationSystem: [NotationSystem]
@@ -10045,6 +10110,7 @@ type PronounSet
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     pronounObject: String
     pronounPossessive: String
     pronounPossessiveDeterminer: String
@@ -10292,6 +10358,7 @@ type RecurrenceRule
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     recurrenceRuleText: String
   }
 
@@ -10347,6 +10414,7 @@ type Ref
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     pointsToCommit: [Commit]
   }
 
@@ -10519,6 +10587,7 @@ type RegionSelector
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     selectorType: SelectorType
     selectorValue: String
   }
@@ -10710,6 +10779,7 @@ type Repository
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     cloneUrl: String
     hostedAt: [ForgePlatform]
     materializationDepth: String
@@ -10773,6 +10843,7 @@ type Review
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type RightsAction
@@ -11040,6 +11111,7 @@ type Selector
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     selectorLocator: String
     selectorPage: String
     selectorTextPosition: String
@@ -11446,6 +11518,7 @@ type SerialInstallment
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -11534,6 +11607,7 @@ type SerialWork
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -11620,6 +11694,7 @@ type Service
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -11846,6 +11921,7 @@ type SMIMESignature
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     signatureAlgorithm: String
     signatureOf: [String]
     signedBy: [Agent]
@@ -11990,6 +12066,7 @@ type SoftwareProduct
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -12080,7 +12157,6 @@ type SoftwareProject
     maintenanceStatus: [MaintenanceStatus]
     projectIdentifier: String
     projectLicense: [License]
-    writtenInLanguage: [ProgrammingLanguage]
   }
 
 type SourceDirectory
@@ -12135,6 +12211,7 @@ type SourceDirectory
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type SourceFile
@@ -12189,6 +12266,7 @@ type SourceFile
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type SourceIndependence
@@ -12247,6 +12325,7 @@ type SourceNode
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type SourceRole
@@ -12301,6 +12380,7 @@ type SourceRole
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -12390,6 +12470,7 @@ type SourceTree
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type SpatialAggregation
@@ -12843,6 +12924,7 @@ type Summary
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type SymbolicSystem
@@ -12897,6 +12979,7 @@ type SymbolicSystem
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     symbolicSystemKind: [SymbolicSystemKind]
   }
 
@@ -12956,6 +13039,7 @@ type Tag
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     broaderTag: [Tag]
     narrowerTag: [Tag]
     relatedTag: [Tag]
@@ -13023,6 +13107,7 @@ type TagScheme
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type Task
@@ -13230,6 +13315,7 @@ type TextExtraction
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -13316,6 +13402,7 @@ type Thread
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     threadSubject: String
   }
 
@@ -13582,6 +13669,7 @@ type TransparencyLogEntry
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     logEntryIndex: Int
     logEntryUrl: String
   }
@@ -13638,6 +13726,7 @@ type TreeEntry
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     treeEntryMode: String
     treeEntryName: String
     treeEntryObject: SourceNode
@@ -13786,6 +13875,7 @@ type VerificationResult
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     hasVerificationStatus: [VerificationStatus]
     verifiedBy: [Agent]
   }
@@ -13874,6 +13964,7 @@ type VersionSet
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type VirtualLocation
@@ -14010,6 +14101,7 @@ type WebPage
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -14098,6 +14190,7 @@ type Work
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     abstract: String
     audience: [Agent]
     bibliographicCitation: String
@@ -14184,6 +14277,7 @@ type WritingSystem
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    writtenInLanguage: [Language]
     scriptCode: String
     textDirection: [TextDirection]
     writingSystemAsNotation: [NotationSystem]

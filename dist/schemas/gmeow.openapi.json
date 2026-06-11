@@ -1741,6 +1741,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Article",
@@ -2703,6 +2712,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Attachment",
@@ -3240,6 +3258,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "AttestationArtifact",
@@ -3717,6 +3744,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "AuthenticationResult",
@@ -4152,6 +4188,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -5352,6 +5397,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Blob",
@@ -5784,6 +5838,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -7084,6 +7147,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "BodyPart",
@@ -7782,6 +7854,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "BookRelease",
@@ -8249,6 +8330,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -9281,6 +9371,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -10657,6 +10756,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "CharacterArc",
@@ -11860,6 +11968,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Collection",
@@ -12345,6 +12462,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -13424,6 +13550,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -14595,6 +14730,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "CreativeWork",
@@ -15627,6 +15771,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "CryptoWallet",
@@ -16088,6 +16241,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -16564,6 +16726,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "CryptographicSignature",
@@ -17030,6 +17201,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -17749,6 +17929,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Dataset",
@@ -18352,6 +18541,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Diff",
@@ -18797,6 +18995,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -19476,6 +19683,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -20756,6 +20972,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "EmailMessage",
@@ -21220,6 +21445,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -23314,6 +23548,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "EvidenceSpan",
@@ -24451,6 +24694,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Expression",
@@ -25414,6 +25666,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -26742,6 +27003,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -29447,6 +29717,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "ImageRegion",
@@ -30267,6 +30546,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "InformationObject",
@@ -30736,6 +31024,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "InlinePart",
@@ -31166,6 +31463,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -32042,6 +32348,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Invoice",
@@ -32480,6 +32795,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -33168,6 +33492,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -34203,6 +34536,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -35730,6 +36072,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "LanguageVariety",
@@ -36250,6 +36601,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "LanguageVersion",
@@ -36698,6 +37058,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -37555,6 +37924,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "LedgerTransaction",
@@ -38060,6 +38438,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "LexicalForm",
@@ -38520,6 +38907,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -39685,6 +40081,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -41241,6 +41646,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Mailbox",
@@ -41994,6 +42408,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Manifestation",
@@ -42443,6 +42866,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -43726,6 +44158,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -45156,6 +45597,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "MergeRequest",
@@ -45724,6 +46174,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Message",
@@ -46156,6 +46615,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -47224,6 +47692,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "MultipartBodyPart",
@@ -48137,6 +48614,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -50292,6 +50778,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "NotationSystem",
@@ -50836,6 +51331,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -52385,6 +52889,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "OnlineAccount",
@@ -53727,6 +54240,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "PGPSignature",
@@ -54165,6 +54687,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -54949,6 +55480,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -58172,6 +58712,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "PrivacyNotice",
@@ -58672,6 +59221,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Procedure",
@@ -59154,6 +59712,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -59753,6 +60320,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Profile",
@@ -60252,6 +60828,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -61244,6 +61829,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -63179,6 +63773,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "RecurrenceRule",
@@ -63608,6 +64211,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -65048,6 +65660,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -66541,6 +67162,15 @@
                   "string",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Repository",
@@ -66980,6 +67610,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -68311,6 +68950,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "SMIMESignature",
@@ -69449,6 +70097,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -72812,6 +73469,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "SerialInstallment",
@@ -73491,6 +74157,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "SerialWork",
@@ -74165,6 +74840,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -76453,6 +77137,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "SoftwareProduct",
@@ -76914,15 +77607,6 @@
                   "array",
                   "null"
                 ]
-              },
-              "writtenInLanguage": {
-                "items": {
-                  "$ref": "#/$defs/ProgrammingLanguage"
-                },
-                "type": [
-                  "array",
-                  "null"
-                ]
               }
             },
             "title": "SoftwareProject",
@@ -77348,6 +78032,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "SourceDirectory",
@@ -77768,6 +78461,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -78208,6 +78910,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -78883,6 +79594,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "SourceRole",
@@ -79319,6 +80039,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -82835,6 +83564,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Summary",
@@ -83264,6 +84002,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -83753,6 +84500,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Tag",
@@ -84183,6 +84939,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -86106,6 +86871,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "TextExtraction",
@@ -86532,6 +87306,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -88560,6 +89343,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "TransparencyLogEntry",
@@ -89002,6 +89794,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -90144,6 +90945,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "VerificationResult",
@@ -90778,6 +91588,15 @@
               "wasGeneratedBy": {
                 "items": {
                   "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",
@@ -92119,6 +92938,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "WebPage",
@@ -92798,6 +93626,15 @@
                   "array",
                   "null"
                 ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "Work",
@@ -93251,6 +94088,15 @@
               "writingSystemType": {
                 "items": {
                   "$ref": "#/$defs/WritingSystemType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
                 },
                 "type": [
                   "array",

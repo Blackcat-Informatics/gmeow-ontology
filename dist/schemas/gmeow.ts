@@ -3234,6 +3234,7 @@ export interface ImportActivity extends Activity {
 export interface InformationObject extends Entity {
     contributesToFrame?: NarrativeReferenceFrame[],
     detectedMediaType?: string,
+    writtenInLanguage?: Language[],
 }
 
 
@@ -4693,7 +4694,6 @@ export interface SoftwareProduct extends Work {
 
 
 export interface SoftwareProject extends Project {
-    writtenInLanguage?: ProgrammingLanguage[],
 }
 
 
