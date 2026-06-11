@@ -9,8 +9,10 @@ plainer, lossy-but-useful views for consumers that don't speak RDF/OWL:
 * a **JSONL term catalog** — one record per term, for tooling / RAG / embeddings;
 * an **``llms.txt`` bundle** — the whole vocabulary in one LLM-ingestable file.
 
-Everything is generated from the *asserted* merged graph (no reasoning, no
-Docker) plus the SSSOM alignment axioms, so it runs anywhere ``rdflib`` does.
+Everything is generated from the committed GTS snapshot (the narrow waist,
+#267): the asserted merged graph in its default graph plus the SSSOM
+alignment axioms in their named graph — no reasoning, no Docker, no RDF
+parser in this module at all.
 These views flatten reified relators and the RDF-star validity/provenance layer;
 they are an entry point to the vocabulary, not a substitute for the OWL source.
 """
@@ -22,9 +24,6 @@ import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TypeGuard
-
-from rdflib import OWL, RDF, RDFS, SKOS, BNode, Graph, URIRef
 
 from gmeow_tools.config import (
     DIST_DIR,
@@ -34,13 +33,11 @@ from gmeow_tools.config import (
     PROJECT_ROOT,
 )
 from gmeow_tools.generator import Generator, _rel, register
-from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.gts_views import FoldView, load_fold
-from gmeow_tools.language_tags import load_tag_map, public_text
-from gmeow_tools.mappings import build_alignment_graph, load_mappings
-from gmeow_tools.self_desc import load_self_description
 
-_meta = load_self_description()  # TRANSIENT: deleted with the rdflib path
+_OWL = "http://www.w3.org/2002/07/owl#"
+_RDFS = "http://www.w3.org/2000/01/rdf-schema#"
+_SKOS = "http://www.w3.org/2004/02/skos/core#"
 
 
 def _resolve_meta(title: str | None, version: str | None) -> tuple[str, str]:
@@ -60,22 +57,22 @@ def _default_meta() -> tuple[str, str]:
     return _META_CACHE[0]
 
 
-#: Property rdf:type → short kind label.
-_PROPERTY_KINDS: dict[URIRef, str] = {
-    OWL.ObjectProperty: "object",
-    OWL.DatatypeProperty: "datatype",
-    OWL.AnnotationProperty: "annotation",
+#: Property rdf:type IRI → short kind label.
+_PROPERTY_KINDS: dict[str, str] = {
+    _OWL + "ObjectProperty": "object",
+    _OWL + "DatatypeProperty": "datatype",
+    _OWL + "AnnotationProperty": "annotation",
 }
 
 #: Alignment predicate IRI → short relation tag for the flattened views.
 _ALIGN_TAGS: dict[str, str] = {
-    str(OWL.equivalentClass): "equivalentClass",
-    str(OWL.equivalentProperty): "equivalentProperty",
-    str(RDFS.subClassOf): "subClassOf",
-    str(RDFS.subPropertyOf): "subPropertyOf",
-    str(SKOS.closeMatch): "closeMatch",
-    str(SKOS.exactMatch): "exactMatch",
-    str(SKOS.relatedMatch): "relatedMatch",
+    _OWL + "equivalentClass": "equivalentClass",
+    _OWL + "equivalentProperty": "equivalentProperty",
+    _RDFS + "subClassOf": "subClassOf",
+    _RDFS + "subPropertyOf": "subPropertyOf",
+    _SKOS + "closeMatch": "closeMatch",
+    _SKOS + "exactMatch": "exactMatch",
+    _SKOS + "relatedMatch": "relatedMatch",
 }
 
 
@@ -142,172 +139,15 @@ def curie(iri: str) -> str:
     return iri
 
 
-def _text(graph: Graph, subject: URIRef, predicate: URIRef) -> str:
-    """Return the first literal value of ``predicate`` on ``subject`` as text."""
-    value = graph.value(subject, predicate)
-    return str(value) if value is not None else ""
-
-
-def _curies(graph: Graph, subject: URIRef, predicate: URIRef) -> list[str]:
-    """Return named object IRIs of ``predicate`` on ``subject`` as sorted CURIEs.
-
-    Anonymous objects (blank-node OWL restrictions/chains) are skipped so their
-    internal ids never leak into the flattened parent/super lists.
-    """
-    return sorted(
-        curie(str(o))
-        for o in graph.objects(subject, predicate)
-        if isinstance(o, URIRef)
-    )
-
-
-def _alignments(alignments: Graph, subject: URIRef) -> list[str]:
-    """Return ``tag=curie`` alignment strings for a term."""
-    out: list[str] = []
-    for predicate, obj in alignments.predicate_objects(subject):
-        tag = _ALIGN_TAGS.get(str(predicate), curie(str(predicate)))
-        out.append(f"{tag}={curie(str(obj))}")
-    return sorted(out)
-
-
-def _in_namespace(subject: object) -> TypeGuard[URIRef]:
-    """Return whether a node is a GMEOW-namespace IRI (narrows to URIRef)."""
-    return isinstance(subject, URIRef) and str(subject).startswith(NAMESPACE)
-
-
-def _describe_node(graph: Graph, node: object) -> str:
-    """Return a CURIE or a serialized union/intersection description of a class node."""
-    if isinstance(node, URIRef):
-        return curie(str(node))
-    if isinstance(node, BNode):
-        # Check union class
-        union_list = graph.value(node, OWL.unionOf)
-        if union_list:
-            elements = []
-            curr = union_list
-            while curr and curr != RDF.nil:
-                if not isinstance(curr, URIRef | BNode):
-                    break
-                first = graph.value(curr, RDF.first)
-                if first:
-                    elements.append(_describe_node(graph, first))
-                curr = graph.value(curr, RDF.rest)  # type: ignore[assignment]
-            return " | ".join(elements)
-        # Check intersection class
-        intersection_list = graph.value(node, OWL.intersectionOf)
-        if intersection_list:
-            elements = []
-            curr = intersection_list
-            while curr and curr != RDF.nil:
-                if not isinstance(curr, URIRef | BNode):
-                    break
-                first = graph.value(curr, RDF.first)
-                if first:
-                    elements.append(_describe_node(graph, first))
-                curr = graph.value(curr, RDF.rest)  # type: ignore[assignment]
-            return " & ".join(elements)
-    return str(node)
-
-
-def _collect_terms_rdflib(
-    graph: Graph | None = None, alignments: Graph | None = None
-) -> list[Term]:
-    """TRANSIENT (narrow waist PR 3, commit A): the pre-waist rdflib path.
-
-    Kept only so the in-PR equivalence test can prove the fold path emits
-    identical terms and artifacts; deleted (with the test) in commit B.
-    """
-    if graph is None:
-        graph = load_merged_graph(include_imports=False)
-    if alignments is None:
-        alignments = build_alignment_graph(load_mappings())
-
-    tag_map = load_tag_map(graph)
-
-    classes: set[URIRef] = {
-        s for s in graph.subjects(RDF.type, OWL.Class) if _in_namespace(s)
-    }
-    properties: dict[URIRef, str] = {}
-    for ptype, kind in _PROPERTY_KINDS.items():
-        for s in graph.subjects(RDF.type, ptype):
-            if isinstance(s, URIRef) and str(s).startswith(NAMESPACE):
-                properties[s] = kind
-
-    terms: list[Term] = []
-
-    for s in classes:
-        terms.append(
-            Term(
-                category="class",
-                iri=str(s),
-                curie=curie(str(s)),
-                label=public_text(graph, s, RDFS.label, tag_map=tag_map),
-                definition=public_text(graph, s, SKOS.definition, tag_map=tag_map),
-                parents=_curies(graph, s, RDFS.subClassOf),
-                alignments=_alignments(alignments, s),
-            )
-        )
-
-    for s, kind in properties.items():
-        domain_val = graph.value(s, RDFS.domain)
-        range_val = graph.value(s, RDFS.range)
-        terms.append(
-            Term(
-                category="property",
-                iri=str(s),
-                curie=curie(str(s)),
-                label=public_text(graph, s, RDFS.label, tag_map=tag_map),
-                definition=public_text(graph, s, SKOS.definition, tag_map=tag_map),
-                prop_kind=kind,
-                domain=(
-                    _describe_node(graph, domain_val) if domain_val is not None else ""
-                ),
-                range=(
-                    _describe_node(graph, range_val) if range_val is not None else ""
-                ),
-                functional=(s, RDF.type, OWL.FunctionalProperty) in graph,
-                sub_property_of=_curies(graph, s, RDFS.subPropertyOf),
-                alignments=_alignments(alignments, s),
-            )
-        )
-
-    # Named individuals typed by a GMEOW class. Use the type index per class
-    # (graph.subjects(RDF.type, cls)) rather than scanning every subject.
-    declared = classes | set(properties)
-    seen: set[URIRef] = set()
-    for cls in classes:
-        for s in graph.subjects(RDF.type, cls):
-            if not _in_namespace(s) or s in declared or s in seen:
-                continue
-            seen.add(s)
-            terms.append(
-                Term(
-                    category="individual",
-                    iri=str(s),
-                    curie=curie(str(s)),
-                    label=public_text(graph, s, RDFS.label, tag_map=tag_map),
-                    definition=public_text(graph, s, SKOS.definition, tag_map=tag_map),
-                    types=sorted(
-                        curie(str(t))
-                        for t in graph.objects(s, RDF.type)
-                        if t in classes
-                    ),
-                    alignments=_alignments(alignments, s),
-                )
-            )
-
-    return sorted(terms, key=lambda t: (t.category, t.curie))
-
-
 # --------------------------------------------------------------------------- #
 # The fold path (narrow waist #267): everything below reads ONLY the snapshot
 # --------------------------------------------------------------------------- #
 
-_RDF_TYPE = str(RDF.type)
-_OWL_UNION = str(OWL.unionOf)
-_OWL_INTERSECTION = str(OWL.intersectionOf)
+_RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+_OWL_UNION = _OWL + "unionOf"
+_OWL_INTERSECTION = _OWL + "intersectionOf"
 _DCT_TITLE = "http://purl.org/dc/terms/title"
-_OWL_VERSION_INFO = str(OWL.versionInfo)
+_OWL_VERSION_INFO = _OWL + "versionInfo"
 
 
 def fold_meta(view: FoldView) -> tuple[str, str]:
@@ -380,15 +220,15 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
     def in_namespace(tid: int) -> bool:
         return view.is_iri(tid) and view.lex(tid).startswith(NAMESPACE)
 
-    classes = {t for t in view.subjects_by_type(str(OWL.Class)) if in_namespace(t)}
+    classes = {t for t in view.subjects_by_type(_OWL + "Class") if in_namespace(t)}
     properties: dict[int, str] = {}
     for ptype, kind in _PROPERTY_KINDS.items():
-        for t in view.subjects_by_type(str(ptype)):
+        for t in view.subjects_by_type(ptype):
             if in_namespace(t):
                 properties[t] = kind
 
-    label_iri, definition_iri = str(RDFS.label), str(SKOS.definition)
-    functional_tid = view.tid_of_iri(str(OWL.FunctionalProperty))
+    label_iri, definition_iri = _RDFS + "label", _SKOS + "definition"
+    functional_tid = view.tid_of_iri(_OWL + "FunctionalProperty")
 
     terms: list[Term] = []
     for t in classes:
@@ -399,14 +239,14 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                 curie=curie(view.lex(t)),
                 label=view.public_text(t, label_iri),
                 definition=view.public_text(t, definition_iri),
-                parents=_fold_curies(view, t, str(RDFS.subClassOf)),
+                parents=_fold_curies(view, t, _RDFS + "subClassOf"),
                 alignments=_fold_alignments(view, t),
             )
         )
 
     for t, kind in properties.items():
-        domain_tid = view.value(t, str(RDFS.domain))
-        range_tid = view.value(t, str(RDFS.range))
+        domain_tid = view.value(t, _RDFS + "domain")
+        range_tid = view.value(t, _RDFS + "range")
         terms.append(
             Term(
                 category="property",
@@ -429,7 +269,7 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                     functional_tid is not None
                     and view.has(t, _RDF_TYPE, functional_tid)
                 ),
-                sub_property_of=_fold_curies(view, t, str(RDFS.subPropertyOf)),
+                sub_property_of=_fold_curies(view, t, _RDFS + "subPropertyOf"),
                 alignments=_fold_alignments(view, t),
             )
         )
