@@ -3534,3 +3534,34 @@ gmeow:GraftDutyModalityShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Narration seam shapes (#360, EPIC #358) — reify only with a reason.
+# --------------------------------------------------------------------------- #
+
+gmeow:NarrationUsageShape
+    a sh:NodeShape ;
+    rdfs:label "Narration Usage Shape" ;
+    sh:targetClass gmeow:NarrationUsage ;
+    sh:property [
+        sh:path gmeow:narrationSegment ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ContentSegment ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrationUsage must carry exactly one gmeow:narrationSegment." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:narrationSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrationUsage must carry exactly one gmeow:narrationSubject — one relator per (segment, subject) pair." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:narrationMode ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrationUsage must state at least one gmeow:narrationMode (an IRI — the vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention) — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine, #360)." ;
+    ] .

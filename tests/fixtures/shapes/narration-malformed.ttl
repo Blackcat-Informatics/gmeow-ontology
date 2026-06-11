@@ -1,0 +1,29 @@
+# Malformed narration-seam fixture (#360, EPIC #358). Three violations:
+#   1. ex:modelessUsage — reified with no mode (the modeless case is the
+#      flat shortcut; if you reified, you had a reason).
+#   2. ex:subjectlessUsage — no narrated subject.
+#   3. ex:floatingUsage — no carrying segment.
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:work a gmeow:CreativeWork ; rdfs:label "a work"@en .
+ex:segment a gmeow:ContentSegment ; rdfs:label "a chapter"@en ; gmeow:segmentOf ex:work .
+ex:hero    a gmeow:Person ; rdfs:label "a hero"@en .
+
+# Violation 1: no mode.
+ex:modelessUsage a gmeow:NarrationUsage ;
+    gmeow:narrationSegment ex:segment ;
+    gmeow:narrationSubject ex:hero .
+
+# Violation 2: no subject.
+ex:subjectlessUsage a gmeow:NarrationUsage ;
+    gmeow:narrationSegment ex:segment ;
+    gmeow:narrationMode gmeow:narrationDirect .
+
+# Violation 3: no segment.
+ex:floatingUsage a gmeow:NarrationUsage ;
+    gmeow:narrationSubject ex:hero ;
+    gmeow:narrationMode gmeow:narrationDream .

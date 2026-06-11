@@ -41,3 +41,37 @@ discourse↔story reconciliation are solver-layer (Principle 12). A reified
 discourse↔story mapping construct is deliberately deferred to coordinate
 with the music extension's `TimeMapping` (#306) — one frame-mapping idiom in
 the repo, not two.
+
+## The narration seam (#360, EPIC #358)
+
+NOnt's reference function between text and story — neither mereology nor
+participation: "chapter 31 *narrates* event E; character C is *narrated in*
+segment S."
+
+- **Flat by default**: `narrates` (segment → diegetic content) and
+  `narratedIn` (content → segment; Wikidata **P1441**'s edge — SSSOM row
+  deferred to the alignment window), both `⊑ narrationLink` (domain- and
+  range-free ancestor for media-specific seams: panel, shot, verse).
+  **No `owl:inverseOf`** between the orientations — EL-clean; query both
+  (the `connectsTo` convention).
+- **Reify with a reason**: `NarrationUsage` (the NameUsage/DepictionUsage
+  idiom) = segment × subject × mode(s), SHACL-required mode — the modeless
+  case is the flat shortcut. `NarrationMode` is open: direct, mentioned,
+  flashback (the #359 two-axes disagreement as a mode), dream, hypothetical,
+  unreliable (the #212 boundary — narrator-level held ≠ projected;
+  documented bridge, no axiom coupling).
+- **Naming note**: `gmeow:depicts` belongs to the image spine
+  (MediaObject → Entity, `⊑ isAbout`, documents module) and `isAbout`'s
+  Entity range cannot carry diegetic *events* (occurrents) — hence the
+  separate, range-free narration family.
+- **The efficiency doctrine, codified**: the foundation corpus carries
+  38,413 character-segment links + 23,962 narrated events + 12,354
+  appearances. Budget arithmetic: flat ≈ 1 quad/link; reified ≈ 6–8
+  statements/link; full reification ≈ 1.5–2M statements for one corpus.
+  Flat is the default; **silent full reification is a defect, not
+  thoroughness**. The consumer child (#364) gates the flat/reified split
+  against a declared budget.
+
+Diegetic events stay ordinary `gmeow:Event`s claims-scoped `accordingTo`
+their frame; the events module's Participation machinery is reused untouched
+for who-did-what *in* the story.
