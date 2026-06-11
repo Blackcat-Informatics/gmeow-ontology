@@ -109,3 +109,57 @@ fn corpus_matches_frozen_expectations() {
         );
     }
 }
+
+/// §3.2/§18.23: every item-boundary prefix of every vector folds without
+/// error, and growing prefixes only ever extend the folded tables — the
+/// prefix-fold streaming property, tested rather than asserted.
+#[test]
+fn prefix_fold_streaming_property() {
+    use std::collections::HashSet;
+
+    use gts::wire::iter_items;
+
+    fn ground(g: &Graph) -> HashSet<String> {
+        to_nquads(g)
+            .lines()
+            .filter(|l| !l.contains("_:"))
+            .map(str::to_string)
+            .collect()
+    }
+
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/gts-vectors");
+    for entry in fs::read_dir(&dir).expect("corpus dir") {
+        let path = entry.expect("dir entry").path();
+        if path.extension().and_then(|e| e.to_str()) != Some("gts") {
+            continue;
+        }
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        let data = fs::read(&path).expect("vector bytes");
+        let (items, torn) = iter_items(&data);
+        // the last TRUE item boundary of a torn file is the torn offset
+        let end_of_items = torn.unwrap_or(data.len());
+        let mut boundaries: Vec<usize> = items.iter().skip(1).map(|(off, _)| *off).collect();
+        boundaries.push(end_of_items);
+        let mut prev: Option<Graph> = None;
+        for end in boundaries {
+            let g = read(&data[..end], true, None); // MUST be total: never panics
+            if let Some(p) = &prev {
+                if p.segment_heads.len() == g.segment_heads.len() {
+                    // .get() so a shrinking table is a clean assertion, not a panic
+                    assert_eq!(g.terms.get(..p.terms.len()), Some(&p.terms[..]), "{name}");
+                    assert_eq!(g.quads.get(..p.quads.len()), Some(&p.quads[..]), "{name}");
+                } else {
+                    assert!(ground(p).is_subset(&ground(&g)), "{name}");
+                }
+            }
+            prev = Some(g);
+        }
+        if torn.is_some() {
+            // §3.2: a stream cut mid-item folds exactly like the torn file
+            let full = read(&data, true, None);
+            let p = prev.expect("at least the header boundary");
+            assert_eq!(full.terms, p.terms, "{name}");
+            assert_eq!(full.quads, p.quads, "{name}");
+        }
+    }
+}
