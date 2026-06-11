@@ -28468,7 +28468,7 @@
               },
               "gtsSegmentIndex": {
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },

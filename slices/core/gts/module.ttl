@@ -101,7 +101,9 @@ gmeow:gtsSegment
 gmeow:gtsSegmentIndex
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:GTSSegment ;
-    rdfs:range xsd:nonNegativeInteger ;
+    # xsd:integer so schema generators map a numeric type (Int/number);
+    # non-negativity is enforced in shapes.ttl (sh:minInclusive 0)
+    rdfs:range xsd:integer ;
     rdfs:label "GTS segment index"@x-gmeow-english ;
     skos:definition "The zero-based position of a segment within its document's file order. The ordered list of segment heads — gmeow:gtsHeadId taken in gmeow:gtsSegmentIndex order — IS the document's composite identity (spec §3.1)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .

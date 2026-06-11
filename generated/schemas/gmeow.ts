@@ -3148,7 +3148,7 @@ export interface GTSProfile {
 export interface GTSSegment extends Manifestation {
     gtsHeadId?: string,
     gtsProfile?: GTSProfile,
-    gtsSegmentIndex?: string,
+    gtsSegmentIndex?: number,
     gtsSegmentOf?: GTSDocument,
     usesTransformCodec?: TransformCodec[],
 }

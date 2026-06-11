@@ -99,9 +99,14 @@ def test_no_parallel_signature_or_digest_mechanism() -> None:
     module = (SLICE_DIR / "module.ttl").read_text(encoding="utf-8")
     g = Graph()
     g.parse(data=module, format="turtle")
-    minted = {str(s) for s in g.subjects(RDF.type, None) if str(s).startswith(GMEOW)}
+    terms = {
+        str(node)
+        for triple in g
+        for node in triple
+        if isinstance(node, URIRef) and str(node).startswith(GMEOW)
+    }
     for forbidden in ("gtsSignature", "gtsDigest", "gtsContentDigest"):
-        assert GMEOW + forbidden not in minted
+        assert GMEOW + forbidden not in terms
 
 
 def test_competency_queries_parse_and_run() -> None:

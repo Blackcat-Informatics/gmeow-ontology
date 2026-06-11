@@ -72,9 +72,10 @@ gmeow:GTSSegmentShape
         sh:path gmeow:gtsSegmentIndex ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:datatype xsd:nonNegativeInteger ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
         sh:severity sh:Violation ;
-        sh:message "A GTSSegment must carry exactly one gmeow:gtsSegmentIndex." ;
+        sh:message "A GTSSegment must carry exactly one non-negative gmeow:gtsSegmentIndex." ;
     ] ;
     sh:property [
         sh:path gmeow:gtsProfile ;

@@ -15594,7 +15594,7 @@ class GTSSegment(Manifestation):
     gtsProfile: Optional[GTSProfile] = Field(default=None, title="GTS profile", json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
          'domain_of': ['GTSSegment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/gtsProfile'} })
-    gtsSegmentIndex: Optional[str] = Field(default=None, title="GTS segment index", json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
+    gtsSegmentIndex: Optional[int] = Field(default=None, title="GTS segment index", json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
          'domain_of': ['GTSSegment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/gtsSegmentIndex'} })
     gtsSegmentOf: Optional[GTSDocument] = Field(default=None, title="GTS segment of", json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
