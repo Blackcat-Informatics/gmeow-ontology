@@ -1,0 +1,33 @@
+# Coverage fixture for the teleology slice (#350, EPIC #348): exercises every
+# teleology class so the coverage harness sees the trichotomy, the goal pair,
+# the flat shortcut, and the tenure in instance data.
+
+@prefix ex:    <https://example.org/coverage/teleology/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:agent a gmeow:Person ; rdfs:label "Coverage agent"@en .
+ex:other a gmeow:Person ; rdfs:label "Coverage beneficiary"@en .
+
+ex:goal a gmeow:Goal ; rdfs:label "coverage goal"@en ;
+    gmeow:counterGoal ex:antiGoal .
+ex:antiGoal a gmeow:Goal ; rdfs:label "coverage counter-goal"@en .
+
+ex:desire a gmeow:Desire ;
+    gmeow:intentBearer ex:agent ;
+    gmeow:intentionGoal ex:goal .
+
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer ex:agent ;
+    gmeow:intentionGoal ex:goal .
+
+ex:commitment a gmeow:Commitment ;
+    gmeow:committedAgent ex:agent ;
+    gmeow:commitmentBeneficiary ex:other ;
+    gmeow:intentionGoal ex:goal .
+
+ex:agent gmeow:hasGoal ex:goal .
+
+ex:tenure a gmeow:IntentionTenure ;
+    gmeow:tenureAgent ex:agent ;
+    gmeow:tenureIntention ex:intention .

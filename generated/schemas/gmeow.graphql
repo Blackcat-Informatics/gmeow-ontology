@@ -1,4 +1,10 @@
 # metamodel_version: 1.11.0
+enum AboutnessModeEnum
+  {
+    aboutnessDescribes
+    aboutnessEnacts
+  }
+
 enum AccessibilityFacetEnum
   {
     facetAuditory
@@ -1183,6 +1189,12 @@ enum NarrativeFrameRelationEnum
     relationFanon
   }
 
+enum NarrativeTimeAxisEnum
+  {
+    axisDiscourseTime
+    axisStoryTime
+  }
+
 enum NetworkAddressTypeEnum
   {
     networkAddressTypeBGP
@@ -2074,6 +2086,10 @@ enum WritingSystemTypeEnum
     wsTypeSyllabary
   }
 
+type AboutnessMode
+  {
+  }
+
 type AccessibilityAssertion
   {
     assertionFacet: AccessibilityFacet
@@ -2161,6 +2177,7 @@ type Agent
     endorses: [Agent]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
+    hasGoal: [Goal]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -3225,6 +3242,7 @@ type Builder
     endorses: [Agent]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
+    hasGoal: [Goal]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -3768,6 +3786,12 @@ type Commit
     committedBy: [Agent]
     committerTime: [String]
     parentCommit: [Commit]
+  }
+
+type Commitment
+  {
+    commitmentBeneficiary: [Agent]
+    committedAgent: Agent
   }
 
 type ConflictStrategy
@@ -4407,6 +4431,11 @@ type DepictionUsage
 
 type DerivationKind
   {
+  }
+
+type Desire
+  {
+    intentBearer: Agent
   }
 
 type Determinacy
@@ -5836,6 +5865,60 @@ type GeometryType
   {
   }
 
+type Goal
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    counterGoal: [Goal]
+    satisfiedBy: [String]
+  }
+
 type GovernanceModel
   {
   }
@@ -6483,6 +6566,77 @@ type Instant
   {
     inTemporalFrame: [TemporalFrame]
     instantValue: String
+  }
+
+type Intention
+  {
+    intentBearer: Agent
+  }
+
+type IntentionalMode
+  {
+    intentBearer: Agent
+  }
+
+type IntentionalMoment
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    intentionGoal: Goal
+    motivates: [Event]
+  }
+
+type IntentionTenure
+  {
+    duringInterval: [TimeInterval]
+    tenureAgent: Agent
+    tenureIntention: IntentionalMode
   }
 
 type InterpersonalRelationship
@@ -8826,6 +8980,61 @@ type NarrativeFrameRelation
   {
   }
 
+type NarrativePosition
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    positionFrame: NarrativeTimeFrame
+    positionLabel: [String]
+    positionOrdinal: Int
+  }
+
 type NarrativeReferenceFrame
   {
     acquireLicensePage: [String]
@@ -8891,6 +9100,78 @@ type NarrativeReferenceFrame
     transformsTo: [ReferenceFrame]
     hasNarrativeFrameRelation: [NarrativeFrameRelation]
     relatesToFrame: [NarrativeReferenceFrame]
+  }
+
+type NarrativeTimeAxis
+  {
+  }
+
+type NarrativeTimeFrame
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    determinacyModel: Determinacy
+    dimensionCount: Int
+    frameKind: FrameKind
+    frameRealm: FrameRealm
+    frameSolver: [String]
+    hasAxis: [Axis]
+    hasMetricKind: MetricKind
+    hasReferencePosition: CelestialReferenceOrigin
+    hasTimeScale: TimeScale
+    isHostedBy: [Entity]
+    parentFrame: ReferenceFrame
+    requiresHost: Boolean
+    transformsTo: [ReferenceFrame]
+    discourseTimeOf: CreativeWork
+    narrativeTimeAxis: NarrativeTimeAxis
+    storyTimeOf: NarrativeReferenceFrame
   }
 
 type NetworkAddress
@@ -9368,6 +9649,7 @@ type Organization
     endorses: [Agent]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
+    hasGoal: [Goal]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -9704,6 +9986,7 @@ type Person
     endorses: [Agent]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
+    hasGoal: [Goal]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -11537,6 +11820,7 @@ type Sensor
     endorses: [Agent]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
+    hasGoal: [Goal]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -12389,6 +12673,7 @@ type SoftwareAgent
     endorses: [Agent]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
+    hasGoal: [Goal]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]

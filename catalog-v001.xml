@@ -39,6 +39,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/citations" uri="slices/core/citations/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/evidence" uri="slices/core/evidence/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/temporal" uri="slices/core/temporal/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/teleology" uri="slices/core/teleology/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/email" uri="slices/extensions/email/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/narrative" uri="slices/extensions/narrative/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/trust" uri="slices/core/trust/module.ttl"/>
