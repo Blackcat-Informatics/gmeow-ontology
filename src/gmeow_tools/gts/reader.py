@@ -710,12 +710,12 @@ def _remap_suppression(
         tid = t.get("id")
         if kind in ("term", "reifier") and isinstance(tid, int):
             t["id"] = map_fn(seg, seg_idx, tid)
-        elif kind == "quad" and isinstance(t.get("q"), list):
-            raw_q = t["q"]
-            assert isinstance(raw_q, list)
-            t["q"] = [
-                map_fn(seg, seg_idx, x) if isinstance(x, int) else x for x in raw_q
-            ]
+        elif kind == "quad":
+            raw_q = t.get("q")
+            if isinstance(raw_q, list):
+                t["q"] = [
+                    map_fn(seg, seg_idx, x) if isinstance(x, int) else x for x in raw_q
+                ]
         new_targets.append(t)
     return Suppression(
         targets=new_targets,
