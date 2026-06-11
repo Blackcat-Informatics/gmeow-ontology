@@ -18,7 +18,7 @@ import yaml
 
 from gmeow_tools.config import SCHEMAS_DIR
 from gmeow_tools.generator import run
-from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.gts_views import load_fold
 from gmeow_tools.schema_compile import (
     _LINKML_FILE,
     SchemaGenerator,
@@ -35,8 +35,7 @@ pytestmark = pytest.mark.ci_only
 
 def test_emit_linkml_produces_expected_structure() -> None:
     """The LinkML schema dict must contain classes, slots, and enums."""
-    graph = load_merged_graph(include_imports=False)
-    schema, warnings = emit_linkml(graph)
+    schema, warnings = emit_linkml(load_fold())
 
     assert schema["name"] == "gmeow"
     assert "classes" in schema
@@ -54,8 +53,7 @@ def test_emit_linkml_produces_expected_structure() -> None:
 
 def test_generators_run_without_error(tmp_path: Path) -> None:
     """Each LinkML generator must serialize without raising."""
-    graph = load_merged_graph(include_imports=False)
-    schema_dict, _warnings = emit_linkml(graph)
+    schema_dict, _warnings = emit_linkml(load_fold())
     linkml_path = tmp_path / _LINKML_FILE
     linkml_path.write_text(
         yaml.safe_dump(schema_dict, sort_keys=False), encoding="utf-8"
@@ -80,8 +78,7 @@ def test_generators_run_without_error(tmp_path: Path) -> None:
 
 def test_openapi_derives_valid_json(tmp_path: Path) -> None:
     """OpenAPI derivation must produce valid JSON with a components/schemas block."""
-    graph = load_merged_graph(include_imports=False)
-    schema_dict, _warnings = emit_linkml(graph)
+    schema_dict, _warnings = emit_linkml(load_fold())
     linkml_path = tmp_path / _LINKML_FILE
     linkml_path.write_text(
         yaml.safe_dump(schema_dict, sort_keys=False), encoding="utf-8"
