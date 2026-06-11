@@ -19,7 +19,11 @@ epistemics.
 | internally committed | `gmeow:Intention` | `gufo:IntrinsicMode` | one agent (`intentBearer`) |
 | socially committed | `gmeow:Commitment` | `gufo:Relator` | committed agent + distinct beneficiaries |
 
-All three aim at exactly one **`gmeow:Goal`** (`intentionGoal`) — the
+All three sit under the named umbrella **`gmeow:IntentionalMoment`** (UFO-C's
+intentional moment), which exists so `intentionGoal` and `motivates` carry a
+generator-visible domain — anonymous union domains vanish from the LinkML /
+GraphQL / TypeScript surface (PR #366 review). All three aim at exactly one
+**`gmeow:Goal`** (`intentionGoal`) — the
 propositional content, a `SocialObject` describing a state of affairs,
 satisfied by situations (`satisfiedBy`, vantage-indexed satisfaction). DOLCE
 DnS arrives at the same description-satisfied-by-situations shape

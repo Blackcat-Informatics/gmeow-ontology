@@ -5,7 +5,8 @@
 The mention/use distinction (describes vs enacts) is the fourth domain-free
 epistemic axis alongside granularity, determinacy, and sensitivity. This module
 pins that as a structural invariant: AboutnessMode is a universal gUFO
-QualityValue, hasAboutness is a domain-free non-functional ObjectProperty
+QualityValue, hasAboutness is a domain-free non-functional AnnotationProperty
+(the accordingTo pattern — statement-layer cells stay DL-clean, P3)
 orthogonal to every other kernel axis, and the two seeds span the mention/use
 space with no privileged winner (Principle 9).
 """

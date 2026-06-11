@@ -55,6 +55,7 @@ def test_intrinsic_modes_are_grounded() -> None:
     g = _graph()
     assert (GM.IntentionalMode, RDF.type, GUFO.Category) in g
     assert (GM.IntentionalMode, RDFS.subClassOf, GUFO.IntrinsicMode) in g
+    assert (GM.IntentionalMode, RDFS.subClassOf, GM.IntentionalMoment) in g
     for kind in (GM.Desire, GM.Intention):
         assert (kind, RDF.type, GUFO.Kind) in g
         assert (kind, RDFS.subClassOf, GM.IntentionalMode) in g
@@ -65,7 +66,19 @@ def test_commitment_is_a_relator_not_a_mode() -> None:
     g = _graph()
     assert (GM.Commitment, RDF.type, GUFO.Kind) in g
     assert (GM.Commitment, RDFS.subClassOf, GUFO.Relator) in g
+    assert (GM.Commitment, RDFS.subClassOf, GM.IntentionalMoment) in g
     assert (GM.Commitment, RDFS.subClassOf, GM.IntentionalMode) not in g
+
+
+def test_goal_properties_carry_named_generator_visible_domains() -> None:
+    """intentionGoal and motivates use the named IntentionalMoment umbrella,
+    never an anonymous union — anonymous domains vanish from the generated
+    LinkML/GraphQL/TypeScript surface (PR #366 review)."""
+    g = _graph()
+    assert (GM.IntentionalMoment, RDF.type, GUFO.Category) in g
+    assert (GM.IntentionalMoment, RDFS.subClassOf, GM.Entity) in g
+    assert g.value(GM.intentionGoal, RDFS.domain) == GM.IntentionalMoment
+    assert g.value(GM.motivates, RDFS.domain) == GM.IntentionalMoment
 
 
 def test_desire_intention_disjoint() -> None:

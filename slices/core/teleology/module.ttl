@@ -54,11 +54,18 @@ gmeow:counterGoal
 # INTENTIONAL MODES — desire, intention (intrinsic), commitment (relational)
 # =========================================================================== #
 
+gmeow:IntentionalMoment
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Intentional Moment"@x-gmeow-english ;
+    skos:definition "The umbrella category of all goal-directed moments — UFO-C's intentional moment, spanning the intrinsic branch (gmeow:IntentionalMode: desires and intentions inhering in one agent) and the social branch (gmeow:Commitment: a relator toward other agents). Exists as a NAMED class so that gmeow:intentionGoal and gmeow:motivates carry a generator-visible domain instead of an anonymous union (the schema surface — LinkML, GraphQL, TypeScript — projects properties from named domains only). Never instantiated directly."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
+
 gmeow:IntentionalMode
     a owl:Class, gufo:Category ;
-    rdfs:subClassOf gmeow:Entity, gufo:IntrinsicMode ;
+    rdfs:subClassOf gmeow:IntentionalMoment, gufo:IntrinsicMode ;
     rdfs:label "Intentional Mode"@x-gmeow-english ;
-    skos:definition "The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. Never instantiated directly: instances are Desires or Intentions (the commitment-graded trichotomy; the social grade is gmeow:Commitment, a relator, not a mode)."@x-gmeow-english ;
+    skos:definition "The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. The intrinsic branch of gmeow:IntentionalMoment. Never instantiated directly: instances are Desires or Intentions (the commitment-graded trichotomy; the social grade is gmeow:Commitment, a relator, not a mode)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:Desire
@@ -77,7 +84,7 @@ gmeow:Intention
 
 gmeow:Commitment
     a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf gmeow:IntentionalMoment, gufo:Relator ;
     rdfs:label "Commitment"@x-gmeow-english ;
     skos:definition "A social commitment — an agent committed toward at least one other agent to bring about a goal (UFO-C: social moment). A relator, not a mode: it mediates the committed agent (gmeow:committedAgent) and the beneficiaries (gmeow:commitmentBeneficiary), who must be distinct (SHACL). A covenant, a contract promise, and a service-level agreement are Commitments; the agreements and contracts modules carry the document and the legal wrapper, this class carries the teleological bond itself."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
@@ -111,7 +118,7 @@ gmeow:commitmentBeneficiary
 
 gmeow:intentionGoal
     a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:IntentionalMode gmeow:Commitment ) ] ;
+    rdfs:domain gmeow:IntentionalMoment ;
     rdfs:range gmeow:Goal ;
     rdfs:label "intention goal"@x-gmeow-english ;
     skos:definition "The goal at which a desire, intention, or commitment aims — its propositional content. Functional: one mode, one goal; an agent pursuing five goals bears five modes. Sharing is at the Goal: two agents committed to the same outcome hold distinct modes aiming at one Goal individual."@x-gmeow-english ;
@@ -119,7 +126,7 @@ gmeow:intentionGoal
 
 gmeow:motivates
     a owl:ObjectProperty ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:IntentionalMode gmeow:Commitment ) ] ;
+    rdfs:domain gmeow:IntentionalMoment ;
     rdfs:range gmeow:Event ;
     rdfs:label "motivates"@x-gmeow-english ;
     skos:definition "Relates a desire, intention, or commitment to an event the agent undertook (at least in part) because of it — the teleological reading of action. NOT functional, and an attributed-motive claim like any other: whose reading of the motive it is rides gmeow:accordingTo on the statement (Principle 9; the deception module's deceptiveIntentClaim is the adversarial special case). Grounds cn:MotivatedByGoal and atomic:xIntent at alignment time."@x-gmeow-english ;

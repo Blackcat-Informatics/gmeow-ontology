@@ -3258,7 +3258,12 @@ gmeow:IntentionTenureShape
 # --------------------------------------------------------------------------- #
 # Aboutness guard (#349, EPIC #348) — the axis targets vocabulary IRIs.
 # The vocabulary stays OPEN (Principle 9): the guard forbids literals, not
-# unknown modes.
+# unknown modes. DELIBERATELY no sh:class gmeow:AboutnessMode (PR #366
+# review): these shapes validate instance-data graphs WITHOUT the module
+# closure merged in, so a class constraint would flag every legitimate use
+# of the kernel seeds (aboutnessDescribes / aboutnessEnacts — typed in the
+# kernel module, not in data) and would force data graphs to re-type kernel
+# vocabulary, which no other value-vocabulary shape requires.
 # --------------------------------------------------------------------------- #
 
 gmeow:AboutnessTargetShape

@@ -3403,8 +3403,15 @@ export interface IntentionTenure extends TimeScopedRelation {
 
 
 
-export interface IntentionalMode extends Entity {
+export interface IntentionalMode {
     intentBearer?: Agent,
+}
+
+
+
+export interface IntentionalMoment extends Entity {
+    intentionGoal?: Goal,
+    motivates?: Event[],
 }
 
 
@@ -3952,7 +3959,7 @@ export interface NarrativeFrameRelation {
 
 export interface NarrativePosition extends Entity {
     positionFrame?: NarrativeTimeFrame,
-    positionLabel?: string,
+    positionLabel?: string[],
     positionOrdinal?: number,
 }
 

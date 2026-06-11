@@ -4435,54 +4435,6 @@ type DerivationKind
 
 type Desire
   {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
-    authorityLink: [String]
-    cites: [CreativeWork]
-    conditionsOfAccess: String
-    counterpartOf: [Entity]
-    depictedIn: [MediaObject]
-    description: String
-    existenceInterval: [TimeInterval]
-    hasAccessibilityNeed: [AccessibilityFacet]
-    hasAppellation: [Appellation]
-    hasAttestation: [Attestation]
-    hasCopyright: [Copyright]
-    hasCreationEvent: [Event]
-    hasDestructionEvent: [Event]
-    hasDirectReply: [Comment]
-    hasLicense: [License]
-    hasPose: [Pose]
-    hasReply: [Comment]
-    hasRightsStatement: [RightsStatement]
-    hasSensoryObservation: [SensoryObservation]
-    hasSensoryQuantity: [SensoryQuantity]
-    hasSpatialMeasurement: [SpatialMeasurement]
-    hasStream: [Stream]
-    hasTag: [Tag]
-    hasTrademark: [Trademark]
-    hasVersion: [Entity]
-    hasWebPage: [WebPage]
-    isAbout: [Entity]
-    isAccessibleForFree: Boolean
-    isReferencedBy: [Entity]
-    isResultOf: [Observation]
-    locatedAt: [Location]
-    mentionedIn: [Note]
-    name: String
-    provenance: String
-    proximity: [ProximityMeasurement]
-    references: [Entity]
-    storedIn: [StorageLocation]
-    supersededBy: [Entity]
-    supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
-    versionOf: Entity
-    wasAttributedTo: [Agent]
-    wasGeneratedBy: [Activity]
     intentBearer: Agent
   }
 
@@ -5915,15 +5867,15 @@ type GeometryType
 
 type Goal
   {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
     authorityLink: [String]
     cites: [CreativeWork]
-    conditionsOfAccess: String
+    conditionsOfAccess: [String]
     counterpartOf: [Entity]
     depictedIn: [MediaObject]
-    description: String
+    description: [String]
     existenceInterval: [TimeInterval]
     hasAccessibilityNeed: [AccessibilityFacet]
     hasAppellation: [Appellation]
@@ -5945,21 +5897,21 @@ type Goal
     hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
-    isAccessibleForFree: Boolean
+    isAccessibleForFree: [Boolean]
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     mentionedIn: [Note]
-    name: String
-    provenance: String
+    name: [String]
+    provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
@@ -6618,68 +6570,25 @@ type Instant
 
 type Intention
   {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
-    authorityLink: [String]
-    cites: [CreativeWork]
-    conditionsOfAccess: String
-    counterpartOf: [Entity]
-    depictedIn: [MediaObject]
-    description: String
-    existenceInterval: [TimeInterval]
-    hasAccessibilityNeed: [AccessibilityFacet]
-    hasAppellation: [Appellation]
-    hasAttestation: [Attestation]
-    hasCopyright: [Copyright]
-    hasCreationEvent: [Event]
-    hasDestructionEvent: [Event]
-    hasDirectReply: [Comment]
-    hasLicense: [License]
-    hasPose: [Pose]
-    hasReply: [Comment]
-    hasRightsStatement: [RightsStatement]
-    hasSensoryObservation: [SensoryObservation]
-    hasSensoryQuantity: [SensoryQuantity]
-    hasSpatialMeasurement: [SpatialMeasurement]
-    hasStream: [Stream]
-    hasTag: [Tag]
-    hasTrademark: [Trademark]
-    hasVersion: [Entity]
-    hasWebPage: [WebPage]
-    isAbout: [Entity]
-    isAccessibleForFree: Boolean
-    isReferencedBy: [Entity]
-    isResultOf: [Observation]
-    locatedAt: [Location]
-    mentionedIn: [Note]
-    name: String
-    provenance: String
-    proximity: [ProximityMeasurement]
-    references: [Entity]
-    storedIn: [StorageLocation]
-    supersededBy: [Entity]
-    supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
-    versionOf: Entity
-    wasAttributedTo: [Agent]
-    wasGeneratedBy: [Activity]
     intentBearer: Agent
   }
 
 type IntentionalMode
   {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
+    intentBearer: Agent
+  }
+
+type IntentionalMoment
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
     authorityLink: [String]
     cites: [CreativeWork]
-    conditionsOfAccess: String
+    conditionsOfAccess: [String]
     counterpartOf: [Entity]
     depictedIn: [MediaObject]
-    description: String
+    description: [String]
     existenceInterval: [TimeInterval]
     hasAccessibilityNeed: [AccessibilityFacet]
     hasAppellation: [Appellation]
@@ -6701,25 +6610,26 @@ type IntentionalMode
     hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
-    isAccessibleForFree: Boolean
+    isAccessibleForFree: [Boolean]
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     mentionedIn: [Note]
-    name: String
-    provenance: String
+    name: [String]
+    provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
-    intentBearer: Agent
+    intentionGoal: Goal
+    motivates: [Event]
   }
 
 type IntentionTenure
@@ -9072,15 +8982,15 @@ type NarrativeFrameRelation
 
 type NarrativePosition
   {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
     authorityLink: [String]
     cites: [CreativeWork]
-    conditionsOfAccess: String
+    conditionsOfAccess: [String]
     counterpartOf: [Entity]
     depictedIn: [MediaObject]
-    description: String
+    description: [String]
     existenceInterval: [TimeInterval]
     hasAccessibilityNeed: [AccessibilityFacet]
     hasAppellation: [Appellation]
@@ -9102,26 +9012,26 @@ type NarrativePosition
     hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
-    isAccessibleForFree: Boolean
+    isAccessibleForFree: [Boolean]
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     mentionedIn: [Note]
-    name: String
-    provenance: String
+    name: [String]
+    provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     positionFrame: NarrativeTimeFrame
-    positionLabel: String
+    positionLabel: [String]
     positionOrdinal: Int
   }
 
@@ -9198,15 +9108,15 @@ type NarrativeTimeAxis
 
 type NarrativeTimeFrame
   {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
     authorityLink: [String]
     cites: [CreativeWork]
-    conditionsOfAccess: String
+    conditionsOfAccess: [String]
     counterpartOf: [Entity]
     depictedIn: [MediaObject]
-    description: String
+    description: [String]
     existenceInterval: [TimeInterval]
     hasAccessibilityNeed: [AccessibilityFacet]
     hasAppellation: [Appellation]
@@ -9228,21 +9138,21 @@ type NarrativeTimeFrame
     hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
-    isAccessibleForFree: Boolean
+    isAccessibleForFree: [Boolean]
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     mentionedIn: [Note]
-    name: String
-    provenance: String
+    name: [String]
+    provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
@@ -9250,7 +9160,7 @@ type NarrativeTimeFrame
     dimensionCount: Int
     frameKind: FrameKind
     frameRealm: FrameRealm
-    frameSolver: String
+    frameSolver: [String]
     hasAxis: [Axis]
     hasMetricKind: MetricKind
     hasReferencePosition: CelestialReferenceOrigin
