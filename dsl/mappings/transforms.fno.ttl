@@ -103,14 +103,25 @@ gmeow:fnTranslate
 
 # --- Shared parameters / outputs (declarative; no bound executor) ----------- #
 
-gmeow:pSourceText      a fno:Parameter ; fno:predicate gmeow:fullName ; fno:type rdfs:Literal ; fno:required true .
+gmeow:pSourceText      a fno:Parameter ; fno:predicate gmeow:fullName ; fno:type rdfs:Literal ; fno:required true ;
+    rdfs:label "source text"@x-gmeow-english ;
+    skos:definition "The input literal to a language transformation — the text to transliterate, transcribe, or translate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 gmeow:pTargetLanguage  a fno:Parameter ; fno:predicate gmeow:targetLanguage ; fno:type gmeow:Language ; fno:required true ;
+    rdfs:label "target language"@x-gmeow-english ;
+    skos:definition "The first-class gmeow:Language the transformation targets."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 gmeow:oTransliterated  a fno:Output ; fno:predicate gmeow:romanization ; fno:type rdfs:Literal ;
+    rdfs:label "transliterated output"@x-gmeow-english ;
+    skos:definition "The transliterated literal produced by a romanization/transliteration function; recorded as a gmeow:romanization."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 gmeow:oTranscribed     a fno:Output ; fno:predicate gmeow:projectedTranscription ; fno:type rdfs:Literal ;
+    rdfs:label "transcribed output"@x-gmeow-english ;
+    skos:definition "The phonetic transcription literal produced by a transcription function (e.g. IPA)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 gmeow:oTranslated      a fno:Output ; fno:predicate gmeow:projectedTranslation ; fno:type rdfs:Literal ;
+    rdfs:label "translated output"@x-gmeow-english ;
+    skos:definition "The translated literal produced by a translation function."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 # --- Projection-domain transforms (issue #263) ----------------------------- #
@@ -123,6 +134,11 @@ gmeow:fnSkillProficiencyToKnowsAbout
     fno:returns ( gmeow:oKnowsAbout ) ;
     rdfs:seeAlso gmeow:hasSkill .
 
-gmeow:pSkillProficiency a fno:Parameter ; fno:predicate gmeow:hasSkill ; fno:type gmeow:Skill ; fno:required true .
+gmeow:pSkillProficiency a fno:Parameter ; fno:predicate gmeow:hasSkill ; fno:type gmeow:Skill ; fno:required true ;
+    rdfs:label "skill proficiency input"@x-gmeow-english ;
+    skos:definition "The gmeow:Skill borne by a SkillProficiency, input to the knowsAbout projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 gmeow:oKnowsAbout       a fno:Output ;     fno:predicate schema:knowsAbout ;     fno:type gmeow:Skill ;
+    rdfs:label "knowsAbout output"@x-gmeow-english ;
+    skos:definition "The schema:knowsAbout value emitted for a skill proficiency by the projection."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .

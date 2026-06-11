@@ -3,11 +3,14 @@
 
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/genealogy>
     a gmeow:Slice ;
     rdfs:label "genealogy"@x-gmeow-english ;
+    skos:definition "The genealogy slice of the GMEOW ontology (extension tier): GMEOW Genealogy Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     dcterms:title "GMEOW Genealogy Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierExtension ;

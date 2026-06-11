@@ -37,11 +37,16 @@ def merged_store() -> pyoxigraph.Store:
     return sparql.merged_store(include_imports=False)
 
 
+#: Reasons stripped from docker skipif markers, stashed per-item so the
+#: hard-fail fixture still knows which image to verify after the marker is
+#: removed (removing it is what makes the test RUN instead of skip).
+_DOCKER_REASONS = pytest.StashKey[list[str]]()
+
+
 @pytest.fixture
 def _docker_images(request: pytest.FixtureRequest) -> None:
     """Fail hard when a docker test runs but the required image is missing."""
-    for marker in request.node.iter_markers("skipif"):
-        reason = marker.kwargs.get("reason", "")
+    for reason in request.node.stash.get(_DOCKER_REASONS, []):
         if "ROBOT" in reason and not image_available(ROBOT_IMAGE):
             pytest.fail(f"Hard fail: {reason}", pytrace=False)
         if "Jena" in reason and not image_available(JENA_IMAGE):
@@ -53,12 +58,13 @@ def pytest_collection_modifyitems(
 ) -> None:
     """Replace docker-related skipif markers with a hard-fail fixture."""
     for item in items:
-        has_docker_skip = False
+        reasons: list[str] = []
         for marker in list(item.iter_markers("skipif")):
             reason = marker.kwargs.get("reason", "")
             if "ROBOT" in reason or "Jena" in reason:
-                has_docker_skip = True
+                reasons.append(reason)
                 if marker in item.own_markers:
                     item.own_markers.remove(marker)
-        if has_docker_skip:
+        if reasons:
+            item.stash[_DOCKER_REASONS] = reasons
             item.add_marker(pytest.mark.usefixtures("_docker_images"))
