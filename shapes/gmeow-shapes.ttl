@@ -2855,17 +2855,17 @@ gmeow:RetractedNoteSuppressionShape
 # Images module (issue #22) — DepictionUsage, ImageRegion, SceneGraphEdge
 # =========================================================================== #
 
-gmeow:NarrationUsageUsageShape
+gmeow:DepictionUsageShape
     a sh:NodeShape ;
     rdfs:label "Depiction Usage Shape" ;
-    sh:targetClass gmeow:NarrationUsageUsage ;
+    sh:targetClass gmeow:DepictionUsage ;
     sh:property [
-        sh:path gmeow:narrationSubject ;
+        sh:path gmeow:depictionSubject ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class gmeow:Entity ;
         sh:severity sh:Violation ;
-        sh:message "A DepictionUsage must specify exactly one depicted entity (gmeow:narrationSubject)." ;
+        sh:message "A DepictionUsage must specify exactly one depicted entity (gmeow:depictionSubject)." ;
     ] ;
     sh:property [
         sh:path gmeow:depictionImage ;
@@ -2878,14 +2878,14 @@ gmeow:NarrationUsageUsageShape
     sh:property [
         sh:path gmeow:depictionContext ;
         sh:minCount 1 ;
-        sh:class gmeow:NarrationUsageContext ;
+        sh:class gmeow:DepictionContext ;
         sh:severity sh:Violation ;
         sh:message "A DepictionUsage must specify exactly one depiction context (gmeow:depictionContext)." ;
     ] ;
     sh:property [
         sh:path gmeow:depictionContext ;
         sh:maxCount 1 ;
-        sh:class gmeow:NarrationUsageContext ;
+        sh:class gmeow:DepictionContext ;
         sh:severity sh:Violation ;
         sh:message "A DepictionUsage must have at most one depiction context." ;
     ] .
