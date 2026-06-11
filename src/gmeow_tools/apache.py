@@ -103,11 +103,12 @@ _TEMPLATE = """\
 </LocationMatch>
 
 # --- Conneg cache semantics ------------------------------------------------------
-# The bare /gmeow (and /gmeow/) 303-target depends on the Accept header: it
-# must Vary and must not be cached as a single variant, or a shared cache
-# pins one serialization for every client. The serializations themselves and
-# the per-term redirects (one URL -> one target) stay cacheable.
-<LocationMatch "^/gmeow/?$">
+# Every endpoint whose 303-target depends on the Accept header must Vary and
+# must not be cached as a single variant, or a shared cache (Cloudflare) pins
+# one serialization for every client. That is the bare /gmeow AND the slice
+# IRIs (#329) — both negotiate. The serializations themselves, the per-term
+# redirects, and the legacy 301s (one URL -> one target) stay cacheable.
+<LocationMatch "^/gmeow(/?$|/slices/)">
     Header always set Vary "Accept"
     Header always set Cache-Control "private, no-store"
 </LocationMatch>
