@@ -4832,9 +4832,16 @@ type EmailMessage
     dispositionNotificationTo: [EmailAddress]
     from: [EmailAddress]
     hasCalendarMethod: [CalendarMethod]
+    hasMailingList: [MailingList]
     hasMessageParticipant: [MessageParticipant]
     hasPatchDiff: [EmailPatchDiff]
     importance: String
+    listArchive: [String]
+    listHelp: [String]
+    listOwner: [EmailAddress]
+    listPost: String
+    listSubscribe: [String]
+    listUnsubscribe: [String]
     messageIdCollision: Boolean
     messageIdGenerated: Boolean
     precedence: String
@@ -7777,6 +7784,61 @@ type MailboxResidence
     duringInterval: [TimeInterval]
     residenceMailbox: Mailbox
     residentMessage: Message
+  }
+
+type MailingList
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    writtenInLanguage: [Language]
   }
 
 type MaintenanceStatus

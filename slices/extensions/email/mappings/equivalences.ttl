@@ -281,3 +281,14 @@ gmeow:eqEmail032 a gmeow:TermEquivalence ;
     gmeow:confidence 0.5 ;
     gmeow:comment "the message carries an iCalendar VEVENT component" ;
     gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Mailing-list header terms (issue #131)
+# --------------------------------------------------------------------------- #
+# MailingList, hasMailingList, listSubscribe, listUnsubscribe, listPost,
+# listHelp, listArchive, and listOwner are canonical — no maintained external
+# RDF vocabulary covers RFC 2369 / RFC 2919 list headers. Schema.org has no
+# mailing-list terms; NMO has no List-* coverage; SIOC has no list concepts.
+# This follows the precedent of MessageKind, Mailbox hierarchy, and
+# ContentTransferEncoding (all canonical in this slice).
+# --------------------------------------------------------------------------- #
