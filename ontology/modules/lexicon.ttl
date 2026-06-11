@@ -363,3 +363,17 @@ gmeow:derivationReconstruction
 # No new properties are minted for these axes — the lexicon module reuses
 # the existing cross-cutting vocabulary (Principle 4: one canonical source).
 # =========================================================================== #
+
+# =========================================================================== #
+# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# Declared HERE, in the slice that owns these properties: a dependent slice
+# knows the core observation spine; the spine never knows the slice. The
+# super-properties (observedFeature / vantage / observationResult) live in
+# the observations module.
+# =========================================================================== #
+# Lexicon bridges (declared here because the super-properties live here).
+# Note: attestedInContext is deliberately NOT subsumed under vantage;
+# context (corpus, platform, community) is not the asserting standpoint.
+gmeow:attestedForm       rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:derivationTarget   rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:derivationSource   rdfs:subPropertyOf gmeow:observedFeature .

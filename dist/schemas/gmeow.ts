@@ -819,6 +819,13 @@ export enum LandTenureTypeEnum {
     usufruct = "tenureTypeUsufruct",
 };
 
+export enum LanguageEnum {
+
+    English = "languageEnglish",
+    français = "languageFrench",
+    普通话 = "languageMandarin",
+};
+
 export enum LanguageChangeTypeEnum {
 
     borrowing = "changeBorrowing",

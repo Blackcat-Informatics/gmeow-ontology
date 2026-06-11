@@ -281,3 +281,17 @@ gmeow:organizationPurpose
     rdfs:label "organization purpose"@x-gmeow-english ;
     skos:definition "A free-text statement of an organization's purpose, mission, or objective."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# OCCUPATION (from the expertise module) (#287 dependency surgery — promoted to core)
+# The shared what-one-does concept both employment and expertise
+# reference; as sibling extensions they may not reference each other, so
+# the concept lives in core beside roles and posts.
+# =========================================================================== #
+
+gmeow:Occupation
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Occupation"@x-gmeow-english ;
+    skos:definition "A kind of work or profession, such as those classified by ESCO, SOC, or O*NET. Classifications are carried as open code values (gmeow:occupationClassification), never as OWL subclasses (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

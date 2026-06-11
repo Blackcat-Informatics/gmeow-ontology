@@ -846,6 +846,12 @@ class LandTenureTypeEnum(str, Enum):
     usufruct = "tenureTypeUsufruct"
 
 
+class LanguageEnum(str, Enum):
+    English = "languageEnglish"
+    français = "languageFrench"
+    普通话 = "languageMandarin"
+
+
 class LanguageChangeTypeEnum(str, Enum):
     borrowing = "changeBorrowing"
     extinction = "changeExtinction"

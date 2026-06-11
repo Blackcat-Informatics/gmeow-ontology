@@ -216,3 +216,17 @@ gmeow:hasSibling rdfs:subPropertyOf gmeow:connectsTo .
 gmeow:ParentChildRelationship rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:relationshipParent ; owl:someValuesFrom gmeow:Person ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:relationshipChild ; owl:someValuesFrom gmeow:Person ] .
+
+# =========================================================================== #
+# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# Declared HERE, in the slice that owns these properties: a dependent slice
+# knows the core observation spine; the spine never knows the slice. The
+# super-properties (observedFeature / vantage / observationResult) live in
+# the observations module.
+# =========================================================================== #
+# KinRelationship bridges (ParentChildRelationship properties).
+gmeow:relationshipParent rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:relationshipChild rdfs:subPropertyOf gmeow:observedFeature .
+
+# CoupleRelationship bridge.
+gmeow:hasPartner rdfs:subPropertyOf gmeow:observedFeature .

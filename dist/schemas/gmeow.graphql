@@ -836,6 +836,13 @@ enum LanguageChangeTypeEnum
     changeStandardization
   }
 
+enum LanguageEnum
+  {
+    languageEnglish
+    languageFrench
+    languageMandarin
+  }
+
 enum LanguageModalityEnum
   {
     modalityMachine

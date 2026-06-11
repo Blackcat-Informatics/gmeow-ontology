@@ -22,12 +22,6 @@
 # grammar-defined, machine-modality, and has no human native speakers.
 # =========================================================================== #
 
-gmeow:Language
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Language"@x-gmeow-english ;
-    skos:definition "A language as a first-class information object with a self-minted IRI: a system of signs/symbols and rules used for communication or computation. Registry-INDEPENDENT — BCP-47/ISO 639/Glottolog/Wikidata are optional alignments (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch), never identity, so a code-less conlang or AI-generated language is fully first-class. Origin, modality and status are open value vocabularies; the scripts it is written in are bound co-equally via gmeow:WritingSystemUsage; its endonym/exonym names are gmeow:Appellation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:FormalLanguage
     a owl:Class, gufo:SubKind ;
@@ -50,12 +44,6 @@ gmeow:LanguageVersion
     skos:definition "A concrete, dated revision of a language that is itself a fully usable language (Ithkuil 1993 / 2011 / New Ithkuil; an AI language v1 / v2). Subclass of gmeow:Language so a version bears its own scripts, names and status; gmeow:versionOf links it to the lineage language, gmeow:supersedes orders versions, and gmeow:wasDerivedFrom records derivation. Forward-looking for rapidly-versioned AI languages."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:WritingSystem
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Writing System"@x-gmeow-english ;
-    skos:definition "A first-class system for visually or tactilely representing language — a script: Latin, Han (kanji), Hiragana, Katakana, Arabic, Braille, or a bespoke conlang/AI script. Carries gmeow:scriptCode (ISO 15924 when one exists, else a bespoke identifier), a type (gmeow:writingSystemType) and a direction (gmeow:textDirection). Bound to the languages that use it — co-equally and simultaneously — through gmeow:WritingSystemUsage; bespoke and non-linear scripts (Ithkuil) are first-class."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:WritingSystemUsage
     a owl:Class, gufo:Kind ;
@@ -131,30 +119,6 @@ gmeow:languageStatus
     rdfs:range gmeow:LanguageStatus ;
     rdfs:label "language status"@x-gmeow-english ;
     skos:definition "The vitality status of a language (a gmeow:LanguageStatus value). Non-functional: source classifications coexist; period carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:languageTag
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Language ;
-    rdfs:range xsd:string ;
-    rdfs:label "language tag"@x-gmeow-english ;
-    skos:definition "The internal private-use BCP-47 language tag (e.g., 'x-gmeow-japanese') used for @lang annotations on string literals representing this language."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:bcp47Tag
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Language ;
-    rdfs:range xsd:language ;
-    rdfs:label "BCP-47 tag"@x-gmeow-english ;
-    skos:definition "An OPTIONAL external BCP-47 language tag used only when projecting GMEOW's internal private-use literals into vocabularies that require standard language-tag literals. Non-functional because a language may expose several valid BCP-47 tags across script, region, or variant contexts; broad registry alignments such as ISO 639-3 codes and Glottocodes remain gmeow:languageCode values."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:languageCode
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Language ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "language code"@x-gmeow-english ;
-    skos:definition "An OPTIONAL registry code for a language (a BCP-47 tag \"ja\", an ISO 639-3 code \"jpn\", a Glottocode). A see-also alignment value, NEVER identity — a code-less conlang or AI-language is fully first-class. Authoritative identity is the self-minted IRI; assert registry coreference with skos:exactMatch and gmeow:authorityLink. Non-functional (a language carries codes in several registries)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 
@@ -905,3 +869,14 @@ gmeow:changeMerger           a gmeow:LanguageChangeType ; rdfs:label "merger"@x-
 # value vocabulary). Languages reference them, they are not redeclared here.
 gmeow:changeMerger skos:definition "The merger language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
+
+# =========================================================================== #
+# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# Declared HERE, in the slice that owns these properties: a dependent slice
+# knows the core observation spine; the spine never knows the slice. The
+# super-properties (observedFeature / vantage / observationResult) live in
+# the observations module.
+# =========================================================================== #
+# LanguageState bridges (declared here because the super-properties live here).
+gmeow:stateLanguage rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:stateAuthority rdfs:subPropertyOf gmeow:vantage .

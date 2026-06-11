@@ -99,30 +99,6 @@ gmeow:accountType
 # MonetaryAmount — a quantity of money: value + currency frame.
 # --------------------------------------------------------------------------- #
 
-gmeow:MonetaryAmount
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Monetary Amount"@x-gmeow-english ;
-    skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:monetaryValue
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:MonetaryAmount ;
-    rdfs:range xsd:decimal ;
-    rdfs:label "monetary value"@x-gmeow-english ;
-    skos:definition "The numeric value of a monetary amount as an xsd:decimal. Functional: a MonetaryAmount has exactly one numeric value."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:currency
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
-    rdfs:domain gmeow:MonetaryAmount ;
-    rdfs:range gmeow:ReferenceFrame ;
-    rdfs:label "currency"@x-gmeow-english ;
-    skos:definition "The currency reference frame in which this monetary amount is expressed. Functional: a MonetaryAmount is in exactly one currency frame. A subproperty of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 # --------------------------------------------------------------------------- #
 # Financial account type — an OPEN value vocabulary (gufo:QualityValue).
 # --------------------------------------------------------------------------- #
@@ -168,9 +144,6 @@ gmeow:TransactionStatus
 
 gmeow:FinancialAccount rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:accountHolder ; owl:someValuesFrom gmeow:Agent ] .
-
-gmeow:MonetaryAmount rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:currency ; owl:someValuesFrom gmeow:ReferenceFrame ] .
 
 
 # =========================================================================== #

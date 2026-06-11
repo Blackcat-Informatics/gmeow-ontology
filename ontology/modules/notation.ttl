@@ -273,3 +273,17 @@ gmeow:notationRoleCipher
 #   gmeow:validFrom          (temporal.ttl)    — validity start
 #   gmeow:validUntil         (temporal.ttl)    — validity end
 #   gmeow:displayable        (core.ttl)        — suppression, never erasure (P10)
+
+# =========================================================================== #
+# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# Declared HERE, in the slice that owns these properties: a dependent slice
+# knows the core observation spine; the spine never knows the slice. The
+# super-properties (observedFeature / vantage / observationResult) live in
+# the observations module.
+# =========================================================================== #
+# Notation bridges (declared here because the super-properties live here).
+# Only notationUsageTarget is subsumed under observedFeature because its
+# domain (NotationSystemUsage) is a subclass of Observation. hasNotationSystem
+# and notationSystemFor have domain Language / NotationSystem respectively,
+# which are NOT subclasses of Observation, so they cannot be subproperties.
+gmeow:notationUsageTarget   rdfs:subPropertyOf gmeow:observedFeature .

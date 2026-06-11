@@ -32,13 +32,6 @@ gmeow:Skill
     skos:definition "A competency or ability an agent possesses — a knowledge, ability, or expertise that can be applied to perform a task. Occupation-independent; aligned to esco:Skill by reference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:Occupation
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Occupation"@x-gmeow-english ;
-    skos:definition "A kind of work or profession, such as those classified by ESCO, SOC, or O*NET. Classifications are carried as open code values (gmeow:occupationClassification), never as OWL subclasses (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:Credential
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;

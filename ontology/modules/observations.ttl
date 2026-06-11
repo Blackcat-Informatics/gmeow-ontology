@@ -122,56 +122,11 @@ gmeow:usageAppellation rdfs:subPropertyOf gmeow:observationResult .
 # RightsStatement bridge.
 gmeow:statementAbout rdfs:subPropertyOf gmeow:observedFeature .
 
-# KinRelationship bridges (ParentChildRelationship properties).
-gmeow:relationshipParent rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:relationshipChild rdfs:subPropertyOf gmeow:observedFeature .
-
-# CoupleRelationship bridge.
-gmeow:hasPartner rdfs:subPropertyOf gmeow:observedFeature .
 
 # VersionMembership bridges (declared here because the super-properties live here).
 gmeow:versionMember rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:membershipAuthority rdfs:subPropertyOf gmeow:vantage .
 
-# LanguageState bridges (declared here because the super-properties live here).
-gmeow:stateLanguage rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:stateAuthority rdfs:subPropertyOf gmeow:vantage .
-
-# Lexicon bridges (declared here because the super-properties live here).
-# Note: attestedInContext is deliberately NOT subsumed under vantage;
-# context (corpus, platform, community) is not the asserting standpoint.
-gmeow:attestedForm       rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:derivationTarget   rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:derivationSource   rdfs:subPropertyOf gmeow:observedFeature .
-
-# Notation bridges (declared here because the super-properties live here).
-# Only notationUsageTarget is subsumed under observedFeature because its
-# domain (NotationSystemUsage) is a subclass of Observation. hasNotationSystem
-# and notationSystemFor have domain Language / NotationSystem respectively,
-# which are NOT subclasses of Observation, so they cannot be subproperties.
-gmeow:notationUsageTarget   rdfs:subPropertyOf gmeow:observedFeature .
-
-# Archaeological evidence bridges (declared here because the super-properties live here).
-# Only domain-specific properties whose domain is an Observation subclass are subsumed.
-gmeow:readingOf               rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:readingResult           rdfs:subPropertyOf gmeow:observationResult .
-gmeow:transliterationOf       rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:transliterationResult   rdfs:subPropertyOf gmeow:observationResult .
-gmeow:translationOf           rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:translationResult       rdfs:subPropertyOf gmeow:observationResult .
-gmeow:attributionTarget       rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:attributedLanguage      rdfs:subPropertyOf gmeow:observationResult .
-gmeow:attributedScript        rdfs:subPropertyOf gmeow:observationResult .
-gmeow:attributedNotation      rdfs:subPropertyOf gmeow:observationResult .
-gmeow:findContextTarget       rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:findContextPlace        rdfs:subPropertyOf gmeow:observationResult .
-gmeow:findContextStratigraphy rdfs:subPropertyOf gmeow:observationResult .
-gmeow:findContextDating       rdfs:subPropertyOf gmeow:observationResult .
-# Note: findContextEvent is deliberately NOT subsumed under observationResult
-# because gmeow:Event (range of findContextEvent) is a gufo:Event, while
-# gmeow:observationResult has range gmeow:Entity (= gufo:Endurant), and in
-# gUFO gufo:Event and gufo:Endurant are disjoint. Subsumption would make the
-# property unsatisfiable (Principle 8: reasoning-centric).
 
 # =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
@@ -423,3 +378,37 @@ gmeow:quantityUncertainty
 # =========================================================================== #
 
 gmeow:hasReferenceFrame owl:propertyChainAxiom ( gmeow:isResultOf gmeow:hasReferenceFrame ) .
+
+# =========================================================================== #
+# MONETARY QUANTITY (from the finance module) (#287 dependency surgery — promoted to core)
+# A MonetaryAmount is frame-relative quantity machinery (Principle 11 —
+# a value in a currency frame), not finance-domain: employment, agreements,
+# and finance all consume it, so it lives with the measurement spine.
+# =========================================================================== #
+
+gmeow:MonetaryAmount
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Monetary Amount"@x-gmeow-english ;
+    skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:monetaryValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MonetaryAmount ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "monetary value"@x-gmeow-english ;
+    skos:definition "The numeric value of a monetary amount as an xsd:decimal. Functional: a MonetaryAmount has exactly one numeric value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:currency
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:MonetaryAmount ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "currency"@x-gmeow-english ;
+    skos:definition "The currency reference frame in which this monetary amount is expressed. Functional: a MonetaryAmount is in exactly one currency frame. A subproperty of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MonetaryAmount rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:currency ; owl:someValuesFrom gmeow:ReferenceFrame ] .

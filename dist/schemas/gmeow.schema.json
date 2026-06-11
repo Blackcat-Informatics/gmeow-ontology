@@ -34995,6 +34995,16 @@
             "title": "LanguageCreation",
             "type": "object"
         },
+        "LanguageEnum": {
+            "description": "",
+            "enum": [
+                "languageEnglish",
+                "languageFrench",
+                "languageMandarin"
+            ],
+            "title": "LanguageEnum",
+            "type": "string"
+        },
         "LanguageModality": {
             "additionalProperties": false,
             "description": "",
