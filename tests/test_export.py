@@ -25,6 +25,7 @@ from gmeow_tools.export import (
     write_llms_txt,
     write_markdown,
 )
+from gmeow_tools.gts_views import FoldView
 
 pytestmark = pytest.mark.ci_only
 
@@ -164,6 +165,14 @@ def test_llms_txt_has_no_blank_nodes(tmp_path: Path) -> None:
 # --------------------------------------------------------------------------- #
 
 
+def _view_of(graph: Graph) -> FoldView:
+    """A FoldView over a handcrafted rdflib graph, via the real producer."""
+    from gmeow_tools.gts_producer import gts_from_graph
+    from gts import read
+
+    return FoldView(read(gts_from_graph(graph)))
+
+
 def test_export_retags_internal_to_bcp47() -> None:
     """A canonical @x-gmeow-english literal is retagged to @en for public export."""
     graph = Graph()
@@ -184,7 +193,7 @@ def test_export_retags_internal_to_bcp47() -> None:
         )
     )
 
-    terms = collect_terms(graph=graph)
+    terms = collect_terms(_view_of(graph))
     by_curie = {t.curie: t for t in terms}
     assert by_curie["gmeow:TestConcept"].label == "Test Concept"
     assert by_curie["gmeow:TestConcept"].definition == "A concept for testing."
@@ -207,7 +216,7 @@ def test_export_deterministic_when_both_tags_present() -> None:
     # External tag co-existing (should be ignored in favour of the mapped internal one).
     graph.add((term, RDFS.label, Literal("External Name", lang="en")))
 
-    terms = collect_terms(graph=graph)
+    terms = collect_terms(_view_of(graph))
     by_curie = {t.curie: t for t in terms}
     # public_text prefers the internal-tagged literal when a mapping exists.
     assert by_curie["gmeow:TestConcept"].label == "Internal Name"
@@ -226,7 +235,7 @@ def test_export_does_not_invent_en_when_bcp47_missing() -> None:
     graph.add((term, RDF.type, OWL.Class))
     graph.add((term, RDFS.label, Literal("Conlang Name", lang="x-gmeow-conlang")))
 
-    terms = collect_terms(graph=graph)
+    terms = collect_terms(_view_of(graph))
     by_curie = {t.curie: t for t in terms}
     # No BCP-47 mapping → raw internal tag returned as-is.
     assert by_curie["gmeow:TestConcept"].label == "Conlang Name"
