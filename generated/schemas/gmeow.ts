@@ -1,4 +1,10 @@
 
+export enum AboutnessModeEnum {
+
+    describes = "aboutnessDescribes",
+    enacts = "aboutnessEnacts",
+};
+
 export enum AccessibilityFacetEnum {
 
     auditory_access = "facetAuditory",
@@ -1183,6 +1189,12 @@ export enum NarrativeFrameRelationEnum {
     fanon = "relationFanon",
 };
 
+export enum NarrativeTimeAxisEnum {
+
+    discourse_time_LEFT_PARENTHESISsyuzhetRIGHT_PARENTHESIS = "axisDiscourseTime",
+    story_time_LEFT_PARENTHESISfabulaRIGHT_PARENTHESIS = "axisStoryTime",
+};
+
 export enum NetworkAddressTypeEnum {
 
     BGP_autonomous_system = "networkAddressTypeBGP",
@@ -2076,6 +2088,11 @@ export enum WritingSystemTypeEnum {
 
 
 
+export interface AboutnessMode {
+}
+
+
+
 export interface AccessibilityAssertion {
     assertionFacet?: AccessibilityFacet,
     assertionPolarity?: AccessibilityPolarity,
@@ -2122,6 +2139,7 @@ export interface Agent {
     endorses?: Agent[],
     hasAgreement?: Agreement[],
     hasContactPoint?: ContactPoint[],
+    hasGoal?: Goal[],
     hasMet?: Agent[],
     hasSkill?: Skill[],
     hasUsed?: Entity[],
@@ -2520,6 +2538,13 @@ export interface Commit extends Activity {
 
 
 
+export interface Commitment {
+    commitmentBeneficiary?: Agent[],
+    committedAgent?: Agent,
+}
+
+
+
 export interface ConflictStrategy {
 }
 
@@ -2780,6 +2805,11 @@ export interface DepictionUsage {
 
 
 export interface DerivationKind {
+}
+
+
+
+export interface Desire extends IntentionalMode {
 }
 
 
@@ -3221,6 +3251,13 @@ export interface GeometryType {
 
 
 
+export interface Goal extends SocialObject {
+    counterGoal?: Goal[],
+    satisfiedBy?: string[],
+}
+
+
+
 export interface GovernanceModel {
 }
 
@@ -3350,6 +3387,24 @@ export interface InscriptionTransliteration {
 export interface Instant {
     inTemporalFrame?: TemporalFrame[],
     instantValue?: string,
+}
+
+
+
+export interface Intention extends IntentionalMode {
+}
+
+
+
+export interface IntentionTenure extends TimeScopedRelation {
+    tenureAgent?: Agent,
+    tenureIntention?: IntentionalMode,
+}
+
+
+
+export interface IntentionalMode extends Entity {
+    intentBearer?: Agent,
 }
 
 
@@ -3895,9 +3950,30 @@ export interface NarrativeFrameRelation {
 
 
 
+export interface NarrativePosition extends Entity {
+    positionFrame?: NarrativeTimeFrame,
+    positionLabel?: string,
+    positionOrdinal?: number,
+}
+
+
+
 export interface NarrativeReferenceFrame extends ReferenceFrame {
     hasNarrativeFrameRelation?: NarrativeFrameRelation[],
     relatesToFrame?: NarrativeReferenceFrame[],
+}
+
+
+
+export interface NarrativeTimeAxis {
+}
+
+
+
+export interface NarrativeTimeFrame extends ReferenceFrame {
+    discourseTimeOf?: CreativeWork,
+    narrativeTimeAxis?: NarrativeTimeAxis,
+    storyTimeOf?: NarrativeReferenceFrame,
 }
 
 

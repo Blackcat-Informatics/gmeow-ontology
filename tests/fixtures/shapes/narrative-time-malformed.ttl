@@ -1,0 +1,50 @@
+# Malformed narrative-time fixture (#359, EPIC #358). Three violations:
+#   1. ex:axislessFrame — a NarrativeTimeFrame with no narrativeTimeAxis
+#      (a frame must declare discourse OR story, exactly once).
+#   2. ex:confusedFrame — a discourse-time frame anchored via storyTimeOf
+#      (the cross-anchor SPARQL constraint).
+#   3. ex:bareInteger — a NarrativePosition with no positionFrame and neither
+#      ordinal nor label (the bare-integer anti-pattern, both shapes fire).
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:novel a gmeow:CreativeWork ; rdfs:label "A novel"@en .
+
+ex:canon a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:canonAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# Violation 1: no narrativeTimeAxis.
+ex:axislessFrame a gmeow:NarrativeTimeFrame ;
+    rdfs:label "frame with no axis kind"@en ;
+    gmeow:discourseTimeOf ex:novel ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:axis1 ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# Violation 2: discourse axis but story anchor.
+ex:confusedFrame a gmeow:NarrativeTimeFrame ;
+    rdfs:label "discourse frame anchored to a canon"@en ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
+    gmeow:storyTimeOf ex:canon ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:axis2 ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# Violation 3: the bare integer — frameless, coordinateless position.
+ex:bareInteger a gmeow:NarrativePosition ;
+    rdfs:label "chapter 31, allegedly"@en .

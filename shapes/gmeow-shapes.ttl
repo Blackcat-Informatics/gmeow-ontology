@@ -912,6 +912,61 @@ gmeow:NarrativeFrameLinkShape
         sh:message "A NarrativeFrameLink must have exactly one gmeow:narrativeFrameLinkRelation." ;
     ] .
 
+gmeow:NarrativeTimeFrameShape
+    a sh:NodeShape ;
+    rdfs:label "Narrative Time Frame Shape" ;
+    sh:targetClass gmeow:NarrativeTimeFrame ;
+    sh:property [
+        sh:path gmeow:narrativeTimeAxis ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( gmeow:axisDiscourseTime gmeow:axisStoryTime ) ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeTimeFrame must declare exactly one gmeow:narrativeTimeAxis (discourse time or story time) — a work and its fabula are two frames, not one frame with two moods." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:frameRealm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:hasValue gmeow:frameRealmNarrative ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeTimeFrame must declare gmeow:frameRealmNarrative." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A discourse-time frame anchors via gmeow:discourseTimeOf and a story-time frame via gmeow:storyTimeOf — never the other anchor." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                {
+                    $this <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> <https://blackcatinformatics.ca/gmeow/axisDiscourseTime> .
+                    $this <https://blackcatinformatics.ca/gmeow/storyTimeOf> ?x .
+                } UNION {
+                    $this <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> <https://blackcatinformatics.ca/gmeow/axisStoryTime> .
+                    $this <https://blackcatinformatics.ca/gmeow/discourseTimeOf> ?x .
+                }
+            }
+        """ ;
+    ] .
+
+gmeow:NarrativePositionShape
+    a sh:NodeShape ;
+    rdfs:label "Narrative Position Shape" ;
+    sh:targetClass gmeow:NarrativePosition ;
+    sh:property [
+        sh:path gmeow:positionFrame ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NarrativeTimeFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativePosition must name exactly one gmeow:positionFrame — a position without its frame is a bare integer (#359)." ;
+    ] ;
+    sh:or (
+        [ sh:path gmeow:positionOrdinal ; sh:minCount 1 ]
+        [ sh:path gmeow:positionLabel ;   sh:minCount 1 ]
+    ) ;
+    sh:message "A NarrativePosition must carry a positionOrdinal or a positionLabel (or both)." .
+
 gmeow:PoseShape
     a sh:NodeShape ;
     rdfs:label "Pose well-formedness shape" ;
@@ -3105,4 +3160,114 @@ gmeow:TimeZoneHasIanaIdShape
         sh:datatype xsd:string ;
         sh:severity sh:Violation ;
         sh:message "A TimeZone must have exactly one timeZoneIanaId." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Teleology shapes (#350, EPIC #348) — goals, intentional modes, commitments.
+# --------------------------------------------------------------------------- #
+
+gmeow:IntentionalModeShape
+    a sh:NodeShape ;
+    rdfs:label "Intentional Mode Shape" ;
+    sh:targetClass gmeow:Desire, gmeow:Intention ;
+    sh:property [
+        sh:path gmeow:intentBearer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Desire or Intention must inhere in exactly one gmeow:intentBearer (an intrinsic mode has exactly one bearer)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:intentionGoal ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Desire or Intention must aim at exactly one gmeow:intentionGoal — five goals are five modes." ;
+    ] .
+
+gmeow:CommitmentShape
+    a sh:NodeShape ;
+    rdfs:label "Commitment Shape" ;
+    sh:targetClass gmeow:Commitment ;
+    sh:property [
+        sh:path gmeow:committedAgent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Commitment must bind exactly one gmeow:committedAgent." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:commitmentBeneficiary ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Commitment must name at least one gmeow:commitmentBeneficiary — a resolution to oneself is an Intention, not a Commitment." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:intentionGoal ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Commitment must aim at exactly one gmeow:intentionGoal." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A Commitment's beneficiary must be distinct from its committed agent." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/committedAgent> ?agent .
+                $this <https://blackcatinformatics.ca/gmeow/commitmentBeneficiary> ?agent .
+            }
+        """ ;
+    ] .
+
+gmeow:CounterGoalIrreflexiveShape
+    a sh:NodeShape ;
+    rdfs:label "Counter-Goal Irreflexivity Shape" ;
+    sh:targetClass gmeow:Goal ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A goal is never its own counter-goal (gmeow:counterGoal is irreflexive)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/counterGoal> $this .
+            }
+        """ ;
+    ] .
+
+gmeow:IntentionTenureShape
+    a sh:NodeShape ;
+    rdfs:label "Intention Tenure Shape" ;
+    sh:targetClass gmeow:IntentionTenure ;
+    sh:property [
+        sh:path gmeow:tenureAgent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An IntentionTenure must record exactly one gmeow:tenureAgent." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:tenureIntention ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An IntentionTenure must record exactly one gmeow:tenureIntention." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Aboutness guard (#349, EPIC #348) — the axis targets vocabulary IRIs.
+# The vocabulary stays OPEN (Principle 9): the guard forbids literals, not
+# unknown modes.
+# --------------------------------------------------------------------------- #
+
+gmeow:AboutnessTargetShape
+    a sh:NodeShape ;
+    rdfs:label "Aboutness Target Shape" ;
+    sh:targetSubjectsOf gmeow:hasAboutness ;
+    sh:property [
+        sh:path gmeow:hasAboutness ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:hasAboutness must target an AboutnessMode individual (an IRI), not a free literal." ;
     ] .

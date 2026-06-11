@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/aboutness/> .
+
+# A carrier can describe one thing while enacting another — both cells valid.
+ex:essay-on-dark-patterns
+    gmeow:hasAboutness gmeow:aboutnessDescribes , gmeow:aboutnessEnacts .

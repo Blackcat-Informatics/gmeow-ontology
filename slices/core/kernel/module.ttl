@@ -299,6 +299,41 @@ gmeow:policyNeverPublic                    a gmeow:DisclosurePolicy ; rdfs:label
 gmeow:policyPublicOnlyWithIndependentSource  a gmeow:DisclosurePolicy ; rdfs:label "public only with independent source"@x-gmeow-english ;  skos:definition "The fact may be projected to public consumers ONLY when supported by an editorially independent source (resolved against gmeow:sourceIndependence in the solver layer, P12)."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
+# Aboutness — the universal mention/use axis (#349, EPIC #348).
+#
+# What a carrier *does* with its content: describes it (mention — reports,
+# quotes, depicts, analyzes) or enacts it (use — performs, demands,
+# exemplifies, embodies). A chunk defining a trust framework DESCRIBES trust;
+# a text demanding trust as the price of partnership ENACTS it. The fourth
+# domain-free epistemic axis alongside granularity, determinacy, and
+# sensitivity — and the rhetorical one: granularity is resolution, determinacy
+# is ontic, confidence is epistemic, standpointModality is doxastic, aboutness
+# is what the carrier performs. Fiction is the licensed special case where
+# enactment co-occurs with non-assertion (see the deception module's
+# veridicalityLicensedFalsehood — documented bridge, no axiom coupling).
+# --------------------------------------------------------------------------- #
+
+gmeow:AboutnessMode
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Aboutness Mode"@x-gmeow-english ;
+    skos:definition "The rhetorical relation between an information carrier and its subject matter — whether the carrier describes the subject (mention: reporting, quoting, depicting, analyzing) or enacts it (use: performing, demanding, exemplifying, embodying). A value vocabulary of individuals (never subclasses). Orthogonal to granularity, determinacy, sensitivity, confidence, and standpoint modality (Principle 9): a carrier may describe one subject while enacting another, and distinct vantages may classify the same carrier differently through the statement layer. The distinction every rubric, citation, and evidence assessment eventually needs: text ABOUT deception is not text THAT deceives."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:hasAboutness
+    a owl:AnnotationProperty ;
+    rdfs:range gmeow:AboutnessMode ;
+    rdfs:label "has aboutness"@x-gmeow-english ;
+    skos:definition "Relates an information carrier (a document, span, segment, citation act, exemplar, or statement via the statement layer) to its aboutness mode — the explicit facet recording whether the carrier describes its subject or enacts it. Domain-free (universal, like hasGranularity, hasDeterminacy, and hasSensitivity). NOT functional: a carrier may bear different aboutness modes toward different subjects, and in a multi-vantage setting classifications coexist rather than force the reasoner to collapse them (Principle 9). An owl:AnnotationProperty (unlike the other three axes' ObjectProperties) because aboutness is routinely asserted ABOUT statements through the statement layer, where the annotation form keeps the generated OWL downcast in OWL 2 DL — the gmeow:accordingTo pattern (Principle 3). The subject toward which the mode holds is carried by the surrounding construct (the citation's cited entity, the exemplar's criterion, the statement cell) — never inferred."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+# Seeds
+gmeow:aboutnessDescribes a gmeow:AboutnessMode ; rdfs:label "describes"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+gmeow:aboutnessDescribes skos:definition "The describing (mention) aboutness mode — the carrier reports, quotes, depicts, defines, or analyzes its subject without performing it. Source material about a practice, not an embodiment of it."@x-gmeow-english .
+gmeow:aboutnessEnacts    a gmeow:AboutnessMode ; rdfs:label "enacts"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+gmeow:aboutnessEnacts skos:definition "The enacting (use) aboutness mode — the carrier performs, demands, exemplifies, or embodies its subject rather than merely reporting it. A style guide whose prose IS the voice it teaches; a covenant text that demands the trust it names. Fiction is the licensed case where enactment co-occurs with non-assertion (deception module bridge)."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
 # Units — cross-cutting unit linkage for measurements (#67).
 #
 # Domain-free object property pointing to QUDT by reference. Temporal

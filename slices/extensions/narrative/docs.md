@@ -11,3 +11,33 @@ Narrative reference frames and creative-work sourcing. Part of the #42 Location-
 reasoned, but its narrative documentation has not been written yet. The
 module-status matrix tracks the gap; term-level documentation (labels,
 definitions) lives in `module.ttl` and renders via `gmeow describe`.*
+
+## Narrative time (#359, EPIC #358)
+
+**The text is not the story: the chapter sequence is the syuzhet projection
+of frame-relative story content.** Two kinds of `NarrativeTimeFrame` (each a
+`ReferenceFrame` under `frameRealmNarrative`) coordinatize narrative
+position:
+
+- **discourse time** (`axisDiscourseTime`, syuzhet) — the order of telling;
+  owned by the telling work via `discourseTimeOf` (a re-segmented edition is
+  a different frame);
+- **story time** (`axisStoryTime`, fabula) — the order of happening
+  in-universe; owned by a `NarrativeReferenceFrame` via `storyTimeOf`
+  (a continuity can reorder it — a retcon is a frame-scoped remapping,
+  preserved by suppression).
+
+`NarrativePosition` is the narrative analogue of `SpatialCoordinates`:
+frame (mandatory — no bare chapter indices), ordinal, label, or both.
+`atNarrativePosition` is the single domain-free anchor that the depiction
+seam (#360), arc samples (#361), and motif occurrences (#363) all reuse —
+deliberately non-functional, because one diegetic event holding positions in
+*both* frames whose orders disagree **is** the flashback, queryable instead
+of contradictory (Principle 9).
+
+In-universe Allen relations are claims `accordingTo` the narrative frame via
+the statement layer, never global facts. Position comparison, ordering, and
+discourse↔story reconciliation are solver-layer (Principle 12). A reified
+discourse↔story mapping construct is deliberately deferred to coordinate
+with the music extension's `TimeMapping` (#306) — one frame-mapping idiom in
+the repo, not two.
