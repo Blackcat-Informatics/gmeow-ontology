@@ -168,6 +168,39 @@ cat music.gts >> core.gts        # core.gts is now a valid two-segment GTS
   aggregation). Both yield a union fold; choose nesting when the part must travel or seal
   independently, segments when plain `cat` must work.
 
+### 3.2 Streaming and progressive enhancement
+
+The append-only log makes streaming a **property of the format**, not a feature of a tool.
+Three facts compose, and conformant implementations MUST preserve all three:
+
+- **Prefix-fold validity (normative).** Every byte prefix of a valid GTS file that ends on a
+  data-item boundary is itself a valid GTS file, and a reader MUST fold it to exactly the
+  state it would reach folding those same items inside the complete file. A live stream in
+  flight is therefore *indistinguishable* from a file with a torn append (§3): the partial
+  trailing item means "not yet arrived", and a consumer MAY keep reading as bytes land
+  (`tail -f` semantics) — every intermediate fold is a real, usable graph state, never a
+  half-parsed error state.
+- **Monotone refinement.** Appended frames only ever *add* knowledge: quads accumulate
+  (§7.8 set semantics), a reifier binding is first-wins so an established rendering never
+  changes under it, and suppression is an additive display overlay (§11) — arrival of a
+  `suppress` frame refines presentation without invalidating any prior fold. The chain check
+  is likewise incremental: O(1) state (the expected `"prev"`) verifies each frame as it
+  arrives.
+- **Chunk-safe framing.** CBOR Sequence items are self-delimiting, so item boundaries are
+  safe re-chunking points for relays and proxies, and resumption is content-addressed: a
+  receiver that states the last frame `"id"` it verified can be resumed from the next byte
+  with no negotiation beyond that hash.
+
+**Progressive enhancement.** Producers SHOULD order content most-significant-first so an
+early prefix is maximally useful: within a segment, `terms`/`quads` (the graph) before bulky
+`blob` frames, and small or preview manifestations before large ones; across a file, segments
+ARE the enhancement layers — a base segment (core graph + thumbnails) followed by enhancement
+segments (full-resolution blobs, computed projections) gives a receiver a complete, verifiable
+package at every segment boundary, §3.1's composition rules applied as a delivery schedule.
+**Checkpoint `index` frames** (§6.2) emitted periodically give a streaming consumer
+intermediate truncation anchors (`"head"`), random-access offsets for ranged re-fetch, and a
+manifest of what has arrived; the index remains an accelerator, never a dependency (§3).
+
 A reader streams items until end of input. Trailing partial bytes (a torn append) MUST be
 detected and ignored with a diagnostic: a reader attempts to decode each successive CBOR item,
 and if the decoder signals an incomplete item or unexpected EOF at end-of-file, it MUST treat
@@ -950,6 +983,11 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
 22. **Inline blob (§12, §14.1)**: an inline blob folds to its `blake3:<hex>` digest with
     declared metadata (`pub.mt`) retained; extraction by digest re-verifies the bytes;
     a digest-suppressed blob is refused by default.
+23. **Prefix-fold streaming property (§3.2, derived)**: not a vector but a property test over
+    EVERY vector in this corpus — each item-boundary prefix folds without error, and across
+    growing prefixes the folded tables only ever extend (terms/quads are list-prefixes while
+    the segment count is unchanged; ground (blank-node-free) N-Quads lines are monotone
+    across the single→multi-segment representation switch).
 
 ## 19. References
 

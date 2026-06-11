@@ -521,3 +521,34 @@ def test_corpus_matches_committed_expectations() -> None:
             (vdir / f"{case.name}.expected.json").read_text(encoding="utf-8")
         )
         assert committed == expected_for(case), f"{case.name}: expectations drifted"
+
+
+def test_prefix_fold_streaming_property() -> None:
+    """§3.2/§18.23: every item-boundary prefix folds, and folds monotonically.
+
+    A live stream in flight is indistinguishable from a torn append, so every
+    intermediate fold must be a valid graph state the next frames only extend:
+    terms/quads are list-prefixes while the segment count is unchanged, and
+    ground (bnode-free) N-Quads lines survive the single→multi-segment
+    representation switch (the §3.1 value-union relabels blank nodes).
+    """
+    from gts.model import Graph
+    from gts.vectors import corpus
+    from gts.wire import iter_items
+
+    def ground(g: Graph) -> set[str]:
+        return {ln for ln in to_nquads(g).splitlines() if "_:" not in ln}
+
+    for case in corpus():
+        items, _ = iter_items(case.data)
+        boundaries = [off for off, _ in items[1:]] + [len(case.data)]
+        prev: Graph | None = None
+        for end in boundaries:
+            g = read(case.data[:end])  # MUST be total: never raises
+            if prev is not None:
+                if len(prev.segment_heads) == len(g.segment_heads):
+                    assert g.terms[: len(prev.terms)] == prev.terms, case.name
+                    assert g.quads[: len(prev.quads)] == prev.quads, case.name
+                else:
+                    assert ground(prev) <= ground(g), case.name
+            prev = g

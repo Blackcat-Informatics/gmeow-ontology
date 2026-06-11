@@ -109,3 +109,47 @@ fn corpus_matches_frozen_expectations() {
         );
     }
 }
+
+/// §3.2/§18.23: every item-boundary prefix of every vector folds without
+/// error, and growing prefixes only ever extend the folded tables — the
+/// prefix-fold streaming property, tested rather than asserted.
+#[test]
+fn prefix_fold_streaming_property() {
+    use std::collections::HashSet;
+
+    use gts::wire::iter_items;
+
+    fn ground(g: &Graph) -> HashSet<String> {
+        to_nquads(g)
+            .lines()
+            .filter(|l| !l.contains("_:"))
+            .map(str::to_string)
+            .collect()
+    }
+
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/gts-vectors");
+    for entry in fs::read_dir(&dir).expect("corpus dir") {
+        let path = entry.expect("dir entry").path();
+        if path.extension().and_then(|e| e.to_str()) != Some("gts") {
+            continue;
+        }
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        let data = fs::read(&path).expect("vector bytes");
+        let (items, _) = iter_items(&data);
+        let mut boundaries: Vec<usize> = items.iter().skip(1).map(|(off, _)| *off).collect();
+        boundaries.push(data.len());
+        let mut prev: Option<Graph> = None;
+        for end in boundaries {
+            let g = read(&data[..end], true, None); // MUST be total: never panics
+            if let Some(p) = &prev {
+                if p.segment_heads.len() == g.segment_heads.len() {
+                    assert_eq!(&g.terms[..p.terms.len()], &p.terms[..], "{name}");
+                    assert_eq!(&g.quads[..p.quads.len()], &p.quads[..], "{name}");
+                } else {
+                    assert!(ground(p).is_subset(&ground(&g)), "{name}");
+                }
+            }
+            prev = Some(g);
+        }
+    }
+}
