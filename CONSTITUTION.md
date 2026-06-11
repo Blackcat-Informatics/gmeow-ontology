@@ -332,8 +332,8 @@ somewhere to go that is not the core. Extension *ecosystem* machinery (SDK, cata
 submission process) is itself subject to Principle 15 — built when a named external extension
 author exists, not before.
 
-*Embodied in:* the #287 repository re-layout (`ontology/core/` + `extensions/`); the extension
-manifest; the GTS `bundle` profile. *Tested by:* per-extension compile / reason / drift gates;
+*Embodied in:* the #287 slice architecture (`slices/<group>/<name>/` — the manifest is
+the sole tier truth); `slices/vocabulary.ttl`; the GTS `bundle` profile. *Tested by:* per-extension compile / reason / drift gates;
 the manifest consumer field, checked via the Principle→enforcement manifest (#280).
 
 ---
