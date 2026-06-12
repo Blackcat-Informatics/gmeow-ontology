@@ -7,6 +7,7 @@
 # comment: "Canonical GMEOW property alignments. equivalentProperty for same-typed synonyms; skos:closeMatch for cross-type/fuzzy links."
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
+#   bibframe: http://id.loc.gov/ontologies/bibframe/
 #   bibo: http://purl.org/ontology/bibo/
 #   ceterms: https://purl.org/ctdl/terms/
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
@@ -25,6 +26,7 @@
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   vcard: http://www.w3.org/2006/vcard/ns#
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:CreativeWorkTitle	owl:equivalentClass	bibframe:Title		semapv:ManualMappingCuration	0.9	both reify a work's title as a first-class node carrying its text and metadata (#34 phase 3)
 gmeow:accountName	owl:equivalentProperty	foaf:accountName		semapv:ManualMappingCuration	1.0	
 gmeow:coarsenTo	skos:closeMatch	dpv:Generalisation		semapv:ManualMappingCuration	0.8	DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN (#73)
 gmeow:coarserThan	skos:closeMatch	skos:broader		semapv:ManualMappingCuration	0.8	SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan
@@ -59,6 +61,7 @@ gmeow:hasPart	skos:closeMatch	crm:P46_is_composed_of		semapv:ManualMappingCurati
 gmeow:hasPart	skos:closeMatch	dcterms:hasPart		semapv:ManualMappingCuration	0.75	
 gmeow:hasPart	skos:closeMatch	schema:hasPart		semapv:ManualMappingCuration	0.8	
 gmeow:hasRepository	skos:closeMatch	doap:repository		semapv:ManualMappingCuration	0.9	
+gmeow:hasRole	skos:exactMatch	org:role		semapv:ManualMappingCuration	0.85	the membership relator's role leg; gmeow's hasRole is broader (any role-bearing relator) — exactMatch on the shared membership use (#34 phase 3)
 gmeow:hasSibling	owl:equivalentProperty	rel:siblingOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSibling	owl:equivalentProperty	schema:sibling		semapv:ManualMappingCuration	1.0	
 gmeow:hasSite	skos:closeMatch	org:hasSite		semapv:ManualMappingCuration	0.9	gmeow:hasSite has range gmeow:Location, while org:hasSite has range org:Site; no alignment of gmeow:Location to org:Site exists, so owl:equivalentProperty is too strong.
@@ -77,6 +80,7 @@ gmeow:latitude	owl:equivalentProperty	schema:latitude		semapv:ManualMappingCurat
 gmeow:longitude	owl:equivalentProperty	schema:longitude		semapv:ManualMappingCuration	1.0	
 gmeow:memberOf	owl:equivalentProperty	schema:memberOf		semapv:ManualMappingCuration	1.0	
 gmeow:memberOf	skos:closeMatch	org:memberOf		semapv:ManualMappingCuration	0.9	
+gmeow:membershipOrganization	owl:equivalentProperty	org:organization		semapv:ManualMappingCuration	0.95	the membership relator's organization leg (#34 phase 3)
 gmeow:name	owl:equivalentProperty	foaf:name		semapv:ManualMappingCuration	1.0	
 gmeow:name	owl:equivalentProperty	schema:name		semapv:ManualMappingCuration	1.0	
 gmeow:name	skos:closeMatch	vcard:fn		semapv:ManualMappingCuration	0.9	

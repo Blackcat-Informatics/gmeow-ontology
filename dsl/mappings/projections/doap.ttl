@@ -186,3 +186,89 @@ gmeow:mapDoapHelper a gmeow:ProjectionMapping ;
 # roleReleaser, roleBotContributor, and roleAIAssistant are lossy drops.
 # DOAP documenter has no matching software ContributionRole.
 # The frozen DOAP enum cannot express unforeseen roles (Principle 9).
+
+# --- #34 phase 3 gap-fill: repository browse URL + maintenance status. ----- #
+# REFUSED (P5 — no source): doap:bug-database, doap:download-page,
+# doap:category — GMEOW's software slice models no issue-tracker, download
+# page, or project-category facet; minting them would invent facts.
+
+gmeow:mapDoapBrowse a gmeow:ProjectionMapping ;
+    rdfs:label "Repository webUrl → doap:browse"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "drepo" ; gmeow:value "dweb" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "drepo" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Repository ]
+            [ gmeow:subjectVar "drepo" ; gmeow:predicate gmeow:webUrl ; gmeow:objectVar "dweb" ] ) ;
+        gmeow:edoalSource gmeow:webUrl ] ;
+    gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:browse ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+# Maintenance status flattens to the label literal DOAP consumers expect.
+# Competing assessments coexist (the property is non-functional, P9) — each
+# emits its own row; no winner is picked.
+gmeow:mapDoapStatusActive a gmeow:ProjectionMapping ;
+    rdfs:label "statusActive → doap 'active'"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dsa" ;
+        gmeow:atom ( [ gmeow:subjectVar "dsa" ; gmeow:predicate gmeow:maintenanceStatus ; gmeow:objectValue gmeow:statusActive ] ) ;
+        gmeow:mint [ gmeow:bindVar "dsaLit" ; gmeow:bindExpr "active" ] ;
+        gmeow:edoalSource gmeow:maintenanceStatus ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the open MaintenanceStatus vocabulary flattens to a bare status literal" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dsa" ; gmeow:tPred doap:status ; gmeow:tObj "dsaLit" ] ) ] .
+
+gmeow:mapDoapStatusMaintained a gmeow:ProjectionMapping ;
+    rdfs:label "statusMaintained → doap 'maintained'"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dsm" ;
+        gmeow:atom ( [ gmeow:subjectVar "dsm" ; gmeow:predicate gmeow:maintenanceStatus ; gmeow:objectValue gmeow:statusMaintained ] ) ;
+        gmeow:mint [ gmeow:bindVar "dsmLit" ; gmeow:bindExpr "maintained" ] ;
+        gmeow:edoalSource gmeow:maintenanceStatus ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dsm" ; gmeow:tPred doap:status ; gmeow:tObj "dsmLit" ] ) ] .
+
+gmeow:mapDoapStatusDeprecated a gmeow:ProjectionMapping ;
+    rdfs:label "statusDeprecated → doap 'deprecated'"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dsd" ;
+        gmeow:atom ( [ gmeow:subjectVar "dsd" ; gmeow:predicate gmeow:maintenanceStatus ; gmeow:objectValue gmeow:statusDeprecated ] ) ;
+        gmeow:mint [ gmeow:bindVar "dsdLit" ; gmeow:bindExpr "deprecated" ] ;
+        gmeow:edoalSource gmeow:maintenanceStatus ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dsd" ; gmeow:tPred doap:status ; gmeow:tObj "dsdLit" ] ) ] .
+
+gmeow:mapDoapStatusAbandoned a gmeow:ProjectionMapping ;
+    rdfs:label "statusAbandoned → doap 'abandoned'"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dsab" ;
+        gmeow:atom ( [ gmeow:subjectVar "dsab" ; gmeow:predicate gmeow:maintenanceStatus ; gmeow:objectValue gmeow:statusAbandoned ] ) ;
+        gmeow:mint [ gmeow:bindVar "dsabLit" ; gmeow:bindExpr "abandoned" ] ;
+        gmeow:edoalSource gmeow:maintenanceStatus ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dsab" ; gmeow:tPred doap:status ; gmeow:tObj "dsabLit" ] ) ] .
+
+gmeow:mapDoapStatusEOL a gmeow:ProjectionMapping ;
+    rdfs:label "statusEOL → doap 'eol'"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dseol" ;
+        gmeow:atom ( [ gmeow:subjectVar "dseol" ; gmeow:predicate gmeow:maintenanceStatus ; gmeow:objectValue gmeow:statusEOL ] ) ;
+        gmeow:mint [ gmeow:bindVar "dseolLit" ; gmeow:bindExpr "eol" ] ;
+        gmeow:edoalSource gmeow:maintenanceStatus ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dseol" ; gmeow:tPred doap:status ; gmeow:tObj "dseolLit" ] ) ] .
+
+
+gmeow:mapDoapGitRepository a gmeow:ProjectionMapping ;
+    rdfs:label "Repository(repoTypeGit) → doap:GitRepository"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dgit" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dgit" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Repository ]
+            [ gmeow:subjectVar "dgit" ; gmeow:predicate gmeow:repositoryType ; gmeow:objectValue gmeow:repoTypeGit ] ) ;
+        gmeow:edoalSource gmeow:repositoryType ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toClass doap:GitRepository ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .

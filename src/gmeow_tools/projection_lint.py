@@ -67,6 +67,12 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     # Image super-ontology (#22)
     "iiif": ("iiif", "oa"),
     "exif": ("exif",),
+    # Transpiler coverage profiles (#34 phases 2-3)
+    "org": ("org",),
+    "bibo": ("bibo",),
+    "bibframe": ("bibframe",),
+    "gedcom": ("gedcom",),
+    "sioc": ("sioc",),
 }
 
 #: Target terms a compose/decompose transform legitimately MINTS — intermediate
@@ -77,6 +83,16 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
 #: here so the drift check still catches genuinely-undeclared mappings.
 _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
     {
+        # #34 minted structural nodes: the boundary Instant's value
+        # carrier, the minted DOI-identifier node's type, and the
+        # has_container projection's inverse row — outputs of declared
+        # minting templates, not standalone term correspondences.
+        "http://www.w3.org/2006/time#inXSDDateTime",
+        "http://id.loc.gov/ontologies/bibframe/Doi",
+        "http://id.loc.gov/ontologies/bibframe/Identifier",
+        "http://rdfs.org/sioc/ns#container_of",
+        # the minted gedcom:Marriage node's symmetric spouse rows
+        "http://www.w3.org/2000/10/swap/pim/gedcom#spouseIn",
         "http://www.w3.org/2006/vcard/ns#hasName",
         "http://www.w3.org/2006/vcard/ns#Name",
         "http://www.w3.org/2006/vcard/ns#hasAddress",

@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix bf:    <http://id.loc.gov/ontologies/bibframe/> .
+
+# Projection mappings: GMEOW publications → BIBFRAME (#34 phase 3). The
+# library-facing view of the WEMI spine: gmeow:Work IS the bibliographic
+# work; the flat title literal flattens to bf:title; the structured
+# CreativeWorkTitle relator survives as a bf:Title node (REUSED, not
+# minted); identifiers ride BIBFRAME's object-valued bf:identifiedBy idiom
+# via a MINTED identifier node (bf:Doi under the 10.-prefix guard,
+# bf:Identifier otherwise) — exactly the targets' `identifiedBy [a bf:Doi;
+# rdf:value …]` shape.
+
+gmeow:mapBfWork a gmeow:ProjectionMapping ;
+    rdfs:label "Work → bf:Work"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bfwork" ;
+        gmeow:atom ( [ gmeow:subjectVar "bfwork" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Work ] ) ;
+        gmeow:edoalSource gmeow:Work ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bibframe" ; gmeow:toClass bf:Work ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Expression/Manifestation/Item tiers below the Work are not re-expressed as bf:Instance/bf:Item here (declared partiality)" ] .
+
+gmeow:mapBfTitleLiteral a gmeow:ProjectionMapping ;
+    rdfs:label "title → bf:title"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bftw" ; gmeow:value "bftText" ;
+        gmeow:atom ( [ gmeow:subjectVar "bftw" ; gmeow:predicate gmeow:title ; gmeow:objectVar "bftText" ] ) ;
+        gmeow:edoalSource gmeow:title ] ;
+    gmeow:hasBinding [ gmeow:profile "bibframe" ; gmeow:toPredicate bf:title ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapBfTitleNode a gmeow:ProjectionMapping ;
+    rdfs:label "CreativeWorkTitle relator → bf:Title node"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bfcw" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "bfcw" ; gmeow:predicate gmeow:hasTitle ; gmeow:objectVar "bftitle" ] ) ;
+        gmeow:edoalSource gmeow:hasTitle ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bibframe" ; gmeow:toPredicate bf:title ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the title relator's language/script/displayable metadata drops; the node survives as a bare bf:Title" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "bfcw" ; gmeow:tPred bf:title ; gmeow:tObj "bftitle" ]
+            [ gmeow:tSubj "bftitle" ; gmeow:tPred rdf:type ; gmeow:tObjValue bf:Title ] ) ] .
+
+gmeow:mapBfDoi a gmeow:ProjectionMapping ;
+    rdfs:label "DOI identifier → bf:identifiedBy minted bf:Doi node"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bfdw" ;
+        gmeow:atom ( [ gmeow:subjectVar "bfdw" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "bfdoiVal" ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opStrStarts ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfdoiVal" ] ) ] "10." ) ] ;
+        gmeow:mint [ gmeow:bindVar "bfdoiNode" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfdw" ] ) ]
+                    "-doi" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:identifier ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bibframe" ; gmeow:toPredicate bf:identifiedBy ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the DOI reading rests on the 10.-prefix handle syntax" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "bfdw" ; gmeow:tPred bf:identifiedBy ; gmeow:tObj "bfdoiNode" ]
+            [ gmeow:tSubj "bfdoiNode" ; gmeow:tPred rdf:type ; gmeow:tObjValue bf:Doi ]
+            [ gmeow:tSubj "bfdoiNode" ; gmeow:tPred rdf:value ; gmeow:tObj "bfdoiVal" ] ) ] .
+
+gmeow:mapBfIdentifier a gmeow:ProjectionMapping ;
+    rdfs:label "non-DOI identifier → bf:identifiedBy minted bf:Identifier node"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bfiw" ;
+        gmeow:atom ( [ gmeow:subjectVar "bfiw" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "bfidVal" ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opStrStarts ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfidVal" ] ) ] "10." ) ] ) ] ;
+        gmeow:mint [ gmeow:bindVar "bfidNode" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfiw" ] ) ]
+                    "-identifier" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:identifier ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bibframe" ; gmeow:toPredicate bf:identifiedBy ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "bfiw" ; gmeow:tPred bf:identifiedBy ; gmeow:tObj "bfidNode" ]
+            [ gmeow:tSubj "bfidNode" ; gmeow:tPred rdf:type ; gmeow:tObjValue bf:Identifier ]
+            [ gmeow:tSubj "bfidNode" ; gmeow:tPred rdf:value ; gmeow:tObj "bfidVal" ] ) ] .

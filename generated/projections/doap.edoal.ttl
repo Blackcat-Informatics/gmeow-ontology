@@ -4,11 +4,28 @@
 @prefix edoal: <http://ns.inria.org/edoal/1.0/#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/projections/doap> a align:Alignment ;
     rdfs:label "GMEOW → doap (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "Repository webUrl → doap:browse"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:webUrl ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri doap:browse ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Repository(repoTypeGit) → doap:GitRepository"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:repositoryType ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri doap:GitRepository ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "projectLicense → doap:license"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:projectLicense ] ;

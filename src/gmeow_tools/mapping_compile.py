@@ -115,6 +115,12 @@ _PROFILES = (
     "resume",
     # Research-object / catalog packaging (#58)
     "dcat",
+    # Transpiler coverage, #34 phases 2-3
+    "org",
+    "bibo",
+    "bibframe",
+    "gedcom",
+    "sioc",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.

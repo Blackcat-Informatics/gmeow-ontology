@@ -14,6 +14,7 @@
 #   gts: http://resource.geosciml.org/ontology/timescale/gts#
 #   ivoa: http://www.ivoa.net/rdf/
 #   periodo: http://n2t.net/ark:/99152/
+#   prov: http://www.w3.org/ns/prov#
 #   qudt: http://qudt.org/schema/qudt/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
@@ -46,6 +47,7 @@ gmeow:datingMethodPotassiumArgon	skos:exactMatch	wd:Q899981	semapv:ManualMapping
 gmeow:datingMethodRadiocarbon	skos:exactMatch	wd:Q180454	semapv:ManualMappingCuration	0.95	radiocarbon dating (Q180454)
 gmeow:datingMethodUraniumLead	skos:exactMatch	wd:Q424428	semapv:ManualMappingCuration	0.95	uranium-lead dating (Q424428)
 gmeow:edtfValue	skos:relatedMatch	edtf:EDTF	semapv:ManualMappingCuration	0.75	GMEOW stores EDTF as plain literal; the EDTF Ontology treats it as a datatype. Alignment is by reference/convention.
+gmeow:endedAtTime	skos:exactMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85	the end-boundary twin of eqTemporal053 (#34 phase 2)
 gmeow:hasReferenceFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.85	links a temporal position to its calendar/timescale frame
 gmeow:hasUnit	skos:closeMatch	qudt:hasUnit	semapv:ManualMappingCuration	0.9	QUDT unit linkage
 gmeow:inTemporalFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.8	links an instant to its temporal reference system/frame
@@ -74,6 +76,7 @@ gmeow:periodPartOf	skos:closeMatch	gts:rank	semapv:ManualMappingCuration	0.6	ICS
 gmeow:periodPhanerozoic	skos:exactMatch	wd:Q80125	semapv:ManualMappingCuration	0.95	Wikidata Phanerozoic (Q80125)
 gmeow:periodQuaternary	skos:exactMatch	wd:Q25097	semapv:ManualMappingCuration	0.95	Wikidata Quaternary (Q25097)
 gmeow:periodStart	skos:closeMatch	time:hasBeginning	semapv:ManualMappingCuration	0.85	
+gmeow:startedAtTime	skos:exactMatch	prov:startedAtTime	semapv:ManualMappingCuration	0.85	the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (#34 phase 2)
 gmeow:timeScaleGPS	skos:closeMatch	ivoa:timescale/GPS	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTAI	skos:closeMatch	ivoa:timescale/TAI	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTAI	skos:exactMatch	wd:Q12149	semapv:ManualMappingCuration	0.95	International Atomic Time (Q12149)

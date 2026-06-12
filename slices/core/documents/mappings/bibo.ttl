@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix bibo:  <http://purl.org/ontology/bibo/> .
+
+# Projection mappings: GMEOW publications → BIBO (#34 phase 3). The flat
+# bibliographic view: articles, patents, identifiers. The DOI split uses the
+# TWO-CELL guard pattern (a "10."-prefixed identifier is a DOI per the DOI
+# handle syntax; everything else stays bibo:identifier) — pattern filters are
+# shared by all bindings of a cell, so the guarded and fallback emissions are
+# separate cells, never a double emission.
+
+gmeow:mapBiboAcademicArticle a gmeow:ProjectionMapping ;
+    rdfs:label "Article → bibo:AcademicArticle"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bart" ;
+        gmeow:atom ( [ gmeow:subjectVar "bart" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Article ] ) ;
+        gmeow:edoalSource gmeow:Article ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bibo" ; gmeow:toClass bibo:AcademicArticle ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "non-academic articles over-type as AcademicArticle (BIBO's working granularity)" ] .
+
+gmeow:mapBiboPatent a gmeow:ProjectionMapping ;
+    rdfs:label "Patent → bibo:Patent"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bpat" ;
+        gmeow:atom ( [ gmeow:subjectVar "bpat" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Patent ] ) ;
+        gmeow:edoalSource gmeow:Patent ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "bibo" ; gmeow:toClass bibo:Patent ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapBiboDoi a gmeow:ProjectionMapping ;
+    rdfs:label "DOI-shaped identifier → bibo:doi"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bdoi" ; gmeow:value "bdoiVal" ;
+        gmeow:atom ( [ gmeow:subjectVar "bdoi" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "bdoiVal" ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opStrStarts ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bdoiVal" ] ) ] "10." ) ] ;
+        gmeow:edoalSource gmeow:identifier ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bibo" ; gmeow:toPredicate bibo:doi ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the DOI reading rests on the 10.-prefix handle syntax; registrant metadata is not resolved" ] .
+
+gmeow:mapBiboIdentifier a gmeow:ProjectionMapping ;
+    rdfs:label "non-DOI identifier → bibo:identifier"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bident" ; gmeow:value "bidentVal" ;
+        gmeow:atom ( [ gmeow:subjectVar "bident" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "bidentVal" ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opStrStarts ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bidentVal" ] ) ] "10." ) ] ) ] ;
+        gmeow:edoalSource gmeow:identifier ] ;
+    gmeow:hasBinding [ gmeow:profile "bibo" ; gmeow:toPredicate bibo:identifier ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
