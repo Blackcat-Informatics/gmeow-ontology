@@ -774,6 +774,7 @@ A profile is a named set of conventions over the one format (declared in header 
 | `ai-package` | a concept + logic + observations + opinions + refuted claims + embeddings + data.  |
 | `opaque`     | `encrypt`-class frames; signatures + pseudonymous `kid`s REQUIRED; selective disclosure. |
 | `bundle`     | a GTS whose `blob`s are themselves GTS files (`mt: application/gts`); §12.1.        |
+| `files`      | a GTS archive of file-tree entries: each file is a blob described by path, size, mode, mtime, and media type (§13.2). |
 
 Profiles constrain conventions, not the wire format; a `generic` reader reads them all. The
 `evidence` profile additionally REQUIRES a head commitment (§9, item 4), and writers SHOULD emit
@@ -792,6 +793,59 @@ section MUST fail at write time, not warn (vector 20). The boundary is per *role
 file: one package legitimately carries a canonical payload with internal tags beside
 public-tagged docs sections. (This mirrors the GMEOW generator framework's internal-tag leak
 gate; the reference producer reuses its `retag` machinery at the section boundary.)
+
+### 13.2 The `files` profile (normative)
+
+The `files` profile is a portable, content-addressed archive of a file tree. It is the GTS
+answer to tar's `c`/`x`/`d`: pack a directory into a single-segment GTS, unpack it later, and
+`diff` it against a directory without byte comparison.
+
+**Namespace.** The profile owns a small, spec-defined vocabulary at
+`https://w3id.org/gts/files#` (prefix `files`). GTS independence means an unpacker MUST NOT
+require GMEOW, schema.org, or any other ontology to read the archive; the vocabulary is
+authored in the spec and carried as literal IRIs in the graph.
+
+| term | IRI | shape |
+|---|---|---|
+| `FileEntry` | `https://w3id.org/gts/files#FileEntry` | Class. One archived file. |
+| `path` | `https://w3id.org/gts/files#path` | Relative path string, `/` separators, no leading `/`, no `..` components. |
+| `digest` | `https://w3id.org/gts/files#digest` | `blake3:<hex>` content digest of the file bytes. |
+| `size` | `https://w3id.org/gts/files#size` | Byte size as `xsd:integer`. |
+| `mode` | `https://w3id.org/gts/files#mode` | POSIX file mode/permissions as `xsd:integer` (e.g. `0o100644`). |
+| `modified` | `https://w3id.org/gts/files#modified` | Modification time as `xsd:dateTime` in UTC. |
+| `mediaType` | `https://w3id.org/gts/files#mediaType` | Declared IANA media type string. |
+
+**Quad shape.** Each file in the archive is described by one blank-node `FileEntry`:
+
+```text
+_:entry a files:FileEntry ;
+    files:path "relative/path.txt" ;
+    files:digest "blake3:<hex>" ;
+    files:size 1234 ;
+    files:mode 33204 ;
+    files:modified "2026-06-10T20:00:00Z"^^xsd:dateTime ;
+    files:mediaType "text/plain" .
+```
+
+**Determinism.** A `files` archive MUST be byte-reproducible for the same input tree:
+
+- Paths are sorted lexicographically by their UTF-8 byte sequence before emission.
+- Modification times are normalised to UTC and serialised as `xsd:dateTime` with second
+  precision (fractional seconds MAY be retained when present on the source).
+- Only POSIX mode and mtime are recorded; ownership, uid/gid, xattrs, and ACLs are deliberately
+  excluded — they are tar's portability tarpit.
+
+**Inline and external blobs.** A file's bytes MAY be carried as an inline `blob` frame
+(`"d"` present, digest = BLAKE3(decoded `"d")`) or as an external blob (`"d"` absent,
+`pub.digest` names bytes held elsewhere, §12). By default all files are inline; a writer MAY
+store files larger than a configured threshold externally by reference. Identical bytes
+appearing under multiple paths are stored once by convention.
+
+**Relationship to other vocabularies.** The profile is deliberately self-contained, but the
+terms align by reference to common surface vocabularies: `files:size` ↔ schema.org
+`contentSize`, `files:mediaType` ↔ schema.org `encodingFormat`, `files:modified` ↔ NFO
+`fileLastModified`, `files:path` ↔ NFO `fileName`. These alignments live in GMEOW's mapping
+DSL; the files profile itself does not depend on them.
 
 ## 14. Transforms out
 
@@ -832,6 +886,36 @@ Raw `cat` always works (§3.1); a conformant **validating composer** (`gts cat`)
   (§11) is refused by default (suppression is a display contract and extraction is display) with
   an explicit override; a media-type flag is an **assertion** against the blob's declared
   `pub.mt` — a publish-class tool refuses a mismatch rather than transcoding.
+
+### 14.2 Archive tooling (`files` profile)
+
+The `files` profile adds three publish-class commands. They share the refuse-don't-trust posture
+of §14.1: raw byte operations are always valid GTS, but a tool refuses pathological states
+rather than trusting them to be intentional.
+
+- **`gts pack <dir|file>... -o out.gts`**
+  Produce a single-segment GTS whose header declares `"prof": "files"`. Each argument is
+  archived: a file is added under its basename; a directory is added recursively. The resulting
+  archive contains, in order, the `terms` and `quads` describing every `files:FileEntry`,
+  followed by the inline `blob` frames for the file contents. The command MUST refuse:
+  - inputs that contain `..` components or absolute paths in their stored path;
+  - inputs that are not readable or that disappear during the walk.
+
+- **`gts unpack <archive> [-C dir]`**
+  Write every `files:FileEntry` in the archive to the destination directory (default current
+  working directory). The command MUST:
+  - refuse to write outside the destination directory (`..`, absolute paths, or symlinks that
+    escape it);
+  - re-hash each written file and verify it matches `files:digest`;
+  - restore the file's declared modification time and permissions (subject to the host OS);
+  - skip entries whose digest is suppressed (§11) by default, with an explicit
+    `--include-suppressed` override.
+
+- **`gts diff <archive> <dir>`**
+  Compare the archive's `files:FileEntry` set to the current state of `<dir>` by content digest.
+  Report added, removed, and modified paths. Exit `0` if the directory matches the archive
+  exactly; exit `1` if any path differs or if the input is refused. No byte comparison is
+  needed: content addressing makes the operation O(read) on the directory.
 
 ## 15. Worked examples
 

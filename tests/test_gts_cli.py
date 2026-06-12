@@ -9,6 +9,7 @@ same refusals, same exit codes.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -107,3 +108,138 @@ def test_fold_exits_nonzero_on_diagnostics() -> None:
     # `gts fold … && publish` pipelines must fail on damage
     damaged = Path("generated/gts-vectors/04-damaged-frame.gts")
     assert main(["fold", str(damaged)]) == 1
+
+
+def _make_tree(tmp_path: Path) -> Path:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.txt").write_text("hello")
+    (src / "subdir").mkdir()
+    (src / "subdir" / "b.txt").write_text("world")
+    fixed_mtime = 1_700_000_000.0
+    for p in [src / "a.txt", src / "subdir" / "b.txt"]:
+        p.chmod(0o644)
+        os.utime(p, (fixed_mtime, fixed_mtime))
+    return src
+
+
+def test_pack_round_trips_bit_for_bit(tmp_path: Path) -> None:
+    src = _make_tree(tmp_path)
+    archive = tmp_path / "out.gts"
+    assert main(["pack", str(src), "-o", str(archive)]) == 0
+
+    dst = tmp_path / "dst"
+    assert main(["unpack", str(archive), "-C", str(dst)]) == 0
+    assert (dst / "a.txt").read_text() == "hello"
+    assert (dst / "subdir" / "b.txt").read_text() == "world"
+
+    # Identical tree produces identical archive bytes.
+    archive2 = tmp_path / "out2.gts"
+    assert main(["pack", str(dst), "-o", str(archive2)]) == 0
+    assert archive.read_bytes() == archive2.read_bytes()
+
+
+def test_pack_deduplicates_identical_content(tmp_path: Path) -> None:
+    from gts.reader import read
+
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.txt").write_text("shared")
+    (src / "b.txt").write_text("shared")
+    archive = tmp_path / "out.gts"
+    assert main(["pack", str(src), "-o", str(archive)]) == 0
+    g = read(archive.read_bytes())
+    # Two FileEntries but one inline blob.
+    assert len(g.blobs) == 1
+
+
+def test_unpack_refuses_traversal(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from gts import Writer
+
+    w = Writer(profile="files")
+    # Add the minimal shared terms so unpack recognises a files profile.
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://w3id.org/gts/files#FileEntry"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#path"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#digest"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#size"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#mode"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#modified"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#mediaType"),
+            Term(TermKind.IRI, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            Term(TermKind.IRI, "http://www.w3.org/2001/XMLSchema#integer"),
+            Term(TermKind.IRI, "http://www.w3.org/2001/XMLSchema#dateTime"),
+        ]
+    )
+    # Craft a FileEntry with a traversal path and a digest, but no blob.
+    # Unpack must refuse the traversal path before it complains about the
+    # missing blob.
+    w.add_terms(
+        [
+            Term(TermKind.BNODE, "e0"),
+            Term(TermKind.LITERAL, "../escape.txt"),
+            Term(TermKind.LITERAL, "blake3:" + "0" * 64),
+        ]
+    )
+    w.add_quads(
+        [
+            (10, 7, 0, None),  # e0 a FileEntry
+            (10, 1, 11, None),  # e0 path "../escape.txt"
+            (10, 2, 12, None),  # e0 digest ...
+        ]
+    )
+    archive = tmp_path / "traversal.gts"
+    archive.write_bytes(w.to_bytes())
+
+    assert main(["unpack", str(archive), "-C", str(tmp_path / "dst")]) == 1
+    stderr = capsys.readouterr().err
+    assert "traversal" in stderr or "escapes" in stderr, stderr
+
+
+def test_diff_reports_changes(tmp_path: Path) -> None:
+    src = _make_tree(tmp_path)
+    archive = tmp_path / "out.gts"
+    assert main(["pack", str(src), "-o", str(archive)]) == 0
+
+    # Identical directory -> no differences.
+    assert main(["diff", str(archive), str(src)]) == 0
+
+    # Add a file.
+    (src / "new.txt").write_text("new")
+    assert main(["diff", str(archive), str(src)]) == 1
+    # (specific reports tested via direct diff() unit tests)
+
+
+def test_unpack_skips_suppressed_blob_by_default(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "secret.txt").write_text("secret")
+    archive = tmp_path / "out.gts"
+    assert main(["pack", str(src), "-o", str(archive)]) == 0
+
+    # Read the archive and append a suppression frame for the secret blob.
+    data = bytearray(archive.read_bytes())
+    from gts.wire import canonical, content_id, iter_items
+
+    # Find the actual last frame id by walking items.
+    items, _torn = iter_items(bytes(data))
+    _off, last_item = items[-1]
+    assert isinstance(last_item, dict)
+    last_id = last_item["id"]
+    frame = {
+        "t": "suppress",
+        "prev": last_id,
+        "d": {"targets": [{"kind": "blob", "digest": digest_str(b"secret")}]},
+    }
+    frame["id"] = content_id(frame)
+    data += canonical(frame)
+    archive.write_bytes(data)
+
+    dst = tmp_path / "dst"
+    assert main(["unpack", str(archive), "-C", str(dst)]) == 0
+    assert not (dst / "secret.txt").exists()
+    assert main(["unpack", str(archive), "-C", str(dst), "--include-suppressed"]) == 0
+    assert (dst / "secret.txt").read_text() == "secret"

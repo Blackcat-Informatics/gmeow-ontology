@@ -265,6 +265,56 @@ def _cmd_cat(paths: list[str], out: str | None) -> int:
     return _write_out(out, bytes(combined))
 
 
+def _cmd_pack(sources: list[str], out: str) -> int:
+    """Pack files/directories into a files-profile GTS archive (tar's ``c``)."""
+    from gts.files import pack
+
+    try:
+        data = pack([Path(s) for s in sources])
+    except (OSError, ValueError) as exc:
+        print(f"gts: refusing pack: {exc}", file=sys.stderr)
+        return 1
+    return _write_out(out, data)
+
+
+def _cmd_unpack(path: str, dest: str | None, include_suppressed: bool) -> int:
+    """Unpack a files-profile GTS archive (tar's ``x``), verifying digests."""
+    from gts.files import unpack
+
+    g = read(_load(path))
+    for d in g.diagnostics:
+        print(f"gts: diagnostic {d.code}: {d.detail}", file=sys.stderr)
+    if g.diagnostics or not g.segment_heads:
+        print("gts: refusing unpack: archive did not read cleanly", file=sys.stderr)
+        return 1
+    try:
+        unpack(g, Path(dest or "."), include_suppressed=include_suppressed)
+    except (OSError, ValueError) as exc:
+        print(f"gts: refusing unpack: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _cmd_diff(path: str, directory: str) -> int:
+    """Compare an archive to a directory by content digest (tar's ``d``)."""
+    from gts.files import diff
+
+    g = read(_load(path))
+    for d in g.diagnostics:
+        print(f"gts: diagnostic {d.code}: {d.detail}", file=sys.stderr)
+    if g.diagnostics or not g.segment_heads:
+        print("gts: refusing diff: archive did not read cleanly", file=sys.stderr)
+        return 1
+    try:
+        lines = diff(g, Path(directory))
+    except (OSError, ValueError) as exc:
+        print(f"gts: refusing diff: {exc}", file=sys.stderr)
+        return 1
+    for line in lines:
+        print(line)
+    return 1 if lines else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point for the ``gts`` console script."""
     parser = argparse.ArgumentParser(
@@ -308,6 +358,28 @@ def main(argv: list[str] | None = None) -> int:
     p_cat.add_argument("files", nargs="+")
     p_cat.add_argument("-o", "--out", default=None)
 
+    p_pack = sub.add_parser(
+        "pack", help="pack files/directories into a files-profile GTS archive"
+    )
+    p_pack.add_argument("sources", nargs="+")
+    p_pack.add_argument("-o", "--out", required=True)
+
+    p_unpack = sub.add_parser("unpack", help="unpack a files-profile GTS archive")
+    p_unpack.add_argument("file")
+    p_unpack.add_argument("-C", dest="dest", default=None)
+    p_unpack.add_argument(
+        "--include-suppressed",
+        action="store_true",
+        help="extract digest-suppressed entries anyway",
+    )
+
+    p_diff = sub.add_parser(
+        "diff",
+        help="compare a files-profile GTS archive to a directory by digest",
+    )
+    p_diff.add_argument("archive")
+    p_diff.add_argument("directory")
+
     args = parser.parse_args(argv)
     if args.command == "info":
         return _cmd_info(args.files)
@@ -321,6 +393,12 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_extract(
             args.file, args.digest, args.out, args.mt, args.include_suppressed
         )
+    if args.command == "pack":
+        return _cmd_pack(args.sources, args.out)
+    if args.command == "unpack":
+        return _cmd_unpack(args.file, args.dest, args.include_suppressed)
+    if args.command == "diff":
+        return _cmd_diff(args.archive, args.directory)
     return _cmd_cat(args.files, args.out)
 
 
