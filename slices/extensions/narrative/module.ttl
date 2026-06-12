@@ -481,3 +481,218 @@ gmeow:narrationMode
     rdfs:label "narration mode"@x-gmeow-english ;
     skos:definition "The mode(s) of this narration usage. At least one (SHACL): if you reified, you had a reason. NOT functional: a flashback can also be a dream; coexisting critical readings ride the statement layer (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+# =========================================================================== #
+# THE NARRATIVE INTERIOR — arcs, roles, motifs (issues #361 / #362 / #363,
+# EPIC #358)
+#
+# The remaining interior of the fiction, anchored to what already exists:
+# arc samples observe characters AT narrative positions (#359); motif
+# occurrences ride the narration seam (#360); narrative roles are
+# interpretive relators with scope. Every reading here is vantage-indexed
+# (P9): who the protagonist is, what a character felt in chapter 31, and
+# whether a string is a motif are claims by someone, coexisting with rivals.
+# Character-as-exemplar composes from the rubrics facility's
+# gmeow:exemplarSubject (#353) with ZERO new machinery — fixtures
+# demonstrate it; no axiom here references a norms-slice IRI (P16).
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# Arc samples (#361) — the music PitchTrajectory move: an arc is sampled
+# control points in a frame, not prose
+# --------------------------------------------------------------------------- #
+
+gmeow:ArcSample
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:label "Arc Sample"@x-gmeow-english ;
+    skos:definition "One reading of a character's state at a narrative position — an observation: vantage = the analyzing model or critic, subject = the frame-scoped character, position = a NarrativePosition (#359; discourse-time by default, story-time samples legal and distinct), state = an emotion-type or analogous value by IRI (the affect slice's EmotionType when loaded, EmotionML category IRIs otherwise — soft reference, never dependency). Two analyzers disagreeing about chapter 31 are two coexisting cells (Principle 9). The existing gmeow:CharacterArc is the integrating whole: samples attach via gmeow:arcSample ⊑ gmeow:hasPart, and an arc with no samples stays valid (book-level-only analyses)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:sampleSubject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:label "sample subject"@x-gmeow-english ;
+    skos:definition "The frame-scoped character (or other diegetic entity) this sample reads (⊑ observedFeature, the #69 bridge idiom). Range intentionally open. Functional: one sample, one subject."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:samplePosition
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:range gmeow:NarrativePosition ;
+    rdfs:label "sample position"@x-gmeow-english ;
+    skos:definition "WHERE in the narrative this sample reads — a frame-carried NarrativePosition (#359), never a bare index. Functional and mandatory (SHACL): a sample without a position is not a sample."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:sampleState
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:label "sample state"@x-gmeow-english ;
+    skos:definition "The read state, by IRI — an affect-slice EmotionType when that slice is loaded, an EmotionML category IRI, or another tradition's term (range intentionally open: soft reference, never extension→extension dependency, P16). Functional: one cell, one state — a blended reading at one position is several samples sharing a vantage. The claimModality axiom pattern applies: this plays the observationResult role without the subproperty (QualityValue ⟂ Entity)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:developmentSignalText
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:label "development signal (text)"@x-gmeow-english ;
+    skos:definition "Prose evidence the analyzer cited for this reading. NOT functional and range-open (localizable prose, the #376 convention)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:developmentSignalEvent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "development signal (event)"@x-gmeow-english ;
+    skos:definition "A diegetic event the analyzer cited for this reading — an ordinary gmeow:Event claims-scoped accordingTo its narrative frame (existing doctrine), typically also narrated by the position's segment (#360). NOT functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:arcSample
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:range gmeow:ArcSample ;
+    rdfs:label "arc sample"@x-gmeow-english ;
+    skos:definition "Attaches a sample to its integrating CharacterArc (⊑ gmeow:hasPart — samples are parts of the arc's analysis). Purely ADDITIVE to the existing CharacterArc: arcType and arcEvidence remain the holistic interpretive layer, and an arc with no samples stays valid. NOT functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+# --------------------------------------------------------------------------- #
+# Narrative roles (#362) — dramatis personae as interpretive, scoped relators
+# --------------------------------------------------------------------------- #
+
+gmeow:NarrativeRole
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Narrative Role"@x-gmeow-english ;
+    skos:definition "A character's narratological function — an OPEN value vocabulary (protagonist, antagonist, mentor, foil, narrator, confidant, love interest, trickster, …), Propp/Greimas-informed but never closed: traditions disagree about the role inventory itself (Principle 9). A role is a FUNCTION RELATIVE TO A SCOPE, not an intrinsic property — carried by the RoleInNarrative relator, never by typing the character."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:roleProtagonist  a gmeow:NarrativeRole ; rdfs:label "protagonist"@x-gmeow-english ;
+    skos:definition "The protagonist role — a scope's central agent. Ensemble works carry several coexisting protagonist claims; no primary exists (Principle 9)."@x-gmeow-english .
+gmeow:roleProtagonist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:roleAntagonist   a gmeow:NarrativeRole ; rdfs:label "antagonist"@x-gmeow-english ;
+    skos:definition "The antagonist role — opposed to a protagonist within the scope."@x-gmeow-english .
+gmeow:roleAntagonist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:roleMentor       a gmeow:NarrativeRole ; rdfs:label "mentor"@x-gmeow-english ;
+    skos:definition "The mentor role."@x-gmeow-english .
+gmeow:roleMentor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:roleFoil         a gmeow:NarrativeRole ; rdfs:label "foil"@x-gmeow-english ;
+    skos:definition "The foil role — a contrast figure for another character."@x-gmeow-english .
+gmeow:roleFoil rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:roleNarrator     a gmeow:NarrativeRole ; rdfs:label "narrator"@x-gmeow-english ;
+    skos:definition "The narrator role — the telling voice (its reliability is the #360 narrationUnreliable axis, not a role variant)."@x-gmeow-english .
+gmeow:roleNarrator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:roleConfidant    a gmeow:NarrativeRole ; rdfs:label "confidant"@x-gmeow-english ;
+    skos:definition "The confidant role."@x-gmeow-english .
+gmeow:roleConfidant rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:roleLoveInterest a gmeow:NarrativeRole ; rdfs:label "love interest"@x-gmeow-english ;
+    skos:definition "The love-interest role."@x-gmeow-english .
+gmeow:roleLoveInterest rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:roleTrickster    a gmeow:NarrativeRole ; rdfs:label "trickster"@x-gmeow-english ;
+    skos:definition "The trickster role."@x-gmeow-english .
+gmeow:roleTrickster rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:NarrativeScope
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Narrative Scope"@x-gmeow-english ;
+    skos:definition "The umbrella category of things a narrative role can be relative to — a creative work (protagonist of the trilogy), a narrative reference frame (protagonist of the continuity), or a content segment (protagonist of one chapter). A NAMED class (the IntentionalMoment/RiskFactor precedent) so roleScope carries a generator-visible range and the relator-arity gate sees the end. Never instantiated directly."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:RoleInNarrative
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Role In Narrative"@x-gmeow-english ;
+    skos:definition "The reified, interpretive fact that a character bears a narratological role RELATIVE TO A SCOPE — protagonist of the trilogy, of one book, of one chapter are different claims. Vantage-indexed through the statement layer; ensemble works carry coexisting protagonist relators and NO primaryProtagonist exists or ever will (Principle 9). Flat shortcut gmeow:hasNarrativeRole for the 80% single-work case."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrativeRoleBearer
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RoleInNarrative ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "narrative role bearer"@x-gmeow-english ;
+    skos:definition "The frame-scoped character bearing the role. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrativeRoleScope
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RoleInNarrative ;
+    rdfs:range gmeow:NarrativeScope ;
+    rdfs:label "narrative role scope"@x-gmeow-english ;
+    skos:definition "What the role is relative to — a CreativeWork, a NarrativeReferenceFrame, or a ContentSegment (grafted under NarrativeScope below). Functional and mandatory (SHACL): protagonist-of-what is half the claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrativeRoleValue
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RoleInNarrative ;
+    rdfs:range gmeow:NarrativeRole ;
+    rdfs:label "narrative role value"@x-gmeow-english ;
+    skos:definition "The role borne. Functional: one relator, one role — a character who is both mentor and foil within one scope bears two relators. Open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:hasNarrativeRole
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:NarrativeRole ;
+    rdfs:label "has narrative role"@x-gmeow-english ;
+    skos:definition "Flat 80% shortcut: the character bears this role in their single obvious work. Domain intentionally open (frame-scoped characters are ordinary entities). Promote to RoleInNarrative when scope, vantage, or evidence must be first-class — and always for ensemble or cross-continuity claims."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+# The scope graft (extension-side, the Rule ⊑ Norm direction): core classes
+# gain the NarrativeScope superclass here, never edits in core.
+gmeow:CreativeWork rdfs:subClassOf gmeow:NarrativeScope .
+gmeow:ContentSegment rdfs:subClassOf gmeow:NarrativeScope .
+gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:NarrativeScope .
+
+# --------------------------------------------------------------------------- #
+# Motifs (#363) — thematic tags with identity; occurrences ride the seam
+# --------------------------------------------------------------------------- #
+
+gmeow:Motif
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    rdfs:label "Motif"@x-gmeow-english ;
+    skos:definition "An identity-bearing recurring narrative unit — a theme, leitmotif, symbol, running gag, tale type, or trope ('Melisande's Game', 'the Cassiline vow'). NOT a folksonomy string: a motif carries aliases (names module Appellations), a kind, frame-scoped claims, and occurrences riding the narration seam (gmeow:motifOccursIn ⊑ gmeow:narratedIn, #360 — inheriting the flat-by-default efficiency discipline). Motif-hood is itself interpretive: one vantage's tag is another's motif, and both readings coexist (Principle 9). Cross-work identity goes through gmeow:counterpartOf or a shared registry anchor (Thompson Motif Index, ATU — alignment window), NEVER string equality. The tags module remains the right home for uncurated labels; the promotion heuristic (tag → motif when recurrence and identity emerge, recorded as an Activity with provenance) lives in docs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:MotifKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Motif Kind"@x-gmeow-english ;
+    skos:definition "What sort of recurring unit a motif is — an OPEN value vocabulary: theme, leitmotif, symbol, running gag, tale type, trope. Never a tree (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:motifKindTheme      a gmeow:MotifKind ; rdfs:label "theme"@x-gmeow-english ;
+    skos:definition "The theme motif kind — a recurring idea or argument."@x-gmeow-english .
+gmeow:motifKindTheme rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:motifKindLeitmotif  a gmeow:MotifKind ; rdfs:label "leitmotif"@x-gmeow-english ;
+    skos:definition "The leitmotif kind — a recurring associated figure (the musical sense lands with the music extension's analysis layer)."@x-gmeow-english .
+gmeow:motifKindLeitmotif rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:motifKindSymbol     a gmeow:MotifKind ; rdfs:label "symbol"@x-gmeow-english ;
+    skos:definition "The symbol motif kind — a recurring object or image standing for something."@x-gmeow-english .
+gmeow:motifKindSymbol rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:motifKindRunningGag a gmeow:MotifKind ; rdfs:label "running gag"@x-gmeow-english ;
+    skos:definition "The running-gag motif kind."@x-gmeow-english .
+gmeow:motifKindRunningGag rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:motifKindTaleType   a gmeow:MotifKind ; rdfs:label "tale type"@x-gmeow-english ;
+    skos:definition "The tale-type motif kind — an ATU-style whole-story pattern."@x-gmeow-english .
+gmeow:motifKindTaleType rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:motifKindTrope      a gmeow:MotifKind ; rdfs:label "trope"@x-gmeow-english ;
+    skos:definition "The trope motif kind — a recognized convention (DBTropes anchors at alignment time)."@x-gmeow-english .
+gmeow:motifKindTrope rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:motifKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Motif ;
+    rdfs:range gmeow:MotifKind ;
+    rdfs:label "motif kind"@x-gmeow-english ;
+    skos:definition "The motif's kind(s). NOT functional — readings coexist (Principle 9). Open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:motifOccursIn
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:narratedIn ;
+    rdfs:domain gmeow:Motif ;
+    rdfs:range gmeow:ContentSegment ;
+    rdfs:label "motif occurs in"@x-gmeow-english ;
+    skos:definition "An occurrence of the motif in a carrying segment — the narration seam reused (⊑ gmeow:narratedIn, #360), inheriting the efficiency discipline: flat by default, promoted to a NarrationUsage only when a vantage disputes the occurrence or a mode matters. NOT functional: 16,002 corpus tag-instances become occurrence edges."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
