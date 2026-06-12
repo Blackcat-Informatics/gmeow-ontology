@@ -25,31 +25,144 @@ gmeow:wsLatin a gmeow:WritingSystem ;
     skos:definition "The Latin alphabet script used for English, German, Spanish, French, and romanizations."@x-gmeow-english ;
     gmeow:scriptCode "Latn" ;
     gmeow:writingSystemType gmeow:wsTypeAlphabet ;
-    gmeow:textDirection gmeow:directionLtr .
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8229 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:wsHan a gmeow:WritingSystem ;
     rdfs:label "Han writing system"@x-gmeow-english ;
     skos:definition "The logographic Chinese character writing system used for Chinese and Japanese Kanji."@x-gmeow-english ;
     gmeow:scriptCode "Hani" ;
-    gmeow:writingSystemType gmeow:wsTypeLogographic .
+    gmeow:writingSystemType gmeow:wsTypeLogographic ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8201 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:wsHiragana a gmeow:WritingSystem ;
     rdfs:label "Hiragana writing system"@x-gmeow-english ;
     skos:definition "The Japanese hiragana syllabary."@x-gmeow-english ;
     gmeow:scriptCode "Hira" ;
-    gmeow:writingSystemType gmeow:wsTypeSyllabary .
+    gmeow:writingSystemType gmeow:wsTypeSyllabary ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q48332 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:wsKatakana a gmeow:WritingSystem ;
     rdfs:label "Katakana writing system"@x-gmeow-english ;
     skos:definition "The Japanese katakana syllabary."@x-gmeow-english ;
     gmeow:scriptCode "Kana" ;
-    gmeow:writingSystemType gmeow:wsTypeSyllabary .
+    gmeow:writingSystemType gmeow:wsTypeSyllabary ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q48334 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:wsHangul a gmeow:WritingSystem ;
     rdfs:label "Hangul writing system"@x-gmeow-english ;
     skos:definition "The Korean featural alphabet script."@x-gmeow-english ;
     gmeow:scriptCode "Hang" ;
-    gmeow:writingSystemType gmeow:wsTypeFeatural .
+    gmeow:writingSystemType gmeow:wsTypeFeatural ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8222 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsArabic a gmeow:WritingSystem ;
+    rdfs:label "Arabic writing system"@x-gmeow-english ;
+    skos:definition "The Arabic abjad script used for Arabic, Persian, Urdu, and many other languages."@x-gmeow-english ;
+    gmeow:scriptCode "Arab" ;
+    gmeow:writingSystemType gmeow:wsTypeAbjad ;
+    gmeow:textDirection gmeow:directionRtl ;
+    skos:exactMatch wd:Q1828555 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsCyrillic a gmeow:WritingSystem ;
+    rdfs:label "Cyrillic writing system"@x-gmeow-english ;
+    skos:definition "The Cyrillic alphabet script used for Russian, Ukrainian, and many other languages."@x-gmeow-english ;
+    gmeow:scriptCode "Cyrl" ;
+    gmeow:writingSystemType gmeow:wsTypeAlphabet ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8209 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsDevanagari a gmeow:WritingSystem ;
+    rdfs:label "Devanagari writing system"@x-gmeow-english ;
+    skos:definition "The Devanagari abugida script used for Hindi, Marathi, Nepali, and Sanskrit."@x-gmeow-english ;
+    gmeow:scriptCode "Deva" ;
+    gmeow:writingSystemType gmeow:wsTypeAbugida ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q15780 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsGreek a gmeow:WritingSystem ;
+    rdfs:label "Greek writing system"@x-gmeow-english ;
+    skos:definition "The Greek alphabet script used for the Greek language."@x-gmeow-english ;
+    gmeow:scriptCode "Grek" ;
+    gmeow:writingSystemType gmeow:wsTypeAlphabet ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8216 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsHebrew a gmeow:WritingSystem ;
+    rdfs:label "Hebrew writing system"@x-gmeow-english ;
+    skos:definition "The Hebrew abjad script used for Hebrew, Yiddish, and others."@x-gmeow-english ;
+    gmeow:scriptCode "Hebr" ;
+    gmeow:writingSystemType gmeow:wsTypeAbjad ;
+    gmeow:textDirection gmeow:directionRtl ;
+    skos:exactMatch wd:Q14318 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsBengali a gmeow:WritingSystem ;
+    rdfs:label "Bengali writing system"@x-gmeow-english ;
+    skos:definition "The Bengali abugida script used for Bengali and Assamese."@x-gmeow-english ;
+    gmeow:scriptCode "Beng" ;
+    gmeow:writingSystemType gmeow:wsTypeAbugida ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q33007 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsTamil a gmeow:WritingSystem ;
+    rdfs:label "Tamil writing system"@x-gmeow-english ;
+    skos:definition "The Tamil abugida script used for the Tamil language."@x-gmeow-english ;
+    gmeow:scriptCode "Taml" ;
+    gmeow:writingSystemType gmeow:wsTypeAbugida ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q15774 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsThai a gmeow:WritingSystem ;
+    rdfs:label "Thai writing system"@x-gmeow-english ;
+    skos:definition "The Thai abugida script used for the Thai language."@x-gmeow-english ;
+    gmeow:scriptCode "Thai" ;
+    gmeow:writingSystemType gmeow:wsTypeAbugida ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q160064 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsGeorgian a gmeow:WritingSystem ;
+    rdfs:label "Georgian writing system"@x-gmeow-english ;
+    skos:definition "The Georgian alphabet script used for the Georgian language."@x-gmeow-english ;
+    gmeow:scriptCode "Geor" ;
+    gmeow:writingSystemType gmeow:wsTypeAlphabet ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8199 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsArmenian a gmeow:WritingSystem ;
+    rdfs:label "Armenian writing system"@x-gmeow-english ;
+    skos:definition "The Armenian alphabet script used for the Armenian language."@x-gmeow-english ;
+    gmeow:scriptCode "Armn" ;
+    gmeow:writingSystemType gmeow:wsTypeAlphabet ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8207 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsEthiopic a gmeow:WritingSystem ;
+    rdfs:label "Ethiopic writing system"@x-gmeow-english ;
+    skos:definition "The Geʽez abugida script used for Amharic, Tigrinya, and others."@x-gmeow-english ;
+    gmeow:scriptCode "Ethi" ;
+    gmeow:writingSystemType gmeow:wsTypeAbugida ;
+    gmeow:textDirection gmeow:directionLtr ;
+    skos:exactMatch wd:Q8210 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 # =========================================================================== #
 # Natural Languages
@@ -61,13 +174,16 @@ gmeow:langEnglish a gmeow:Language ;
     gmeow:languageTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en"^^xsd:language ;
     gmeow:languageCode "en" ;
+    gmeow:languageCode "eng" ;
     gmeow:languageOrigin gmeow:originNatural ;
-    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsLatin ;
     gmeow:hasAppellation gmeow:appEnglishGlossonym ;
     skos:exactMatch wd:Q1860 ;
-    skos:exactMatch <http://lexvo.org/id/iso639-3/eng> .
+    skos:exactMatch <http://lexvo.org/id/iso639-3/eng> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/stan1293> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appEnglishGlossonym a gmeow:Appellation ;
     gmeow:fullName "English"@x-gmeow-english ;
@@ -81,13 +197,16 @@ gmeow:langGerman a gmeow:Language ;
     gmeow:languageTag "x-gmeow-german" ;
     gmeow:bcp47Tag "de"^^xsd:language ;
     gmeow:languageCode "de" ;
+    gmeow:languageCode "deu" ;
     gmeow:languageOrigin gmeow:originNatural ;
-    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsLatin ;
-    gmeow:hasAppellation gmeow:appGermanEndonym , gmeow:appGermanExonym ;
+    gmeow:hasAppellation gmeow:appGermanEndonym, gmeow:appGermanExonym ;
     skos:exactMatch wd:Q188 ;
-    skos:exactMatch <http://lexvo.org/id/iso639-3/deu> .
+    skos:exactMatch <http://lexvo.org/id/iso639-3/deu> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/stan1295> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appGermanEndonym a gmeow:Appellation ;
     gmeow:fullName "Deutsch"@x-gmeow-german ;
@@ -96,8 +215,8 @@ gmeow:appGermanEndonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:appGermanExonym a gmeow:Appellation ;
-    gmeow:fullName "German"@x-gmeow-english ;
-    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:fullName "German"@x-gmeow-german ;
+    gmeow:nameLanguage gmeow:langGerman ;
     gmeow:namePurpose gmeow:namePurposeExonym ;
     gmeow:displayable true .
 
@@ -107,13 +226,16 @@ gmeow:langSpanish a gmeow:Language ;
     gmeow:languageTag "x-gmeow-spanish" ;
     gmeow:bcp47Tag "es"^^xsd:language ;
     gmeow:languageCode "es" ;
+    gmeow:languageCode "spa" ;
     gmeow:languageOrigin gmeow:originNatural ;
-    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsLatin ;
-    gmeow:hasAppellation gmeow:appSpanishEndonym , gmeow:appSpanishExonym ;
+    gmeow:hasAppellation gmeow:appSpanishEndonym, gmeow:appSpanishExonym ;
     skos:exactMatch wd:Q1321 ;
-    skos:exactMatch <http://lexvo.org/id/iso639-3/spa> .
+    skos:exactMatch <http://lexvo.org/id/iso639-3/spa> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/stan1288> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appSpanishEndonym a gmeow:Appellation ;
     gmeow:fullName "Español"@x-gmeow-spanish ;
@@ -122,8 +244,8 @@ gmeow:appSpanishEndonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:appSpanishExonym a gmeow:Appellation ;
-    gmeow:fullName "Spanish"@x-gmeow-english ;
-    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:fullName "Spanish"@x-gmeow-spanish ;
+    gmeow:nameLanguage gmeow:langSpanish ;
     gmeow:namePurpose gmeow:namePurposeExonym ;
     gmeow:displayable true .
 
@@ -133,13 +255,16 @@ gmeow:langJapanese a gmeow:Language ;
     gmeow:languageTag "x-gmeow-japanese" ;
     gmeow:bcp47Tag "ja"^^xsd:language ;
     gmeow:languageCode "ja" ;
+    gmeow:languageCode "jpn" ;
     gmeow:languageOrigin gmeow:originNatural ;
-    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
-    gmeow:usesWritingSystem gmeow:wsHan , gmeow:wsHiragana , gmeow:wsKatakana , gmeow:wsLatin ;
-    gmeow:hasAppellation gmeow:appJapaneseEndonym , gmeow:appJapaneseExonym ;
+    gmeow:usesWritingSystem gmeow:wsHan, gmeow:wsHiragana, gmeow:wsKatakana, gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appJapaneseEndonym, gmeow:appJapaneseExonym ;
     skos:exactMatch wd:Q5287 ;
-    skos:exactMatch <http://lexvo.org/id/iso639-3/jpn> .
+    skos:exactMatch <http://lexvo.org/id/iso639-3/jpn> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/niho1239> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appJapaneseEndonym a gmeow:Appellation ;
     gmeow:fullName "日本語"@x-gmeow-japanese ;
@@ -148,34 +273,37 @@ gmeow:appJapaneseEndonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:appJapaneseExonym a gmeow:Appellation ;
-    gmeow:fullName "Japanese"@x-gmeow-english ;
-    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:fullName "Japanese"@x-gmeow-japanese ;
+    gmeow:nameLanguage gmeow:langJapanese ;
     gmeow:namePurpose gmeow:namePurposeExonym ;
     gmeow:displayable true .
 
-gmeow:langChinese a gmeow:Language ;
-    rdfs:label "Chinese"@x-gmeow-english ;
-    skos:definition "A branch of Sino-Tibetan languages spoken primarily in China."@x-gmeow-english ;
-    gmeow:languageTag "x-gmeow-chinese" ;
+gmeow:langMandarin a gmeow:Language ;
+    rdfs:label "Mandarin Chinese"@x-gmeow-english ;
+    skos:definition "A major branch of Sinitic languages, often called Standard Chinese, spoken across China and beyond."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-mandarin" ;
     gmeow:bcp47Tag "zh"^^xsd:language ;
     gmeow:languageCode "zh" ;
+    gmeow:languageCode "cmn" ;
     gmeow:languageOrigin gmeow:originNatural ;
-    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsHan ;
-    gmeow:hasAppellation gmeow:appChineseEndonym , gmeow:appChineseExonym ;
-    skos:exactMatch wd:Q7850 ;
-    skos:exactMatch <http://lexvo.org/id/iso639-3/zho> .
+    gmeow:hasAppellation gmeow:appMandarinEndonym, gmeow:appMandarinExonym ;
+    skos:exactMatch wd:Q9192 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/cmn> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/mand1415> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
-gmeow:appChineseEndonym a gmeow:Appellation ;
-    gmeow:fullName "中文"@x-gmeow-chinese ;
-    gmeow:nameLanguage gmeow:langChinese ;
+gmeow:appMandarinEndonym a gmeow:Appellation ;
+    gmeow:fullName "普通话"@x-gmeow-mandarin ;
+    gmeow:nameLanguage gmeow:langMandarin ;
     gmeow:namePurpose gmeow:namePurposeEndonym ;
     gmeow:displayable true .
 
-gmeow:appChineseExonym a gmeow:Appellation ;
-    gmeow:fullName "Chinese"@x-gmeow-english ;
-    gmeow:nameLanguage gmeow:langEnglish ;
+gmeow:appMandarinExonym a gmeow:Appellation ;
+    gmeow:fullName "Mandarin Chinese"@x-gmeow-mandarin ;
+    gmeow:nameLanguage gmeow:langMandarin ;
     gmeow:namePurpose gmeow:namePurposeExonym ;
     gmeow:displayable true .
 
@@ -185,13 +313,16 @@ gmeow:langFrench a gmeow:Language ;
     gmeow:languageTag "x-gmeow-french" ;
     gmeow:bcp47Tag "fr"^^xsd:language ;
     gmeow:languageCode "fr" ;
+    gmeow:languageCode "fra" ;
     gmeow:languageOrigin gmeow:originNatural ;
-    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsLatin ;
-    gmeow:hasAppellation gmeow:appFrenchEndonym , gmeow:appFrenchExonym ;
+    gmeow:hasAppellation gmeow:appFrenchEndonym, gmeow:appFrenchExonym ;
     skos:exactMatch wd:Q150 ;
-    skos:exactMatch <http://lexvo.org/id/iso639-3/fra> .
+    skos:exactMatch <http://lexvo.org/id/iso639-3/fra> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/stan1290> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appFrenchEndonym a gmeow:Appellation ;
     gmeow:fullName "Français"@x-gmeow-french ;
@@ -200,8 +331,878 @@ gmeow:appFrenchEndonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:appFrenchExonym a gmeow:Appellation ;
-    gmeow:fullName "French"@x-gmeow-english ;
-    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:fullName "French"@x-gmeow-french ;
+    gmeow:nameLanguage gmeow:langFrench ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langArabic a gmeow:Language ;
+    rdfs:label "Arabic"@x-gmeow-english ;
+    skos:definition "A Central Semitic language spoken across the Arab world."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-arabic" ;
+    gmeow:bcp47Tag "ar"^^xsd:language ;
+    gmeow:languageCode "ar" ;
+    gmeow:languageCode "ara" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsArabic ;
+    gmeow:hasAppellation gmeow:appArabicEndonym, gmeow:appArabicExonym ;
+    skos:exactMatch wd:Q13955 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ara> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/stan1318> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appArabicEndonym a gmeow:Appellation ;
+    gmeow:fullName "العربية"@x-gmeow-arabic ;
+    gmeow:nameLanguage gmeow:langArabic ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appArabicExonym a gmeow:Appellation ;
+    gmeow:fullName "Arabic"@x-gmeow-arabic ;
+    gmeow:nameLanguage gmeow:langArabic ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langHindi a gmeow:Language ;
+    rdfs:label "Hindi"@x-gmeow-english ;
+    skos:definition "An Indo-Aryan language spoken primarily in North India."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-hindi" ;
+    gmeow:bcp47Tag "hi"^^xsd:language ;
+    gmeow:languageCode "hi" ;
+    gmeow:languageCode "hin" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsDevanagari ;
+    gmeow:hasAppellation gmeow:appHindiEndonym, gmeow:appHindiExonym ;
+    skos:exactMatch wd:Q11051 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/hin> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/hind1269> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHindiEndonym a gmeow:Appellation ;
+    gmeow:fullName "हिन्दी"@x-gmeow-hindi ;
+    gmeow:nameLanguage gmeow:langHindi ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appHindiExonym a gmeow:Appellation ;
+    gmeow:fullName "Hindi"@x-gmeow-hindi ;
+    gmeow:nameLanguage gmeow:langHindi ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langPortuguese a gmeow:Language ;
+    rdfs:label "Portuguese"@x-gmeow-english ;
+    skos:definition "A Romance language originating in Portugal, now spoken in Brazil and other regions."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-portuguese" ;
+    gmeow:bcp47Tag "pt"^^xsd:language ;
+    gmeow:languageCode "pt" ;
+    gmeow:languageCode "por" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appPortugueseEndonym, gmeow:appPortugueseExonym ;
+    skos:exactMatch wd:Q5146 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/por> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/port1283> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPortugueseEndonym a gmeow:Appellation ;
+    gmeow:fullName "Português"@x-gmeow-portuguese ;
+    gmeow:nameLanguage gmeow:langPortuguese ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appPortugueseExonym a gmeow:Appellation ;
+    gmeow:fullName "Portuguese"@x-gmeow-portuguese ;
+    gmeow:nameLanguage gmeow:langPortuguese ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langRussian a gmeow:Language ;
+    rdfs:label "Russian"@x-gmeow-english ;
+    skos:definition "An East Slavic language spoken primarily in Russia and neighbouring countries."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-russian" ;
+    gmeow:bcp47Tag "ru"^^xsd:language ;
+    gmeow:languageCode "ru" ;
+    gmeow:languageCode "rus" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsCyrillic ;
+    gmeow:hasAppellation gmeow:appRussianEndonym, gmeow:appRussianExonym ;
+    skos:exactMatch wd:Q7737 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/rus> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/russ1263> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRussianEndonym a gmeow:Appellation ;
+    gmeow:fullName "Русский"@x-gmeow-russian ;
+    gmeow:nameLanguage gmeow:langRussian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appRussianExonym a gmeow:Appellation ;
+    gmeow:fullName "Russian"@x-gmeow-russian ;
+    gmeow:nameLanguage gmeow:langRussian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langBengali a gmeow:Language ;
+    rdfs:label "Bengali"@x-gmeow-english ;
+    skos:definition "An Indo-Aryan language spoken in Bangladesh and the Indian state of West Bengal."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-bengali" ;
+    gmeow:bcp47Tag "bn"^^xsd:language ;
+    gmeow:languageCode "bn" ;
+    gmeow:languageCode "ben" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsBengali ;
+    gmeow:hasAppellation gmeow:appBengaliEndonym, gmeow:appBengaliExonym ;
+    skos:exactMatch wd:Q9610 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ben> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/beng1280> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appBengaliEndonym a gmeow:Appellation ;
+    gmeow:fullName "বাংলা"@x-gmeow-bengali ;
+    gmeow:nameLanguage gmeow:langBengali ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appBengaliExonym a gmeow:Appellation ;
+    gmeow:fullName "Bengali"@x-gmeow-bengali ;
+    gmeow:nameLanguage gmeow:langBengali ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langUrdu a gmeow:Language ;
+    rdfs:label "Urdu"@x-gmeow-english ;
+    skos:definition "An Indo-Aryan language spoken primarily in Pakistan and India."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-urdu" ;
+    gmeow:bcp47Tag "ur"^^xsd:language ;
+    gmeow:languageCode "ur" ;
+    gmeow:languageCode "urd" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsArabic ;
+    gmeow:hasAppellation gmeow:appUrduEndonym, gmeow:appUrduExonym ;
+    skos:exactMatch wd:Q1617 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/urd> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/urdu1245> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appUrduEndonym a gmeow:Appellation ;
+    gmeow:fullName "اردو"@x-gmeow-urdu ;
+    gmeow:nameLanguage gmeow:langUrdu ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appUrduExonym a gmeow:Appellation ;
+    gmeow:fullName "Urdu"@x-gmeow-urdu ;
+    gmeow:nameLanguage gmeow:langUrdu ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langPunjabi a gmeow:Language ;
+    rdfs:label "Punjabi"@x-gmeow-english ;
+    skos:definition "An Indo-Aryan language spoken in the Punjab region of South Asia."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-punjabi" ;
+    gmeow:bcp47Tag "pa"^^xsd:language ;
+    gmeow:languageCode "pa" ;
+    gmeow:languageCode "pan" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsArabic, gmeow:wsDevanagari ;
+    gmeow:hasAppellation gmeow:appPunjabiEndonym, gmeow:appPunjabiExonym ;
+    skos:exactMatch wd:Q58635 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/pan> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/panj1256> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPunjabiEndonym a gmeow:Appellation ;
+    gmeow:fullName "ਪੰਜਾਬੀ"@x-gmeow-punjabi ;
+    gmeow:nameLanguage gmeow:langPunjabi ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appPunjabiExonym a gmeow:Appellation ;
+    gmeow:fullName "Punjabi"@x-gmeow-punjabi ;
+    gmeow:nameLanguage gmeow:langPunjabi ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langTurkish a gmeow:Language ;
+    rdfs:label "Turkish"@x-gmeow-english ;
+    skos:definition "A Turkic language spoken primarily in Turkey and Cyprus."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-turkish" ;
+    gmeow:bcp47Tag "tr"^^xsd:language ;
+    gmeow:languageCode "tr" ;
+    gmeow:languageCode "tur" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appTurkishEndonym, gmeow:appTurkishExonym ;
+    skos:exactMatch wd:Q256 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/tur> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/nucl1301> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTurkishEndonym a gmeow:Appellation ;
+    gmeow:fullName "Türkçe"@x-gmeow-turkish ;
+    gmeow:nameLanguage gmeow:langTurkish ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appTurkishExonym a gmeow:Appellation ;
+    gmeow:fullName "Turkish"@x-gmeow-turkish ;
+    gmeow:nameLanguage gmeow:langTurkish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langVietnamese a gmeow:Language ;
+    rdfs:label "Vietnamese"@x-gmeow-english ;
+    skos:definition "An Austroasiatic language spoken primarily in Vietnam."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-vietnamese" ;
+    gmeow:bcp47Tag "vi"^^xsd:language ;
+    gmeow:languageCode "vi" ;
+    gmeow:languageCode "vie" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appVietnameseEndonym, gmeow:appVietnameseExonym ;
+    skos:exactMatch wd:Q9199 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/vie> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/viet1252> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appVietnameseEndonym a gmeow:Appellation ;
+    gmeow:fullName "Tiếng Việt"@x-gmeow-vietnamese ;
+    gmeow:nameLanguage gmeow:langVietnamese ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appVietnameseExonym a gmeow:Appellation ;
+    gmeow:fullName "Vietnamese"@x-gmeow-vietnamese ;
+    gmeow:nameLanguage gmeow:langVietnamese ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langKorean a gmeow:Language ;
+    rdfs:label "Korean"@x-gmeow-english ;
+    skos:definition "A Koreanic language spoken primarily in Korea."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-korean" ;
+    gmeow:bcp47Tag "ko"^^xsd:language ;
+    gmeow:languageCode "ko" ;
+    gmeow:languageCode "kor" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsHangul, gmeow:wsHan ;
+    gmeow:hasAppellation gmeow:appKoreanEndonym, gmeow:appKoreanExonym ;
+    skos:exactMatch wd:Q9176 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/kor> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/kore1280> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appKoreanEndonym a gmeow:Appellation ;
+    gmeow:fullName "한국어"@x-gmeow-korean ;
+    gmeow:nameLanguage gmeow:langKorean ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appKoreanExonym a gmeow:Appellation ;
+    gmeow:fullName "Korean"@x-gmeow-korean ;
+    gmeow:nameLanguage gmeow:langKorean ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langItalian a gmeow:Language ;
+    rdfs:label "Italian"@x-gmeow-english ;
+    skos:definition "A Romance language spoken primarily in Italy and parts of Switzerland."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-italian" ;
+    gmeow:bcp47Tag "it"^^xsd:language ;
+    gmeow:languageCode "it" ;
+    gmeow:languageCode "ita" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appItalianEndonym, gmeow:appItalianExonym ;
+    skos:exactMatch wd:Q652 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ita> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/ital1282> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appItalianEndonym a gmeow:Appellation ;
+    gmeow:fullName "Italiano"@x-gmeow-italian ;
+    gmeow:nameLanguage gmeow:langItalian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appItalianExonym a gmeow:Appellation ;
+    gmeow:fullName "Italian"@x-gmeow-italian ;
+    gmeow:nameLanguage gmeow:langItalian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langPolish a gmeow:Language ;
+    rdfs:label "Polish"@x-gmeow-english ;
+    skos:definition "A West Slavic language spoken primarily in Poland."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-polish" ;
+    gmeow:bcp47Tag "pl"^^xsd:language ;
+    gmeow:languageCode "pl" ;
+    gmeow:languageCode "pol" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appPolishEndonym, gmeow:appPolishExonym ;
+    skos:exactMatch wd:Q809 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/pol> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/poli1260> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPolishEndonym a gmeow:Appellation ;
+    gmeow:fullName "Polski"@x-gmeow-polish ;
+    gmeow:nameLanguage gmeow:langPolish ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appPolishExonym a gmeow:Appellation ;
+    gmeow:fullName "Polish"@x-gmeow-polish ;
+    gmeow:nameLanguage gmeow:langPolish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langUkrainian a gmeow:Language ;
+    rdfs:label "Ukrainian"@x-gmeow-english ;
+    skos:definition "An East Slavic language spoken primarily in Ukraine."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-ukrainian" ;
+    gmeow:bcp47Tag "uk"^^xsd:language ;
+    gmeow:languageCode "uk" ;
+    gmeow:languageCode "ukr" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsCyrillic ;
+    gmeow:hasAppellation gmeow:appUkrainianEndonym, gmeow:appUkrainianExonym ;
+    skos:exactMatch wd:Q8798 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ukr> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/ukra1253> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appUkrainianEndonym a gmeow:Appellation ;
+    gmeow:fullName "Українська"@x-gmeow-ukrainian ;
+    gmeow:nameLanguage gmeow:langUkrainian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appUkrainianExonym a gmeow:Appellation ;
+    gmeow:fullName "Ukrainian"@x-gmeow-ukrainian ;
+    gmeow:nameLanguage gmeow:langUkrainian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langPersian a gmeow:Language ;
+    rdfs:label "Persian"@x-gmeow-english ;
+    skos:definition "An Iranian language spoken primarily in Iran, Afghanistan, and Tajikistan."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-persian" ;
+    gmeow:bcp47Tag "fa"^^xsd:language ;
+    gmeow:languageCode "fa" ;
+    gmeow:languageCode "fas" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsArabic ;
+    gmeow:hasAppellation gmeow:appPersianEndonym, gmeow:appPersianExonym ;
+    skos:exactMatch wd:Q9168 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/fas> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/west2369> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPersianEndonym a gmeow:Appellation ;
+    gmeow:fullName "فارسی"@x-gmeow-persian ;
+    gmeow:nameLanguage gmeow:langPersian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appPersianExonym a gmeow:Appellation ;
+    gmeow:fullName "Persian"@x-gmeow-persian ;
+    gmeow:nameLanguage gmeow:langPersian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langThai a gmeow:Language ;
+    rdfs:label "Thai"@x-gmeow-english ;
+    skos:definition "A Kra-Dai language spoken primarily in Thailand."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-thai" ;
+    gmeow:bcp47Tag "th"^^xsd:language ;
+    gmeow:languageCode "th" ;
+    gmeow:languageCode "tha" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsThai ;
+    gmeow:hasAppellation gmeow:appThaiEndonym, gmeow:appThaiExonym ;
+    skos:exactMatch wd:Q9217 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/tha> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/thai1264> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appThaiEndonym a gmeow:Appellation ;
+    gmeow:fullName "ไทย"@x-gmeow-thai ;
+    gmeow:nameLanguage gmeow:langThai ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appThaiExonym a gmeow:Appellation ;
+    gmeow:fullName "Thai"@x-gmeow-thai ;
+    gmeow:nameLanguage gmeow:langThai ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langTamil a gmeow:Language ;
+    rdfs:label "Tamil"@x-gmeow-english ;
+    skos:definition "A Dravidian language spoken primarily in India, Sri Lanka, and Singapore."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-tamil" ;
+    gmeow:bcp47Tag "ta"^^xsd:language ;
+    gmeow:languageCode "ta" ;
+    gmeow:languageCode "tam" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsTamil ;
+    gmeow:hasAppellation gmeow:appTamilEndonym, gmeow:appTamilExonym ;
+    skos:exactMatch wd:Q5885 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/tam> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/tami1289> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTamilEndonym a gmeow:Appellation ;
+    gmeow:fullName "தமிழ்"@x-gmeow-tamil ;
+    gmeow:nameLanguage gmeow:langTamil ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appTamilExonym a gmeow:Appellation ;
+    gmeow:fullName "Tamil"@x-gmeow-tamil ;
+    gmeow:nameLanguage gmeow:langTamil ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langDutch a gmeow:Language ;
+    rdfs:label "Dutch"@x-gmeow-english ;
+    skos:definition "A West Germanic language spoken primarily in the Netherlands and Belgium."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-dutch" ;
+    gmeow:bcp47Tag "nl"^^xsd:language ;
+    gmeow:languageCode "nl" ;
+    gmeow:languageCode "nld" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appDutchEndonym, gmeow:appDutchExonym ;
+    skos:exactMatch wd:Q7411 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/nld> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/dutc1256> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appDutchEndonym a gmeow:Appellation ;
+    gmeow:fullName "Nederlands"@x-gmeow-dutch ;
+    gmeow:nameLanguage gmeow:langDutch ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appDutchExonym a gmeow:Appellation ;
+    gmeow:fullName "Dutch"@x-gmeow-dutch ;
+    gmeow:nameLanguage gmeow:langDutch ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langGreek a gmeow:Language ;
+    rdfs:label "Greek"@x-gmeow-english ;
+    skos:definition "An Indo-European language spoken primarily in Greece and Cyprus."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-greek" ;
+    gmeow:bcp47Tag "el"^^xsd:language ;
+    gmeow:languageCode "el" ;
+    gmeow:languageCode "ell" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsGreek ;
+    gmeow:hasAppellation gmeow:appGreekEndonym, gmeow:appGreekExonym ;
+    skos:exactMatch wd:Q9129 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ell> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/mode1248> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appGreekEndonym a gmeow:Appellation ;
+    gmeow:fullName "Ελληνικά"@x-gmeow-greek ;
+    gmeow:nameLanguage gmeow:langGreek ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appGreekExonym a gmeow:Appellation ;
+    gmeow:fullName "Greek"@x-gmeow-greek ;
+    gmeow:nameLanguage gmeow:langGreek ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langHebrew a gmeow:Language ;
+    rdfs:label "Hebrew"@x-gmeow-english ;
+    skos:definition "A Northwest Semitic language spoken primarily in Israel."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-hebrew" ;
+    gmeow:bcp47Tag "he"^^xsd:language ;
+    gmeow:languageCode "he" ;
+    gmeow:languageCode "heb" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsHebrew ;
+    gmeow:hasAppellation gmeow:appHebrewEndonym, gmeow:appHebrewExonym ;
+    skos:exactMatch wd:Q9288 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/heb> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/hebr1245> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHebrewEndonym a gmeow:Appellation ;
+    gmeow:fullName "עברית"@x-gmeow-hebrew ;
+    gmeow:nameLanguage gmeow:langHebrew ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appHebrewExonym a gmeow:Appellation ;
+    gmeow:fullName "Hebrew"@x-gmeow-hebrew ;
+    gmeow:nameLanguage gmeow:langHebrew ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langSwedish a gmeow:Language ;
+    rdfs:label "Swedish"@x-gmeow-english ;
+    skos:definition "A North Germanic language spoken primarily in Sweden and Finland."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-swedish" ;
+    gmeow:bcp47Tag "sv"^^xsd:language ;
+    gmeow:languageCode "sv" ;
+    gmeow:languageCode "swe" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appSwedishEndonym, gmeow:appSwedishExonym ;
+    skos:exactMatch wd:Q9027 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/swe> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/swed1254> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwedishEndonym a gmeow:Appellation ;
+    gmeow:fullName "Svenska"@x-gmeow-swedish ;
+    gmeow:nameLanguage gmeow:langSwedish ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appSwedishExonym a gmeow:Appellation ;
+    gmeow:fullName "Swedish"@x-gmeow-swedish ;
+    gmeow:nameLanguage gmeow:langSwedish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langCzech a gmeow:Language ;
+    rdfs:label "Czech"@x-gmeow-english ;
+    skos:definition "A West Slavic language spoken primarily in the Czech Republic."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-czech" ;
+    gmeow:bcp47Tag "cs"^^xsd:language ;
+    gmeow:languageCode "cs" ;
+    gmeow:languageCode "ces" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appCzechEndonym, gmeow:appCzechExonym ;
+    skos:exactMatch wd:Q9056 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ces> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/czec1258> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCzechEndonym a gmeow:Appellation ;
+    gmeow:fullName "Čeština"@x-gmeow-czech ;
+    gmeow:nameLanguage gmeow:langCzech ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appCzechExonym a gmeow:Appellation ;
+    gmeow:fullName "Czech"@x-gmeow-czech ;
+    gmeow:nameLanguage gmeow:langCzech ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langRomanian a gmeow:Language ;
+    rdfs:label "Romanian"@x-gmeow-english ;
+    skos:definition "An Eastern Romance language spoken primarily in Romania and Moldova."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-romanian" ;
+    gmeow:bcp47Tag "ro"^^xsd:language ;
+    gmeow:languageCode "ro" ;
+    gmeow:languageCode "ron" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appRomanianEndonym, gmeow:appRomanianExonym ;
+    skos:exactMatch wd:Q7913 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ron> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/roma1327> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRomanianEndonym a gmeow:Appellation ;
+    gmeow:fullName "Română"@x-gmeow-romanian ;
+    gmeow:nameLanguage gmeow:langRomanian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appRomanianExonym a gmeow:Appellation ;
+    gmeow:fullName "Romanian"@x-gmeow-romanian ;
+    gmeow:nameLanguage gmeow:langRomanian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langHungarian a gmeow:Language ;
+    rdfs:label "Hungarian"@x-gmeow-english ;
+    skos:definition "A Uralic language spoken primarily in Hungary."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-hungarian" ;
+    gmeow:bcp47Tag "hu"^^xsd:language ;
+    gmeow:languageCode "hu" ;
+    gmeow:languageCode "hun" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appHungarianEndonym, gmeow:appHungarianExonym ;
+    skos:exactMatch wd:Q9067 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/hun> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/hung1274> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHungarianEndonym a gmeow:Appellation ;
+    gmeow:fullName "Magyar"@x-gmeow-hungarian ;
+    gmeow:nameLanguage gmeow:langHungarian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appHungarianExonym a gmeow:Appellation ;
+    gmeow:fullName "Hungarian"@x-gmeow-hungarian ;
+    gmeow:nameLanguage gmeow:langHungarian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langFinnish a gmeow:Language ;
+    rdfs:label "Finnish"@x-gmeow-english ;
+    skos:definition "A Uralic language spoken primarily in Finland."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-finnish" ;
+    gmeow:bcp47Tag "fi"^^xsd:language ;
+    gmeow:languageCode "fi" ;
+    gmeow:languageCode "fin" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appFinnishEndonym, gmeow:appFinnishExonym ;
+    skos:exactMatch wd:Q1412 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/fin> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/finn1318> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFinnishEndonym a gmeow:Appellation ;
+    gmeow:fullName "Suomi"@x-gmeow-finnish ;
+    gmeow:nameLanguage gmeow:langFinnish ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appFinnishExonym a gmeow:Appellation ;
+    gmeow:fullName "Finnish"@x-gmeow-finnish ;
+    gmeow:nameLanguage gmeow:langFinnish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langNorwegian a gmeow:Language ;
+    rdfs:label "Norwegian"@x-gmeow-english ;
+    skos:definition "A North Germanic language spoken primarily in Norway."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-norwegian" ;
+    gmeow:bcp47Tag "no"^^xsd:language ;
+    gmeow:languageCode "no" ;
+    gmeow:languageCode "nor" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appNorwegianEndonym, gmeow:appNorwegianExonym ;
+    skos:exactMatch wd:Q9043 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/nor> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/norw1258> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appNorwegianEndonym a gmeow:Appellation ;
+    gmeow:fullName "Norsk"@x-gmeow-norwegian ;
+    gmeow:nameLanguage gmeow:langNorwegian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appNorwegianExonym a gmeow:Appellation ;
+    gmeow:fullName "Norwegian"@x-gmeow-norwegian ;
+    gmeow:nameLanguage gmeow:langNorwegian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langDanish a gmeow:Language ;
+    rdfs:label "Danish"@x-gmeow-english ;
+    skos:definition "A North Germanic language spoken primarily in Denmark."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-danish" ;
+    gmeow:bcp47Tag "da"^^xsd:language ;
+    gmeow:languageCode "da" ;
+    gmeow:languageCode "dan" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appDanishEndonym, gmeow:appDanishExonym ;
+    skos:exactMatch wd:Q9035 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/dan> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/dani1245> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appDanishEndonym a gmeow:Appellation ;
+    gmeow:fullName "Dansk"@x-gmeow-danish ;
+    gmeow:nameLanguage gmeow:langDanish ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appDanishExonym a gmeow:Appellation ;
+    gmeow:fullName "Danish"@x-gmeow-danish ;
+    gmeow:nameLanguage gmeow:langDanish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langIndonesian a gmeow:Language ;
+    rdfs:label "Indonesian"@x-gmeow-english ;
+    skos:definition "A Malayic language spoken primarily in Indonesia."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-indonesian" ;
+    gmeow:bcp47Tag "id"^^xsd:language ;
+    gmeow:languageCode "id" ;
+    gmeow:languageCode "ind" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appIndonesianEndonym, gmeow:appIndonesianExonym ;
+    skos:exactMatch wd:Q9240 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ind> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/indo1316> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appIndonesianEndonym a gmeow:Appellation ;
+    gmeow:fullName "Bahasa Indonesia"@x-gmeow-indonesian ;
+    gmeow:nameLanguage gmeow:langIndonesian ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appIndonesianExonym a gmeow:Appellation ;
+    gmeow:fullName "Indonesian"@x-gmeow-indonesian ;
+    gmeow:nameLanguage gmeow:langIndonesian ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langMalay a gmeow:Language ;
+    rdfs:label "Malay"@x-gmeow-english ;
+    skos:definition "A Malayo-Polynesian language spoken in Malaysia, Indonesia, Brunei, and Singapore."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-malay" ;
+    gmeow:bcp47Tag "ms"^^xsd:language ;
+    gmeow:languageCode "ms" ;
+    gmeow:languageCode "msa" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin, gmeow:wsArabic ;
+    gmeow:hasAppellation gmeow:appMalayEndonym, gmeow:appMalayExonym ;
+    skos:exactMatch wd:Q9237 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/msa> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/stan1309> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appMalayEndonym a gmeow:Appellation ;
+    gmeow:fullName "Bahasa Melayu"@x-gmeow-malay ;
+    gmeow:nameLanguage gmeow:langMalay ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appMalayExonym a gmeow:Appellation ;
+    gmeow:fullName "Malay"@x-gmeow-malay ;
+    gmeow:nameLanguage gmeow:langMalay ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langFilipino a gmeow:Language ;
+    rdfs:label "Filipino"@x-gmeow-english ;
+    skos:definition "A standardized variety of Tagalog, official language of the Philippines."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-filipino" ;
+    gmeow:bcp47Tag "fil"^^xsd:language ;
+    gmeow:languageCode "fil" ;
+    gmeow:languageCode "fil" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appFilipinoEndonym, gmeow:appFilipinoExonym ;
+    skos:exactMatch wd:Q33298 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/fil> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/taga1270> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFilipinoEndonym a gmeow:Appellation ;
+    gmeow:fullName "Filipino"@x-gmeow-filipino ;
+    gmeow:nameLanguage gmeow:langFilipino ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appFilipinoExonym a gmeow:Appellation ;
+    gmeow:fullName "Filipino"@x-gmeow-filipino ;
+    gmeow:nameLanguage gmeow:langFilipino ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langSwahili a gmeow:Language ;
+    rdfs:label "Swahili"@x-gmeow-english ;
+    skos:definition "A Bantu language widely spoken in East Africa."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-swahili" ;
+    gmeow:bcp47Tag "sw"^^xsd:language ;
+    gmeow:languageCode "sw" ;
+    gmeow:languageCode "swa" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken, gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin, gmeow:wsArabic ;
+    gmeow:hasAppellation gmeow:appSwahiliEndonym, gmeow:appSwahiliExonym ;
+    skos:exactMatch wd:Q3338 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/swa> ;
+    skos:exactMatch <https://glottolog.org/resource/languoid/id/swah1253> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwahiliEndonym a gmeow:Appellation ;
+    gmeow:fullName "Kiswahili"@x-gmeow-swahili ;
+    gmeow:nameLanguage gmeow:langSwahili ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appSwahiliExonym a gmeow:Appellation ;
+    gmeow:fullName "Swahili"@x-gmeow-swahili ;
+    gmeow:nameLanguage gmeow:langSwahili ;
     gmeow:namePurpose gmeow:namePurposeExonym ;
     gmeow:displayable true .
 
@@ -213,13 +1214,16 @@ gmeow:langPython a gmeow:ProgrammingLanguage ;
     rdfs:label "Python"@x-gmeow-english ;
     skos:definition "An interpreted, high-level, general-purpose programming language."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-python" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
     gmeow:languageCode "py" ;
     gmeow:languageOrigin gmeow:originProgramming ;
     gmeow:languageModality gmeow:modalityMachine ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsLatin ;
     gmeow:hasAppellation gmeow:appPythonGlossonym ;
-    skos:exactMatch wd:Q28865 .
+    skos:exactMatch wd:Q28865 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/py> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appPythonGlossonym a gmeow:Appellation ;
     gmeow:fullName "Python"@x-gmeow-english ;
@@ -231,13 +1235,16 @@ gmeow:langRust a gmeow:ProgrammingLanguage ;
     rdfs:label "Rust"@x-gmeow-english ;
     skos:definition "A multi-paradigm, systems programming language designed for performance and safety."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-rust" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
     gmeow:languageCode "rs" ;
     gmeow:languageOrigin gmeow:originProgramming ;
     gmeow:languageModality gmeow:modalityMachine ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsLatin ;
     gmeow:hasAppellation gmeow:appRustGlossonym ;
-    skos:exactMatch wd:Q575650 .
+    skos:exactMatch wd:Q575650 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/rs> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appRustGlossonym a gmeow:Appellation ;
     gmeow:fullName "Rust"@x-gmeow-english ;
@@ -249,13 +1256,16 @@ gmeow:langJavaScript a gmeow:ProgrammingLanguage ;
     rdfs:label "JavaScript"@x-gmeow-english ;
     skos:definition "A high-level, interpreted programming language conforming to ECMAScript."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-javascript" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
     gmeow:languageCode "js" ;
     gmeow:languageOrigin gmeow:originProgramming ;
     gmeow:languageModality gmeow:modalityMachine ;
     gmeow:languageStatus gmeow:statusLiving ;
     gmeow:usesWritingSystem gmeow:wsLatin ;
     gmeow:hasAppellation gmeow:appJavaScriptGlossonym ;
-    skos:exactMatch wd:Q2005 .
+    skos:exactMatch wd:Q2005 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/js> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appJavaScriptGlossonym a gmeow:Appellation ;
     gmeow:fullName "JavaScript"@x-gmeow-english ;
@@ -263,25 +1273,391 @@ gmeow:appJavaScriptGlossonym a gmeow:Appellation ;
     gmeow:namePurpose gmeow:namePurposeGlossonym ;
     gmeow:displayable true .
 
-# Backfilled annotations for annotation-completeness gate (issue #221)
-gmeow:appChineseEndonym rdfs:label "中文"@x-gmeow-english ;
-    skos:definition "Appellation '中文' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+gmeow:langTypeScript a gmeow:ProgrammingLanguage ;
+    rdfs:label "TypeScript"@x-gmeow-english ;
+    skos:definition "A strict syntactical superset of JavaScript that adds static typing."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-typescript" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "ts" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appTypeScriptGlossonym ;
+    skos:exactMatch wd:Q978185 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ts> ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
-gmeow:appChineseExonym rdfs:label "Chinese"@x-gmeow-english ;
-    skos:definition "Appellation 'Chinese' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+gmeow:appTypeScriptGlossonym a gmeow:Appellation ;
+    gmeow:fullName "TypeScript"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langJava a gmeow:ProgrammingLanguage ;
+    rdfs:label "Java"@x-gmeow-english ;
+    skos:definition "A class-based, object-oriented programming language designed to have few implementation dependencies."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-java" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "java" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appJavaGlossonym ;
+    skos:exactMatch wd:Q378 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/java> ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appJavaGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Java"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langC a gmeow:ProgrammingLanguage ;
+    rdfs:label "C"@x-gmeow-english ;
+    skos:definition "A general-purpose, procedural programming language with static typing."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-c" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "c" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appCGlossonym ;
+    skos:exactMatch wd:Q15777 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/c> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCGlossonym a gmeow:Appellation ;
+    gmeow:fullName "C"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langCpp a gmeow:ProgrammingLanguage ;
+    rdfs:label "C++"@x-gmeow-english ;
+    skos:definition "A general-purpose programming language with imperative, object-oriented, and generic features."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-cpp" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "cpp" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appCppGlossonym ;
+    skos:exactMatch wd:Q2407 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/cpp> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCppGlossonym a gmeow:Appellation ;
+    gmeow:fullName "C++"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langCsharp a gmeow:ProgrammingLanguage ;
+    rdfs:label "C#"@x-gmeow-english ;
+    skos:definition "A modern, object-oriented programming language developed by Microsoft."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-csharp" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "cs" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appCsharpGlossonym ;
+    skos:exactMatch wd:Q2320 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/cs> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCsharpGlossonym a gmeow:Appellation ;
+    gmeow:fullName "C#"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langGo a gmeow:ProgrammingLanguage ;
+    rdfs:label "Go"@x-gmeow-english ;
+    skos:definition "A statically typed, compiled programming language designed at Google."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-go" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "go" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appGoGlossonym ;
+    skos:exactMatch wd:Q37227 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/go> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appGoGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Go"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langRuby a gmeow:ProgrammingLanguage ;
+    rdfs:label "Ruby"@x-gmeow-english ;
+    skos:definition "A dynamic, open-source programming language with a focus on simplicity and productivity."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-ruby" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "rb" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appRubyGlossonym ;
+    skos:exactMatch wd:Q161053 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/rb> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRubyGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Ruby"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langPhp a gmeow:ProgrammingLanguage ;
+    rdfs:label "PHP"@x-gmeow-english ;
+    skos:definition "A general-purpose scripting language geared toward web development."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-php" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "php" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appPhpGlossonym ;
+    skos:exactMatch wd:Q59 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/php> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPhpGlossonym a gmeow:Appellation ;
+    gmeow:fullName "PHP"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langSwift a gmeow:ProgrammingLanguage ;
+    rdfs:label "Swift"@x-gmeow-english ;
+    skos:definition "A general-purpose, multi-paradigm programming language developed by Apple."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-swift" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "swift" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appSwiftGlossonym ;
+    skos:exactMatch wd:Q17118377 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/swift> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwiftGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Swift"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langKotlin a gmeow:ProgrammingLanguage ;
+    rdfs:label "Kotlin"@x-gmeow-english ;
+    skos:definition "A cross-platform, statically typed, general-purpose programming language."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-kotlin" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "kt" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appKotlinGlossonym ;
+    skos:exactMatch wd:Q307272 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/kt> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appKotlinGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Kotlin"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langSql a gmeow:ProgrammingLanguage ;
+    rdfs:label "SQL"@x-gmeow-english ;
+    skos:definition "A domain-specific language used for managing relational databases."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-sql" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "sql" ;
+    gmeow:languageOrigin gmeow:originQuery ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appSqlGlossonym ;
+    skos:exactMatch wd:Q47607 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/sql> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSqlGlossonym a gmeow:Appellation ;
+    gmeow:fullName "SQL"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langHtml a gmeow:ProgrammingLanguage ;
+    rdfs:label "HTML"@x-gmeow-english ;
+    skos:definition "The standard markup language for documents designed to be displayed in a web browser."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-html" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "html" ;
+    gmeow:languageOrigin gmeow:originMarkup ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appHtmlGlossonym ;
+    skos:exactMatch wd:Q8811 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/html> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHtmlGlossonym a gmeow:Appellation ;
+    gmeow:fullName "HTML"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langCss a gmeow:ProgrammingLanguage ;
+    rdfs:label "CSS"@x-gmeow-english ;
+    skos:definition "A style-sheet language used for describing the presentation of a document written in HTML or XML."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-css" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "css" ;
+    gmeow:languageOrigin gmeow:originMarkup ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appCssGlossonym ;
+    skos:exactMatch wd:Q46441 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/css> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCssGlossonym a gmeow:Appellation ;
+    gmeow:fullName "CSS"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langJson a gmeow:ProgrammingLanguage ;
+    rdfs:label "JSON"@x-gmeow-english ;
+    skos:definition "A lightweight data-interchange format derived from JavaScript object syntax."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-json" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "json" ;
+    gmeow:languageOrigin gmeow:originFormal ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appJsonGlossonym ;
+    skos:exactMatch wd:Q2063 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/json> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appJsonGlossonym a gmeow:Appellation ;
+    gmeow:fullName "JSON"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langYaml a gmeow:ProgrammingLanguage ;
+    rdfs:label "YAML"@x-gmeow-english ;
+    skos:definition "A human-readable data-serialization language."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-yaml" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "yaml" ;
+    gmeow:languageOrigin gmeow:originFormal ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appYamlGlossonym ;
+    skos:exactMatch wd:Q281876 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/yaml> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appYamlGlossonym a gmeow:Appellation ;
+    gmeow:fullName "YAML"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langXml a gmeow:ProgrammingLanguage ;
+    rdfs:label "XML"@x-gmeow-english ;
+    skos:definition "A markup language that defines a set of rules for encoding documents."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-xml" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "xml" ;
+    gmeow:languageOrigin gmeow:originMarkup ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appXmlGlossonym ;
+    skos:exactMatch wd:Q2115 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/xml> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appXmlGlossonym a gmeow:Appellation ;
+    gmeow:fullName "XML"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langSparql a gmeow:ProgrammingLanguage ;
+    rdfs:label "SPARQL"@x-gmeow-english ;
+    skos:definition "A query language for databases able to retrieve and manipulate data stored in RDF format."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-sparql" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "sparql" ;
+    gmeow:languageOrigin gmeow:originQuery ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appSparqlGlossonym ;
+    skos:exactMatch wd:Q54871 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/sparql> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSparqlGlossonym a gmeow:Appellation ;
+    gmeow:fullName "SPARQL"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langTurtle a gmeow:ProgrammingLanguage ;
+    rdfs:label "Turtle"@x-gmeow-english ;
+    skos:definition "A syntax for RDF data."@x-gmeow-english ;
+    gmeow:languageTag "x-gmeow-turtle" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "ttl" ;
+    gmeow:languageOrigin gmeow:originFormal ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appTurtleGlossonym ;
+    skos:exactMatch wd:Q143956 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/ttl> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTurtleGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Turtle"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+
+# =========================================================================== #
+# Backfilled annotations for annotation-completeness gate (issue #221)
+# =========================================================================== #
 
 gmeow:appEnglishGlossonym rdfs:label "English"@x-gmeow-english ;
     skos:definition "Appellation 'English' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:appFrenchEndonym rdfs:label "Français"@x-gmeow-english ;
-    skos:definition "Appellation 'Français' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:appFrenchExonym rdfs:label "French"@x-gmeow-english ;
-    skos:definition "Appellation 'French' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appGermanEndonym rdfs:label "Deutsch"@x-gmeow-english ;
@@ -292,6 +1668,14 @@ gmeow:appGermanExonym rdfs:label "German"@x-gmeow-english ;
     skos:definition "Appellation 'German' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
+gmeow:appSpanishEndonym rdfs:label "Español"@x-gmeow-english ;
+    skos:definition "Appellation 'Español' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSpanishExonym rdfs:label "Spanish"@x-gmeow-english ;
+    skos:definition "Appellation 'Spanish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
 gmeow:appJapaneseEndonym rdfs:label "日本語"@x-gmeow-english ;
     skos:definition "Appellation '日本語' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
@@ -300,8 +1684,260 @@ gmeow:appJapaneseExonym rdfs:label "Japanese"@x-gmeow-english ;
     skos:definition "Appellation 'Japanese' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
-gmeow:appJavaScriptGlossonym rdfs:label "JavaScript"@x-gmeow-english ;
-    skos:definition "Appellation 'JavaScript' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+gmeow:appMandarinEndonym rdfs:label "普通话"@x-gmeow-english ;
+    skos:definition "Appellation '普通话' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appMandarinExonym rdfs:label "Mandarin Chinese"@x-gmeow-english ;
+    skos:definition "Appellation 'Mandarin Chinese' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFrenchEndonym rdfs:label "Français"@x-gmeow-english ;
+    skos:definition "Appellation 'Français' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFrenchExonym rdfs:label "French"@x-gmeow-english ;
+    skos:definition "Appellation 'French' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appArabicEndonym rdfs:label "العربية"@x-gmeow-english ;
+    skos:definition "Appellation 'العربية' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appArabicExonym rdfs:label "Arabic"@x-gmeow-english ;
+    skos:definition "Appellation 'Arabic' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHindiEndonym rdfs:label "हिन्दी"@x-gmeow-english ;
+    skos:definition "Appellation 'हिन्दी' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHindiExonym rdfs:label "Hindi"@x-gmeow-english ;
+    skos:definition "Appellation 'Hindi' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPortugueseEndonym rdfs:label "Português"@x-gmeow-english ;
+    skos:definition "Appellation 'Português' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPortugueseExonym rdfs:label "Portuguese"@x-gmeow-english ;
+    skos:definition "Appellation 'Portuguese' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRussianEndonym rdfs:label "Русский"@x-gmeow-english ;
+    skos:definition "Appellation 'Русский' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRussianExonym rdfs:label "Russian"@x-gmeow-english ;
+    skos:definition "Appellation 'Russian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appBengaliEndonym rdfs:label "বাংলা"@x-gmeow-english ;
+    skos:definition "Appellation 'বাংলা' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appBengaliExonym rdfs:label "Bengali"@x-gmeow-english ;
+    skos:definition "Appellation 'Bengali' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appUrduEndonym rdfs:label "اردو"@x-gmeow-english ;
+    skos:definition "Appellation 'اردو' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appUrduExonym rdfs:label "Urdu"@x-gmeow-english ;
+    skos:definition "Appellation 'Urdu' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPunjabiEndonym rdfs:label "ਪੰਜਾਬੀ"@x-gmeow-english ;
+    skos:definition "Appellation 'ਪੰਜਾਬੀ' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPunjabiExonym rdfs:label "Punjabi"@x-gmeow-english ;
+    skos:definition "Appellation 'Punjabi' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTurkishEndonym rdfs:label "Türkçe"@x-gmeow-english ;
+    skos:definition "Appellation 'Türkçe' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTurkishExonym rdfs:label "Turkish"@x-gmeow-english ;
+    skos:definition "Appellation 'Turkish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appVietnameseEndonym rdfs:label "Tiếng Việt"@x-gmeow-english ;
+    skos:definition "Appellation 'Tiếng Việt' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appVietnameseExonym rdfs:label "Vietnamese"@x-gmeow-english ;
+    skos:definition "Appellation 'Vietnamese' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appKoreanEndonym rdfs:label "한국어"@x-gmeow-english ;
+    skos:definition "Appellation '한국어' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appKoreanExonym rdfs:label "Korean"@x-gmeow-english ;
+    skos:definition "Appellation 'Korean' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appItalianEndonym rdfs:label "Italiano"@x-gmeow-english ;
+    skos:definition "Appellation 'Italiano' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appItalianExonym rdfs:label "Italian"@x-gmeow-english ;
+    skos:definition "Appellation 'Italian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPolishEndonym rdfs:label "Polski"@x-gmeow-english ;
+    skos:definition "Appellation 'Polski' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPolishExonym rdfs:label "Polish"@x-gmeow-english ;
+    skos:definition "Appellation 'Polish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appUkrainianEndonym rdfs:label "Українська"@x-gmeow-english ;
+    skos:definition "Appellation 'Українська' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appUkrainianExonym rdfs:label "Ukrainian"@x-gmeow-english ;
+    skos:definition "Appellation 'Ukrainian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPersianEndonym rdfs:label "فارسی"@x-gmeow-english ;
+    skos:definition "Appellation 'فارسی' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPersianExonym rdfs:label "Persian"@x-gmeow-english ;
+    skos:definition "Appellation 'Persian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appThaiEndonym rdfs:label "ไทย"@x-gmeow-english ;
+    skos:definition "Appellation 'ไทย' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appThaiExonym rdfs:label "Thai"@x-gmeow-english ;
+    skos:definition "Appellation 'Thai' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTamilEndonym rdfs:label "தமிழ்"@x-gmeow-english ;
+    skos:definition "Appellation 'தமிழ்' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTamilExonym rdfs:label "Tamil"@x-gmeow-english ;
+    skos:definition "Appellation 'Tamil' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appDutchEndonym rdfs:label "Nederlands"@x-gmeow-english ;
+    skos:definition "Appellation 'Nederlands' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appDutchExonym rdfs:label "Dutch"@x-gmeow-english ;
+    skos:definition "Appellation 'Dutch' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appGreekEndonym rdfs:label "Ελληνικά"@x-gmeow-english ;
+    skos:definition "Appellation 'Ελληνικά' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appGreekExonym rdfs:label "Greek"@x-gmeow-english ;
+    skos:definition "Appellation 'Greek' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHebrewEndonym rdfs:label "עברית"@x-gmeow-english ;
+    skos:definition "Appellation 'עברית' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHebrewExonym rdfs:label "Hebrew"@x-gmeow-english ;
+    skos:definition "Appellation 'Hebrew' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwedishEndonym rdfs:label "Svenska"@x-gmeow-english ;
+    skos:definition "Appellation 'Svenska' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwedishExonym rdfs:label "Swedish"@x-gmeow-english ;
+    skos:definition "Appellation 'Swedish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCzechEndonym rdfs:label "Čeština"@x-gmeow-english ;
+    skos:definition "Appellation 'Čeština' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCzechExonym rdfs:label "Czech"@x-gmeow-english ;
+    skos:definition "Appellation 'Czech' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRomanianEndonym rdfs:label "Română"@x-gmeow-english ;
+    skos:definition "Appellation 'Română' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRomanianExonym rdfs:label "Romanian"@x-gmeow-english ;
+    skos:definition "Appellation 'Romanian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHungarianEndonym rdfs:label "Magyar"@x-gmeow-english ;
+    skos:definition "Appellation 'Magyar' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHungarianExonym rdfs:label "Hungarian"@x-gmeow-english ;
+    skos:definition "Appellation 'Hungarian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFinnishEndonym rdfs:label "Suomi"@x-gmeow-english ;
+    skos:definition "Appellation 'Suomi' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFinnishExonym rdfs:label "Finnish"@x-gmeow-english ;
+    skos:definition "Appellation 'Finnish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appNorwegianEndonym rdfs:label "Norsk"@x-gmeow-english ;
+    skos:definition "Appellation 'Norsk' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appNorwegianExonym rdfs:label "Norwegian"@x-gmeow-english ;
+    skos:definition "Appellation 'Norwegian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appDanishEndonym rdfs:label "Dansk"@x-gmeow-english ;
+    skos:definition "Appellation 'Dansk' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appDanishExonym rdfs:label "Danish"@x-gmeow-english ;
+    skos:definition "Appellation 'Danish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appIndonesianEndonym rdfs:label "Bahasa Indonesia"@x-gmeow-english ;
+    skos:definition "Appellation 'Bahasa Indonesia' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appIndonesianExonym rdfs:label "Indonesian"@x-gmeow-english ;
+    skos:definition "Appellation 'Indonesian' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appMalayEndonym rdfs:label "Bahasa Melayu"@x-gmeow-english ;
+    skos:definition "Appellation 'Bahasa Melayu' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appMalayExonym rdfs:label "Malay"@x-gmeow-english ;
+    skos:definition "Appellation 'Malay' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFilipinoEndonym rdfs:label "Filipino"@x-gmeow-english ;
+    skos:definition "Appellation 'Filipino' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFilipinoExonym rdfs:label "Filipino"@x-gmeow-english ;
+    skos:definition "Appellation 'Filipino' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwahiliEndonym rdfs:label "Kiswahili"@x-gmeow-english ;
+    skos:definition "Appellation 'Kiswahili' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwahiliExonym rdfs:label "Swahili"@x-gmeow-english ;
+    skos:definition "Appellation 'Swahili' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:appPythonGlossonym rdfs:label "Python"@x-gmeow-english ;
@@ -312,42 +1948,155 @@ gmeow:appRustGlossonym rdfs:label "Rust"@x-gmeow-english ;
     skos:definition "Appellation 'Rust' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
-gmeow:appSpanishEndonym rdfs:label "Español"@x-gmeow-english ;
-    skos:definition "Appellation 'Español' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+gmeow:appJavaScriptGlossonym rdfs:label "JavaScript"@x-gmeow-english ;
+    skos:definition "Appellation 'JavaScript' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
-gmeow:appSpanishExonym rdfs:label "Spanish"@x-gmeow-english ;
-    skos:definition "Appellation 'Spanish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+gmeow:appTypeScriptGlossonym rdfs:label "TypeScript"@x-gmeow-english ;
+    skos:definition "Appellation 'TypeScript' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appJavaGlossonym rdfs:label "Java"@x-gmeow-english ;
+    skos:definition "Appellation 'Java' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCGlossonym rdfs:label "C"@x-gmeow-english ;
+    skos:definition "Appellation 'C' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCppGlossonym rdfs:label "C++"@x-gmeow-english ;
+    skos:definition "Appellation 'C++' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCsharpGlossonym rdfs:label "C#"@x-gmeow-english ;
+    skos:definition "Appellation 'C#' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appGoGlossonym rdfs:label "Go"@x-gmeow-english ;
+    skos:definition "Appellation 'Go' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRubyGlossonym rdfs:label "Ruby"@x-gmeow-english ;
+    skos:definition "Appellation 'Ruby' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPhpGlossonym rdfs:label "PHP"@x-gmeow-english ;
+    skos:definition "Appellation 'PHP' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSwiftGlossonym rdfs:label "Swift"@x-gmeow-english ;
+    skos:definition "Appellation 'Swift' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appKotlinGlossonym rdfs:label "Kotlin"@x-gmeow-english ;
+    skos:definition "Appellation 'Kotlin' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSqlGlossonym rdfs:label "SQL"@x-gmeow-english ;
+    skos:definition "Appellation 'SQL' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appHtmlGlossonym rdfs:label "HTML"@x-gmeow-english ;
+    skos:definition "Appellation 'HTML' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appCssGlossonym rdfs:label "CSS"@x-gmeow-english ;
+    skos:definition "Appellation 'CSS' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appJsonGlossonym rdfs:label "JSON"@x-gmeow-english ;
+    skos:definition "Appellation 'JSON' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appYamlGlossonym rdfs:label "YAML"@x-gmeow-english ;
+    skos:definition "Appellation 'YAML' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appXmlGlossonym rdfs:label "XML"@x-gmeow-english ;
+    skos:definition "Appellation 'XML' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSparqlGlossonym rdfs:label "SPARQL"@x-gmeow-english ;
+    skos:definition "Appellation 'SPARQL' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appTurtleGlossonym rdfs:label "Turtle"@x-gmeow-english ;
+    skos:definition "Appellation 'Turtle' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 <https://blackcatinformatics.ca/gmeow/imports/languages-reference> skos:definition "Reference individual 'imports/languages-reference' in the GMEOW languages reference catalog."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
-gmeow:langChinese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langEnglish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langFrench rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langGerman rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langJapanese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langJavaScript rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langPython rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langRust rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:langSpanish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:wsHan rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:wsHangul rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:wsHiragana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-gmeow:wsKatakana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
 gmeow:wsLatin rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
+gmeow:wsHan rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsHiragana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsKatakana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsHangul rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsArabic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsCyrillic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsDevanagari rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsGreek rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsHebrew rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsBengali rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsTamil rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsThai rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsGeorgian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsArmenian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:wsEthiopic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langEnglish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langGerman rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langSpanish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langJapanese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langMandarin rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langFrench rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langArabic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langHindi rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langPortuguese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langRussian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langBengali rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langUrdu rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langPunjabi rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langTurkish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langVietnamese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langKorean rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langItalian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langPolish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langUkrainian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langPersian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langThai rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langTamil rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langDutch rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langGreek rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langHebrew rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langSwedish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langCzech rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langRomanian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langHungarian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langFinnish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langNorwegian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langDanish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langIndonesian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langMalay rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langFilipino rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langSwahili rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langPython rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langRust rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langJavaScript rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langTypeScript rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langJava rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langC rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langCpp rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langCsharp rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langGo rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langRuby rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langPhp rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langSwift rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langKotlin rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langSql rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langHtml rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langCss rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langJson rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langYaml rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langXml rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langSparql rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+gmeow:langTurtle rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
