@@ -254,6 +254,14 @@ enum CarrierMediumEnum
     mediumServerObject
   }
 
+enum CausalModalityEnum
+  {
+    causallyEnables
+    causallyNecessitates
+    causallyPrevents
+    causallyPromotes
+  }
+
 enum CelestialObjectTypeEnum
   {
     celestialObjectTypeAsteroid
@@ -1151,6 +1159,13 @@ enum MetricKindEnum
     metricSymplectic
   }
 
+enum MitigationStatusEnum
+  {
+    mitigationActive
+    mitigationProposed
+    mitigationRetired
+  }
+
 enum MultipartTypeEnum
   {
     multipartTypeAlternative
@@ -1864,6 +1879,14 @@ enum SequenceFeatureTypeEnum
     sequenceFeatureTypeGene
     sequenceFeatureTypeIntron
     sequenceFeatureTypeSNP
+  }
+
+enum SeverityLevelEnum
+  {
+    severityCatastrophic
+    severityMinor
+    severityModerate
+    severitySevere
   }
 
 enum SexAssignedAtBirthEnum
@@ -3508,6 +3531,74 @@ type Capacity
   }
 
 type CarrierMedium
+  {
+  }
+
+type Cascade
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    cascadeFirstLink: CausalLink
+    cascadeSeverity: SeverityLevel
+  }
+
+type CausalLink
+  {
+    causalModality: CausalModality
+    linkAntecedent: EventType
+    linkConsequent: EventType
+    linkMechanism: [String]
+    linkNext: [CausalLink]
+    linkStrength: Float
+  }
+
+type CausalModality
   {
   }
 
@@ -5765,6 +5856,10 @@ type EventSeries
 
 type EventType
   {
+    typeCauses: [EventType]
+    typeEnables: [EventType]
+    typeMitigates: [EventType]
+    typePrevents: [EventType]
   }
 
 type EvidenceClass
@@ -6868,6 +6963,13 @@ type GTSSegment
     gtsSegmentIndex: Int
     gtsSegmentOf: GTSDocument
     usesTransformCodec: [TransformCodec]
+  }
+
+type Hazard
+  {
+    hazardBearer: Entity
+    hazardSeverity: SeverityLevel
+    manifestedAsType: [EventType]
   }
 
 type Highlight
@@ -9311,6 +9413,17 @@ type MessageParticipantRole
   }
 
 type MetricKind
+  {
+  }
+
+type Mitigation
+  {
+    mitigationCounters: [RiskFactor]
+    mitigationMeasure: [String]
+    mitigationStatus: MitigationStatus
+  }
+
+type MitigationStatus
   {
   }
 
@@ -12478,6 +12591,58 @@ type RightsType
   {
   }
 
+type RiskFactor
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+  }
+
 type Role
   {
   }
@@ -13561,6 +13726,11 @@ type Service
     temporalCoverage: [TimeInterval]
     title: [String]
     realizedThrough: [Expression]
+  }
+
+type SeverityLevel
+  {
+    moreSevereThan: [SeverityLevel]
   }
 
 type SexAssignedAtBirth

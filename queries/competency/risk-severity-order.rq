@@ -1,0 +1,15 @@
+# Competency question: "Does the severity grading span the levels
+# transitively — is catastrophic graver than minor through the chain?"
+# Expected: one row binding ?top = gmeow:severityCatastrophic, reached from
+# gmeow:severityMinor through the moreSevereThan+ property path (the kernel
+# GranularityLevel ordered-vocabulary pattern, fourth use — #354). Cascades
+# themselves are NEVER ordered transitively: severity orders LEVELS, and
+# propagation arithmetic is solver work (Principle 12).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?top WHERE {
+    ?top a gmeow:SeverityLevel .
+    ?top gmeow:moreSevereThan+ gmeow:severityMinor .
+    FILTER NOT EXISTS { ?graver gmeow:moreSevereThan ?top . }
+}

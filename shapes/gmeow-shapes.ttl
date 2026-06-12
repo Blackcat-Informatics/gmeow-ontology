@@ -3877,3 +3877,137 @@ gmeow:StyleGuideShape
         sh:severity sh:Violation ;
         sh:message "Every gmeow:exemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Risk shapes (#354, EPIC #348) — types never tokens; reify with a reason.
+# --------------------------------------------------------------------------- #
+
+gmeow:HazardShape
+    a sh:NodeShape ;
+    rdfs:label "Hazard Shape" ;
+    sh:targetClass gmeow:Hazard ;
+    sh:property [
+        sh:path gmeow:hazardBearer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Hazard must inhere in exactly one gmeow:hazardBearer — the same danger borne by two systems is two hazards." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:manifestedAsType ;
+        sh:minCount 1 ;
+        sh:class gmeow:EventType ;
+        sh:severity sh:Violation ;
+        sh:message "A Hazard must name at least one feared gmeow:manifestedAsType, an EventType — the type level is where counterfactuals live without machinery." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hazardSeverity ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Hazard carries at most one gmeow:hazardSeverity (closed-world functional)." ;
+    ] .
+
+gmeow:CausalLinkShape
+    a sh:NodeShape ;
+    rdfs:label "Causal Link Shape" ;
+    sh:targetClass gmeow:CausalLink ;
+    sh:property [
+        sh:path gmeow:linkAntecedent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:EventType ;
+        sh:severity sh:Violation ;
+        sh:message "A CausalLink must have exactly one gmeow:linkAntecedent, an EventType." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:linkConsequent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:EventType ;
+        sh:severity sh:Violation ;
+        sh:message "A CausalLink must have exactly one gmeow:linkConsequent, an EventType." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:causalModality ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A CausalLink must state exactly one gmeow:causalModality (an IRI — the vocabulary is OPEN per Principle 9): if you reified, you had a reason." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:linkStrength ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "A CausalLink carries at most one decimal gmeow:linkStrength (closed-world functional; solver input, never solver output)." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A CausalLink's antecedent and consequent must be distinct — nothing type-causes itself." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/linkAntecedent> ?t .
+                $this <https://blackcatinformatics.ca/gmeow/linkConsequent> ?t .
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Cascade walks are acyclic: no causal link may reach itself through gmeow:linkNext." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/linkNext>+ $this .
+            }
+        """ ;
+    ] .
+
+gmeow:CascadeShape
+    a sh:NodeShape ;
+    rdfs:label "Cascade Shape" ;
+    sh:targetClass gmeow:Cascade ;
+    sh:property [
+        sh:path gmeow:cascadeFirstLink ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:CausalLink ;
+        sh:severity sh:Violation ;
+        sh:message "A Cascade must enter at exactly one gmeow:cascadeFirstLink, a CausalLink." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:cascadeSeverity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Cascade must carry exactly one gmeow:cascadeSeverity (an IRI) — an ungraded cascade is just a story." ;
+    ] .
+
+gmeow:MitigationShape
+    a sh:NodeShape ;
+    rdfs:label "Mitigation Shape" ;
+    sh:targetClass gmeow:Mitigation ;
+    sh:property [
+        sh:path gmeow:mitigationMeasure ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Mitigation must bind at least one gmeow:mitigationMeasure (an IRI — the range is deliberately open across the deontic and procedural worlds, P16)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mitigationCounters ;
+        sh:minCount 1 ;
+        sh:or ( [ sh:class gmeow:CausalLink ] [ sh:class gmeow:Hazard ] ) ;
+        sh:severity sh:Violation ;
+        sh:message "A Mitigation must counter at least one risk factor — a CausalLink (barrier on the chain) or a Hazard (control at the source). sh:or over the concrete classes, not sh:class RiskFactor: data graphs type instances concretely and raw-graph SHACL does no subclass inference." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mitigationStatus ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Mitigation carries at most one gmeow:mitigationStatus (closed-world functional; open vocabulary)." ;
+    ] .

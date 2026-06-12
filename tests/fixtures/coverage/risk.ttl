@@ -1,0 +1,36 @@
+# Coverage fixture for the risk slice (#354, EPIC #348): exercises hazard,
+# flat + reified causation, cascade, severity, and mitigation in instance
+# data — types only, nothing occurred.
+
+@prefix ex:    <https://example.org/coverage/risk/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:etSpark a gmeow:EventType ; rdfs:label "coverage spark kind"@en .
+ex:etFire  a gmeow:EventType ; rdfs:label "coverage fire kind"@en .
+
+ex:etSpark gmeow:typeCauses ex:etFire .
+
+ex:bearer a gmeow:PhysicalObject ; rdfs:label "coverage bearer"@en .
+ex:hazard a gmeow:Hazard ;
+    gmeow:hazardBearer ex:bearer ;
+    gmeow:manifestedAsType ex:etFire ;
+    gmeow:hazardSeverity gmeow:severitySevere .
+
+ex:link a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etSpark ;
+    gmeow:linkConsequent ex:etFire ;
+    gmeow:causalModality gmeow:causallyPromotes ;
+    gmeow:linkMechanism "ignition"@x-gmeow-english ;
+    gmeow:linkStrength 0.7 .
+
+ex:cascade a gmeow:Cascade ;
+    rdfs:label "coverage cascade"@en ;
+    gmeow:cascadeFirstLink ex:link ;
+    gmeow:cascadeSeverity gmeow:severityModerate .
+
+ex:mitigation a gmeow:Mitigation ;
+    gmeow:mitigationMeasure ex:fireCode ;
+    gmeow:mitigationCounters ex:link ;
+    gmeow:mitigationStatus gmeow:mitigationActive .

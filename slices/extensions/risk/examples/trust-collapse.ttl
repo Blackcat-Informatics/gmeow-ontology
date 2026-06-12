@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Worked example (#354, the named P15 consumer's flagship case): the
+# principia "Trust Collapse" failure cascade as a named, graded, type-level
+# chain — betrayal dissolves the bond, bond dissolution kills the will to
+# survive. NOTHING HERE OCCURRED: every node is an EventType, and the
+# no-occurrence gate keeps it that way. A norm-shaped mitigation (the oath)
+# bars the first link's antecedent by open-range reference.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# The three feared kinds — types, never instances.
+ex:etBetrayal a gmeow:EventType ; rdfs:label "trust betrayal (Shattered Oath)"@en .
+ex:etBondDissolution a gmeow:EventType ; rdfs:label "bond dissolution (Severed Thread)"@en .
+ex:etWillCollapse a gmeow:EventType ; rdfs:label "loss of the will to survive (Quiet Surrender)"@en .
+
+# Flat 80% claims.
+ex:etBetrayal gmeow:typeCauses ex:etBondDissolution .
+
+# Reified where modality and mechanism matter.
+ex:linkBetrayalToDissolution a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etBetrayal ;
+    gmeow:linkConsequent ex:etBondDissolution ;
+    gmeow:causalModality gmeow:causallyNecessitates ;
+    gmeow:linkMechanism "The bond is constituted by the oath; betrayal does not damage it, it unmakes it."@x-gmeow-english ;
+    gmeow:linkNext ex:linkDissolutionToCollapse .
+
+ex:linkDissolutionToCollapse a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etBondDissolution ;
+    gmeow:linkConsequent ex:etWillCollapse ;
+    gmeow:causalModality gmeow:causallyPromotes .
+
+ex:trustCollapse a gmeow:Cascade ;
+    rdfs:label "Trust Collapse"@en ;
+    gmeow:cascadeFirstLink ex:linkBetrayalToDissolution ;
+    gmeow:cascadeSeverity gmeow:severityCatastrophic .
+
+# The hazard at the source, and the norm-shaped barrier on the first link.
+ex:duoBond a gmeow:SocialObject ; rdfs:label "the bonded partnership"@en .
+ex:betrayalHazard a gmeow:Hazard ;
+    rdfs:label "betrayal exposure"@en ;
+    gmeow:hazardBearer ex:duoBond ;
+    gmeow:manifestedAsType ex:etBetrayal ;
+    gmeow:hazardSeverity gmeow:severityCatastrophic .
+
+# Open-range measure: the oath norm (norms extension) plugs in with no
+# extension→extension axiom — the IRI is reference, not dependency.
+ex:oathMitigation a gmeow:Mitigation ;
+    gmeow:mitigationMeasure ex:oathNorm ;
+    gmeow:mitigationCounters ex:linkBetrayalToDissolution , ex:betrayalHazard ;
+    gmeow:mitigationStatus gmeow:mitigationActive .
