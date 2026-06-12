@@ -50,7 +50,7 @@ def _render_catalog() -> str:
     lines.append("")
     lines.append("    <!-- GMEOW slices (discovered from manifests) -->")
     for slice_ in sorted(discover_slices().values(), key=lambda s: s.iri):
-        rel = slice_.module_path.relative_to(PROJECT_ROOT)
+        rel = slice_.module_path.relative_to(PROJECT_ROOT).as_posix()
         lines.append(f'    <uri name="{slice_.iri}" uri="{rel}"/>')
     lines.append("</catalog>")
     return "\n".join(lines) + "\n"
