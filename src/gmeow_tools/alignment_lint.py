@@ -13,8 +13,9 @@ The motivating bug: ``gmeow:subOrganizationOf`` (child→parent) was mapped via
 property to **both a term and that term's inverse** is self-contradictory; the
 weaker of the two is the direction error.
 
-Three checks, each degrading to a non-fatal ``INFO`` when the target axioms are
-absent (so the gate is useful offline without false positives):
+Four checks. The first three each degrade to a non-fatal ``INFO`` when the
+target axioms are absent (so the gate is useful offline without false
+positives):
 
 * :func:`_check_inverse_direction` — the self-contradiction detector above, plus a
   domain/range orientation fallback when only the wrong term is mapped.
@@ -23,6 +24,11 @@ absent (so the gate is useful offline without false positives):
 * :func:`_check_property_character` — ``owl:equivalentProperty`` between a
   functional/transitive/symmetric property and a target lacking that character,
   or an object-vs-datatype kind conflict.
+* :func:`_check_equivalence_collapse` — Principle 5 hard gate (#284): the
+  transitive closure of equivalence-grade links (``owl:equivalentClass`` /
+  ``owl:equivalentProperty`` / ``skos:exactMatch``, across mapping cells and
+  vocabulary-internal axioms) must never connect two terms GMEOW declares
+  disjoint. Fully offline — target snapshots only add bridges when present.
 
 Target axioms come from :mod:`gmeow_tools.target_axioms` (vendored snapshots for
 IMPORT_OK targets, a hand-authored fixture for reference-only schema.org, and a
@@ -32,11 +38,14 @@ live fetch under ``allow_network``).
 from __future__ import annotations
 
 import contextlib
+from collections import deque
 from dataclasses import dataclass
 from enum import StrEnum
+from itertools import combinations
 from pathlib import Path
 
 from rdflib import RDF, RDFS, Graph, URIRef
+from rdflib.collection import Collection
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import (
@@ -299,6 +308,183 @@ def _overlaps(
     for cls in gmeow_classes:
         expanded |= _resolve_class(cls, bridge)
     return bool(expanded & target_classes)
+
+
+# --------------------------------------------------------------------------- #
+# Equivalence-closure collapse (Principle 5, #284)
+# --------------------------------------------------------------------------- #
+
+#: Mapping predicates that assert (near-)equivalence and so participate in the
+#: collapse closure. Strictly NARROWER than the compatibility bridge above:
+#: ``rdfs:subClassOf``/``skos:closeMatch`` are directional/approximate and never
+#: assert coreference, so they must not connect disjoint terms here.
+_COLLAPSE_PREDICATES: frozenset[str] = frozenset(
+    {"owl:equivalentClass", "owl:equivalentProperty", "skos:exactMatch"}
+)
+
+#: In-graph equivalence predicates (GMEOW's own axioms + target snapshots).
+_COLLAPSE_GRAPH_PREDICATES: tuple[URIRef, ...] = (
+    OWL.equivalentClass,
+    OWL.equivalentProperty,
+    URIRef("http://www.w3.org/2004/02/skos/core#exactMatch"),
+)
+
+#: Axioms whose member pairs the closure must keep apart.
+_DISJOINTNESS_SETS: tuple[tuple[URIRef, str], ...] = (
+    (OWL.AllDisjointClasses, "owl:disjointWith"),
+    (OWL.AllDisjointProperties, "owl:propertyDisjointWith"),
+)
+
+
+def _disjoint_pairs(onto: Graph) -> list[tuple[URIRef, URIRef, str]]:
+    """Every pair GMEOW declares disjoint, with the axiom that says so.
+
+    Sources: binary ``owl:disjointWith`` / ``owl:propertyDisjointWith``
+    assertions plus all pairwise combinations inside ``owl:AllDisjointClasses``
+    / ``owl:AllDisjointProperties`` members lists.
+    """
+    pairs: set[tuple[URIRef, URIRef, str]] = set()
+
+    def add(a: object, b: object, axiom: str) -> None:
+        if isinstance(a, URIRef) and isinstance(b, URIRef) and a != b:
+            pairs.add((min(a, b), max(a, b), axiom))
+
+    for s, o in onto.subject_objects(OWL.disjointWith):
+        add(s, o, "owl:disjointWith")
+    for s, o in onto.subject_objects(OWL.propertyDisjointWith):
+        add(s, o, "owl:propertyDisjointWith")
+    for axiom_class, axiom_curie in _DISJOINTNESS_SETS:
+        for node in onto.subjects(RDF.type, axiom_class):
+            members = [
+                m
+                for head in onto.objects(node, OWL.members)
+                for m in Collection(onto, head)
+            ]
+            for a, b in combinations(members, 2):
+                add(a, b, axiom_curie)
+    return sorted(pairs)
+
+
+def _equivalence_adjacency(
+    mappings: list[Mapping],
+    onto: Graph,
+    target_graphs: dict[str, Graph],
+) -> dict[URIRef, set[URIRef]]:
+    """Symmetric adjacency over every asserted equivalence-grade link."""
+    adjacency: dict[URIRef, set[URIRef]] = {}
+
+    def link(a: URIRef, b: URIRef) -> None:
+        adjacency.setdefault(a, set()).add(b)
+        adjacency.setdefault(b, set()).add(a)
+
+    for m in mappings:
+        if m.predicate_id not in _COLLAPSE_PREDICATES:
+            continue
+        try:
+            subj, obj = expand_curie(m.subject_id), expand_curie(m.object_id)
+        except Exception:  # malformed CURIE — surfaced elsewhere
+            continue
+        link(subj, obj)
+    for graph in (onto, *target_graphs.values()):
+        for predicate in _COLLAPSE_GRAPH_PREDICATES:
+            for a, b in graph.subject_objects(predicate):
+                if isinstance(a, URIRef) and isinstance(b, URIRef):
+                    link(a, b)
+    return adjacency
+
+
+def _equivalence_components(
+    adjacency: dict[URIRef, set[URIRef]],
+) -> dict[URIRef, int]:
+    """Label each node with its connected-component id (one O(V+E) pass).
+
+    Lets the collapse check decide "connected or not?" for every disjoint
+    pair by dict lookup; the per-pair BFS then runs only to RENDER the
+    chain of an actual violation — i.e. never on a clean run.
+    """
+    component: dict[URIRef, int] = {}
+    for comp_id, start in enumerate(adjacency):
+        if start in component:
+            continue
+        component[start] = comp_id
+        queue: deque[URIRef] = deque([start])
+        while queue:
+            node = queue.popleft()
+            for nxt in adjacency.get(node, ()):
+                if nxt not in component:
+                    component[nxt] = comp_id
+                    queue.append(nxt)
+    return component
+
+
+def _equivalence_path(
+    adjacency: dict[URIRef, set[URIRef]],
+    start: URIRef,
+    goal: URIRef,
+) -> list[URIRef] | None:
+    """Shortest equivalence chain from ``start`` to ``goal`` (BFS), or None."""
+    if start not in adjacency:
+        return None
+    previous: dict[URIRef, URIRef] = {}
+    queue: deque[URIRef] = deque([start])
+    seen = {start}
+    while queue:
+        node = queue.popleft()
+        for nxt in sorted(adjacency.get(node, ())):
+            if nxt in seen:
+                continue
+            seen.add(nxt)
+            previous[nxt] = node
+            if nxt == goal:
+                path = [goal]
+                while path[-1] != start:
+                    path.append(previous[path[-1]])
+                return list(reversed(path))
+            queue.append(nxt)
+    return None
+
+
+def _check_equivalence_collapse(
+    *,
+    mappings: list[Mapping],
+    onto: Graph,
+    target_graphs: dict[str, Graph],
+) -> list[AlignmentFinding]:
+    """Principle 5 (#284): no equivalence chain may connect disjoint terms.
+
+    Each cell's direction and orientation can be individually sound while a
+    CHAIN of ``owl:equivalentClass``/``skos:exactMatch`` cells — through
+    intermediate external vocabulary terms — silently merges two GMEOW terms
+    declared disjoint (the identity-axis disjointness matrix being the case
+    that matters most). A reasoner would only catch this with every external
+    vocabulary loaded; the alignment layer therefore gets its own closed-world
+    closure check. Works offline: target snapshots only ADD bridges when
+    present, so absence can never mask a collapse asserted by the mappings.
+    """
+    adjacency = _equivalence_adjacency(mappings, onto, target_graphs)
+    component = _equivalence_components(adjacency)
+    findings: list[AlignmentFinding] = []
+    for a, b, axiom in _disjoint_pairs(onto):
+        if a not in component or component[a] != component.get(b):
+            continue
+        path = _equivalence_path(adjacency, a, b)
+        if path is None:  # pragma: no cover — same component implies a path
+            continue
+        chain = " = ".join(_shorten(node) for node in path)
+        findings.append(
+            AlignmentFinding(
+                severity=Severity.ERROR,
+                check="equivalence-collapse",
+                subject_id=_shorten(a),
+                predicate_id=axiom,
+                object_id=_shorten(b),
+                message=(
+                    "declared disjoint, but the equivalence closure "
+                    f"connects them (Principle 5): {chain}"
+                ),
+            )
+        )
+    return findings
 
 
 # --------------------------------------------------------------------------- #
@@ -735,8 +921,15 @@ def lint_alignment_directions(
         onto=onto,
         target_graphs=target_graphs,
     )
+    collapse_findings = _check_equivalence_collapse(
+        mappings=mappings,
+        onto=onto,
+        target_graphs=target_graphs,
+    )
 
-    findings = inverse_findings + domain_findings + character_findings
+    findings = (
+        inverse_findings + domain_findings + character_findings + collapse_findings
+    )
     order = {Severity.ERROR: 0, Severity.WARNING: 1, Severity.INFO: 2}
     findings.sort(key=lambda f: (order[f.severity], f.check, f.subject_id, f.object_id))
     return findings
