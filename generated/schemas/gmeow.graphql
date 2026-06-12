@@ -16587,6 +16587,59 @@ type TimeZone
     timeZoneIanaId: String
   }
 
+type ToolCall
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    complies: [Norm]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: [String]
+    eventAspect: [GrammaticalAspect]
+    eventDescribedBy: [EmailMessage]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: [String]
+    eventTimeZone: TimeZone
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: [String]
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    predecessorOrganization: [Organization]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: [Int]
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    successorOrganization: [Organization]
+    temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
+    wasAssociatedWith: [Agent]
+    calledByInvocation: ModelInvocation
+    toolArguments: String
+    toolResult: String
+    usedTool: SoftwareAgent
+  }
+
 type Trademark
   {
     registrationNumber: String

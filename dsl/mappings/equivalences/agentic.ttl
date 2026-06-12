@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences for the Agentic extension — GMEOW authoring source.
+# Maximal bridging BY REFERENCE (Principle 5). All QIDs curl-validated against
+# the Wikidata API on 2026-06-12.
+
+gmeow:mapsetAgentic a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-agentic.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/agentic" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Agentic tool-call alignments (consumer: Project Lillith's agentic mode, #390).
+        ToolCall is prov:Activity by inheritance (provenance set); only the agentic seams are added here.
+        Wikidata has no entity for LLM tool calling as of 2026-06-12 — the nearest stable entity names the MECHANISM (remote procedure call), so the cell is relatedMatch, not equivalence.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no stable RDF namespace): OpenAI function-calling, Anthropic tool_use, and MCP tool schemas describe calls as JSON specs, not RDF vocabularies; bridging is a projection concern (#58 Workflow Run Crate — the OpenLineage precedent from the graphrag set), not a term alignment.\n# REFUSED (Principle 5 — the genuine gap): toolArguments/toolResult verbatim-payload properties have no external RDF counterpart — PROV-O stops at prov:used/prov:generated entity links and has no byte-faithful payload convention. Recorded rather than papered over." .
+
+gmeow:eqAg001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ToolCall ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q62270 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "Wikidata 'remote procedure call' — the MECHANISM where GMEOW names the call EVENT; curl-validated 2026-06-12" ;
+    gmeow:sssomFile "gmeow-agentic.sssom.tsv" .
+
+gmeow:eqAg002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ToolCall ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:Action ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema.org Action: an agent acts via an instrument — ToolCall narrows to software tool invocation with verbatim payloads; schema:instrument is the projection seam for usedTool" ;
+    gmeow:sssomFile "gmeow-agentic.sssom.tsv" .

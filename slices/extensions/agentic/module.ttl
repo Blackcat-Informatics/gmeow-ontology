@@ -1,0 +1,64 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/agentic>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Agentic Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Agentic Module — tool-call provenance: an agent's ACTIONS join the same provenance graph as its claims (issue #390). DELIBERATELY THIN."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:comment """Agentic tool-call provenance — the ModelInvocation idiom one level down.
+
+DOCTRINE.
+  * THE MODELINVOCATION IDIOM, EXACTLY (#390): ToolCall is a gufo:EventType under gmeow:Activity with one functional agent link (usedTool, mirroring usedModel) and verbatim call parameters as datatype properties (mirroring the sampling trio). 'Which tool, called by which invocation, with what arguments, at what time?' is answerable after the fact.
+  * NO FORWARD OUTPUT ENTITY PROPERTY (Principle 5): an entity the call produced — a stored claim, a written file, a minted node — links BACK via gmeow:wasGeneratedBy, exactly as claims link back to their ModelInvocation. gmeow:toolResult records the verbatim PAYLOAD of the event itself, never an entity link.
+  * VERBATIM-OR-DIGEST: toolArguments/toolResult carry the byte-faithful payload. For large payloads store a content digest literal instead ("blake3:…" — the gmeow:contentDigest convention from the sources slice): the digest IS the value, resolvable from a content-addressed store. Self-describing prefixes keep the two forms distinguishable.
+  * TOOLS ARE SOFTWARE AGENTS — deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity (roles classify, never reify — the Persona lesson, #355). An MCP tool, a search service, and a code runner are SoftwareAgents that happen to be called.
+  * calledByInvocation IS OPTIONAL: a recording harness may not expose the requesting model invocation; a ToolCall without one is still auditable provenance. The result feeds a LATER invocation — that ordering is temporal (atTime), not a TBox link.
+  * THIN MEANS THIN (Principle 15): the named consumer is Project Lillith's agentic mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Five terms; growth requires a new consumer — trajectory aggregates (runs, episodes, plans) wait for one.
+  * ALIGNMENTS: ToolCall is prov:Activity by inheritance (the provenance set). OpenAI function-calling, Anthropic tool_use, and MCP tool schemas are JSON specs with no stable RDF namespace — bridging is a projection concern (#58, the OpenLineage precedent), recorded in the mapping trailer."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ToolCall
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Tool Call"@x-gmeow-english ;
+    skos:definition "One invocation of a tool by an agent: the tool agent (gmeow:usedTool), the requesting model invocation when known (gmeow:calledByInvocation), and the verbatim arguments/result payloads. The agent's actions join the same provenance graph as its claims — an entity the call produced links back via gmeow:wasGeneratedBy (no forward output property, Principle 5), so 'which tool, called by which invocation, with what arguments?' is answerable after the fact. The ModelInvocation idiom one level down."@x-gmeow-english ;
+    skos:example "An assistant's MCP store_claim call: the ToolCall records the tool agent, the verbatim JSON arguments, and the stored claim's id as the result payload; the claim itself links back with gmeow:wasGeneratedBy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
+
+gmeow:calledByInvocation
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range gmeow:ModelInvocation ;
+    rdfs:label "called by invocation"@x-gmeow-english ;
+    skos:definition "The model invocation that requested this tool call. Functional: one requesting invocation per call. Optional: a recording harness may not expose the invocation — a ToolCall without one is still auditable provenance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
+
+gmeow:usedTool
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range gmeow:SoftwareAgent ;
+    rdfs:label "used tool"@x-gmeow-english ;
+    skos:definition "The tool that was called — a SoftwareAgent (an MCP tool, a search service, a code runner). Deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity. Functional: one tool per call; a multi-tool turn is several ToolCalls."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
+
+gmeow:toolArguments
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "tool arguments"@x-gmeow-english ;
+    skos:definition "The verbatim arguments payload presented to the tool (typically JSON), byte-faithful. For large payloads store a content digest literal instead ('blake3:…' — the gmeow:contentDigest convention): the digest is the value, resolvable from a content-addressed store. Functional: one arguments record per call."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
+
+gmeow:toolResult
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "tool result"@x-gmeow-english ;
+    skos:definition "The verbatim result payload the tool returned, byte-faithful — the PAYLOAD of the event, never a forward entity link: an entity the call produced links back via gmeow:wasGeneratedBy (Principle 5). For large payloads store a content digest literal instead ('blake3:…'), as gmeow:toolArguments. Functional: one result record per call."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
