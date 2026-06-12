@@ -1,0 +1,45 @@
+{
+  "name": "@blackcatinformatics/gts",
+  "version": "0.1.0",
+  "description": "TypeScript GTS (Graph Transport Substrate) engine: CBOR-sequence RDF 1.2 log reader, folder, and verifier",
+  "type": "module",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "gts": "./dist/bin/gts.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint src tests --ext .ts",
+    "format:check": "prettier --check 'src/**/*.ts' 'tests/**/*.ts'",
+    "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
+    "test": "npm run build && tsc -p tsconfig.test.json && node --test dist/tests/*.test.js",
+    "cli": "node dist/bin/gts.js"
+  },
+  "dependencies": {
+    "blake3": "^2.1.7",
+    "cbor": "^10.0.3",
+    "fzstd": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.30.0",
+    "@typescript-eslint/parser": "^8.30.0",
+    "eslint": "^9.24.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.8.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology.git",
+    "directory": "ts/gts"
+  }
+}
