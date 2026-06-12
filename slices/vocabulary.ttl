@@ -93,10 +93,10 @@ gmeow:sliceConsumer a owl:DatatypeProperty ;
 # --------------------------------------------------------------------------- #
 
 gmeow:sliceProfile a owl:DatatypeProperty ;
-    rdfs:label "slice GTS profile"@x-gmeow-english ;
+    rdfs:label "slice profile membership"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
     rdfs:range xsd:string ;
-    skos:definition "The GTS sub-profile name this slice serves (e.g. \"music\", \"image\"). A GTS segment carrying this slice's data declares the profile in its header, which is how a reader without the slice installed reports what is missing. Optional; defaults to the slice name for extensions."@x-gmeow-english ;
+    skos:definition "A named profile this slice belongs to. Multi-valued: a slice may serve several profiles. One name serves both worlds (the twin doctrine, #327/#330): it names the OWL composition profile <…/gmeow/profiles/<name>> — a generated, dependency-closed owl:imports aggregation — and the GTS sub-profile tag a package segment carrying this slice's data declares in its header (how a reader without the slice installed reports what is missing). Membership is always explicit; there is no default."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 gmeow:providesSubcommand a owl:DatatypeProperty ;

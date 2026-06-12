@@ -54,8 +54,8 @@ gmeow:SliceManifestShape
     ] ;
     sh:property [
         sh:path gmeow:sliceProfile ;
-        sh:maxCount 1 ;
         sh:datatype xsd:string ;
+        sh:message "Profile membership is multi-valued (#330): a slice may serve several named profiles; each value names both the OWL composition IRI and the GTS sub-profile tag."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path gmeow:builtAgainstCore ;

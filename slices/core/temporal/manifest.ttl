@@ -19,6 +19,7 @@
     dcterms:title "GMEOW Temporal — intervals, instants, temporal frames, time-scoped relations"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceProfile "memory" ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/profiles> ;

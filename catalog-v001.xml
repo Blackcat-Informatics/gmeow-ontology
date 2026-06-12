@@ -70,4 +70,9 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/temporal" uri="slices/core/temporal/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/trust" uri="slices/core/trust/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/versions" uri="slices/core/versions/module.ttl"/>
+
+    <!-- Named profiles (generated, #330) -->
+    <uri name="https://blackcatinformatics.ca/gmeow/profiles/claims" uri="generated/profiles/claims.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/profiles/memory" uri="generated/profiles/memory.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/profiles/narrative" uri="generated/profiles/narrative.ttl"/>
 </catalog>

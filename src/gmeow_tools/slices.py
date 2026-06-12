@@ -81,7 +81,7 @@ class Slice:
     consumers: tuple[str, ...]
     title: str
     creators: tuple[str, ...]
-    profile: str | None = None
+    profiles: tuple[str, ...] = ()
     subcommands: tuple[str, ...] = ()
     built_against_core: str | None = None
 
@@ -149,7 +149,7 @@ def _load_manifest(manifest: Path) -> Slice:
         consumers=_strings(graph, node, _CONSUMER),
         title=titles[0] if titles else manifest.parent.name,
         creators=_strings(graph, node, DCTERMS.creator),
-        profile=profiles[0] if profiles else None,
+        profiles=profiles,
         subcommands=_strings(graph, node, _SUBCOMMAND),
         built_against_core=built[0] if built else None,
     )

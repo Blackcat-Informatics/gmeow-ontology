@@ -9,8 +9,10 @@ generated ``owl:imports`` closures (composition). The root IRI is the CORE
 profile (its imports list is gated by tests against the manifests);
 ``<…/gmeow/full>`` is the everything-aggregation emitted here; named
 profiles (``<…/gmeow/profiles/<name>>``) materialize whenever a manifest
-declares ``gmeow:sliceProfile`` membership. A slice that exists without
-appearing in its profiles is impossible by construction.
+declares ``gmeow:sliceProfile`` membership, and they are SLIM: declared
+members plus their ``sliceDependsOn`` closure, never the whole core. A
+slice that exists without appearing in its profiles is impossible by
+construction.
 """
 
 from __future__ import annotations
@@ -34,12 +36,50 @@ if TYPE_CHECKING:
 
 
 def group_named_profiles(slices: dict[str, Slice]) -> dict[str, list[str]]:
-    """Profile name → member slice IRIs, from manifest declarations."""
+    """Profile name → member slice IRIs, from manifest declarations.
+
+    Membership is multi-valued: a slice may serve several profiles
+    (kernel-adjacent slices typically do).
+    """
     out: dict[str, list[str]] = {}
     for slice_ in slices.values():
-        if slice_.profile:
-            out.setdefault(slice_.profile, []).append(slice_.iri)
+        for name in slice_.profiles:
+            out.setdefault(name, []).append(slice_.iri)
     return {name: sorted(iris) for name, iris in sorted(out.items())}
+
+
+def dependency_closure(members: list[str], slices: dict[str, Slice]) -> list[str]:
+    """The members plus every slice reachable through ``sliceDependsOn``.
+
+    Named profiles are SLIM: they import exactly this closure, never the
+    whole core — that is the issue's "slimmed-down shippable profiles"
+    ruling made real. A profile must also be resolvable by construction:
+    an import chain that leaves the registry is a manifest bug.
+
+    Raises:
+        ValueError: When a dependency chain references an unknown slice IRI,
+            or the member list is empty (an importless ontology document is
+            never a profile).
+    """
+    if not members:
+        msg = "named profile has no declared members (#330)"
+        raise ValueError(msg)
+    closed: set[str] = set()
+    frontier = list(members)
+    while frontier:
+        iri = frontier.pop()
+        if iri in closed:
+            continue
+        slice_ = slices.get(iri)
+        if slice_ is None:
+            msg = (
+                f"profile dependency closure escapes the registry: {iri} "
+                f"is not a discovered slice (#330)"
+            )
+            raise ValueError(msg)
+        closed.add(iri)
+        frontier.extend(slice_.depends_on)
+    return sorted(closed)
 
 
 def _profile_document(iri: str, label: str, comment: str, imports: list[str]) -> str:
@@ -55,6 +95,9 @@ def _profile_document(iri: str, label: str, comment: str, imports: list[str]) ->
         "",
         f"<{iri}>",
         "    a owl:Ontology ;",
+        # Raw-text writer: this IS the published document, so the public
+        # @en tag is correct here (write_turtle's x-gmeow-* retagging only
+        # applies to graph-serialized generators; the leak gate enforces it).
         f'    rdfs:label "{label}"@en ;',
         f'    skos:definition "{comment}"@en ;',
         f"    rdfs:isDefinedBy <{iri}> ;",
@@ -85,10 +128,12 @@ def render_profiles() -> dict[str, str]:
         out[f"{name}.ttl"] = _profile_document(
             NAMED_PROFILE_NS + name,
             f"GMEOW — {name} profile",
-            f"The {name} profile: a declared slice set aggregated as its own "
-            "dereferenceable, citable, reasonable ontology. Membership is "
-            "declared per-slice with gmeow:sliceProfile.",
-            [ONTOLOGY_IRI, *members],
+            f"The {name} profile: a slim, dependency-closed slice set "
+            "aggregated as its own dereferenceable, citable, reasonable "
+            "ontology — declared members plus their sliceDependsOn closure, "
+            "and nothing else. Membership is declared per-slice with "
+            "gmeow:sliceProfile.",
+            dependency_closure(members, slices),
         )
     return out
 
