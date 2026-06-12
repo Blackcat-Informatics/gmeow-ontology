@@ -131,6 +131,42 @@ def reason(reasoner: str = "ELK", *, merged: Path = MERGED_FILE) -> Path:
     return output
 
 
+#: OWL-native release syntaxes (#12): extension → ROBOT convert format.
+#: ofn and owx are lossless OWL 2 forms; omn (Manchester) is itself LOSSY —
+#: it cannot express every OWL 2 axiom (GCIs etc.; ROBOT warns and drops).
+OWL_SYNTAXES: dict[str, str] = {"ofn": "ofn", "owx": "owx", "omn": "omn"}
+
+
+def convert_owl_syntaxes(*, merged: Path = MERGED_FILE) -> list[Path]:
+    """Emit the merged release in the OWL-native syntaxes via pinned ROBOT.
+
+    Functional (``gmeow.ofn``), OWL/XML (``gmeow.owx``), and Manchester
+    (``gmeow.omn``, declared lossy) — the release-tier companions to the
+    RDF serializations of :func:`gmeow_tools.serialize.serialize_graph`.
+
+    Returns:
+        The written paths under ``dist/``.
+    """
+    if not merged.exists():
+        merge_release(merged)
+    written: list[Path] = []
+    for ext, fmt in OWL_SYNTAXES.items():
+        output = DIST_DIR / f"gmeow.{ext}"
+        _robot(
+            [
+                "convert",
+                "--input",
+                _rel(merged),
+                "--format",
+                fmt,
+                "--output",
+                _rel(output),
+            ]
+        )
+        written.append(output)
+    return written
+
+
 def explain_unsatisfiable(
     *, merged: Path = MERGED_FILE, output: Path = DIST_DIR / "gmeow-explanation.md"
 ) -> str:

@@ -7,7 +7,10 @@ plainer, lossy-but-useful views for consumers that don't speak RDF/OWL:
   tabular view, plus a **CSVW** descriptor so the tables are self-describing;
 * a **Markdown term reference** — human-readable and diffable;
 * a **JSONL term catalog** — one record per term, for tooling / RAG / embeddings;
-* an **``llms.txt`` bundle** — the whole vocabulary in one LLM-ingestable file.
+* an **``llms.txt`` bundle** — the whole vocabulary in one LLM-ingestable file;
+* the **dataset forms** (#377): lossless N-Quads/TriG 1.2 (statement layer
+  included), the **statements JSONL** AI bundle, and lossy-but-declared
+  **SKOS** / **OBO Graphs** / **ShEx** projections.
 
 Everything is generated from the committed GTS snapshot (the narrow waist,
 #267): the asserted merged graph in its default graph plus the SSSOM
@@ -37,6 +40,7 @@ from gmeow_tools.config import (
 )
 from gmeow_tools.generator import Generator, _rel, register
 from gmeow_tools.gts_views import FoldView, load_fold
+from gts.nquads import term_token, to_nquads
 
 _OWL = "http://www.w3.org/2002/07/owl#"
 _RDFS = "http://www.w3.org/2000/01/rdf-schema#"
@@ -529,6 +533,358 @@ def write_llms_txt(
 
 
 # --------------------------------------------------------------------------- #
+# Dataset / semantic-web tiers (#377, #12): still fold-only shims
+# --------------------------------------------------------------------------- #
+
+_RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
+_SKOS_MATCHES = (_SKOS + "exactMatch", _SKOS + "closeMatch", _SKOS + "relatedMatch")
+
+
+def write_nquads(view: FoldView, dist_dir: Path) -> Path:
+    """Write the complete dataset as N-Quads 1.2 (``gmeow.nq``).
+
+    LOSSLESS: every quad in every graph PLUS the reifier bindings and
+    statement annotations — ``gts.nquads.to_nquads`` is the one writer for
+    this form (P4); internal language tags are remapped to public BCP-47 at
+    this projection boundary (#287).
+    """
+    path = dist_dir / "gmeow.nq"
+    path.write_text(to_nquads(view.graph, view.tag_map()), encoding="utf-8")
+    return path
+
+
+def write_trig(view: FoldView, dist_dir: Path) -> Path:
+    """Write the dataset as TriG 1.2 (``gmeow.trig``).
+
+    Same content as ``gmeow.nq`` (LOSSLESS, same term renderer): the default
+    graph carries the ontology base plus the reifier/annotation statement
+    layer; the statements and alignments named graphs become labeled blocks.
+    """
+    g = view.graph
+    lang_map = view.tag_map()
+
+    def tok(tid: int) -> str:
+        return term_token(g, tid, lang_map)
+
+    default_lines: list[str] = []
+    named: dict[str, list[str]] = {}
+    for s, p, o, gname in g.quads:
+        line = f"{tok(s)} {tok(p)} {tok(o)} ."
+        if gname is None:
+            default_lines.append(line)
+        else:
+            named.setdefault(g.terms[gname].value or "", []).append(line)
+    for rid, (s, p, o) in g.reifiers.items():
+        quoted = f"<<( {tok(s)} {tok(p)} {tok(o)} )>>"
+        default_lines.append(f"{tok(rid)} <{_RDF_REIFIES}> {quoted} .")
+    for r, p, v in g.annotations:
+        default_lines.append(f"{tok(r)} {tok(p)} {tok(v)} .")
+
+    blocks = [
+        "# The GMEOW dataset as TriG 1.2 — same content as gmeow.nq (lossless).",
+        "# Default graph: ontology base + RDF 1.2 statement layer;",
+        "# named graphs: statements / alignments partitions.",
+        "",
+        *default_lines,
+    ]
+    for graph_iri in sorted(named):
+        blocks += ["", f"<{graph_iri}> {{"]
+        blocks += [f"    {line}" for line in named[graph_iri]]
+        blocks.append("}")
+    path = dist_dir / "gmeow.trig"
+    path.write_text("\n".join(blocks) + "\n", encoding="utf-8")
+    return path
+
+
+def _public_value(view: FoldView, tid: int) -> object:
+    """``python_value`` with language tags mapped to public BCP-47 (#287)."""
+    val = view.python_value(tid)
+    if isinstance(val, dict) and "lang" in val:
+        tag_map = view.tag_map()
+        lang = str(val["lang"])
+        return {"value": val["value"], "lang": tag_map.get(lang, lang)}
+    return val
+
+
+def write_statements_jsonl(view: FoldView, dist_dir: Path) -> Path:
+    """Write the reified statement layer as flat JSONL (``gmeow-statements.jsonl``).
+
+    One reified statement per line — subject/predicate/object as CURIEs or
+    scalars plus its annotation map (confidence, assertedAt, accordingTo, …):
+    the AI-bundle companion to ``gmeow-terms.jsonl`` and the same flat shape
+    family as ``gmeow audit --json`` (P13 — no RDF required of consumers).
+    """
+    grouped: dict[int, dict[str, list[object]]] = {}
+    for r, p, v in view.annotations():
+        key = view.curie(view.lex(p))
+        grouped.setdefault(r, {}).setdefault(key, []).append(_public_value(view, v))
+
+    rows: list[str] = []
+    for rid, (s, p, o) in sorted(
+        view.reifiers().items(), key=lambda kv: view.nq_token(kv[0])
+    ):
+        annotations = {
+            key: values[0] if len(values) == 1 else sorted(values, key=str)
+            for key, values in sorted(grouped.get(rid, {}).items())
+        }
+        record = {
+            "id": view.python_value(rid),
+            "subject": _public_value(view, s),
+            "predicate": view.curie(view.lex(p)),
+            "object": _public_value(view, o),
+            "annotations": annotations,
+        }
+        rows.append(json.dumps(record, ensure_ascii=False))
+    path = dist_dir / "gmeow-statements.jsonl"
+    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+    return path
+
+
+def _ttl_literal(text: str, lang: str | None = None) -> str:
+    """A Turtle literal token (JSON string escaping is valid Turtle ECHAR/UCHAR)."""
+    lit = json.dumps(text, ensure_ascii=False)
+    return f"{lit}@{lang}" if lang else lit
+
+
+def write_skos(
+    view: FoldView,
+    dist_dir: Path,
+    *,
+    title: str | None = None,
+    version: str | None = None,
+) -> Path:
+    """Write the SKOS extract (``gmeow-skos.ttl``) — classes as a concept scheme.
+
+    LOSSY BY DESIGN (declared): classes only, typed ``skos:Concept`` on their
+    ORIGINAL IRIs; ``subClassOf`` within the namespace becomes ``skos:broader``;
+    SKOS mapping rows are carried from the alignments graph. All OWL axioms,
+    properties, and individuals are dropped. STANDALONE projection: merging it
+    with the OWL form puns every class as an individual — don't.
+    """
+    resolved_title, resolved_version = _resolve_meta(title, version)
+    classes = sorted(
+        (
+            t
+            for t in view.subjects_by_type(_OWL + "Class")
+            if view.is_iri(t) and view.lex(t).startswith(NAMESPACE)
+        ),
+        key=lambda t: curie(view.lex(t)),
+    )
+    class_iris = {view.lex(t) for t in classes}
+
+    lines = [
+        "# The GMEOW vocabulary as a SKOS concept scheme — a LOSSY projection:",
+        "# classes only (typed skos:Concept on their original IRIs);",
+        "# subClassOf → skos:broader; SKOS mapping rows carried from the",
+        "# alignments graph. OWL axioms, properties, and individuals are",
+        "# dropped. STANDALONE: never merge with the OWL form (class punning).",
+        "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .",
+        "@prefix dcterms: <http://purl.org/dc/terms/> .",
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .",
+        f"@prefix gmeow: <{NAMESPACE}> .",
+        "",
+        f"<{ONTOLOGY_IRI}> a skos:ConceptScheme ;",
+        f"    dcterms:title {_ttl_literal(resolved_title + ' — SKOS extract')} ;",
+        f"    owl:versionInfo {_ttl_literal(resolved_version)} .",
+    ]
+
+    top_concepts: list[str] = []
+    bodies: list[str] = []
+    for t in classes:
+        c = curie(view.lex(t))
+        label, label_lang = view.public_literal(t, _RDFS + "label")
+        definition, definition_lang = view.public_literal(t, _SKOS + "definition")
+        broader = sorted(
+            curie(view.lex(o))
+            for o in view.objects(t, _RDFS + "subClassOf")
+            if view.is_iri(o) and view.lex(o) in class_iris
+        )
+        if not broader:
+            top_concepts.append(c)
+        stanza = [f"{c} a skos:Concept ;", f"    skos:inScheme <{ONTOLOGY_IRI}> ;"]
+        if label:
+            stanza.append(f"    skos:prefLabel {_ttl_literal(label, label_lang)} ;")
+        if definition:
+            stanza.append(
+                f"    skos:definition {_ttl_literal(definition, definition_lang)} ;"
+            )
+        for b in broader:
+            stanza.append(f"    skos:broader {b} ;")
+        for p, o in view.predicate_objects(t, scope=GTS_GRAPH_ALIGNMENTS):
+            if view.lex(p) in _SKOS_MATCHES and view.is_iri(o):
+                tag = view.lex(p).rsplit("#", 1)[-1]
+                stanza.append(f"    skos:{tag} <{view.lex(o)}> ;")
+        stanza[-1] = stanza[-1].rstrip(" ;") + " ."
+        bodies += ["", *stanza]
+
+    for c in top_concepts:
+        lines.append(f"<{ONTOLOGY_IRI}> skos:hasTopConcept {c} .")
+    path = dist_dir / "gmeow-skos.ttl"
+    path.write_text("\n".join(lines + bodies) + "\n", encoding="utf-8")
+    return path
+
+
+def write_obographs(
+    view: FoldView,
+    dist_dir: Path,
+    *,
+    version: str | None = None,
+) -> Path:
+    """Write the class hierarchy as OBO Graphs JSON (``gmeow-obographs.json``).
+
+    LOSSY BY DESIGN (declared in the graph's meta): GMEOW classes as nodes
+    (label + definition), IRI-to-IRI ``rdfs:subClassOf`` as ``is_a`` edges;
+    blank-node restrictions, properties, and individuals are dropped.
+    External parents appear as bare nodes so no edge dangles.
+    """
+    _, resolved_version = _resolve_meta(None, version)
+    label_iri, definition_iri = _RDFS + "label", _SKOS + "definition"
+    classes = sorted(
+        (
+            t
+            for t in view.subjects_by_type(_OWL + "Class")
+            if view.is_iri(t) and view.lex(t).startswith(NAMESPACE)
+        ),
+        key=view.lex,
+    )
+    nodes: list[dict[str, object]] = []
+    edges: list[dict[str, str]] = []
+    for t in classes:
+        iri = view.lex(t)
+        node: dict[str, object] = {"id": iri, "type": "CLASS"}
+        label = view.public_text(t, label_iri)
+        if label:
+            node["lbl"] = label
+        definition = view.public_text(t, definition_iri)
+        if definition:
+            node["meta"] = {"definition": {"val": definition}}
+        nodes.append(node)
+        edges += [
+            {"sub": iri, "pred": "is_a", "obj": view.lex(o)}
+            for o in view.objects(t, _RDFS + "subClassOf")
+            if view.is_iri(o)
+        ]
+    known = {str(n["id"]) for n in nodes}
+    for iri in sorted({e["obj"] for e in edges} - known):
+        nodes.append({"id": iri, "type": "CLASS"})
+
+    doc = {
+        "graphs": [
+            {
+                "id": ONTOLOGY_IRI,
+                "meta": {
+                    "version": resolved_version,
+                    "basicPropertyValues": [
+                        {
+                            "pred": "http://www.w3.org/2000/01/rdf-schema#comment",
+                            "val": (
+                                "LOSSY projection: GMEOW classes and IRI-only "
+                                "is_a edges; blank-node restrictions, properties, "
+                                "and individuals are dropped. The OWL source is "
+                                "canonical."
+                            ),
+                        }
+                    ],
+                },
+                "nodes": nodes,
+                "edges": edges,
+            }
+        ]
+    }
+    path = dist_dir / "gmeow-obographs.json"
+    path.write_text(
+        json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return path
+
+
+def _shex_domains(view: FoldView, prop: int, class_iris: set[str]) -> list[str]:
+    """The named in-namespace domain classes of a property, unions expanded."""
+    out: set[str] = set()
+    for d in view.objects(prop, _RDFS + "domain"):
+        if view.is_iri(d):
+            candidates = [d]
+        elif view.is_bnode(d):
+            union_head = view.value(d, _OWL_UNION)
+            candidates = view.rdf_list(union_head) if union_head is not None else []
+        else:
+            candidates = []
+        out.update(
+            view.lex(c)
+            for c in candidates
+            if view.is_iri(c) and view.lex(c) in class_iris
+        )
+    return sorted(out)
+
+
+def write_shex(view: FoldView, dist_dir: Path) -> Path:
+    """Write ShEx shapes (``gmeow.shex``) — one shape per domained class.
+
+    LOSSY BY DESIGN (declared): a shape per GMEOW class that is the (named or
+    union-expanded) domain of at least one object/datatype property; range
+    IRIs become value-shape references (in-namespace classes) or node-kind /
+    datatype constraints; functional → ``?``, else ``*``. OWL restrictions,
+    pure blank-node domains, and annotation properties are not translated.
+    """
+    class_iris = {
+        view.lex(t)
+        for t in view.subjects_by_type(_OWL + "Class")
+        if view.is_iri(t) and view.lex(t).startswith(NAMESPACE)
+    }
+    functional_tid = view.tid_of_iri(_OWL + "FunctionalProperty")
+
+    per_class: dict[str, list[str]] = {}
+    for ptype, kind in (
+        (_OWL + "ObjectProperty", "object"),
+        (_OWL + "DatatypeProperty", "datatype"),
+    ):
+        for prop in view.subjects_by_type(ptype):
+            if not view.lex(prop).startswith(NAMESPACE):
+                continue
+            range_tid = view.value(prop, _RDFS + "range")
+            if range_tid is not None and view.is_iri(range_tid):
+                range_iri = view.lex(range_tid)
+                if range_iri in class_iris:
+                    value_expr = f"@{curie(range_iri)}"
+                elif kind == "datatype":
+                    value_expr = curie(range_iri)
+                else:
+                    value_expr = "IRI"
+            else:
+                value_expr = "IRI" if kind == "object" else "LITERAL"
+            card = (
+                "?"
+                if functional_tid is not None
+                and view.has(prop, _RDF_TYPE, functional_tid)
+                else "*"
+            )
+            constraint = f"{curie(view.lex(prop))} {value_expr} {card}"
+            for domain_iri in _shex_domains(view, prop, class_iris):
+                per_class.setdefault(curie(domain_iri), []).append(constraint)
+
+    lines = [
+        "# ShEx shapes for the GMEOW vocabulary — a LOSSY projection:",
+        "# one shape per class that is the (named or union-expanded) domain of",
+        "# an object/datatype property; functional → '?', else '*'. OWL",
+        "# restrictions, pure blank-node domains, and annotation properties",
+        "# are not translated. The OWL source is canonical.",
+        "PREFIX gmeow: <" + NAMESPACE + ">",
+        "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>",
+        "PREFIX gufo: <http://purl.org/nemo/gufo#>",
+        "",
+    ]
+    for cls in sorted(per_class):
+        lines.append(f"{cls} {{")
+        for constraint in sorted(set(per_class[cls])):
+            lines.append(f"    {constraint} ;")
+        lines[-1] = lines[-1].rstrip(" ;")
+        lines += ["}", ""]
+    path = dist_dir / "gmeow.shex"
+    path.write_text("\n".join(lines).rstrip("\n") + "\n", encoding="utf-8")
+    return path
+
+
+# --------------------------------------------------------------------------- #
 # Registered generator
 # --------------------------------------------------------------------------- #
 
@@ -560,6 +916,12 @@ class ExportGenerator(Generator):
             DIST_DIR / "gmeow-terms.jsonl",
             DIST_DIR / "gmeow-terms.md",
             DIST_DIR / "llms.txt",
+            DIST_DIR / "gmeow.nq",
+            DIST_DIR / "gmeow.trig",
+            DIST_DIR / "gmeow-statements.jsonl",
+            DIST_DIR / "gmeow-skos.ttl",
+            DIST_DIR / "gmeow-obographs.json",
+            DIST_DIR / "gmeow.shex",
         ]
 
     def render(self, staging: Path) -> None:
@@ -574,6 +936,12 @@ class ExportGenerator(Generator):
         write_jsonl(terms, out_dir)
         write_markdown(terms, out_dir, title=title, version=version)
         write_llms_txt(terms, out_dir, title=title, version=version)
+        write_nquads(view, out_dir)
+        write_trig(view, out_dir)
+        write_statements_jsonl(view, out_dir)
+        write_skos(view, out_dir, title=title, version=version)
+        write_obographs(view, out_dir, version=version)
+        write_shex(view, out_dir)
 
     def compare(self, fresh: Path, committed: Path) -> list[str]:
         """Skip drift for git-ignored export artifacts."""

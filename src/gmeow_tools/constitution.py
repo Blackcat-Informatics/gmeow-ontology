@@ -189,6 +189,7 @@ def _registered_generators() -> frozenset[str]:
         mapping_compile,
         matrix,
         metadata,
+        parquet_gen,
         profiles_gen,
         schema_compile,
         statement_compile,
