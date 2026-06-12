@@ -24,6 +24,7 @@ WHERE {
         }
         BIND ( IRI(CONCAT(STR(?app), "-form")) AS ?form )
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        FILTER NOT EXISTS { ?_supBearer gmeow:hasAgreementName|gmeow:hasAppellation|gmeow:hasName|gmeow:hasOrganizationName|gmeow:hasPlaceName|gmeow:hasSoftwareName|gmeow:hasTitle|gmeow:usageAppellation ?app . ?_supBearer gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?lang .
             ?lang gmeow:languageTag ?_intTag .
@@ -49,5 +50,6 @@ WHERE {
     UNION {
         ?item gmeow:hasLexicalForm ?form .
         FILTER NOT EXISTS { ?form gmeow:displayable false . }
+        FILTER NOT EXISTS { ?item gmeow:displayable false . }
     }
 }

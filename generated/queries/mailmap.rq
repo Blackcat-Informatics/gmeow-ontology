@@ -9,6 +9,7 @@ CONSTRUCT {
 WHERE {
     {
         ?agent gmeow:mailmapEntry ?line .
+        FILTER NOT EXISTS { ?agent gmeow:displayable false . }
     }
     UNION {
         ?oldId a gmeow:AuthorIdentity .
@@ -17,5 +18,6 @@ WHERE {
         ?oldId gmeow:canonicalizedIdentity ?agent .
         ?agent gmeow:mailmapEntry ?canonicalLine .
         BIND ( CONCAT(?canonicalLine, " ", ?oldBytes) AS ?mapping )
+        FILTER NOT EXISTS { ?agent gmeow:displayable false . }
     }
 }

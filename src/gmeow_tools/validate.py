@@ -6,6 +6,7 @@ locally and CI can gate cheaply before the heavier reasoning step.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -17,6 +18,7 @@ from rdflib.term import Node
 from gmeow_tools.config import (
     _SAMEAS_ALLOWLIST,
     FIXTURES_DIR,
+    GENERATED_SHAPES_DIR,
     MAPPING_DSL_DIR,
     NAMESPACE,
     ONTOLOGY_IRI,
@@ -60,6 +62,18 @@ def _shapes_graph(shapes_path: Path) -> Graph:
         if extra.name in dsl_shapes:
             continue
         graph.parse(extra, format="turtle")
+    # Generated shapes (#283): frame-relativity derived from gmeow:requiresFrame.
+    # FAIL CLOSED: the hand-written frame constraints were deleted in favor of
+    # these, so their absence would silently stop enforcing P11.
+    generated_shapes = sorted(GENERATED_SHAPES_DIR.glob("*.ttl"))
+    if not generated_shapes:
+        msg = (
+            f"no generated shapes under {GENERATED_SHAPES_DIR} — "
+            f"run `gmeow regenerate frame-shapes` (P11 enforcement lives there)"
+        )
+        raise FileNotFoundError(msg)
+    for generated in generated_shapes:
+        graph.parse(generated, format="turtle")
     for slice_shapes in iter_slice_shape_files():
         graph.parse(slice_shapes, format="turtle")
     return graph
@@ -212,6 +226,42 @@ def _collect_typed_terms(graph: Graph) -> dict[URIRef, str]:
         if isinstance(term, URIRef) and _is_gmeow_term(term) and term not in terms:
             terms[term] = "individual"
     return terms
+
+
+#: CamelCase tokens that mark a selector privileging one co-equal claim (P9).
+_SELECTOR_TOKENS = frozenset({"primary", "preferred", "default", "main"})
+
+_CAMEL_SPLIT = re.compile(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])")
+
+
+def term_naming_lint(graph: Graph) -> ValidationResult:
+    """Principle 9 by annotation (#281): no selector names on ontology terms.
+
+    Extends :func:`gmeow_tools.statement_lint.no_preferred_rank` from
+    statement-annotation properties to every GMEOW term local name: a
+    camelCase token of ``primary``/``preferred``/``default``/``main`` marks a
+    selector that would privilege one co-equal claim over another. Legitimate
+    value-vocabulary names (``scriptRolePrimary``, ``sourceTierPrimary``)
+    carry an explicit ``gmeow:namingNote`` justification — the lint enforces
+    the judgment instead of relying on audit-time discretion.
+    """
+    naming_note = URIRef(NAMESPACE + "namingNote")
+    result = ValidationResult()
+    for term, kind in sorted(_collect_typed_terms(graph).items()):
+        local = str(term).removeprefix(NAMESPACE)
+        tokens = {t.lower() for t in _CAMEL_SPLIT.findall(local)}
+        offending = tokens & _SELECTOR_TOKENS
+        if not offending:
+            continue
+        if next(graph.objects(term, naming_note), None) is not None:
+            continue
+        result.errors.append(
+            f"{kind} gmeow:{local} carries the selector token "
+            f"{sorted(offending)[0]!r} (Principle 9: co-equal claims have no "
+            f"primary/preferred/default/main); rename it, or justify a "
+            f"value-vocabulary use with gmeow:namingNote"
+        )
+    return result
 
 
 def structural_lint(graph: Graph) -> ValidationResult:
@@ -493,6 +543,7 @@ def validate_all() -> ValidationResult:
         return result
     merged = load_merged_graph()
     result.extend(structural_lint(merged))
+    result.extend(term_naming_lint(merged))
     result.extend(slice_ownership_lint())
     result.extend(reasoning_lint(merged))
     result.extend(run_shacl(merged))

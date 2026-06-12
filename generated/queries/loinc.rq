@@ -15,18 +15,23 @@ CONSTRUCT {
 WHERE {
     {
         ?obs a gmeow:SensoryObservation .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
     UNION {
         ?prop a gmeow:ObservableProperty .
+        FILTER NOT EXISTS { ?prop gmeow:displayable false . }
     }
     UNION {
         ?method a gmeow:ObservationMethod .
+        FILTER NOT EXISTS { ?method gmeow:displayable false . }
     }
     UNION {
         ?qty a gmeow:ScalarQuantity .
+        FILTER NOT EXISTS { ?qty gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:SensoryObservation .
         ?obs gmeow:observedFeature ?feature .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
 }

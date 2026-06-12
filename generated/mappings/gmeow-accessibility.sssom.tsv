@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Accessibility alignments — schema.org, WHO ICF, IndoorGML/IMDF, and SOSA.
+# comment: "Accessibility alignments \u2014 schema.org, WHO ICF, IndoorGML/IMDF, and SOSA."
 # curie_map:
 #   fhir: http://hl7.org/fhir/
 #   gmeow: https://blackcatinformatics.ca/gmeow/

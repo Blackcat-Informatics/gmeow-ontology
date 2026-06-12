@@ -19,7 +19,10 @@ ex:gmeow-ontology-work-001
 ex:gmeow-ontology-expression-001
     a gmeow:Expression ;
     rdfs:label "the GMEOW ontology, v0.1.0 statement-complete expression"@en ;
-    gmeow:realizes ex:gmeow-ontology-work-001 .
+    gmeow:realizes ex:gmeow-ontology-work-001 ;
+    # P11: an expression's content lives in a reference system — here the
+    # (English-labelled) vocabulary expression of the ontology.
+    gmeow:hasReferenceFrame gmeow:referenceFrameEnglish .
 
 ex:gts-dist-package-001
     a gmeow:GTSDocument ;

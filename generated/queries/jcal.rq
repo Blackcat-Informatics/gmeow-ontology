@@ -19,15 +19,18 @@ WHERE {
         ?cal rdf:type ?type .
         OPTIONAL { ?cal gmeow:calendarTimeZone ?tz . }
         OPTIONAL { ?tz gmeow:timeZoneIanaId ?tzid . }
+        FILTER NOT EXISTS { ?cal gmeow:displayable false . }
     }
     UNION {
         ?task rdf:type ?type .
         OPTIONAL { ?task gmeow:taskDueDate ?due . }
         OPTIONAL { ?task gmeow:taskPriority ?prio . }
         OPTIONAL { ?task gmeow:taskStatus ?ts . }
+        FILTER NOT EXISTS { ?task gmeow:displayable false . }
     }
     UNION {
         ?reminder gmeow:reminderTrigger ?trig .
         ?reminder gmeow:reminderAction ?act .
+        FILTER NOT EXISTS { ?reminder gmeow:displayable false . }
     }
 }

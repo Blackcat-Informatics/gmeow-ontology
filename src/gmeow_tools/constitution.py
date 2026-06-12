@@ -181,6 +181,7 @@ def _registered_generators() -> frozenset[str]:
         apache,
         catalog_gen,
         export,
+        frame_shapes_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,

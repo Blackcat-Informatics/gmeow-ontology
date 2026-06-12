@@ -13,17 +13,22 @@ CONSTRUCT {
 WHERE {
     {
         ?lic a gmeow:License .
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
     }
     UNION {
         ?lic gmeow:spdxLicenseId ?id .
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
     }
     UNION {
         ?lic gmeow:spdxLicenseName ?nm .
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
     }
     UNION {
         ?lic gmeow:licenseText ?txt .
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
     }
     UNION {
         ?lic gmeow:isOsiApproved ?osi .
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
     }
 }

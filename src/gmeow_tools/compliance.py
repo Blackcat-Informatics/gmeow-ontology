@@ -1,0 +1,222 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+"""Machine-readable compliance report (#285): per-principle gate evidence.
+
+The constitution manifest (#280) knows which gates enforce which principles;
+this module RUNS the in-process gates and serializes the per-principle
+results as RDF — FAIR/FOOPS scoring and the publication metadata get
+evidence rather than assertion, and every release carries a proof object of
+what was enforced, at what version, with what result.
+
+Statuses per enforcement:
+
+* ``passed`` / ``failed`` — at least one of its make targets / CLI commands
+  maps to an in-process runner, and the conjunction of those runners' error
+  counts decides;
+* ``gated-in-ci`` — the enforcement is real but runs outside this process
+  (pytest suites, the Docker reasoners); its EXISTENCE is still verified by
+  ``constitution-check``;
+* ``declared`` — practice or artifact-only enforcement; existence-verified.
+
+The report is a runtime artifact (it embeds run results), so it lives in
+``dist/`` — never under the drift-gated ``generated/`` tree.
+"""
+
+from __future__ import annotations
+
+import datetime
+import platform
+import subprocess
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from gmeow_tools import __version__
+from gmeow_tools.config import DIST_DIR, PROJECT_ROOT
+from gmeow_tools.constitution import Manifest, load_manifest
+from gmeow_tools.validate import ValidationResult
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping
+    from pathlib import Path
+
+META = "https://blackcatinformatics.ca/gmeow/meta#"
+REPORT_FILE = DIST_DIR / "compliance-report.ttl"
+
+
+@dataclass(frozen=True, slots=True)
+class GateRun:
+    """The outcome of one executed gate."""
+
+    errors: int
+    warnings: int
+
+
+def _run_validate() -> ValidationResult:
+    from gmeow_tools.validate import validate_all
+
+    return validate_all()
+
+
+def _run_constitution() -> ValidationResult:
+    from gmeow_tools.constitution import check_constitution
+
+    return check_constitution()
+
+
+def _run_alignment() -> ValidationResult:
+    from gmeow_tools.alignment_lint import (
+        findings_to_result,
+        lint_alignment_directions,
+    )
+
+    return findings_to_result(lint_alignment_directions(allow_network=False))
+
+
+def _run_check_generated() -> ValidationResult:
+    from gmeow_tools.constitution import _registered_generators
+    from gmeow_tools.generator import check_all
+    from gmeow_tools.runner import ToolUnavailableError
+
+    generators = _registered_generators()  # @register side effects
+
+    result = ValidationResult()
+    try:
+        reports = check_all(None)
+    except ToolUnavailableError as exc:
+        # The statements generator renders via Docker/Jena, absent in some
+        # CI jobs — it is gated by its own Docker-backed job; the skip is
+        # recorded in the report, never silent.
+        result.warnings.append(f"statements drift not checked here: {exc}")
+        reports = check_all(sorted(generators - {"statements"}))
+    for name, report in reports.items():
+        for rel in sorted(report.drifted):
+            result.errors.append(f"drift {name}: {rel}")
+        for rel in sorted(report.orphans):
+            result.errors.append(f"orphan {name}: {rel}")
+    return result
+
+
+#: In-process runners, keyed by the make target / CLI command an enforcement
+#: cites. The manifest's own citations select the runner — no second mapping.
+RUNNERS: dict[str, Callable[[], ValidationResult]] = {
+    "validate": _run_validate,
+    "constitution-check": _run_constitution,
+    "lint-alignment": _run_alignment,
+    "check-generated": _run_check_generated,
+}
+
+
+def run_gates(names: frozenset[str] | None = None) -> dict[str, GateRun]:
+    """Execute the in-process runners (each at most once)."""
+    results: dict[str, GateRun] = {}
+    for name, runner in RUNNERS.items():
+        if names is not None and name not in names:
+            continue
+        outcome = runner()
+        results[name] = GateRun(len(outcome.errors), len(outcome.warnings))
+    return results
+
+
+def _git_head() -> str:
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        ).stdout.strip()
+    except Exception:
+        return "unknown"
+
+
+def _enforcement_status(
+    citations: tuple[str, ...], kind: str, gate_runs: Mapping[str, GateRun]
+) -> tuple[str, int, int]:
+    """(status, errors, warnings) for one enforcement's citations."""
+    # dict.fromkeys-dedupe: an enforcement may cite the same runnable as both
+    # makeTarget and cliCommand; its run must be counted once.
+    ran = [gate_runs[c] for c in dict.fromkeys(citations) if c in gate_runs]
+    if ran:
+        errors = sum(r.errors for r in ran)
+        warnings = sum(r.warnings for r in ran)
+        return ("failed" if errors else "passed", errors, warnings)
+    if kind in ("TestSuite", "Gate", "Shape", "Lint"):
+        return ("gated-in-ci", 0, 0)
+    return ("declared", 0, 0)
+
+
+def build_report(
+    manifest: Manifest,
+    gate_runs: Mapping[str, GateRun],
+    *,
+    generated_at: str,
+    source_commit: str,
+) -> str:
+    """Render the compliance report as Turtle (pure; testable with fakes)."""
+    lines = [
+        "# GMEOW compliance report (#285) — per-principle gate evidence.",
+        "# A runtime proof object, regenerated by `gmeow compliance-report`.",
+        "@prefix meta: <https://blackcatinformatics.ca/gmeow/meta#> .",
+        "@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .",
+        "",
+        "meta:report a meta:ComplianceReport ;",
+        f'    meta:generatedAt "{generated_at}"^^xsd:dateTime ;',
+        f'    meta:sourceCommit "{source_commit}" ;',
+        f'    meta:toolchainVersion "{__version__}" ;',
+        f'    meta:pythonVersion "{platform.python_version()}" ;',
+        "    meta:assesses "
+        + ", ".join(f"meta:Principle{p.number}" for p in manifest.principles)
+        + " .",
+        "",
+    ]
+    for principle in manifest.principles:
+        statuses: list[str] = []
+        body: list[str] = []
+        for iri in principle.enforced_by:
+            enforcement = manifest.enforcements.get(iri)
+            if enforcement is None:
+                continue
+            name = iri.removeprefix(META)
+            citations = (*enforcement.make_targets, *enforcement.cli_commands)
+            status, errors, warnings = _enforcement_status(
+                citations, enforcement.kind, gate_runs
+            )
+            statuses.append(status)
+            body.append(
+                f"    meta:enforcementResult [ meta:enforcement meta:{name} ; "
+                f'meta:status "{status}" ; meta:errorCount {errors} ; '
+                f"meta:warningCount {warnings} ]"
+            )
+        overall = "failed" if "failed" in statuses else "passed"
+        lines.append(f"meta:Principle{principle.number}Result")
+        lines.append("    a meta:PrincipleResult ;")
+        lines.append(f"    meta:principle meta:Principle{principle.number} ;")
+        lines.append(f'    meta:status "{overall}" ;')
+        lines.extend(f"{b} ;" for b in body[:-1])
+        if body:
+            lines.append(f"{body[-1]} .")
+        else:
+            lines[-1] = lines[-1][:-1] + "."
+        lines.append("")
+    return "\n".join(lines)
+
+
+def compliance_report() -> str:
+    """Run the gates and render the full report."""
+    manifest = load_manifest()
+    gate_runs = run_gates()
+    return build_report(
+        manifest,
+        gate_runs,
+        generated_at=datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds"),
+        source_commit=_git_head(),
+    )
+
+
+def write_report(path: Path = REPORT_FILE) -> Path:
+    """Write the report to ``dist/`` and return the path."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(compliance_report(), encoding="utf-8")
+    return path

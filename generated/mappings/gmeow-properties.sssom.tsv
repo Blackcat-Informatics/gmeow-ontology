@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Canonical GMEOW property alignments. equivalentProperty for same-typed synonyms; skos:closeMatch for cross-type/fuzzy links.
+# comment: "Canonical GMEOW property alignments. equivalentProperty for same-typed synonyms; skos:closeMatch for cross-type/fuzzy links."
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   bibo: http://purl.org/ontology/bibo/

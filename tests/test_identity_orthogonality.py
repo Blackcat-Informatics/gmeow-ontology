@@ -3,11 +3,14 @@
 A person's address (pronouns, honorifics — names module), gender identity, gender
 expression, sex-assigned-at-birth (gender module), and sexual + romantic
 orientation (sexuality module) are independent axes. None may be inferred from
-another. This test pins that as a structural invariant across EVERY pair: no
-rdfs:subPropertyOf bridge, no owl:equivalentProperty, and no shared range. It is
-the whole reason gender and sexuality are built together — the matrix is only
-complete when every axis exists to be held apart. Also guards co-equality: no
-preferred/primary marker on any identity axis.
+another. Since #281 the live enforcement is ANNOTATION-DRIVEN —
+``gmeow:coequalFacet true`` marks each axis, and
+:func:`gmeow_tools.reasoning_lint.coequal_facet_orthogonality` derives every
+invariant from the annotation set inside ``make validate``, so a new axis is
+enforced the moment it is declared. This file is the REGRESSION layer over that
+machinery: it pins the historical seven-axis matrix explicitly (the annotation
+set must cover it, the lint must hold on it, and seeded violations must be
+caught), plus the co-equality guard: no preferred/primary marker anywhere.
 """
 
 from __future__ import annotations
@@ -18,10 +21,13 @@ from rdflib import OWL, RDF, RDFS, Graph, URIRef
 from rdflib.collection import Collection
 
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.reasoning_lint import coequal_facet_orthogonality
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 
 # The seven orthogonal axis properties and the value/facet class each ranges over.
+# This is the REGRESSION pin — the live axis set is the gmeow:coequalFacet
+# annotations in the modules, and must always cover (at least) these seven.
 AXES: dict[str, str] = {
     "hasPronounSet": "PronounSet",  # address (names)
     "honorific": "Honorific",  # address (names)
@@ -35,6 +41,66 @@ AXES: dict[str, str] = {
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
+
+
+def _annotated_axes(graph: Graph) -> set[URIRef]:
+    coequal = URIRef(GMEOW + "coequalFacet")
+    return {
+        s
+        for s, o in graph.subject_objects(coequal)
+        if isinstance(s, URIRef) and str(o) == "true"
+    }
+
+
+def test_annotation_set_covers_the_historical_seven_axes() -> None:
+    """Every historical axis carries gmeow:coequalFacet true (#281).
+
+    Superset, not equality: new co-equal facets (e.g. #263's
+    SkillProficiency) extend the matrix and are enforced automatically.
+    """
+    annotated = _annotated_axes(_graph())
+    expected = {URIRef(GMEOW + prop) for prop in AXES}
+    missing = expected - annotated
+    assert not missing, f"axes missing gmeow:coequalFacet true: {sorted(missing)}"
+
+
+def test_coequal_facet_lint_holds_on_the_real_matrix() -> None:
+    """The annotation-driven lint (the live enforcement) is clean."""
+    problems = coequal_facet_orthogonality(_graph())
+    assert not problems, "\n".join(problems)
+
+
+def test_coequal_facet_lint_catches_seeded_violations() -> None:
+    """Each violation class is detected when seeded into a copy of the graph.
+
+    The lint is the live gate; this proves it actually fires — for a
+    functional-property axis, a subPropertyOf bridge, and an axis missing
+    from the joint disjointness axiom (a fresh axis with its own range).
+    """
+    base = _graph()
+    a = URIRef(GMEOW + "hasGenderIdentity")
+    b = URIRef(GMEOW + "hasGenderExpression")
+
+    seeded = Graph()
+    for triple in base:
+        seeded.add(triple)
+    seeded.add((a, RDF.type, OWL.FunctionalProperty))
+    seeded.add((a, RDFS.subPropertyOf, b))
+    fresh = URIRef(GMEOW + "hasTestFacet")
+    seeded.add((fresh, RDF.type, OWL.ObjectProperty))
+    seeded.add(
+        (
+            fresh,
+            URIRef(GMEOW + "coequalFacet"),
+            next(iter(seeded.objects(a, URIRef(GMEOW + "coequalFacet")))),
+        )
+    )
+    seeded.add((fresh, RDFS.range, URIRef(GMEOW + "TestFacetValue")))
+
+    problems = "\n".join(coequal_facet_orthogonality(seeded))
+    assert "owl:FunctionalProperty" in problems
+    assert "bridged" in problems
+    assert "not jointly declared" in problems
 
 
 def test_every_axis_property_exists_with_its_own_range() -> None:

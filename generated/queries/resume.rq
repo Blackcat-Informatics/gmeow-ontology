@@ -16,16 +16,22 @@ WHERE {
         ?emp a gmeow:Employment .
         ?emp gmeow:employmentInterval ?iv .
         ?iv gmeow:startedAtTime ?start .
+        FILTER NOT EXISTS { ?emp gmeow:displayable false . }
+        FILTER NOT EXISTS { ?iv gmeow:displayable false . }
     }
     UNION {
         ?emp a gmeow:Employment .
         ?emp gmeow:employmentInterval ?iv .
         ?iv gmeow:endedAtTime ?end .
+        FILTER NOT EXISTS { ?emp gmeow:displayable false . }
+        FILTER NOT EXISTS { ?iv gmeow:displayable false . }
     }
     UNION {
         ?emp a gmeow:Employment .
         ?emp gmeow:employmentType ?etype .
         ?etype rdfs:label ?etypeLabel .
+        FILTER NOT EXISTS { ?emp gmeow:displayable false . }
+        FILTER NOT EXISTS { ?etype gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?etypeLabel) && LANG(?etypeLabel) = ?_intTag)
@@ -38,10 +44,13 @@ WHERE {
         ?emp gmeow:membershipMember ?member .
         ?emp gmeow:hasRole ?role .
         ?role rdfs:label|gmeow:name ?title .
+        FILTER NOT EXISTS { ?emp gmeow:displayable false . }
+        FILTER NOT EXISTS { ?role gmeow:displayable false . }
     }
     UNION {
         ?emp a gmeow:Employment .
         ?emp gmeow:membershipMember ?member .
         ?emp gmeow:membershipOrganization ?org .
+        FILTER NOT EXISTS { ?emp gmeow:displayable false . }
     }
 }

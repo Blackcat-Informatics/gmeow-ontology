@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Privacy / consent / redaction alignments (#73, PRIV-GEN). DPV: the primary external vocabulary for privacy concepts. GMEOW's sensitivity level, data-subject / data-controller roles, privacy notice, and process-personal-data action are aligned to DPV by reference (Principle 5). DPV is a W3C Community Group deliverable, not a W3C Recommendation; alignments use skos:closeMatch rather than owl:equivalentClass. ODRL: consent is modelled as a Permission / Prohibition / Duty over actionProcessPersonalData with purpose/recipient constraints — the existing deontic trio (#21), not a parallel consent relator. Schema.org: PrivacyNotice projects to schema:PrivacyPolicy; hasPrivacyNotice projects to schema:publishingPrinciples. REDACTION = GENERALISATION: the actual redaction mechanism is the existing coarsenTo / displayable projection-time directive (#72). Sensitivity metadata drives the trigger; the solver evaluates consent + sensitivity at emit time (P12).
+# comment: "Privacy / consent / redaction alignments (#73, PRIV-GEN). DPV: the primary external vocabulary for privacy concepts. GMEOW's sensitivity level, data-subject / data-controller roles, privacy notice, and process-personal-data action are aligned to DPV by reference (Principle 5). DPV is a W3C Community Group deliverable, not a W3C Recommendation; alignments use skos:closeMatch rather than owl:equivalentClass. ODRL: consent is modelled as a Permission / Prohibition / Duty over actionProcessPersonalData with purpose/recipient constraints \u2014 the existing deontic trio (#21), not a parallel consent relator. Schema.org: PrivacyNotice projects to schema:PrivacyPolicy; hasPrivacyNotice projects to schema:publishingPrinciples. REDACTION = GENERALISATION: the actual redaction mechanism is the existing coarsenTo / displayable projection-time directive (#72). Sensitivity metadata drives the trigger; the solver evaluates consent + sensitivity at emit time (P12)."
 # curie_map:
 #   dpv: https://w3id.org/dpv#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
@@ -14,6 +14,9 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wd: http://www.wikidata.org/entity/
+# # REFUSED (Principle 5 — no faithful external term): gmeow:hasSensitivity has no exact DPV counterpart. DPV's hasSensitivityLevel is scoped to processes/entities within DPV's data-handling model; GMEOW's hasSensitivity is a universal domain-free facet (like hasGranularity, hasDeterminacy). A closeMatch is warranted but not exact.
+# # REFUSED (Principle 5): the sensitivity-to-coarsen trigger (a value with hasSensitivity sensitivePersonal SHOULD also carry coarsenTo or displayable false) is a GMEOW-specific projection-layer contract, not an external vocabulary concept.
+# # REFUSED (Principle 5): no faithful external term for hasPrivacyNotice as a domain-free property. DPV has hasNotice (on Process), schema.org has publishingPrinciples (on Organization/CreativeWork); neither covers the full domain-free usage.
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
 gmeow:DisclosurePolicy	skos:relatedMatch	dpv:ProcessingContext		semapv:ManualMappingCuration	0.75	DPV ProcessingContext is a broad context class; GMEOW DisclosurePolicy is a claim-scoped classification
 gmeow:DisclosurePolicy	skos:relatedMatch	odrl:Policy		semapv:ManualMappingCuration	0.7	ODRL Policy is a full deontic expression; GMEOW DisclosurePolicy is a lighter-weight claim-scoped classification
@@ -39,6 +42,3 @@ gmeow:policyPublicOnlyWithIndependentSource	skos:relatedMatch	odrl:purpose		sema
 gmeow:sensitivityConfidential	skos:closeMatch	wd:Q188475	confidentiality	semapv:ManualMappingCuration	0.8	
 gmeow:sensitivitySensitivePersonal	skos:closeMatch	dpv:SensitivePersonalData		semapv:ManualMappingCuration	0.9	the special-category personal-data tier in both vocabularies
 gmeow:sensitivitySensitivePersonal	skos:closeMatch	wd:Q2796	personal data	semapv:ManualMappingCuration	0.85	
-# REFUSED (Principle 5 — no faithful external term): gmeow:hasSensitivity has no exact DPV counterpart. DPV's hasSensitivityLevel is scoped to processes/entities within DPV's data-handling model; GMEOW's hasSensitivity is a universal domain-free facet (like hasGranularity, hasDeterminacy). A closeMatch is warranted but not exact.
-# REFUSED (Principle 5): the sensitivity-to-coarsen trigger (a value with hasSensitivity sensitivePersonal SHOULD also carry coarsenTo or displayable false) is a GMEOW-specific projection-layer contract, not an external vocabulary concept.
-# REFUSED (Principle 5): no faithful external term for hasPrivacyNotice as a domain-free property. DPV has hasNotice (on Process), schema.org has publishingPrinciples (on Organization/CreativeWork); neither covers the full domain-free usage.

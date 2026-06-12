@@ -263,6 +263,143 @@ def relator_mediation(graph: Graph) -> list[str]:
     return problems
 
 
+def _all_disjoint_member_sets(graph: Graph) -> list[set[URIRef]]:
+    """Every ``owl:AllDisjointClasses`` axiom's member set."""
+    from rdflib.collection import Collection
+
+    sets: list[set[URIRef]] = []
+    for node in graph.subjects(RDF.type, OWL.AllDisjointClasses):
+        for head in graph.objects(node, OWL.members):
+            sets.append({m for m in Collection(graph, head) if isinstance(m, URIRef)})
+    return sets
+
+
+def coequal_facet_orthogonality(graph: Graph) -> list[str]:
+    """Principle 9 by annotation (#281): annotated axes stay orthogonal.
+
+    Every ``gmeow:coequalFacet true`` axis is held orthogonal to every other —
+    derived from the annotation set, so a new axis is enforced the moment it
+    is declared.
+
+    Per axis: exactly one range, owned by no other axis; never
+    ``owl:FunctionalProperty`` (a locked single value invites the sameAs
+    collapse Principle 5 forbids). Per pair: no ``rdfs:subPropertyOf`` or
+    ``owl:equivalentProperty`` bridge in either direction. Jointly: every axis
+    range is a member of one common ``owl:AllDisjointClasses`` axiom.
+    """
+    coequal = URIRef(NAMESPACE + "coequalFacet")
+    axes = sorted(
+        s
+        for s, o in graph.subject_objects(coequal)
+        if isinstance(s, URIRef) and str(o) == "true"
+    )
+    if not axes:
+        return []
+    problems: list[str] = []
+    ranges: dict[URIRef, URIRef] = {}
+    for axis in axes:
+        axis_ranges = sorted(
+            r for r in graph.objects(axis, RDFS.range) if isinstance(r, URIRef)
+        )
+        if len(axis_ranges) != 1:
+            problems.append(
+                f"co-equal facet {_local(axis)} must have exactly one rdfs:range "
+                f"(found {len(axis_ranges)}) — each axis owns its own value space"
+            )
+            continue
+        ranges[axis] = axis_ranges[0]
+        if (axis, RDF.type, OWL.FunctionalProperty) in graph:
+            problems.append(
+                f"co-equal facet {_local(axis)} is owl:FunctionalProperty — a "
+                f"locked single value contradicts co-equality (P9) and invites "
+                f"sameAs collapse (P5)"
+            )
+    range_owners: dict[URIRef, list[URIRef]] = {}
+    for axis, rng in ranges.items():
+        range_owners.setdefault(rng, []).append(axis)
+    for rng, owners in sorted(range_owners.items()):
+        if len(owners) > 1:
+            names = ", ".join(_local(a) for a in owners)
+            problems.append(
+                f"co-equal facets {names} share the range {_local(rng)} — "
+                f"axes collapsed into one value space"
+            )
+    # Bridge check over the TRANSITIVE closure: a ⊑ helper ⊑ b (or an
+    # equivalentProperty chain) makes one axis inferable from another just as
+    # surely as a direct edge. equivalentProperty edges are symmetric.
+    adjacency: dict[URIRef, set[URIRef]] = {}
+    for s, o in graph.subject_objects(RDFS.subPropertyOf):
+        if isinstance(s, URIRef) and isinstance(o, URIRef):
+            adjacency.setdefault(s, set()).add(o)
+    for s, o in graph.subject_objects(OWL.equivalentProperty):
+        if isinstance(s, URIRef) and isinstance(o, URIRef):
+            adjacency.setdefault(s, set()).add(o)
+            adjacency.setdefault(o, set()).add(s)
+
+    def _reachable(start: URIRef) -> set[URIRef]:
+        seen: set[URIRef] = set()
+        stack = [start]
+        while stack:
+            node = stack.pop()
+            for nxt in adjacency.get(node, ()):
+                if nxt not in seen:
+                    seen.add(nxt)
+                    stack.append(nxt)
+        return seen
+
+    for i, a in enumerate(axes):
+        reach = _reachable(a)
+        for b in axes[i + 1 :]:
+            if b in reach or a in _reachable(b):
+                problems.append(
+                    f"co-equal facets {_local(a)} and {_local(b)} are bridged "
+                    f"by a subPropertyOf/equivalentProperty chain — one axis "
+                    f"must never be inferred from another"
+                )
+    member_sets = _all_disjoint_member_sets(graph)
+    range_set = set(ranges.values())
+    if len(range_set) > 1 and not any(range_set <= s for s in member_sets):
+        names = ", ".join(sorted(_local(r) for r in range_set))
+        problems.append(
+            f"the co-equal facet ranges ({names}) are not jointly declared in "
+            f"one owl:AllDisjointClasses axiom — the orthogonality matrix is "
+            f"not ELK-visible"
+        )
+    return problems
+
+
+def frame_declaration_completeness(graph: Graph) -> list[str]:
+    """Principle 11 by annotation (#283): the "did you forget the frame?" guard.
+
+    Every property declared ``rdfs:subPropertyOf gmeow:hasReferenceFrame``
+    points its domain class at a reference frame — so that domain class must
+    DECLARE the requirement (``gmeow:requiresFrame`` naming the property),
+    which is what the frame-shapes generator turns into SHACL. A
+    frame-pointing property whose carrier class is silent means the shape was
+    forgotten, the exact failure mode this annotation regime exists to end.
+    """
+    has_frame = URIRef(NAMESPACE + "hasReferenceFrame")
+    requires = URIRef(NAMESPACE + "requiresFrame")
+    problems: list[str] = []
+    props = sorted(
+        p
+        for p in graph.transitive_subjects(RDFS.subPropertyOf, has_frame)
+        if isinstance(p, URIRef) and p != has_frame
+    )
+    for prop in props:
+        domains = sorted(
+            d for d in graph.objects(prop, RDFS.domain) if isinstance(d, URIRef)
+        )
+        for domain in domains:
+            if (domain, requires, prop) not in graph:
+                problems.append(
+                    f"{_local(domain)} carries the frame-pointing property "
+                    f"{_local(prop)} but declares no gmeow:requiresFrame for "
+                    f"it — the frame-relativity shape would be missing (P11)"
+                )
+    return problems
+
+
 def reasoning_invariants(graph: Graph) -> list[str]:
     """Run every UFO anti-pattern check; an empty list means the graph is clean."""
     return [
@@ -270,4 +407,6 @@ def reasoning_invariants(graph: Graph) -> list[str]:
         *identity_overlap(graph),
         *anti_rigidity_discipline(graph),
         *relator_mediation(graph),
+        *coequal_facet_orthogonality(graph),
+        *frame_declaration_completeness(graph),
     ]

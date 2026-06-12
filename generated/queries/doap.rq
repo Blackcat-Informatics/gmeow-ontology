@@ -18,21 +18,27 @@ CONSTRUCT {
 WHERE {
     {
         ?proj a gmeow:SoftwareProject .
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
     }
     UNION {
         ?repo a gmeow:Repository .
+        FILTER NOT EXISTS { ?repo gmeow:displayable false . }
     }
     UNION {
         ?rel a gmeow:Release .
+        FILTER NOT EXISTS { ?rel gmeow:displayable false . }
     }
     UNION {
         ?proj gmeow:hasRepository ?repo .
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
     }
     UNION {
         ?rel gmeow:releaseVersion ?ver .
+        FILTER NOT EXISTS { ?rel gmeow:displayable false . }
     }
     UNION {
         ?proj gmeow:projectLicense ?lic .
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -41,6 +47,8 @@ WHERE {
         ?contrib gmeow:contributor ?devAgent .
         ?contrib gmeow:contributionRole gmeow:roleSoftwareDeveloper .
         FILTER NOT EXISTS { ?devAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -49,6 +57,8 @@ WHERE {
         ?contrib gmeow:contributor ?maintAgent .
         ?contrib gmeow:contributionRole gmeow:roleSoftwareMaintainer .
         FILTER NOT EXISTS { ?maintAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -57,6 +67,8 @@ WHERE {
         ?contrib gmeow:contributor ?testerAgent .
         ?contrib gmeow:contributionRole gmeow:roleCodeReviewer .
         FILTER NOT EXISTS { ?testerAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -65,5 +77,7 @@ WHERE {
         ?contrib gmeow:contributor ?helperAgent .
         ?contrib gmeow:contributionRole gmeow:roleSecurityContact .
         FILTER NOT EXISTS { ?helperAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
 }

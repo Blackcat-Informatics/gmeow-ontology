@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Provenance + import-provenance alignments. The core PROV-O anchors (Activity, wasDerivedFrom, wasGeneratedBy, wasAttributedTo) and the carrier/ingestion terms align to PROV-O and Dublin Core Terms. recordedNoLaterThan and contentDigest are canonical — no faithful external term models a derived terminus-ante-quem or a content-addressed carrier digest.
+# comment: "Provenance + import-provenance alignments. The core PROV-O anchors (Activity, wasDerivedFrom, wasGeneratedBy, wasAttributedTo) and the carrier/ingestion terms align to PROV-O and Dublin Core Terms. recordedNoLaterThan and contentDigest are canonical \u2014 no faithful external term models a derived terminus-ante-quem or a content-addressed carrier digest."
 # curie_map:
 #   dcterms: http://purl.org/dc/terms/
 #   gmeow: https://blackcatinformatics.ca/gmeow/

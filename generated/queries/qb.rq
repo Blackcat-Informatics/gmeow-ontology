@@ -39,5 +39,6 @@ WHERE {
         BIND ( gmeow:observedFeature AS ?observedFeatureProp )
         BIND ( qb:obsValue AS ?obsValueProp )
         FILTER NOT EXISTS { ?agg gmeow:displayable false . }
+        FILTER NOT EXISTS { ?result gmeow:displayable false . }
     }
 }

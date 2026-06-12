@@ -391,6 +391,7 @@ gmeow:MonetaryAmount
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Monetary Amount"@x-gmeow-english ;
     skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:currency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:monetaryValue

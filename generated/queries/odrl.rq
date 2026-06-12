@@ -39,6 +39,7 @@ CONSTRUCT {
 WHERE {
     {
         ?rs a gmeow:RightsStatement .
+        FILTER NOT EXISTS { ?rs gmeow:displayable false . }
     }
     UNION {
         ?rs a gmeow:RightsStatement .
@@ -46,6 +47,8 @@ WHERE {
         ?rs gmeow:hasPermission ?perm .
         ?perm gmeow:ruleAction ?permAction .
         OPTIONAL { ?perm gmeow:ruleAssignee ?permAssignee . }
+        FILTER NOT EXISTS { ?rs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?perm gmeow:displayable false . }
     }
     UNION {
         ?rs a gmeow:RightsStatement .
@@ -53,6 +56,8 @@ WHERE {
         ?rs gmeow:hasProhibition ?proh .
         ?proh gmeow:ruleAction ?prohAction .
         OPTIONAL { ?proh gmeow:ruleAssignee ?prohAssignee . }
+        FILTER NOT EXISTS { ?rs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proh gmeow:displayable false . }
     }
     UNION {
         ?rs a gmeow:RightsStatement .
@@ -60,11 +65,14 @@ WHERE {
         ?rs gmeow:hasDuty ?dutyR .
         ?dutyR gmeow:ruleAction ?dutyAction .
         OPTIONAL { ?dutyR gmeow:ruleAssignee ?dutyAssignee . }
+        FILTER NOT EXISTS { ?rs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?dutyR gmeow:displayable false . }
     }
     UNION {
         ?lic a gmeow:License .
         OPTIONAL { ?lic gmeow:licensor ?licensor . }
         OPTIONAL { ?lic gmeow:licensedWork ?lwork . }
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
     }
     UNION {
         ?r gmeow:ruleConstraint ?c .
@@ -72,26 +80,34 @@ WHERE {
         ?c gmeow:constraintOperator ?op .
         OPTIONAL { ?c gmeow:rightOperand ?rv . }
         OPTIONAL { ?c gmeow:rightOperandReference ?rr . }
+        FILTER NOT EXISTS { ?r gmeow:displayable false . }
+        FILTER NOT EXISTS { ?c gmeow:displayable false . }
     }
     UNION {
         ?rs gmeow:conflictStrategy ?cs .
+        FILTER NOT EXISTS { ?rs gmeow:displayable false . }
     }
     UNION {
         ?r a gmeow:Duty .
         ?r gmeow:ruleConsequence ?d .
+        FILTER NOT EXISTS { ?r gmeow:displayable false . }
     }
     UNION {
         ?r a gmeow:Prohibition .
         ?r gmeow:ruleConsequence ?d .
+        FILTER NOT EXISTS { ?r gmeow:displayable false . }
     }
     UNION {
         ?rs a gmeow:RightsStatement .
         ?rs gmeow:statementAbout ?asset .
+        FILTER NOT EXISTS { ?rs gmeow:displayable false . }
     }
     UNION {
         ?anyrule gmeow:ruleAssignee ?p .
+        FILTER NOT EXISTS { ?anyrule gmeow:displayable false . }
     }
     UNION {
         ?anylic gmeow:licensor ?lp .
+        FILTER NOT EXISTS { ?anylic gmeow:displayable false . }
     }
 }

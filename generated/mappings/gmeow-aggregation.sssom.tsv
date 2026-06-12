@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Aggregation and statistics alignments — RDF Data Cube (QB) spatial observations and GeoSPARQL topological relations. Bridges the #101 spatial-aggregation concern to external vocabularies by reference (Principle 5).
+# comment: "Aggregation and statistics alignments \u2014 RDF Data Cube (QB) spatial observations and GeoSPARQL topological relations. Bridges the #101 spatial-aggregation concern to external vocabularies by reference (Principle 5)."
 # curie_map:
 #   geo: http://www.opengis.net/ont/geosparql#
 #   gmeow: https://blackcatinformatics.ca/gmeow/

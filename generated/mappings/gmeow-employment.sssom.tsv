@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Employment alignments — the reified Employment relator, employment type, compensation, and seniority to schema.org, Wikidata, W3C ORG, ResumeRDF, ESCO, and CTDL. Role, Occupation, Membership, and Credential mappings live in their respective mapsets (gmeow-classes, gmeow-properties, gmeow-wikidata).
+# comment: "Employment alignments \u2014 the reified Employment relator, employment type, compensation, and seniority to schema.org, Wikidata, W3C ORG, ResumeRDF, ESCO, and CTDL. Role, Occupation, Membership, and Credential mappings live in their respective mapsets (gmeow-classes, gmeow-properties, gmeow-wikidata)."
 # curie_map:
 #   esco: http://data.europa.eu/esco/model#
 #   gmeow: https://blackcatinformatics.ca/gmeow/

@@ -15,16 +15,20 @@ CONSTRUCT {
 WHERE {
     {
         ?claim a gmeow:StandpointClaim .
+        FILTER NOT EXISTS { ?claim gmeow:displayable false . }
     }
     UNION {
         ?act a gmeow:ObservationalActivity .
+        FILTER NOT EXISTS { ?act gmeow:displayable false . }
     }
     UNION {
         ?claim a gmeow:StandpointClaim .
         ?claim gmeow:vantage ?source .
+        FILTER NOT EXISTS { ?claim gmeow:displayable false . }
     }
     UNION {
         ?claim a gmeow:StandpointClaim .
         ?claim gmeow:observedFeature ?feature .
+        FILTER NOT EXISTS { ?claim gmeow:displayable false . }
     }
 }
