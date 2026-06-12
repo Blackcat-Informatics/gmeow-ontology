@@ -204,6 +204,76 @@ function cmdFold(paths: string[]): number {
  * reserved for a claimed layout the bytes contradict (the reader's
  * StreamableLayoutError).
  */
+/** Write to a path or stdout; IO failure is exit 2, never a traceback. */
+function writeOut(outPath: string, data: Uint8Array): number {
+    try {
+        if (outPath) {
+            writeFileSync(outPath, data);
+        } else {
+            process.stdout.write(data);
+        }
+    } catch (e) {
+        console.error(
+            `gts: cannot write ${outPath || "stdout"}: ${(e as Error).message}`,
+        );
+        return 2;
+    }
+    return 0;
+}
+
+/** Declared-vs-computed profile requirement checks (§14.1).
+ *
+ * Returns [message, isError] pairs: vocabulary used without its profile
+ * declared is an error; a declared-but-unused profile is a warning.
+ */
+const PROFILE_VOCABS: Record<string, string> = {
+    files: "https://w3id.org/gts/files#",
+};
+
+function namespaceOf(iri: string): string {
+    const h = iri.lastIndexOf("#");
+    if (h >= 0) return iri.slice(0, h + 1);
+    const sl = iri.lastIndexOf("/");
+    if (sl >= 0) return iri.slice(0, sl + 1);
+    return iri;
+}
+
+function profileCheck(seg: Graph): Array<[string, boolean]> {
+    const declared = new Set(seg.segmentProfiles);
+    const vocabs = new Set(Object.values(PROFILE_VOCABS));
+    const used = new Set<string>();
+    const n = seg.terms.length;
+    for (const q of seg.quads) {
+        for (const tid of [q.s, q.p, q.o]) {
+            if (tid < 0 || tid >= n) continue;
+            const term = seg.terms[tid];
+            if (term.kind !== TermKind.Iri || term.value === "") continue;
+            const ns = namespaceOf(term.value);
+            if (vocabs.has(ns)) used.add(ns);
+        }
+    }
+    const out: Array<[string, boolean]> = [];
+    for (const [prof, vocab] of Object.entries(PROFILE_VOCABS)) {
+        const declares = declared.has(prof);
+        const uses = used.has(vocab);
+        if (uses && !declares) {
+            out.push([
+                `profile error: segment uses ${vocab} vocabulary ` +
+                    `but does not declare '${prof}'`,
+                true,
+            ]);
+        }
+        if (declares && !uses) {
+            out.push([
+                `profile warning: segment declares '${prof}' ` +
+                    `but uses no ${vocab} vocabulary`,
+                false,
+            ]);
+        }
+    }
+    return out;
+}
+
 function streamVocabCheck(seg: Graph): string[] {
     const claimed =
         seg.segmentStreamable.length > 0 && seg.segmentStreamable[0].claimed;
@@ -238,8 +308,13 @@ function cmdVerify(paths: string[]): number {
         const fs = ReadFileSegments(load(path));
         printLedger(path, fs);
         if (hasProblems(fs)) problems = true;
-        // §14.1: declared-vs-computed layout warnings (§13.3).
+        // §14.1: declared-vs-computed profile requirements + layout warnings.
         for (let idx = 0; idx < fs.segments.length; idx++) {
+            for (const [msg, isErr] of profileCheck(fs.segments[idx])) {
+                const prefix = isErr ? "error" : "warning";
+                console.error(`  segment ${idx}: ${prefix}: ${msg}`);
+                if (isErr) problems = true;
+            }
             for (const msg of streamVocabCheck(fs.segments[idx])) {
                 console.error(`  segment ${idx}: warning: ${msg}`);
             }
@@ -310,8 +385,7 @@ function cmdCompact(args: string[]): number {
         }
         throw e;
     }
-    writeFileSync(outPath, data);
-    return 0;
+    return writeOut(outPath, data);
 }
 
 function cmdLs(paths: string[]): number {
@@ -404,12 +478,7 @@ function cmdExtract(args: string[]): number {
             return 1;
         }
     }
-    if (outPath) {
-        writeFileSync(outPath, blobData);
-    } else {
-        process.stdout.write(blobData);
-    }
-    return 0;
+    return writeOut(outPath, blobData);
 }
 
 function cmdCat(args: string[]): number {
@@ -470,12 +539,7 @@ function cmdCat(args: string[]): number {
         );
         return 1;
     }
-    if (outPath) {
-        writeFileSync(outPath, combined);
-    } else {
-        process.stdout.write(combined);
-    }
-    return 0;
+    return writeOut(outPath, combined);
 }
 
 function cmdPack(args: string[]): number {
@@ -504,14 +568,14 @@ function cmdPack(args: string[]): number {
         console.error(`gts: pack requires -o\n${usage}`);
         return 2;
     }
+    let data: Uint8Array;
     try {
-        const data = pack(sources);
-        writeFileSync(outPath, data);
+        data = pack(sources);
     } catch (e) {
         console.error(`gts: refusing pack: ${(e as Error).message}`);
         return 1;
     }
-    return 0;
+    return writeOut(outPath, data);
 }
 
 function cmdUnpack(args: string[]): number {

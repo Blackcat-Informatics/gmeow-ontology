@@ -236,6 +236,11 @@ func (w *Writer) AddSuppress(targets []interface{}, reason string, by *int) []by
 		payload["reason"] = reason
 	}
 	if by != nil {
+		if *by < 0 {
+			// Mirrors Rust's usize contract: a negative suppress.by is a
+			// caller bug, never valid wire content.
+			panic("suppress.by must be >= 0")
+		}
 		payload["by"] = int64(*by)
 	}
 	return w.AddFrame("suppress", payload, nil, nil, nil)

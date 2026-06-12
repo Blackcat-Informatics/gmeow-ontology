@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: Apache-2.0
 
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -20,22 +20,14 @@ function run(
     args: string[],
     opts?: { cwd?: string; input?: Uint8Array },
 ): { code: number; stdout: string; stderr: string } {
-    try {
-        const stdout = execFileSync("node", [cli, ...args], {
-            cwd: opts?.cwd,
-            input: opts?.input,
-            encoding: "utf8",
-            stdio: [opts?.input ? "pipe" : "ignore", "pipe", "pipe"],
-        });
-        return { code: 0, stdout, stderr: "" };
-    } catch (e) {
-        const err = e as { status?: number; stdout?: string; stderr?: string };
-        return {
-            code: err.status ?? 1,
-            stdout: err.stdout ?? "",
-            stderr: err.stderr ?? "",
-        };
-    }
+    // spawnSync (not execFileSync): stderr must be observable on success
+    // too — verify emits §14.1 warnings without failing.
+    const r = spawnSync("node", [cli, ...args], {
+        cwd: opts?.cwd,
+        input: opts?.input,
+        encoding: "utf8",
+    });
+    return { code: r.status ?? 1, stdout: r.stdout ?? "", stderr: r.stderr ?? "" };
 }
 
 test("CLI fold emits N-Quads for a clean vector", () => {
@@ -184,4 +176,50 @@ test("CLI cat composes two clean segments", () => {
     const folded = run(["fold", out]);
     assert.equal(folded.code, 0);
     assert.match(folded.stdout, /Cat/);
+});
+
+test("CLI verify enforces declared-vs-computed profiles (§14.1)", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    // files# vocabulary in a generic segment: an error, exit 1.
+    const w = new Writer("generic");
+    w.addTerms([
+        { kind: TermKind.Bnode, value: "f0" },
+        { kind: TermKind.Iri, value: "https://w3id.org/gts/files#path" },
+        { kind: TermKind.Literal, value: "a.txt" },
+    ]);
+    w.addQuads([{ s: 0, p: 1, o: 2 }]);
+    const undeclared = join(tmp, "undeclared.gts");
+    writeFileSync(undeclared, w.toBytes());
+    const err = run(["verify", undeclared]);
+    assert.equal(err.code, 1);
+    assert.match(err.stderr, /profile error: segment uses .*files#/);
+
+    // declared-but-unused profile: a warning, exit stays 0.
+    const w2 = new Writer("files");
+    w2.addTerms([
+        { kind: TermKind.Iri, value: "https://example.org/Cat" },
+        {
+            kind: TermKind.Iri,
+            value: "http://www.w3.org/2000/01/rdf-schema#label",
+        },
+        { kind: TermKind.Literal, value: "Cat", lang: "en" },
+    ]);
+    w2.addQuads([{ s: 0, p: 1, o: 2 }]);
+    const unused = join(tmp, "unused.gts");
+    writeFileSync(unused, w2.toBytes());
+    const warn = run(["verify", unused]);
+    assert.equal(warn.code, 0);
+    assert.match(warn.stderr, /profile warning: segment declares 'files'/);
+});
+
+test("CLI compact reports an unwritable output as exit 2", () => {
+    const r = run([
+        "compact",
+        join(vectorsDir, "25-streamable-source.gts"),
+        "-o",
+        join(tmpdir(), "no-such-dir-gts", "deep", "out.gts"),
+        "--streamable",
+    ]);
+    assert.equal(r.code, 2);
+    assert.match(r.stderr, /gts: cannot write/);
 });

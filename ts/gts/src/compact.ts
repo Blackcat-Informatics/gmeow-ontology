@@ -304,14 +304,13 @@ export function compactStreamable(
 
     // Delivery plan: most-significant-first — ascending decoded size, digest
     // tie-break; the sealed original (least significant) always travels last.
-    let blobOrder = g.blobs
-        .map((b) => b.digest)
-        .sort((a, b) => {
-            const sa = blobData(g, a).length;
-            const sb = blobData(g, b).length;
-            if (sa !== sb) return sa - sb;
-            return a < b ? -1 : a > b ? 1 : 0;
-        });
+    // Sizes are paired up front so the sort never re-scans the blob table.
+    const keyed = g.blobs.map((b) => ({ size: b.data.length, digest: b.digest }));
+    keyed.sort((a, b) => {
+        if (a.size !== b.size) return a.size - b.size;
+        return a.digest < b.digest ? -1 : a.digest > b.digest ? 1 : 0;
+    });
+    let blobOrder = keyed.map((k) => k.digest);
     let sealedDigest: string | undefined;
     if (sealOriginal) {
         sealedDigest = wire.digestStr(data);
