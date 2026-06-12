@@ -168,6 +168,14 @@ GTS_SNAPSHOT_FILE = GENERATED_DIR / "dist" / "gmeow.gts"
 # so consumers can scope to exactly the layer they need):
 GTS_GRAPH_STATEMENTS = NAMESPACE + "graph/statements"
 GTS_GRAPH_ALIGNMENTS = NAMESPACE + "graph/alignments"
+
+# IRI-addressable ontology profiles (#330): the root IRI is the CORE profile
+# (generated imports of every tierCore slice); the full aggregation and any
+# named profiles are generated documents addressed by their own IRIs.
+PROFILES_DIR = GENERATED_DIR / "profiles"
+FULL_PROFILE_IRI = ONTOLOGY_IRI + "/full"
+FULL_PROFILE_FILE = PROFILES_DIR / "full.ttl"
+NAMED_PROFILE_NS = ONTOLOGY_IRI + "/profiles/"
 #: The OWL 2 axiom-annotation downcast (generated; consumed by the reasoner).
 STATEMENT_OWL_FILE = STATEMENTS_DIR / "gmeow-statements.owl.ttl"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.

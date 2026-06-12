@@ -8,6 +8,8 @@
 <catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
     <!-- Upper-ontology spine (static allowlist) -->
     <uri name="http://purl.org/nemo/gufo#" uri="imports/gufo.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow" uri="ontology/gmeow.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/full" uri="generated/profiles/full.ttl"/>
 
     <!-- GMEOW slices (discovered from manifests) -->
     <uri name="https://blackcatinformatics.ca/gmeow/slices/accessibility" uri="slices/extensions/accessibility/module.ttl"/>

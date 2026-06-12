@@ -67,6 +67,7 @@ def regenerate(
         mapping_compile,
         matrix,
         metadata,
+        profiles_gen,
         schema_compile,
         statement_compile,
     )
@@ -106,6 +107,7 @@ def check_generated(
         mapping_compile,
         matrix,
         metadata,
+        profiles_gen,
         schema_compile,
         statement_compile,
     )
