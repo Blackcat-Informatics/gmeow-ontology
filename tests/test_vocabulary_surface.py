@@ -82,25 +82,40 @@ def _gmeow_vocabulary_terms(graph: Graph) -> set[str]:
 # --------------------------------------------------------------------------- #
 
 
-def test_all_modules_are_in_root_imports() -> None:
-    """Every ontology/modules/*.ttl owl:Ontology must be imported by gmeow.ttl."""
+def test_root_imports_are_exactly_the_core_profile() -> None:
+    """The root IRI IS the core profile (#330): its owl:imports must equal
+    the tierCore slice set exactly — an extension in the root, or a core
+    slice missing from it, is a gated failure, never silent drift."""
+    from gmeow_tools.slices import discover_slices
+
     root = _parse_ttl(ONTOLOGY_FILE)
     imports = {
         str(o) for o in root.objects(predicate=OWL.imports) if isinstance(o, URIRef)
     }
+    core = {s.iri for s in discover_slices().values() if s.is_core}
+    assert imports == core, (
+        f"root/core drift — extra: {sorted(imports - core)}; "
+        f"missing: {sorted(core - imports)}"
+    )
 
-    missing: list[str] = []
-    for module_path in iter_module_files():
-        module_graph = _parse_ttl(module_path)
-        ontology_subjects = list(module_graph.subjects(RDF.type, OWL.Ontology))
-        assert len(ontology_subjects) == 1, (
-            f"{module_path.name} must declare exactly one owl:Ontology"
-        )
-        module_iri = str(ontology_subjects[0])
-        if module_iri not in imports:
-            missing.append(module_iri)
 
-    assert not missing, f"Modules missing from root owl:imports: {missing}"
+def test_full_profile_imports_every_slice() -> None:
+    """<…/gmeow/full> aggregates the root (core) plus every extension —
+    no slice can exist outside its profiles (#330)."""
+    from gmeow_tools.config import FULL_PROFILE_FILE, ONTOLOGY_IRI
+    from gmeow_tools.slices import discover_slices
+
+    full = _parse_ttl(FULL_PROFILE_FILE)
+    imports = {
+        str(o) for o in full.objects(predicate=OWL.imports) if isinstance(o, URIRef)
+    }
+    slices = discover_slices()
+    extensions = {s.iri for s in slices.values() if not s.is_core}
+    assert imports == {ONTOLOGY_IRI} | extensions
+
+    # closure sanity: root(core) + extensions covers every discovered slice
+    core = {s.iri for s in slices.values() if s.is_core}
+    assert core | extensions == {s.iri for s in slices.values()}
 
 
 def test_all_modules_are_in_catalog() -> None:

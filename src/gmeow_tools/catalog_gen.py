@@ -14,8 +14,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from gmeow_tools.config import PROJECT_ROOT, SLICES_DIR
+from gmeow_tools.config import (
+    FULL_PROFILE_IRI,
+    NAMED_PROFILE_NS,
+    ONTOLOGY_IRI,
+    PROJECT_ROOT,
+    SLICES_DIR,
+)
 from gmeow_tools.generator import Generator, register
+from gmeow_tools.profiles_gen import group_named_profiles
 from gmeow_tools.slices import discover_slices
 
 if TYPE_CHECKING:
@@ -28,6 +35,9 @@ _CATALOG_FILE = PROJECT_ROOT / "catalog-v001.xml"
 #: by editing the catalog.
 _STATIC_ENTRIES: tuple[tuple[str, str], ...] = (
     ("http://purl.org/nemo/gufo#", "imports/gufo.ttl"),
+    # the root IRI = the core profile; profile docs are generated (#330)
+    (ONTOLOGY_IRI, "ontology/gmeow.ttl"),
+    (FULL_PROFILE_IRI, "generated/profiles/full.ttl"),
 )
 
 
@@ -49,9 +59,19 @@ def _render_catalog() -> str:
     )
     lines.append("")
     lines.append("    <!-- GMEOW slices (discovered from manifests) -->")
-    for slice_ in sorted(discover_slices().values(), key=lambda s: s.iri):
+    slices = discover_slices()
+    for slice_ in sorted(slices.values(), key=lambda s: s.iri):
         rel = slice_.module_path.relative_to(PROJECT_ROOT).as_posix()
         lines.append(f'    <uri name="{slice_.iri}" uri="{rel}"/>')
+    named = group_named_profiles(slices)
+    if named:
+        lines.append("")
+        lines.append("    <!-- Named profiles (generated, #330) -->")
+        lines.extend(
+            f'    <uri name="{NAMED_PROFILE_NS}{name}"'
+            f' uri="generated/profiles/{name}.ttl"/>'
+            for name in named
+        )
     lines.append("</catalog>")
     return "\n".join(lines) + "\n"
 
