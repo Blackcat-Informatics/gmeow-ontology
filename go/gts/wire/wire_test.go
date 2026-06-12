@@ -4,9 +4,8 @@
 package wire
 
 import (
+	"encoding/hex"
 	"testing"
-
-	"github.com/fxamacker/cbor/v2"
 )
 
 func TestCanonicalOrdering(t *testing.T) {
@@ -20,24 +19,10 @@ func TestCanonicalOrdering(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode: %v", err)
 	}
-	// Decode and verify key order.
-	var decoded map[interface{}]interface{}
-	if err := cbor.Unmarshal(b, &decoded); err != nil {
-		t.Fatalf("decode: %v", err)
-	}
-	// Key order in encoded bytes: "t", "v", "id".
-	want := []string{"t", "v", "id"}
-	var keys []string
-	for k := range decoded {
-		keys = append(keys, k.(string))
-	}
-	// Re-encode to inspect byte order.
-	enc2, _ := cbor.CanonicalEncOptions().EncMode()
-	_, _ = enc2.Marshal(decoded)
-	_ = keys
-	_ = want
-	if len(decoded) != 3 {
-		t.Fatalf("unexpected decoded map: %v", decoded)
+	// Canonical key order in encoded bytes: "t", "v", "id".
+	const wantHex = "a36174657465726d7361760162696443010203"
+	if got := hex.EncodeToString(b); got != wantHex {
+		t.Fatalf("unexpected canonical bytes: got %s want %s", got, wantHex)
 	}
 }
 

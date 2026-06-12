@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"math"
 
 	"github.com/fxamacker/cbor/v2"
 	"github.com/zeebo/blake3"
@@ -109,6 +110,9 @@ func AsInt(v interface{}) (int, bool) {
 func AsInt64(v interface{}) (int64, bool) {
 	switch n := v.(type) {
 	case uint64:
+		if n > math.MaxInt64 {
+			return 0, false
+		}
 		return int64(n), true
 	case int64:
 		return n, true
@@ -227,9 +231,16 @@ func cborItemLength(data []byte, offset int) (int, error) {
 					if nmajor != major || ninfo == 31 {
 						return 0, fmt.Errorf("invalid indefinite string chunk")
 					}
-					nlen, nextra, err := readLength(data, offset, ninfo)
-					if err != nil {
-						return 0, err
+					var nlen int64
+					nextra := 0
+					if ninfo <= 23 {
+						nlen = int64(ninfo)
+					} else {
+						var err error
+						nlen, nextra, err = readLength(data, offset, ninfo)
+						if err != nil {
+							return 0, err
+						}
 					}
 					offset += nextra
 					if int64(len(data)-offset) < nlen {
@@ -320,6 +331,9 @@ func readLength(data []byte, offset int, info byte) (int64, int, error) {
 		var n uint64
 		for i := 0; i < 8; i++ {
 			n = n<<8 | uint64(data[offset+i])
+		}
+		if n > math.MaxInt64 {
+			return 0, 0, fmt.Errorf("length exceeds int64 max")
 		}
 		return int64(n), 8, nil
 	}

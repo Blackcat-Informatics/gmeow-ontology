@@ -115,17 +115,24 @@ jobs:
           go-version-file: go/gts/go.mod
           cache-dependency-path: go/gts/go.sum
 
-      - name: Build
+      - name: Build (no CGO)
         working-directory: go/gts
-        run: go build ./...
+        run: CGO_ENABLED=0 go build ./...
 
       - name: Vet
         working-directory: go/gts
         run: go vet ./...
 
-      - name: Conformance corpus + CLI tests
+      - name: staticcheck
+        uses: dominikh/staticcheck-action@fe1dd0c3658873b46f8c9bb3291096a617310ca4 # v1.3.1
+        with:
+          version: "2025.1.2"
+          install-go: false
+          working-directory: go/gts
+
+      - name: Conformance corpus + CLI tests (no CGO)
         working-directory: go/gts
-        run: go test ./...
+        run: CGO_ENABLED=0 go test ./...
 
   ontology:
     runs-on: ubuntu-latest

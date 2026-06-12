@@ -187,7 +187,11 @@ func Pack(sources []string) ([]byte, error) {
 
 	var fileTerms []model.Term
 	var quads []model.Quad
-	var blobs [][3]string // data, digest, mediaType
+	blobs := make(map[string]struct {
+		data []byte
+		mt   string
+	})
+	var blobOrder []string
 
 	for idx, entry := range entries {
 		fpath, relpath := entry[0], entry[1]
@@ -237,7 +241,13 @@ func Pack(sources []string) ([]byte, error) {
 			model.Quad{S: entryID, P: modifiedID, O: base + 5},
 			model.Quad{S: entryID, P: mediaTypeID, O: base + 6},
 		)
-		blobs = append(blobs, [3]string{string(data), digest, mt})
+		if _, ok := blobs[digest]; !ok {
+			blobs[digest] = struct {
+				data []byte
+				mt   string
+			}{data: data, mt: mt}
+			blobOrder = append(blobOrder, digest)
+		}
 	}
 
 	if len(fileTerms) > 0 {
@@ -247,14 +257,9 @@ func Pack(sources []string) ([]byte, error) {
 		w.AddQuads(quads)
 	}
 
-	seen := make(map[string]struct{})
-	for _, b := range blobs {
-		digest := b[1]
-		if _, ok := seen[digest]; ok {
-			continue
-		}
-		seen[digest] = struct{}{}
-		w.AddBlob([]byte(b[0]), b[2])
+	for _, digest := range blobOrder {
+		b := blobs[digest]
+		w.AddBlob(b.data, b.mt)
 	}
 
 	return w.ToBytes(), nil
@@ -311,6 +316,9 @@ func readFileEntries(g *model.Graph) (map[string]map[string]string, error) {
 		} else {
 			for name, id := range fieldIDs {
 				if id == q.P {
+					if q.O < 0 || q.O >= len(g.Terms) {
+						return nil, fmt.Errorf("invalid term reference %d for files:%s", q.O, name)
+					}
 					if _, ok := entries[q.S]; !ok {
 						entries[q.S] = make(map[string]string)
 					}
@@ -344,9 +352,13 @@ func destPath(dest, archivePath string) (string, error) {
 			return "", fmt.Errorf("path traversal in archive: %s", archivePath)
 		}
 	}
-	destCanon, err := filepath.EvalSymlinks(dest)
+	destAbs, err := filepath.Abs(dest)
 	if err != nil {
-		destCanon = dest
+		return "", fmt.Errorf("resolve destination: %w", err)
+	}
+	destCanon, err := filepath.EvalSymlinks(destAbs)
+	if err != nil {
+		destCanon = destAbs
 	}
 	target := filepath.Join(destCanon, filepath.FromSlash(archivePath))
 	targetCanon, err := filepath.EvalSymlinks(target)
@@ -417,6 +429,15 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 	if err := os.MkdirAll(dest, 0o755); err != nil {
 		return fmt.Errorf("create %s: %w", dest, err)
 	}
+	destAbs, err := filepath.Abs(dest)
+	if err != nil {
+		return fmt.Errorf("resolve destination: %w", err)
+	}
+	destCanon, err := filepath.EvalSymlinks(destAbs)
+	if err != nil {
+		destCanon = destAbs
+	}
+	prefix := filepath.Clean(destCanon) + string(os.PathSeparator)
 
 	for path, entry := range entries {
 		target, err := destPath(dest, path)
@@ -448,6 +469,13 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 			if err := os.MkdirAll(parent, 0o755); err != nil {
 				return fmt.Errorf("create dir %s: %w", parent, err)
 			}
+			parentCanon, err := filepath.EvalSymlinks(parent)
+			if err != nil {
+				parentCanon = parent
+			}
+			if !strings.HasPrefix(filepath.Clean(parentCanon)+string(os.PathSeparator), prefix) {
+				return fmt.Errorf("path escapes destination: %s", path)
+			}
 		}
 		if err := os.WriteFile(target, data, 0o644); err != nil {
 			return fmt.Errorf("write %s: %w", target, err)
@@ -470,15 +498,15 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 }
 
 func parseDateTime(text string) (int64, error) {
-	text = strings.TrimSuffix(text, "Z")
 	t, err := time.Parse(time.RFC3339, text)
-	if err != nil {
-		t, err = time.Parse(time.RFC3339, text+"+00:00")
-		if err != nil {
-			return 0, fmt.Errorf("parse datetime %s: %w", text, err)
-		}
+	if err == nil {
+		return t.Unix(), nil
 	}
-	return t.Unix(), nil
+	t, err = time.Parse(time.RFC3339, text+"Z")
+	if err == nil {
+		return t.Unix(), nil
+	}
+	return 0, fmt.Errorf("parse datetime %s: %w", text, err)
 }
 
 // Diff compares an archive to a directory by content digest.

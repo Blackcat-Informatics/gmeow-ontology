@@ -5,6 +5,7 @@
 package codec
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
@@ -41,7 +42,7 @@ func decodeOne(codec *Codec, data []byte) ([]byte, error) {
 	case "identity":
 		return data, nil
 	case "gzip":
-		r, err := gzip.NewReader(bytesReader(data))
+		r, err := gzip.NewReader(bytes.NewReader(data))
 		if err != nil {
 			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("gzip decode failed: %v", err)}
 		}
@@ -52,7 +53,7 @@ func decodeOne(codec *Codec, data []byte) ([]byte, error) {
 		}
 		return out, nil
 	case "zstd":
-		r, err := zstd.NewReader(nil, zstd.IgnoreChecksum(true))
+		r, err := zstd.NewReader(nil)
 		if err != nil {
 			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("zstd decoder init failed: %v", err)}
 		}
@@ -68,16 +69,6 @@ func decodeOne(codec *Codec, data []byte) ([]byte, error) {
 			Detail: fmt.Sprintf("unknown codec '%s'", codec.Name),
 		}
 	}
-}
-
-type bytesReader []byte
-
-func (b bytesReader) Read(p []byte) (int, error) {
-	if len(b) == 0 {
-		return 0, io.EOF
-	}
-	n := copy(p, b)
-	return n, nil
 }
 
 // DecodeChain reverses a resolved codec chain, last to first (§6.1, §8.2).

@@ -140,12 +140,20 @@ func cmdInfo(paths []string) int {
 		fmt.Fprintln(os.Stderr, usage)
 		return 2
 	}
+	problems := false
 	for _, path := range paths {
 		data, code := load(path)
 		if code != 0 {
 			return code
 		}
-		printLedger(path, reader.ReadFileSegments(data))
+		fs := reader.ReadFileSegments(data)
+		printLedger(path, fs)
+		if hasProblems(fs) {
+			problems = true
+		}
+	}
+	if problems {
+		return 1
 	}
 	return 0
 }
@@ -230,6 +238,9 @@ func cmdLs(paths []string) int {
 			mt = "-"
 		}
 		fmt.Printf("%s  %10d  %s\n", b.Digest, len(b.Data), mt)
+	}
+	if len(g.Diagnostics) > 0 || len(g.SegmentHeads) == 0 {
+		return 1
 	}
 	return 0
 }
@@ -316,6 +327,13 @@ func cmdExtract(args []string) int {
 		return code
 	}
 	g := reader.Read(data, true, nil)
+	for _, d := range g.Diagnostics {
+		fmt.Fprintf(os.Stderr, "gts: diagnostic %s: %s\n", d.Code, d.Detail)
+	}
+	if len(g.Diagnostics) > 0 || len(g.SegmentHeads) == 0 {
+		fmt.Fprintln(os.Stderr, "gts: refusing extract: archive did not read cleanly")
+		return 1
+	}
 	digest = normalizeDigest(digest)
 
 	var blobData []byte
@@ -549,12 +567,8 @@ func targetKind(target interface{}) string {
 	if !ok {
 		return ""
 	}
-	for k, v := range m {
-		if key, ok := k.(string); ok && key == "kind" {
-			if s, ok := v.(string); ok {
-				return s
-			}
-		}
+	if v, ok := wire.MapGet(m, "kind"); ok {
+		return wire.TextOr(v, "")
 	}
 	return ""
 }
@@ -564,10 +578,8 @@ func targetIdx(target interface{}) (int, bool) {
 	if !ok {
 		return 0, false
 	}
-	for k, v := range m {
-		if key, ok := k.(string); ok && key == "id" {
-			return wire.AsInt(v)
-		}
+	if v, ok := wire.MapGet(m, "id"); ok {
+		return wire.AsInt(v)
 	}
 	return 0, false
 }
@@ -624,22 +636,20 @@ func collectSuppressed(sup model.Suppression, termSup map[int]struct{}, quadSup 
 			if !ok {
 				continue
 			}
-			for k, v := range m {
-				if key, ok := k.(string); ok && key == "q" {
-					if ids, ok := v.([]interface{}); ok {
-						parts := make([]string, len(ids))
-						valid := true
-						for i, x := range ids {
-							n, ok := wire.AsInt64(x)
-							if !ok {
-								valid = false
-								break
-							}
-							parts[i] = fmt.Sprintf("%d", n)
+			if v, ok := wire.MapGet(m, "q"); ok {
+				if ids, ok := v.([]interface{}); ok {
+					parts := make([]string, len(ids))
+					valid := true
+					for i, x := range ids {
+						n, ok := wire.AsInt64(x)
+						if !ok {
+							valid = false
+							break
 						}
-						if valid {
-							quadSup[strings.Join(parts, ",")] = struct{}{}
-						}
+						parts[i] = fmt.Sprintf("%d", n)
+					}
+					if valid {
+						quadSup[strings.Join(parts, ",")] = struct{}{}
 					}
 				}
 			}

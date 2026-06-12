@@ -5,6 +5,7 @@
 package reader
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/codec"
@@ -163,6 +164,9 @@ func (f *folder) foldFrame(frame map[interface{}]interface{}, index int) {
 		f.hSnapshot(payload, index)
 	case "opaque":
 		f.hOpaque(payload)
+	default:
+		f.opaque(frame, ftype, "unknown-frame-type")
+		f.diag("UnknownFrameType", fmt.Sprintf("unsupported frame type %q", ftype), &index)
 	}
 }
 
@@ -659,21 +663,24 @@ func Read(data []byte, allowSegments bool, expectedHead []byte) *model.Graph {
 }
 
 func bytesEqual(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+	return bytes.Equal(a, b)
 }
 
 // emptyGraph returns a Graph whose slice fields are non-nil so JSON
 // serialization and downstream consumers see empty arrays instead of null.
 func emptyGraph() *model.Graph {
 	return &model.Graph{
+		Terms:           []model.Term{},
+		Quads:           []model.Quad{},
+		Reifiers:        []model.ReifierEntry{},
+		Annotations:     []model.Triple3{},
+		Blobs:           []model.BlobEntry{},
+		BlobMeta:        []model.BlobMetaEntry{},
+		Meta:            []model.MetaEntry{},
+		Suppressions:    []model.Suppression{},
+		Opaque:          []model.OpaqueNode{},
+		Signatures:      []model.Signature{},
+		Diagnostics:     []model.Diagnostic{},
 		SegmentHeads:    [][]byte{},
 		SegmentProfiles: []string{},
 		SegmentMeta:     [][]model.MetaEntry{},
@@ -930,9 +937,16 @@ func (u *unioner) remapSuppression(sup model.Suppression, seg *model.Graph, segI
 	return newSup
 }
 
+func unionQuadKey(q model.Quad) string {
+	if q.G != nil {
+		return fmt.Sprintf("%d,%d,%d,%d", q.S, q.P, q.O, *q.G)
+	}
+	return fmt.Sprintf("%d,%d,%d", q.S, q.P, q.O)
+}
+
 func unionSegments(segments []*model.Graph) *model.Graph {
 	u := newUnioner()
-	seen := make(map[model.Quad]struct{})
+	seen := make(map[string]struct{})
 	for segIdx, seg := range segments {
 		for _, q := range seg.Quads {
 			uq := model.Quad{
@@ -944,8 +958,9 @@ func unionSegments(segments []*model.Graph) *model.Graph {
 				g := u.mapTerm(seg, segIdx, *q.G)
 				uq.G = &g
 			}
-			if _, ok := seen[uq]; !ok {
-				seen[uq] = struct{}{}
+			key := unionQuadKey(uq)
+			if _, ok := seen[key]; !ok {
+				seen[key] = struct{}{}
 				u.out.Quads = append(u.out.Quads, uq)
 			}
 		}

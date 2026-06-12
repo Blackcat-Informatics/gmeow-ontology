@@ -9,43 +9,42 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sync"
+	"strings"
 	"testing"
 )
 
-var (
-	binOnce sync.Once
-	binPath string
-	binErr  error
-)
+var binPath string
 
-func buildBin(t *testing.T) string {
-	t.Helper()
-	binOnce.Do(func() {
-		dir, err := os.MkdirTemp("", "gts-cli-test")
-		if err != nil {
-			binErr = err
-			return
-		}
-		binPath = filepath.Join(dir, "gts")
-		cmd := exec.Command("go", "build", "-o", binPath, "github.com/Blackcat-Informatics/gmeow-ontology/go/gts/cmd/gts")
-		if out, err := cmd.CombinedOutput(); err != nil {
-			binErr = fmt.Errorf("go build: %w\n%s", err, out)
-		}
-	})
-	if binErr != nil {
-		t.Fatalf("cannot build gts binary: %v", binErr)
+func TestMain(m *testing.M) {
+	dir, err := os.MkdirTemp("", "gts-cli-test")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot create temp dir: %v\n", err)
+		os.Exit(1)
 	}
-	return binPath
+	defer os.RemoveAll(dir)
+
+	binPath = filepath.Join(dir, "gts")
+	cmd := exec.Command("go", "build", "-o", binPath, "github.com/Blackcat-Informatics/gmeow-ontology/go/gts/cmd/gts")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		fmt.Fprintf(os.Stderr, "cannot build gts binary: %v\n%s\n", err, out)
+		os.Exit(1)
+	}
+
+	os.Exit(m.Run())
 }
 
 func run(t *testing.T, args ...string) (*exec.Cmd, *bytes.Buffer, *bytes.Buffer) {
 	t.Helper()
-	cmd := exec.Command(buildBin(t), args...)
+	cmd := exec.Command(binPath, args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	_ = cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); !ok {
+			t.Fatalf("failed to start command: %v", err)
+		}
+	}
 	return cmd, &stdout, &stderr
 }
 
@@ -122,14 +121,26 @@ func TestLsListsDigestSizeAndMediaType(t *testing.T) {
 	v := vector(t, "22-inline-blob.gts")
 	_, stdout, _ := run(t, "ls", v)
 	out := stdout.String()
-	if !bytes.Contains(stdout.Bytes(), []byte("blake3:")) {
-		t.Fatalf("digest not listed: %s", out)
+
+	var found bool
+	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) != 3 {
+			continue
+		}
+		if !strings.HasPrefix(fields[0], "blake3:") {
+			continue
+		}
+		found = true
+		if fields[1] != "21" {
+			t.Fatalf("size not 21: %s", line)
+		}
+		if fields[2] != "image/webp" {
+			t.Fatalf("media type not image/webp: %s", line)
+		}
 	}
-	if !bytes.Contains(stdout.Bytes(), []byte("21")) {
-		t.Fatalf("size not listed: %s", out)
-	}
-	if !bytes.Contains(stdout.Bytes(), []byte("image/webp")) {
-		t.Fatalf("media type not listed: %s", out)
+	if !found {
+		t.Fatalf("no blob line found in: %s", out)
 	}
 }
 
@@ -169,8 +180,14 @@ func TestPackUnpackRoundTrip(t *testing.T) {
 	if cmd.ProcessState.ExitCode() != 0 {
 		t.Fatalf("re-pack exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
 	}
-	orig, _ := os.ReadFile(archive)
-	repack, _ := os.ReadFile(archive2)
+	orig, err := os.ReadFile(archive)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repack, err := os.ReadFile(archive2)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if !bytes.Equal(orig, repack) {
 		t.Fatalf("re-packed archive differs")
 	}
