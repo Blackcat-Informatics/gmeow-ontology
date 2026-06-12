@@ -1,0 +1,29 @@
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:lillith-ingest a gmeow:ImportActivity ;
+    rdfs:label "lillith corpus ingest"@en ;
+    gmeow:ingestedAt "2026-06-01T09:00:00+00:00"^^xsd:dateTime .
+
+ex:lillith-benchmark a gmeow:Dataset ;
+    rdfs:label "Lillith GraphRAG benchmark"@en ;
+    gmeow:datePublished "2026-06-12T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
+    gmeow:hasLicense ex:lillith-license ;
+    gmeow:hasPart ex:corpus-lillith ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
+    gmeow:title "Lillith GraphRAG benchmark"@en ;
+    gmeow:wasAttributedTo ex:blackcat .
+
+ex:lillith-license a gmeow:License ;
+    rdfs:label "CC BY 4.0"@en ;
+    gmeow:licenseFamily gmeow:licenseFamilyCC ;
+    gmeow:licensedWork ex:lillith-benchmark ;
+    gmeow:licensor ex:blackcat ;
+    gmeow:spdxLicenseId "CC-BY-4.0" ;
+    gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" .
+
+ex:blackcat a gmeow:Organization ;
+    rdfs:label "Blackcat Informatics Inc."@en .

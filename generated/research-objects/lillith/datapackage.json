@@ -1,0 +1,46 @@
+{
+  "name": "lillith-benchmark",
+  "title": "Lillith GraphRAG benchmark",
+  "description": "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object.",
+  "homepage": "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark",
+  "created": "2026-06-12T00:00:00+00:00",
+  "licenses": [
+    {
+      "name": "CC-BY-4.0",
+      "path": "https://spdx.org/licenses/CC-BY-4.0",
+      "title": "CC-BY-4.0"
+    }
+  ],
+  "contributors": [
+    {
+      "title": "Blackcat Informatics Inc."
+    }
+  ],
+  "resources": [
+    {
+      "name": "constitution",
+      "path": "CONSTITUTION.md",
+      "title": "CONSTITUTION.md",
+      "hash": "blake3:28095794e8c96325ecafcf36dbc10266132d3da5483e62779f398811cd8d780d"
+    },
+    {
+      "name": "readme",
+      "path": "README.md",
+      "title": "README.md",
+      "hash": "blake3:796331d99dbaab78c0f9857aedb0aa3cfaea1c30910c390634d1b34823b933ea"
+    },
+    {
+      "name": "handbook",
+      "path": "https://blackcatinformatics.ca/gmeow/examples/ai/handbook",
+      "title": "facilities handbook, 2026 edition",
+      "hash": "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0"
+    },
+    {
+      "name": "mail-archive",
+      "path": "https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive",
+      "title": "list archive, 2025",
+      "hash": "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0"
+    }
+  ],
+  "notes": "Generated lossy projection of canonical GMEOW data; drops: reified relators (Copyright, roles, memberships) flatten or vanish; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped; standpoint indexing is dropped — contested claims appear without their vantage; blake3 content digests cannot fill sha256-only slots; the verbatim digest is preserved where the format allows."
+}

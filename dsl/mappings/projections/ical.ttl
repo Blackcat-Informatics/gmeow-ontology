@@ -126,7 +126,7 @@ gmeow:mapIcalVtodo a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "task" ;
         gmeow:atom (
-            [ gmeow:subjectVar "task" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Task ]
             [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskDueDate ; gmeow:objectVar "due" ; gmeow:optional true ]
             [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskPriority ; gmeow:objectVar "prio" ; gmeow:optional true ]
             [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskStatus ; gmeow:objectVar "ts" ; gmeow:optional true ] ) ] ;
@@ -229,7 +229,7 @@ gmeow:mapIcalVcalendar a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cal" ;
         gmeow:atom (
-            [ gmeow:subjectVar "cal" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "cal" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Calendar ]
             [ gmeow:subjectVar "cal" ; gmeow:predicate gmeow:calendarTimeZone ; gmeow:objectVar "tz" ; gmeow:optional true ]
             [ gmeow:subjectVar "tz" ; gmeow:predicate gmeow:timeZoneIanaId ; gmeow:objectVar "tzid" ; gmeow:optional true ] ) ] ;
     gmeow:hasBinding [

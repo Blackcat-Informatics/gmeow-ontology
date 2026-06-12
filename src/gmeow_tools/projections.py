@@ -48,6 +48,7 @@ PROFILES: dict[str, Profile] = {
     "mailmap": Profile("mailmap", ("gmeow",)),
     "exif": Profile("exif", ("exif",)),
     "iiif": Profile("iiif", ("iiif", "oa", "rdf")),
+    "dcat": Profile("dcat", ("dcat", "dcterms", "prov", "spdx")),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +

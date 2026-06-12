@@ -1,7 +1,6 @@
 {
  "cells_by_set": {
   "gmeow-accessibility.sssom.tsv": 14,
-  "gmeow-agentic.sssom.tsv": 2,
   "gmeow-aggregation.sssom.tsv": 5,
   "gmeow-ai.sssom.tsv": 17,
   "gmeow-archaeological-evidence.sssom.tsv": 16,
@@ -54,8 +53,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1583,
+ "equivalences": 1581,
  "functions": 38,
- "mapping_sets": 53,
- "projections": 349
+ "mapping_sets": 52,
+ "projections": 361
 }

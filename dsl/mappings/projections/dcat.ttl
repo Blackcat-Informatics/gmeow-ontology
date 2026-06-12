@@ -1,0 +1,169 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcat:    <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix spdx:    <http://spdx.org/rdf/terms#> .
+
+# Projection mappings: GMEOW instance datasets → W3C DCAT 3 (#58). Compiled to
+# projections/dcat.edoal.ttl + queries/projections/dcat.rq by
+# `gmeow compile-mappings`. The catalog-facing view of a GMEOW-described
+# dataset: gmeow:Dataset / gmeow:Corpus become dcat:Dataset, their members
+# become dcat:Distribution rows (downloadURL from gmeow:sourceLocation,
+# checksum from gmeow:contentDigest), and the ingest provenance flattens to
+# PROV. LOSSY BY DESIGN: reified relators, RDF 1.2 statement annotations,
+# standpoints, and the four clocks are dropped (declared per cell).
+
+gmeow:mapDcatDataset a gmeow:ProjectionMapping ;
+    rdfs:label "gmeow:Dataset → dcat:Dataset"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ds" ;
+        gmeow:atom ( [ gmeow:subjectVar "ds" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Dataset ] ) ;
+        gmeow:edoalSource gmeow:Dataset ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "dcat" ; gmeow:toClass dcat:Dataset ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapDcatCorpus a gmeow:ProjectionMapping ;
+    rdfs:label "gmeow:Corpus → dcat:Dataset"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "corpus" ;
+        gmeow:atom ( [ gmeow:subjectVar "corpus" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Corpus ] ) ;
+        gmeow:edoalSource gmeow:Corpus ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcat" ; gmeow:toClass dcat:Dataset ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the corpus's retrieval role (index membership, embedding lineage) is invisible to DCAT — only the dataset facet survives" ] .
+
+gmeow:mapDcatDistribution a gmeow:ProjectionMapping ;
+    rdfs:label "corpusMember → dcat:distribution (member as Distribution)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "corpus" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "corpus" ; gmeow:predicate gmeow:corpusMember ; gmeow:objectVar "doc" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "doc" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "url" ] ) ] ) ;
+        gmeow:edoalSource gmeow:corpusMember ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcat" ; gmeow:toPredicate dcat:distribution ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the member document is REUSED as the dcat:Distribution node (no manifestation split); its GMEOW typing is dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "corpus" ; gmeow:tPred dcat:distribution ; gmeow:tObj "doc" ]
+            [ gmeow:tSubj "doc" ; gmeow:tPred rdf:type ; gmeow:tObjValue dcat:Distribution ]
+            [ gmeow:tSubj "doc" ; gmeow:tPred dcat:downloadURL ; gmeow:tObj "url" ] ) ] .
+
+gmeow:mapDcatPartDistribution a gmeow:ProjectionMapping ;
+    rdfs:label "Dataset hasPart → dcat:distribution (part as Distribution)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ds" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ds" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Dataset ]
+            [ gmeow:subjectVar "ds" ; gmeow:predicate gmeow:hasPart ; gmeow:objectVar "doc" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "doc" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "url" ] ) ] ) ;
+        gmeow:edoalSource gmeow:hasPart ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcat" ; gmeow:toPredicate dcat:distribution ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "generic parthood narrows to the dataset-distribution reading; non-distribution parts are over-typed" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ds" ; gmeow:tPred dcat:distribution ; gmeow:tObj "doc" ]
+            [ gmeow:tSubj "doc" ; gmeow:tPred rdf:type ; gmeow:tObjValue dcat:Distribution ]
+            [ gmeow:tSubj "doc" ; gmeow:tPred dcat:downloadURL ; gmeow:tObj "url" ] ) ] .
+
+# Checksums ride the DCAT 3 / SPDX idiom: a fresh spdx:Checksum node per
+# digest-bearing distribution member. The digest string stays VERBATIM
+# (e.g. "blake3:<hex>") in spdx:checksumValue — the algorithm prefix is not
+# split out (declared loss; consumers that need the split parse the prefix).
+gmeow:mapDcatChecksum a gmeow:ProjectionMapping ;
+    rdfs:label "corpusMember contentDigest → spdx:checksum node"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "corpus" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "corpus" ; gmeow:predicate gmeow:corpusMember ; gmeow:objectVar "doc" ]
+            [ gmeow:subjectVar "doc" ; gmeow:predicate gmeow:contentDigest ; gmeow:objectVar "digest" ] ) ;
+        gmeow:mint [ gmeow:bindVar "chk" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "doc" ] ) ]
+                    "-checksum" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:contentDigest ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcat" ; gmeow:toPredicate spdx:checksumValue ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the algorithm prefix stays inline in spdx:checksumValue (no spdx:algorithm split)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "doc" ; gmeow:tPred spdx:checksum ; gmeow:tObj "chk" ]
+            [ gmeow:tSubj "chk" ; gmeow:tPred rdf:type ; gmeow:tObjValue spdx:Checksum ]
+            [ gmeow:tSubj "chk" ; gmeow:tPred spdx:checksumValue ; gmeow:tObj "digest" ] ) ] .
+
+# --- Dataset-level catalog metadata (the dcterms cluster, dcat-anchored) --- #
+
+gmeow:mapDcatTitle a gmeow:ProjectionMapping ;
+    rdfs:label "Dataset title → dcterms:title"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ds" ; gmeow:value "title" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ds" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Dataset ]
+            [ gmeow:subjectVar "ds" ; gmeow:predicate gmeow:title ; gmeow:objectVar "title" ] ) ;
+        gmeow:edoalSource gmeow:title ] ;
+    gmeow:hasBinding [ gmeow:profile "dcat" ; gmeow:toPredicate dcterms:title ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDcatDescription a gmeow:ProjectionMapping ;
+    rdfs:label "Dataset description → dcterms:description"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ds" ; gmeow:value "desc" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ds" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Dataset ]
+            [ gmeow:subjectVar "ds" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
+        gmeow:edoalSource gmeow:description ] ;
+    gmeow:hasBinding [ gmeow:profile "dcat" ; gmeow:toPredicate dcterms:description ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDcatLicense a gmeow:ProjectionMapping ;
+    rdfs:label "Dataset hasLicense → dcterms:license"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ds" ; gmeow:value "lic" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ds" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Dataset ]
+            [ gmeow:subjectVar "ds" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
+        gmeow:edoalSource gmeow:hasLicense ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcat" ; gmeow:toPredicate dcterms:license ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the License agreement's deontic structure (Permission/Prohibition/Duty rules) collapses to a flat license edge" ] .
+
+gmeow:mapDcatIssued a gmeow:ProjectionMapping ;
+    rdfs:label "Dataset datePublished → dcterms:issued"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ds" ; gmeow:value "date" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ds" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Dataset ]
+            [ gmeow:subjectVar "ds" ; gmeow:predicate gmeow:datePublished ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:datePublished ] ;
+    gmeow:hasBinding [ gmeow:profile "dcat" ; gmeow:toPredicate dcterms:issued ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+# --- Ingest provenance → PROV (the trust story catalogs understand) -------- #
+
+gmeow:mapDcatImportActivity a gmeow:ProjectionMapping ;
+    rdfs:label "ImportActivity + ingestedAt → prov:Activity + endedAtTime"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "act" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "act" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ImportActivity ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "act" ; gmeow:predicate gmeow:ingestedAt ; gmeow:objectVar "t" ] ) ] ) ;
+        gmeow:edoalSource gmeow:ImportActivity ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcat" ; gmeow:toClass prov:Activity ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "transaction time flattens to prov:endedAtTime; the assertion/validity clocks are dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "act" ; gmeow:tPred rdf:type ; gmeow:tObjValue prov:Activity ]
+            [ gmeow:tSubj "act" ; gmeow:tPred prov:endedAtTime ; gmeow:tObj "t" ] ) ] .
+
+gmeow:mapDcatWasGeneratedBy a gmeow:ProjectionMapping ;
+    rdfs:label "wasGeneratedBy → prov:wasGeneratedBy"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "e" ; gmeow:value "genAct" ;
+        gmeow:atom ( [ gmeow:subjectVar "e" ; gmeow:predicate gmeow:wasGeneratedBy ; gmeow:objectVar "genAct" ] ) ;
+        gmeow:edoalSource gmeow:wasGeneratedBy ] ;
+    gmeow:hasBinding [ gmeow:profile "dcat" ; gmeow:toPredicate prov:wasGeneratedBy ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapDcatWasAttributedTo a gmeow:ProjectionMapping ;
+    rdfs:label "wasAttributedTo → prov:wasAttributedTo"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "e" ; gmeow:value "agent" ;
+        gmeow:atom ( [ gmeow:subjectVar "e" ; gmeow:predicate gmeow:wasAttributedTo ; gmeow:objectVar "agent" ] ) ;
+        gmeow:edoalSource gmeow:wasAttributedTo ] ;
+    gmeow:hasBinding [ gmeow:profile "dcat" ; gmeow:toPredicate prov:wasAttributedTo ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .

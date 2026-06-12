@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The dataset descriptor for the Lillith worked example (#58): the
+# gmeow:Dataset node that the research-object exports (Croissant, RO-Crate,
+# DCAT, DataCite, Frictionless) read their catalog metadata FROM — title,
+# description, licence, attribution, publication date. Canonical instance
+# data; every export is a generated lossy projection of it (P4/P5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:lillith-benchmark a gmeow:Dataset ;
+    rdfs:label "Lillith GraphRAG benchmark"@en ;
+    gmeow:title "Lillith GraphRAG benchmark"@x-gmeow-english ;
+    gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@x-gmeow-english ;
+    gmeow:hasPart ex:corpus-lillith ;
+    gmeow:hasLicense ex:lillith-license ;
+    gmeow:wasAttributedTo ex:blackcat ;
+    gmeow:datePublished "2026-06-12T00:00:00Z"^^xsd:dateTime ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
+
+ex:lillith-license a gmeow:License ;
+    rdfs:label "CC BY 4.0"@en ;
+    gmeow:licensor ex:blackcat ;
+    gmeow:licensedWork ex:lillith-benchmark ;
+    gmeow:licenseFamily gmeow:licenseFamilyCC ;
+    gmeow:spdxLicenseId "CC-BY-4.0" ;
+    gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" .
+
+ex:blackcat a gmeow:Organization ;
+    rdfs:label "Blackcat Informatics Inc."@en .
+
+# The ingest provenance the catalog projections flatten to PROV.
+ex:lillith-ingest a gmeow:ImportActivity ;
+    rdfs:label "lillith corpus ingest"@en ;
+    gmeow:ingestedAt "2026-06-01T09:00:00Z"^^xsd:dateTime .

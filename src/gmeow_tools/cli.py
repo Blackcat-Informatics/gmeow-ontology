@@ -71,6 +71,7 @@ def regenerate(
         metadata,
         parquet_gen,
         profiles_gen,
+        research_objects,
         schema_compile,
         statement_compile,
     )
@@ -123,6 +124,7 @@ def check_generated(
         metadata,
         parquet_gen,
         profiles_gen,
+        research_objects,
         schema_compile,
         statement_compile,
     )
@@ -809,6 +811,121 @@ def project(
         for name in names:
             path = project_file(Path(data), name)
             console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+
+
+@app.command()
+def transform(
+    abox: Path = typer.Argument(  # noqa: B008
+        ...,
+        help="Canonical GMEOW A-Box Turtle file (the single source of truth).",
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None,
+        "-o",
+        "--out",
+        help="Output directory (default dist/transform/<stem>/).",
+    ),
+    profiles: str = typer.Option(
+        "all",
+        "--profiles",
+        help="Projection profiles for P(G): all|name,name,…",
+    ),
+    diff_target: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--diff-target",
+        help="A parity-target Turtle file for the vocabulary-coverage diff.",
+    ),
+    report: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--report",
+        help="Write the coverage diff (Markdown) here instead of stdout.",
+    ),
+) -> None:
+    """Transpile an A-Box to MAXIMAL(G) = G + E(G) + P(G) (#34).
+
+    One fat multi-vocabulary file family: <stem>.gts (canonical, full RDF 1.2
+    provenance audit trail), index.nq (RDF 1.2), index.ttl / index.jsonld
+    (asserted base triples — plain-RDF readable). Saturation materializes
+    STRONG equivalences only, gated by the alignment-direction lint;
+    suppression (displayable false) is honored fail-closed.
+    """
+    from rdflib import Graph
+
+    from gmeow_tools.transform import TransformAbortedError, vocab_coverage
+    from gmeow_tools.transform import transform as run_transform
+
+    names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
+    try:
+        result = run_transform(abox, out_dir=out, profiles=names)
+    except (TransformAbortedError, ValueError) as exc:
+        raise _fail(f"✗ {exc}") from exc
+    for path in result.written:
+        console.print(f"[green]✓[/green] {path}")
+    console.print(
+        f"asserted {result.asserted} · saturated {result.saturated} · "
+        f"projected {result.projected} · suppressed {result.suppressed_dropped} · "
+        f"lint-denied cells {result.denied_cells} · "
+        f"{result.wall_clock_s:.1f}s"
+    )
+    if diff_target is not None:
+        maximal = Graph().parse(result.written[2], format="turtle")  # index.ttl
+        target_graph = Graph().parse(diff_target, format="turtle")
+        table = vocab_coverage(maximal, target_graph)
+        if report is not None:
+            report.write_text(table, encoding="utf-8")
+            console.print(f"[green]✓[/green] coverage report → {report}")
+        else:
+            console.print(table)
+
+
+_EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")
+
+
+@app.command()
+def export(
+    profile: str = typer.Argument(
+        ...,
+        help="Research-object profile: all|" + "|".join(_EXPORT_PROFILES) + ".",
+    ),
+    data: list[Path] = typer.Argument(  # noqa: B008
+        ...,
+        help=(
+            "GMEOW instance Turtle file(s) — must include a dataset "
+            "descriptor (gmeow:Dataset + gmeow:hasLicense + gmeow:title)."
+        ),
+    ),
+    out: Path = typer.Option(  # noqa: B008
+        Path("dist/research-objects"),
+        "--out",
+        help="Output directory.",
+    ),
+) -> None:
+    """Export GMEOW data as research objects (#58): Croissant, RO-Crate, ….
+
+    Generated lossy projections of the canonical instance data (P4/P5):
+    Croissant JSON-LD (Google Dataset Search / HF / Kaggle), an RO-Crate
+    package (WorkflowHub), DCAT (W3C catalogs), DataCite deposit XML (DOI),
+    and a Frictionless datapackage.json. Each declares what it drops.
+    """
+    from gmeow_tools.generator import GeneratorError
+    from gmeow_tools.research_objects import (
+        export_research_objects,
+        package_ro_crate,
+    )
+
+    profiles = _EXPORT_PROFILES if profile == "all" else (profile,)
+    unknown = set(profiles) - set(_EXPORT_PROFILES)
+    if unknown:
+        raise _fail(f"unknown profile(s): {', '.join(sorted(unknown))}")
+    stem = data[0].stem
+    try:
+        written = export_research_objects(data, out, profiles=profiles, stem=stem)
+    except (ValueError, GeneratorError) as exc:
+        raise _fail(f"✗ {exc}") from exc
+    if "ro-crate" in profiles:
+        written.append(package_ro_crate(out / "ro-crate", out / f"{stem}.crate.zip"))
+    for path in written:
+        console.print(f"[green]✓[/green] {path}")
 
 
 @app.command()
