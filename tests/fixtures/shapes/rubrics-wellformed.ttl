@@ -35,7 +35,14 @@ ex:axis1 a gmeow:Criterion ;
 
 ex:axis2 a gmeow:Criterion ;
     rdfs:label "polymath competence"@en ;
-    gmeow:criterionDomain gmeow:criterionDomainFactual .
+    gmeow:criterionDomain gmeow:criterionDomainFactual ;
+    gmeow:rewardPole ex:eruditeCommand ;
+    gmeow:penaltyPole ex:shallowRecitation .
+
+ex:eruditeCommand a gmeow:CriterionPole ;
+    rdfs:label "Erudite Command"@en .
+ex:shallowRecitation a gmeow:CriterionPole ;
+    rdfs:label "Shallow Recitation"@en .
 
 ex:powerFromBottom a gmeow:CriterionPole ;
     rdfs:label "Power from the Bottom"@en .

@@ -143,7 +143,9 @@ def test_malformed_rubrics_fixture_is_flagged() -> None:
     assert "minimum must be strictly below its maximum" in errors
     assert "at least one gmeow:anchorMeaning" in errors
     assert "range minimum must not exceed" in errors
-    assert "must pin exactly one gmeow:anchorRangeMin" in errors
+    assert "must name exactly one gmeow:rewardPole" in errors
+    assert "binds at most one gmeow:usesScale" in errors
+    assert "must pin exactly one decimal gmeow:anchorRangeMin" in errors
     assert "must lie within the scale" in errors
     assert "may not redirect to the criterion that anchors it" in errors
     assert "at least one of gmeow:viaSelector" in errors

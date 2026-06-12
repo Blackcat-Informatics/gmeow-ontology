@@ -11,6 +11,8 @@
 #   8. ex:narcissusExemplar — a cautionary exemplar redirecting to the very
 #      criterion that anchors it.
 #   9. ex:methodlessScore — an assessment naming neither criterion nor rubric.
+#  10. ex:nakedAxis — a criterion with no poles at all (no poles is no axis).
+#  11. ex:twoScaleRubric — a rubric binding two scales at once.
 # run_shacl over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
@@ -49,7 +51,10 @@ ex:scaledRubric a gmeow:Rubric ;
     gmeow:usesScale ex:unitScale .
 ex:unitScale a gmeow:ScoreScale ; gmeow:scaleMin 0.0 ; gmeow:scaleMax 1.0 .
 ex:scaledCriterion a gmeow:Criterion ;
+    gmeow:rewardPole ex:helperUp ; gmeow:penaltyPole ex:helperDown ;
     gmeow:hasScoreAnchor ex:overflowAnchor .
+ex:helperUp   a gmeow:CriterionPole ; rdfs:label "helper reward pole"@en .
+ex:helperDown a gmeow:CriterionPole ; rdfs:label "helper penalty pole"@en .
 ex:overflowAnchor a gmeow:ScoreAnchor ;
     gmeow:anchorRangeMin 0.5 ;
     gmeow:anchorRangeMax 5.0 ;
@@ -57,6 +62,7 @@ ex:overflowAnchor a gmeow:ScoreAnchor ;
 
 # Violation 8: redirects to its own anchoring criterion.
 ex:narcissusCriterion a gmeow:Criterion ;
+    gmeow:rewardPole ex:helperUp ; gmeow:penaltyPole ex:helperDown ;
     gmeow:hasScoreAnchor ex:narcissusAnchor .
 ex:narcissusAnchor a gmeow:ScoreAnchor ;
     gmeow:anchorRangeMin 0.0 ;
@@ -92,3 +98,14 @@ ex:methodlessScore a gmeow:Assessment ;
     gmeow:vantage ex:judge ;
     gmeow:assessmentTarget ex:chunk ;
     gmeow:assessmentScoreValue 0.5 .
+
+# Violation 10: no poles is no axis.
+ex:nakedAxis a gmeow:Criterion ;
+    rdfs:label "criterion with no poles"@en .
+
+# Violation 11: two scales make score interpretation ambiguous.
+ex:scaleA a gmeow:ScoreScale ; gmeow:scaleMin 0.0 ; gmeow:scaleMax 1.0 .
+ex:scaleB a gmeow:ScoreScale ; gmeow:scaleMin 0.0 ; gmeow:scaleMax 10.0 .
+ex:twoScaleRubric a gmeow:Rubric ;
+    gmeow:normIssuer ex:judge ;
+    gmeow:usesScale ex:scaleA , ex:scaleB .

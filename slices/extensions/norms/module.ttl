@@ -548,7 +548,7 @@ gmeow:rewardPole
     rdfs:domain gmeow:Criterion ;
     rdfs:range gmeow:CriterionPole ;
     rdfs:label "reward pole"@x-gmeow-english ;
-    skos:definition "The named pole this criterion rewards. Functional; must differ from the penalty pole (SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (SHACL)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:penaltyPole
@@ -556,7 +556,7 @@ gmeow:penaltyPole
     rdfs:domain gmeow:Criterion ;
     rdfs:range gmeow:CriterionPole ;
     rdfs:label "penalty pole"@x-gmeow-english ;
-    skos:definition "The named pole this criterion penalizes. Functional; must differ from the reward pole (SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (SHACL)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:ScoreScale

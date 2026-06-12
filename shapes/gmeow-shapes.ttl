@@ -3576,17 +3576,19 @@ gmeow:CriterionShape
     sh:targetClass gmeow:Criterion ;
     sh:property [
         sh:path gmeow:rewardPole ;
+        sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class gmeow:CriterionPole ;
         sh:severity sh:Violation ;
-        sh:message "A Criterion has at most one gmeow:rewardPole, a CriterionPole." ;
+        sh:message "A Criterion must name exactly one gmeow:rewardPole, a CriterionPole — the named-poles contract: no poles is no axis." ;
     ] ;
     sh:property [
         sh:path gmeow:penaltyPole ;
+        sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class gmeow:CriterionPole ;
         sh:severity sh:Violation ;
-        sh:message "A Criterion has at most one gmeow:penaltyPole, a CriterionPole." ;
+        sh:message "A Criterion must name exactly one gmeow:penaltyPole, a CriterionPole — the named-poles contract: no poles is no axis." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3608,15 +3610,24 @@ gmeow:ScoreScaleShape
         sh:path gmeow:scaleMin ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "A ScoreScale must declare exactly one gmeow:scaleMin." ;
+        sh:message "A ScoreScale must declare exactly one decimal gmeow:scaleMin." ;
     ] ;
     sh:property [
         sh:path gmeow:scaleMax ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "A ScoreScale must declare exactly one gmeow:scaleMax." ;
+        sh:message "A ScoreScale must declare exactly one decimal gmeow:scaleMax." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:scaleStep ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "A ScoreScale carries at most one decimal gmeow:scaleStep (closed-world functional)." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3646,15 +3657,17 @@ gmeow:ScoreAnchorShape
         sh:path gmeow:anchorRangeMin ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "A ScoreAnchor must pin exactly one gmeow:anchorRangeMin — an anchor IS a pinned range." ;
+        sh:message "A ScoreAnchor must pin exactly one decimal gmeow:anchorRangeMin — an anchor IS a pinned range." ;
     ] ;
     sh:property [
         sh:path gmeow:anchorRangeMax ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "A ScoreAnchor must pin exactly one gmeow:anchorRangeMax — an anchor IS a pinned range." ;
+        sh:message "A ScoreAnchor must pin exactly one decimal gmeow:anchorRangeMax — an anchor IS a pinned range." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3748,6 +3761,18 @@ gmeow:ExemplarShape
         """ ;
     ] .
 
+gmeow:UsesScaleTargetShape
+    a sh:NodeShape ;
+    rdfs:label "Uses Scale Target Shape" ;
+    sh:targetSubjectsOf gmeow:usesScale ;
+    sh:property [
+        sh:path gmeow:usesScale ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ScoreScale ;
+        sh:severity sh:Violation ;
+        sh:message "A holder binds at most one gmeow:usesScale, a ScoreScale — two scales make anchor containment and score interpretation ambiguous (closed-world functional)." ;
+    ] .
+
 gmeow:AssessmentShape
     a sh:NodeShape ;
     rdfs:label "Assessment Shape" ;
@@ -3763,8 +3788,9 @@ gmeow:AssessmentShape
         sh:path gmeow:assessmentScoreValue ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "An Assessment must carry exactly one gmeow:assessmentScoreValue — a zero is a score, not an absence." ;
+        sh:message "An Assessment must carry exactly one decimal gmeow:assessmentScoreValue — a zero is a score, not an absence." ;
     ] ;
     sh:property [
         sh:path gmeow:vantage ;
@@ -3775,14 +3801,16 @@ gmeow:AssessmentShape
     sh:property [
         sh:path gmeow:assessmentCriterion ;
         sh:maxCount 1 ;
+        sh:class gmeow:Criterion ;
         sh:severity sh:Violation ;
-        sh:message "An Assessment applies at most one gmeow:assessmentCriterion — a 21-axis pass is 21 Assessments (closed-world functional)." ;
+        sh:message "An Assessment applies at most one gmeow:assessmentCriterion, a Criterion — a 21-axis pass is 21 Assessments (closed-world functional)." ;
     ] ;
     sh:property [
         sh:path gmeow:assessmentRubric ;
         sh:maxCount 1 ;
+        sh:class gmeow:Rubric ;
         sh:severity sh:Violation ;
-        sh:message "An Assessment is made under at most one gmeow:assessmentRubric (closed-world functional)." ;
+        sh:message "An Assessment is made under at most one gmeow:assessmentRubric, a Rubric (closed-world functional)." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
