@@ -24,6 +24,7 @@
     },
     "source": {
       "type": "string",
+      "minLength": 1,
       "description": "The source document id this claim was extracted from (a corpus sourceLocation). Required: multi-document runs are scored per source."
     },
     "evidence": {

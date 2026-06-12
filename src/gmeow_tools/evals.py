@@ -54,11 +54,18 @@ def _slug(model: str) -> str:
 
     Provider-style ids contain ``/`` and ``.``; a raw id used as a path
     would nest directories (or escape the outputs root via ``..``) and as a
-    Turtle local name would be illegal.
+    Turtle local name would be illegal. Sanitization is many-to-one
+    ("openai/gpt-4.1" and "openai.gpt-4-1" collide), so a LOSSY slug gains a
+    short content-hash suffix of the raw id; an already-clean id is its own
+    slug, so committed directory names stay stable.
     """
     import re
+    from hashlib import blake2s
 
-    return re.sub(r"[^A-Za-z0-9_-]+", "-", model).strip("-").lower() or "model"
+    base = re.sub(r"[^A-Za-z0-9_-]+", "-", model).strip("-").lower() or "model"
+    if base == model:
+        return base
+    return f"{base}-{blake2s(model.encode('utf-8'), digest_size=4).hexdigest()}"
 
 
 @dataclass(slots=True)
