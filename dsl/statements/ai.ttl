@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The generated-claim statement cell (#54): the CANONICAL RDF 1.2 form of an
+# LLM output as claim-not-truth. The model's assertion is a reified statement
+# whose annotations carry confidence, the generating invocation, time, and
+# standpoint — never a bare triple asserted as fact (CONSTITUTION P9, P14).
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/ai/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# A model-extracted fact: the east wing's closing time, asserted by the
+# assistant model at temperature 0, grounded in the handbook (the groundedIn
+# span lives in the observation layer — slices/core/ai examples). accordingTo
+# records the MODEL standpoint; confidence and assertedAt the epistemics.
+# The invocation link uses gmeow:mappedFrom — the AnnotationProperty for
+# machine-derivation provenance — because axiom annotations must stay
+# AnnotationProperty-clean for the OWL 2 DL downcast (P3); the ObjectProperty
+# gmeow:wasGeneratedBy is the OBSERVATION-form link (a direct triple on a
+# StandpointClaim individual, as in the worked example). Nothing here claims
+# truth — only who said what, when, how confidently, from where.
+ex:claim-east-wing-close a gmeow:StatementMetadata ;
+    rdfs:label "east wing closes 22:00 — LLM-extracted from the facilities handbook, confidence 0.85"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-east-wing-close ;
+    gmeow:qSubject   ex:east-wing ;
+    gmeow:qPredicate gmeow:validUntil ;
+    gmeow:qObjectLiteral "2026-12-31T22:00:00Z"^^xsd:dateTime ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt  ; gmeow:annValue "2026-06-12T03:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:assistant ] ,
+        [ gmeow:annProperty gmeow:mappedFrom  ; gmeow:annValue ex:invocation-19 ] .
