@@ -829,3 +829,6 @@ gmeow:temporalCoverage
     rdfs:label "temporal coverage"@x-gmeow-english ;
     skos:definition "The temporal extent or scope of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+
+# Flat-first/reify-on-demand pairings, machine-usable (#325).
+gmeow:hasParticipant gmeow:pairsWith gmeow:Participation .

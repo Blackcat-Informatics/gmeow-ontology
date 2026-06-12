@@ -1050,5 +1050,28 @@ def import_foundation(
     console.print(f"[green]✓[/green] artifacts → {out_dir}")
 
 
+@app.command()
+def describe(
+    term: str = typer.Argument(
+        ..., help="A GMEOW term: gmeow:X, local name, or prefix."
+    ),
+    gts: Path | None = typer.Option(  # noqa: B008
+        None, "--gts", help="Describe offline from a .gts package instead of the repo."
+    ),
+) -> None:
+    """Describe a GMEOW term as useful prose (#325).
+
+    Composes definition, stereotype, slice + tier, alignments, scope notes,
+    examples, and the flat-first/reify-on-demand pairing. Works offline
+    against any .gts file.
+    """
+    from gmeow_tools.describe import describe as _describe
+
+    text, code = _describe(term, gts)
+    console.print(text)
+    if code:
+        raise typer.Exit(code=code)
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

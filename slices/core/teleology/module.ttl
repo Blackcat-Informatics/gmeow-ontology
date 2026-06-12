@@ -170,3 +170,6 @@ gmeow:tenureIntention
     rdfs:label "tenure intention"@x-gmeow-english ;
     skos:definition "The desire or intention the tenure records the agent as holding over its interval. Functional: one tenure, one mode. Commitment tenure is carried by the Commitment relator's own temporal scope (relators are time-indexed by construction); the tenure class exists for the intrinsic modes, whose adoption and abandonment would otherwise be invisible."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
+
+# Flat-first/reify-on-demand pairings, machine-usable (#325).
+gmeow:hasGoal gmeow:pairsWith gmeow:IntentionTenure .
