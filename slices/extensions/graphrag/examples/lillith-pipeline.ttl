@@ -28,12 +28,17 @@ ex:chunk-7 a gmeow:Chunk ;
 # --- Embedding + index: attributed, metric-explicit, vector OUTSIDE (P12).
 ex:embedder a gmeow:SoftwareAgent ; rdfs:label "embedder-v3"@en .
 
+ex:embed-run a gmeow:Activity ; rdfs:label "embedding pass 2026-06-01"@en .
+
 ex:embedding-7 a gmeow:Embedding ;
     gmeow:embeddingOf ex:chunk-7 ;
     gmeow:embeddingModel ex:embedder ;
     gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
     gmeow:distanceMetric gmeow:distanceMetricCosine ;
-    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI .
+    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
+    gmeow:wasGeneratedBy ex:embed-run ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" .
 
 ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@en .
 

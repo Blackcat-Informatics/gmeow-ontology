@@ -29,6 +29,7 @@ gmeow:EmbeddingProvenanceShape
     sh:property [
         sh:path gmeow:distanceMetric ;
         sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "An Embedding must declare exactly one distance metric — 'near' is meaningless without it (P11's spirit at the vector boundary)." ;
     ] .

@@ -35,6 +35,18 @@ gmeow:ChunkLocationShape
         sh:minCount 1 ; sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A Chunk must segment exactly one source (gmeow:chunkOf)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:spanStart ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Chunk must carry exactly one gmeow:spanStart — an offset-less chunk is unlocatable, breaking the which-exact-bytes audit path." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:spanEnd ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Chunk must carry exactly one gmeow:spanEnd." ;
     ] .
 
 gmeow:SpanSanityShape

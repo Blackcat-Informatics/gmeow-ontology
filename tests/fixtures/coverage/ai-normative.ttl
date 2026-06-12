@@ -65,3 +65,10 @@ ex:grounding-gate a gmeow:Norm ;
     rdfs:label "every published claim must carry a groundedIn span"@en ;
     gmeow:normIssuer ex:judge ;
     gmeow:deonticModality gmeow:deonticObligation .
+
+# The seam itself: the Mitigation relator binds the norm AGAINST the hazard
+# (risk extension; the measure range is open by the P16 DAG rule).
+ex:grounding-mitigation a gmeow:Mitigation ;
+    rdfs:label "grounding gate counters the hallucination hazard"@en ;
+    gmeow:mitigationMeasure ex:grounding-gate ;
+    gmeow:mitigationCounters ex:deployment-hazard .
