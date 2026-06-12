@@ -229,13 +229,19 @@ class Memory:
         ride the same append-only package — the agent's actions ARE
         grounded memory.
         """
-        if not tool.strip():
+        # Normalize once, then persist the normalized forms — whitespace-
+        # padded IRIs must never reach the package.
+        tool = tool.strip()
+        if not tool:
             msg = "a tool call needs its tool agent IRI"
             raise ValueError(msg)
-        if invocation is not None and not invocation.strip():
-            msg = "invocation must be a non-empty IRI when given"
-            raise ValueError(msg)
-        if any(not entity.strip() for entity in generated):
+        if invocation is not None:
+            invocation = invocation.strip()
+            if not invocation:
+                msg = "invocation must be a non-empty IRI when given"
+                raise ValueError(msg)
+        generated = tuple(entity.strip() for entity in generated)
+        if any(not entity for entity in generated):
             msg = "generated entity IRIs must be non-empty"
             raise ValueError(msg)
         call = f"urn:gmeow:toolcall:{uuid.uuid4()}"

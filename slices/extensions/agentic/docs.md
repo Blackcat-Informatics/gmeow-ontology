@@ -60,8 +60,8 @@ the JSON the tool returned, not the thing it created. For large payloads the
 verbatim-or-digest doctrine applies: store a content digest literal (`"blake3:…"` — the
 `gmeow:contentDigest` convention from the sources slice) instead of the bytes; the
 digest is the value, resolvable from a content-addressed store, and the self-describing
-prefix keeps the two forms distinguishable. One arguments record and one result record
-per call (functional, with closed-world twins).
+prefix keeps the two forms distinguishable. At most one arguments record and at most one
+result record per call — both optional (functional, with closed-world twins).
 
 ## Cross-slice bridges
 

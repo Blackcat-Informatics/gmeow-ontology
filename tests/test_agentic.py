@@ -84,9 +84,13 @@ def test_double_valued_toolcall_violates_the_closed_world_twins() -> None:
         format="turtle",
     )
     result = run_shacl(_graph() + data)
+    assert result.errors, "double-valued ToolCall must fail SHACL"
+    # run_shacl reports "<focus>: <sh:message>" — the messages are REPO-OWNED
+    # sh:message strings (this slice's shapes.ttl), not validator phrasing,
+    # so they are the stable contract to assert against.
     text = "\n".join(result.errors)
-    assert "several ToolCalls" in text or "usedTool" in text
-    assert "arguments" in text.lower()
+    assert "exactly one tool agent" in text
+    assert "arguments payload" in text
 
 
 # --------------------------------------------------------------------------- #
@@ -97,8 +101,12 @@ def test_double_valued_toolcall_violates_the_closed_world_twins() -> None:
 def test_example_answers_which_tool_under_which_invocation() -> None:
     """'Which tool produced this entity, called by which invocation, with
     what arguments?' — answerable from the worked example alone (#390)."""
+    from gmeow_tools.config import PROJECT_ROOT
+
     g = _graph()
-    example = Path("slices/extensions/agentic/examples/agent-trajectory.ttl")
+    example = (
+        PROJECT_ROOT / "slices" / "extensions" / "agentic" / "examples"
+    ) / "agent-trajectory.ttl"
     g.parse(example, format="turtle")
     rows = list(
         g.query(
