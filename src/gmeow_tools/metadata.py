@@ -212,15 +212,18 @@ class MetadataGenerator(Generator):
         void_path = staging / VOID_FILE.relative_to(PROJECT_ROOT)
         dcat_path = staging / DCAT_FILE.relative_to(PROJECT_ROOT)
         view = load_fold()
+        tag_map = view.tag_map()
         write_turtle(
             void_path,
             build_void_graph(view),
             name=self.name,
             source_hash=getattr(self, "_source_hash", ""),
+            tag_map=tag_map,
         )
         write_turtle(
             dcat_path,
             build_dcat_graph(view),
             name=self.name,
             source_hash=getattr(self, "_source_hash", ""),
+            tag_map=tag_map,
         )
