@@ -10,6 +10,8 @@ generated, never duplicated). It carries the complete ``/gmeow`` contract:
   ``/gmeow/`` directory index.
 * Slice-IRI dereferencing (#329): every term's ``rdfs:isDefinedBy`` points at
   its owning slice, so ``…/gmeow/slices/<name>`` must resolve.
+* Profile-IRI dereferencing (#330): ``…/gmeow/full`` and
+  ``…/gmeow/profiles/<name>`` are generated aggregation ontologies.
 * A permanent ``modules/* -> slices/*`` redirect: pre-slice releases published
   module IRIs in ``isDefinedBy`` values, and released data keeps working.
 * Per-term dereferencing into the pyLODE reference anchors.
@@ -68,6 +70,45 @@ _TEMPLATE = """\
     RewriteRule ^/?gmeow/slices/([a-z][a-z0-9-]*)$ /gmeow.ttl [R=303,L]
     RewriteRule ^/?gmeow/slices/([a-z][a-z0-9-]*)$ /gmeow/ [R=303,L]
 
+    # --- Profile IRIs (#330) ------------------------------------------------
+    # The root IRI is the core profile; <…/gmeow/full> and
+    # <…/gmeow/profiles/<name>> are generated owl:imports aggregations. RDF
+    # requests get the canonical serialization; HTML falls through to the
+    # human landing page (a profile-aware page is the subject of #325).
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} text/turtle [OR]
+    RewriteCond %{{HTTP_ACCEPT}} application/x-turtle
+    RewriteRule ^/?gmeow/full$ /gmeow/full.ttl [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} application/rdf\\+xml
+    RewriteRule ^/?gmeow/full$ /gmeow/full.rdf [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} application/n-triples
+    RewriteRule ^/?gmeow/full$ /gmeow/full.nt [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} application/ld\\+json
+    RewriteRule ^/?gmeow/full$ /gmeow/full.jsonld [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} text/turtle [OR]
+    RewriteCond %{{HTTP_ACCEPT}} application/x-turtle
+    RewriteRule ^/?gmeow/profiles/([a-z][a-z0-9-]*)$ /gmeow/profiles/$1.ttl [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} application/rdf\\+xml
+    RewriteRule ^/?gmeow/profiles/([a-z][a-z0-9-]*)$ /gmeow/profiles/$1.rdf [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} application/n-triples
+    RewriteRule ^/?gmeow/profiles/([a-z][a-z0-9-]*)$ /gmeow/profiles/$1.nt [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} !text/html
+    RewriteCond %{{HTTP_ACCEPT}} application/ld\\+json
+    RewriteRule ^/?gmeow/profiles/([a-z][a-z0-9-]*)$ /gmeow/profiles/$1.jsonld [R=303,L]
+
     # --- Legacy module IRIs -------------------------------------------------
     # Pre-slice releases published .../gmeow/modules/<name> in isDefinedBy
     # values; released data is immutable (Principle 6), so those IRIs keep
@@ -86,13 +127,13 @@ _TEMPLATE = """\
 <LocationMatch "^/gmeow(\\.ttl|/.+\\.ttl)$">
     Header always set Content-Type "text/turtle; charset=utf-8"
 </LocationMatch>
-<Location "/gmeow.rdf">
+<LocationMatch "^/gmeow(\\.rdf|/.+\\.rdf)$">
     Header always set Content-Type "application/rdf+xml; charset=utf-8"
-</Location>
-<Location "/gmeow.nt">
+</LocationMatch>
+<LocationMatch "^/gmeow(\\.nt|/.+\\.nt)$">
     Header always set Content-Type "application/n-triples; charset=utf-8"
-</Location>
-<LocationMatch "^/gmeow(\\.jsonld|/context\\.jsonld)$">
+</LocationMatch>
+<LocationMatch "^/gmeow(\\.jsonld|/.+\\.jsonld|/context\\.jsonld)$">
     Header always set Content-Type "application/ld+json; charset=utf-8"
 </LocationMatch>
 
@@ -105,10 +146,11 @@ _TEMPLATE = """\
 # --- Conneg cache semantics ------------------------------------------------------
 # Every endpoint whose 303-target depends on the Accept header must Vary and
 # must not be cached as a single variant, or a shared cache (Cloudflare) pins
-# one serialization for every client. That is the bare /gmeow AND the slice
-# IRIs (#329) — both negotiate. The serializations themselves, the per-term
-# redirects, and the legacy 301s (one URL -> one target) stay cacheable.
-<LocationMatch "^/gmeow(/?$|/slices/)">
+# one serialization for every client. That is the bare /gmeow, the slice
+# IRIs (#329), and the profile IRIs (#330) — all negotiate. The
+# serializations themselves, the per-term redirects, and the legacy 301s
+# (one URL -> one target) stay cacheable.
+<LocationMatch "^/gmeow(/?$|/(slices|profiles)/[a-z][a-z0-9-]*$|/full$)">
     Header always set Vary "Accept"
     Header always set Cache-Control "private, no-store"
 </LocationMatch>
