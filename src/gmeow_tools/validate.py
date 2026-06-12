@@ -264,6 +264,18 @@ def term_naming_lint(graph: Graph) -> ValidationResult:
     return result
 
 
+_SLICES_CACHE: dict[str, object] = {}
+
+
+def _discover_slices_cached() -> dict[str, object]:
+    """Slice registry for tier lookups (cached per process)."""
+    if not _SLICES_CACHE:
+        from gmeow_tools.slices import discover_slices
+
+        _SLICES_CACHE.update(discover_slices())
+    return _SLICES_CACHE
+
+
 def structural_lint(graph: Graph) -> ValidationResult:
     """Check that every GMEOW term is fully annotated.
 
@@ -292,6 +304,32 @@ def structural_lint(graph: Graph) -> ValidationResult:
             result.errors.append(f"{kind} {term} is missing rdfs:isDefinedBy")
 
     declared = set(typed)
+
+    # Tier-1 depth, graded (#325): public-facing terms — classes and
+    # object/datatype properties in CORE slices — should also carry a
+    # skos:scopeNote (use-when / avoid-when) and a skos:example (worked
+    # micro-example). WARNINGS for now; severity is promoted once coverage
+    # is high (tracked by the module-status matrix). Annotation properties,
+    # individuals, and extension-tier terms are exempt at this grade.
+    core_slice_iris = {
+        URIRef(s.iri)  # type: ignore[attr-defined]
+        for s in _discover_slices_cached().values()
+        if s.tier == "core"  # type: ignore[attr-defined]
+    }
+    for term, kind in sorted(typed.items(), key=lambda x: str(x[0])):
+        if kind not in ("class", "property"):
+            continue
+        defined_by = set(graph.objects(term, RDFS.isDefinedBy))
+        if not (defined_by & core_slice_iris):
+            continue
+        if (term, SKOS.scopeNote, None) not in graph:
+            result.warnings.append(
+                f"{kind} {term} is missing skos:scopeNote (Tier-1 depth, #325)"
+            )
+        if (term, SKOS.example, None) not in graph:
+            result.warnings.append(
+                f"{kind} {term} is missing skos:example (Tier-1 depth, #325)"
+            )
 
     # Dangling GMEOW subclass/subproperty targets.
     for predicate in (RDFS.subClassOf, RDFS.subPropertyOf):
@@ -533,6 +571,63 @@ def check_examples(merged: Graph) -> ValidationResult:
     return result
 
 
+_ANCHOR_PATTERN = re.compile(r"^###\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE)
+# Term headings at the wrong depth are malformed anchors, not invisible ones —
+# the canonical Tier-2 anchor shape is exactly `### gmeow:Term`.
+_MALFORMED_ANCHOR_PATTERN = re.compile(
+    r"^(?:##|#{4,})\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE
+)
+_STUB_MARKER = "This is a STUB guide"
+
+
+def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResult:
+    """Tier-2 structural binding (#325): guides are bound to the graph.
+
+    Every slice must carry a non-stub ``docs.md`` whose ``### gmeow:X``
+    heading anchors resolve to declared GMEOW terms — a renamed term breaks
+    the build, and a slice without a guide fails. Anchors owned by another
+    slice are legal cross-references; anchors matching no term are errors.
+    """
+    from gmeow_tools.config import SLICES_DIR
+
+    result = ValidationResult()
+    declared = set(_collect_typed_terms(graph))
+    base = root if root is not None else SLICES_DIR
+    for manifest in sorted(base.glob("*/*/manifest.ttl")):
+        slice_dir = manifest.parent
+        name = slice_dir.name
+        guide = slice_dir / "docs.md"
+        if not guide.exists():
+            result.errors.append(f"slice {name}: missing docs.md guide (#325 Tier-2)")
+            continue
+        text = guide.read_text(encoding="utf-8")
+        if _STUB_MARKER in text:
+            result.errors.append(
+                f"slice {name}: docs.md is still a stub — Tier-2 guides are "
+                f"mandatory (#325)"
+            )
+        anchors = _ANCHOR_PATTERN.findall(text)
+        for local in _MALFORMED_ANCHOR_PATTERN.findall(text):
+            result.errors.append(
+                f"slice {name}: docs.md anchors gmeow:{local} at the wrong "
+                f"heading depth — the canonical Tier-2 anchor is "
+                f"`### gmeow:Term` (#325)"
+            )
+        if not anchors and _STUB_MARKER not in text:
+            result.warnings.append(
+                f"slice {name}: docs.md has no `### gmeow:Term` anchors — "
+                f"guides should be term-anchored (#325)"
+            )
+        for local in anchors:
+            term = URIRef(NAMESPACE + local)
+            if term not in declared:
+                result.errors.append(
+                    f"slice {name}: docs.md anchors gmeow:{local}, which is "
+                    f"not a declared GMEOW term (renamed or removed? #325)"
+                )
+    return result
+
+
 def validate_all() -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks."""
     result = check_syntax()
@@ -545,6 +640,7 @@ def validate_all() -> ValidationResult:
     result.extend(structural_lint(merged))
     result.extend(term_naming_lint(merged))
     result.extend(slice_ownership_lint())
+    result.extend(guide_anchor_lint(merged))
     result.extend(reasoning_lint(merged))
     result.extend(run_shacl(merged))
     result.extend(check_examples(merged))

@@ -341,6 +341,42 @@ gmeow:policyNeverPublic                    a gmeow:DisclosurePolicy ; rdfs:label
 gmeow:policyPublicOnlyWithIndependentSource  a gmeow:DisclosurePolicy ; rdfs:label "public only with independent source"@x-gmeow-english ;  skos:definition "The fact may be projected to public consumers ONLY when supported by an editorially independent source (resolved against gmeow:sourceIndependence in the solver layer, P12)."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
+# Documentation doctrine — docs ship WITH the ontology (#325).
+#
+# Three tiers (CONSTITUTION P4 applied to documentation): Tier 1 — term docs
+# are canonical in the graph (rdfs:label + skos:definition gated since #221;
+# skos:scopeNote use-when/avoid-when and skos:example worked micro-examples
+# extend them, graded by the completeness gate). Tier 2 — narrative guides
+# are canonical markdown per slice (docs.md), structurally bound: every
+# `### gmeow:Term` anchor resolves against the graph or the build fails, and
+# the guides ride the GTS package as content-addressed blobs linked via
+# gmeow:guideBlob (sub-profiled per slice). Tier 3 — everything else is
+# generated and drift-gated (P7). Literal documentation content is CommonMark,
+# typed gmeow:markdown so the convention is machine-visible; HTML/SGML subsets
+# are explicitly rejected. The flat-first/reify-on-demand pairing is made
+# machine-usable by gmeow:pairsWith, so `gmeow describe` can render
+# "promote to X when ..." from structure rather than prose.
+# --------------------------------------------------------------------------- #
+
+gmeow:markdown
+    a rdfs:Datatype ;
+    rdfs:label "markdown"@x-gmeow-english ;
+    skos:definition "The CommonMark literal datatype — documentation content carried in the graph is CommonMark, typed with this datatype so the convention is machine-visible (#325). Used ONLY in annotation literals (scope notes, examples, guide content), never in logical axioms, so the OWL 2 DL profile is untouched. HTML or SGML subsets are explicitly rejected: one markup convention, visible in the data."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:pairsWith
+    a owl:AnnotationProperty ;
+    rdfs:label "pairs with"@x-gmeow-english ;
+    skos:definition "Links the two halves of a flat-first/reify-on-demand pair — the flat shortcut and the reified relator that carries the same relationship when period, role, confidence, or standpoint must be first-class (gmeow:hasGoal ↔ gmeow:IntentionTenure; gmeow:hasLicense ↔ gmeow:License; gmeow:narrates ↔ gmeow:NarrationUsage). Symmetric by doctrine, asserted in one direction (flat → reified) and read both ways by tooling; an AnnotationProperty so the pairing is machine-usable documentation (gmeow describe renders the promotion path from it), never a logical bridge (Principle 12: no axiom makes the flat form entail the relator)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:guideBlob
+    a owl:AnnotationProperty ;
+    rdfs:label "guide blob"@x-gmeow-english ;
+    skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide as embedded in a GTS package (#325): the guide rides the same file as the ontology, sub-profiled per slice, and a consumer resolves guide ↔ slice from the graph itself. The value is the blob digest string; the docs-in-sync invariant (every guide anchor resolves to a live term) is enforced by the package build, so the linkage is trustworthy from the hash chain alone (Principle 7)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+# --------------------------------------------------------------------------- #
 # Aboutness — the universal mention/use axis (#349, EPIC #348).
 #
 # What a carrier *does* with its content: describes it (mention — reports,
