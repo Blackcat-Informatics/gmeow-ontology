@@ -181,9 +181,11 @@ gmeow:mapOdrlAssignerParty a gmeow:ProjectionMapping ;
 # odrl:uid (audit-overturned): ODRL's uid IS the policy's own IRI — the
 # projected RightsStatement node self-identifies truthfully (no document
 # identity is minted).
-# REFUSED (P5 — unverified conformance claim): odrl:profile names an ODRL
-# profile the policy conforms to; emitting one without a conformance check
-# would be aspiration over honesty.
+# odrl:profile (audit-overturned, round 2): conformance is an ASSERTABLE
+# FACT like any other — when the policy author asserts gmeow:conformsTo on
+# the RightsStatement, the projection carries it as odrl:profile (asserted
+# + attributable, never invented; GMEOW verifies no other claim
+# independently either).
 # REFUSED (P5 — scope mismatch): odrl:duty (the PERMISSION-scoped duty,
 # e.g. attribution-on-use). GMEOW scopes duties to the RightsStatement
 # (already projected as odrl:obligation by mapOdrlDuty above); there is no
@@ -216,3 +218,16 @@ gmeow:mapOdrlUid a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:uid ; gmeow:relation "=" ; gmeow:confidence 0.95 ;
         gmeow:templateAtoms ( [ gmeow:tSubj "ouRs" ; gmeow:tPred odrl:uid ; gmeow:tObj "ouRs" ] ) ] .
+
+
+gmeow:mapOdrlProfile a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement conformsTo → odrl:profile"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "opfRs" ; gmeow:value "opfProfile" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "opfRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "opfRs" ; gmeow:predicate gmeow:conformsTo ; gmeow:objectVar "opfProfile" ] ) ;
+        gmeow:edoalSource gmeow:conformsTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:profile ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the conformance claim is carried as asserted by the policy author — never verified by the transpiler (declared)" ] .
