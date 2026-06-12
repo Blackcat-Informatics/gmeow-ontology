@@ -25,6 +25,9 @@ ex:criterion a gmeow:Criterion ;
     gmeow:penaltyPole ex:down ;
     gmeow:hasScoreAnchor ex:anchor .
 
+ex:criterion2 a gmeow:Criterion ;
+    gmeow:criterionDomain gmeow:criterionDomainFactual .
+
 ex:up   a gmeow:CriterionPole ; rdfs:label "coverage reward pole"@en .
 ex:down a gmeow:CriterionPole ; rdfs:label "coverage penalty pole"@en .
 
@@ -44,7 +47,7 @@ ex:exemplar a gmeow:Exemplar ;
     gmeow:exemplarPolarity gmeow:polarityPositive ;
     gmeow:hasAboutness gmeow:aboutnessEnacts ;
     gmeow:exemplarRationale "coverage rationale" ;
-    gmeow:exemplarRedirect ex:criterion .
+    gmeow:exemplarRedirect ex:criterion2 .
 
 ex:assessment a gmeow:Assessment ;
     gmeow:vantage ex:judge ;

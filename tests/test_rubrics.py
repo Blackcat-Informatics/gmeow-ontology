@@ -98,6 +98,10 @@ def test_assessment_is_a_vantage_indexed_observation() -> None:
     for prop in (GM.assessmentCriterion, GM.assessmentRubric):
         assert (prop, RDFS.subPropertyOf, GM.observationMethod) not in g, prop
         assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
+    # Localizable prose is NOT functional (PR #376 review): one meaning /
+    # rationale per language tag, enforced by sh:uniqueLang.
+    for prop in (GM.anchorMeaning, GM.exemplarRationale):
+        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
     assert (GM.assessmentScoreValue, RDF.type, OWL.DatatypeProperty) in g
 
 
@@ -137,8 +141,11 @@ def test_malformed_rubrics_fixture_is_flagged() -> None:
     errors = "\n".join(result.errors)
     assert "reward and penalty poles must be distinct" in errors
     assert "minimum must be strictly below its maximum" in errors
-    assert "exactly one gmeow:anchorMeaning" in errors
+    assert "at least one gmeow:anchorMeaning" in errors
     assert "range minimum must not exceed" in errors
+    assert "must pin exactly one gmeow:anchorRangeMin" in errors
+    assert "must lie within the scale" in errors
+    assert "may not redirect to the criterion that anchors it" in errors
     assert "at least one of gmeow:viaSelector" in errors
     assert "exactly one gmeow:exemplarPolarity" in errors
     assert "a gmeow:assessmentCriterion, a gmeow:assessmentRubric, or both" in errors

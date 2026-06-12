@@ -5085,7 +5085,7 @@ class Exemplar(CitationAct):
     exemplarPolarity: Optional[ExemplarPolarity] = Field(default=None, title="exemplar polarity", json_schema_extra = { "linkml_meta": {'domain': 'Exemplar',
          'domain_of': ['Exemplar'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplarPolarity'} })
-    exemplarRationale: Optional[str] = Field(default=None, title="exemplar rationale", json_schema_extra = { "linkml_meta": {'domain': 'Exemplar',
+    exemplarRationale: Optional[list[str]] = Field(default=None, title="exemplar rationale", json_schema_extra = { "linkml_meta": {'domain': 'Exemplar',
          'domain_of': ['Exemplar'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplarRationale'} })
     exemplarRedirect: Optional[list[Criterion]] = Field(default=None, title="redirects to", json_schema_extra = { "linkml_meta": {'domain': 'Exemplar',
@@ -29212,7 +29212,7 @@ class ScoreAnchor(InformationObject):
     anchorExemplar: Optional[list[Exemplar]] = Field(default=None, title="anchor exemplar", json_schema_extra = { "linkml_meta": {'domain': 'ScoreAnchor',
          'domain_of': ['ScoreAnchor'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/anchorExemplar'} })
-    anchorMeaning: Optional[str] = Field(default=None, title="anchor meaning", json_schema_extra = { "linkml_meta": {'domain': 'ScoreAnchor',
+    anchorMeaning: Optional[list[str]] = Field(default=None, title="anchor meaning", json_schema_extra = { "linkml_meta": {'domain': 'ScoreAnchor',
          'domain_of': ['ScoreAnchor'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/anchorMeaning'} })
     anchorRangeMax: Optional[Decimal] = Field(default=None, title="anchor range maximum", json_schema_extra = { "linkml_meta": {'domain': 'ScoreAnchor',

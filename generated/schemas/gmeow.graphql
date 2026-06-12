@@ -5889,7 +5889,7 @@ type Exemplar
     supportsNotability: [Boolean]
     viaSelector: [Selector]
     exemplarPolarity: ExemplarPolarity
-    exemplarRationale: String
+    exemplarRationale: [String]
     exemplarRedirect: [Criterion]
     exemplarSubject: [String]
   }
@@ -12786,7 +12786,7 @@ type ScoreAnchor
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     anchorExemplar: [Exemplar]
-    anchorMeaning: String
+    anchorMeaning: [String]
     anchorRangeMax: Float
     anchorRangeMin: Float
   }

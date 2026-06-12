@@ -1,11 +1,16 @@
-# Malformed rubrics fixture (#353, EPIC #348). Six violations:
+# Malformed rubrics fixture (#353, EPIC #348). Nine violations:
 #   1. ex:onePoleAxis — a criterion whose reward and penalty poles coincide.
 #   2. ex:invertedScale — a scale whose minimum meets its maximum.
 #   3. ex:meaninglessAnchor — an anchor with an inverted range and no meaning
 #      (two violations from one node).
-#   4. ex:unpinnedExemplar — an exemplar with neither selector nor subject.
-#   5. ex:apatheticExemplar — an exemplar with no polarity.
-#   6. ex:methodlessScore — an assessment naming neither criterion nor rubric.
+#   4. ex:boundlessAnchor — an anchor with a meaning but no pinned range.
+#   5. ex:overflowAnchor — an anchor whose range exceeds its criterion's
+#      rubric-level scale.
+#   6. ex:unpinnedExemplar — an exemplar with neither selector nor subject.
+#   7. ex:apatheticExemplar — an exemplar with no polarity.
+#   8. ex:narcissusExemplar — a cautionary exemplar redirecting to the very
+#      criterion that anchors it.
+#   9. ex:methodlessScore — an assessment naming neither criterion nor rubric.
 # run_shacl over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
@@ -33,14 +38,47 @@ ex:meaninglessAnchor a gmeow:ScoreAnchor ;
     gmeow:anchorRangeMin 0.9 ;
     gmeow:anchorRangeMax 0.2 .
 
-# Violation 4: pinned to nothing.
+# Violation 4: a meaning but no pinned range.
+ex:boundlessAnchor a gmeow:ScoreAnchor ;
+    gmeow:anchorMeaning "floats free of any range" .
+
+# Violation 5: range exceeds the rubric-level 0-1 scale.
+ex:scaledRubric a gmeow:Rubric ;
+    gmeow:normIssuer ex:judge ;
+    gmeow:hasCriterion ex:scaledCriterion ;
+    gmeow:usesScale ex:unitScale .
+ex:unitScale a gmeow:ScoreScale ; gmeow:scaleMin 0.0 ; gmeow:scaleMax 1.0 .
+ex:scaledCriterion a gmeow:Criterion ;
+    gmeow:hasScoreAnchor ex:overflowAnchor .
+ex:overflowAnchor a gmeow:ScoreAnchor ;
+    gmeow:anchorRangeMin 0.5 ;
+    gmeow:anchorRangeMax 5.0 ;
+    gmeow:anchorMeaning "off the scale" .
+
+# Violation 8: redirects to its own anchoring criterion.
+ex:narcissusCriterion a gmeow:Criterion ;
+    gmeow:hasScoreAnchor ex:narcissusAnchor .
+ex:narcissusAnchor a gmeow:ScoreAnchor ;
+    gmeow:anchorRangeMin 0.0 ;
+    gmeow:anchorRangeMax 0.2 ;
+    gmeow:anchorMeaning "the boundary case" ;
+    gmeow:anchorExemplar ex:narcissusExemplar .
+ex:narcissusExemplar a gmeow:Exemplar ;
+    gmeow:citingEntity ex:rubric ;
+    gmeow:citedEntity ex:novel ;
+    gmeow:citationIntent gmeow:intentDisagreesWith ;
+    gmeow:viaSelector ex:someSpan ;
+    gmeow:exemplarPolarity gmeow:polarityCautionary ;
+    gmeow:exemplarRedirect ex:narcissusCriterion .
+
+# Violation 6: pinned to nothing.
 ex:unpinnedExemplar a gmeow:Exemplar ;
     gmeow:citingEntity ex:rubric ;
     gmeow:citedEntity ex:novel ;
     gmeow:citationIntent gmeow:intentSupports ;
     gmeow:exemplarPolarity gmeow:polarityPositive .
 
-# Violation 5: no polarity (selector present, so only polarity fires).
+# Violation 7: no polarity (selector present, so only polarity fires).
 ex:someSpan a gmeow:Selector ; gmeow:selectorTextQuote "a passage" .
 ex:apatheticExemplar a gmeow:Exemplar ;
     gmeow:citingEntity ex:rubric ;
@@ -48,7 +86,7 @@ ex:apatheticExemplar a gmeow:Exemplar ;
     gmeow:citationIntent gmeow:intentSupports ;
     gmeow:viaSelector ex:someSpan .
 
-# Violation 6: a score with no method.
+# Violation 9: a score with no method.
 ex:chunk a gmeow:TextExtraction ; rdfs:label "a chunk"@en .
 ex:methodlessScore a gmeow:Assessment ;
     gmeow:vantage ex:judge ;

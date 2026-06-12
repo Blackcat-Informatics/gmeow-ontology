@@ -629,11 +629,10 @@ gmeow:anchorRangeMax
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:anchorMeaning
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
-    rdfs:range xsd:string ;
     rdfs:label "anchor meaning"@x-gmeow-english ;
-    skos:definition "What scores in this range MEAN — the calibration prose. Functional and mandatory (SHACL): an anchor without a meaning is just an interval."@x-gmeow-english ;
+    skos:definition "What scores in this range MEAN — the calibration prose. NOT functional and range-open (PR #376 review): localizable prose may carry one meaning per language tag (sh:uniqueLang, SHACL) — a French and an English calibration coexist; two same-language meanings do not. Mandatory: an anchor without a meaning is just an interval."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:anchorExemplar
@@ -696,11 +695,10 @@ gmeow:exemplarRedirect
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:exemplarRationale
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Exemplar ;
-    rdfs:range xsd:string ;
     rdfs:label "exemplar rationale"@x-gmeow-english ;
-    skos:definition "Why this is an exemplar — the judgement prose. Functional; whose judgement it is rides the statement layer."@x-gmeow-english ;
+    skos:definition "Why this is an exemplar — the judgement prose. NOT functional and range-open (PR #376 review): localizable, one rationale per language tag; whose judgement it is rides the statement layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 # --------------------------------------------------------------------------- #

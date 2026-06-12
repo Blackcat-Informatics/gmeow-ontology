@@ -3638,9 +3638,23 @@ gmeow:ScoreAnchorShape
     sh:property [
         sh:path gmeow:anchorMeaning ;
         sh:minCount 1 ;
+        sh:uniqueLang true ;
+        sh:severity sh:Violation ;
+        sh:message "A ScoreAnchor must carry at least one gmeow:anchorMeaning, at most one per language tag — an anchor without a meaning is just an interval (localizable prose, PR #376 review)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:anchorRangeMin ;
+        sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A ScoreAnchor must carry exactly one gmeow:anchorMeaning — an anchor without a meaning is just an interval." ;
+        sh:message "A ScoreAnchor must pin exactly one gmeow:anchorRangeMin — an anchor IS a pinned range." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:anchorRangeMax ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ScoreAnchor must pin exactly one gmeow:anchorRangeMax — an anchor IS a pinned range." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3651,6 +3665,28 @@ gmeow:ScoreAnchorShape
                 $this <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ?min .
                 $this <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ?max .
                 FILTER(?min > ?max)
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A ScoreAnchor's range must lie within the scale its criterion (or owning rubric) declares." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                ?criterion <https://blackcatinformatics.ca/gmeow/hasScoreAnchor> $this .
+                {
+                    ?criterion <https://blackcatinformatics.ca/gmeow/usesScale> ?scale .
+                } UNION {
+                    ?rubric <https://blackcatinformatics.ca/gmeow/hasCriterion> ?criterion ;
+                            <https://blackcatinformatics.ca/gmeow/usesScale> ?scale .
+                    FILTER NOT EXISTS { ?criterion <https://blackcatinformatics.ca/gmeow/usesScale> ?ownScale . }
+                }
+                ?scale <https://blackcatinformatics.ca/gmeow/scaleMin> ?smin ;
+                       <https://blackcatinformatics.ca/gmeow/scaleMax> ?smax .
+                $this <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ?amin ;
+                      <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ?amax .
+                FILTER(?amin < ?smin || ?amax > ?smax)
             }
         """ ;
     ] .
@@ -3690,6 +3726,18 @@ gmeow:ExemplarShape
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
+        sh:message "A cautionary redirect must point AWAY: an exemplar may not redirect to the criterion that anchors it." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/exemplarRedirect> ?criterion .
+                ?criterion <https://blackcatinformatics.ca/gmeow/hasScoreAnchor> ?anchor .
+                ?anchor <https://blackcatinformatics.ca/gmeow/anchorExemplar> $this .
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
         sh:message "An Exemplar must pin its evidence: at least one of gmeow:viaSelector (a span) or gmeow:exemplarSubject (an entity whose pattern is the example)." ;
         sh:severity sh:Violation ;
         sh:select """
@@ -3723,6 +3771,18 @@ gmeow:AssessmentShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "An Assessment must name its judge vantage — a score is somebody's observation, never a graph fact (Principle 9)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assessmentCriterion ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Assessment applies at most one gmeow:assessmentCriterion — a 21-axis pass is 21 Assessments (closed-world functional)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assessmentRubric ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Assessment is made under at most one gmeow:assessmentRubric (closed-world functional)." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;

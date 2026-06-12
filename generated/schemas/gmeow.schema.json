@@ -30506,8 +30506,11 @@
                     ]
                 },
                 "exemplarRationale": {
+                    "items": {
+                        "type": "string"
+                    },
                     "type": [
-                        "string",
+                        "array",
                         "null"
                     ]
                 },
@@ -87871,8 +87874,11 @@
                     ]
                 },
                 "anchorMeaning": {
+                    "items": {
+                        "type": "string"
+                    },
                     "type": [
-                        "string",
+                        "array",
                         "null"
                     ]
                 },

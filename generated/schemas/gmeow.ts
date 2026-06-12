@@ -3267,7 +3267,7 @@ export interface ExecutionStatus {
 
 export interface Exemplar extends CitationAct {
     exemplarPolarity?: ExemplarPolarity,
-    exemplarRationale?: string,
+    exemplarRationale?: string[],
     exemplarRedirect?: Criterion[],
     exemplarSubject?: string[],
 }
@@ -4918,7 +4918,7 @@ export interface ScheduleException {
 
 export interface ScoreAnchor extends InformationObject {
     anchorExemplar?: Exemplar[],
-    anchorMeaning?: string,
+    anchorMeaning?: string[],
     anchorRangeMax?: string,
     anchorRangeMin?: string,
 }

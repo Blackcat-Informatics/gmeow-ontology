@@ -46,7 +46,8 @@ ex:passiveVictimhood a gmeow:CriterionPole ;
 ex:highAnchor a gmeow:ScoreAnchor ;
     gmeow:anchorRangeMin 0.8 ;
     gmeow:anchorRangeMax 1.0 ;
-    gmeow:anchorMeaning "The text embodies the dynamic as a sovereign choice." ;
+    gmeow:anchorMeaning "The text embodies the dynamic as a sovereign choice."@x-gmeow-english ,
+        "Le texte incarne la dynamique comme un choix souverain."@x-gmeow-french ;
     gmeow:anchorExemplar ex:spanExemplar .
 
 ex:novel a gmeow:BookRelease ; rdfs:label "an exemplary novel"@en .
