@@ -618,11 +618,18 @@ gmeow:namePurposeGlossonym    a gmeow:NamePurpose ; rdfs:label "glossonym (name 
 gmeow:namePurposeGlossonym skos:definition "The glossonym name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
-gmeow:NameRegister
+gmeow:Register
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Register"@x-gmeow-english ;
+    skos:definition "A social or expressive register — the formality, intimacy, or audience-posture of an expression act (#355, EPIC #348). The OPEN umbrella vocabulary that name registers specialize and that persona expression (norms slice) reuses: the same agent, the same norms, expressed formally in public and intimately in private. Registers are first-class value individuals with their own IRIs, labels, and definitions — never a subclass tree, never a 'primary' (Principle 9). Lives in the names core slice because register-of-address was already core here and the dependency direction (extensions reference core, never the reverse) requires the umbrella below its consumers."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
+
+gmeow:NameRegister
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gmeow:Register, gufo:QualityValue ;
     rdfs:label "Name Register"@x-gmeow-english ;
-    skos:definition "The social register of a name-usage (formal, intimate, professional, casual). A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage."@x-gmeow-english ;
+    skos:definition "The social register of a name-usage (formal, intimate, professional, casual) — the naming specialization of the gmeow:Register umbrella (#355): a name register IS a register, so persona expression and name address draw from one vocabulary spine. A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:registerFormal       a gmeow:NameRegister ; rdfs:label "formal"@x-gmeow-english .

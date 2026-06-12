@@ -123,3 +123,37 @@ family.
   Assessment is structural), DQV, schema.org `Rating`/`Review`, 1EdTech
   CASE, and the lm-eval task-YAML projection; judge outputs ingest back as
   vantage-indexed Assessments. Target list fixed in #353.
+
+## The registers & personas facility (#355)
+
+Same agent, same norms, different expression by context — and
+register-switching is **not** deception (the held/projected divergence is
+issue #212's territory; documented boundary, no axiom coupling).
+
+- **Grounding decision (deviation from the #355 sketch, recorded):**
+  `Persona` is a **relator** (the NameUsage idiom), not a `gufo:Role` class —
+  roles classify, they don't reify, and a persona needs its own identity for
+  registers, style guides, activation conditions, and suppressible tenure.
+  The DUL Role/Description/Situation grounding maps onto relator + Condition.
+- **The register spine lives in names core**: `gmeow:Register` (open
+  umbrella) with `NameRegister ⊑ Register` — address and expression draw
+  from one vocabulary, and the dependency direction requires the umbrella
+  below its consumers. This facility mints the persona-facing seeds
+  (public, private, ceremonial, clinical, brand voice).
+- **Expression machinery**: `personaBearer` (one agent, many co-equal
+  personas — no `primaryPersona`, ever), `personaRegister` (≥1, open vocab),
+  `activatedIn` (→ `Condition` or situation type; blend-vs-compete is solver
+  work over recorded precedence), `expressesNorm` (→ `Norm`). Persona
+  precedence needs **no new machinery**: `overrides`/`PrecedenceTenure` on
+  the activation norms.
+- **The same-norms invariant is a query, not a shape**
+  (`registers-norm-divergence.rq`): divergence is legal (P9) — the query
+  makes it visible. Test-proven in both directions.
+- **The voice payload is byte-perfect**: `StyleGuide` + `exemplifiedBy` →
+  content-digested `Document`s carrying `hasAboutness aboutnessEnacts` —
+  the document does not describe the voice, it *is* the voice; an
+  undigested exemplar is a SHACL violation (silent drift).
+- **Deferred to the compiler-arc window**: system-prompt assembly
+  (Persona × Norms × StyleGuide — the projection that replaces
+  principia.yaml's Jinja2 role), AI character-card JSON, LexInfo/OLiA/DUL
+  alignment rows. Target list fixed in #355.

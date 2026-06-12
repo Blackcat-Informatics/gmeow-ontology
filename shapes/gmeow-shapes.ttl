@@ -3823,3 +3823,57 @@ gmeow:AssessmentShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Registers & personas shapes (#355, EPIC #348).
+# --------------------------------------------------------------------------- #
+
+gmeow:PersonaShape
+    a sh:NodeShape ;
+    rdfs:label "Persona Shape" ;
+    sh:targetClass gmeow:Persona ;
+    sh:property [
+        sh:path gmeow:personaBearer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Persona must have exactly one gmeow:personaBearer — one persona, one agent; an agent bears many co-equal personas." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:personaRegister ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Persona must express in at least one gmeow:personaRegister (an IRI — the Register vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:expressesNorm ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:Norm ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:expressesNorm must target gmeow:Norm instances (sound here: instance norms are typed in data graphs, unlike module-typed vocabulary)." ;
+    ] .
+
+gmeow:StyleGuideShape
+    a sh:NodeShape ;
+    rdfs:label "Style Guide Shape" ;
+    sh:targetClass gmeow:StyleGuide ;
+    sh:property [
+        sh:path gmeow:styleGuideFor ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A StyleGuide must voice at least one gmeow:styleGuideFor target (a Persona or a Register) — a style guide for nothing is just a document." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:exemplifiedBy ;
+        sh:node [
+            sh:property [
+                sh:path gmeow:contentDigest ;
+                sh:minCount 1 ;
+                sh:severity sh:Violation ;
+                sh:message "A voice exemplar document must carry gmeow:contentDigest — an undigested exemplar can drift silently." ;
+            ] ;
+        ] ;
+        sh:severity sh:Violation ;
+        sh:message "Every gmeow:exemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
+    ] .
