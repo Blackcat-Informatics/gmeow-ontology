@@ -104,6 +104,9 @@ class Cell:
 def load_cells(dsl_dir: Path | None = None) -> list[Cell]:
     """Read every authored TermEquivalence cell from the mapping DSL."""
     directory = dsl_dir if dsl_dir is not None else MAPPING_DSL_DIR / "equivalences"
+    if not directory.is_dir():
+        msg = f"equivalence DSL directory not found: {directory}"
+        raise FileNotFoundError(msg)
     g = Graph()
     for path in sorted(directory.glob("*.ttl")):
         g.parse(path, format="turtle")

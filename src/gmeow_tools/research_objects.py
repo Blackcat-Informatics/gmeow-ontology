@@ -34,6 +34,7 @@ from __future__ import annotations
 import json
 import zipfile
 from dataclasses import dataclass
+from html import escape
 from pathlib import Path
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
@@ -162,6 +163,11 @@ _FRICTIONLESS_SCHEMA_FILE = (
     PROJECT_ROOT / "imports" / "targets" / "data-package.schema.json"
 )
 
+# ET.register_namespace mutates ElementTree's global prefix registry —
+# registered once at import, never per call (thread-safety + no re-mutation).
+ET.register_namespace("", DATACITE_NS)
+ET.register_namespace("xsi", _XSI_NS)
+
 
 # --------------------------------------------------------------------------- #
 # Instance-graph access
@@ -170,6 +176,9 @@ _FRICTIONLESS_SCHEMA_FILE = (
 
 def load_instance_graph(paths: Sequence[Path]) -> Graph:
     """Parse instance Turtle files into one graph (no ontology merge)."""
+    if not paths:
+        msg = "no instance files given"
+        raise ValueError(msg)
     g = Graph()
     for path in paths:
         g.parse(path, format="turtle")
@@ -240,6 +249,20 @@ def dataset_meta(g: Graph) -> DatasetMeta:
     ds = candidates[0]
     license_node = g.value(ds, _HAS_LICENSE)
     license_id = _text(g, license_node, _SPDX_LICENSE_ID) if license_node else ""
+    if not license_id:
+        msg = (
+            f"dataset descriptor {ds} has a gmeow:License without a "
+            "gmeow:spdxLicenseId — every research object needs a resolvable "
+            "license identifier"
+        )
+        raise ValueError(msg)
+    date_published = _text(g, ds, _DATE_PUBLISHED)
+    if len(date_published) < 4 or not date_published[:4].isdigit():
+        msg = (
+            f"dataset descriptor {ds} needs a valid gmeow:datePublished "
+            "(an ISO date — DataCite's publicationYear comes from it)"
+        )
+        raise ValueError(msg)
     creator_node = g.value(ds, _WAS_ATTRIBUTED_TO)
     return DatasetMeta(
         iri=str(ds),
@@ -248,7 +271,7 @@ def dataset_meta(g: Graph) -> DatasetMeta:
         license_id=license_id,
         license_url=(f"https://spdx.org/licenses/{license_id}" if license_id else ""),
         creator=_label(g, creator_node) if creator_node else "",
-        date_published=_text(g, ds, _DATE_PUBLISHED),
+        date_published=date_published,
         landing_page=_text(g, ds, _SOURCE_LOCATION) or str(ds),
     )
 
@@ -693,17 +716,21 @@ def build_ro_crate_preview(metadata: dict[str, object]) -> str:
     root: dict[str, object] = next(
         (e for e in graph if isinstance(e, dict) and e.get("@id") == "./"), {}
     )
+
+    def esc(entity: dict[str, object], key: str, default: str = "") -> str:
+        return escape(str(entity.get(key, default)))
+
     rows = "\n".join(
-        f"<tr><td>{e.get('@id', '')}</td><td>{e.get('@type', '')}</td>"
-        f"<td>{e.get('name', '')}</td></tr>"
+        f"<tr><td>{esc(e, '@id')}</td><td>{esc(e, '@type')}</td>"
+        f"<td>{esc(e, 'name')}</td></tr>"
         for e in graph
         if isinstance(e, dict)
     )
     return (
         '<!DOCTYPE html>\n<html lang="en">\n<head><meta charset="utf-8">'
-        f"<title>{root.get('name', 'RO-Crate')}</title></head>\n<body>\n"
-        f"<h1>{root.get('name', '')}</h1>\n<p>{root.get('description', '')}</p>\n"
-        f"<p>Published: {root.get('datePublished', '')}</p>\n"
+        f"<title>{esc(root, 'name', 'RO-Crate')}</title></head>\n<body>\n"
+        f"<h1>{esc(root, 'name')}</h1>\n<p>{esc(root, 'description')}</p>\n"
+        f"<p>Published: {esc(root, 'datePublished')}</p>\n"
         '<table border="1">\n<tr><th>@id</th><th>@type</th><th>name</th></tr>\n'
         f"{rows}\n</table>\n</body>\n</html>\n"
     )
@@ -713,6 +740,9 @@ def package_ro_crate(crate_dir: Path, out_zip: Path) -> Path:
     """Zip a crate directory deterministically (stored, fixed timestamps)."""
     out_zip.parent.mkdir(parents=True, exist_ok=True)
     files = sorted(p for p in crate_dir.rglob("*") if p.is_file())
+    if not files:
+        msg = f"no files to package in crate directory: {crate_dir}"
+        raise ValueError(msg)
     with zipfile.ZipFile(out_zip, "w", compression=zipfile.ZIP_STORED) as zf:
         for f in files:
             info = zipfile.ZipInfo(
@@ -826,8 +856,6 @@ def build_datacite_xml(g: Graph, ds: DatasetMeta, *, doi: str | None = None) -> 
     """
     doi = doi or f"{PLACEHOLDER_DOI_PREFIX}/gmeow-{_slug(ds.iri).lower()}"
 
-    ET.register_namespace("", DATACITE_NS)
-    ET.register_namespace("xsi", _XSI_NS)
     root = ET.Element(
         f"{{{DATACITE_NS}}}resource",
         {f"{{{_XSI_NS}}}schemaLocation": _DATACITE_SCHEMA_LOCATION},
@@ -942,6 +970,11 @@ def export_research_objects(
     Returns:
         Written paths. Raises GeneratorError on validator diagnostics (P7).
     """
+    supported = {"croissant", "ro-crate", "dcat", "datacite", "frictionless"}
+    unknown = sorted(set(profiles) - supported)
+    if unknown:
+        msg = f"unknown research-object profile(s): {', '.join(unknown)}"
+        raise ValueError(msg)
     g = load_instance_graph(inputs)
     ds = dataset_meta(g)
     written: list[Path] = []

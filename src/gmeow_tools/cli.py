@@ -868,7 +868,10 @@ def transform(
         f"{result.wall_clock_s:.1f}s"
     )
     if diff_target is not None:
-        maximal = Graph().parse(result.written[2], format="turtle")  # index.ttl
+        index_ttl = next((p for p in result.written if p.name == "index.ttl"), None)
+        if index_ttl is None:
+            raise _fail("✗ transform output missing index.ttl")
+        maximal = Graph().parse(index_ttl, format="turtle")
         target_graph = Graph().parse(diff_target, format="turtle")
         table = vocab_coverage(maximal, target_graph)
         if report is not None:

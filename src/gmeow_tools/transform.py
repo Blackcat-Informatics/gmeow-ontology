@@ -312,6 +312,9 @@ def vocab_coverage(maximal: Graph, target: Graph) -> str:
     a parity-target graph, grouped by namespace — never triple-exact (the
     instance data differs); the *missing terms* column is the backlog.
     """
+    if len(maximal) == 0 or len(target) == 0:
+        msg = "vocab_coverage needs two non-empty graphs"
+        raise ValueError(msg)
 
     def vocab_terms(g: Graph) -> set[str]:
         from rdflib import RDF as _RDF

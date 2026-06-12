@@ -149,8 +149,9 @@ def test_ro_crate_zip_is_deterministic(exports: Path, tmp_path: Path) -> None:
     a = package_ro_crate(exports / "ro-crate", tmp_path / "a.zip")
     b = package_ro_crate(exports / "ro-crate", tmp_path / "b.zip")
     assert a.read_bytes() == b.read_bytes()
-    assert zipfile.ZipFile(a).testzip() is None
-    names = zipfile.ZipFile(a).namelist()
+    with zipfile.ZipFile(a) as zf:
+        assert zf.testzip() is None
+        names = zf.namelist()
     assert "ro-crate-metadata.json" in names
     assert "ro-crate-preview.html" in names
 
