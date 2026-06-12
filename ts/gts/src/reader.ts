@@ -87,8 +87,18 @@ class Folder {
         const d = wire.mapGet(frame, "d");
         const x = wire.mapGet(frame, "x");
         if (x !== undefined) {
-            const ids = Array.isArray(x) ? x : undefined;
-            if (ids && ids.length > 0) {
+            if (!Array.isArray(x)) {
+                return {
+                    value: null,
+                    err: {
+                        unavailable: false,
+                        reason: "",
+                        damaged: true,
+                        detail: "transform field 'x' must be an array",
+                    },
+                };
+            }
+            if (x.length > 0) {
                 const b = wire.asBytes(d);
                 if (!b) {
                     return {
@@ -101,7 +111,7 @@ class Folder {
                         },
                     };
                 }
-                const chain = this.resolveCodecs(ids);
+                const chain = this.resolveCodecs(x);
                 if (isPayloadError(chain)) {
                     return { value: null, err: chain };
                 }
@@ -657,8 +667,7 @@ function readSegment(items: wire.CborItem[], indexOffset: number): Graph {
         const sig = frame.get("sig");
         if (sig !== undefined) {
             let status = "unverified";
-            if (!Buffer.isBuffer(sig) && !(sig instanceof Uint8Array))
-                status = "invalid";
+            if (!(sig instanceof Uint8Array)) status = "invalid";
             g.signatures.push({ frameId: computed, kid: "", status });
         }
         fld.foldFrame(frame, absIndex);

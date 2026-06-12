@@ -308,13 +308,16 @@ function suppressedBlobDigests(g: Graph): Set<string> {
 }
 
 function destPath(dest: string, archivePath: string): string {
-    if (archivePath.startsWith("/"))
-        throw new Error(`absolute path in archive: ${archivePath}`);
-    for (const part of archivePath.split("/")) {
+    const normalized = archivePath.replace(/\\/g, "/");
+    if (normalized.startsWith("/") || /^[a-zA-Z]:/.test(normalized))
+        throw new Error(
+            `absolute or drive-relative path not allowed in archive: ${archivePath}`,
+        );
+    for (const part of normalized.split("/")) {
         if (part === "..")
             throw new Error(`path traversal in archive: ${archivePath}`);
     }
-    return resolve(dest, archivePath);
+    return resolve(dest, normalized);
 }
 
 /** Extract FileEntry quads from a folded graph into dest. */

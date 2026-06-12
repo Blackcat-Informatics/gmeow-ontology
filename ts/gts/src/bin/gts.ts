@@ -519,4 +519,4 @@ function main(argv: string[]): number {
     }
 }
 
-process.exit(main(process.argv.slice(2)));
+process.exitCode = main(process.argv.slice(2));

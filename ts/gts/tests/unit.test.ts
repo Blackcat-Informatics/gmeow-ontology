@@ -131,3 +131,76 @@ test("reader allows clean multi-segment file", () => {
     assert.equal(g.segmentHeads.length, 2);
     assert.equal(g.quads.length, 2);
 });
+
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { unpack } from "../src/files.js";
+
+const filesNS = "https://w3id.org/gts/files#";
+const rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+function filesGraphWithPath(path: string): Graph {
+    const g = new Graph();
+    const subj = g.terms.push({ kind: TermKind.Bnode, value: "f0" }) - 1;
+    const fileEntry =
+        g.terms.push({ kind: TermKind.Iri, value: filesNS + "FileEntry" }) - 1;
+    const typePred = g.terms.push({ kind: TermKind.Iri, value: rdfType }) - 1;
+    const pathPred =
+        g.terms.push({ kind: TermKind.Iri, value: filesNS + "path" }) - 1;
+    const digestPred =
+        g.terms.push({ kind: TermKind.Iri, value: filesNS + "digest" }) - 1;
+    const sizePred =
+        g.terms.push({ kind: TermKind.Iri, value: filesNS + "size" }) - 1;
+    const pathVal = g.terms.push({ kind: TermKind.Literal, value: path }) - 1;
+
+    const empty = new Uint8Array(0);
+    const digest = wire.digestStr(empty);
+    const digestVal =
+        g.terms.push({ kind: TermKind.Literal, value: digest }) - 1;
+    const sizeVal =
+        g.terms.push({ kind: TermKind.Literal, value: String(empty.length) }) -
+        1;
+
+    g.quads.push({ s: subj, p: typePred, o: fileEntry });
+    g.quads.push({ s: subj, p: pathPred, o: pathVal });
+    g.quads.push({ s: subj, p: digestPred, o: digestVal });
+    g.quads.push({ s: subj, p: sizePred, o: sizeVal });
+    g.setBlob(digest, empty);
+    return g;
+}
+
+test("reader rejects a malformed transform field", () => {
+    const w = new Writer("generic");
+    w.addTerms([{ kind: TermKind.Iri, value: "https://example.org/A" }]);
+
+    const badFrame = new Map<unknown, unknown>();
+    badFrame.set("t", "terms");
+    badFrame.set("x", "not-an-array");
+    badFrame.set("d", new Uint8Array([0xa1, 0x61, 0x78, 0x01]));
+    badFrame.set("prev", w.head());
+    badFrame.set("id", wire.contentId(badFrame));
+    const frameBytes = wire.encode(badFrame);
+
+    const data = new Uint8Array(w.toBytes().length + frameBytes.length);
+    data.set(w.toBytes());
+    data.set(frameBytes, w.toBytes().length);
+
+    const g = Read(data, false);
+    assert.ok(
+        g.diagnostics.some((d) => d.code === "DamagedFrame"),
+        "expected DamagedFrame diagnostic for malformed transform",
+    );
+});
+
+test("unpack rejects Windows-style path traversal", () => {
+    const g = filesGraphWithPath("..\\\\..\\\\etc\\\\passwd");
+    const dest = mkdtempSync(join(tmpdir(), "gts-unpack-"));
+    assert.throws(() => unpack(g, dest), /path traversal/);
+});
+
+test("unpack rejects drive-relative archive paths", () => {
+    const g = filesGraphWithPath("C:\\\\secret.txt");
+    const dest = mkdtempSync(join(tmpdir(), "gts-unpack-"));
+    assert.throws(() => unpack(g, dest), /absolute or drive-relative path/);
+});
