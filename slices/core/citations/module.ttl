@@ -189,3 +189,6 @@ gmeow:isReferencedBy
     rdfs:label "is referenced by"@x-gmeow-english ;
     skos:definition "A related resource that references, cites, or otherwise points to the described resource. Inverse of gmeow:references."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> .
+
+# Flat-first/reify-on-demand pairings, machine-usable (#325).
+gmeow:cites gmeow:pairsWith gmeow:CitationAct .

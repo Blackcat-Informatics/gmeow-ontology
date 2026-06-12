@@ -263,12 +263,28 @@ class _Builder:
     # -- emit -----------------------------------------------------------------
 
     def to_gts(
-        self, *, profile: str = "dist", transform: list[str] | None = None
+        self,
+        *,
+        profile: str = "dist",
+        transform: list[str] | None = None,
+        doc_blobs: list[tuple[bytes, str, str]] | None = None,
     ) -> bytes:
-        """Emit a single ``dist`` snapshot frame from the accumulated tables."""
+        """Emit a single ``dist`` snapshot frame from the accumulated tables.
+
+        ``doc_blobs`` (#325): content-addressed documentation payloads —
+        ``(data, media_type, rep)`` rows, emitted as blob frames AHEAD of the
+        snapshot frame in a deterministic (rep, digest) order so the bytes
+        stay a pure function of the inputs. The graph links each slice to
+        its guide via ``gmeow:guideBlob "blake3:<hex>"`` (the reader keys
+        blobs by BLAKE3 of the decoded content).
+        """
         chain = ["zstd"] if transform is None else transform
         terms, quads, reifies, annot = self._canonical_tables()
         writer = Writer(profile=profile)
+        for data, media_type, rep in sorted(
+            doc_blobs or [], key=lambda row: (row[2], row[0])
+        ):
+            writer.add_blob(data, mt=media_type, rep=rep, transform=list(chain))
         snapshot: dict[str, object] = {
             "terms": [term_to_wire(t) for t in terms],
             "quads": [
@@ -329,6 +345,7 @@ def compile_gts(
     *,
     alignment_graph: Graph | None = None,
     transform: list[str] | None = None,
+    doc_blobs: list[tuple[bytes, str, str]] | None = None,
 ) -> bytes:
     """Compile the statement-complete, byte-deterministic ``dist`` GTS snapshot.
 
@@ -364,4 +381,4 @@ def compile_gts(
             graph_name=GTS_GRAPH_ALIGNMENTS,
             bnode_scope="align",
         )
-    return builder.to_gts(profile="dist", transform=transform)
+    return builder.to_gts(profile="dist", transform=transform, doc_blobs=doc_blobs)

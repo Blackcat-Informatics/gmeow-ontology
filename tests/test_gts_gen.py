@@ -25,7 +25,6 @@ from gmeow_tools.config import (
     GTS_GRAPH_STATEMENTS,
     GTS_SNAPSHOT_FILE,
     PROJECT_ROOT,
-    STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.gts_producer import compile_gts
@@ -44,11 +43,9 @@ def _small_graph() -> Graph:
 
 
 def _build_snapshot() -> bytes:
-    return compile_gts(
-        load_merged_graph(include_imports=False),
-        STATEMENT_RDF12_FILE,
-        alignment_graph=build_alignment_graph(load_mappings()),
-    )
+    from gmeow_tools.gts_gen import build_snapshot_bytes
+
+    return build_snapshot_bytes()
 
 
 def test_double_build_is_byte_identical() -> None:
@@ -102,7 +99,16 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
 
     default_quads = sum(1 for q in g.quads if q[3] is None)
     merged_size = len(to_canonical_graph(load_merged_graph(include_imports=False)))
-    assert default_quads == merged_size
+    from gmeow_tools.config import SLICES_DIR
+
+    guide_links = sum(
+        1
+        for m in SLICES_DIR.glob("*/*/manifest.ttl")
+        if (m.parent / "docs.md").exists()
+    )
+    # The default graph carries the merged sources PLUS one gmeow:guideBlob
+    # linkage per embedded slice guide (#325).
+    assert default_quads == merged_size + guide_links
 
     alignments = [
         q
