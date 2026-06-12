@@ -234,7 +234,7 @@ def run(name: str, check: bool = False) -> RunReport:
             leaks: list[str] = []
             for out in gen.outputs:
                 f = staging / _staging_rel(out)
-                if not f.is_file() or f.suffix in {".png", ".bin", ".gts"}:
+                if not f.is_file() or f.suffix in {".png", ".bin", ".gts", ".parquet"}:
                     continue
                 try:
                     if "@x-gmeow-" in f.read_text(encoding="utf-8"):

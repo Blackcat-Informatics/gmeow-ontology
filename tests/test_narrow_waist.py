@@ -5,7 +5,7 @@
 Two complementary enforcement layers, so the waist cannot silently regress:
 
 * **Behavioral seal** — with every canonical-source reader monkeypatched to
-  raise, all four data exporters must still render, proving they need
+  raise, all five data exporters must still render, proving they need
   nothing but ``generated/dist/gmeow.gts``.
 * **Static seal** — the exporter modules must not import rdflib or
   pyoxigraph at all (``metadata.py`` keeps rdflib strictly as the OUTPUT
@@ -32,6 +32,7 @@ from gmeow_tools import (  # noqa: F401  (@register side effects)
     mapping_compile,
     matrix,
     metadata,
+    parquet_gen,
     schema_compile,
     statement_compile,
 )
@@ -40,11 +41,12 @@ from gmeow_tools.generator import regenerate_order, registry
 
 _SRC = PROJECT_ROOT / "src" / "gmeow_tools"
 
-#: The four data exporters: module name → modules that must NOT be imported.
+#: The data exporters: module name → modules that must NOT be imported.
 _SEALED: dict[str, frozenset[str]] = {
     "export.py": frozenset({"rdflib", "pyoxigraph"}),
     "schema_compile.py": frozenset({"rdflib", "pyoxigraph"}),
     "lpg.py": frozenset({"rdflib", "pyoxigraph"}),
+    "parquet_gen.py": frozenset({"rdflib", "pyoxigraph"}),
     # rdflib allowed as the output serializer; pyoxigraph not at all
     "metadata.py": frozenset({"pyoxigraph"}),
 }
@@ -107,7 +109,7 @@ def test_static_seal_no_canonical_source_loaders() -> None:
 def test_behavioral_seal_exporters_render_from_snapshot_alone(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """All four generators render with every source reader raising.
+    """All five generators render with every source reader raising.
 
     The strongest form of the claim: not merely "they don't import the
     loaders" but "they cannot be USING them" — every canonical-source
@@ -135,7 +137,7 @@ def test_behavioral_seal_exporters_render_from_snapshot_alone(
         monkeypatch.setattr("pyoxigraph.parse", boom)
 
     gens = registry()
-    for name in ("exports", "metadata", "schemas", "lpg"):
+    for name in ("exports", "metadata", "schemas", "lpg", "parquet"):
         staging = tmp_path / name
         staging.mkdir()
         gens[name].render(staging)  # must not raise
@@ -144,11 +146,11 @@ def test_behavioral_seal_exporters_render_from_snapshot_alone(
 
 
 def test_registry_orders_gts_before_every_consumer() -> None:
-    """Topological order: statements → gts → the four exporters."""
+    """Topological order: statements → gts → the five exporters."""
     order = regenerate_order()
     gts_pos = order.index("gts")
     assert order.index("statements") < gts_pos
-    for consumer in ("exports", "metadata", "schemas", "lpg"):
+    for consumer in ("exports", "metadata", "schemas", "lpg", "parquet"):
         assert gts_pos < order.index(consumer), (
             f"{consumer} ordered before its input producer"
         )

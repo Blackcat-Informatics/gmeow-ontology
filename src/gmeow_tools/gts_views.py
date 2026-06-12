@@ -278,11 +278,22 @@ class FoldView:
         agree by construction): an internal-tagged literal with a BCP-47
         mapping wins; otherwise the deterministically-first literal.
         """
+        return self.public_literal(s_tid, p_iri, scope)[0]
+
+    def public_literal(
+        self, s_tid: int, p_iri: str, scope: str | None = DEFAULT
+    ) -> tuple[str, str | None]:
+        """The public text for ``(s, p)`` plus its public BCP-47 tag.
+
+        The tag is the mapped form of the winning literal's internal tag
+        (``None`` for untagged literals or unmapped tags) — what a projection
+        that re-emits the literal, tag included, must carry (#287).
+        """
         candidates = [
             o for o in self.objects(s_tid, p_iri, scope) if self.is_literal(o)
         ]
         if not candidates:
-            return ""
+            return "", None
         tag_map = self.tag_map()
         # Same pre-sort as language_tags.public_literal: ties within a
         # language resolve by lexical value in BOTH paths.
@@ -290,8 +301,11 @@ class FoldView:
         for o in sorted(candidates, key=lambda o: rank_language(self.lang(o))):
             lang = self.lang(o)
             if lang and is_internal_tag(lang) and lang in tag_map:
-                return self.lex(o)
-        return self.lex(candidates[0])
+                return self.lex(o), tag_map[lang]
+        first_lang = self.lang(candidates[0])
+        return self.lex(candidates[0]), (
+            tag_map.get(first_lang) if first_lang else None
+        )
 
     # -- internals ---------------------------------------------------------------
 

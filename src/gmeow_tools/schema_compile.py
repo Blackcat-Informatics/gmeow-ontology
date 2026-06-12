@@ -261,6 +261,12 @@ def emit_linkml(view: FoldView) -> tuple[dict[str, Any], list[str]]:
         if desc is not None:
             slot["description"] = desc
 
+        is_functional = prop in functional
+        is_object = object_tid is not None and view.has(prop, _RDF_TYPE_IRI, object_tid)
+        is_datatype = datatype_tid is not None and view.has(
+            prop, _RDF_TYPE_IRI, datatype_tid
+        )
+
         ranges = sorted(
             view.lex(r)
             for r in view.objects(prop, _RDFS_NS + "range")
@@ -279,6 +285,10 @@ def emit_linkml(view: FoldView) -> tuple[dict[str, Any], list[str]]:
                     slot["maximum_value"] = maximum
             if len(ranges) > 1:
                 warnings.append(f"{local}: multiple ranges — keeping {slot['range']}")
+        elif is_object:
+            # #382: a range-open ObjectProperty holds IRI references, not text.
+            # GMEOW serializes CURIEs, so uriorcurie is the faithful LinkML type.
+            slot["range"] = "uriorcurie"
         else:
             slot["range"] = "string"
 
@@ -294,11 +304,6 @@ def emit_linkml(view: FoldView) -> tuple[dict[str, Any], list[str]]:
             if len(domains) > 1:
                 warnings.append(f"{local}: multiple domains — keeping {domain_local}")
 
-        is_functional = prop in functional
-        is_object = object_tid is not None and view.has(prop, _RDF_TYPE_IRI, object_tid)
-        is_datatype = datatype_tid is not None and view.has(
-            prop, _RDF_TYPE_IRI, datatype_tid
-        )
         if is_functional:
             slot["multivalued"] = False
         elif is_object or is_datatype:
