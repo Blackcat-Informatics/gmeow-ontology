@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://blackcatinformatics.ca/gmeow/evals/claim-emission.schema.json",
+  "title": "GMEOW claim emission",
+  "description": "The flat shape a model emits per extracted claim (one JSON object per JSONL line) — #298's structured-output contract, mirrored by `gmeow audit --json`. No RDF is required of the model (CONSTITUTION P13); the harness converts valid emissions onto the claim spine and runs the #55 audit gates over them.",
+  "type": "object",
+  "required": ["text", "method"],
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The claim, as one self-contained sentence."
+    },
+    "method": {
+      "const": "llm-extraction",
+      "description": "How the claim was produced (gmeow:methodLlmExtraction)."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Calibrated credence — scored against measured grounding."
+    },
+    "source": {
+      "type": "string",
+      "description": "The source document id this claim was extracted from (a corpus sourceLocation)."
+    },
+    "evidence": {
+      "type": "array",
+      "description": "Pinned spans. A claim with no supporting span is scored as a hallucination.",
+      "items": {
+        "type": "object",
+        "required": ["quote", "start", "end", "polarity"],
+        "additionalProperties": false,
+        "properties": {
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The EXACT passage, verbatim from the source (the re-anchorable selector)."
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unicode code-point offset, zero-based inclusive (binds to the source digest)."
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Offset, exclusive. Must exceed start."
+          },
+          "polarity": {
+            "enum": ["supports", "refutes", "neutral"]
+          }
+        }
+      }
+    }
+  }
+}

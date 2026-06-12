@@ -120,6 +120,12 @@ STATEMENT_DSL_SHAPES_FILE = SHAPES_DIR / "statement-dsl-shapes.ttl"
 QUERIES_DIR = PROJECT_ROOT / "queries"
 COMPETENCY_DIR = QUERIES_DIR / "competency"
 QC_DIR = QUERIES_DIR / "qc"
+#: Claim-audit queries (#55): the named hallucination/contradiction/staleness
+#: questions, dual-engine-gated like every committed query.
+AUDIT_QUERY_DIR = QUERIES_DIR / "audit"
+#: The eval suite (#298): corpus, emission contract, rubric, model outputs.
+EVALS_DIR = PROJECT_ROOT / "evals"
+GENERATED_EVALS_DIR = GENERATED_DIR / "evals"
 #: Reasoned-graph negative-test queries (ROBOT ``verify``; any returned row is a
 #: violation — the OBO QC pattern). Run over the reasoned merged ontology.
 VERIFY_DIR = QUERIES_DIR / "verify"

@@ -60,6 +60,7 @@ def regenerate(
     from gmeow_tools import (  # noqa: F401
         apache,
         catalog_gen,
+        evals,
         export,
         frame_shapes_gen,
         gts_gen,
@@ -110,6 +111,7 @@ def check_generated(
     from gmeow_tools import (  # noqa: F401
         apache,
         catalog_gen,
+        evals,
         export,
         frame_shapes_gen,
         gts_gen,
@@ -216,6 +218,73 @@ def constitution_check() -> None:
         console.print("[green]✓ constitution check passed[/green]")
     else:
         raise _fail(f"✗ {len(result.errors)} error(s)")
+
+
+@app.command()
+def audit(
+    files: list[Path] = typer.Argument(  # noqa: B008
+        ...,
+        help="Turtle data files to audit against the claim gates (#55).",
+    ),
+    json_out: bool = typer.Option(
+        False, "--json", help="Emit the documented flat-JSON claim shape."
+    ),
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        help="Exit non-zero when any claim is flagged (default: report only).",
+    ),
+) -> None:
+    """Audit claims: ungrounded / contradicted / stale, flagged never deleted."""
+    from gmeow_tools.audit import audit_graph, render_json, render_text
+
+    report = audit_graph(list(files))
+    if json_out:
+        console.print(render_json(report))
+    else:
+        console.print(render_text(report))
+    if report.shacl_errors:
+        raise _fail(f"✗ {len(report.shacl_errors)} SHACL error(s)")
+    if strict and report.flagged:
+        raise _fail(f"✗ {report.flagged} flagged claim(s) (--strict)")
+
+
+evals_app = typer.Typer(
+    help="Claim-extraction eval suite (#298).", no_args_is_help=True
+)
+app.add_typer(evals_app, name="evals")
+
+
+@evals_app.command(name="score")
+def evals_score() -> None:
+    """Score every committed emission against the published contract (offline)."""
+    from gmeow_tools.evals import all_scorecards
+
+    for card in all_scorecards():
+        console.print(
+            f"[bold]{card.model}[/bold] overall {card.overall:.2f} "
+            f"({card.valid}/{card.emitted} valid)"
+        )
+        for name, value in sorted(card.scores.items()):
+            console.print(f"  {name}: {value:.2f}")
+
+
+@evals_app.command(name="run")
+def evals_run(
+    model: str = typer.Option(..., "--model", help="Model identifier to send."),
+    endpoint: str = typer.Option(..., "--endpoint", help="API endpoint URL."),
+    api: str = typer.Option("openai", "--api", help="openai | anthropic."),
+) -> None:
+    """Call a model API over the corpus (network; keys from env)."""
+    from gmeow_tools.evals import run_model
+
+    try:
+        out = run_model(model=model, endpoint=endpoint, api=api)
+    except httpx.HTTPError as exc:
+        raise _fail(f"✗ model API call failed: {exc}") from exc
+    console.print(
+        f"[green]✓ emission written to {out} — run `gmeow regenerate evals`[/green]"
+    )
 
 
 @app.command(name="compliance-report")

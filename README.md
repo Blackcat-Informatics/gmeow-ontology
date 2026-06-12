@@ -115,6 +115,7 @@ slice's model *and* how it aligns/projects.
 | [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The sixteen normative principles every design decision and PR is measured against |
 | [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md) | Governance | The v0.2.0 realignment: one engine, three products — positioning, recast inventory, deliverables D1–D7 |
 | [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
+| [`docs/hallucination-resistant-kg.md`](./docs/hallucination-resistant-kg.md) | Doctrine | The claim-extraction spine done right — fixture, prompt, audit gates, `gmeow audit`; scored across models on the [eval leaderboard](./generated/evals/leaderboard.md) |
 | [`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) | Specification | The Graph Transport Substrate — the content-addressed, append-only single-file format behind the `ai-package` memory and the narrow-waist exports |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The four-artifact alignment stack (SSSOM / EDOAL / FnO / SPARQL) and how lossy down-projection works |

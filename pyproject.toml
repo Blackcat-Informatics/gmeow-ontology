@@ -19,6 +19,8 @@ dependencies = [
     "linkml>=1.11",
     "PyYAML>=6.0",
     "duckdb>=1.5.3",
+    "jsonschema>=4.23",
+    "blake3>=0.4",
     # the GTS format engine — the publishable workspace member (packages/gts);
     # the range matters for non-workspace installs of downstream packages
     "gts>=0.1.0,<0.2",
@@ -33,6 +35,7 @@ gmeow = "gmeow_tools.cli:app"
 dev = [
     "ruff>=0.9",
     "mypy>=1.14",
+    "types-jsonschema>=4.23",
     "pytest>=8.3",
     "pytest-cov>=6.0",
     "pytest-xdist>=3.6",

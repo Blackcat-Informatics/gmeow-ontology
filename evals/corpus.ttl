@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The eval corpus (#298): GMEOW's own documents, dogfooded. The harness reads
+# the files at sourceLocation; the digests pin the scored version (offsets
+# verify exactly when the digest matches; quotes re-anchor otherwise).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ev:    <https://blackcatinformatics.ca/gmeow/evals/corpus/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ev:readme a gmeow:Document ;
+    rdfs:label "README.md"@en ;
+    gmeow:sourceLocation "README.md" ;
+    gmeow:contentDigest "blake3:796331d99dbaab78c0f9857aedb0aa3cfaea1c30910c390634d1b34823b933ea" .
+
+ev:constitution a gmeow:Document ;
+    rdfs:label "CONSTITUTION.md"@en ;
+    gmeow:sourceLocation "CONSTITUTION.md" ;
+    gmeow:contentDigest "blake3:28095794e8c96325ecafcf36dbc10266132d3da5483e62779f398811cd8d780d" .

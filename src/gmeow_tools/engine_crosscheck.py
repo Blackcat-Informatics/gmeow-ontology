@@ -35,6 +35,7 @@ from rdflib.query import ResultRow
 
 from gmeow_tools import sparql
 from gmeow_tools.config import (
+    AUDIT_QUERY_DIR,
     COMPETENCY_DIR,
     FIXTURES_DIR,
     PROJECTION_QUERY_DIR,
@@ -258,7 +259,14 @@ def crosscheck_all() -> list[CrosscheckResult]:
         proj_graph, proj_store = _projection_data()
 
         plan: list[tuple[Path, Graph, pyoxigraph.Store]] = []
-        for directory in (COMPETENCY_DIR, QC_DIR, VERIFY_DIR, TEMPORAL_QUERY_DIR):
+        for directory in (
+            AUDIT_QUERY_DIR,
+            COMPETENCY_DIR,
+            QC_DIR,
+            VERIFY_DIR,
+            TEMPORAL_QUERY_DIR,
+            AUDIT_QUERY_DIR,
+        ):
             for rq in sorted(directory.glob("*.rq")):
                 plan.append((rq, base_graph, base_store))
         # Slice-owned queries (slices/*/*/queries/<kind>/, #287). TQL is
