@@ -1,3 +1,4 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -552,4 +553,13 @@ gmeow:eqCw054 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:comment "PAV authoredOn is content-authorship date; GMEOW datePublished is the manifestation release date." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAuthor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:made ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "linkage row declaring the foaf projection's made inverse (work-to-agent vs agent-to-work — close, deliberately not strong; the projection emits the inverse template, #34 phase 3)" ;
     gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .

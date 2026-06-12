@@ -18,6 +18,22 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "SoftwareProject hasTag → doap:category"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasTag ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri doap:category ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "SoftwareProject dateCreated → doap:created"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:dateCreated ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri doap:created ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "Repository(repoTypeGit) → doap:GitRepository"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:repositoryType ] ;
@@ -32,6 +48,14 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri doap:license ] ;
             align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "SoftwareProject fullName → doap:name"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:fullName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri doap:name ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "SoftwareProject → doap:Project (facet collapse)"@en ;
             align:entity1 [ a edoal:Class ;
@@ -60,6 +84,14 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri doap:revision ] ;
             align:relation "=" ],
+        [ a align:Cell ;
+            rdfs:label "SoftwareProject description → doap:shortdesc"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:description ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri doap:shortdesc ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "Release → doap:Version (event conflation)"@en ;
             align:entity1 [ a edoal:Class ;

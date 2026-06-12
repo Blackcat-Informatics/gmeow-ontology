@@ -11,6 +11,14 @@
     rdfs:label "GMEOW → schema-org (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "abstract → schema:abstract"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:abstract ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:abstract ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "hasAccessibilityFeature → schema:accessibilityFeature (lossy)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasAccessibilityFeature ] ;
@@ -34,6 +42,14 @@
                     edoal:uri schema:acquireLicensePage ] ;
             align:relation "=" ;
             edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Person memberOf → schema:affiliation"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:memberOf ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:affiliation ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "Participation (attendee role) → schema:attendee"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -68,6 +84,18 @@
             align:relation "<=" ;
             edoal:measure 9.5e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnBirthEventToDate ] ],
+        [ a align:Cell ;
+            rdfs:label "Birth life-event place → schema:birthPlace"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:participationParticipant ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationEvent ] [ a edoal:Relation ;
+                                edoal:uri gmeow:eventLocation ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:birthPlace ] ;
+            align:relation "<=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "Mark → schema:Brand"@en ;
             align:entity1 [ a edoal:Class ;
@@ -117,6 +145,14 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "hasAuthor → schema:creator"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasAuthor ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:creator ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "credentialFor → schema:competencyRequired"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:credentialFor ] ;
@@ -140,6 +176,38 @@
                     edoal:uri schema:creditText ] ;
             align:relation "<=" ;
             edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dateModified → schema:dateModified"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:dateModified ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:dateModified ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Death life-event date → schema:deathDate"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:participationParticipant ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationEvent ] [ a edoal:Relation ;
+                                edoal:uri gmeow:eventTime ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:deathDate ] ;
+            align:relation "<=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Death life-event place → schema:deathPlace"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:participationParticipant ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationEvent ] [ a edoal:Relation ;
+                                edoal:uri gmeow:eventLocation ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:deathPlace ] ;
+            align:relation "<=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -268,6 +336,14 @@
             edoal:measure 8e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnTagToKeyword ] ],
         [ a align:Cell ;
+            rdfs:label "Article title → schema:headline"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:title ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:headline ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Honorific (prefix position) → schema:honorificPrefix"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:honorific ] ;
@@ -283,6 +359,14 @@
                     edoal:uri schema:honorificSuffix ] ;
             align:relation "<=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ] ],
+        [ a align:Cell ;
+            rdfs:label "identifier → schema:identifier"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:identifier ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:identifier ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "pixelHeight → schema:height"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -386,6 +470,14 @@
                     edoal:uri schema:location ] ;
             align:relation "<=" ;
             edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Contribution(role=SoftwareMaintainer) → schema:maintainer"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:contributionRole ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:maintainer ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "Capacity Measurement → schema:maximumAttendeeCapacity (lossy)"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -694,6 +786,22 @@
             edoal:measure 8e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSkillProficiencyToKnowsAbout ] ],
         [ a align:Cell ;
+            rdfs:label "hasSkill → schema:skills"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasSkill ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:skills ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Repository → schema:SoftwareSourceCode + codeRepository"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Repository ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:SoftwareSourceCode ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "hasProcedureStep → schema:step"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasProcedureStep ] ;
@@ -701,6 +809,14 @@
                     edoal:uri schema:step ] ;
             align:relation "<=" ;
             edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "isAbout inverse → schema:subjectOf"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:isAbout ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:subjectOf ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "stepInput → schema:supply"@en ;
             align:entity1 [ a edoal:Relation ;

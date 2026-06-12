@@ -35,6 +35,8 @@ CONSTRUCT {
     ?asset a odrl:Asset .
     ?p a odrl:Party .
     ?lp a odrl:Party .
+    ?ohpEnt odrl:hasPolicy ?ohpRs .
+    ?optRs a odrl:Policy .
 }
 WHERE {
     {
@@ -109,5 +111,13 @@ WHERE {
     UNION {
         ?anylic gmeow:licensor ?lp .
         FILTER NOT EXISTS { ?anylic gmeow:displayable false . }
+    }
+    UNION {
+        ?ohpEnt gmeow:hasRightsStatement ?ohpRs .
+        FILTER NOT EXISTS { ?ohpEnt gmeow:displayable false . }
+    }
+    UNION {
+        ?optRs a gmeow:RightsStatement .
+        FILTER NOT EXISTS { ?optRs gmeow:displayable false . }
     }
 }

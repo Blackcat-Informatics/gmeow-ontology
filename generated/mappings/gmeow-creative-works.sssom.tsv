@@ -10,6 +10,7 @@
 #   credit: https://credit.niso.org/contributor-roles/
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   fabio: http://purl.org/spar/fabio/
+#   foaf: http://xmlns.com/foaf/0.1/
 #   frbr: http://purl.org/vocab/frbr/core#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   lrmoo: http://iflastandards.info/ns/lrm/lrmoo/
@@ -50,6 +51,7 @@ gmeow:eventTypeExpressionCreation	skos:closeMatch	lrmoo:F28_Expression_Creation	
 gmeow:eventTypeWorkConception	skos:broadMatch	crm:E65_Creation	semapv:ManualMappingCuration	0.85	CIDOC E65 Creation is broader than work conception.
 gmeow:eventTypeWorkConception	skos:closeMatch	lrmoo:F27_Work_Conception	semapv:ManualMappingCuration	0.9	LRMoo F27 Work Conception ≈ GMEOW event type value.
 gmeow:exemplifies	owl:equivalentProperty	frbr:exemplar	semapv:ManualMappingCuration	1.0	Item exemplifies Manifestation.
+gmeow:hasAuthor	skos:closeMatch	foaf:made	semapv:ManualMappingCuration	0.8	linkage row declaring the foaf projection's made inverse (work-to-agent vs agent-to-work — close, deliberately not strong; the projection emits the inverse template, #34 phase 3)
 gmeow:realizes	owl:equivalentProperty	frbr:realization	semapv:ManualMappingCuration	1.0	Expression realizes Work.
 gmeow:roleConceptualization	skos:exactMatch	credit:conceptualization	semapv:ManualMappingCuration	1.0	CRediT conceptualization role.
 gmeow:roleDataCuration	skos:exactMatch	credit:data-curation	semapv:ManualMappingCuration	1.0	CRediT data curation role.

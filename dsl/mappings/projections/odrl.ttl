@@ -176,3 +176,30 @@ gmeow:mapOdrlAssignerParty a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:relation "<=" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "lp" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Party ] ) ] .
+
+# --- #34 phases 2-3 backlog work-down. ------------------------------------ #
+# REFUSED (P5 — policy-document mechanics): odrl:uid and odrl:profile are
+# identifiers OF the policy document itself, assigned at publication; the
+# transpiler derives policies from rights statements and cannot truthfully
+# mint document identities for them.
+# REFUSED (P5 — scope mismatch): odrl:duty (the PERMISSION-scoped duty,
+# e.g. attribution-on-use). GMEOW scopes duties to the RightsStatement
+# (already projected as odrl:obligation by mapOdrlDuty above); there is no
+# permission-level duty source, and re-homing the statement duty onto each
+# permission would assert a tighter binding than the data holds.
+
+gmeow:mapOdrlHasPolicy a gmeow:ProjectionMapping ;
+    rdfs:label "hasRightsStatement → odrl:hasPolicy"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ohpEnt" ; gmeow:value "ohpRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "ohpEnt" ; gmeow:predicate gmeow:hasRightsStatement ; gmeow:objectVar "ohpRs" ] ) ;
+        gmeow:edoalSource gmeow:hasRightsStatement ] ;
+    gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toPredicate odrl:hasPolicy ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapOdrlPolicyType a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement → odrl:Policy (the Set's superclass, alongside it)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "optRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "optRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ;
+        gmeow:edoalSource gmeow:RightsStatement ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toClass odrl:Policy ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .

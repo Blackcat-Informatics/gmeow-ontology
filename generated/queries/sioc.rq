@@ -14,6 +14,9 @@ CONSTRUCT {
     ?samsg sioc:has_creator ?sauthor .
     ?sacct a sioc:UserAccount .
     ?sacct sioc:account_of ?sagent .
+    ?stMsg sioc:topic ?stTopic .
+    ?snAcct sioc:name ?snName .
+    ?slMsg sioc:link ?slUrl .
 }
 WHERE {
     {
@@ -41,5 +44,19 @@ WHERE {
     UNION {
         ?sagent gmeow:holdsAccount ?sacct .
         FILTER NOT EXISTS { ?sagent gmeow:displayable false . }
+    }
+    UNION {
+        ?stMsg a gmeow:EmailMessage .
+        ?stMsg gmeow:isAbout ?stTopic .
+        FILTER NOT EXISTS { ?stMsg gmeow:displayable false . }
+    }
+    UNION {
+        ?snAcct gmeow:accountName ?snName .
+        FILTER NOT EXISTS { ?snAcct gmeow:displayable false . }
+    }
+    UNION {
+        ?slMsg a gmeow:EmailMessage .
+        ?slMsg gmeow:sourceLocation ?slUrl .
+        FILTER NOT EXISTS { ?slMsg gmeow:displayable false . }
     }
 }

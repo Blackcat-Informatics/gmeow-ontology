@@ -34,6 +34,22 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
+            rdfs:label "message sourceLocation → sioc:link"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sourceLocation ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri sioc:link ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "accountName → sioc:name (the account display name)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:accountName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri sioc:name ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "EmailMessage → sioc:Post"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:EmailMessage ] ;
@@ -49,6 +65,14 @@
                     edoal:uri sioc:reply_of ] ;
             align:relation "=" ;
             edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "message isAbout → sioc:topic"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:isAbout ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri sioc:topic ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "OnlineAccount → sioc:UserAccount + account_of"@en ;
             align:entity1 [ a edoal:Relation ;

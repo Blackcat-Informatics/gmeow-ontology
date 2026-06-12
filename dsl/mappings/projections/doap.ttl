@@ -188,9 +188,10 @@ gmeow:mapDoapHelper a gmeow:ProjectionMapping ;
 # The frozen DOAP enum cannot express unforeseen roles (Principle 9).
 
 # --- #34 phase 3 gap-fill: repository browse URL + maintenance status. ----- #
-# REFUSED (P5 — no source): doap:bug-database, doap:download-page,
-# doap:category — GMEOW's software slice models no issue-tracker, download
-# page, or project-category facet; minting them would invent facts.
+# REFUSED (P5 — no source): doap:bug-database, doap:download-page — GMEOW's
+# software slice models no issue-tracker or download-page facet; minting
+# them would invent facts. (doap:category WAS refused here; the #34 backlog
+# audit found gmeow:hasTag is the genuine source — celled below.)
 
 gmeow:mapDoapBrowse a gmeow:ProjectionMapping ;
     rdfs:label "Repository webUrl → doap:browse"@x-gmeow-english ;
@@ -272,3 +273,46 @@ gmeow:mapDoapGitRepository a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:repositoryType ] ;
     gmeow:hasBinding [
         gmeow:profile "doap" ; gmeow:toClass doap:GitRepository ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+
+gmeow:mapDoapCategory a gmeow:ProjectionMapping ;
+    rdfs:label "SoftwareProject hasTag → doap:category"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dcatProj" ; gmeow:value "dcatTag" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dcatProj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "dcatProj" ; gmeow:predicate gmeow:hasTag ; gmeow:objectVar "dcatTag" ] ) ;
+        gmeow:edoalSource gmeow:hasTag ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:category ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the tag node passes as the category resource; tagger, scheme, and interval drop" ] .
+
+gmeow:mapDoapName a gmeow:ProjectionMapping ;
+    rdfs:label "SoftwareProject fullName → doap:name"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dnProj" ; gmeow:value "dnName" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dnProj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "dnProj" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "dnName" ] ) ;
+        gmeow:edoalSource gmeow:fullName ] ;
+    gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:name ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDoapShortdesc a gmeow:ProjectionMapping ;
+    rdfs:label "SoftwareProject description → doap:shortdesc"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dsdProj" ; gmeow:value "dsdText" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dsdProj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "dsdProj" ; gmeow:predicate gmeow:description ; gmeow:objectVar "dsdText" ] ) ;
+        gmeow:edoalSource gmeow:description ] ;
+    gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:shortdesc ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDoapCreated a gmeow:ProjectionMapping ;
+    rdfs:label "SoftwareProject dateCreated → doap:created"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dcrProj" ; gmeow:value "dcrDate" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dcrProj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "dcrProj" ; gmeow:predicate gmeow:dateCreated ; gmeow:objectVar "dcrDate" ] ) ;
+        gmeow:edoalSource gmeow:dateCreated ] ;
+    gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:created ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
