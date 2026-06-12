@@ -63,7 +63,12 @@ def merge_release(
     Returns:
         The path to the merged ontology.
     """
-    args = ["merge", "--catalog", _rel(CATALOG_FILE), "--input", _rel(ONTOLOGY_FILE)]
+    # The root IRI is the CORE profile (#330); the global gate keeps
+    # covering everything by merging the generated FULL profile instead.
+    from gmeow_tools.config import FULL_PROFILE_FILE
+
+    merge_input = FULL_PROFILE_FILE if FULL_PROFILE_FILE.exists() else ONTOLOGY_FILE
+    args = ["merge", "--catalog", _rel(CATALOG_FILE), "--input", _rel(merge_input)]
     if include_statements and STATEMENT_OWL_FILE.exists():
         args += ["--input", _rel(STATEMENT_OWL_FILE)]
     import uuid
