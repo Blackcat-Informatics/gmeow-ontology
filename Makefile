@@ -124,6 +124,7 @@ test-fast: ## Run the fast test suite (excludes ci_only heavy/secondary export t
 check: ## Fast local gate: core ontology + transforms.
 	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
 	$(MAKE) test-fast
+	$(MAKE) compliance-report
 	@echo "✓ all checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + regenerate + CrossRef deposit.
