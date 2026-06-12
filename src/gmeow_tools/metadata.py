@@ -183,6 +183,40 @@ def build_dcat_graph(view: FoldView | None = None) -> Graph:
         graph.add((dist, DCAT.downloadURL, URIRef(f"{ONTOLOGY_IRI}.{ext}")))
         graph.add((dist, DCAT.mediaType, Literal(media, datatype=XSD.string)))
         graph.add((dataset, DCAT.distribution, dist))
+
+    # Profile IRIs are datasets too (#330): composition made discoverable.
+    # The root IRI is the core profile; <…/full> aggregates it plus every
+    # extension; named profiles are slim dependency-closed subsets of full.
+    from gmeow_tools.config import FULL_PROFILE_IRI, NAMED_PROFILE_NS
+    from gmeow_tools.profiles_gen import dependency_closure, group_named_profiles
+    from gmeow_tools.slices import discover_slices
+
+    slices = discover_slices()
+    full = URIRef(FULL_PROFILE_IRI)
+    graph.add((full, RDF.type, DCAT.Dataset))
+    graph.add((full, DCTERMS.title, Literal("GMEOW — full profile", lang="en")))
+    graph.add((full, DCTERMS.hasPart, dataset))
+    graph.add((full, DCAT.landingPage, full))
+    for name, members in sorted(group_named_profiles(slices).items()):
+        profile = URIRef(NAMED_PROFILE_NS + name)
+        closure = dependency_closure(members, slices)
+        graph.add((profile, RDF.type, DCAT.Dataset))
+        graph.add(
+            (profile, DCTERMS.title, Literal(f"GMEOW — {name} profile", lang="en"))
+        )
+        graph.add(
+            (
+                profile,
+                DCTERMS.description,
+                Literal(
+                    f"Slim dependency-closed profile: {len(members)} declared "
+                    f"slice(s), {len(closure)} in the import closure.",
+                    lang="en",
+                ),
+            )
+        )
+        graph.add((profile, DCTERMS.isPartOf, full))
+        graph.add((profile, DCAT.landingPage, profile))
     return graph
 
 
@@ -199,8 +233,10 @@ class MetadataGenerator(Generator):
 
     @property
     def inputs(self) -> Sequence[Path]:
-        """Canonical inputs for the metadata generator."""
-        return [GTS_SNAPSHOT_FILE]
+        """The snapshot plus the manifests that declare profile membership."""
+        from gmeow_tools.config import SLICES_DIR
+
+        return [GTS_SNAPSHOT_FILE, *sorted(SLICES_DIR.glob("*/*/manifest.ttl"))]
 
     @property
     def outputs(self) -> Sequence[Path]:

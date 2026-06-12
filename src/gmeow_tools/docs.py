@@ -50,7 +50,65 @@ def pylode_html(source: Path | None = None, *, output: Path | None = None) -> Pa
 
     doc = OntPub(ontology=str(src))
     doc.make_html(destination=str(out))
+    html = out.read_text(encoding="utf-8")
+    if "</body>" in html:
+        out.write_text(
+            html.replace("</body>", profiles_section_html() + "\n</body>", 1),
+            encoding="utf-8",
+        )
     return out
+
+
+def profiles_section_html() -> str:
+    """The landing page's Profiles section (#330's recorded sub-decision).
+
+    The human page stays unified — conneg splits machines from humans —
+    and this section explains the composition: the root IRI is the core
+    profile, ``full`` aggregates everything, and each named profile is a
+    slim dependency-closed import set.
+    """
+    from gmeow_tools.config import FULL_PROFILE_IRI, NAMED_PROFILE_NS, ONTOLOGY_IRI
+    from gmeow_tools.profiles_gen import dependency_closure, group_named_profiles
+    from gmeow_tools.slices import discover_slices
+
+    slices = discover_slices()
+    core_n = sum(1 for s in slices.values() if s.is_core)
+    rows = [
+        (
+            ONTOLOGY_IRI,
+            "core",
+            f"the root IRI is the core profile — {core_n} tierCore slices",
+        ),
+        (
+            FULL_PROFILE_IRI,
+            "full",
+            f"everything: core plus {len(slices) - core_n} extension slices",
+        ),
+    ]
+    for name, members in group_named_profiles(slices).items():
+        closure = dependency_closure(members, slices)
+        rows.append(
+            (
+                NAMED_PROFILE_NS + name,
+                name,
+                f"{len(members)} declared slice(s), {len(closure)} in the "
+                f"dependency-closed import set",
+            )
+        )
+    items = "\n".join(
+        f'<li><a href="{iri}"><code>{iri}</code></a> — '
+        f"<strong>{name}</strong>: {desc}</li>"
+        for iri, name, desc in rows
+    )
+    return (
+        '<section id="profiles">\n<h2>Profiles</h2>\n'
+        "<p>Composition lives in profile IRIs (#330): each profile is a "
+        "generated <code>owl:imports</code> aggregation — dereferenceable "
+        "via content negotiation, citable, and reasonable on its own. "
+        "Named profiles are slim: declared members plus their dependency "
+        "closure, never the whole core.</p>\n"
+        f"<ul>\n{items}\n</ul>\n</section>"
+    )
 
 
 def widoco_available() -> bool:

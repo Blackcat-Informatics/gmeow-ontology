@@ -118,6 +118,108 @@ def test_full_profile_imports_every_slice() -> None:
     assert core | extensions == {s.iri for s in slices.values()}
 
 
+def test_named_profiles_are_slim_and_dependency_closed() -> None:
+    """Named profiles (#330) are SLIM: declared members plus their
+    sliceDependsOn closure — never the root import — and the emitted
+    document equals the closure recomputed from the manifests."""
+    from gmeow_tools.config import NAMED_PROFILE_NS, ONTOLOGY_IRI, PROFILES_DIR
+    from gmeow_tools.profiles_gen import dependency_closure, group_named_profiles
+    from gmeow_tools.slices import discover_slices
+
+    slices = discover_slices()
+    named = group_named_profiles(slices)
+    assert {"claims", "memory", "narrative"} <= set(named)
+
+    kernel_iri = NAMESPACE + "slices/kernel"
+    for name, members in named.items():
+        doc = _parse_ttl(PROFILES_DIR / f"{name}.ttl")
+        profile_iri = URIRef(NAMED_PROFILE_NS + name)
+        imports = {
+            str(o)
+            for o in doc.objects(profile_iri, OWL.imports)
+            if isinstance(o, URIRef)
+        }
+        assert ONTOLOGY_IRI not in imports, f"{name}: imports the whole core"
+        assert imports == set(dependency_closure(members, slices)), (
+            f"{name}: emitted imports drift from the manifest closure"
+        )
+        for iri in members:
+            missing = set(slices[iri].depends_on) - imports
+            assert not missing, f"{name}: member {iri} deps escape: {missing}"
+        assert kernel_iri in imports, f"{name}: kernel never arrived"
+
+
+def test_claims_profile_is_genuinely_sub_core() -> None:
+    """The slim ruling made measurable: claims ⊂ core, strictly, and
+    carries no extension."""
+    from gmeow_tools.config import PROFILES_DIR
+    from gmeow_tools.slices import discover_slices
+
+    slices = discover_slices()
+    core = {s.iri for s in slices.values() if s.is_core}
+    doc = _parse_ttl(PROFILES_DIR / "claims.ttl")
+    imports = {
+        str(o) for o in doc.objects(predicate=OWL.imports) if isinstance(o, URIRef)
+    }
+    assert imports < core, "claims must be a strict subset of core"
+
+
+def test_profile_membership_is_multi_valued() -> None:
+    """A slice may serve several profiles — evidence is in claims AND
+    memory (the kernel-adjacent multi-membership the registry must keep)."""
+    from gmeow_tools.profiles_gen import group_named_profiles
+    from gmeow_tools.slices import discover_slices
+
+    named = group_named_profiles(discover_slices())
+    evidence = NAMESPACE + "slices/evidence"
+    assert evidence in named["claims"]
+    assert evidence in named["memory"]
+
+
+def test_catalog_maps_every_named_profile() -> None:
+    """ROBOT/Protégé offline resolution covers the named profile IRIs."""
+    from gmeow_tools.config import NAMED_PROFILE_NS
+    from gmeow_tools.profiles_gen import group_named_profiles
+    from gmeow_tools.slices import discover_slices
+
+    catalog = ET.parse(CATALOG_FILE)
+    ns = {"catalog": "urn:oasis:names:tc:entity:xmlns:xml:catalog"}
+    catalog_iris = {uri.get("name") for uri in catalog.findall(".//catalog:uri", ns)}
+    for name in group_named_profiles(discover_slices()):
+        assert NAMED_PROFILE_NS + name in catalog_iris
+
+
+def test_landing_page_profiles_section_lists_every_profile() -> None:
+    """The recorded #330 sub-decision: the human page stays unified and
+    gains a Profiles section covering core, full, and every named profile."""
+    from gmeow_tools.config import FULL_PROFILE_IRI, NAMED_PROFILE_NS, ONTOLOGY_IRI
+    from gmeow_tools.docs import profiles_section_html
+    from gmeow_tools.profiles_gen import group_named_profiles
+    from gmeow_tools.slices import discover_slices
+
+    html = profiles_section_html()
+    assert ONTOLOGY_IRI in html and FULL_PROFILE_IRI in html
+    for name in group_named_profiles(discover_slices()):
+        assert NAMED_PROFILE_NS + name in html
+
+
+def test_dcat_describes_every_profile_as_a_dataset() -> None:
+    """Machine-discoverable composition: full + each named profile is a
+    dcat:Dataset with its IRI as the landing page (#330)."""
+    from rdflib.namespace import DCAT
+
+    from gmeow_tools.config import DCAT_FILE, FULL_PROFILE_IRI, NAMED_PROFILE_NS
+    from gmeow_tools.profiles_gen import group_named_profiles
+    from gmeow_tools.slices import discover_slices
+
+    dcat = _parse_ttl(DCAT_FILE)
+    assert (URIRef(FULL_PROFILE_IRI), RDF.type, DCAT.Dataset) in dcat
+    for name in group_named_profiles(discover_slices()):
+        profile = URIRef(NAMED_PROFILE_NS + name)
+        assert (profile, RDF.type, DCAT.Dataset) in dcat
+        assert (profile, DCAT.landingPage, profile) in dcat
+
+
 def test_all_modules_are_in_catalog() -> None:
     """Every ontology/modules/*.ttl owl:Ontology must be mapped in catalog."""
     catalog = ET.parse(CATALOG_FILE)
