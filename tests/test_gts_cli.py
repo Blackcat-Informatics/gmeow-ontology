@@ -243,3 +243,98 @@ def test_unpack_skips_suppressed_blob_by_default(tmp_path: Path) -> None:
     assert not (dst / "secret.txt").exists()
     assert main(["unpack", str(archive), "-C", str(dst), "--include-suppressed"]) == 0
     assert (dst / "secret.txt").read_text() == "secret"
+
+
+def test_cat_refuses_suppress_everything_composition(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Vector 21: a structurally valid file where the second segment suppresses
+    # every prior quad. Raw byte concat is valid GTS, but gts cat refuses it.
+    v21 = Path("generated/gts-vectors/21-degenerate-composition.gts")
+    out = tmp_path / "out.gts"
+    assert main(["cat", str(v21), str(v21), "-o", str(out)]) == 1
+    err = capsys.readouterr().err
+    assert "hide every quad" in err
+
+
+def test_verify_checks_declared_vs_computed_profiles(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Uses files# vocabulary without declaring the files profile -> error.
+    w = Writer(profile="generic")
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://w3id.org/gts/files#FileEntry"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#path"),
+            Term(TermKind.LITERAL, "x.txt"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    path = tmp_path / "undeclared-files.gts"
+    path.write_bytes(w.to_bytes())
+    assert main(["verify", str(path)]) == 1
+    err = capsys.readouterr().err
+    assert "profile error" in err
+
+
+def test_verify_warns_on_declared_but_unused_profile(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Declares files profile but uses no files# vocabulary -> warning.
+    w = Writer(profile="files")
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Cat"),
+            Term(TermKind.IRI, "https://example.org/label"),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    path = tmp_path / "unused-files.gts"
+    path.write_bytes(w.to_bytes())
+    # Warnings do not make verify exit nonzero.
+    assert main(["verify", str(path)]) == 0
+    err = capsys.readouterr().err
+    assert "profile warning" in err
+
+
+def test_verify_flags_undeclared_files_profile_object_only(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Regression: profile vocabulary in ordinary object position must be
+    # detected, not only rdf:type objects (§14.1).
+    w = Writer(profile="generic")
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Thing"),
+            Term(TermKind.IRI, "https://example.org/relatedTo"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#FileEntry"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    path = tmp_path / "undeclared-files-object-only.gts"
+    path.write_bytes(w.to_bytes())
+    assert main(["verify", str(path)]) == 1
+    err = capsys.readouterr().err
+    assert "profile error" in err
+
+
+def test_verify_declared_files_profile_object_only_is_not_unused(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # A declared profile whose term appears only as an object IRI must not
+    # trigger the "declared but unused" warning.
+    w = Writer(profile="files")
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Thing"),
+            Term(TermKind.IRI, "https://example.org/relatedTo"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#FileEntry"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    path = tmp_path / "declared-files-object-only.gts"
+    path.write_bytes(w.to_bytes())
+    assert main(["verify", str(path)]) == 0
+    err = capsys.readouterr().err
+    assert "profile warning" not in err
