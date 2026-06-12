@@ -457,3 +457,289 @@ gmeow:Rule rdfs:subClassOf gmeow:Norm .
 gmeow:ruleAssignee rdfs:subPropertyOf gmeow:normBearer .
 
 gmeow:ruleAction rdfs:subPropertyOf gmeow:prescribedConduct .
+
+# =========================================================================== #
+# RUBRICS — reified evaluation frameworks (issue #353, EPIC #348)
+#
+# A rubric IS a norm for judging: Rubric ⊑ Norm, so normIssuer, overrides,
+# AuthorityLevel, and PrecedenceTenure come free. Rubric CONTENT is fully
+# reified — criteria with named poles, score scales, anchored exemplars —
+# while rubric APPLICATION is solver-layer, permanently (Principle 12):
+# anchors in, score Assessments out, and the function between them is never
+# triples. An LLM judge is just a vantage (Principle 9): two models
+# disagreeing on a score are two coexisting Assessments, no winner. The
+# kernel aboutness axis (#349) carries the phase-gate distinction on
+# exemplars: a passage that DESCRIBES trust is source material; one that
+# ENACTS it is embodiment — same selector, different aboutness, different
+# score. Scoring-density guidance by assessed granularity reuses the kernel
+# gmeow:hasGranularity on the assessment target.
+#
+# This facility lives in the norms slice because Rubric ⊑ Norm and the P16
+# DAG rule bars extension→extension dependencies: one slice carries the
+# deontic family. Alignments/projections (EARL via EDOAL, DQV, schema.org
+# Rating/Review, 1EdTech CASE, lm-eval task YAML; CiTO arrives free through
+# Exemplar ⊑ CitationAct) are deferred to the compiler-arc window; the
+# target list is fixed in #353.
+# =========================================================================== #
+
+gmeow:Rubric
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Norm, gmeow:SocialObject ;
+    rdfs:label "Rubric"@x-gmeow-english ;
+    skos:definition "A norm for judging — a reified evaluation framework whose criteria, poles, scales, and anchors are first-class content. Being a Norm, a rubric names its issuer (no anonymous evaluation standards), may be overridden, and carries authority within its issuing system. Applying a rubric is solver work; the results come back as vantage-indexed Assessments (Principle 12). Member criteria attach via gmeow:hasCriterion (⊑ gmeow:hasPart)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:Criterion
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Criterion"@x-gmeow-english ;
+    skos:definition "One evaluative axis of a rubric — what is being judged, with NAMED poles: a reward pole and a penalty pole that are small information objects with their own labels and definitions ('Power from the Bottom' vs 'Passive Victimhood'), not just numeric extremes. Anchors (gmeow:hasScoreAnchor) pin score ranges to meanings and exemplars."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:hasCriterion
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:domain gmeow:Rubric ;
+    rdfs:range gmeow:Criterion ;
+    rdfs:label "has criterion"@x-gmeow-english ;
+    skos:definition "Relates a rubric to one of its evaluative axes (⊑ gmeow:hasPart — criteria are parts of the framework). NOT functional: rubrics are multi-axis by design."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:CriterionDomain
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Criterion Domain"@x-gmeow-english ;
+    skos:definition "The subject domain of a criterion — an OPEN value vocabulary (relational, factual, aesthetic, safety, stylistic, …). Open: evaluation traditions disagree about the domain inventory itself (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:criterionDomainRelational a gmeow:CriterionDomain ; rdfs:label "relational"@x-gmeow-english ;
+    skos:definition "The criterion evaluates relational or interpersonal qualities."@x-gmeow-english .
+gmeow:criterionDomainRelational rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:criterionDomainFactual    a gmeow:CriterionDomain ; rdfs:label "factual"@x-gmeow-english ;
+    skos:definition "The criterion evaluates factual accuracy or groundedness."@x-gmeow-english .
+gmeow:criterionDomainFactual rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:criterionDomainAesthetic  a gmeow:CriterionDomain ; rdfs:label "aesthetic"@x-gmeow-english ;
+    skos:definition "The criterion evaluates aesthetic or expressive qualities."@x-gmeow-english .
+gmeow:criterionDomainAesthetic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:criterionDomainSafety     a gmeow:CriterionDomain ; rdfs:label "safety"@x-gmeow-english ;
+    skos:definition "The criterion evaluates safety properties or harm avoidance."@x-gmeow-english .
+gmeow:criterionDomainSafety rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:criterionDomainStylistic  a gmeow:CriterionDomain ; rdfs:label "stylistic"@x-gmeow-english ;
+    skos:definition "The criterion evaluates style, register, or voice."@x-gmeow-english .
+gmeow:criterionDomainStylistic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:criterionDomain
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Criterion ;
+    rdfs:range gmeow:CriterionDomain ;
+    rdfs:label "criterion domain"@x-gmeow-english ;
+    skos:definition "The subject domain(s) of this criterion. NOT functional: a criterion may span domains, and classifications coexist (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:CriterionPole
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Criterion Pole"@x-gmeow-english ;
+    skos:definition "A NAMED extreme of a criterion — a small information object carrying its own label and definition. Poles are content, not numbers: 'Power from the Bottom' names what the high end rewards; 'Passive Victimhood' names what the low end penalizes. The numeric mapping lives on the scale and anchors."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:rewardPole
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Criterion ;
+    rdfs:range gmeow:CriterionPole ;
+    rdfs:label "reward pole"@x-gmeow-english ;
+    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:penaltyPole
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Criterion ;
+    rdfs:range gmeow:CriterionPole ;
+    rdfs:label "penalty pole"@x-gmeow-english ;
+    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ScoreScale
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Score Scale"@x-gmeow-english ;
+    skos:definition "A numeric scale for assessments — minimum, maximum, optional step. Scale arithmetic (normalization, conversion between scales) is solver work (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:usesScale
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range gmeow:ScoreScale ;
+    rdfs:label "uses scale"@x-gmeow-english ;
+    skos:definition "The score scale a rubric or criterion uses. Domain-free (rubric-level default, criterion-level override — the holder is whatever points here); functional: one scale per holder, the gmeow:hasUnit convention."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:scaleMin
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ScoreScale ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "scale minimum"@x-gmeow-english ;
+    skos:definition "The scale's minimum value. Functional and mandatory; must be below the maximum (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:scaleMax
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ScoreScale ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "scale maximum"@x-gmeow-english ;
+    skos:definition "The scale's maximum value. Functional and mandatory; must exceed the minimum (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:scaleStep
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ScoreScale ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "scale step"@x-gmeow-english ;
+    skos:definition "The scale's granularity step, when discrete. Optional; absent means continuous."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ScoreAnchor
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Score Anchor"@x-gmeow-english ;
+    skos:definition "A pinned score range with its meaning and exemplars — 'range 0.8–1.0 means the text embodies the covenant, as in THIS passage'. Anchors are the rubric's calibration content; interpolation between anchors is solver work (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:hasScoreAnchor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Criterion ;
+    rdfs:range gmeow:ScoreAnchor ;
+    rdfs:label "has score anchor"@x-gmeow-english ;
+    skos:definition "Relates a criterion to one of its calibration anchors. NOT functional: high / medium / low anchors coexist."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:anchorRangeMin
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ScoreAnchor ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "anchor range minimum"@x-gmeow-english ;
+    skos:definition "The anchored range's lower bound. Functional; must not exceed the upper bound (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:anchorRangeMax
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ScoreAnchor ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "anchor range maximum"@x-gmeow-english ;
+    skos:definition "The anchored range's upper bound. Functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:anchorMeaning
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ScoreAnchor ;
+    rdfs:label "anchor meaning"@x-gmeow-english ;
+    skos:definition "What scores in this range MEAN — the calibration prose. NOT functional and range-open (PR #376 review): localizable prose may carry one meaning per language tag (sh:uniqueLang, SHACL) — a French and an English calibration coexist; two same-language meanings do not. Mandatory: an anchor without a meaning is just an interval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:anchorExemplar
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ScoreAnchor ;
+    rdfs:range gmeow:Exemplar ;
+    rdfs:label "anchor exemplar"@x-gmeow-english ;
+    skos:definition "An exemplar pinned to this anchor's range. NOT functional: several exemplars may calibrate one range."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# --------------------------------------------------------------------------- #
+# Exemplar — a citation act with polarity (and, when needed, an entity subject)
+# --------------------------------------------------------------------------- #
+
+gmeow:Exemplar
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:CitationAct ;
+    rdfs:label "Exemplar"@x-gmeow-english ;
+    skos:definition "A citation act that holds something up as an example — positively, negatively, or as a cautionary boundary case. Pins into the cited work via the citation Selector machinery (page, quote, locator) AND/OR names an entity subject (gmeow:exemplarSubject — a character's conduct across a whole work, EPIC #358 coordination): at least one of the two (SHACL). The kernel aboutness axis (#349) carries the phase-gate: an exemplar whose span DESCRIBES trust is source material; one whose span ENACTS it is embodiment — same selector, different gmeow:hasAboutness, different anchored range. CiTO alignment arrives free through CitationAct."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ExemplarPolarity
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Exemplar Polarity"@x-gmeow-english ;
+    skos:definition "The direction of an exemplar — a CLOSED three-member value vocabulary: positive (emulate this), negative (avoid this), cautionary (a boundary case that LOOKS positive but redirects or warns). Closed because the trichotomy is the design: finer judgement nuance belongs in the rationale and the anchored range, not in new polarities."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:polarityPositive   a gmeow:ExemplarPolarity ; rdfs:label "positive"@x-gmeow-english ;
+    skos:definition "An exemplar to emulate."@x-gmeow-english .
+gmeow:polarityPositive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:polarityNegative   a gmeow:ExemplarPolarity ; rdfs:label "negative"@x-gmeow-english ;
+    skos:definition "An exemplar to avoid."@x-gmeow-english .
+gmeow:polarityNegative rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:polarityCautionary a gmeow:ExemplarPolarity ; rdfs:label "cautionary"@x-gmeow-english ;
+    skos:definition "A boundary case — superficially like the reward pole but warning or redirecting (the anti-pattern with a correct-criterion redirect)."@x-gmeow-english .
+gmeow:polarityCautionary rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:exemplarPolarity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Exemplar ;
+    rdfs:range gmeow:ExemplarPolarity ;
+    rdfs:label "exemplar polarity"@x-gmeow-english ;
+    skos:definition "The exemplar's direction. Functional and mandatory (SHACL): an exemplar that cannot say whether to emulate or avoid is just a citation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:exemplarSubject
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Exemplar ;
+    rdfs:label "exemplar subject"@x-gmeow-english ;
+    skos:definition "The entity whose pattern the exemplar evidences — a frame-scoped character whose conduct across the cited work is the example (EPIC #358: 823 such links in the foundation corpus), an organization, a person. Range intentionally open. NOT functional, optional: span-pinned exemplars need no subject, and subject + selector may coexist (the span shows one instance of the pattern; the subject names its bearer). At least one of viaSelector / exemplarSubject (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:exemplarRedirect
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Exemplar ;
+    rdfs:range gmeow:Criterion ;
+    rdfs:label "redirects to"@x-gmeow-english ;
+    skos:definition "For cautionary exemplars: the criterion this passage ACTUALLY evidences — 'clinical trust frameworks belong to polymath competence, not the covenant'. NOT functional: a boundary case may touch several axes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:exemplarRationale
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Exemplar ;
+    rdfs:label "exemplar rationale"@x-gmeow-english ;
+    skos:definition "Why this is an exemplar — the judgement prose. NOT functional and range-open (PR #376 review): localizable, one rationale per language tag; whose judgement it is rides the statement layer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# --------------------------------------------------------------------------- #
+# Assessment — applying a rubric IS observing; the judge is a vantage
+# --------------------------------------------------------------------------- #
+
+gmeow:Assessment
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:label "Assessment"@x-gmeow-english ;
+    skos:definition "An observation that scores a target against a criterion (or whole rubric) — vantage = the judge, human or model: an LLM judge is just a vantage, and two models disagreeing are two coexisting cells with no winner (Principle 9). The judge model's identity and prompt digest travel as observation provenance. gmeow:assessmentCriterion / gmeow:assessmentRubric play the observationMethod ROLE but are deliberately not subproperties of it (observationMethod is functional with a QualityValue range; Criterion and Rubric are Entities — the claimModality axiom pattern). Scoring-density expectations by target granularity reuse kernel gmeow:hasGranularity on the target."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:assessmentTarget
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:Assessment ;
+    rdfs:label "assessment target"@x-gmeow-english ;
+    skos:definition "What is being scored — a work, an expression, a content segment, a chunk (⊑ observedFeature, the #69 bridge idiom). Range intentionally open. Functional: one assessment, one target."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:assessmentCriterion
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Assessment ;
+    rdfs:range gmeow:Criterion ;
+    rdfs:label "assessment criterion"@x-gmeow-english ;
+    skos:definition "The criterion applied. Functional: a 21-axis scoring pass is 21 Assessments (zeros included — a zero is a score, not an absence). Plays the observationMethod role without the subproperty axiom (claimModality pattern). An assessment names a criterion or a rubric, or both (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:assessmentRubric
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Assessment ;
+    rdfs:range gmeow:Rubric ;
+    rdfs:label "assessment rubric"@x-gmeow-english ;
+    skos:definition "The rubric under which this assessment was made — version-pinning context for the score. Functional. Plays the observationMethod role without the subproperty axiom (claimModality pattern)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:assessmentScoreValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Assessment ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "assessment score value"@x-gmeow-english ;
+    skos:definition "The numeric score, on the scale the criterion or rubric declares. Functional and mandatory (SHACL). A datatype twin of observationResult (which is entity-valued — the claimModality pattern); zeros are scores, never absences (false positives are worse than zeros)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
