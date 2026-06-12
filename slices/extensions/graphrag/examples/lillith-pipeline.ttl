@@ -43,6 +43,7 @@ ex:embedding-7 a gmeow:Embedding ;
 ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@en .
 
 ex:index-lillith a gmeow:VectorIndex ;
+    gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
     gmeow:indexesCorpus ex:corpus-lillith ;
     gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
     gmeow:distanceMetric gmeow:distanceMetricCosine ;
@@ -63,16 +64,19 @@ ex:invocation-44 a gmeow:ModelInvocation ;
 
 ex:desc-mara a gmeow:ExtractedEntity ;
     rdfs:label "extracted: 'Mara' (maintainer?)"@en ;
+    gmeow:contentDigest "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11" ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
     gmeow:wasGeneratedBy ex:invocation-44 .
 
 ex:desc-buildsys a gmeow:ExtractedEntity ;
     rdfs:label "extracted: 'the build system'"@en ;
+    gmeow:contentDigest "blake3:4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22" ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
     gmeow:wasGeneratedBy ex:invocation-44 .
 
 ex:rel-maintains a gmeow:ExtractedRelationship ;
     rdfs:label "extracted: Mara maintains the build system"@en ;
+    gmeow:contentDigest "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33" ;
     gmeow:relationshipSource ex:desc-mara ;
     gmeow:relationshipTarget ex:desc-buildsys ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
@@ -83,12 +87,14 @@ ex:cluster-run a gmeow:Activity ; rdfs:label "leiden clustering 2026-06-02"@en .
 
 ex:community-infra a gmeow:Community ;
     rdfs:label "infrastructure community"@en ;
+    gmeow:contentDigest "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
     gmeow:communityLevel "0"^^xsd:nonNegativeInteger ;
     gmeow:communityMember ex:desc-mara, ex:desc-buildsys ;
     gmeow:wasGeneratedBy ex:cluster-run .
 
 ex:summary-infra a gmeow:CommunitySummary ;
     rdfs:label "summary: the infrastructure crew"@en ;
+    gmeow:contentDigest "blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55" ;
     gmeow:summarizesCommunity ex:community-infra ;
     gmeow:wasDerivedFrom ex:desc-mara, ex:desc-buildsys, ex:chunk-7 ;
     gmeow:wasGeneratedBy ex:invocation-44 .
