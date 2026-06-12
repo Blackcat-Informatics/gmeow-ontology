@@ -213,7 +213,9 @@ def test_dcat_describes_every_profile_as_a_dataset() -> None:
     from gmeow_tools.slices import discover_slices
 
     dcat = _parse_ttl(DCAT_FILE)
-    assert (URIRef(FULL_PROFILE_IRI), RDF.type, DCAT.Dataset) in dcat
+    full = URIRef(FULL_PROFILE_IRI)
+    assert (full, RDF.type, DCAT.Dataset) in dcat
+    assert (full, DCAT.landingPage, full) in dcat
     for name in group_named_profiles(discover_slices()):
         profile = URIRef(NAMED_PROFILE_NS + name)
         assert (profile, RDF.type, DCAT.Dataset) in dcat
