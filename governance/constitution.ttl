@@ -1,0 +1,265 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Constitution-as-code (#280): the machine-readable principle→enforcement
+# manifest. CONSTITUTION.md stays the normative prose; THIS file is the
+# falsifiable claim that each principle is actually enforced. The
+# `gmeow constitution-check` gate fails when a principle has no registered
+# enforcement, when a cited artifact/symbol/target no longer exists, when an
+# enforcement maps to no principle, or when this file and CONSTITUTION.md
+# disagree on the principle set.
+#
+# Hand-authored canonical source — Principle 4 applied to governance.
+
+@prefix meta: <https://blackcatinformatics.ca/gmeow/meta#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# The vocabulary (lives here, not in the published ontology: governance is
+# about the repository, not the domain)
+# --------------------------------------------------------------------------- #
+
+meta:Principle a rdfs:Class ;
+    rdfs:label "constitutional principle"@en ;
+    rdfs:comment "One numbered principle of CONSTITUTION.md; number and title must match its heading."@en .
+
+meta:Enforcement a rdfs:Class ;
+    rdfs:label "enforcement mechanism"@en .
+
+meta:Lint     a rdfs:Class ; rdfs:subClassOf meta:Enforcement .
+meta:TestSuite a rdfs:Class ; rdfs:subClassOf meta:Enforcement .
+meta:Shape    a rdfs:Class ; rdfs:subClassOf meta:Enforcement .
+meta:Gate     a rdfs:Class ; rdfs:subClassOf meta:Enforcement .
+meta:Practice a rdfs:Class ; rdfs:subClassOf meta:Enforcement ;
+    rdfs:comment "Documented review practice — honor-system. A principle enforced ONLY by practice is surfaced as a warning, never silently."@en .
+
+meta:number     a rdfs:Property ; rdfs:comment "Heading number in CONSTITUTION.md."@en .
+meta:title      a rdfs:Property ; rdfs:comment "Heading title; checked verbatim against CONSTITUTION.md."@en .
+meta:enforcedBy a rdfs:Property .
+meta:artifact   a rdfs:Property ; rdfs:comment "Repo-relative path that must exist."@en .
+meta:symbol     a rdfs:Property ; rdfs:comment "Name that must be defined in (one of) the enforcement's .py artifacts, or appear verbatim in a non-Python artifact."@en .
+meta:makeTarget a rdfs:Property ; rdfs:comment "Target that must exist in the Makefile."@en .
+meta:cliCommand a rdfs:Property ; rdfs:comment "Command that must be registered on the gmeow CLI."@en .
+meta:generator  a rdfs:Property ; rdfs:comment "Registered generator name; the declared set must equal the live registry exactly."@en .
+
+# --------------------------------------------------------------------------- #
+# Enforcement mechanisms
+# --------------------------------------------------------------------------- #
+
+meta:practice-rationale a meta:Practice ;
+    rdfs:label "design-rationale review practice" ;
+    meta:artifact "docs/RATIONALE.md", "slices/core/names/docs.md" .
+
+meta:gate-statements a meta:Gate ;
+    rdfs:label "RDF 1.2 statement compiler + losslessness gate" ;
+    meta:artifact "dsl/statements", "src/gmeow_tools/statement_compile.py" ;
+    meta:symbol "assert_lossless" .
+
+meta:tests-statements a meta:TestSuite ;
+    rdfs:label "RDF 1.2 round-trip tests" ;
+    meta:artifact "tests/test_statements.py", "tests/test_compile_no_drift.py" .
+
+meta:gate-rdf12-codec a meta:Gate ;
+    rdfs:label "OWL ↔ RDF 1.2 codec (generated↔generated downcast)" ;
+    meta:artifact "queries/codecs/rdf12-project.rq", "queries/codecs/rdf12-to-owl.rq" .
+
+meta:gate-generator-registry a meta:Gate ;
+    rdfs:label "generator registry: regenerate / drift / orphan gates" ;
+    meta:artifact "src/gmeow_tools/generator.py" ;
+    meta:symbol "regenerate_order" ;
+    meta:cliCommand "regenerate", "check-generated" ;
+    meta:makeTarget "check-generated", "regenerate" ;
+    meta:generator "statements", "mappings", "gts", "exports", "metadata",
+        "schemas", "lpg", "matrix", "apache", "gts-vectors", "catalog",
+        "profiles" .
+
+meta:tests-narrow-waist a meta:TestSuite ;
+    rdfs:label "narrow-waist seal (GTS is the only exit for data)" ;
+    meta:artifact "tests/test_narrow_waist.py", "docs/gts-narrow-waist.md" .
+
+meta:lint-sameas-ban a meta:Lint ;
+    rdfs:label "owl:sameAs-to-external ban (validate ERROR + allowlist)" ;
+    meta:artifact "src/gmeow_tools/validate.py" ;
+    meta:symbol "check_sameas_ban" .
+
+meta:lint-equivalence-collapse a meta:Lint ;
+    rdfs:label "equivalence-closure collapse gate over disjoint pairs" ;
+    meta:artifact "src/gmeow_tools/alignment_lint.py" ;
+    meta:symbol "_check_equivalence_collapse" ;
+    meta:makeTarget "lint-alignment" .
+
+meta:tests-alignment a meta:TestSuite ;
+    rdfs:label "alignment direction / bridging tests" ;
+    meta:artifact "tests/test_alignment_direction.py", "tests/test_alignments.py",
+        "tests/test_coreference.py" .
+
+meta:gate-crosscheck a meta:Gate ;
+    rdfs:label "dual-engine query crosscheck (rdflib vs pyoxigraph)" ;
+    meta:artifact "src/gmeow_tools/engine_crosscheck.py" ;
+    meta:makeTarget "crosscheck" ;
+    meta:cliCommand "crosscheck-queries" .
+
+meta:gate-reasoning a meta:Gate ;
+    rdfs:label "OWL 2 DL profile + ELK/HermiT consistency over the full profile" ;
+    meta:artifact "src/gmeow_tools/reason.py" ;
+    meta:makeTarget "reason", "reason-hermit", "verify" .
+
+meta:gate-fair-metadata a meta:Gate ;
+    rdfs:label "VoID/DCAT publication metadata generator" ;
+    meta:artifact "src/gmeow_tools/metadata.py", "generated/metadata" .
+
+meta:lint-no-preferred-rank a meta:Lint ;
+    rdfs:label "no preferredRank / primary* selector annotations" ;
+    meta:artifact "src/gmeow_tools/statement_lint.py" ;
+    meta:symbol "no_preferred_rank" .
+
+meta:tests-identity-orthogonality a meta:TestSuite ;
+    rdfs:label "identity-axis orthogonality matrix (7 co-equal axes)" ;
+    meta:artifact "tests/test_identity_orthogonality.py", "tests/test_gender.py",
+        "tests/test_standpoint.py" .
+
+meta:shapes-core a meta:Shape ;
+    rdfs:label "core SHACL shapes (identity facets, claim spine, frames)" ;
+    meta:artifact "shapes/gmeow-shapes.ttl" ;
+    meta:makeTarget "validate" .
+
+meta:gate-suppression a meta:Gate ;
+    rdfs:label "suppression projections: displayable / coarsenTo paths" ;
+    meta:artifact "dsl/mappings/vocabulary.ttl" ;
+    meta:symbol "fnSelectDisplayName" .
+
+meta:tests-suppression a meta:TestSuite ;
+    rdfs:label "suppression and disclosure tests" ;
+    meta:artifact "tests/test_suppress_gen.py", "tests/test_disclosure.py",
+        "tests/test_privacy.py" .
+
+meta:tests-reference-frames a meta:TestSuite ;
+    rdfs:label "reference-frame relativity tests" ;
+    meta:artifact "tests/test_reference_frames.py", "tests/test_calendar.py",
+        "tests/test_edtf.py" .
+
+meta:lint-reasoning-invariants a meta:Lint ;
+    rdfs:label "closed-world reasoning invariants (solver boundary)" ;
+    meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
+    meta:symbol "reasoning_invariants" .
+
+meta:tests-reasoning a meta:TestSuite ;
+    rdfs:label "entailment and reasoning-lint tests" ;
+    meta:artifact "tests/test_reasoning_entailments.py", "tests/test_reasoning_lint.py" .
+
+meta:gate-products a meta:Gate ;
+    rdfs:label "the product surfaces: pip client, MCP memory server, GTS engine" ;
+    meta:artifact "packages/gmeow", "packages/gts", "src/gmeow_tools/mcp_server.py" .
+
+meta:tests-products a meta:TestSuite ;
+    rdfs:label "client / GTS engine tests" ;
+    meta:artifact "tests/test_gmeow_client.py", "tests/test_gts.py",
+        "tests/test_gts_producer.py" .
+
+meta:tests-claim-spine a meta:TestSuite ;
+    rdfs:label "claim provenance, attestation, and trust tests" ;
+    meta:artifact "tests/test_provenance.py", "tests/test_attestation.py",
+        "tests/test_trust.py", "tests/test_evidence.py" .
+
+meta:practice-consumer-question a meta:Practice ;
+    rdfs:label "issue templates ask who the consumer is" ;
+    meta:artifact ".github/ISSUE_TEMPLATE/feature_request.yml",
+        ".github/ISSUE_TEMPLATE/term_or_mapping.yml" ;
+    meta:symbol "consumer" .
+
+meta:gate-core-profile a meta:Gate ;
+    rdfs:label "root ontology = CORE profile exactly; manifests are tier truth" ;
+    meta:artifact "tests/test_vocabulary_surface.py", "slices/vocabulary.ttl" ;
+    meta:symbol "test_root_imports_are_exactly_the_core_profile" .
+
+meta:tests-slices a meta:TestSuite ;
+    rdfs:label "slice anatomy and profile tests" ;
+    meta:artifact "tests/test_slices.py", "tests/test_profiles.py" .
+
+# --------------------------------------------------------------------------- #
+# The principles
+# --------------------------------------------------------------------------- #
+
+meta:Principle1 a meta:Principle ;
+    meta:number 1 ;
+    meta:title "SOTA by being SOTA" ;
+    meta:enforcedBy meta:practice-rationale .
+
+meta:Principle2 a meta:Principle ;
+    meta:number 2 ;
+    meta:title "RDF 1.2 / RDF\\*-first — precisely scoped" ;
+    meta:enforcedBy meta:gate-statements, meta:tests-statements .
+
+meta:Principle3 a meta:Principle ;
+    meta:number 3 ;
+    meta:title "The OWL axiom-annotation form is a generated, reasoning-lossless downcast" ;
+    meta:enforcedBy meta:gate-rdf12-codec, meta:gate-statements, meta:tests-statements .
+
+meta:Principle4 a meta:Principle ;
+    meta:number 4 ;
+    meta:title "One canonical source; everything else a generated lossy projection" ;
+    meta:enforcedBy meta:gate-generator-registry, meta:tests-narrow-waist .
+
+meta:Principle5 a meta:Principle ;
+    meta:number 5 ;
+    meta:title "Maximal superset, maximal bridging — by reference" ;
+    meta:enforcedBy meta:lint-sameas-ban, meta:lint-equivalence-collapse,
+        meta:tests-alignment .
+
+meta:Principle6 a meta:Principle ;
+    meta:number 6 ;
+    meta:title "Greenfield — get it right, not compatible" ;
+    meta:enforcedBy meta:practice-rationale .
+
+meta:Principle7 a meta:Principle ;
+    meta:number 7 ;
+    meta:title "Verified by construction" ;
+    meta:enforcedBy meta:gate-generator-registry, meta:gate-crosscheck .
+
+meta:Principle8 a meta:Principle ;
+    meta:number 8 ;
+    meta:title "Reasoning-gated and FAIR" ;
+    meta:enforcedBy meta:gate-reasoning, meta:gate-fair-metadata .
+
+meta:Principle9 a meta:Principle ;
+    meta:number 9 ;
+    meta:title "Inclusive without overtyping; anti-colonial in every direction; self-assertion is top authority" ;
+    meta:enforcedBy meta:lint-no-preferred-rank, meta:tests-identity-orthogonality,
+        meta:shapes-core .
+
+meta:Principle10 a meta:Principle ;
+    meta:number 10 ;
+    meta:title "Suppression, never erasure" ;
+    meta:enforcedBy meta:gate-suppression, meta:tests-suppression .
+
+meta:Principle11 a meta:Principle ;
+    meta:number 11 ;
+    meta:title "Frame-relativity — values live in an explicit reference system" ;
+    meta:enforcedBy meta:shapes-core, meta:tests-reference-frames .
+
+meta:Principle12 a meta:Principle ;
+    meta:number 12 ;
+    meta:title "Compute outside the logic — the solver boundary" ;
+    meta:enforcedBy meta:gate-reasoning, meta:lint-reasoning-invariants,
+        meta:tests-reasoning .
+
+meta:Principle13 a meta:Principle ;
+    meta:number 13 ;
+    meta:title "The product is a tool; the ontology is its engine" ;
+    meta:enforcedBy meta:gate-products, meta:tests-products .
+
+meta:Principle14 a meta:Principle ;
+    meta:number 14 ;
+    meta:title "Grounded agent memory and claim provenance are the flagship" ;
+    meta:enforcedBy meta:tests-claim-spine, meta:gate-statements .
+
+meta:Principle15 a meta:Principle ;
+    meta:number 15 ;
+    meta:title "Every module earns its consumer" ;
+    meta:enforcedBy meta:practice-consumer-question .
+
+meta:Principle16 a meta:Principle ;
+    meta:number 16 ;
+    meta:title "A small core; everything else a published extension" ;
+    meta:enforcedBy meta:gate-core-profile, meta:tests-slices .

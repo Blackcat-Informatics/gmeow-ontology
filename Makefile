@@ -15,7 +15,7 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full quality \
         normalize build project test test-fast check check-generated release regenerate commit clean pull-images \
-        coverage crossref
+        coverage crossref constitution-check
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -103,6 +103,9 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 check-generated: ## Drift + orphan check for all registered generators.
 	uv run gmeow check-generated
 
+constitution-check: ## Every constitutional principle must have live enforcement (#280).
+	uv run gmeow constitution-check
+
 build: ## Build serializations and JSON-LD context into dist/.
 	uv run gmeow build
 
@@ -116,7 +119,7 @@ test-fast: ## Run the fast test suite (excludes ci_only heavy/secondary export t
 	uv run pytest -n auto -m "not ci_only"
 
 check: ## Fast local gate: core ontology + transforms.
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated wikidata coverage reason reason-hermit verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
 	$(MAKE) test-fast
 	@echo "✓ all checks passed"
 
