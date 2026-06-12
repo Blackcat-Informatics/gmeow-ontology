@@ -1,0 +1,19 @@
+# Competency question: "Which norms does one persona of an agent express
+# that a sibling persona does not — is the 'same principia, different
+# registers' invariant holding?"
+# Expected over instance data: rows only where an agent's personas DIVERGE
+# in their expressed norm sets. Deliberately a QUERY, not a shape (#355,
+# EPIC #348): divergence is legal (Principle 9) — the query makes it
+# visible rather than forbidden. Over the bare ontology this returns no
+# rows; the wellformed fixture (same tier-1 norm on both personas) returns
+# none either, which IS the invariant holding.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?agent ?persona ?sibling ?norm WHERE {
+    ?persona a gmeow:Persona ; gmeow:personaBearer ?agent ; gmeow:expressesNorm ?norm .
+    ?sibling a gmeow:Persona ; gmeow:personaBearer ?agent .
+    FILTER(?persona != ?sibling)
+    FILTER NOT EXISTS { ?sibling gmeow:expressesNorm ?norm . }
+}
+ORDER BY ?agent ?persona ?norm
