@@ -14,6 +14,7 @@
     dcterms:title "GMEOW Names Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceProfile "memory" ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
         <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
