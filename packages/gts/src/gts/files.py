@@ -44,6 +44,19 @@ def _bnode(label: str) -> Term:
     return Term(TermKind.BNODE, label)
 
 
+def _parse_rfc3339_seconds(text: str) -> datetime:
+    """Parse a RFC 3339 timestamp into a UTC datetime.
+
+    Handles the ``Z`` suffix and comma-separated fractional seconds without
+    adding a new dependency.
+    """
+    text = text.strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    text = text.replace(",", ".")
+    return datetime.fromisoformat(text)
+
+
 def _safe_archive_path(name: str) -> None:
     """Refuse paths that could escape an archive or are ill-formed."""
     if not name:
@@ -87,12 +100,6 @@ def _resolve_sources(sources: Iterable[Path]) -> list[tuple[Path, str]]:
     # Deterministic ordering: lexicographic by archive path.
     entries.sort(key=lambda e: e[1])
     return entries
-
-
-def _mtime_to_dt(path: Path) -> datetime:
-    """Return the file's modification time as a UTC datetime."""
-    mtime = path.stat().st_mtime
-    return datetime.fromtimestamp(mtime, tz=UTC)
 
 
 def _dt_literal(dt: datetime, xsd_datetime_id: int) -> Term:
@@ -155,7 +162,7 @@ def pack(
         st = fspath.stat()
         size = st.st_size
         mode = stat.S_IMODE(st.st_mode)
-        mtime = _mtime_to_dt(fspath)
+        mtime = datetime.fromtimestamp(st.st_mtime, tz=UTC)
         mt, _ = mimetypes.guess_type(str(fspath))
         mt = mt or "application/octet-stream"
 
@@ -242,13 +249,12 @@ def _read_file_entries(graph: Graph) -> dict[str, dict[str, object]]:
         raise ValueError(msg)
 
     entries: dict[int, dict[str, object]] = {}
+    file_entry_subjects: set[int] = set()
     for s, p, o, _g in graph.quads:
         if p == type_id and o == file_entry_id:
+            file_entry_subjects.add(s)
             entries.setdefault(s, {"_id": s})
         elif p in field_ids.values():
-            entry = entries.get(s)
-            if entry is None:
-                continue
             field_name = next(k for k, v in field_ids.items() if v == p)
             term = graph.terms[o]
             value: object
@@ -258,10 +264,12 @@ def _read_file_entries(graph: Graph) -> dict[str, dict[str, object]]:
                 value = term.value
             else:
                 value = ""
-            entry[field_name] = value
+            entries.setdefault(s, {"_id": s})[field_name] = value
 
     by_path: dict[str, dict[str, object]] = {}
-    for entry in entries.values():
+    for s, entry in entries.items():
+        if s not in file_entry_subjects:
+            continue
         path = entry.get("path")
         if not isinstance(path, str):
             continue
@@ -280,9 +288,7 @@ def _dest_path(dest: Path, archive_path: str) -> Path:
             raise ValueError(msg)
     target = (dest / archive_path).resolve()
     dest_resolved = dest.resolve()
-    if target != dest_resolved and not str(target).startswith(
-        str(dest_resolved) + os.sep
-    ):
+    if not target.is_relative_to(dest_resolved):
         msg = f"path escapes destination: {archive_path}"
         raise ValueError(msg)
     return target
@@ -342,7 +348,7 @@ def unpack(
         modified = entry.get("modified")
         if isinstance(modified, str):
             with contextlib.suppress(OSError, ValueError):
-                dt = datetime.fromisoformat(modified.replace("Z", "+00:00"))
+                dt = _parse_rfc3339_seconds(modified)
                 ts = dt.timestamp()
                 os.utime(target, (ts, ts))
 

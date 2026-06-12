@@ -148,7 +148,9 @@ def test_pack_deduplicates_identical_content(tmp_path: Path) -> None:
     assert len(g.blobs) == 1
 
 
-def test_unpack_refuses_traversal(tmp_path: Path) -> None:
+def test_unpack_refuses_traversal(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     from gts import Writer
 
     w = Writer(profile="files")
@@ -188,6 +190,8 @@ def test_unpack_refuses_traversal(tmp_path: Path) -> None:
     archive.write_bytes(w.to_bytes())
 
     assert main(["unpack", str(archive), "-C", str(tmp_path / "dst")]) == 1
+    stderr = capsys.readouterr().err
+    assert "traversal" in stderr or "escapes" in stderr, stderr
 
 
 def test_diff_reports_changes(tmp_path: Path) -> None:

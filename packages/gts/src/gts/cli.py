@@ -265,7 +265,7 @@ def _cmd_cat(paths: list[str], out: str | None) -> int:
     return _write_out(out, bytes(combined))
 
 
-def _cmd_pack(sources: list[str], out: str | None, external_over: int | None) -> int:
+def _cmd_pack(sources: list[str], out: str, external_over: int | None) -> int:
     """Pack files/directories into a files-profile GTS archive (tar's ``c``)."""
     from gts.files import pack
 
@@ -356,7 +356,7 @@ def main(argv: list[str] | None = None) -> int:
         "pack", help="pack files/directories into a files-profile GTS archive"
     )
     p_pack.add_argument("sources", nargs="+")
-    p_pack.add_argument("-o", "--out", default=None)
+    p_pack.add_argument("-o", "--out", required=True)
     p_pack.add_argument(
         "--external-over",
         type=int,

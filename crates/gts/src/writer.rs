@@ -124,6 +124,10 @@ impl Writer {
 
         let data = match (transform, &payload, &raw) {
             (Some(chain), _, _) if !chain.is_empty() => {
+                assert!(
+                    raw.is_some() || payload.is_some(),
+                    "transform requires a raw or payload source"
+                );
                 let source = raw.clone().unwrap_or_else(|| canonical(&payload.clone().unwrap()));
                 // For the files profile we only need identity; compression is
                 // intentionally not implemented in this minimal writer.
@@ -231,6 +235,7 @@ impl Writer {
         if let Some(r) = reason {
             payload.push(("reason".into(), r.into()));
         }
+        payload.sort_by(|a, b| canonical(&a.0).cmp(&canonical(&b.0)));
         self.add_frame("suppress", Some(Value::Map(payload)), None, None, None)
     }
 

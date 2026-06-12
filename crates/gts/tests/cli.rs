@@ -205,12 +205,15 @@ fn pack_deduplicates_identical_content() {
 
 #[test]
 fn unpack_refuses_traversal() {
-    use gts::writer::Writer;
+    use gts::writer::{digest_string, Writer};
 
     let tmp = tmpdir();
     let _ = std::fs::remove_dir_all(&tmp);
     std::fs::create_dir_all(&tmp).unwrap();
     let archive = tmp.join("traversal.gts");
+
+    let payload = b"traversal-test";
+    let digest = digest_string(payload);
 
     let mut w = Writer::new("files");
     w.add_terms(&[
@@ -258,18 +261,24 @@ fn unpack_refuses_traversal() {
         },
         gts::model::Term {
             kind: gts::model::TermKind::Literal,
-            value: Some("blake3:0000000000000000000000000000000000000000000000000000000000000000".to_string()),
+            value: Some(digest.clone()),
             datatype: None,
             lang: None,
             reifier: None,
         },
     ]);
     w.add_quads(&[(4, 3, 0, None), (4, 1, 5, None), (4, 2, 6, None)]);
+    w.add_blob(payload, None);
     std::fs::write(&archive, w.to_bytes()).unwrap();
 
     let dst = tmp.join("dst");
     let out = gts(&["unpack", archive.to_str().unwrap(), "-C", dst.to_str().unwrap()]);
     assert_eq!(out.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("traversal") || stderr.contains("escapes"),
+        "expected traversal refusal, got: {stderr}"
+    );
 }
 
 #[test]

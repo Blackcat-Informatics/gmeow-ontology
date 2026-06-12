@@ -7,9 +7,6 @@ use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::Path;
 
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-
 use ciborium::value::Value;
 
 use crate::model::{Graph, TermKind};
@@ -181,7 +178,7 @@ pub fn pack(sources: &[&Path], external_over: Option<u64>) -> Result<Vec<u8>, St
         #[cfg(unix)]
         let mode = std::os::unix::fs::PermissionsExt::mode(&meta.permissions()) & 0o7777;
         #[cfg(not(unix))]
-        let mode = 0o100644u32;
+        let mode = 0o644u32;
         let mtime = meta
             .modified()
             .map_err(|e| format!("mtime {fspath:?}: {e}"))?;
@@ -193,7 +190,8 @@ pub fn pack(sources: &[&Path], external_over: Option<u64>) -> Result<Vec<u8>, St
         let digest_term = literal_term(&digest, None);
         let size_term = literal_term(&size.to_string(), Some(xsd_integer_id));
         let mode_term = literal_term(&mode.to_string(), Some(xsd_integer_id));
-        let modified_text = format_datetime(&mtime);
+        let modified_text = format_datetime(&mtime)
+            .map_err(|e| format!("datetime {fspath:?}: {e}"))?;
         let modified_term = literal_term(&modified_text, Some(xsd_datetime_id));
         let media_term = literal_term(&mt, None);
 
@@ -244,16 +242,17 @@ pub fn pack(sources: &[&Path], external_over: Option<u64>) -> Result<Vec<u8>, St
     Ok(w.to_bytes())
 }
 
-fn format_datetime(time: &std::time::SystemTime) -> String {
+fn format_datetime(time: &std::time::SystemTime) -> Result<String, String> {
     let duration = time
         .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default();
+        .map_err(|e| format!("mtime before unix epoch: {e}"))?;
     let secs = duration.as_secs();
     let dt = time::OffsetDateTime::from_unix_timestamp(secs as i64)
-        .unwrap_or(time::OffsetDateTime::UNIX_EPOCH);
-    dt.format(&time::format_description::well_known::Rfc3339)
-        .unwrap_or_default()
-        .replace("+00:00", "Z")
+        .map_err(|e| format!("invalid mtime timestamp {secs}: {e}"))?;
+    let text = dt
+        .format(&time::format_description::well_known::Rfc3339)
+        .map_err(|e| format!("format datetime: {e}"))?;
+    Ok(text.replace("+00:00", "Z"))
 }
 
 fn read_file_entries(
@@ -281,24 +280,27 @@ fn read_file_entries(
     let file_entry_id = file_entry_id.ok_or("not a files-profile archive: missing FileEntry")?;
 
     let mut entries: BTreeMap<usize, BTreeMap<String, String>> = BTreeMap::new();
+    let mut file_entry_subjects: HashSet<usize> = HashSet::new();
     for &(s, p, o, _g) in &graph.quads {
         if p == type_id && o == file_entry_id {
+            file_entry_subjects.insert(s);
             entries.entry(s).or_default();
         } else if let Some(field_name) = field_ids
             .iter()
             .find(|(_, &id)| id == p)
             .map(|(k, _)| k.clone())
         {
-            if let Some(entry) = entries.get_mut(&s) {
-                let term = &graph.terms[o];
-                let value = term.value.clone().unwrap_or_default();
-                entry.insert(field_name, value);
-            }
+            let term = &graph.terms[o];
+            let value = term.value.clone().unwrap_or_default();
+            entries.entry(s).or_default().insert(field_name, value);
         }
     }
 
     let mut by_path: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
-    for (_, entry) in entries {
+    for (s, entry) in entries {
+        if !file_entry_subjects.contains(&s) {
+            continue;
+        }
         if let Some(path) = entry.get("path") {
             by_path.insert(path.clone(), entry);
         }
@@ -315,13 +317,13 @@ fn dest_path(dest: &Path, archive_path: &str) -> Result<std::path::PathBuf, Stri
             return Err(format!("path traversal in archive: {archive_path}"));
         }
     }
-    let target = dest
-        .join(archive_path)
-        .canonicalize()
-        .unwrap_or_else(|_| dest.join(archive_path));
+    // Resolve the destination itself (e.g. `/tmp` -> `/private/tmp` on macOS)
+    // before joining the relative archive path, so symlinked parents do not
+    // trigger false-positive traversal errors.
     let dest_canon = dest
         .canonicalize()
         .unwrap_or_else(|_| dest.to_path_buf());
+    let target = dest_canon.join(archive_path);
     if !target.starts_with(&dest_canon) {
         return Err(format!("path escapes destination: {archive_path}"));
     }
@@ -398,8 +400,10 @@ pub fn unpack(graph: &Graph, dest: &Path, include_suppressed: bool) -> Result<()
         }
         fs::write(&target, &data).map_err(|e| format!("write {target:?}: {e}"))?;
 
+        #[cfg(unix)]
         if let Some(mode) = entry.get("mode") {
             if let Ok(m) = mode.parse::<u32>() {
+                use std::os::unix::fs::PermissionsExt;
                 let _ = fs::set_permissions(&target, std::fs::Permissions::from_mode(m));
             }
         }
