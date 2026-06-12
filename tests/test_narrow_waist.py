@@ -71,11 +71,20 @@ def _imported_modules(tree: ast.AST) -> set[str]:
     return out
 
 
-def _imported_names(tree: ast.AST) -> set[str]:
+def _referenced_names(tree: ast.AST) -> set[str]:
+    """Every from-import, bare name, and attribute referenced in the module.
+
+    Catching attribute access too means ``graph_mod.load_merged_graph()``
+    cannot dodge the seal by avoiding a from-import (Gemini's review find).
+    """
     out: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
             out.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.Name):
+            out.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            out.add(node.attr)
     return out
 
 
@@ -91,7 +100,7 @@ def test_static_seal_no_canonical_source_loaders() -> None:
     """No exporter reads canonical sources — the snapshot is the only input."""
     for module in _SEALED:
         tree = ast.parse((_SRC / module).read_text(encoding="utf-8"))
-        offending = _imported_names(tree) & _FORBIDDEN_LOADERS
+        offending = _referenced_names(tree) & _FORBIDDEN_LOADERS
         assert not offending, f"{module} imports {sorted(offending)}"
 
 
@@ -117,8 +126,13 @@ def test_behavioral_seal_exporters_render_from_snapshot_alone(
     monkeypatch.setattr(graph_mod, "shared_merged_graph", boom)
     monkeypatch.setattr(mappings_mod, "load_mappings", boom)
     monkeypatch.setattr(self_desc_mod, "load_self_description", boom)
-    monkeypatch.setattr("pyoxigraph.Store", boom)
-    monkeypatch.setattr("pyoxigraph.parse", boom)
+    try:  # pyoxigraph is a dev dependency here, but the seal must not
+        import pyoxigraph  # noqa: F401  # depend on its presence to hold
+    except ImportError:
+        pass
+    else:
+        monkeypatch.setattr("pyoxigraph.Store", boom)
+        monkeypatch.setattr("pyoxigraph.parse", boom)
 
     gens = registry()
     for name in ("exports", "metadata", "schemas", "lpg"):
