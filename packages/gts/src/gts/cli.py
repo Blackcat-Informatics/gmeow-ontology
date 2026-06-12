@@ -17,7 +17,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from gts.model import Graph
+from gts.model import Graph, TermKind
 from gts.nquads import to_nquads
 from gts.reader import read, read_segments
 
@@ -84,6 +84,60 @@ def _cmd_fold(path: str) -> int:
     return 1 if g.diagnostics or not g.segment_heads else 0
 
 
+PROFILE_VOCABS: dict[str, str] = {"files": "https://w3id.org/gts/files#"}
+
+
+def _namespace(iri: str) -> str:
+    if "#" in iri:
+        return iri[: iri.rfind("#") + 1]
+    if "/" in iri:
+        return iri[: iri.rfind("/") + 1]
+    return iri
+
+
+def _used_vocabs(seg: Graph) -> set[str]:
+    out: set[str] = set()
+    vocabs = set(PROFILE_VOCABS.values())
+    for s, p, o, _g in seg.quads:
+        for tid in (s, p, o):
+            term = seg.term(tid)
+            if term.kind is TermKind.IRI and term.value:
+                ns = _namespace(term.value)
+                if ns in vocabs:
+                    out.add(ns)
+    return out
+
+
+def _profile_check(seg: Graph) -> list[tuple[str, bool]]:
+    """Declared-vs-computed profile requirement checks (§14.1).
+
+    Returns (message, is_error) pairs.
+    """
+    out: list[tuple[str, bool]] = []
+    declared = set(seg.segment_profiles)
+    used = _used_vocabs(seg)
+    for prof, vocab in PROFILE_VOCABS.items():
+        declares = prof in declared
+        uses = vocab in used
+        if uses and not declares:
+            out.append(
+                (
+                    f"profile error: segment uses {vocab} vocabulary "
+                    f"but does not declare '{prof}'",
+                    True,
+                )
+            )
+        if declares and not uses:
+            out.append(
+                (
+                    f"profile warning: segment declares '{prof}' "
+                    f"but uses no {vocab} vocabulary",
+                    False,
+                )
+            )
+    return out
+
+
 def _cmd_verify(paths: list[str]) -> int:
     problems = False
     for path in paths:
@@ -95,6 +149,13 @@ def _cmd_verify(paths: list[str]) -> int:
             continue
         _print_ledger(path, segments, torn)
         problems = problems or _has_problems(segments, torn, fatal)
+        # §14.1: declared-vs-computed profile requirements.
+        for idx, seg in enumerate(segments):
+            for msg, is_err in _profile_check(seg):
+                prefix = "error" if is_err else "warning"
+                print(f"  segment {idx}: {prefix}: {msg}", file=sys.stderr)
+                if is_err:
+                    problems = True
     return 1 if problems else 0
 
 

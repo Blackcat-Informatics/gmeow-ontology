@@ -10,6 +10,7 @@ frames) and asserts the folded :class:`Graph`, its diagnostics, and the
 from __future__ import annotations
 
 import cbor2
+import pytest
 
 from gts import Term, TermKind, Writer, read, to_nquads
 from gts.codec import Codec
@@ -482,6 +483,33 @@ def test_vector_19_profile_union_graceful_opacity() -> None:
     assert CAT in values
     assert any(o.reason == "unknown-codec" for o in g.opaque)
     assert len(g.segment_heads) == 2
+
+
+def test_vector_20_language_tag_discipline() -> None:
+    # Canonical payloads keep internal private-use tags (§13.1).
+    w = Writer(profile="dist")
+    w.add_terms([Term(TermKind.LITERAL, "Cat", lang="x-gmeow-english")])
+    g = read(w.to_bytes())
+    assert _diag_codes(g) == []
+    assert g.term(0).lang == "x-gmeow-english"
+
+    # Projection/docs sections MUST use public BCP-47 tags only.
+    w2 = Writer(profile="dist")
+    with pytest.raises(ValueError, match="private-use language tag"):
+        w2.add_terms(
+            [Term(TermKind.LITERAL, "Read me", lang="x-gmeow-english")],
+            section="projection",
+        )
+
+
+def test_vector_21_degenerate_composition_is_structurally_valid() -> None:
+    # Raw byte concatenation is always valid GTS; the refusal is tooling-only.
+    from gts.vectors import corpus
+
+    case = next(c for c in corpus() if c.name == "21-degenerate-composition")
+    g = read(case.data)
+    assert len(g.segment_heads) == 2
+    assert len(g.suppressions) == 1
 
 
 def test_rfc8949_deterministic_key_order() -> None:

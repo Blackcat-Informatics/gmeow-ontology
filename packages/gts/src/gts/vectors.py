@@ -276,6 +276,66 @@ def _inline_blob() -> bytes:
     return bytes(w.to_bytes())
 
 
+def _language_tag_discipline() -> bytes:
+    """Vector 20: canonical payloads keep internal language tags.
+
+    Projection/docs sections must keep public BCP-47 tags only (§13.1).
+    The file carries a canonical ``dist`` payload literal with the internal
+    ``x-gmeow-english`` tag *and* a docs/blob section described by a public
+    ``en`` literal — both accepted. The negative case (internal tag in the
+    projection section) is asserted in ``tests/test_gts.py``; the reference
+    producer refuses it at write time.
+    """
+    w = Writer(profile="dist")
+    # Canonical payload terms (internal private-use tag is allowed here).
+    w.add_terms(
+        [
+            Term(TermKind.IRI, CAT),
+            Term(TermKind.IRI, LABEL),
+            Term(TermKind.LITERAL, "Cat", lang="x-gmeow-english"),
+        ]
+    )
+    # Projection/docs terms (public BCP-47 only).
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/ReadMe"),
+            Term(TermKind.LITERAL, "Read me", lang="en"),
+        ],
+        section="projection",
+    )
+    w.add_quads([(0, 1, 2, None), (3, 1, 4, None)])
+    w.add_blob(b"<html></html>", mt="text/html")
+    return bytes(w.to_bytes())
+
+
+def _degenerate_composition() -> bytes:
+    """Vector 21: a structurally valid file that ``gts cat`` refuses.
+
+    Segment one asserts one ground quad; segment two suppresses that same quad
+    by value. Raw byte concatenation is valid GTS, but the composition hides
+    every prior quad, so a publish-class composer MUST refuse it (§14.1).
+    """
+    w1 = Writer(profile="dist")
+    w1.add_terms(
+        [
+            Term(TermKind.IRI, CAT),
+            Term(TermKind.IRI, LABEL),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    w1.add_quads([(0, 1, 2, None)])
+    w2 = Writer()
+    w2.add_terms(
+        [
+            Term(TermKind.IRI, CAT),
+            Term(TermKind.IRI, LABEL),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    w2.add_suppress([{"kind": "quad", "q": [0, 1, 2]}], reason="retracted")
+    return bytes(w1.to_bytes()) + bytes(w2.to_bytes())
+
+
 def _files_profile_tree() -> bytes:
     """Vector 23: a deterministic files-profile archive of a small tree."""
     import os
@@ -334,6 +394,8 @@ def corpus() -> list[VectorCase]:
         ),
         VectorCase("18-cross-segment-suppression", _cross_segment_suppression()),
         VectorCase("19-profile-union-opacity", _profile_union_opacity()),
+        VectorCase("20-language-tag-discipline", _language_tag_discipline()),
+        VectorCase("21-degenerate-composition", _degenerate_composition()),
         VectorCase("22-inline-blob", _inline_blob()),
         VectorCase("23-files-profile-tree", _files_profile_tree()),
         VectorCase("24-files-profile-dedup", _files_profile_dedup()),
