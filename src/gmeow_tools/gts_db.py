@@ -93,6 +93,38 @@ def to_sqlite(graph: Graph, path: str | Path) -> Path:
     return out
 
 
+def to_parquet(graph: Graph, out_dir: str | Path) -> list[Path]:
+    """Write a folded graph as one Parquet file per non-empty table.
+
+    Loads the relational projection into an in-memory DuckDB connection and
+    ``COPY``-exports each table — the same dictionary-encoded schema as
+    :func:`to_sqlite`/:func:`to_duckdb`, in the columnar interchange form
+    (#377). The ``blobs`` table is skipped when empty.
+
+    Returns:
+        The written file paths, in table order.
+    """
+    import duckdb
+
+    target = Path(out_dir)
+    target.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    conn = duckdb.connect(":memory:")
+    try:
+        _load(conn, graph)
+        for table, _sql in _INSERTS:
+            count = conn.execute(f"SELECT count(*) FROM {table}").fetchone()
+            if count is None or count[0] == 0:
+                continue
+            out = target / f"{table}.parquet"
+            quoted = str(out).replace("'", "''")
+            conn.execute(f"COPY {table} TO '{quoted}' (FORMAT parquet)")
+            written.append(out)
+    finally:
+        conn.close()
+    return written
+
+
 def to_duckdb(graph: Graph, path: str | Path) -> Path:
     """Write a folded graph to a DuckDB database, returning its path."""
     import duckdb
