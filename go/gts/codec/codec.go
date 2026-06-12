@@ -32,6 +32,9 @@ func (e *CodecError) Error() string {
 }
 
 func decodeOne(codec *Codec, data []byte) ([]byte, error) {
+	if codec == nil {
+		return nil, &CodecError{Failed: true, Detail: "codec chain contains nil entry"}
+	}
 	if codec.Cls == "encrypt" {
 		return nil, &CodecError{
 			Reason: "missing-key",
@@ -78,6 +81,9 @@ func decodeOne(codec *Codec, data []byte) ([]byte, error) {
 func DecodeChain(chain []*Codec, data []byte) ([]byte, error) {
 	current := data
 	for i := len(chain) - 1; i >= 0; i-- {
+		if chain[i] == nil {
+			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("codec chain contains nil entry at index %d", i)}
+		}
 		var err error
 		current, err = decodeOne(chain[i], current)
 		if err != nil {

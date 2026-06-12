@@ -21,16 +21,18 @@ func TestMain(m *testing.M) {
 		fmt.Fprintf(os.Stderr, "cannot create temp dir: %v\n", err)
 		os.Exit(1)
 	}
-	defer os.RemoveAll(dir)
 
 	binPath = filepath.Join(dir, "gts")
 	cmd := exec.Command("go", "build", "-o", binPath, "github.com/Blackcat-Informatics/gmeow-ontology/go/gts/cmd/gts")
 	if out, err := cmd.CombinedOutput(); err != nil {
+		_ = os.RemoveAll(dir)
 		fmt.Fprintf(os.Stderr, "cannot build gts binary: %v\n%s\n", err, out)
 		os.Exit(1)
 	}
 
-	os.Exit(m.Run())
+	code := m.Run()
+	_ = os.RemoveAll(dir)
+	os.Exit(code)
 }
 
 func run(t *testing.T, args ...string) (*exec.Cmd, *bytes.Buffer, *bytes.Buffer) {
@@ -64,7 +66,10 @@ func vector(t *testing.T, name string) string {
 
 func TestFoldEmitsNQuads(t *testing.T) {
 	v := vector(t, "01-minimal.gts")
-	_, stdout, stderr := run(t, "fold", v)
+	cmd, stdout, stderr := run(t, "fold", v)
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("expected exit 0, got %d", cmd.ProcessState.ExitCode())
+	}
 	if stderr.Len() > 0 {
 		t.Fatalf("fold produced stderr: %s", stderr.String())
 	}
@@ -119,7 +124,10 @@ func TestCatRefusesDamagedInput(t *testing.T) {
 
 func TestLsListsDigestSizeAndMediaType(t *testing.T) {
 	v := vector(t, "22-inline-blob.gts")
-	_, stdout, _ := run(t, "ls", v)
+	cmd, stdout, _ := run(t, "ls", v)
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("expected exit 0, got %d", cmd.ProcessState.ExitCode())
+	}
 	out := stdout.String()
 
 	var found bool

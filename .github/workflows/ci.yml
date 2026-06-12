@@ -124,9 +124,9 @@ jobs:
         run: go vet ./...
 
       - name: staticcheck
-        uses: dominikh/staticcheck-action@fe1dd0c3658873b46f8c9bb3291096a617310ca4 # v1.3.1
+        uses: dominikh/staticcheck-action@672a31696676d1592844bf0164b3bbfd855a4d50 # v1.4.1
         with:
-          version: "2025.1.2"
+          version: "2026.1"
           install-go: false
           working-directory: go/gts
 

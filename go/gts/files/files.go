@@ -422,6 +422,10 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 	if err != nil {
 		return err
 	}
+	blobByDigest := make(map[string][]byte, len(g.Blobs))
+	for _, b := range g.Blobs {
+		blobByDigest[b.Digest] = b.Data
+	}
 	suppressed := make(map[string]struct{})
 	if !includeSuppressed {
 		suppressed = suppressedBlobDigests(g)
@@ -451,14 +455,8 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 		if _, skip := suppressed[digest]; skip {
 			continue
 		}
-		var data []byte
-		for _, b := range g.Blobs {
-			if b.Digest == digest {
-				data = b.Data
-				break
-			}
-		}
-		if data == nil {
+		data, ok := blobByDigest[digest]
+		if !ok {
 			return fmt.Errorf("missing inline blob for %s: %s", path, digest)
 		}
 		if writer.DigestString(data) != digest {
