@@ -3,7 +3,7 @@
 
 import { Tagged } from "cbor";
 import * as wire from "./wire.js";
-import { Term, Quad, ReifierEntry, Triple } from "./model.js";
+import { Term, Quad, ReifierEntry, Triple, TermKind } from "./model.js";
 
 interface CatalogEntry {
     name: string;
@@ -20,7 +20,7 @@ const Catalog: Record<number, CatalogEntry> = {
 function termToWire(t: Term): Map<unknown, unknown> {
     const entries = new Map<unknown, unknown>();
     entries.set("k", t.kind);
-    if (t.value !== "" || t.kind === 1 /* Literal */) {
+    if (t.value !== "" || t.kind === TermKind.Literal) {
         entries.set("v", t.value);
     }
     if (t.datatype !== undefined) entries.set("dt", t.datatype);

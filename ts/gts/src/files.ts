@@ -129,7 +129,7 @@ function guessMediaType(path: string): string {
 
 function formatDateTime(ts: number): string {
     const d = new Date(ts * 1000);
-    return d.toISOString().replace("+00:00", "Z");
+    return d.toISOString();
 }
 
 /** Pack files/directories into a deterministic GTS files-profile archive. */
@@ -277,19 +277,7 @@ function readFileEntries(g: Graph): FileEntries {
     return byPath;
 }
 
-function normalizeDigest(digest: string): string {
-    return digest.startsWith("blake3:") ? digest : "blake3:" + digest;
-}
-
-function digestFromValue(v: unknown): string {
-    const s = wire.asText(v);
-    if (s !== undefined) return normalizeDigest(s);
-    const b = wire.asBytes(v);
-    if (b) return "blake3:" + wire.hex(b);
-    return "";
-}
-
-function suppressedBlobDigests(g: Graph): Set<string> {
+export function suppressedBlobDigests(g: Graph): Set<string> {
     const out = new Set<string>();
     for (const sup of g.suppressions) {
         for (const target of sup.targets) {
@@ -299,7 +287,7 @@ function suppressedBlobDigests(g: Graph): Set<string> {
             for (const [k, v] of target) {
                 const key = wire.textOr(k, "");
                 if (key === "kind") kind = wire.textOr(v, "");
-                else if (key === "digest") digest = digestFromValue(v);
+                else if (key === "digest") digest = wire.digestFromValue(v);
             }
             if (kind === "blob" && digest) out.add(digest);
         }

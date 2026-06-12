@@ -32,7 +32,7 @@ function payloadErrorFromCodecError(err: unknown): PayloadError {
     return {
         unavailable: false,
         reason: "",
-        detail: (err as Error).message,
+        detail: err instanceof Error ? err.message : String(err),
         damaged: true,
     };
 }

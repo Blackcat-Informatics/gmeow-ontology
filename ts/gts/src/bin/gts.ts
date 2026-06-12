@@ -4,8 +4,16 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { Read, ReadFileSegments } from "../reader.js";
 import { toNQuads } from "../nquads.js";
-import { pack, unpack, diff } from "../files.js";
-import { hex, mapGet, asInt, asInt64, asText, textOr } from "../wire.js";
+import { pack, unpack, diff, suppressedBlobDigests } from "../files.js";
+import {
+    hex,
+    mapGet,
+    asInt,
+    asInt64,
+    asText,
+    textOr,
+    normalizeDigest,
+} from "../wire.js";
 import type { Graph, FileSegments } from "../reader.js";
 import type { Quad, Suppression } from "../model.js";
 
@@ -76,18 +84,6 @@ function blobMT(g: Graph, digest: string): string {
     return "";
 }
 
-function normalizeDigest(digest: string): string {
-    return digest.startsWith("blake3:") ? digest : "blake3:" + digest;
-}
-
-function digestFromValue(v: unknown): string {
-    const s = asText(v);
-    if (s !== undefined) return normalizeDigest(s);
-    const b = v as Uint8Array;
-    if (b instanceof Uint8Array) return "blake3:" + hex(b);
-    return "";
-}
-
 function targetKind(target: unknown): string {
     if (!(target instanceof Map)) return "";
     const v = mapGet(target, "kind");
@@ -155,24 +151,6 @@ function allQuadsSuppressed(g: Graph): boolean {
         return false;
     }
     return true;
-}
-
-function suppressedBlobDigests(g: Graph): Set<string> {
-    const out = new Set<string>();
-    for (const sup of g.suppressions) {
-        for (const target of sup.targets) {
-            if (!(target instanceof Map)) continue;
-            let kind = "";
-            let digest: string | undefined;
-            for (const [k, v] of target) {
-                const key = textOr(k, "");
-                if (key === "kind") kind = textOr(v, "");
-                else if (key === "digest") digest = digestFromValue(v);
-            }
-            if (kind === "blob" && digest) out.add(digest);
-        }
-    }
-    return out;
 }
 
 function cmdInfo(paths: string[]): number {
@@ -334,7 +312,7 @@ function cmdCat(args: string[]): number {
         console.error(`gts: cat needs at least two inputs\n${usage}`);
         return 2;
     }
-    let combined = new Uint8Array();
+    const chunks: Uint8Array[] = [];
     for (const path of inputs) {
         const data = load(path);
         const fs = ReadFileSegments(data);
@@ -358,10 +336,14 @@ function cmdCat(args: string[]): number {
                 return 1;
             }
         }
-        const next = new Uint8Array(combined.length + data.length);
-        next.set(combined);
-        next.set(data, combined.length);
-        combined = next;
+        chunks.push(data);
+    }
+    const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
+    const combined = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.length;
     }
     const folded = Read(combined, true);
     if (allQuadsSuppressed(folded)) {

@@ -42,7 +42,26 @@ export function digestStr(data: Uint8Array): string {
     return "blake3:" + hex(blake3_256(data));
 }
 
-/** Look up a text key in a decoded CBOR map (first match). */
+/** Normalize a digest string to the `blake3:<hex>` form. */
+export function normalizeDigest(digest: string): string {
+    return digest.startsWith("blake3:") ? digest : "blake3:" + digest;
+}
+
+/** Build a `blake3:<hex>` digest from a text or byte-string value. */
+export function digestFromValue(v: unknown): string {
+    const s = asText(v);
+    if (s !== undefined) return normalizeDigest(s);
+    const b = asBytes(v);
+    if (b) return "blake3:" + hex(b);
+    return "";
+}
+
+/** Look up a text key in a decoded CBOR map (first match).
+ *
+ * The fallback iteration defends against CBOR maps whose keys were decoded as
+ * non-string types (e.g., Buffer/Uint8Array) or otherwise compare equal only
+ * by strict `===` rather than by `Map.has()` hash/equality.
+ */
 export function mapGet(
     m: Map<unknown, unknown> | undefined,
     key: string,

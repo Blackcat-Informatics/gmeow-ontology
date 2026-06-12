@@ -20,12 +20,19 @@ export interface CodecError {
 export function codecError(err: CodecError): Error {
     const e = new Error(err.detail) as Error & CodecError;
     e.reason = err.reason;
+    e.detail = err.detail;
     e.failed = err.failed;
     return e;
 }
 
 export function isCodecError(err: unknown): err is Error & CodecError {
-    return err instanceof Error && "reason" in err && "failed" in err;
+    if (!(err instanceof Error)) return false;
+    const e = err as Error & Record<string, unknown>;
+    return (
+        typeof e.reason === "string" &&
+        typeof e.failed === "boolean" &&
+        typeof e.detail === "string"
+    );
 }
 
 function toUint8Array(buf: Buffer): Uint8Array {
