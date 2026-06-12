@@ -1,12 +1,10 @@
 """Labeled Property Graph (LPG) transcoder — RDF → property graph export.
 
-Consumes the Jena-produced canonical RDF 1.2 artifact
-(``statements/gmeow.rdf12.ttl``) via pyoxigraph, which parses RDF-star
-natively. Emits nodes + edges with statement metadata as edge properties —
-the headline feature where GMEOW's RDF-1.2-first design pays off.
-
-Jena remains the canonical producer of ``gmeow.rdf12.ttl``; pyoxigraph is a
-downstream consumer for the LPG projection only (Principle 4).
+Consumes the GTS snapshot (the narrow waist, #267): the statement layer's
+quads from their named graph, the reifier bindings and annotations straight
+from the fold tables. Emits nodes + edges with statement metadata as edge
+properties — the headline feature where GMEOW's RDF-1.2-first design pays
+off. No RDF parser appears in this module at all.
 """
 
 from __future__ import annotations
@@ -18,24 +16,18 @@ from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-import pyoxigraph
-
 from gmeow_tools.config import (
+    GTS_GRAPH_STATEMENTS,
+    GTS_SNAPSHOT_FILE,
     LPG_DIR,
     NAMESPACE,
     PREFIXES,
     PROJECT_ROOT,
-    STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.generator import Generator, register
-
-#: Union of all pyoxigraph term types (there is no single ``Term`` base class).
-_Term = (
-    pyoxigraph.NamedNode | pyoxigraph.Literal | pyoxigraph.BlankNode | pyoxigraph.Triple
-)
+from gmeow_tools.gts_views import FoldView, load_fold
 
 #: GMEOW namespace IRI (trailing slash).
 _GMEOW_NS = NAMESPACE
@@ -170,53 +162,6 @@ def _short_key(iri: str) -> str:
     return curie_val
 
 
-def _term_str(term: object) -> str:
-    """Return the string value of any pyoxigraph term."""
-    if isinstance(term, pyoxigraph.Literal):
-        return str(term.value)
-    if isinstance(term, pyoxigraph.NamedNode | pyoxigraph.BlankNode):
-        return str(term.value)
-    if isinstance(term, pyoxigraph.Triple):
-        return (
-            f"<<({_term_str(term.subject)} {_term_str(term.predicate)} "
-            f"{_term_str(term.object)})>>"
-        )
-    return str(term)
-
-
-def _value_from_term(term: object) -> object:
-    """Convert a pyoxigraph term to a Python scalar."""
-    if isinstance(term, pyoxigraph.Literal):
-        datatype = str(term.datatype.value) if term.datatype else None
-        value: Any = term.value
-        if datatype == "http://www.w3.org/2001/XMLSchema#integer":
-            return int(str(value))
-        if datatype in (
-            "http://www.w3.org/2001/XMLSchema#decimal",
-            "http://www.w3.org/2001/XMLSchema#double",
-            "http://www.w3.org/2001/XMLSchema#float",
-        ):
-            return float(str(value))
-        if datatype == "http://www.w3.org/2001/XMLSchema#boolean":
-            return str(value).lower() == "true"
-        if datatype == "http://www.w3.org/2001/XMLSchema#dateTime":
-            return str(value)
-        if term.language:
-            return {"value": str(value), "lang": str(term.language)}
-        return str(value)
-    if isinstance(term, pyoxigraph.NamedNode):
-        return _curie(str(term.value))
-    if isinstance(term, pyoxigraph.BlankNode):
-        return f"_bnode:{term.value}"
-    if isinstance(term, pyoxigraph.Triple):
-        return (
-            f"<<({_curie(_term_str(term.subject))} "
-            f"{_curie(_term_str(term.predicate))} "
-            f"{_value_from_term(term.object)})>>"
-        )
-    return str(term)
-
-
 def _edge_id(source: str, target: str, type_: str, props: dict[str, object]) -> str:
     """Deterministic edge ID from components."""
     props_str = json.dumps(props, sort_keys=True, ensure_ascii=False)
@@ -225,280 +170,163 @@ def _edge_id(source: str, target: str, type_: str, props: dict[str, object]) -> 
     return f"edge:{h}"
 
 
-def _load_store(
-    *,
-    rdf12_path: Path | None = None,
-    ontology_paths: list[Path] | None = None,
-) -> pyoxigraph.Store:
-    """Load RDF data into a pyoxigraph Store.
+# --------------------------------------------------------------------------- #
+# The fold path (narrow waist #267): build the LPG from the GTS snapshot
+# --------------------------------------------------------------------------- #
 
-    Args:
-        rdf12_path: Path to the canonical RDF 1.2 artifact. Defaults to
-            ``STATEMENT_RDF12_FILE``.
-        ontology_paths: Additional ontology files to load (e.g. the merged
-            ontology modules). Defaults to loading the main ontology.
+_RDF_TYPE_IRI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+_XSD_NS = "http://www.w3.org/2001/XMLSchema#"
 
-    Returns:
-        A populated pyoxigraph Store.
+
+def _fold_value(view: FoldView, tid: int) -> object:
+    """Convert a fold term to the lpg scalar form.
+
+    Parity with the old pyoxigraph ``_value_from_term``, including its
+    ``_bnode:`` rendering.
     """
-    store = pyoxigraph.Store()
-    rdf12 = rdf12_path or STATEMENT_RDF12_FILE
-    if not rdf12.exists():
-        msg = f"Canonical RDF 1.2 artifact not found: {rdf12}"
-        raise FileNotFoundError(msg)
-    store.load(path=str(rdf12), format=pyoxigraph.RdfFormat.TURTLE)
-    if ontology_paths is not None:
-        for path in ontology_paths:
-            if path.exists():
-                store.load(path=str(path), format=pyoxigraph.RdfFormat.TURTLE)
-    return store
+    term = view.term(tid)
+    if view.is_literal(tid):
+        dt = view.datatype(tid)
+        lex = term.value or ""
+        if dt == _XSD_NS + "integer":
+            try:
+                return int(lex)
+            except ValueError:
+                return lex  # malformed input degrades to the raw lexical
+        if dt in (_XSD_NS + "decimal", _XSD_NS + "double", _XSD_NS + "float"):
+            try:
+                return float(lex)
+            except ValueError:
+                return lex
+        if dt == _XSD_NS + "boolean":
+            return lex.lower() in ("true", "1")
+        if term.lang is not None:
+            return {"value": lex, "lang": term.lang}
+        return lex
+    if view.is_iri(tid):
+        return _curie(term.value or "")
+    if view.is_bnode(tid):
+        return f"_bnode:{term.value or ''}"
+    return view.nq_token(tid)
 
 
-def _run_select(store: pyoxigraph.Store, query: str) -> list[dict[str, _Term]]:
-    """Run a SELECT query and return rows as dicts."""
-    results = store.query(query)
-    if not isinstance(results, pyoxigraph.QuerySolutions):
-        return []
-    rows: list[dict[str, _Term]] = []
-    for solution in results:
-        row: dict[str, _Term] = {}
-        for var in results.variables:
-            var_name = var.value
-            val = solution[var_name]
-            if val is not None:
-                row[var_name] = val
-        rows.append(row)
-    return rows
-
-
-#: All distinct resources that should become nodes.
-_NODES_QUERY = """
-SELECT DISTINCT ?resource
-WHERE {
-    { ?resource ?p ?o . }
-    UNION
-    { ?s ?p ?resource . FILTER(isIRI(?resource)) }
-    UNION
-    { ?resource a ?type . }
-}
-"""
-
-#: All type assertions.
-_TYPES_QUERY = """
-SELECT ?resource ?type
-WHERE {
-    ?resource a ?type .
-}
-"""
-
-#: All datatype property assertions.
-_DATATYPE_QUERY = """
-SELECT ?subject ?predicate ?object
-WHERE {
-    ?subject ?predicate ?object .
-    FILTER(isLiteral(?object))
-    FILTER(?predicate != <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies>)
-}
-"""
-
-#: All object property assertions.
-_OBJECT_QUERY = """
-SELECT ?subject ?predicate ?object
-WHERE {
-    ?subject ?predicate ?object .
-    FILTER(isIRI(?object))
-    FILTER(?predicate != <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies>)
-    FILTER(?predicate != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
-}
-"""
-
-#: Reifiers and their quoted triples (as single terms).
-_REIFIERS_QUERY = """
-SELECT ?reifier ?qt
-WHERE {
-    ?reifier <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?qt .
-}
-"""
-
-#: Annotations on reifiers (excluding rdf:reifies itself).
-_REIFIER_ANNOTATIONS_QUERY = """
-SELECT ?reifier ?annProp ?annValue
-WHERE {
-    ?reifier <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?_qt .
-    ?reifier ?annProp ?annValue .
-    FILTER(?annProp != <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies>)
-}
-"""
+def _accumulate(bucket: dict[str, object], key: str, value: object) -> None:
+    """Single value → value; repeats → list (the old row-accumulate idiom)."""
+    existing = bucket.get(key)
+    if existing is None:
+        bucket[key] = value
+    elif isinstance(existing, list):
+        existing.append(value)
+    else:
+        bucket[key] = [existing, value]
 
 
 def build_lpg(
-    store: pyoxigraph.Store,
+    view: FoldView,
     *,
+    scope: str | None = GTS_GRAPH_STATEMENTS,
     drop_tbox: bool = True,
 ) -> LPGGraph:
-    """Build an LPG graph from a pyoxigraph Store.
+    """Build an LPG from the GTS fold — quads scoped to the statement layer.
 
-    Args:
-        store: The populated pyoxigraph Store.
-        drop_tbox: If True (default), skip OWL TBox constructs from the edge
-            set.
-
-    Returns:
-        The populated :class:`LPGGraph`.
+    The fold-table counterpart of the SPARQL path: ``reifiers``/``annot``
+    are direct table reads (the producer routed ``rdf:reifies`` and
+    reifier-subject triples there, so the scoped quads are exactly the base
+    triples and the reifies/annotation FILTERs vanish).
     """
     lpg = LPGGraph()
     tbox_predicates = _TBOX_PREDICATES if drop_tbox else frozenset()
 
-    # --- Collect reifier metadata first ---
+    # --- Reifier metadata from the fold tables ---
     reifier_meta: dict[str, dict[str, object]] = defaultdict(dict)
     reifier_triple: dict[str, tuple[str, str, str]] = {}
     reifier_iris: set[str] = set()
-
-    for row in _run_select(store, _REIFIERS_QUERY):
-        reifier = _term_str(row["reifier"])
+    for rid, (qs, qp, qo) in view.reifiers().items():
+        reifier = view.lex(rid)
         reifier_iris.add(reifier)
-        qt = row["qt"]
-        if not isinstance(qt, pyoxigraph.Triple):
-            continue
-        subject = _term_str(qt.subject)
-        predicate = _term_str(qt.predicate)
-        obj = _term_str(qt.object)
-        reifier_triple[reifier] = (subject, predicate, obj)
+        reifier_triple[reifier] = (view.lex(qs), view.lex(qp), view.lex(qo))
+    for rid, p, v in view.annotations():
+        reifier = view.lex(rid)
+        reifier_iris.add(reifier)
+        _accumulate(reifier_meta[reifier], view.lex(p), _fold_value(view, v))
 
-    for row in _run_select(store, _REIFIER_ANNOTATIONS_QUERY):
-        reifier = _term_str(row["reifier"])
-        ann_prop = _term_str(row["annProp"])
-        ann_value = _value_from_term(row["annValue"])
-        existing = reifier_meta[reifier].get(ann_prop)
-        if existing is None:
-            reifier_meta[reifier][ann_prop] = ann_value
-        elif isinstance(existing, list):
-            existing.append(ann_value)
-        else:
-            reifier_meta[reifier][ann_prop] = [existing, ann_value]
-
-    # --- Map base triples to metadata lists ---
     triple_meta: dict[tuple[str, str, str], list[dict[str, object]]] = defaultdict(list)
-    for reifier, (s, p, o) in reifier_triple.items():
-        meta = dict(reifier_meta.get(reifier, {}))
-        short_meta: dict[str, object] = {}
-        for k, v in meta.items():
-            short_meta[_short_key(k)] = v
-        triple_meta[(s, p, o)].append(short_meta)
+    for reifier_key, (ts, tp, to_) in reifier_triple.items():
+        meta = reifier_meta.get(reifier_key, {})
+        triple_meta[(ts, tp, to_)].append({_short_key(k): v for k, v in meta.items()})
 
-    # --- Collect node labels and properties (excluding reifiers) ---
+    # --- One pass over the scoped quads, bucketed by object kind ---
+    type_tid = view.tid_of_iri(_RDF_TYPE_IRI)
     node_labels: dict[str, set[str]] = defaultdict(set)
     node_props: dict[str, dict[str, object]] = defaultdict(dict)
+    object_rows: list[tuple[str, str, str]] = []
 
-    for row in _run_select(store, _TYPES_QUERY):
-        if isinstance(row["resource"], pyoxigraph.BlankNode):
+    for s, p, o, _g in view.quads(scope):
+        if view.is_bnode(s):
             continue
-        resource = _term_str(row["resource"])
-        if resource in reifier_iris:
-            continue
-        type_iri = _term_str(row["type"])
-        if type_iri not in _SKIP_LABELS:
-            node_labels[resource].add(_curie(type_iri))
+        subject = view.lex(s)
+        if p == type_tid:
+            if subject in reifier_iris:
+                continue
+            type_iri = view.lex(o)
+            if type_iri not in _SKIP_LABELS:
+                node_labels[subject].add(_curie(type_iri))
+            node_labels.setdefault(subject, set())
+        elif view.is_literal(o):
+            if subject in reifier_iris:
+                continue
+            _accumulate(
+                node_props[subject],
+                _short_key(view.lex(p)),
+                _fold_value(view, o),
+            )
+            node_labels.setdefault(subject, set())
+        elif view.is_iri(o):
+            obj = view.lex(o)
+            if subject in reifier_iris or obj in reifier_iris:
+                continue
+            node_labels.setdefault(subject, set())
+            node_labels.setdefault(obj, set())
+            object_rows.append((subject, view.lex(p), obj))
 
-    for row in _run_select(store, _DATATYPE_QUERY):
-        if isinstance(row["subject"], pyoxigraph.BlankNode):
-            continue
-        subject = _term_str(row["subject"])
-        if subject in reifier_iris:
-            continue
-        predicate = _term_str(row["predicate"])
-        value = _value_from_term(row["object"])
-        key = _short_key(predicate)
-        existing = node_props[subject].get(key)
-        if existing is None:
-            node_props[subject][key] = value
-        elif isinstance(existing, list):
-            existing.append(value)
-        else:
-            node_props[subject][key] = [existing, value]
+    # IRI annotation VALUES are referenced entities and become (possibly
+    # isolated) nodes — the old path's "all distinct resources" straggler
+    # union caught them via the reifier-subject annotation triples.
+    for _rid, _p, v in view.annotations():
+        if view.is_iri(v):
+            value_iri = view.lex(v)
+            if value_iri not in reifier_iris:
+                node_labels.setdefault(value_iri, set())
 
-    # Ensure all subjects and objects of object properties are nodes
-    for row in _run_select(store, _OBJECT_QUERY):
-        subj_term = row["subject"]
-        obj_term = row["object"]
-        if isinstance(subj_term, pyoxigraph.BlankNode) or isinstance(
-            obj_term, pyoxigraph.BlankNode
-        ):
-            continue
-        subject = _term_str(subj_term)
-        obj = _term_str(obj_term)
-        if subject in reifier_iris or obj in reifier_iris:
-            continue
-        if subject not in node_labels:
-            node_labels[subject] = set()
-        if obj not in node_labels:
-            node_labels[obj] = set()
-
-    # Catch any stragglers from the general node query (skip blank nodes —
-    # they are OWL restrictions in the TBox, not domain entities).
-    for row in _run_select(store, _NODES_QUERY):
-        term = row["resource"]
-        if isinstance(term, pyoxigraph.BlankNode):
-            continue
-        resource = _term_str(term)
-        if resource in reifier_iris:
-            continue
-        if resource not in node_labels:
-            node_labels[resource] = set()
-
-    # Create nodes
+    # --- Nodes ---
     for resource, labels in node_labels.items():
-        node_id = _curie(resource)
         props = dict(node_props.get(resource, {}))
         props["uri"] = resource
         if labels:
             props["types"] = sorted(labels)
         lpg.add_node(
             LPGNode(
-                id=node_id,
+                id=_curie(resource),
                 labels=tuple(sorted(labels)),
                 properties=props,
             )
         )
 
-    # --- Build edges (excluding reifier-subject triples) ---
-    for row in _run_select(store, _OBJECT_QUERY):
-        subject = _term_str(row["subject"])
-        predicate = _term_str(row["predicate"])
-        obj = _term_str(row["object"])
-
-        if subject in reifier_iris or obj in reifier_iris:
-            continue
+    # --- Edges ---
+    for subject, predicate, obj in object_rows:
         if predicate in tbox_predicates:
             continue
-
-        source_id = _curie(subject)
-        target_id = _curie(obj)
+        source_id, target_id = _curie(subject), _curie(obj)
         edge_type = _short_key(predicate)
-
-        meta_list = triple_meta.get((subject, predicate, obj), [])
-
-        if meta_list:
-            for meta in meta_list:
-                edge_id = _edge_id(source_id, target_id, edge_type, meta)
-                lpg.add_edge(
-                    LPGEdge(
-                        id=edge_id,
-                        source=source_id,
-                        target=target_id,
-                        type=edge_type,
-                        properties=dict(meta),
-                    )
-                )
-        else:
-            edge_id = _edge_id(source_id, target_id, edge_type, {})
+        meta_list = triple_meta.get((subject, predicate, obj), []) or [{}]
+        for meta in meta_list:
             lpg.add_edge(
                 LPGEdge(
-                    id=edge_id,
+                    id=_edge_id(source_id, target_id, edge_type, meta),
                     source=source_id,
                     target=target_id,
                     type=edge_type,
-                    properties={},
+                    properties=dict(meta),
                 )
             )
 
@@ -807,7 +635,7 @@ class LpgGenerator(Generator):
     @property
     def inputs(self) -> Sequence[Path]:
         """Canonical inputs for the LPG generator."""
-        return [STATEMENT_RDF12_FILE]
+        return [GTS_SNAPSHOT_FILE]
 
     @property
     def outputs(self) -> Sequence[Path]:
@@ -821,8 +649,7 @@ class LpgGenerator(Generator):
 
     def render(self, staging: Path) -> None:
         """Render LPG artifacts into the staging tree."""
-        store = _load_store()
-        lpg = build_lpg(store)
+        lpg = build_lpg(load_fold())
         out_dir = staging / LPG_DIR.relative_to(PROJECT_ROOT)
         written = _write_all(lpg, out_dir, "all")
         self._rendered_outputs = [

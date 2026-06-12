@@ -1,4 +1,4 @@
 id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:313d4f8a17abf5c5,gmeow:examples/telling-social-post-001,gmeow:examples/telling-article-001,propagatesFrom,gmeow:examples/standpoint-factchecker,2026-05-10T00:00:00Z,0.78,,,,,,
-edge:4bbdf4ad5217f86c,gmeow:examples/telling-downstream-blog-001,gmeow:examples/telling-dupe-post-001,propagatesFrom,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.65,,,,,,
-edge:bfd312180ad314b2,gmeow:examples/telling-dupe-post-001,gmeow:examples/telling-origin-article-001,propagatesFrom,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.75,,,,,,
+edge:3d907525c7ce2fae,gmeow:examples/telling-social-post-001,gmeow:examples/telling-article-001,propagatesFrom,gmeow:examples/standpoint-factchecker,2026-05-10T00:00:00+00:00,0.78,,,,,,
+edge:b9e4f232f473d4af,gmeow:examples/telling-dupe-post-001,gmeow:examples/telling-origin-article-001,propagatesFrom,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00+00:00,0.75,,,,,,
+edge:cb5f857609384c44,gmeow:examples/telling-downstream-blog-001,gmeow:examples/telling-dupe-post-001,propagatesFrom,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00+00:00,0.65,,,,,,

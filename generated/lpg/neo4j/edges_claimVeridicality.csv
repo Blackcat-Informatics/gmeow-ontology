@@ -1,5 +1,5 @@
 id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:946a8fafaa79acc9,gmeow:examples/claim-hogwarts-exists,gmeow:veridicalityLicensedFalsehood,claimVeridicality,gmeow:examples/standpoint-publisher,2026-03-01T00:00:00Z,0.95,,,,,,
-edge:bc8e8776f06a6e9b,gmeow:examples/standpointclaim-downstream-belief-001,gmeow:veridicalityUntrue,claimVeridicality,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.75,,,,,,
-edge:cc42358ad0393333,gmeow:examples/standpointclaim-dupe-belief-001,gmeow:veridicalityUntrue,claimVeridicality,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.8,,,,,,
-edge:fbbfa3469f05ef47,gmeow:examples/claim-hogwarts-in-canon,gmeow:veridicalityLicensedFalsehood,claimVeridicality,gmeow:examples/standpoint-publisher,2026-06-07T00:00:00Z,0.95,,,,,,
+edge:4d1293cb5d4ad39b,gmeow:examples/claim-hogwarts-exists,gmeow:veridicalityLicensedFalsehood,claimVeridicality,gmeow:examples/standpoint-publisher,2026-03-01T00:00:00+00:00,0.95,,,,,,
+edge:9b50af7a8151f062,gmeow:examples/claim-hogwarts-in-canon,gmeow:veridicalityLicensedFalsehood,claimVeridicality,gmeow:examples/standpoint-publisher,2026-06-07T00:00:00+00:00,0.95,,,,,,
+edge:a3a6f22220195a01,gmeow:examples/standpointclaim-downstream-belief-001,gmeow:veridicalityUntrue,claimVeridicality,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00+00:00,0.75,,,,,,
+edge:b4a97514782a13f1,gmeow:examples/standpointclaim-dupe-belief-001,gmeow:veridicalityUntrue,claimVeridicality,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00+00:00,0.8,,,,,,

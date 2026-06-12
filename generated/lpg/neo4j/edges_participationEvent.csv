@@ -1,3 +1,3 @@
 id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:482992eccd40b670,gmeow:examples/participation-disinformation-origin-deceiver-001,gmeow:examples/event-disinformation-001,participationEvent,,2026-06-11T00:00:00Z,0.9,,,,,,
-edge:9b32c53b74bfe7a8,gmeow:examples/participation-disinformation-dupe-001,gmeow:examples/event-dupe-reshare-001,participationEvent,,2026-06-11T00:00:00Z,0.75,,,,,,
+edge:0e9090c900b38cd4,gmeow:examples/participation-disinformation-dupe-001,gmeow:examples/event-dupe-reshare-001,participationEvent,,2026-06-11T00:00:00+00:00,0.75,,,,,,
+edge:aa7b1d7ea7e63ba5,gmeow:examples/participation-disinformation-origin-deceiver-001,gmeow:examples/event-disinformation-001,participationEvent,,2026-06-11T00:00:00+00:00,0.9,,,,,,
