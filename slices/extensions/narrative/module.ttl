@@ -701,3 +701,5 @@ gmeow:motifOccursIn
 gmeow:narrates gmeow:pairsWith gmeow:NarrationUsage .
 gmeow:hasNarrativeRole gmeow:pairsWith gmeow:RoleInNarrative .
 gmeow:motifOccursIn gmeow:pairsWith gmeow:NarrationUsage .
+gmeow:hasNarrativeFrameRelation gmeow:pairsWith gmeow:NarrativeFrameLink .
+gmeow:relatesToFrame gmeow:pairsWith gmeow:NarrativeFrameLink .

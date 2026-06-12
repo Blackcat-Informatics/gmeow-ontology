@@ -571,8 +571,11 @@ def check_examples(merged: Graph) -> ValidationResult:
     return result
 
 
-_ANCHOR_PATTERN = re.compile(
-    r"^#{2,4}\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE
+_ANCHOR_PATTERN = re.compile(r"^###\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE)
+# Term headings at the wrong depth are malformed anchors, not invisible ones —
+# the canonical Tier-2 anchor shape is exactly `### gmeow:Term`.
+_MALFORMED_ANCHOR_PATTERN = re.compile(
+    r"^(?:##|#{4,})\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE
 )
 _STUB_MARKER = "This is a STUB guide"
 
@@ -604,6 +607,12 @@ def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResul
                 f"mandatory (#325)"
             )
         anchors = _ANCHOR_PATTERN.findall(text)
+        for local in _MALFORMED_ANCHOR_PATTERN.findall(text):
+            result.errors.append(
+                f"slice {name}: docs.md anchors gmeow:{local} at the wrong "
+                f"heading depth — the canonical Tier-2 anchor is "
+                f"`### gmeow:Term` (#325)"
+            )
         if not anchors and _STUB_MARKER not in text:
             result.warnings.append(
                 f"slice {name}: docs.md has no `### gmeow:Term` anchors — "

@@ -101,6 +101,9 @@ def resolve_term(graph: Graph, query: str) -> tuple[URIRef | None, list[str]]:
         text = text[len("gmeow:") :]
     if text.startswith(NAMESPACE):
         text = text[len(NAMESPACE) :]
+    if not text:
+        # An empty query would prefix-match everything (startswith("")).
+        return None, []
     locals_in_graph = sorted(
         {
             str(s)[len(NAMESPACE) :]
@@ -187,8 +190,16 @@ def build_card(graph: Graph, term: URIRef) -> TermCard:
             entry = registry.get(slice_iri)
             if entry is not None:
                 card.slice_tier = entry.tier
-                group = "core" if entry.tier == "core" else "extensions"
-                card.guide = f"slices/{group}/{card.slice_name}/docs.md"
+                # The discovered checkout path is authoritative — directory
+                # grouping is organizational, never derived from tier
+                # (the slices.py contract; PR #392 review).
+                guide_path = entry.path / "docs.md"
+                try:
+                    from gmeow_tools.config import PROJECT_ROOT
+
+                    card.guide = str(guide_path.relative_to(PROJECT_ROOT))
+                except ValueError:
+                    card.guide = str(guide_path)
         except Exception:
             card.guide = ""
     try:
@@ -252,6 +263,8 @@ def render_card(card: TermCard) -> str:
 def describe(query: str, gts_path: Path | None = None) -> tuple[str, int]:
     """Resolve + render; returns (text, exit_code)."""
     if gts_path is not None:
+        if not gts_path.exists():
+            return (f"GTS package file not found: {gts_path}", 1)
         graph = load_graph_from_gts(gts_path)
     else:
         from gmeow_tools.graph import load_merged_graph

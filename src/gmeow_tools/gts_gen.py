@@ -42,9 +42,10 @@ def build_snapshot_bytes() -> bytes:
     from blake3 import blake3
     from rdflib import Literal, URIRef
 
-    from gmeow_tools.config import NAMESPACE, SLICES_DIR
+    from gmeow_tools.config import NAMESPACE
     from gmeow_tools.graph import load_merged_graph
     from gmeow_tools.mappings import build_alignment_graph, load_mappings
+    from gmeow_tools.slices import discover_slices
     from gmeow_tools.validate import guide_anchor_lint
 
     graph = load_merged_graph(include_imports=False)
@@ -58,16 +59,16 @@ def build_snapshot_bytes() -> bytes:
         raise ValueError(msg)
     doc_blobs: list[tuple[bytes, str, str]] = []
     guide_blob = URIRef(NAMESPACE + "guideBlob")
-    for manifest in sorted(SLICES_DIR.glob("*/*/manifest.ttl")):
-        slice_dir = manifest.parent
-        guide = slice_dir / "docs.md"
+    # The manifest-declared IRI is the slice's identity (slices.py contract);
+    # directory names are checkout organization only.
+    for slice_iri, entry in sorted(discover_slices().items()):
+        guide = entry.path / "docs.md"
         if not guide.exists():
             continue
         payload = guide.read_bytes()
         digest = "blake3:" + blake3(payload).hexdigest()
-        slice_iri = URIRef(NAMESPACE + "slices/" + slice_dir.name)
-        graph.add((slice_iri, guide_blob, Literal(digest)))
-        doc_blobs.append((payload, "text/markdown", f"docs:{slice_dir.name}"))
+        graph.add((URIRef(slice_iri), guide_blob, Literal(digest)))
+        doc_blobs.append((payload, "text/markdown", f"docs:{entry.name}"))
 
     return compile_gts(
         graph,

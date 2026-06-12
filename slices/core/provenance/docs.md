@@ -19,9 +19,11 @@ On the claim spine (Source → Chunk → EvidenceSpan → Claim, Principle 14) t
 *chain of custody*: the `ImportActivity` that ingested the Source, the `wasDerivedFrom`
 chain from Source to Chunk to extraction, and the `confidence` annotation on the final
 Claim. The three epistemic axes never bridge (Principle 9): `gmeow:accordingTo` says whose
-frame holds a claim, `gmeow:wasAttributedTo` says which source recorded it, and
-`gmeow:confidence` says how sure we are — a neutral archive can record a partisan claim,
-and a claim can be high-confidence yet from a frame we dispute.
+frame holds a claim, the `wasDerivedFrom` chain back through its `ImportActivity` says
+which source recorded it, and `gmeow:confidence` says how sure we are — a neutral archive
+can record a partisan claim, and a claim can be high-confidence yet from a frame we
+dispute. (`gmeow:wasAttributedTo` plays a different role entirely: it ascribes
+responsibility for an *entity* to an *agent* — see below.)
 
 ## Activities
 

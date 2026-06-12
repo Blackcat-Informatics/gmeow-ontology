@@ -108,6 +108,17 @@ def test_anchor_lint_rejects_stubs_and_missing_guides(tmp_path: Path) -> None:
     assert "guideless" in errors and "missing docs.md" in errors
 
 
+def test_anchor_lint_rejects_wrong_heading_depth(tmp_path: Path) -> None:
+    """`## gmeow:X` / `#### gmeow:X` are malformed anchors, not invisible
+    ones — the canonical Tier-2 shape is exactly `### gmeow:Term`."""
+    _fake_slice(tmp_path, "shallow", "# G\n\n## gmeow:Goal\n\nProse.\n")
+    _fake_slice(tmp_path, "deep", "# G\n\n### gmeow:Goal\n\n#### gmeow:Event\n\nP.\n")
+    result = guide_anchor_lint(_graph(), root=tmp_path)
+    errors = "\n".join(result.errors)
+    assert "shallow" in errors and "wrong" in errors and "heading depth" in errors
+    assert "deep" in errors and "gmeow:Event" in errors
+
+
 def test_repo_guides_are_stub_free_and_bound() -> None:
     """The uplift is complete: zero stubs, every anchor resolves."""
     result = guide_anchor_lint(_graph())
@@ -137,6 +148,22 @@ def test_describe_suggests_on_ambiguity() -> None:
     term, candidates = resolve_term(g, "narrat")
     assert term is None
     assert any(c.startswith("Narrat") or c.startswith("narrat") for c in candidates)
+
+
+def test_resolve_term_rejects_empty_queries() -> None:
+    """An empty query must not prefix-match the whole graph."""
+    g = _graph()
+    for query in ("", "   ", "gmeow:"):
+        term, candidates = resolve_term(g, query)
+        assert term is None and candidates == []
+
+
+def test_describe_fails_gracefully_on_missing_gts(tmp_path: Path) -> None:
+    from gmeow_tools.describe import describe
+
+    text, code = describe("hasGoal", gts_path=tmp_path / "nope.gts")
+    assert code == 1
+    assert "not found" in text
 
 
 # --------------------------------------------------------------------------- #
