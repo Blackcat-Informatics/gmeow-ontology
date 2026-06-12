@@ -34,8 +34,18 @@ export class Writer {
     private nameToId: Map<string, number>;
     private prev: Uint8Array;
     private buf: Uint8Array;
+    // Per-frame byte offsets and types, in append order — the raw material
+    // of an `index` footer (§6.2): offsets enable random access/parallel
+    // verify, types the "ti" locator map.
+    private offsets: number[] = [];
+    private types: string[] = [];
 
-    constructor(profile: string) {
+    /**
+     * Initialise the writer and emit the Header (the chain genesis).
+     * `layout` writes the header layout-state claim (§3.3; "streamable" is
+     * the only value this revision defines).
+     */
+    constructor(profile: string, layout?: string) {
         this.nameToId = new Map<string, number>();
         const catEntries = new Map<unknown, unknown>();
         for (const [id, c] of Object.entries(Catalog)) {
@@ -51,6 +61,7 @@ export class Writer {
         header.set("v", wire.Version);
         header.set("prof", profile);
         header.set("cat", catEntries);
+        if (layout !== undefined) header.set("layout", layout);
         const id = wire.headerId(header);
         header.set("id", id);
         const tagged = new Tagged(wire.SelfDescribeTag, header);
@@ -117,6 +128,8 @@ export class Writer {
         const id = wire.contentId(frame);
         frame.set("id", id);
 
+        this.offsets.push(this.buf.length);
+        this.types.push(frameType);
         const encoded = wire.encode(frame);
         const combined = new Uint8Array(this.buf.length + encoded.length);
         combined.set(this.buf);
@@ -153,11 +166,12 @@ export class Writer {
         return this.addFrame("annot", arr);
     }
 
-    addBlob(data: Uint8Array, mt?: string): Uint8Array {
+    addBlob(data: Uint8Array, mt?: string, rep?: string): Uint8Array {
         let pub: Map<unknown, unknown> | undefined;
-        if (mt) {
+        if (mt || rep) {
             pub = new Map<unknown, unknown>();
-            pub.set("mt", mt);
+            if (mt) pub.set("mt", mt);
+            if (rep) pub.set("rep", rep);
         }
         return this.addFrame("blob", undefined, data, undefined, pub);
     }
@@ -166,11 +180,43 @@ export class Writer {
         return this.addFrame("meta", meta);
     }
 
-    addSuppress(targets: unknown[], reason?: string): Uint8Array {
+    addSuppress(targets: unknown[], reason?: string, by?: number): Uint8Array {
         const payload = new Map<unknown, unknown>();
         payload.set("targets", targets);
         if (reason) payload.set("reason", reason);
+        if (by !== undefined) payload.set("by", by);
         return this.addFrame("suppress", payload);
+    }
+
+    /**
+     * Append an `index` footer covering every frame appended so far (§6.2).
+     *
+     * `count`/`head` delimit the covered region (the streamable boundary,
+     * §3.3); `off` carries each covered frame's byte offset from the start
+     * of this writer's output; `ti` locates frames by type (0-based frame
+     * positions). A later addIndex covers the earlier one too — the last
+     * index wins (§6.2).
+     */
+    addIndex(): Uint8Array {
+        const ti = new Map<unknown, unknown>();
+        for (let pos = 0; pos < this.types.length; pos++) {
+            const ftype = this.types[pos];
+            const arr = ti.get(ftype) as number[] | undefined;
+            if (arr) {
+                arr.push(pos);
+            } else {
+                ti.set(ftype, [pos]);
+            }
+        }
+        const payload = new Map<unknown, unknown>();
+        payload.set("count", this.types.length);
+        payload.set("head", this.prev);
+        if (this.offsets.length > 0) {
+            // "off"/"ti" are [+ uint]-shaped — omit when empty.
+            payload.set("off", [...this.offsets]);
+            payload.set("ti", ti);
+        }
+        return this.addFrame("index", payload);
     }
 
     toBytes(): Uint8Array {

@@ -26,7 +26,15 @@ test("wire.encode round-trips values", () => {
     assert.equal(decoded.get("a"), 1);
     const bytes = wire.asBytes(decoded.get("b"));
     assert.ok(bytes);
-    assert.deepEqual(bytes, new Uint8Array([0, 1, 2]));
+    // Byte strings encode as CBOR major type 2 (never an RFC 8746 typed
+    // array), so the decoded value compares by content.
+    assert.deepEqual(new Uint8Array(bytes), new Uint8Array([0, 1, 2]));
+});
+
+test("wire.encode emits plain byte strings, not tag-64 typed arrays", () => {
+    const encoded = wire.encode(new Uint8Array([0, 1, 2]));
+    // 0x43 = major type 2 (byte string), length 3.
+    assert.deepEqual(new Uint8Array(encoded), new Uint8Array([0x43, 0, 1, 2]));
 });
 
 test("blake3_256 returns 32 bytes", () => {

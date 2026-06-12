@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { Read, ReadFileSegments } from "../reader.js";
 import { toNQuads } from "../nquads.js";
 import { pack, unpack, diff, suppressedBlobDigests } from "../files.js";
+import { compactStreamable, CompactRefusedError } from "../compact.js";
+import { STREAM_NS } from "../stream.js";
 import {
     hex,
     mapGet,
@@ -15,7 +17,7 @@ import {
     normalizeDigest,
 } from "../wire.js";
 import type { Graph, FileSegments } from "../reader.js";
-import type { Quad, Suppression } from "../model.js";
+import { TermKind, type Quad, type Suppression } from "../model.js";
 
 const usage = `usage: gts <command> [args]
 
@@ -27,6 +29,8 @@ commands:
   extract <file> <digest> [-o out] [--mt TYPE] [--include-suppressed]
                             extract one blob by content digest
   cat -o <out> <file>...    validating composer: refuse degenerate inputs, then concatenate
+  compact <file> -o <out> --streamable [--seal-original] [--timestamp ISO]
+                            rewrite into the streamable layout state (§10.1)
   pack <dir|file>... -o out.gts
                             pack files/directories into a files-profile archive
   unpack <archive> [-C dir] [--include-suppressed]
@@ -54,6 +58,17 @@ function printLedger(path: string, fs: FileSegments): void {
         console.log(
             `  segment ${idx}: head ${head} profile ${profile} terms ${seg.terms.length} quads ${seg.quads.length} reifies ${seg.reifiers.length} annot ${seg.annotations.length} blobs ${seg.blobs.length} suppress ${seg.suppressions.length} opaque ${seg.opaque.length} sigs ${signers}`,
         );
+        const layout = seg.segmentStreamable[0];
+        if (layout !== undefined && layout.claimed) {
+            const headHex =
+                layout.head !== undefined ? hex(layout.head) : "<none>";
+            const tail = layout.tail
+                ? `, accretive tail ${layout.tail} frame(s)`
+                : "";
+            console.log(
+                `    layout: streamable through frame ${layout.covered} (head ${headHex})${tail}`,
+            );
+        }
         for (const o of seg.opaque) {
             console.log(`    opaque: ${o.frameType} (${o.reason})`);
         }
@@ -182,6 +197,37 @@ function cmdFold(paths: string[]): number {
     return 0;
 }
 
+/** Warn on `stream#` vocabulary in an unclaimed segment (§13.3).
+ *
+ * A warning, never an error: compaction-provenance quads legitimately
+ * survive nq → gts round trips and re-accretion — the error class is
+ * reserved for a claimed layout the bytes contradict (the reader's
+ * StreamableLayoutError).
+ */
+function streamVocabCheck(seg: Graph): string[] {
+    const claimed =
+        seg.segmentStreamable.length > 0 && seg.segmentStreamable[0].claimed;
+    if (claimed) return [];
+    const n = seg.terms.length;
+    for (const q of seg.quads) {
+        for (const tid of [q.s, q.p, q.o]) {
+            // Never crash a report over a malformed reference.
+            if (tid < 0 || tid >= n) continue;
+            const term = seg.terms[tid];
+            if (
+                term.kind === TermKind.Iri &&
+                term.value.startsWith(STREAM_NS)
+            ) {
+                return [
+                    `layout warning: segment uses ${STREAM_NS} vocabulary but does ` +
+                        "not claim layout 'streamable' (§13.3)",
+                ];
+            }
+        }
+    }
+    return [];
+}
+
 function cmdVerify(paths: string[]): number {
     if (paths.length === 0) {
         console.error(usage);
@@ -192,8 +238,80 @@ function cmdVerify(paths: string[]): number {
         const fs = ReadFileSegments(load(path));
         printLedger(path, fs);
         if (hasProblems(fs)) problems = true;
+        // §14.1: declared-vs-computed layout warnings (§13.3).
+        for (let idx = 0; idx < fs.segments.length; idx++) {
+            for (const msg of streamVocabCheck(fs.segments[idx])) {
+                console.error(`  segment ${idx}: warning: ${msg}`);
+            }
+        }
     }
     return problems ? 1 : 0;
+}
+
+/** Rewrite a GTS file into the streamable layout state (§10.1, §14.1). */
+function cmdCompact(args: string[]): number {
+    let outPath = "";
+    let streamable = false;
+    let sealOriginal = false;
+    let timestamp = "";
+    const positional: string[] = [];
+    for (let i = 0; i < args.length; i++) {
+        const a = args[i];
+        switch (a) {
+            case "-o":
+            case "--out":
+                if (i + 1 >= args.length) {
+                    console.error(`gts: -o requires a path\n${usage}`);
+                    return 2;
+                }
+                outPath = args[++i];
+                break;
+            case "--streamable":
+                streamable = true;
+                break;
+            case "--seal-original":
+                sealOriginal = true;
+                break;
+            case "--timestamp":
+                if (i + 1 >= args.length) {
+                    console.error(
+                        `gts: --timestamp requires a value\n${usage}`,
+                    );
+                    return 2;
+                }
+                timestamp = args[++i];
+                break;
+            default:
+                positional.push(a);
+        }
+    }
+    if (positional.length !== 1 || !outPath) {
+        console.error(usage);
+        return 2;
+    }
+    if (!streamable) {
+        // The verb is reserved for layout rewrites; a future --snapshot mode
+        // (§10) would land here. Without a mode the request is ambiguous.
+        console.error("gts: compact requires --streamable");
+        return 2;
+    }
+    // Default to now-UTC at whole-second precision (ISO 8601, trailing Z).
+    const ts = timestamp || new Date().toISOString().slice(0, 19) + "Z";
+    let data: Uint8Array;
+    try {
+        data = compactStreamable(load(positional[0]), {
+            timestamp: ts,
+            sealOriginal,
+        });
+    } catch (e) {
+        if (e instanceof CompactRefusedError) {
+            console.error(`gts: refusing compact: ${e.message}`);
+            return 1;
+        }
+        throw e;
+    }
+    writeFileSync(outPath, data);
+    return 0;
 }
 
 function cmdLs(paths: string[]): number {
@@ -484,6 +602,8 @@ function main(argv: string[]): number {
             return cmdExtract(args);
         case "cat":
             return cmdCat(args);
+        case "compact":
+            return cmdCompact(args);
         case "pack":
             return cmdPack(args);
         case "unpack":

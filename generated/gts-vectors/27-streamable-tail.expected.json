@@ -13,10 +13,11 @@
  "mode": "default",
  "nquads": [
   "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"Cat\"@en .",
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"Chat\"@fr .",
   "<https://example.org/Dog> <http://www.w3.org/2001/XMLSchema#integer> \"Dog\"@en .",
   "_:c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/gts/stream#Compaction> .",
   "_:c <https://w3id.org/gts/stream#agent> \"gts-compact\" .",
-  "_:c <https://w3id.org/gts/stream#sourceHead> \"blake3:8e076845e2148c9ac58b7ca5ceff2d262f7943bce1b2148fcbae9c079ee7f6c0\" .",
+  "_:c <https://w3id.org/gts/stream#sourceHead> \"blake3:c337402582d851faacee263e499699579322f919524ca057149091d8294abd3d\" .",
   "_:c <https://w3id.org/gts/stream#timestamp> \"2026-01-01T00:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> .",
   "_:m0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/gts/stream#Manifestation> .",
   "_:m0 <https://w3id.org/gts/stream#digest> \"blake3:572759598054983f55a7e11fb63d5e9068c0e51ce82eaf20ff6c2e8208771619\" .",
@@ -34,31 +35,34 @@
   "_:s0 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQFs2k4Ygng68_Ge33KInBCByLj3EPNFnPxeMeQTeY0pZs3xEu2IDEtTGTIxSNVFFx91fpqjdeNLEQHV5-ZrPHwM\" .",
   "_:s0 <https://w3id.org/gts/stream#sourceFrame> \"blake3:eaf76467ea4f6a4c62f060a3f764f7ab79a45ecfb52583512ab2d34e1caaa1e7\" .",
   "_:s1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/gts/stream#DetachedSignature> .",
-  "_:s1 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQCcYCABfUHG0GB4_merkOoDxu-3tDuf9wuUyjnlosfmRWnoBzaITJNw_TM9_UlNkhO8RqTC6bkfcRqalNnAlFgk\" .",
-  "_:s1 <https://w3id.org/gts/stream#sourceFrame> \"blake3:b0d1364caf096ae089e96c2d0bf0274dee65e29dfa0f3be1027a2aadbd885061\" .",
+  "_:s1 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQEnUoiMk1OFg1SHLNnIclSz3_qevJE8OeuFyMuxYg-7FuurKydR-kB4g842hCh8iOk0GVcHzisMkHvreCTHpVQ4\" .",
+  "_:s1 <https://w3id.org/gts/stream#sourceFrame> \"blake3:4b4f075a7f08e4d06850778fccf3c4f8a85d7cbb36a49178878d276499593617\" .",
   "_:s2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/gts/stream#DetachedSignature> .",
-  "_:s2 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQNjfjN2fKHifq6L0vvqYvSutef2NmZRHO4b51Abj_kXCLU8gPPDBkzgdvu88FBoLKyNQ0Mg2CrWP5AixeB-Q9wg\" .",
-  "_:s2 <https://w3id.org/gts/stream#sourceFrame> \"blake3:9159d632174324863e59b174355832ae6896e41c00a67f34600881c2019ba027\" .",
+  "_:s2 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQInTllL37z4gY897LQvQZlkdEmUGjd6ZeodmbmsWIqVJ9GGfoyOvforz6RdkHvCRCRa_kCYA3BYAuGVq5GUjZgQ\" .",
+  "_:s2 <https://w3id.org/gts/stream#sourceFrame> \"blake3:20414937fd2b12f887413015b3d6756b5a5c665a0147b410f43c8ad342c053ca\" .",
   "_:s3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/gts/stream#DetachedSignature> .",
-  "_:s3 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQKtkl6aFU4neskBs6YjGTUT9VmsttsqtA86IAI2MXkUUw5bO0gmOZqf_GG5UX126fUXwPfOU5z7CFd5YvvSREwE\" .",
-  "_:s3 <https://w3id.org/gts/stream#sourceFrame> \"blake3:8e076845e2148c9ac58b7ca5ceff2d262f7943bce1b2148fcbae9c079ee7f6c0\" ."
+  "_:s3 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQO90aIykaShi4QWkBk5IFmb7AGJml1wchpWX1zDpU11r9W-Z0zarlm-_f268aQ4DWyKfgovLacOYprc1gjAStAE\" .",
+  "_:s3 <https://w3id.org/gts/stream#sourceFrame> \"blake3:ec466ecae15bd5482ef9de79f1f432c11f120f4a1babdf516f990bfa725a68ee\" .",
+  "_:s4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/gts/stream#DetachedSignature> .",
+  "_:s4 <https://w3id.org/gts/stream#cose> \"0oRDoQEnoQRKdmVjdG9yLWtlefZYQA7PjHv5gZ37blKFLU2NDbBnxcDdiwFW0uDJsaUoYqgUEpAg59TDtC0mpShfR7fX431vJtNneV6tBrsXYzI9CgU\" .",
+  "_:s4 <https://w3id.org/gts/stream#sourceFrame> \"blake3:c337402582d851faacee263e499699579322f919524ca057149091d8294abd3d\" ."
  ],
  "opaque_reasons": [],
  "profiles": [
   "generic"
  ],
- "quads": 30,
+ "quads": 34,
  "segment_heads": [
-  "5d3295e8306056023970fdac4a2b764ff6a1644e86e137a4bde01e627c6e3948"
+  "579b980b1ec37c60f0edbbbabc8521354bc3054522187b187f71a766453db6c7"
  ],
  "segments": 1,
  "streamable": [
   {
    "claimed": true,
-   "covered": 6,
+   "covered": 7,
    "tail": 2
   }
  ],
- "suppressions": 0,
- "terms": 50
+ "suppressions": 1,
+ "terms": 54
 }

@@ -8,6 +8,8 @@ conformance vectors and is the seed of the future ``RDF 1.2 → GTS`` producer.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+
 import cbor2
 
 from gts.codec import DEFAULT_CATALOG, Codec, encode_chain
@@ -253,12 +255,18 @@ class Writer:
         return self.add_frame("meta", payload=meta)
 
     def add_suppress(
-        self, targets: list[dict[str, object]], *, reason: str | None = None
+        self,
+        targets: Sequence[Mapping[str, object]],
+        *,
+        reason: str | None = None,
+        by: int | None = None,
     ) -> bytes:
         """Append a ``suppress`` frame (§11)."""
-        payload: dict[str, object] = {"targets": targets}
+        payload: dict[str, object] = {"targets": [dict(t) for t in targets]}
         if reason is not None:
             payload["reason"] = reason
+        if by is not None:
+            payload["by"] = by
         return self.add_frame("suppress", payload=payload)
 
     def add_index(self) -> bytes:

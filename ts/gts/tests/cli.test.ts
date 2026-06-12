@@ -8,6 +8,8 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { Writer } from "../src/writer.js";
+import { TermKind } from "../src/model.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "../../../../");
@@ -92,6 +94,84 @@ test("CLI diff reports no changes for identical tree", () => {
 
     const diff = run(["diff", archive, src]);
     assert.equal(diff.code, 0, diff.stdout);
+});
+
+test("CLI compact round-trips: verify exit 0 with a layout line", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    const out = join(tmp, "streamable.gts");
+    const r = run([
+        "compact",
+        join(vectorsDir, "25-streamable-source.gts"),
+        "-o",
+        out,
+        "--streamable",
+        "--timestamp",
+        "2026-01-01T00:00:00Z",
+    ]);
+    assert.equal(r.code, 0, r.stderr);
+    const v = run(["verify", out]);
+    assert.equal(v.code, 0, v.stdout + v.stderr);
+    assert.match(v.stdout, /layout: streamable through frame/);
+    assert.doesNotMatch(v.stdout, /accretive tail/);
+    assert.doesNotMatch(v.stderr, /warning/);
+});
+
+test("CLI verify refuses the streamable lie (vector 26)", () => {
+    const r = run(["verify", join(vectorsDir, "26-streamable-lie.gts")]);
+    assert.equal(r.code, 1);
+    assert.match(r.stdout, /StreamableLayoutError/);
+});
+
+test("CLI info reports the accretive tail (vector 27)", () => {
+    const r = run(["info", join(vectorsDir, "27-streamable-tail.gts")]);
+    assert.equal(r.code, 0, r.stderr);
+    assert.match(r.stdout, /layout: streamable through frame/);
+    assert.match(r.stdout, /accretive tail 2 frame\(s\)/);
+});
+
+test("CLI compact without --streamable exits 2", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    const r = run([
+        "compact",
+        join(vectorsDir, "25-streamable-source.gts"),
+        "-o",
+        join(tmp, "x.gts"),
+    ]);
+    assert.equal(r.code, 2);
+    assert.match(r.stderr, /compact requires --streamable/);
+});
+
+test("CLI compact refuses evidence input, then seals on request", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    const w = new Writer("evidence");
+    w.addTerms([
+        { kind: TermKind.Iri, value: "https://example.org/Cat" },
+        {
+            kind: TermKind.Iri,
+            value: "http://www.w3.org/2000/01/rdf-schema#label",
+        },
+        { kind: TermKind.Literal, value: "Cat", lang: "en" },
+    ]);
+    w.addQuads([{ s: 0, p: 1, o: 2 }]);
+    const path = join(tmp, "evidence.gts");
+    writeFileSync(path, w.toBytes());
+    const out = join(tmp, "out.gts");
+
+    const refused = run(["compact", path, "-o", out, "--streamable"]);
+    assert.equal(refused.code, 1);
+    assert.match(refused.stderr, /refusing compact: .*seal-original/);
+
+    const sealed = run([
+        "compact",
+        path,
+        "-o",
+        out,
+        "--streamable",
+        "--seal-original",
+    ]);
+    assert.equal(sealed.code, 0, sealed.stderr);
+    const v = run(["verify", out]);
+    assert.equal(v.code, 0, v.stdout + v.stderr);
 });
 
 test("CLI cat composes two clean segments", () => {

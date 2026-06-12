@@ -213,6 +213,9 @@ func streamVocabCheck(seg *model.Graph) []string {
 	}
 	for _, q := range seg.Quads {
 		for _, tid := range []int{q.S, q.P, q.O} {
+			if tid < 0 || tid >= len(seg.Terms) {
+				continue // never crash a report over a malformed reference
+			}
 			term := &seg.Terms[tid]
 			if term.Kind == model.Iri && strings.HasPrefix(term.Value, stream.NS) {
 				return []string{

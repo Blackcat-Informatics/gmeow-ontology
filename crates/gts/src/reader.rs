@@ -885,12 +885,16 @@ fn layout_check(
     let (abs_pos, count) = (*abs_pos, *count);
     let rel_pos = abs_pos - index_offset; // 1-based frame position of the index
     let tail = total - rel_pos;
-    if !(1..rel_pos).contains(&count) || frame_ids[count - 1] != *head {
+    // The footer must IMMEDIATELY follow the frames it covers (§3.3): a
+    // permissive `count <= rel_pos - 1` would let frames sit between the
+    // covered prefix and the footer, counted neither as covered nor as tail.
+    if count != rel_pos - 1 || count < 1 || frame_ids[count - 1] != *head {
         g.diagnostics.push(Diagnostic {
             code: "StreamableLayoutError".to_string(),
             detail: format!(
                 "index footer contradicts the frames it covers: count {count} \
-                 / head do not name a covered frame (§3.3)"
+                 must name the frame immediately before the footer and head \
+                 must be that frame's id (§3.3)"
             ),
             frame_index: Some(abs_pos),
         });

@@ -800,3 +800,19 @@ def test_streamable_lie_detection_is_prefix_stable() -> None:
         for d in g.diagnostics:
             assert d.code == "StreamableLayoutError"
             assert "index footer" in d.detail  # never the order violation
+
+
+def test_compact_carries_suppressions_with_metadata() -> None:
+    """§10.1: each input suppression keeps its own frame, its reason, and its
+    (shifted) targets — re-authoring of the ordering only, provenance intact."""
+    from gts.vectors import _streamable_compacted
+
+    g = read(_streamable_compacted())
+    assert len(g.suppressions) == 1
+    sup = g.suppressions[0]
+    assert sup.reason == "superseded"
+    [target] = sup.targets
+    assert target["kind"] == "term"
+    suppressed = g.terms[target["id"]]  # type: ignore[index]
+    assert suppressed.value == "Chat"
+    assert suppressed.lang == "fr"

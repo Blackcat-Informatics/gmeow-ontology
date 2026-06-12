@@ -910,12 +910,16 @@ func layoutCheck(
 	absPos, count, head := last.pos, last.count, last.head
 	relPos := absPos - indexOffset // 1-based frame position of the index
 	tail := total - relPos
-	if !(1 <= count && count <= relPos-1) || !bytesEqual(frameIDs[count-1], head) {
+	// The footer must IMMEDIATELY follow the frames it covers (§3.3): a
+	// permissive count <= relPos-1 would let frames sit between the covered
+	// prefix and the footer, counted neither as covered nor as tail.
+	if count != relPos-1 || count < 1 || !bytesEqual(frameIDs[count-1], head) {
 		pos := absPos
 		g.Diagnostics = append(g.Diagnostics, model.Diagnostic{
 			Code: "StreamableLayoutError",
 			Detail: fmt.Sprintf("index footer contradicts the frames it covers: count %d "+
-				"/ head do not name a covered frame (§3.3)", count),
+				"must name the frame immediately before the footer and head "+
+				"must be that frame's id (§3.3)", count),
 			FrameIndex: &pos,
 		})
 	}

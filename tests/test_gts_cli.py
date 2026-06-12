@@ -385,6 +385,7 @@ def test_compact_verify_info_round_trip(
         )
         == 0
     )
+    capsys.readouterr()  # isolate the verify assertions from compact output
     assert main(["verify", str(out)]) == 0
     captured = capsys.readouterr()
     assert "layout: streamable through frame" in captured.out

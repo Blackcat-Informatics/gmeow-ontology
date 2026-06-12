@@ -258,15 +258,21 @@ func shiftTerm(t model.Term, base int) model.Term {
 	return t
 }
 
-// shiftedSuppressions carries suppressions forward: blob targets verbatim,
-// id targets shifted (§10.1).
-func shiftedSuppressions(g *model.Graph, base int) []interface{} {
-	var out []interface{}
+// shiftedSuppressions carries suppressions forward, one output suppression
+// per input (§10.1).
+//
+// Re-authoring of the ordering only: each original suppression keeps its own
+// frame with its reason/by metadata intact — blob targets verbatim
+// (content-addressing is layout-independent), id-addressed targets and "by"
+// shifted into the output id space.
+func shiftedSuppressions(g *model.Graph, base int) []model.Suppression {
+	var out []model.Suppression
 	for _, sup := range g.Suppressions {
+		var targets []interface{}
 		for _, target := range sup.Targets {
 			m, ok := target.(map[interface{}]interface{})
 			if !ok {
-				out = append(out, target)
+				targets = append(targets, target)
 				continue
 			}
 			kind := targetKind(target)
@@ -292,8 +298,18 @@ func shiftedSuppressions(g *model.Graph, base int) []interface{} {
 					}
 				}
 			}
-			out = append(out, t)
+			targets = append(targets, t)
 		}
+		shiftedBy := sup.By
+		if sup.By != nil {
+			b := *sup.By + base
+			shiftedBy = &b
+		}
+		out = append(out, model.Suppression{
+			Targets: targets,
+			Reason:  sup.Reason,
+			By:      shiftedBy,
+		})
 	}
 	return out
 }
@@ -315,18 +331,25 @@ func Streamable(data []byte, timestamp string, sealOriginal bool) ([]byte, error
 
 	// Delivery plan: most-significant-first — ascending decoded size, digest
 	// tie-break; the sealed original (least significant) always travels last.
-	blobOrder := make([]string, 0, len(g.Blobs))
-	for _, b := range g.Blobs {
-		blobOrder = append(blobOrder, b.Digest)
+	// Sizes are paired up front so the sort never re-scans the blob table.
+	type blobKey struct {
+		size   int
+		digest string
 	}
-	sort.Slice(blobOrder, func(i, j int) bool {
-		di, dj := blobOrder[i], blobOrder[j]
-		si, sj := len(blobBytes(g, di)), len(blobBytes(g, dj))
-		if si != sj {
-			return si < sj
+	keyed := make([]blobKey, 0, len(g.Blobs))
+	for _, b := range g.Blobs {
+		keyed = append(keyed, blobKey{size: len(b.Data), digest: b.Digest})
+	}
+	sort.Slice(keyed, func(i, j int) bool {
+		if keyed[i].size != keyed[j].size {
+			return keyed[i].size < keyed[j].size
 		}
-		return di < dj
+		return keyed[i].digest < keyed[j].digest
 	})
+	blobOrder := make([]string, 0, len(keyed))
+	for _, k := range keyed {
+		blobOrder = append(blobOrder, k.digest)
+	}
 	sealedDigest := ""
 	if sealOriginal {
 		sealedDigest = wire.DigestStr(data)
@@ -383,8 +406,8 @@ func Streamable(data []byte, timestamp string, sealOriginal bool) ([]byte, error
 		}
 		w.AddAnnot(shifted)
 	}
-	if suppressions := shiftedSuppressions(g, base); suppressions != nil {
-		w.AddSuppress(suppressions, "")
+	for _, sup := range shiftedSuppressions(g, base) {
+		w.AddSuppress(sup.Targets, sup.Reason, sup.By)
 	}
 	// Blobs in delivery order; declared metadata rides along.
 	for _, digest := range blobOrder {

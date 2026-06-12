@@ -698,12 +698,16 @@ def _layout_check(
     abs_pos, count, head = folder.index_records[-1]
     rel_pos = abs_pos - index_offset  # 1-based frame position of the index
     tail = total - rel_pos
-    if not (1 <= count <= rel_pos - 1) or frame_ids[count - 1] != head:
+    # The footer must IMMEDIATELY follow the frames it covers (§3.3): a
+    # permissive `count <= rel_pos - 1` would let frames sit between the
+    # covered prefix and the footer, counted neither as covered nor as tail.
+    if count != rel_pos - 1 or count < 1 or frame_ids[count - 1] != head:
         g.diagnostics.append(
             Diagnostic(
                 "StreamableLayoutError",
                 f"index footer contradicts the frames it covers: count {count} "
-                f"/ head do not name a covered frame (§3.3)",
+                "must name the frame immediately before the footer and head "
+                "must be that frame's id (§3.3)",
                 abs_pos,
             )
         )

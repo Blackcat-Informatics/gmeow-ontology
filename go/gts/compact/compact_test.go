@@ -113,7 +113,7 @@ func TestCompactRefusesFrameSuppression(t *testing.T) {
 	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
 	w.AddSuppress([]interface{}{
 		map[interface{}]interface{}{"kind": "frame", "digest": "blake3:00"},
-	}, "")
+	}, "", nil)
 	data := w.ToBytes()
 
 	_, err := Streamable(data, "2026-01-01T00:00:00Z", false)

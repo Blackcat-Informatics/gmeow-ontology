@@ -230,10 +230,13 @@ func (w *Writer) AddMeta(meta map[interface{}]interface{}) []byte {
 }
 
 // AddSuppress appends a suppress frame.
-func (w *Writer) AddSuppress(targets []interface{}, reason string) []byte {
+func (w *Writer) AddSuppress(targets []interface{}, reason string, by *int) []byte {
 	payload := map[interface{}]interface{}{"targets": targets}
 	if reason != "" {
 		payload["reason"] = reason
+	}
+	if by != nil {
+		payload["by"] = int64(*by)
 	}
 	return w.AddFrame("suppress", payload, nil, nil, nil)
 }

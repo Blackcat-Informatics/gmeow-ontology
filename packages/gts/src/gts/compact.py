@@ -18,10 +18,11 @@ is a constant, and the timestamp is a parameter — never ambient time.
 from __future__ import annotations
 
 import base64
+from collections.abc import Mapping
 from dataclasses import replace
 
 from gts import stream
-from gts.model import Graph, Quad, Term, TermKind
+from gts.model import Graph, Quad, Suppression, Term, TermKind
 from gts.reader import read, read_segments
 from gts.wire import digest_str
 from gts.writer import Writer
@@ -166,10 +167,17 @@ def _shift_term(t: Term, base: int) -> Term:
     )
 
 
-def _shifted_suppressions(g: Graph, base: int) -> list[dict[str, object]] | None:
-    """Carry suppressions forward: blob targets verbatim, id targets shifted (§10.1)."""
-    out: list[dict[str, object]] = []
+def _shifted_suppressions(g: Graph, base: int) -> list[Suppression]:
+    """Carry suppressions forward, one output suppression per input (§10.1).
+
+    Re-authoring of the ordering only: each original suppression keeps its own
+    frame with its ``reason``/``by`` metadata intact — blob targets verbatim
+    (content-addressing is layout-independent), id-addressed targets and
+    ``by`` shifted into the output id space.
+    """
+    out: list[Suppression] = []
     for sup in g.suppressions:
+        targets: list[Mapping[str, object]] = []
         for target in sup.targets:
             kind = target.get("kind")
             t = dict(target)
@@ -179,8 +187,15 @@ def _shifted_suppressions(g: Graph, base: int) -> list[dict[str, object]] | None
                 t["id"] = tid + base
             elif kind == "quad" and isinstance(q, list):
                 t["q"] = [x + base if isinstance(x, int) else x for x in q]
-            out.append(t)
-    return out or None
+            targets.append(t)
+        out.append(
+            Suppression(
+                targets=targets,
+                reason=sup.reason,
+                by=sup.by + base if sup.by is not None else None,
+            )
+        )
+    return out
 
 
 def compact_streamable(
@@ -247,9 +262,8 @@ def compact_streamable(
         )
     if g.annotations:
         w.add_annot([(r + base, p + base, v + base) for r, p, v in g.annotations])
-    suppressions = _shifted_suppressions(g, base)
-    if suppressions is not None:
-        w.add_suppress(suppressions)
+    for sup in _shifted_suppressions(g, base):
+        w.add_suppress(sup.targets, reason=sup.reason, by=sup.by)
     # Blobs in delivery order; declared metadata rides along.
     for digest in blob_order:
         if digest == sealed_digest:

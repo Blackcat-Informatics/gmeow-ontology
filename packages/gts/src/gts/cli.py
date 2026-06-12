@@ -159,12 +159,15 @@ def _stream_vocab_check(seg: Graph) -> list[str]:
     claimed = bool(seg.segment_streamable and seg.segment_streamable[0].claimed)
     if claimed:
         return []
+    n = len(seg.terms)
     uses = any(
         term.kind is TermKind.IRI
         and term.value is not None
         and term.value.startswith(STREAM_NS)
         for s, p, o, _g in seg.quads
-        for term in (seg.term(s), seg.term(p), seg.term(o))
+        for tid in (s, p, o)
+        if 0 <= tid < n  # never crash a report over a malformed reference
+        for term in (seg.term(tid),)
     )
     if uses:
         return [

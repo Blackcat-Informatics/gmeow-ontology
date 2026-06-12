@@ -16,6 +16,12 @@ interface ExpectedBlobs {
     [digest: string]: { mt?: string; size: number };
 }
 
+interface ExpectedStreamable {
+    claimed: boolean;
+    covered: number;
+    tail: number;
+}
+
 interface Expected {
     blobs: ExpectedBlobs;
     diagnostics: string[];
@@ -26,6 +32,7 @@ interface Expected {
     quads: number;
     segment_heads: string[];
     segments: number;
+    streamable?: ExpectedStreamable[];
     suppressions: number;
     terms: number;
 }
@@ -91,6 +98,18 @@ for (const name of vectorNames()) {
             sorted(expected.opaque_reasons),
             "opaque reasons",
         );
+
+        if (expected.streamable !== undefined) {
+            assert.deepEqual(
+                g.segmentStreamable.map((si) => ({
+                    claimed: si.claimed,
+                    covered: si.covered,
+                    tail: si.tail,
+                })),
+                expected.streamable,
+                "streamable layout state",
+            );
+        }
 
         const actualNQuads = toNQuads(g)
             .split("\n")

@@ -268,10 +268,18 @@ impl Writer {
     }
 
     /// Append a `suppress` frame.
-    pub fn add_suppress(&mut self, targets: Vec<Value>, reason: Option<&str>) -> Vec<u8> {
+    pub fn add_suppress(
+        &mut self,
+        targets: Vec<Value>,
+        reason: Option<&str>,
+        by: Option<usize>,
+    ) -> Vec<u8> {
         let mut payload: Vec<(Value, Value)> = vec![("targets".into(), Value::Array(targets))];
         if let Some(r) = reason {
             payload.push(("reason".into(), r.into()));
+        }
+        if let Some(b) = by {
+            payload.push(("by".into(), Value::from(b as u64)));
         }
         payload.sort_by_key(|a| canonical(&a.0));
         self.add_frame("suppress", Some(Value::Map(payload)), None, None, None)

@@ -20,7 +20,7 @@
 
 use ciborium::value::Value;
 
-use crate::model::{Graph, Quad, Term, TermKind};
+use crate::model::{Graph, Quad, Suppression, Term, TermKind};
 use crate::reader::{read, read_file_segments};
 use crate::stream;
 use crate::wire::{digest_str, hex, map_get};
@@ -295,13 +295,19 @@ fn shift_term(t: &Term, base: usize) -> Term {
     }
 }
 
-/// Carry suppressions forward: blob targets verbatim, id targets shifted (§10.1).
-fn shifted_suppressions(g: &Graph, base: usize) -> Vec<Value> {
-    let mut out: Vec<Value> = Vec::new();
+/// Carry suppressions forward, one output suppression per input (§10.1).
+///
+/// Re-authoring of the ordering only: each original suppression keeps its own
+/// frame with its `reason`/`by` metadata intact — blob targets verbatim
+/// (content-addressing is layout-independent), id-addressed targets and `by`
+/// shifted into the output id space.
+fn shifted_suppressions(g: &Graph, base: usize) -> Vec<Suppression> {
+    let mut out: Vec<Suppression> = Vec::new();
     for sup in &g.suppressions {
+        let mut targets: Vec<Value> = Vec::new();
         for target in &sup.targets {
             let Value::Map(entries) = target else {
-                out.push(target.clone());
+                targets.push(target.clone());
                 continue;
             };
             let kind = target_text(target, "kind").unwrap_or("");
@@ -332,8 +338,13 @@ fn shifted_suppressions(g: &Graph, base: usize) -> Vec<Value> {
                     (k.clone(), v.clone())
                 })
                 .collect();
-            out.push(Value::Map(shifted));
+            targets.push(Value::Map(shifted));
         }
+        out.push(Suppression {
+            targets,
+            reason: sup.reason.clone(),
+            by: sup.by.map(|b| b + base),
+        });
     }
     out
 }
@@ -362,10 +373,11 @@ pub fn compact_streamable(
 
     // Delivery plan: most-significant-first — ascending decoded size, digest
     // tie-break; the sealed original (least significant) always travels last.
-    let mut blob_order: Vec<String> = g.blobs.iter().map(|(d, _)| d.clone()).collect();
-    blob_order.sort_by(|a, b| {
-        (blob_bytes(&g, a).len(), a.as_str()).cmp(&(blob_bytes(&g, b).len(), b.as_str()))
-    });
+    // Sizes are paired up front so the sort never re-scans the blob table.
+    let mut keyed: Vec<(usize, String)> =
+        g.blobs.iter().map(|(d, b)| (b.len(), d.clone())).collect();
+    keyed.sort_unstable();
+    let mut blob_order: Vec<String> = keyed.into_iter().map(|(_, d)| d).collect();
     let mut sealed_digest: Option<String> = None;
     if seal_original {
         let sealed = digest_str(data);
@@ -416,9 +428,8 @@ pub fn compact_streamable(
             .collect();
         w.add_annot(&shifted);
     }
-    let suppressions = shifted_suppressions(&g, base);
-    if !suppressions.is_empty() {
-        w.add_suppress(suppressions, None);
+    for sup in shifted_suppressions(&g, base) {
+        w.add_suppress(sup.targets, sup.reason.as_deref(), sup.by);
     }
     // Blobs in delivery order; declared metadata rides along.
     for digest in &blob_order {

@@ -277,8 +277,12 @@ key `"layout": "streamable"` (§5). The claim is per-segment (each segment has i
 
 - The **covered region** of a claimed segment is the prefix delimited by the segment's **last
   intact `index` frame**: `"count"` frames, ending at the frame whose `"id"` equals the
-  index's `"head"`. A claimed segment with no intact `index` frame, or whose last index's
-  `"head"` does not equal the id of frame `"count"`, is in violation.
+  index's `"head"`. The footer MUST immediately follow the frames it covers (`"count"` =
+  the index's own frame position − 1) — otherwise frames could sit between the covered
+  prefix and the footer, counted neither as covered nor as accretive tail. A claimed
+  segment with no intact `index` frame, whose last index is not immediately adjacent to
+  its covered prefix, or whose `"head"` does not equal the id of frame `"count"`, is in
+  violation.
 - Within the covered region, every inline `blob` frame MUST be preceded by a `quads` frame
   that describes its digest via `stream:digest` (§13.3) — catalog-before-payload. A covered
   blob delivered before its description is in violation.

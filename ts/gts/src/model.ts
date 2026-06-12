@@ -82,12 +82,32 @@ export interface Diagnostic {
     frameIndex?: number;
 }
 
-/** The verification outcome for a signed frame (§9.2). */
+/** The verification outcome for a signed frame (§9.2).
+ *
+ * `cose` retains the raw COSE_Sign1 bytes so streamable compaction (§10.1)
+ * can carry the signature detached — forever verifiable against `frameId`
+ * even after the frame itself is re-authored into a new chain.
+ */
 export interface Signature {
     frameId: Uint8Array;
     kid: string;
     /** "none" | "valid" | "invalid" | "unverified" */
     status: string;
+    cose?: Uint8Array;
+}
+
+/** One segment's layout state (§3.3).
+ *
+ * `covered`/`head` come from the segment's last intact `index` frame;
+ * `tail` counts the legal unpresaged frames after it ("streamable through
+ * frame *covered*, accretive tail of *tail* frame(s)"). For an unclaimed
+ * (accretive) segment all fields are their zero values.
+ */
+export interface StreamableInfo {
+    claimed: boolean;
+    covered: number;
+    tail: number;
+    head?: Uint8Array;
 }
 
 /** A single key/value metadata pair. */
@@ -130,6 +150,10 @@ export class Graph {
     segmentHeads: Uint8Array[] = [];
     segmentProfiles: string[] = [];
     segmentMeta: MetaEntry[][] = [];
+    /** Per-segment layout state (§3.3), in file order — the
+     *  declared-vs-computed streamable claim, its covered boundary, and the
+     *  accretive tail. */
+    segmentStreamable: StreamableInfo[] = [];
 
     /** Look up a reifier binding. */
     reifier(rid: number): Triple | undefined {

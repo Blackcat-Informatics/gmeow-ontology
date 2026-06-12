@@ -389,7 +389,10 @@ def _streamable_source() -> bytes:
     """Vector 25: an accretive source, no layout claim.
 
     Blobs land interleaved before the catalog (arrival order); every frame is
-    COSE-signed so the compacted rewrite carries detached signatures.
+    COSE-signed so the compacted rewrite carries detached signatures; one
+    reasoned term-suppression pins the carried-forward suppression shape
+    (per-suppression frame, reason intact, ids shifted — §10.1) in the frozen
+    25b bytes.
     """
     w = Writer(signer=_streamable_signer())  # type: ignore[arg-type]
     w.add_blob(b"B" * 100, mt="image/webp")  # delivered before any description
@@ -398,9 +401,11 @@ def _streamable_source() -> bytes:
             Term(TermKind.IRI, CAT),
             Term(TermKind.IRI, LABEL),
             Term(TermKind.LITERAL, "Cat", lang="en"),
+            Term(TermKind.LITERAL, "Chat", lang="fr"),
         ]
     )
-    w.add_quads([(0, 1, 2, None)])
+    w.add_quads([(0, 1, 2, None), (0, 1, 3, None)])
+    w.add_suppress([{"kind": "term", "id": 3}], reason="superseded")
     w.add_blob(b"A" * 10, mt="text/plain")
     return bytes(w.to_bytes())
 
