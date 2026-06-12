@@ -43,7 +43,10 @@ Outputs a round-trip-verified `dist/gmeow-example-<profile>.ttl` for each profil
 worked-example fixture (schema.org, GeoSPARQL, vCard, FOAF, iCalendar, OWL-Time today). The
 complete projection set — those plus ODRL, CC REL, Dublin Core, SPDX, BOT, RDF Data Cube
 (`qb` — now DSD-complete with per-observation DataSet + DataStructureDefinition),
-OntoLex-Lemon, W3C Web Annotation, and the five standpoint projections (CRMinf,
+OntoLex-Lemon, W3C Web Annotation, DCAT 3 (`dcat` — instance datasets +
+distributions + checksums, the #58 catalog leg; see
+[research-objects.md](./research-objects.md)), and the five standpoint
+projections (CRMinf,
 Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
 `queries/projections/*.rq` by `gmeow compile-mappings`. Also runs in `gmeow build`. A
 target-by-target summary with spec links is in the

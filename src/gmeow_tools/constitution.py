@@ -191,6 +191,7 @@ def _registered_generators() -> frozenset[str]:
         metadata,
         parquet_gen,
         profiles_gen,
+        research_objects,
         schema_compile,
         statement_compile,
     )

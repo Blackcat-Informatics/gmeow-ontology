@@ -72,10 +72,18 @@ from gmeow_tools.validate import ValidationResult
 TARGET_FIXTURE_DIR = PROJECT_ROOT / "tests" / "fixtures" / "target_axioms"
 
 #: Predicate CURIEs whose alignment asserts (near-)equivalence — a direction or
-#: character conflict here is a hard error.
-_STRONG_PREDICATES: frozenset[str] = frozenset(
+#: character conflict here is a hard error. PUBLIC: the saturator (#34) may
+#: materialize cross-vocabulary triples ONLY for these — linter and saturator
+#: agree on "strong" by construction.
+STRONG_PROPERTY_PREDICATES: frozenset[str] = frozenset(
     {"owl:equivalentProperty", "skos:exactMatch"}
 )
+#: Class-level strong equivalence (the collapse gate's edge set, also the
+#: saturator's class-edge authorization).
+STRONG_CLASS_PREDICATES: frozenset[str] = frozenset(
+    {"owl:equivalentClass", "skos:exactMatch"}
+)
+_STRONG_PREDICATES = STRONG_PROPERTY_PREDICATES
 #: Intentionally directional/hierarchical predicates — exempt from direction checks.
 #: (``skos:closeMatch`` is fuzzy "related, not identical": conflicts there are
 #: warnings, not errors — see :func:`_severity_for`.)
@@ -260,7 +268,7 @@ def _build_class_bridge(
             subj, obj = expand_curie(m.subject_id), expand_curie(m.object_id)
         except Exception:  # malformed CURIE — surfaced elsewhere
             continue
-        if m.predicate_id in ("owl:equivalentClass", "skos:exactMatch"):
+        if m.predicate_id in STRONG_CLASS_PREDICATES:
             link(subj, obj)
             link(obj, subj)
         elif m.predicate_id == "rdfs:subClassOf":

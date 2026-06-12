@@ -1,0 +1,6 @@
+SPDX-FileCopyrightText: Frictionless Data (Open Knowledge Foundation)
+SPDX-License-Identifier: MIT
+
+Vendored verbatim from https://specs.frictionlessdata.io/schemas/data-package.json
+(the official Data Package profile JSON Schema, Draft 4). Used by
+gmeow_tools.research_objects.validate_frictionless (#58).

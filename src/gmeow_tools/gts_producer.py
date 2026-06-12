@@ -27,7 +27,11 @@ from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gts.writer import Writer, term_to_wire
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from rdflib.term import Node
+
+    from gmeow_tools.saturate import DerivedTriple
 
 _RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 
@@ -118,6 +122,47 @@ class _Builder:
             dt = str(node.datatype) if node.datatype is not None else None
             return self.terms.literal(str(node), dt, node.language)
         return None  # quoted triples handled via the RDF 1.2 path
+
+    def add_annotated(
+        self,
+        s: Node,
+        p: Node,
+        o: Node,
+        *,
+        reifier: URIRef,
+        annotations: Sequence[tuple[URIRef, Node]],
+        graph_name: str | None = None,
+        bnode_scope: str | None = None,
+    ) -> None:
+        """Add an asserted triple PLUS its RDF 1.2 statement-layer rows.
+
+        The base triple stays a plain quad (consumers ignorant of RDF 1.2
+        still parse it); the reifier binds it in ``reifies`` and carries the
+        ``annotations`` rows (§7.3) — the transpiler's inline-provenance
+        emission path (#34).
+        """
+        sid, pid, oid = (
+            self._rdflib(s, bnode_scope),
+            self._rdflib(p, bnode_scope),
+            self._rdflib(o, bnode_scope),
+        )
+        if sid is None or pid is None or oid is None:
+            msg = f"unsupported node in annotated triple: ({s!r}, {p!r}, {o!r})"
+            raise ValueError(msg)
+        gid = self.terms.iri(graph_name) if graph_name is not None else None
+        self.quads.append((sid, pid, oid, gid))
+        rid = self.terms.iri(str(reifier))
+        existing = self.reifies.get(rid)
+        if existing is not None and existing != (sid, pid, oid):
+            msg = f"conflicting reifier rebind for {reifier!r}"
+            raise ValueError(msg)
+        self.reifies[rid] = (sid, pid, oid)
+        for ann_p, ann_v in annotations:
+            ap, av = self._rdflib(ann_p, bnode_scope), self._rdflib(ann_v, bnode_scope)
+            if ap is None or av is None:
+                msg = f"unsupported annotation node on {reifier!r}"
+                raise ValueError(msg)
+            self.annot.append((rid, ap, av))
 
     # -- pyoxigraph (RDF 1.2 statement layer) ---------------------------------
 
@@ -336,6 +381,27 @@ def gts_from_rdf12(
     """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; pyoxigraph)."""
     builder = _Builder()
     builder.add_rdf12(path)
+    return builder.to_gts(profile=profile, transform=transform)
+
+
+def gts_from_maximal(
+    base: Graph,
+    derived: Sequence[DerivedTriple],
+    *,
+    profile: str = "dist",
+    transform: list[str] | None = None,
+) -> bytes:
+    """Produce the transpiler's MAXIMAL(G) snapshot (#34).
+
+    ``base`` carries the canonical A-Box (assumed bnode-free — the transform
+    driver skolemizes); every :class:`~gmeow_tools.saturate.DerivedTriple`
+    lands as an asserted base triple plus its provenance reifier/annotations.
+    """
+    builder = _Builder()
+    builder.add_graph(base)
+    for row in derived:
+        s, p, o = row.triple
+        builder.add_annotated(s, p, o, reifier=row.reifier, annotations=row.annotations)
     return builder.to_gts(profile=profile, transform=transform)
 
 

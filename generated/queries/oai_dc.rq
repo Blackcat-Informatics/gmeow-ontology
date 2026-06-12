@@ -4,7 +4,7 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 
 CONSTRUCT {
-    ?work dc:title ?title .
+    ?work dc:title ?_final_title .
     ?work dc:creator ?author .
     ?work dc:contributor ?contrib .
     ?work dc:subject ?topic .
@@ -26,6 +26,12 @@ WHERE {
     {
         ?work gmeow:title ?title .
         FILTER NOT EXISTS { ?work gmeow:displayable false . }
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?title) && LANG(?title) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?title), STR(?_extTag)), ?title) AS ?_final_title )
     }
     UNION {
         ?work gmeow:hasAuthor ?author .

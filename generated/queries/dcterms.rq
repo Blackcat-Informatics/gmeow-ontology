@@ -8,7 +8,7 @@ CONSTRUCT {
     ?cw dcterms:rightsHolder ?holder .
     ?cw dcterms:rights ?notice .
     ?cw dcterms:dateCopyrighted ?yr .
-    ?work dcterms:title ?title .
+    ?work dcterms:title ?_final_title .
     ?work dcterms:description ?_final_desc .
     ?work dcterms:creator ?author .
     ?work dcterms:contributor ?contrib .
@@ -70,6 +70,12 @@ WHERE {
     UNION {
         ?work gmeow:title ?title .
         FILTER NOT EXISTS { ?work gmeow:displayable false . }
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?title) && LANG(?title) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?title), STR(?_extTag)), ?title) AS ?_final_title )
     }
     UNION {
         ?work gmeow:description ?desc .
