@@ -14,6 +14,7 @@
     owl:imports
         <https://blackcatinformatics.ca/gmeow> ,
         <https://blackcatinformatics.ca/gmeow/slices/accessibility> ,
+        <https://blackcatinformatics.ca/gmeow/slices/affect> ,
         <https://blackcatinformatics.ca/gmeow/slices/aggregation> ,
         <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ,
         <https://blackcatinformatics.ca/gmeow/slices/connectivity> ,

@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Worked example (#356): the slice's whole doctrine in one scene — an
+# emotion inhering in an agent (blended type, P9), and the same work
+# appraised by two critics whose readings disagree and COEXIST: one finds
+# sublimity (with high arousal), the other kitsch. No winner exists.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:reader a gmeow:Person ; rdfs:label "the reader"@en .
+
+ex:awe a gmeow:Emotion ;
+    rdfs:label "the reader's awe"@en ;
+    gmeow:emotionBearer ex:reader ;
+    gmeow:emotionType gmeow:emotionFear , gmeow:emotionSurprise .
+
+# The minimal WEMI spine the shapes demand (the gts example precedent).
+ex:novelWork a gmeow:Work ; rdfs:label "the appraised work"@en .
+ex:novelExpression a gmeow:Expression ;
+    rdfs:label "the appraised text"@en ;
+    gmeow:realizes ex:novelWork .
+ex:novel a gmeow:BookRelease ;
+    rdfs:label "the appraised release"@en ;
+    gmeow:embodies ex:novelExpression .
+ex:criticA a gmeow:Person ; rdfs:label "critic A"@en .
+ex:criticB a gmeow:Person ; rdfs:label "critic B"@en .
+
+ex:sublimeReading a gmeow:Appraisal ;
+    gmeow:vantage ex:criticA ;
+    gmeow:appraisalOf ex:novel ;
+    gmeow:appraisalQuality gmeow:qualitySublimity .
+
+ex:arousalReading a gmeow:Appraisal ;
+    gmeow:vantage ex:criticA ;
+    gmeow:appraisalOf ex:novel ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.9 .
+
+ex:kitschReading a gmeow:Appraisal ;
+    gmeow:vantage ex:criticB ;
+    gmeow:appraisalOf ex:novel ;
+    gmeow:appraisalQuality gmeow:qualityKitsch .

@@ -2130,7 +2130,7 @@ gmeow:CharacterArcShape
         sh:path gmeow:arcSubject ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:class gmeow:Entity ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A CharacterArc must have exactly one gmeow:arcSubject." ;
     ] ;
@@ -2138,7 +2138,7 @@ gmeow:CharacterArcShape
         sh:path gmeow:arcType ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:class gmeow:ArcType ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A CharacterArc must have exactly one gmeow:arcType." ;
     ] .
@@ -3951,4 +3951,176 @@ gmeow:MitigationShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A Mitigation carries at most one gmeow:mitigationStatus (closed-world functional; open vocabulary)." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Affect shapes (#356, EPIC #348) — thin slice, thin shapes.
+# --------------------------------------------------------------------------- #
+
+gmeow:EmotionShape
+    a sh:NodeShape ;
+    rdfs:label "Emotion Shape" ;
+    sh:targetClass gmeow:Emotion ;
+    sh:property [
+        sh:path gmeow:emotionBearer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Emotion must inhere in exactly one gmeow:emotionBearer (an intrinsic mode has exactly one bearer)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:emotionType ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An Emotion must carry at least one gmeow:emotionType (an IRI — the vocabulary is OPEN per Principle 9: blended emotions and rival traditions coexist)." ;
+    ] .
+
+gmeow:AppraisalShape
+    a sh:NodeShape ;
+    rdfs:label "Appraisal Shape" ;
+    sh:targetClass gmeow:Appraisal ;
+    sh:property [
+        sh:path gmeow:appraisalOf ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Appraisal must read exactly one gmeow:appraisalOf subject." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Appraisal must name its appraiser vantage — a reading is somebody's cell, never a graph fact (Principle 9)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appraisalDimension ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An Appraisal reads at most one gmeow:appraisalDimension — a PAD triple is three Appraisals sharing a vantage." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appraisalValue ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "An Appraisal carries at most one decimal gmeow:appraisalValue, with its dimension." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An Appraisal must read SOMETHING: a dimensional value (dimension + value) or at least one aesthetic quality." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalQuality> ?q . }
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d .
+                    $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v .
+                }
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v .
+                  FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d . } }
+                UNION
+                { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d .
+                  FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v . } }
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Narrative-interior shapes (#361 / #362 / #363, EPIC #358).
+# --------------------------------------------------------------------------- #
+
+gmeow:ArcSampleShape
+    a sh:NodeShape ;
+    rdfs:label "Arc Sample Shape" ;
+    sh:targetClass gmeow:ArcSample ;
+    sh:property [
+        sh:path gmeow:sampleSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ArcSample must read exactly one gmeow:sampleSubject." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:samplePosition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NarrativePosition ;
+        sh:severity sh:Violation ;
+        sh:message "An ArcSample must read at exactly one gmeow:samplePosition, a NarrativePosition — never a bare index (#359)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sampleState ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An ArcSample must read exactly one gmeow:sampleState by IRI (affect EmotionType, EmotionML category, or another tradition's term — open by design, P16 soft reference)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An ArcSample must name its analyzing vantage — two analyzers disagreeing about chapter 31 are two cells (Principle 9)." ;
+    ] .
+
+gmeow:RoleInNarrativeShape
+    a sh:NodeShape ;
+    rdfs:label "Role In Narrative Shape" ;
+    sh:targetClass gmeow:RoleInNarrative ;
+    sh:property [
+        sh:path gmeow:narrativeRoleBearer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A RoleInNarrative must have exactly one gmeow:narrativeRoleBearer." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:narrativeRoleScope ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A RoleInNarrative must be relative to exactly one gmeow:narrativeRoleScope (an IRI) — protagonist-of-WHAT is half the claim. nodeKind only: scope instances are data-typed concretely (BookRelease, NarrativeReferenceFrame, ContentSegment) and raw-graph SHACL does no subclass inference toward NarrativeScope." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:narrativeRoleValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A RoleInNarrative must bear exactly one gmeow:narrativeRoleValue (an IRI — the role vocabulary is OPEN per Principle 9)." ;
+    ] .
+
+gmeow:MotifShape
+    a sh:NodeShape ;
+    rdfs:label "Motif Shape" ;
+    sh:targetClass gmeow:Motif ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Motif must carry at least one rdfs:label — identity-bearing means nameable; an unnameable recurring unit is a tag." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:motifKind ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:motifKind targets vocabulary IRIs (the open MotifKind vocabulary)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:motifOccursIn ;
+        sh:class gmeow:ContentSegment ;
+        sh:severity sh:Violation ;
+        sh:message "A motif occurrence rides the narration seam into a ContentSegment (#360)." ;
     ] .

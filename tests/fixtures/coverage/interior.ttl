@@ -1,0 +1,52 @@
+# Coverage fixture for the parcel (#356/#361/#362/#363): exercises Emotion,
+# Appraisal, ArcSample, RoleInNarrative, and Motif in instance data.
+
+@prefix ex:    <https://example.org/coverage/interior/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:agent a gmeow:Person ; rdfs:label "coverage agent"@en .
+ex:work  a gmeow:CreativeWork ; rdfs:label "coverage work"@en .
+
+ex:frame a gmeow:NarrativeTimeFrame ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
+    gmeow:discourseTimeOf ex:work ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:axis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+ex:pos a gmeow:NarrativePosition ;
+    gmeow:positionFrame ex:frame ; gmeow:positionOrdinal 1 .
+
+ex:segment a gmeow:ContentSegment ;
+    rdfs:label "coverage chapter"@en ;
+    gmeow:segmentOf ex:work ; gmeow:atNarrativePosition ex:pos .
+
+ex:sample a gmeow:ArcSample ;
+    gmeow:vantage ex:agent ;
+    gmeow:sampleSubject ex:agent ;
+    gmeow:samplePosition ex:pos ;
+    gmeow:sampleState gmeow:emotionJoy .
+
+ex:role a gmeow:RoleInNarrative ;
+    gmeow:narrativeRoleBearer ex:agent ;
+    gmeow:narrativeRoleScope ex:work ;
+    gmeow:narrativeRoleValue gmeow:roleProtagonist .
+
+ex:motif a gmeow:Motif ;
+    rdfs:label "coverage motif"@en ;
+    gmeow:motifKind gmeow:motifKindSymbol ;
+    gmeow:motifOccursIn ex:segment .
+
+ex:emotion a gmeow:Emotion ;
+    gmeow:emotionBearer ex:agent ;
+    gmeow:emotionType gmeow:emotionTrust .
+
+ex:appraisal a gmeow:Appraisal ;
+    gmeow:vantage ex:agent ;
+    gmeow:appraisalOf ex:work ;
+    gmeow:appraisalQuality gmeow:qualityElegance .

@@ -75,3 +75,34 @@ segment S."
 Diegetic events stay ordinary `gmeow:Event`s claims-scoped `accordingTo`
 their frame; the events module's Participation machinery is reused untouched
 for who-did-what *in* the story.
+
+## The narrative interior (#361 / #362 / #363, EPIC #358)
+
+- **Arc samples (#361)** — the music `PitchTrajectory` move: an arc is
+  sampled control points in a frame, not prose. `ArcSample ⊑ Observation`
+  reads {subject × `NarrativePosition` (#359) × state-by-IRI × vantage};
+  the state is a *soft* cross-slice reference (affect `EmotionType` when
+  loaded, EmotionML category otherwise — IRI, never dependency, P16).
+  The existing `CharacterArc` is the integrating whole
+  (`arcSample ⊑ hasPart`, purely additive); two analyzers disagreeing at
+  one position are two coexisting cells, surfaced — never resolved — by
+  `narrative-arc-trajectory.rq` (the syuzhet-CSV primitive).
+- **Roles (#362)** — a narratological role is a *function relative to a
+  scope*, never a property of the character: `RoleInNarrative` =
+  bearer × `NarrativeScope` (named umbrella grafted over CreativeWork /
+  ContentSegment / NarrativeReferenceFrame, extension-side — the
+  `Rule ⊑ Norm` direction) × open `NarrativeRole` value. Protagonist of
+  the trilogy, of one book, of one chapter are different claims; ensemble
+  works carry coexisting protagonist relators and **no `primaryProtagonist`
+  exists or ever will** (P9). Character-as-exemplar composes from the
+  rubrics facility's `exemplarSubject` (#353) with zero new machinery.
+- **Motifs (#363)** — thematic tags with *identity*: `Motif ⊑ SocialObject`
+  with aliases (names module), an open `MotifKind`, and occurrences riding
+  the narration seam (`motifOccursIn ⊑ narratedIn`, inheriting the #360
+  flat-by-default efficiency discipline). Cross-work identity goes through
+  `counterpartOf` or a registry anchor (Thompson Motif Index / ATU /
+  DBTropes — alignment window), never string equality. **Tag vs Motif
+  boundary**: tags are uncurated labels (tags module); promote to Motif
+  when recurrence and identity emerge — the promotion is an Activity with
+  provenance, and the corpus heuristic (concepts → always; thematic_tags →
+  on recurrence + curator confirmation) gates in the #364 consumer child.

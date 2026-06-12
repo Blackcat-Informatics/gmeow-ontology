@@ -23,6 +23,13 @@ export enum AccessibilityPolarityEnum {
     limited = "polarityLimited",
 };
 
+export enum AestheticQualityEnum {
+
+    elegance = "qualityElegance",
+    kitsch = "qualityKitsch",
+    sublimity = "qualitySublimity",
+};
+
 export enum AggregationFunctionEnum {
 
     average = "aggAverage",
@@ -46,6 +53,13 @@ export enum AnnotationMotivationEnum {
     questioning = "motivationQuestioning",
     replying = "motivationReplying",
     tagging = "motivationTagging",
+};
+
+export enum AppraisalDimensionEnum {
+
+    arousal = "dimensionArousal",
+    dominance = "dimensionDominance",
+    valence = "dimensionValence",
 };
 
 export enum ArcTypeEnum {
@@ -540,6 +554,18 @@ export enum DisclosurePolicyEnum {
     public_only_with_independent_source = "policyPublicOnlyWithIndependentSource",
     public_safe = "policyPublicSafe",
     sensitive = "policySensitive",
+};
+
+export enum EmotionTypeEnum {
+
+    anger = "emotionAnger",
+    anticipation = "emotionAnticipation",
+    disgust = "emotionDisgust",
+    fear = "emotionFear",
+    joy = "emotionJoy",
+    sadness = "emotionSadness",
+    surprise = "emotionSurprise",
+    trust = "emotionTrust",
 };
 
 export enum EmploymentTypeEnum {
@@ -1166,6 +1192,16 @@ export enum MitigationStatusEnum {
     retired = "mitigationRetired",
 };
 
+export enum MotifKindEnum {
+
+    leitmotif = "motifKindLeitmotif",
+    running_gag = "motifKindRunningGag",
+    symbol = "motifKindSymbol",
+    tale_type = "motifKindTaleType",
+    theme = "motifKindTheme",
+    trope = "motifKindTrope",
+};
+
 export enum MultipartTypeEnum {
 
     alternative = "multipartTypeAlternative",
@@ -1269,6 +1305,18 @@ export enum NarrativeFrameRelationEnum {
     crossover = "relationCrossover",
     expanded_universe = "relationExpandedUniverse",
     fanon = "relationFanon",
+};
+
+export enum NarrativeRoleEnum {
+
+    antagonist = "roleAntagonist",
+    confidant = "roleConfidant",
+    foil = "roleFoil",
+    love_interest = "roleLoveInterest",
+    mentor = "roleMentor",
+    narrator = "roleNarrator",
+    protagonist = "roleProtagonist",
+    trickster = "roleTrickster",
 };
 
 export enum NarrativeTimeAxisEnum {
@@ -2233,6 +2281,11 @@ export interface AdoptiveParentChild extends ParentChildRelationship {
 
 
 
+export interface AestheticQuality {
+}
+
+
+
 export interface Agent {
     email?: string[],
     endorses?: Agent[],
@@ -2295,6 +2348,30 @@ export interface Appellation {
     nameScript?: string[],
     romanization?: string[],
     transliterationScheme?: TransliterationScheme[],
+}
+
+
+
+export interface Appraisal extends Observation {
+    appraisalDimension?: AppraisalDimension[],
+    appraisalOf?: string,
+    appraisalQuality?: AestheticQuality[],
+    appraisalValue?: string[],
+}
+
+
+
+export interface AppraisalDimension {
+}
+
+
+
+export interface ArcSample extends Observation {
+    developmentSignalEvent?: Event[],
+    developmentSignalText?: string[],
+    samplePosition?: NarrativePosition,
+    sampleState?: string,
+    sampleSubject?: string,
 }
 
 
@@ -2611,6 +2688,7 @@ export interface Certification {
 export interface CharacterArc extends InformationObject {
     arcEvidence?: InformationObject[],
     arcFrame?: NarrativeReferenceFrame,
+    arcSample?: ArcSample[],
     arcSubject?: Entity,
     arcType?: ArcType,
 }
@@ -3117,6 +3195,18 @@ export interface EmailMessage extends Message {
 
 
 export interface EmailPatchDiff extends BodyPart {
+}
+
+
+
+export interface Emotion {
+    emotionBearer?: Agent,
+    emotionType?: EmotionType[],
+}
+
+
+
+export interface EmotionType {
 }
 
 
@@ -4146,6 +4236,18 @@ export interface MonetaryAmount extends Entity {
 
 
 
+export interface Motif extends SocialObject {
+    motifKind?: MotifKind[],
+    motifOccursIn?: ContentSegment[],
+}
+
+
+
+export interface MotifKind {
+}
+
+
+
 export interface MultipartBodyPart extends BodyPart {
     hasMultipartType?: MultipartType,
 }
@@ -4247,9 +4349,19 @@ export interface NarrativePosition extends Entity {
 
 
 
-export interface NarrativeReferenceFrame extends ReferenceFrame {
+export interface NarrativeReferenceFrame extends NarrativeScope {
     hasNarrativeFrameRelation?: NarrativeFrameRelation[],
     relatesToFrame?: NarrativeReferenceFrame[],
+}
+
+
+
+export interface NarrativeRole {
+}
+
+
+
+export interface NarrativeScope extends Entity {
 }
 
 
@@ -4924,6 +5036,14 @@ export interface RiskFactor extends Entity {
 
 
 export interface Role {
+}
+
+
+
+export interface RoleInNarrative {
+    narrativeRoleBearer?: Entity,
+    narrativeRoleScope?: NarrativeScope,
+    narrativeRoleValue?: NarrativeRole,
 }
 
 

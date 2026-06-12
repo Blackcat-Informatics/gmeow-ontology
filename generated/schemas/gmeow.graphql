@@ -23,6 +23,13 @@ enum AccessibilityPolarityEnum
     polarityLimited
   }
 
+enum AestheticQualityEnum
+  {
+    qualityElegance
+    qualityKitsch
+    qualitySublimity
+  }
+
 enum AggregationFunctionEnum
   {
     aggAverage
@@ -46,6 +53,13 @@ enum AnnotationMotivationEnum
     motivationQuestioning
     motivationReplying
     motivationTagging
+  }
+
+enum AppraisalDimensionEnum
+  {
+    dimensionArousal
+    dimensionDominance
+    dimensionValence
   }
 
 enum ArcTypeEnum
@@ -540,6 +554,18 @@ enum DisclosurePolicyEnum
     policyPublicOnlyWithIndependentSource
     policyPublicSafe
     policySensitive
+  }
+
+enum EmotionTypeEnum
+  {
+    emotionAnger
+    emotionAnticipation
+    emotionDisgust
+    emotionFear
+    emotionJoy
+    emotionSadness
+    emotionSurprise
+    emotionTrust
   }
 
 enum EmploymentTypeEnum
@@ -1166,6 +1192,16 @@ enum MitigationStatusEnum
     mitigationRetired
   }
 
+enum MotifKindEnum
+  {
+    motifKindLeitmotif
+    motifKindRunningGag
+    motifKindSymbol
+    motifKindTaleType
+    motifKindTheme
+    motifKindTrope
+  }
+
 enum MultipartTypeEnum
   {
     multipartTypeAlternative
@@ -1269,6 +1305,18 @@ enum NarrativeFrameRelationEnum
     relationCrossover
     relationExpandedUniverse
     relationFanon
+  }
+
+enum NarrativeRoleEnum
+  {
+    roleAntagonist
+    roleConfidant
+    roleFoil
+    roleLoveInterest
+    roleMentor
+    roleNarrator
+    roleProtagonist
+    roleTrickster
   }
 
 enum NarrativeTimeAxisEnum
@@ -2272,6 +2320,10 @@ type AdoptiveParentChild
     relationshipParent: Person
   }
 
+type AestheticQuality
+  {
+  }
+
 type Agent
   {
     email: [String]
@@ -2339,6 +2391,28 @@ type Appellation
     transliterationScheme: [TransliterationScheme]
   }
 
+type Appraisal
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    vantage: [Entity]
+    appraisalDimension: [AppraisalDimension]
+    appraisalOf: String
+    appraisalQuality: [AestheticQuality]
+    appraisalValue: [Float]
+  }
+
+type AppraisalDimension
+  {
+  }
+
 type ArchaeologicalFindContext
   {
     findContextDating: [TemporalMeasurement]
@@ -2346,6 +2420,25 @@ type ArchaeologicalFindContext
     findContextPlace: [Place]
     findContextStratigraphy: [Entity]
     findContextTarget: PhysicalObject
+  }
+
+type ArcSample
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    vantage: [Entity]
+    developmentSignalEvent: [Event]
+    developmentSignalText: [String]
+    samplePosition: NarrativePosition
+    sampleState: String
+    sampleSubject: String
   }
 
 type ArcType
@@ -3752,6 +3845,7 @@ type CharacterArc
     writtenInLanguage: [Language]
     arcEvidence: [InformationObject]
     arcFrame: NarrativeReferenceFrame
+    arcSample: [ArcSample]
     arcSubject: Entity
     arcType: ArcType
   }
@@ -5642,6 +5736,16 @@ type EmailPatchDiff
     hasContentTransferEncoding: ContentTransferEncoding
     mediaType: String
     partId: [String]
+  }
+
+type Emotion
+  {
+    emotionBearer: Agent
+    emotionType: [EmotionType]
+  }
+
+type EmotionType
+  {
   }
 
 type Employment
@@ -9481,6 +9585,64 @@ type MonetaryAmount
     monetaryValue: Float
   }
 
+type Motif
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    motifKind: [MotifKind]
+    motifOccursIn: [ContentSegment]
+  }
+
+type MotifKind
+  {
+  }
+
 type MultipartBodyPart
   {
     acquireLicensePage: [String]
@@ -9870,21 +10032,64 @@ type NarrativeReferenceFrame
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
-    determinacyModel: Determinacy
-    dimensionCount: Int
-    frameKind: FrameKind
-    frameRealm: FrameRealm
-    frameSolver: [String]
-    hasAxis: [Axis]
-    hasMetricKind: MetricKind
-    hasReferencePosition: CelestialReferenceOrigin
-    hasTimeScale: TimeScale
-    isHostedBy: [Entity]
-    parentFrame: ReferenceFrame
-    requiresHost: Boolean
-    transformsTo: [ReferenceFrame]
     hasNarrativeFrameRelation: [NarrativeFrameRelation]
     relatesToFrame: [NarrativeReferenceFrame]
+  }
+
+type NarrativeRole
+  {
+  }
+
+type NarrativeScope
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
   }
 
 type NarrativeTimeAxis
@@ -12645,6 +12850,13 @@ type RiskFactor
 
 type Role
   {
+  }
+
+type RoleInNarrative
+  {
+    narrativeRoleBearer: Entity
+    narrativeRoleScope: NarrativeScope
+    narrativeRoleValue: NarrativeRole
   }
 
 type RomanticOrientation
