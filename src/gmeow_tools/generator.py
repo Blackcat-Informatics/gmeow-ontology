@@ -438,16 +438,20 @@ def write_turtle(
     *,
     name: str = "",
     source_hash: str = "",
+    tag_map: dict[str, str] | None = None,
 ) -> None:
     """Serialize an rdflib :class:`Graph` as Turtle with the generated banner.
 
     Internal ``x-gmeow-*`` language tags are retagged to public BCP-47 at this
     boundary (#287): registry artifacts are consumer-facing projections.
+    ``tag_map`` lets fold-sealed callers supply the mapping explicitly — the
+    default falls back to loading the merged graph, a canonical-source read
+    the narrow-waist exporters must not trigger.
     """
     from gmeow_tools.language_tags import retag_graph
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    turtle = retag_graph(graph).serialize(format="turtle")
+    turtle = retag_graph(graph, tag_map=tag_map).serialize(format="turtle")
     if name and source_hash:
         banner = _GENERATED_BANNER.format(name=name, hash=source_hash)
         turtle = banner + turtle
