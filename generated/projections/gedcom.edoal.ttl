@@ -10,11 +10,27 @@
     rdfs:label "GMEOW → gedcom (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "family-anchored parent-child relationship → gedcom:childIn"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:withinFamily ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:childIn ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "hasChild → gedcom:child (standpoints drop; contested rows coexist)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasChild ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri gedcom:child ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "family-anchored couple → gedcom:marriage on the family"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:withinFamily ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:marriage ] ;
             align:relation "<=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
@@ -25,6 +41,14 @@
                     edoal:uri gedcom:Family ] ;
             align:relation "=" ;
             edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "clean documentary M+F couple → gedcom:husband / gedcom:wife"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasPartner ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:husband ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "Person → gedcom:Individual"@en ;
             align:entity1 [ a edoal:Class ;

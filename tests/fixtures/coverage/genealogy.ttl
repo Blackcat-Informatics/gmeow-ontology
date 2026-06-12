@@ -28,7 +28,8 @@ ex:tomas a gmeow:Person ;
     gmeow:hasChild ex:lena, ex:ravi .
 
 ex:couple-mt a gmeow:CoupleRelationship ;
-    gmeow:hasPartner ex:mira, ex:tomas .
+    gmeow:hasPartner ex:mira, ex:tomas ;
+    gmeow:withinFamily ex:family-okonkwo .
 
 # --- Generation 2: the children (one with flat parent links).
 ex:lena a gmeow:Person ;
@@ -51,6 +52,30 @@ ex:family-okonkwo a gmeow:Family ;
 ex:ancestor-jozef a gmeow:Person ;
     gmeow:fullName "Józef Okonkwo (b. 1890)" ;
     gedcom:sex "M" .
+
+# --- The CLEAN documentary configuration: both partners carry unambiguous,
+# uncontested saab data (one M, one F) — the ONLY case where the
+# traditional gedcom:husband/wife terms emit. The family anchor also
+# yields childIn for the anchored parent-child relationship.
+ex:ancestor-helena a gmeow:Person ;
+    gmeow:fullName "Helena Okonkwo (b. 1892)" ;
+    gmeow:sexAssignedAtBirth gmeow:saabFemale .
+
+ex:ancestor-stefan a gmeow:Person ;
+    gmeow:fullName "Stefan Okonkwo (b. 1888)" ;
+    gmeow:sexAssignedAtBirth gmeow:saabMale .
+
+ex:family-1910 a gmeow:Family ;
+    gmeow:hasMember ex:ancestor-stefan, ex:ancestor-helena, ex:ancestor-jozef .
+
+ex:couple-1910 a gmeow:CoupleRelationship ;
+    gmeow:hasPartner ex:ancestor-stefan, ex:ancestor-helena ;
+    gmeow:withinFamily ex:family-1910 .
+
+ex:pcr-jozef a gmeow:ParentChildRelationship ;
+    gmeow:relationshipParent ex:ancestor-stefan ;
+    gmeow:relationshipChild ex:ancestor-jozef ;
+    gmeow:withinFamily ex:family-1910 .
 
 # --- The suppression canary (#282): a relative whose record is withheld.
 # No projection, saturation, or published output may carry the literal.

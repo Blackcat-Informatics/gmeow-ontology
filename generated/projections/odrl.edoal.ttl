@@ -48,7 +48,15 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri odrl:remedy ] ;
             align:relation "<=" ;
-            edoal:measure 6.5e-01 ] ;
+            edoal:measure 6.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "RightsStatement → odrl:uid (the policy's own IRI)"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:RightsStatement ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri odrl:uid ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
     align:onto2 [ a align:Ontology ;

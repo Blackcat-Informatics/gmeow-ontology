@@ -37,6 +37,7 @@ CONSTRUCT {
     ?lp a odrl:Party .
     ?ohpEnt odrl:hasPolicy ?ohpRs .
     ?optRs a odrl:Policy .
+    ?ouRs odrl:uid ?ouRs .
 }
 WHERE {
     {
@@ -119,5 +120,9 @@ WHERE {
     UNION {
         ?optRs a gmeow:RightsStatement .
         FILTER NOT EXISTS { ?optRs gmeow:displayable false . }
+    }
+    UNION {
+        ?ouRs a gmeow:RightsStatement .
+        FILTER NOT EXISTS { ?ouRs gmeow:displayable false . }
     }
 }

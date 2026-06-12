@@ -572,9 +572,8 @@ def test_gedcom_projection() -> None:
     assert (marriage, RDF.type, URIRef(ged + "Marriage")) in g
     spouses = set(g.subjects(URIRef(ged + "spouseIn"), marriage))
     assert spouses == {URIRef(ex + "mira"), URIRef(ex + "tomas")}
-    # husband/wife are REFUSED — role-symmetric output only (SEX ≠ GENDER).
-    assert not list(g.subject_objects(URIRef(ged + "husband")))
-    assert not list(g.subject_objects(URIRef(ged + "wife")))
+    # husband/wife emit ONLY in the clean documentary configuration (the
+    # 1910 couple below); the modern couple's marriage carries neither.
     # THE CLEAN-OR-UNKNOWN RULE: an unambiguous recorded datum maps cleanly;
     # the partner WITHOUT one gets no row (never inferred from anything else);
     # EVERY ambiguous configuration degrades to "U" — never a forced M/F.
@@ -589,6 +588,19 @@ def test_gedcom_projection() -> None:
     assert URIRef(ex + "suppressed-relative") not in set(g.subjects()) | set(
         g.objects()
     )
+    # THE CLEAN-CONFIGURATION RULE for the traditional terms: the 1910 couple
+    # (both partners with clean documentary saab, one M one F) emits
+    # husband/wife on its marriage; the modern couple (one partner without a
+    # recorded datum) stays symmetric spouseIn-only.
+    m1910 = URIRef(ex + "couple-1910-marriage")
+    assert (m1910, URIRef(ged + "husband"), URIRef(ex + "ancestor-stefan")) in g
+    assert (m1910, URIRef(ged + "wife"), URIRef(ex + "ancestor-helena")) in g
+    assert not list(g.objects(marriage, URIRef(ged + "husband")))
+    assert not list(g.objects(marriage, URIRef(ged + "wife")))
+    # the withinFamily anchor yields childIn + the family's marriage edge
+    fam = URIRef(ex + "family-1910")
+    assert (URIRef(ex + "ancestor-jozef"), URIRef(ged + "childIn"), fam) in g
+    assert (fam, URIRef(ged + "marriage"), m1910) in g
     _assert_no_gmeow_leakage(g)
 
 

@@ -13,11 +13,16 @@
 # contested parentage emits COEXISTING rows, never a winner (P9; the
 # flat-rows-coexist precedent is the rel: equivalence cells).
 #
-# REFUSED (P5 + the gender module's tenet "SEX ≠ GENDER, never equated" and
-# the identity-axes orthogonality theorem): gedcom:husband / gedcom:wife —
-# deriving gendered spousal roles from gmeow:hasGenderIdentity would be the
-# forbidden cross-axis bridge, and GMEOW deliberately has no flat gender.
-# Spouses emit gedcom:spouseIn rows only. gedcom:sex projects ONLY from
+# gedcom:husband / gedcom:wife follow the same CLEAN-OR-UNKNOWN discipline
+# as gedcom:sex (the documentary frame, reviewed): they emit ONLY when the
+# configuration is clear and unmuddled — a couple whose two partners carry
+# clean, uncontested, unambiguous DOCUMENTARY saab data (one saabMale, one
+# saabFemale; no competing values, no intersexVariation). Any deviation —
+# either partner ambiguous or unrecorded, a same-recorded-sex couple —
+# emits symmetric gedcom:spouseIn only. NEVER derived from
+# gmeow:hasGenderIdentity (SEX ≠ GENDER; the identity-axes orthogonality
+# theorem): the traditional terms map only in the traditional documentary
+# configuration. gedcom:sex projects ONLY from
 # gmeow:sexAssignedAtBirth (the recorded administrative datum in GEDCOM's
 # own documentary frame) under the CLEAN-OR-UNKNOWN rule: an unambiguous,
 # uncontested saabMale/saabFemale maps to "M"/"F"; ANY ambiguity — a
@@ -25,9 +30,10 @@
 # degrades to "U" (never silence, never a guess). Records that carry
 # external gedcom:sex directly (the slices' by-reference convention) pass
 # through MAXIMAL as base triples.
-# REFUSED (P5 — no source edge): gedcom:childIn — ParentChildRelationship
-# carries no Family link, and Family⊑Group membership cannot distinguish a
-# child from a spouse; person-level rows only.
+# gedcom:childIn and family-scoped gedcom:marriage project through the
+# gmeow:withinFamily anchor (the relationship→Family seam minted for exactly
+# this exchange need); kinship claims without a family anchor stay
+# person-level.
 
 gmeow:mapGedcomIndividual a gmeow:ProjectionMapping ;
     rdfs:label "Person → gedcom:Individual"@x-gmeow-english ;
@@ -167,3 +173,74 @@ gmeow:mapGedcomSexUVariation a gmeow:ProjectionMapping ;
         gmeow:profile "gedcom" ; gmeow:toPredicate gedcom:sex ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:lossyDrop "an intersex-variation note marks the binary datum as insufficient; the code degrades to 'U' (the note itself is never exported)" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "gsexuv" ; gmeow:tPred gedcom:sex ; gmeow:tObj "gsexuvVal" ] ) ] .
+
+
+# --- The family-anchored rows (gmeow:withinFamily, #34 audit verdicts). --- #
+
+gmeow:mapGedcomChildIn a gmeow:ProjectionMapping ;
+    rdfs:label "family-anchored parent-child relationship → gedcom:childIn"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "gciRel" ; gmeow:value "gciFam" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "gciRel" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ParentChildRelationship ]
+            [ gmeow:subjectVar "gciRel" ; gmeow:predicate gmeow:relationshipChild ; gmeow:objectVar "gciChild" ]
+            [ gmeow:subjectVar "gciRel" ; gmeow:predicate gmeow:withinFamily ; gmeow:objectVar "gciFam" ] ) ;
+        gmeow:edoalSource gmeow:withinFamily ] ;
+    gmeow:hasBinding [
+        gmeow:profile "gedcom" ; gmeow:toPredicate gedcom:childIn ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the relationship's standpoint/provenance drops; the child-to-family anchor survives" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "gciChild" ; gmeow:tPred gedcom:childIn ; gmeow:tObj "gciFam" ] ) ] .
+
+gmeow:mapGedcomFamilyMarriage a gmeow:ProjectionMapping ;
+    rdfs:label "family-anchored couple → gedcom:marriage on the family"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "gfmCouple" ; gmeow:value "gfmFam" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "gfmCouple" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:CoupleRelationship ]
+            [ gmeow:subjectVar "gfmCouple" ; gmeow:predicate gmeow:withinFamily ; gmeow:objectVar "gfmFam" ] ) ;
+        gmeow:mint [ gmeow:bindVar "gfmMarriage" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "gfmCouple" ] ) ]
+                    "-marriage" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:withinFamily ] ;
+    gmeow:hasBinding [
+        gmeow:profile "gedcom" ; gmeow:toPredicate gedcom:marriage ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "gfmFam" ; gmeow:tPred gedcom:marriage ; gmeow:tObj "gfmMarriage" ] ) ] .
+
+# --- husband/wife: the clean-configuration rule (#34 audit verdict). ------ #
+# Emits ONLY when both partners carry clean documentary saab data (one M,
+# one F); the suppressWhen guards kill the cell on ANY ambiguity, leaving
+# the symmetric spouseIn rows from mapGedcomMarriage.
+gmeow:mapGedcomHusbandWife a gmeow:ProjectionMapping ;
+    rdfs:label "clean documentary M+F couple → gedcom:husband / gedcom:wife"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ghwCouple" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ghwCouple" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:CoupleRelationship ]
+            [ gmeow:subjectVar "ghwCouple" ; gmeow:predicate gmeow:hasPartner ; gmeow:objectVar "ghwHim" ]
+            [ gmeow:subjectVar "ghwHim" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabMale ]
+            [ gmeow:subjectVar "ghwCouple" ; gmeow:predicate gmeow:hasPartner ; gmeow:objectVar "ghwHer" ]
+            [ gmeow:subjectVar "ghwHer" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabFemale ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opNe ; gmeow:exprArgs (
+            [ gmeow:exprVar "ghwHim" ] [ gmeow:exprVar "ghwHer" ] ) ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHim" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabFemale ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHim" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabIntersex ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHim" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabUnknown ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHim" ; gmeow:predicate gmeow:intersexVariation ; gmeow:objectVar "ghwHimNote" ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHer" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabMale ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHer" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabIntersex ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHer" ; gmeow:predicate gmeow:sexAssignedAtBirth ; gmeow:objectValue gmeow:saabUnknown ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ghwHer" ; gmeow:predicate gmeow:intersexVariation ; gmeow:objectVar "ghwHerNote" ] ;
+        gmeow:mint [ gmeow:bindVar "ghwMarriage" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ghwCouple" ] ) ]
+                    "-marriage" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:hasPartner ] ;
+    gmeow:hasBinding [
+        gmeow:profile "gedcom" ; gmeow:toPredicate gedcom:husband ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the traditional husband/wife terms emit ONLY in the clean documentary M+F configuration; any ambiguity, contestation, or absence degrades to symmetric spouseIn; gender identity is NEVER a source (SEX != GENDER)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ghwMarriage" ; gmeow:tPred gedcom:husband ; gmeow:tObj "ghwHim" ]
+            [ gmeow:tSubj "ghwMarriage" ; gmeow:tPred gedcom:wife ; gmeow:tObj "ghwHer" ] ) ] .

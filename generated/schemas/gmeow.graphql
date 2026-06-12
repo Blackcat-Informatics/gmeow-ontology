@@ -2363,6 +2363,7 @@ type AddressTenure
 
 type AdoptiveParentChild
   {
+    withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
   }
@@ -2941,6 +2942,7 @@ type Axis
 
 type BiologicalParentChild
   {
+    withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
   }
@@ -4864,6 +4866,7 @@ type Corpus
 
 type CoupleRelationship
   {
+    withinFamily: [Family]
     hasPartner: [Person]
   }
 
@@ -6958,6 +6961,7 @@ type FormalLanguage
 
 type FosterParentChild
   {
+    withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
   }
@@ -8270,6 +8274,7 @@ type KeyScheme
 
 type KinRelationship
   {
+    withinFamily: [Family]
   }
 
 type LandTenure
@@ -11511,6 +11516,7 @@ type Package
 
 type ParentChildRelationship
   {
+    withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
   }
@@ -15712,6 +15718,7 @@ type StandpointTenure
 
 type StepParentChild
   {
+    withinFamily: [Family]
     relationshipChild: Person
     relationshipParent: Person
   }
