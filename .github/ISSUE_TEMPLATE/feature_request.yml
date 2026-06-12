@@ -35,6 +35,16 @@ body:
     validations:
       required: true
   - type: textarea
+    id: consumer
+    attributes:
+      label: Who is the consumer?
+      description: >-
+        Name the concrete consumer this serves — a projection profile, a
+        client/MCP surface, a downstream tool, or a named user need. Every
+        module earns its consumer (Constitution, Principle 15).
+    validations:
+      required: true
+  - type: textarea
     id: examples
     attributes:
       label: Examples or prior art
