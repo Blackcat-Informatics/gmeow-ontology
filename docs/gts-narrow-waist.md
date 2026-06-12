@@ -38,7 +38,7 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    serializer* for its freshly built description graphs — the one allowance).
 3. **Sealed by test.** `tests/test_narrow_waist.py` enforces it twice over:
    a behavioral seal (every canonical-source reader monkeypatched to raise;
-   all four exporters must still render) and a static import seal (AST scan
+   all five exporters must still render) and a static import seal (AST scan
    of the exporter modules). The registry orders `gts` before every consumer
    from declared inputs — never by hand.
 4. **Equivalence before deletion.** Each re-point (PRs #370/#371/#373/#374)
@@ -48,9 +48,13 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
 ## Why
 
 Exporters that each re-read and re-interpret the sources drift from one
-another; exporters that consume one verified fold cannot. New export targets
-(#12's remaining tiers — OFN, HDT, ShEx, obographs, Parquet, …) are now
-`GTS → *` shims over `gts_views`: no parser, no drift surface, and the same
-fold the published `gts`/`gmeow` packages read.
+another; exporters that consume one verified fold cannot. #12's remaining
+tiers shipped exactly this way (#377): N-Quads/TriG, the statements JSONL
+bundle, SKOS, OBO Graphs, and ShEx are emitters inside the sealed `exports`
+generator, and Parquet is its own sealed `parquet` generator over the
+`gts_db` relational schema — `GTS → *` shims over `gts_views`: no parser, no
+drift surface, the same fold the published `gts`/`gmeow` packages read.
+(OFN/OWX/OMN are release-tier ROBOT conversions in `gmeow build`; HDT was
+refused — no maintained writer to pin.)
 
 See `docs/GTS-SPEC.md` for the format itself.

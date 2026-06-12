@@ -148,3 +148,14 @@ def test_compile_gts_missing_rdf12_raises(tmp_path: Path) -> None:
 
     with pytest.raises(FileNotFoundError):
         compile_gts(_sample_graph(), tmp_path / "does-not-exist.ttl")
+
+
+def test_to_nquads_lang_map_remaps_tags() -> None:
+    """The renderer's lang_map remaps tags on OUTPUT; the graph is untouched."""
+    folded = read(gts_from_graph(_sample_graph()))
+    mapped = to_nquads(folded, {"en": "en-CA"})
+    assert "@en-CA" in mapped
+    assert "@en ." not in mapped and "@en\n" not in mapped
+    # unmapped pass-through + the stored graph keeps its original tags
+    assert "@en" in to_nquads(folded, {"fr": "fr-CA"})
+    assert any(t.lang == "en" for t in folded.terms)

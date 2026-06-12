@@ -69,6 +69,7 @@ def regenerate(
         mapping_compile,
         matrix,
         metadata,
+        parquet_gen,
         profiles_gen,
         schema_compile,
         statement_compile,
@@ -120,6 +121,7 @@ def check_generated(
         mapping_compile,
         matrix,
         metadata,
+        parquet_gen,
         profiles_gen,
         schema_compile,
         statement_compile,
@@ -758,7 +760,7 @@ def normalize() -> None:
 
 @app.command()
 def build() -> None:
-    """Build serializations and JSON-LD context into dist/."""
+    """Build serializations, OWL-native syntaxes, and JSON-LD context into dist/."""
     from rdflib import Graph
 
     from gmeow_tools import reason as reasoning
@@ -768,13 +770,14 @@ def build() -> None:
 
     try:
         merged = reasoning.merge_release()
+        owl_native = reasoning.convert_owl_syntaxes(merged=merged)
     except ToolUnavailableError as exc:
         raise _fail(f"tool unavailable: {exc}", code=2) from exc
 
     graph = Graph().parse(merged, format="turtle")
     written = serialize_graph(graph, stem="gmeow")
     context = write_context()
-    for path in (*written.values(), context):
+    for path in (*written.values(), *owl_native, context):
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 

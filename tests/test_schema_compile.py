@@ -178,3 +178,21 @@ def test_bounded_xsd_integers_map_to_numeric_types() -> None:
     prop = json_schema["$defs"]["MediaObject"]["properties"]["pixelWidth"]
     assert prop["minimum"] == 0
     assert "integer" in prop["type"]
+
+
+def test_range_open_object_properties_are_uriorcurie() -> None:
+    """#382: a rangeless ObjectProperty holds IRI references — never strings.
+
+    Rangeless DatatypeProperties and AnnotationProperties keep ``string``;
+    explicitly-ranged slots are untouched.
+    """
+    schema, _warnings = emit_linkml(load_fold())
+    slots = schema["slots"]
+    # rangeless owl:ObjectProperty → uriorcurie (CURIEs are GMEOW practice)
+    assert slots["contradictsClaim"]["range"] == "uriorcurie"
+    assert slots["connectsTo"]["range"] == "uriorcurie"
+    # rangeless owl:DatatypeProperty / owl:AnnotationProperty → string
+    assert slots["anchorMeaning"]["range"] == "string"
+    assert slots["accordingTo"]["range"] == "string"
+    # explicit ranges are untouched by the default
+    assert slots["signingKey"]["range"] == "CryptographicKey"

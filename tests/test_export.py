@@ -15,7 +15,7 @@ import pytest
 from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import SKOS
 
-from gmeow_tools.config import NAMESPACE
+from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.export import (
     collect_terms,
     curie,
@@ -24,8 +24,14 @@ from gmeow_tools.export import (
     write_jsonl,
     write_llms_txt,
     write_markdown,
+    write_nquads,
+    write_obographs,
+    write_shex,
+    write_skos,
+    write_statements_jsonl,
+    write_trig,
 )
-from gmeow_tools.gts_views import FoldView
+from gmeow_tools.gts_views import FoldView, load_fold
 
 pytestmark = pytest.mark.ci_only
 
@@ -239,3 +245,105 @@ def test_export_does_not_invent_en_when_bcp47_missing() -> None:
     by_curie = {t.curie: t for t in terms}
     # No BCP-47 mapping → raw internal tag returned as-is.
     assert by_curie["gmeow:TestConcept"].label == "Conlang Name"
+
+
+# --------------------------------------------------------------------------- #
+# Dataset / semantic-web tiers (#377, #12)
+# --------------------------------------------------------------------------- #
+
+
+def _oxigraph_quads(path: Path) -> set[str]:
+    """Parse with pyoxigraph (the trusted RDF 1.2 path, #177) → quad strings."""
+    import pyoxigraph
+
+    fmt = (
+        pyoxigraph.RdfFormat.N_QUADS
+        if path.suffix == ".nq"
+        else pyoxigraph.RdfFormat.TRIG
+    )
+    return {str(q) for q in pyoxigraph.parse(path.read_bytes(), format=fmt)}
+
+
+def test_nquads_carries_the_full_statement_layer(tmp_path: Path) -> None:
+    """gmeow.nq is the LOSSLESS dataset: base quads + reifiers + annotations."""
+    view = load_fold()
+    path = write_nquads(view, tmp_path)
+    quads = _oxigraph_quads(path)
+    expected = len(view.graph.quads) + len(view.reifiers()) + len(view.annotations())
+    assert len(quads) == expected
+    text = path.read_text(encoding="utf-8")
+    assert "rdf-syntax-ns#reifies" in text  # the RDF 1.2 statement layer
+    assert "<<(" in text  # quoted triple terms survive
+
+
+def test_trig_is_the_same_dataset_as_nquads(tmp_path: Path) -> None:
+    """The TriG partition parses to exactly the N-Quads content (one writer)."""
+    view = load_fold()
+    nq = _oxigraph_quads(write_nquads(view, tmp_path))
+    trig = _oxigraph_quads(write_trig(view, tmp_path))
+    assert trig == nq
+
+
+def test_dataset_forms_remap_internal_language_tags(tmp_path: Path) -> None:
+    """No @x-gmeow-* tag reaches a published dataset form (#287)."""
+    view = load_fold()
+    for path in (write_nquads(view, tmp_path), write_trig(view, tmp_path)):
+        assert "@x-gmeow-" not in path.read_text(encoding="utf-8"), path.name
+    # The fold itself DOES carry internal tags — the remap must not be vacuous.
+    assert any(t.lang and t.lang.startswith("x-gmeow-") for t in view.graph.terms)
+
+
+def test_statements_jsonl_rows_match_the_reifiers(tmp_path: Path) -> None:
+    """One flat record per reified statement, annotations attached."""
+    view = load_fold()
+    path = write_statements_jsonl(view, tmp_path)
+    rows = [json.loads(line) for line in path.read_text("utf-8").splitlines()]
+    assert len(rows) == len(view.reifiers())
+    for row in rows:
+        assert {"id", "subject", "predicate", "object", "annotations"} <= row.keys()
+    assert any(row["annotations"] for row in rows), "no annotations surfaced"
+    # The JSON form must not leak internal tags through "lang" fields either
+    # (the gate's @-grep cannot see them — this pin can).
+    for row in rows:
+        for value in (row["subject"], row["object"], *row["annotations"].values()):
+            if isinstance(value, dict) and "lang" in value:
+                assert not str(value["lang"]).startswith("x-gmeow-")
+
+
+def test_skos_extract_is_a_concept_scheme(tmp_path: Path) -> None:
+    """Classes as skos:Concept on their ORIGINAL IRIs, broader within gmeow."""
+    path = write_skos(load_fold(), tmp_path)
+    g = Graph().parse(path, format="turtle")
+    scheme = URIRef(ONTOLOGY_IRI)
+    person = URIRef(NAMESPACE + "Person")
+    assert (scheme, RDF.type, SKOS.ConceptScheme) in g
+    assert (person, RDF.type, SKOS.Concept) in g
+    assert (person, SKOS.broader, URIRef(NAMESPACE + "Agent")) in g
+    assert (person, SKOS.inScheme, scheme) in g
+    assert next(g.objects(scheme, SKOS.hasTopConcept), None) is not None
+    # Properties are excluded (declared loss) — and labels carry PUBLIC tags.
+    assert (URIRef(NAMESPACE + "from"), RDF.type, SKOS.Concept) not in g
+    label = next(g.objects(person, SKOS.prefLabel))
+    assert isinstance(label, Literal) and label.language == "en"
+
+
+def test_obographs_nodes_and_is_a_edges(tmp_path: Path) -> None:
+    """OBO Graphs basic profile: labeled class nodes, IRI-only is_a edges."""
+    path = write_obographs(load_fold(), tmp_path)
+    graph = json.loads(path.read_text("utf-8"))["graphs"][0]
+    nodes = {n["id"]: n for n in graph["nodes"]}
+    person = NAMESPACE + "Person"
+    assert nodes[person]["lbl"] == "Person"
+    assert nodes[person]["meta"]["definition"]["val"]
+    assert {"sub": person, "pred": "is_a", "obj": NAMESPACE + "Agent"} in graph["edges"]
+    assert not any(n["id"].startswith("_:") for n in graph["nodes"])
+    referenced = {e["obj"] for e in graph["edges"]} | {e["sub"] for e in graph["edges"]}
+    assert referenced <= set(nodes), "dangling edge endpoint"
+
+
+def test_shex_shapes_for_domained_classes(tmp_path: Path) -> None:
+    """One shape per domained class; functional → '?', class range → @ref."""
+    text = write_shex(load_fold(), tmp_path).read_text(encoding="utf-8")
+    assert "gmeow:CryptographicSignature {" in text
+    # signingKey: functional, domain CryptographicSignature, range CryptographicKey
+    assert "gmeow:signingKey @gmeow:CryptographicKey ?" in text

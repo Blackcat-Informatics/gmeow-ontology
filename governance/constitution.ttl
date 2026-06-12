@@ -72,7 +72,7 @@ meta:gate-generator-registry a meta:Gate ;
     meta:makeTarget "check-generated", "regenerate" ;
     meta:generator "statements", "mappings", "gts", "exports", "metadata",
         "schemas", "lpg", "matrix", "apache", "gts-vectors", "catalog",
-        "profiles", "frame-shapes", "evals" .
+        "profiles", "frame-shapes", "evals", "parquet" .
 
 meta:tests-narrow-waist a meta:TestSuite ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)" ;

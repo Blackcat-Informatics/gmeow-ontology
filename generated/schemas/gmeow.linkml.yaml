@@ -3308,7 +3308,7 @@ slots:
   activatedIn:
     slot_uri: https://blackcatinformatics.ca/gmeow/activatedIn
     title: activated in
-    range: string
+    range: uriorcurie
     domain: Persona
     multivalued: true
   activityPubActor:
@@ -3452,7 +3452,7 @@ slots:
   appraisalOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/appraisalOf
     title: appraisal of
-    range: string
+    range: uriorcurie
     domain: Appraisal
     multivalued: false
   appraisalQuality:
@@ -3582,7 +3582,7 @@ slots:
   assessmentTarget:
     slot_uri: https://blackcatinformatics.ca/gmeow/assessmentTarget
     title: assessment target
-    range: string
+    range: uriorcurie
     domain: Assessment
     multivalued: false
   assetIdentifier:
@@ -3760,7 +3760,7 @@ slots:
   authorityLink:
     slot_uri: https://blackcatinformatics.ca/gmeow/authorityLink
     title: authority link
-    range: string
+    range: uriorcurie
     domain: Entity
     multivalued: true
   autoSubmitted:
@@ -3873,7 +3873,7 @@ slots:
   buildSource:
     slot_uri: https://blackcatinformatics.ca/gmeow/buildSource
     title: build source
-    range: string
+    range: uriorcurie
     domain: BuildActivity
     multivalued: true
   calendarAttachment:
@@ -4268,7 +4268,7 @@ slots:
   connectsTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/connectsTo
     title: connects to
-    range: string
+    range: uriorcurie
     multivalued: true
   constraintLogic:
     slot_uri: https://blackcatinformatics.ca/gmeow/constraintLogic
@@ -4344,7 +4344,7 @@ slots:
   contradictsClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/contradictsClaim
     title: contradicts claim
-    range: string
+    range: uriorcurie
     domain: Contradiction
     multivalued: true
   contributesToFrame:
@@ -4464,7 +4464,7 @@ slots:
   credentialFor:
     slot_uri: https://blackcatinformatics.ca/gmeow/credentialFor
     title: credential for
-    range: string
+    range: uriorcurie
     domain: Credential
     multivalued: true
   credentialIssuer:
@@ -5080,7 +5080,7 @@ slots:
   exemplarSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/exemplarSubject
     title: exemplar subject
-    range: string
+    range: uriorcurie
     domain: Exemplar
     multivalued: true
   exemplifiedBy:
@@ -5956,7 +5956,7 @@ slots:
   hasPart:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasPart
     title: has part
-    range: string
+    range: uriorcurie
     multivalued: true
   hasParticipant:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasParticipant
@@ -7346,7 +7346,7 @@ slots:
   mitigationMeasure:
     slot_uri: https://blackcatinformatics.ca/gmeow/mitigationMeasure
     title: mitigation measure
-    range: string
+    range: uriorcurie
     domain: Mitigation
     multivalued: true
   mitigationStatus:
@@ -7458,13 +7458,13 @@ slots:
   narrates:
     slot_uri: https://blackcatinformatics.ca/gmeow/narrates
     title: narrates
-    range: string
+    range: uriorcurie
     domain: ContentSegment
     multivalued: true
   narrationLink:
     slot_uri: https://blackcatinformatics.ca/gmeow/narrationLink
     title: narration link
-    range: string
+    range: uriorcurie
     multivalued: true
   narrationMode:
     slot_uri: https://blackcatinformatics.ca/gmeow/narrationMode
@@ -7481,7 +7481,7 @@ slots:
   narrationSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/narrationSubject
     title: narration subject
-    range: string
+    range: uriorcurie
     domain: NarrationUsage
     multivalued: false
   narrativeFrameLinkRelation:
@@ -7577,7 +7577,7 @@ slots:
   normIssuer:
     slot_uri: https://blackcatinformatics.ca/gmeow/normIssuer
     title: norm issuer
-    range: string
+    range: uriorcurie
     multivalued: true
   nostrPubkey:
     slot_uri: https://blackcatinformatics.ca/gmeow/nostrPubkey
@@ -7672,7 +7672,7 @@ slots:
   observedFeature:
     slot_uri: https://blackcatinformatics.ca/gmeow/observedFeature
     title: observed feature
-    range: string
+    range: uriorcurie
     domain: Observation
     multivalued: true
   occupancyOf:
@@ -7820,7 +7820,7 @@ slots:
   parameterEntity:
     slot_uri: https://blackcatinformatics.ca/gmeow/parameterEntity
     title: parameter entity
-    range: string
+    range: uriorcurie
     domain: ConditionParameter
     multivalued: false
   parameterName:
@@ -7868,7 +7868,7 @@ slots:
   partOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/partOf
     title: part of
-    range: string
+    range: uriorcurie
     multivalued: true
   partOfThread:
     slot_uri: https://blackcatinformatics.ca/gmeow/partOfThread
@@ -8189,7 +8189,7 @@ slots:
   prescribedConduct:
     slot_uri: https://blackcatinformatics.ca/gmeow/prescribedConduct
     title: prescribed conduct
-    range: string
+    range: uriorcurie
     domain: Norm
     multivalued: true
   preview:
@@ -8261,7 +8261,7 @@ slots:
   profileAppliesTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/profileAppliesTo
     title: profile applies to
-    range: string
+    range: uriorcurie
     domain: Profile
     multivalued: true
   profileDescriptor:
@@ -8272,7 +8272,7 @@ slots:
   profileOpenValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/profileOpenValue
     title: profile open value
-    range: string
+    range: uriorcurie
     domain: Profile
     multivalued: true
   projectIdentifier:
@@ -8362,7 +8362,7 @@ slots:
   pushTarget:
     slot_uri: https://blackcatinformatics.ca/gmeow/pushTarget
     title: push target
-    range: string
+    range: uriorcurie
     domain: Push
     multivalued: true
   qualityDimension:
@@ -8896,13 +8896,13 @@ slots:
   sampleState:
     slot_uri: https://blackcatinformatics.ca/gmeow/sampleState
     title: sample state
-    range: string
+    range: uriorcurie
     domain: ArcSample
     multivalued: false
   sampleSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/sampleSubject
     title: sample subject
-    range: string
+    range: uriorcurie
     domain: ArcSample
     multivalued: false
   samplingMaxTokens:
@@ -9180,7 +9180,7 @@ slots:
   signatureOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/signatureOf
     title: signature of
-    range: string
+    range: uriorcurie
     domain: CryptographicSignature
     multivalued: true
   signatureRecoveryAddress:
@@ -9519,7 +9519,7 @@ slots:
   styleGuideFor:
     slot_uri: https://blackcatinformatics.ca/gmeow/styleGuideFor
     title: style guide for
-    range: string
+    range: uriorcurie
     domain: StyleGuide
     multivalued: true
   subEventOf:
@@ -9597,7 +9597,7 @@ slots:
   systemIssuer:
     slot_uri: https://blackcatinformatics.ca/gmeow/systemIssuer
     title: system issuer
-    range: string
+    range: uriorcurie
     domain: NormativeSystem
     multivalued: true
   tableOfContents:
@@ -9717,7 +9717,7 @@ slots:
   tenurePosition:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenurePosition
     title: tenure position
-    range: string
+    range: uriorcurie
     domain: StandpointTenure
     multivalued: true
   tenureRights:
@@ -10198,7 +10198,7 @@ slots:
   wasDerivedFrom:
     slot_uri: https://blackcatinformatics.ca/gmeow/wasDerivedFrom
     title: was derived from
-    range: string
+    range: uriorcurie
     multivalued: true
   wasGeneratedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/wasGeneratedBy
