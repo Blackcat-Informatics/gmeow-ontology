@@ -24,6 +24,12 @@ class GtsVectorsGenerator(Generator):
     """Emit the language-neutral GTS conformance corpus (bytes + expected)."""
 
     name: str = "gts-vectors"
+    # The corpus includes canonical payloads (dist/ai-package segments) that
+    # legitimately carry internal private-use language tags per §13.1; the
+    # expected.json folds those payloads and therefore contains the same tags.
+    # This is the canonical internal form, not a projection, so it opts out of
+    # the internal-tag leak gate just as the statements generator does.
+    allows_internal_tags: bool = True
 
     @property
     def inputs(self) -> Sequence[Path]:

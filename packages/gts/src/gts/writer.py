@@ -37,6 +37,31 @@ def term_to_wire(t: Term) -> dict[str, object]:
     return out
 
 
+def _private_use_language_tag(tag: str) -> bool:
+    """True for private-use language tags such as GMEOW's ``x-gmeow-*``."""
+    tag_lower = tag.lower()
+    return tag_lower.startswith("x-") or "-x-" in tag_lower
+
+
+def _validate_term_language_tags(terms: list[Term], section: str) -> None:
+    """Enforce §13.1 language-tag discipline at write time.
+
+    Canonical sections (e.g. a ``dist`` or ``ai-package`` graph payload) MAY
+    carry internal private-use tags. Projection/docs sections MUST carry public
+    BCP 47 tags only; a private-use tag leaking into a projection section is a
+    hard failure, not a warning (§13.1, vector 20).
+    """
+    if section == "canonical":
+        return
+    for t in terms:
+        if t.lang is not None and _private_use_language_tag(t.lang):
+            msg = (
+                f"private-use language tag {t.lang!r} is not allowed in "
+                f"a projection/docs section (§13.1)"
+            )
+            raise ValueError(msg)
+
+
 class Writer:
     """Accumulates a GTS log as a CBOR Sequence.
 
@@ -157,9 +182,22 @@ class Writer:
     # -- convenience builders -------------------------------------------------
 
     def add_terms(
-        self, terms: list[Term], *, transform: list[str] | None = None
+        self,
+        terms: list[Term],
+        *,
+        transform: list[str] | None = None,
+        section: str = "canonical",
     ) -> bytes:
-        """Append a ``terms`` frame."""
+        """Append a ``terms`` frame.
+
+        Args:
+            terms: Terms to serialize into the frame.
+            transform: Optional transform chain applied to the frame.
+            section: ``"canonical"`` for graph payloads that may carry internal
+                private-use language tags; ``"projection"`` for docs/derived-view
+                sections that MUST use public BCP 47 tags only (§13.1).
+        """
+        _validate_term_language_tags(terms, section)
         return self.add_frame(
             "terms", payload=[term_to_wire(t) for t in terms], transform=transform
         )

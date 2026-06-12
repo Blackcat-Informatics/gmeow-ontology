@@ -13,7 +13,7 @@ use std::collections::HashSet;
 use std::process::ExitCode;
 
 use ciborium::value::Value;
-use gts::model::{Graph, Suppression};
+use gts::model::{Graph, Suppression, TermKind};
 use gts::nquads::to_nquads;
 use gts::reader::{read, read_file_segments, FileSegments};
 use gts::wire::{digest_str, hex};
@@ -132,6 +132,87 @@ fn has_problems(fs: &FileSegments) -> bool {
     fs.fatal.is_some() || fs.torn.is_some() || fs.segments.iter().any(|s| !s.diagnostics.is_empty())
 }
 
+/// Profile → vocabulary namespace registry for the declared-vs-computed check
+/// mandated by §14.1.
+const PROFILE_VOCABS: &[(&str, &str)] = &[("files", "https://w3id.org/gts/files#")];
+
+fn namespace(iri: &str) -> &str {
+    if let Some(i) = iri.rfind('#') {
+        &iri[..=i]
+    } else if let Some(i) = iri.rfind('/') {
+        &iri[..=i]
+    } else {
+        iri
+    }
+}
+
+fn term_iri_value(seg: &Graph, tid: usize) -> Option<&str> {
+    seg.terms
+        .get(tid)
+        .and_then(|t| match (t.kind, t.value.as_deref()) {
+            (TermKind::Iri, Some(v)) => Some(v),
+            _ => None,
+        })
+}
+
+/// Vocabulary namespaces actually used by IRIs in a segment's quads.
+fn used_vocabs(seg: &Graph) -> HashSet<&'static str> {
+    let mut out = HashSet::new();
+    for &(s, p, o, _g) in &seg.quads {
+        let p_iri = term_iri_value(seg, p);
+        let s_iri = term_iri_value(seg, s);
+        let o_iri = term_iri_value(seg, o);
+
+        for &(_prof, vocab) in PROFILE_VOCABS {
+            if let Some(iri) = p_iri {
+                if namespace(iri) == vocab {
+                    out.insert(vocab);
+                }
+            }
+            if let Some(iri) = o_iri {
+                if namespace(iri) == vocab {
+                    out.insert(vocab);
+                }
+            }
+            if let Some(iri) = s_iri {
+                if namespace(iri) == vocab {
+                    out.insert(vocab);
+                }
+            }
+        }
+    }
+    out
+}
+
+/// Check declared-vs-computed profile requirements for one segment.
+/// Returns (message, is_error) pairs.
+fn profile_check(seg: &Graph) -> Vec<(String, bool)> {
+    let mut out = Vec::new();
+    let declared: HashSet<&str> = seg.segment_profiles.iter().map(String::as_str).collect();
+    let used = used_vocabs(seg);
+    for &(prof, vocab) in PROFILE_VOCABS {
+        let declares = declared.contains(prof);
+        let uses = used.contains(vocab);
+        if uses && !declares {
+            out.push((
+                format!(
+                    "profile error: segment uses {vocab} vocabulary but does not declare '{prof}'"
+                ),
+                true,
+            ));
+        }
+        if declares && !uses {
+            out.push((
+                format!(
+                    "profile warning: segment declares '{prof}' but uses no {vocab} vocabulary"
+                ),
+                false,
+            ));
+        }
+    }
+    out
+}
+
 fn cmd_info(paths: &[String]) -> ExitCode {
     if paths.is_empty() {
         eprintln!("{USAGE}");
@@ -185,6 +266,16 @@ fn cmd_verify(paths: &[String]) -> ExitCode {
         print_ledger(path, &fs);
         if has_problems(&fs) {
             problems = true;
+        }
+        // §14.1: declared-vs-computed profile requirements.
+        for (idx, seg) in fs.segments.iter().enumerate() {
+            for (msg, is_err) in profile_check(seg) {
+                let prefix = if is_err { "error" } else { "warning" };
+                eprintln!("  segment {idx}: {prefix}: {msg}");
+                if is_err {
+                    problems = true;
+                }
+            }
         }
     }
     if problems {

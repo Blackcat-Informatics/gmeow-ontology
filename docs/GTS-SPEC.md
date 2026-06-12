@@ -8,7 +8,7 @@
 > **Changes in v0.3 (#327):** multi-segment files (`cat`-append composition, §3.1);
 > segment-scoped term-ids (§7.2); per-segment fold + value-union semantics (§7.5);
 > cross-segment suppression (§11); profile union and per-section language-tag
-> discipline (§13); composition-tool requirements (§14.1); vectors 15–21 (§18).
+> discipline (§13); composition-tool requirements (§14.1); vectors 15–21 (§19).
 >
 > GTS is a single-file, language-independent transport for an **RDF 1.2** graph
 > (statements *and* statement-level metadata) together with any **content-addressed
@@ -110,11 +110,11 @@ MAY map them to error returns or structured warnings):
 | `TornAppendError` | trailing incomplete CBOR item at EOF (§3) |
 | `DamagedFrame` | self-`"id"` mismatch / invalid frame hash (content corruption); opaque `reason:"damaged"` (§7.6) |
 | `BrokenChain` | valid frame hash, but `"prev"` ≠ the previous item's `"id"` (insertion / reorder / splice) (§9.1) |
-| `TruncatedLog` | a head commitment is present but the observed head differs (§9, §17) |
+| `TruncatedLog` | a head commitment is present but the observed head differs (§9, §18) |
 | `UnknownCodec` | a transform names a codec the reader lacks; opaque `reason:"unknown-codec"` |
 | `MissingKey` | an `encrypt` codec the reader cannot decrypt; opaque `reason:"missing-key"` |
 | `ConflictingReifier` | a reifier rebound to a different triple (§7.8) |
-| `RecursionLimit` | nested-GTS depth or decoded-size budget exceeded (§12.1, §17) |
+| `RecursionLimit` | nested-GTS depth or decoded-size budget exceeded (§12.1, §18) |
 
 ## 3. File structure
 
@@ -149,7 +149,7 @@ cat music.gts >> core.gts        # core.gts is now a valid two-segment GTS
   encounters a data item that is a map containing the key `"gts"` and lacking the key `"t"`
   MUST treat it as the Header of a **new segment** (the optional self-describe tag `55799`
   MAY precede it; writers SHOULD emit the tag on every segment header to make boundaries
-  eyeball-visible). Any other non-frame item remains malformed input (§16).
+  eyeball-visible). Any other non-frame item remains malformed input (§17).
 - **Independent integrity.** Each segment has its own genesis (its header `"id"`), its own
   id/prev chain, its own signatures, and its own optional `index` (an index covers ONLY its
   segment). The file's composite identity is the **ordered list of segment head ids**. A
@@ -395,7 +395,7 @@ segment** (such frames introduce no terms of their own). This makes writing pure
 reading single-pass, and concatenation sound: term-ids are **compression artifacts, never
 identity** — cross-segment identity is the term *value* only (§3.1), exactly as a `snapshot`'s
 dictionary already restarts at `0` (§10). An implementation that applied file-global ids to a
-multi-segment file would misfold silently; the boundary rule (§3.1) and vector 17 (§18) exist
+multi-segment file would misfold silently; the boundary rule (§3.1) and vector 17 (§19) exist
 to make that failure loud instead.
 
 ### 7.3 Quoted triples and reifiers (`reifies` frame)
@@ -757,7 +757,7 @@ whose `"pub".mt` is `application/gts`.
   node (§7.6): the holder can carry and prove the position of a whole sealed graph it cannot
   read. This is the matryoshka case ("a whole GTS inside an encrypted field").
 - **Bounded recursion.** Readers MUST enforce a maximum nesting depth and total decoded-size
-  budget (§17).
+  budget (§18).
 
 This composition needs no new frame type: nesting is "a blob that happens to be a GTS."
 
@@ -964,7 +964,7 @@ Nothing is rewritten; every accrual is hash-linked and independently signed.
   "pub": { "claim": "I hereby notarized this document.",
            "notary": "did:notary:jane", "ts": "2026-06-09T12:00:00Z" },
   "x": [4, 7],                                            / 7 = cose-encrypt /
-  "to": [ {"kid":"anon:7f3a…","alg":"ECDH-ES+A256KW"} ],  / pseudonymous kid (opaque profile, §17) /
+  "to": [ {"kid":"anon:7f3a…","alg":"ECDH-ES+A256KW"} ],  / pseudonymous kid (opaque profile, §18) /
   "d": h'COSE_Encrypt(verified ID record + provenance)',
   "sig": h'COSE_Sign1 by did:notary:jane' }
 ```
@@ -998,7 +998,69 @@ cannot read, yet whose presence and position the outer chain proves. With the ke
 Reader recurses (§12.1) and folds the inner GTS — header, chain, signatures and all — into a
 verifiable subgraph.
 
-## 16. Versioning and durability guarantees
+## 16. Media type and HTTP serving contract
+
+GTS files are published artifacts (Principle 8). A conformant deployment MUST advertise the
+media type, support range requests, and set cache headers that respect the format's immutability.
+
+### 16.1 Media type and file extension (normative)
+
+- **Media type:** `application/vnd.blackcat.gts+cbor`.
+  The `+cbor` structured-syntax suffix (RFC 9277) makes the CBOR-family membership explicit.
+- **File extension:** `.gts`.
+- **Magic bytes:** the CBOR self-describe tag `55799` (`0xd9 0xd9 0xf7`) at the start of the
+  first segment's Header. A reader MAY use these three bytes to identify a GTS file before
+  parsing the rest of the CBOR Sequence.
+
+Servers that do not recognise `application/vnd.blackcat.gts+cbor` SHOULD fall back to
+`application/octet-stream` rather than a wrong text type; clients SHOULD sniff the self-describe
+tag when the media type is missing or generic.
+
+### 16.2 HTTP serving semantics (normative)
+
+A GTS package is served like any other immutable binary release, with three extra requirements:
+
+1. **`Accept-Ranges: bytes`** MUST be sent for every `.gts` response. The format is designed for
+   partial, streaming consumption (§3.2): a consumer can fold the header and a prefix of frames
+   without downloading the whole file, and Range requests map directly onto CBOR item boundaries.
+2. **No transforms at the edge.** Because the bytes are a content-addressed chain, proxies and
+   servers MUST NOT apply compression, minification, or any byte-altering transform. The frames
+   are already compressed by the writer's chosen codec; re-compressing at the transport layer
+   breaks content hashes and signatures.
+3. **CORS.** A public vocabulary/dataset package is expected to be cross-origin readable.
+   Responses SHOULD include `Access-Control-Allow-Origin: *` for the served `.gts` origin.
+
+### 16.3 Immutability-aware caching (normative)
+
+GMEOW releases are immutable (Principle 6); a GTS package URL names one exact byte sequence.
+
+- **Versioned URLs** (`…/gmeow/1.2.3/gmeow.gts`, `…/packages/music/2026-06-11/music.gts`, or any
+  URL that contains a version/date/head identifier) MUST be served with:
+
+  ```text
+  Cache-Control: public, max-age=31536000, immutable
+  ETag: "<last-segment-head>"
+  ```
+
+  The natural ETag is the hex of the file's last segment head id (§3.1), because it transitively
+  commits to every byte of the file. The `immutable` directive tells caches they need not
+  revalidate for the one-year lifetime.
+- **`latest` / conneg aliases** (URLs that resolve to the current release and may change) MUST
+  NOT be cached as a single variant:
+
+  ```text
+  Cache-Control: private, no-store
+  Vary: Accept
+  ```
+
+  The `Vary: Accept` prevents conneg-cache poisoning when the same path negotiates to HTML,
+  Turtle, or the GTS package. This is the same cache-poisoning class addressed for slice IRIs
+  by the Apache generator.
+
+Profile selection remains URL-shaped in v0.2: one URL per package. RFC 6906 / `Accept-Profile`
+is noted as a possible future extension, not required for v0.2 conformance.
+
+## 17. Versioning and durability guarantees
 
 - The header `"v"` is the spec major version. A reader MUST refuse a major version it does not
   implement, but MUST still verify the id/prev chain and enumerate frame types/ids.
@@ -1016,7 +1078,7 @@ verifiable subgraph.
 - **Density durability:** governed by the codec catalog; the mandatory core set
   (`identity`/`gzip`/`zstd`) guarantees a baseline that any era can decode.
 
-## 17. Security considerations
+## 18. Security considerations
 
 - The id/prev chain provides integrity, **not** confidentiality; use `encrypt`-class codecs for
   confidentiality.
@@ -1050,7 +1112,7 @@ verifiable subgraph.
 - A torn append at a segment boundary looks like a torn header: the §3 torn-append rule
   applies; the prior segments fold intact.
 
-## 18. Conformance test vectors
+## 19. Conformance test vectors
 
 A conformant implementation MUST pass a shared corpus. v1 requires at least these vectors
 (shipped with the reference implementation), each as the GTS bytes plus the expected folded graph
@@ -1081,12 +1143,12 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
     relabeling that merges what the graph separates is the forbidden outcome.
 16. **Composed round-trip (§3.1, §14)**: a `cat`-composed file survives `gts → nq → gts` with
     the same union fold.
-17. **Pre-segment reader hard-fail (§16, negative)**: an implementation in pre-§3.1 mode fed a
+17. **Pre-segment reader hard-fail (§17, negative)**: an implementation in pre-§3.1 mode fed a
     two-segment file MUST surface a fatal diagnostic at the second header — folding frames past
     the boundary with file-global term-ids is the forbidden outcome this vector exists to catch.
 18. **Cross-segment suppression (§11)**: a second segment suppresses (a) an earlier segment's
     frame by digest and (b) a quad by value; default resolution hides both; the suppressed
-    segment's bytes verify intact; the verifier reports which segment suppressed what (§17).
+    segment's bytes verify intact; the verifier reports which segment suppressed what (§18).
 19. **Profile union + graceful segment opacity (§3.1)**: a two-segment file whose second
     segment requires an undeclared-to-the-reader capability folds segment one fully and
     segment two as opaque nodes with the profile named in the diagnostics.
@@ -1105,7 +1167,7 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
     the segment count is unchanged; ground (blank-node-free) N-Quads lines are monotone
     across the single→multi-segment representation switch).
 
-## 19. References
+## 20. References
 
 - **RFC 8949** — Concise Binary Object Representation (CBOR).
 - **RFC 8742** — CBOR Sequences.

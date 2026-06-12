@@ -1,0 +1,21 @@
+{
+ "blobs": {},
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"Cat\"@en ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "dist",
+  "generic"
+ ],
+ "quads": 1,
+ "segment_heads": [
+  "929d046b2300eb09424f2d46b07fb793ad97ddde5e9fdb25ebefe245e8da8be8",
+  "d1c389e16d0696e78271660f9c447db50c9a092a29e1534f86e7cbfab4edb886"
+ ],
+ "segments": 2,
+ "suppressions": 1,
+ "terms": 3
+}

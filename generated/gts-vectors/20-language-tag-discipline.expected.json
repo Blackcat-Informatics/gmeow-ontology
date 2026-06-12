@@ -1,0 +1,25 @@
+{
+ "blobs": {
+  "blake3:251331e108bcec8fc4573bea4c01c467a8ac0dfe9381f6219061d6d18d87ab95": {
+   "mt": "text/html",
+   "size": 13
+  }
+ },
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"Cat\"@x-gmeow-english .",
+  "<https://example.org/ReadMe> <http://www.w3.org/2000/01/rdf-schema#label> \"Read me\"@en ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "dist"
+ ],
+ "quads": 2,
+ "segment_heads": [
+  "8fb479b19b56c9d07248290ff880ec5f1438785e5dd2cb173cc73018b5250769"
+ ],
+ "segments": 1,
+ "suppressions": 0,
+ "terms": 5
+}

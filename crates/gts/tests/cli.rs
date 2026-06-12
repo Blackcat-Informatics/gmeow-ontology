@@ -342,3 +342,138 @@ fn diff_reports_changes() {
     let text = String::from_utf8(out.stdout).unwrap();
     assert!(text.contains("modified: a.txt"));
 }
+
+#[test]
+fn cat_refuses_suppress_everything_composition() {
+    // Vector 21: the second segment suppresses every prior quad. Raw byte
+    // concatenation is structurally valid GTS, but gts cat refuses it (§14.1).
+    let v21 = vectors().join("21-degenerate-composition.gts");
+    let out = gts(&["cat", v21.to_str().unwrap(), v21.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("hide every quad"), "stderr: {err}");
+}
+
+#[test]
+fn verify_flags_undeclared_files_profile() {
+    use gts::model::{Term, TermKind};
+    use gts::writer::Writer;
+
+    let tmp = std::env::temp_dir().join("gts-verify-profile-test.gts");
+    let _ = std::fs::remove_file(&tmp);
+    let mut w = Writer::new("generic");
+    w.add_terms(&[
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://w3id.org/gts/files#FileEntry".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://w3id.org/gts/files#path".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Literal,
+            value: Some("x.txt".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+    ]);
+    w.add_quads(&[(0, 1, 2, None)]);
+    std::fs::write(&tmp, w.to_bytes()).unwrap();
+
+    let out = gts(&["verify", tmp.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("profile error"), "stderr: {err}");
+}
+
+#[test]
+fn verify_flags_undeclared_files_profile_object_only() {
+    // Regression: profile vocabulary in ordinary object position must be
+    // detected, not only rdf:type objects (§14.1).
+    use gts::model::{Term, TermKind};
+    use gts::writer::Writer;
+
+    let tmp = std::env::temp_dir().join("gts-verify-profile-obj-test.gts");
+    let _ = std::fs::remove_file(&tmp);
+    let mut w = Writer::new("generic");
+    w.add_terms(&[
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/Thing".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/relatedTo".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://w3id.org/gts/files#FileEntry".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+    ]);
+    w.add_quads(&[(0, 1, 2, None)]);
+    std::fs::write(&tmp, w.to_bytes()).unwrap();
+
+    let out = gts(&["verify", tmp.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("profile error"), "stderr: {err}");
+}
+
+#[test]
+fn verify_declared_files_profile_object_only_is_not_unused() {
+    // A declared profile whose term appears only as an object IRI must not
+    // trigger the "declared but unused" warning.
+    use gts::model::{Term, TermKind};
+    use gts::writer::Writer;
+
+    let tmp = std::env::temp_dir().join("gts-verify-profile-declared-obj-test.gts");
+    let _ = std::fs::remove_file(&tmp);
+    let mut w = Writer::new("files");
+    w.add_terms(&[
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/Thing".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/relatedTo".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://w3id.org/gts/files#FileEntry".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+    ]);
+    w.add_quads(&[(0, 1, 2, None)]);
+    std::fs::write(&tmp, w.to_bytes()).unwrap();
+
+    let out = gts(&["verify", tmp.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(0));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(!err.contains("profile warning"), "stderr: {err}");
+}
