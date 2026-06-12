@@ -379,6 +379,14 @@ export enum ContentTransferEncodingEnum {
     quoted_printable = "transferEncodingQuotedPrintable",
 };
 
+export enum ContradictionKindEnum {
+
+    factual = "contradictionKindFactual",
+    framing = "contradictionKindFraming",
+    numeric = "contradictionKindNumeric",
+    temporal = "contradictionKindTemporal",
+};
+
 export enum ContributionDegreeEnum {
 
     equal = "degreeEqual",
@@ -554,6 +562,13 @@ export enum DisclosurePolicyEnum {
     public_only_with_independent_source = "policyPublicOnlyWithIndependentSource",
     public_safe = "policyPublicSafe",
     sensitive = "policySensitive",
+};
+
+export enum DistanceMetricEnum {
+
+    cosine = "distanceMetricCosine",
+    dot_product = "distanceMetricDotProduct",
+    euclidean = "distanceMetricEuclidean",
 };
 
 export enum EmotionTypeEnum {
@@ -898,6 +913,13 @@ export enum HonorificPositionEnum {
     suffix = "honorificPositionSuffix",
 };
 
+export enum IndexAlgorithmEnum {
+
+    flat = "indexAlgorithmFlat",
+    HNSW = "indexAlgorithmHnsw",
+    IVF = "indexAlgorithmIvf",
+};
+
 export enum InvitationStatusEnum {
 
     accepted = "invitationStatusAccepted",
@@ -1123,6 +1145,14 @@ export enum MaximViolationTypeEnum {
     maxim_violation_EM_DASH_quality = "maximViolationQuality",
     maxim_violation_EM_DASH_quantity = "maximViolationQuantity",
     maxim_violation_EM_DASH_relation = "maximViolationRelation",
+};
+
+export enum MemoryKindEnum {
+
+    episodic = "memoryKindEpisodic",
+    procedural = "memoryKindProcedural",
+    semantic = "memoryKindSemantic",
+    working = "memoryKindWorking",
 };
 
 export enum MentalReferenceFrameEnum {
@@ -1367,6 +1397,8 @@ export enum ObservationMethodEnum {
     GPS_survey = "methodGPS",
     instrumental_reading = "methodInstrumentalReading",
     LiDAR_survey = "methodLiDAR",
+    LLM_extraction = "methodLlmExtraction",
+    NLI_derivation = "methodNliDerivation",
     photogrammetry = "methodPhotogrammetry",
     remote_sensing = "methodRemoteSensing",
     streaming = "methodStreaming",
@@ -1593,6 +1625,14 @@ export enum ProjectionContextEnum {
     schemaFULL_STOPorg_JSON_LD = "consumerSchemaOrgJsonLd",
     Wikidata = "consumerWikidata",
     Wikipedia = "consumerWikipedia",
+};
+
+export enum PromptRoleEnum {
+
+    assistant = "promptRoleAssistant",
+    system = "promptRoleSystem",
+    tool = "promptRoleTool",
+    user = "promptRoleUser",
 };
 
 export enum PronounSetEnum {
@@ -2033,6 +2073,13 @@ export enum StrandOrientationEnum {
     both_strands = "strandBoth",
     forward_SOLIDUS_Watson_strand = "strandForward",
     reverse_SOLIDUS_Crick_strand = "strandReverse",
+};
+
+export enum SupportPolarityEnum {
+
+    neutral = "polarityNeutral",
+    refutes = "polarityRefutes",
+    supports = "polaritySupports",
 };
 
 export enum SymbolicSystemKindEnum {
@@ -2695,6 +2742,12 @@ export interface CharacterArc extends InformationObject {
 
 
 
+export interface Chunk extends InformationObject {
+    chunkOf?: InformationObject,
+}
+
+
+
 export interface CitationAct {
     citationIntent?: CitationIntent,
     citedEntity?: CreativeWork,
@@ -2761,6 +2814,19 @@ export interface Commit extends Activity {
 export interface Commitment {
     commitmentBeneficiary?: Agent[],
     committedAgent?: Agent,
+}
+
+
+
+export interface Community extends InformationObject {
+    communityLevel?: number[],
+    communityMember?: ExtractedEntity[],
+}
+
+
+
+export interface CommunitySummary extends Summary {
+    summarizesCommunity?: Community,
 }
 
 
@@ -2878,6 +2944,19 @@ export interface Contract extends Agreement {
 
 
 
+export interface Contradiction {
+    contradictionKind?: ContradictionKind,
+    contradictsClaim?: string[],
+    detectedBy?: Agent[],
+}
+
+
+
+export interface ContradictionKind {
+}
+
+
+
 export interface Contribution {
     contributionDegree?: ContributionDegree,
     contributionRole?: ContributionRole,
@@ -2933,6 +3012,12 @@ export interface Copyright {
 
 
 export interface CopyrightStatus {
+}
+
+
+
+export interface Corpus extends InformationObject {
+    corpusMember?: InformationObject[],
 }
 
 
@@ -3121,6 +3206,11 @@ export interface DisclosurePolicy {
 
 
 
+export interface DistanceMetric {
+}
+
+
+
 export interface Distribution extends InformationObject {
     distributionFormat?: string[],
 }
@@ -3195,6 +3285,15 @@ export interface EmailMessage extends Message {
 
 
 export interface EmailPatchDiff extends BodyPart {
+}
+
+
+
+export interface Embedding extends InformationObject {
+    embeddingDimensions?: number[],
+    embeddingModel?: SoftwareAgent,
+    embeddingOf?: InformationObject,
+    vectorRef?: string[],
 }
 
 
@@ -3391,6 +3490,8 @@ export interface EvidenceClass {
 
 
 export interface EvidenceSpan extends InformationObject {
+    spanOfChunk?: Chunk,
+    supportPolarity?: SupportPolarity,
 }
 
 
@@ -3436,6 +3537,18 @@ export interface Expression extends CreativeWork {
 
 
 export interface ExpressionLanguage {
+}
+
+
+
+export interface ExtractedEntity extends InformationObject {
+}
+
+
+
+export interface ExtractedRelationship extends InformationObject {
+    relationshipSource?: ExtractedEntity,
+    relationshipTarget?: ExtractedEntity,
 }
 
 
@@ -3686,6 +3799,11 @@ export interface ImageRegion extends InformationObject {
 
 export interface ImportActivity extends Activity {
     ingestedAt?: string,
+}
+
+
+
+export interface IndexAlgorithm {
 }
 
 
@@ -4135,6 +4253,18 @@ export interface Membership {
 
 
 
+export interface MemoryItem extends Observation {
+    memoryKind?: MemoryKind,
+    memoryOf?: Agent[],
+}
+
+
+
+export interface MemoryKind {
+}
+
+
+
 export interface MentalReferenceFrame extends ReferenceFrame {
 }
 
@@ -4225,6 +4355,26 @@ export interface Mitigation {
 
 
 export interface MitigationStatus {
+}
+
+
+
+export interface ModelCard extends InformationObject {
+    describesModel?: SoftwareAgent,
+    modelContextWindow?: number[],
+    modelProvider?: string[],
+    modelTrainingCutoff?: date[],
+    modelVersionTag?: string[],
+}
+
+
+
+export interface ModelInvocation extends Activity {
+    hasPrompt?: Prompt[],
+    samplingMaxTokens?: number[],
+    samplingTemperature?: string[],
+    samplingTopP?: string[],
+    usedModel?: SoftwareAgent,
 }
 
 
@@ -4847,6 +4997,23 @@ export interface ProjectionContext {
 
 
 
+export interface Prompt extends InformationObject {
+    filledFrom?: PromptTemplate,
+    promptRole?: PromptRole,
+}
+
+
+
+export interface PromptRole {
+}
+
+
+
+export interface PromptTemplate extends Prompt {
+}
+
+
+
 export interface PronounSet extends InformationObject {
     pronounObject?: string,
     pronounPossessive?: string,
@@ -4999,6 +5166,14 @@ export interface Repository extends InformationObject {
 
 
 export interface RepositoryType {
+}
+
+
+
+export interface RetrievalEvent extends Activity {
+    againstIndex?: VectorIndex,
+    forQuery?: string[],
+    retrievedChunk?: Chunk[],
 }
 
 
@@ -5487,6 +5662,11 @@ export interface Summary extends InformationObject {
 
 
 
+export interface SupportPolarity {
+}
+
+
+
 export interface SymbolicSystem extends InformationObject {
     symbolicSystemKind?: SymbolicSystemKind[],
 }
@@ -5701,6 +5881,14 @@ export interface UsageAttestation extends Observation {
 
 export interface Utilization extends Measurement {
     utilizationOf?: Location,
+}
+
+
+
+export interface VectorIndex extends InformationObject {
+    indexAlgorithm?: IndexAlgorithm,
+    indexParameters?: string[],
+    indexesCorpus?: Corpus[],
 }
 
 

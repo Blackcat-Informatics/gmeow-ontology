@@ -34,6 +34,14 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
+            rdfs:label "groundedIn evidence span → oa:Annotation (claim body, chunk target, position selector)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:groundedIn ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri oa:Annotation ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Highlight → oa:Annotation (SpecificResource + selector, no body)"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:Highlight ] ;

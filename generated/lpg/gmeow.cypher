@@ -39,6 +39,12 @@ CREATE (n:Resource {uri: "gmeow:examples/agent-self-001"});
 
 CREATE (n:Resource {uri: "gmeow:examples/agent-victim-001"});
 
+CREATE (n:Resource {uri: "gmeow:examples/ai/assistant"});
+
+CREATE (n:Resource {uri: "gmeow:examples/ai/east-wing", validUntil: "2026-12-31T22:00:00+00:00"});
+
+CREATE (n:Resource {uri: "gmeow:examples/ai/invocation-19"});
+
 CREATE (n:Resource {uri: "gmeow:examples/aiCommit"});
 
 CREATE (n:Resource {uri: "gmeow:examples/alice"});

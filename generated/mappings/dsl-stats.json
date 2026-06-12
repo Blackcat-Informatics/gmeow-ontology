@@ -2,6 +2,7 @@
  "cells_by_set": {
   "gmeow-accessibility.sssom.tsv": 14,
   "gmeow-aggregation.sssom.tsv": 5,
+  "gmeow-ai.sssom.tsv": 17,
   "gmeow-archaeological-evidence.sssom.tsv": 16,
   "gmeow-attestation.sssom.tsv": 14,
   "gmeow-calendar.sssom.tsv": 22,
@@ -21,6 +22,7 @@
   "gmeow-foundational.sssom.tsv": 7,
   "gmeow-gender.sssom.tsv": 28,
   "gmeow-genealogy.sssom.tsv": 23,
+  "gmeow-graphrag.sssom.tsv": 7,
   "gmeow-gts.sssom.tsv": 3,
   "gmeow-images.sssom.tsv": 21,
   "gmeow-iso4217.sssom.tsv": 8,
@@ -51,8 +53,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1558,
+ "equivalences": 1582,
  "functions": 38,
- "mapping_sets": 50,
- "projections": 346
+ "mapping_sets": 52,
+ "projections": 349
 }

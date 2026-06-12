@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix oa:     <http://www.w3.org/ns/oa#> .
+
+# Projection mappings: the AI claim layer (#54) → W3C Web Annotation and
+# schema.org. Generated lossy downcasts (P4); every drop declared. The
+# refusal of schema:ClaimReview is structural: NO binding emits a
+# reviewRating — contradictions coexist (P9).
+
+# --------------------------------------------------------------------------- #
+# Grounded claim → oa:Annotation: body = the claim node, target = the chunk
+# pinned by a TextPositionSelector built from the typed offsets. The #55
+# AIS-mechanical story: the evidentiary bytes are recoverable from the
+# projection alone.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapOaGroundedClaim a gmeow:ProjectionMapping ;
+    rdfs:label "groundedIn evidence span → oa:Annotation (claim body, chunk target, position selector)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "claim" ; gmeow:value "span" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "claim" ; gmeow:predicate gmeow:groundedIn ; gmeow:objectVar "span" ]
+            [ gmeow:subjectVar "span" ; gmeow:predicate gmeow:spanOfChunk ; gmeow:objectVar "chunk" ]
+            [ gmeow:subjectVar "span" ; gmeow:predicate gmeow:spanStart ; gmeow:objectVar "start" ]
+            [ gmeow:subjectVar "span" ; gmeow:predicate gmeow:spanEnd ; gmeow:objectVar "end" ] ) ;
+        gmeow:mint [ gmeow:bindVar "ann" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "span" ] ) ]
+                    "-annotation" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "sr" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "span" ] ) ]
+                    "-specific-resource" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "sel" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "span" ] ) ]
+                    "-selector" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:groundedIn ; gmeow:edoalSourceKind "relation" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "web-annotation" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget oa:Annotation ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "supportPolarity dropped (no faithful oa motivation — assessing would imply a verdict); claim epistemics (confidence, standpoint, modality, clocks) dropped; the quote selector half (#55) joins when the citations selectors project" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ann" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
+            [ gmeow:tSubj "ann" ; gmeow:tPred oa:hasBody ; gmeow:tObj "claim" ]
+            [ gmeow:tSubj "ann" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "sr" ]
+            [ gmeow:tSubj "sr" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:SpecificResource ]
+            [ gmeow:tSubj "sr" ; gmeow:tPred oa:hasSource ; gmeow:tObj "chunk" ]
+            [ gmeow:tSubj "sr" ; gmeow:tPred oa:hasSelector ; gmeow:tObj "sel" ]
+            [ gmeow:tSubj "sel" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:TextPositionSelector ]
+            [ gmeow:tSubj "sel" ; gmeow:tPred oa:start ; gmeow:tObj "start" ]
+            [ gmeow:tSubj "sel" ; gmeow:tPred oa:end ; gmeow:tObj "end" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# Model-vantage claim → schema:Claim. text from the label when present;
+# appearance = the source document reached through the evidence spine.
+# NO reviewRating, EVER (P9): the refusal is the projection's shape.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaGeneratedClaim a gmeow:ProjectionMapping ;
+    rdfs:label "StandpointClaim with model vantage → schema:Claim (text + appearance, NO reviewRating)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "claim" ; gmeow:value "claim" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "claim" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:StandpointClaim ]
+            [ gmeow:subjectVar "claim" ; gmeow:predicate gmeow:vantage ; gmeow:objectVar "model" ]
+            [ gmeow:subjectVar "model" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareAgent ]
+            [ gmeow:subjectVar "claim" ; gmeow:predicate rdfs:label ; gmeow:objectVar "text" ; gmeow:optional true ]
+            [ gmeow:subjectVar "claim" ; gmeow:predicate gmeow:groundedIn ; gmeow:objectVar "span" ; gmeow:optional true ]
+            [ gmeow:subjectVar "span" ; gmeow:predicate gmeow:spanOfChunk ; gmeow:objectVar "chunk" ; gmeow:optional true ]
+            [ gmeow:subjectVar "chunk" ; gmeow:predicate gmeow:chunkOf ; gmeow:objectVar "source" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:StandpointClaim ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget schema:Claim ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "modality, veridicality, confidence, standpoint poset, the reified statement content, and ALL verdict machinery dropped — schema:ClaimReview/reviewRating REFUSED (P9: no single winner); appearance only when the evidence spine is complete" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "claim" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Claim ]
+            [ gmeow:tSubj "claim" ; gmeow:tPred schema:text ; gmeow:tObj "text" ]
+            [ gmeow:tSubj "claim" ; gmeow:tPred schema:appearance ; gmeow:tObj "source" ]
+            [ gmeow:tSubj "claim" ; gmeow:tPred schema:author ; gmeow:tObj "model" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# Model card → schema:SoftwareApplication on the DESCRIBED agent.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaModelCard a gmeow:ProjectionMapping ;
+    rdfs:label "ModelCard → schema:SoftwareApplication on the described model agent"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "card" ; gmeow:value "model" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "card" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ModelCard ]
+            [ gmeow:subjectVar "card" ; gmeow:predicate gmeow:describesModel ; gmeow:objectVar "model" ]
+            [ gmeow:subjectVar "card" ; gmeow:predicate gmeow:modelVersionTag ; gmeow:objectVar "vtag" ; gmeow:optional true ]
+            [ gmeow:subjectVar "model" ; gmeow:predicate rdfs:label ; gmeow:objectVar "mname" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:ModelCard ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget schema:SoftwareApplication ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "provider (string, no faithful Organization node), context window, and training cutoff dropped; the card/agent distinction collapses onto the agent" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "model" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:SoftwareApplication ]
+            [ gmeow:tSubj "model" ; gmeow:tPred schema:name ; gmeow:tObj "mname" ]
+            [ gmeow:tSubj "model" ; gmeow:tPred schema:softwareVersion ; gmeow:tObj "vtag" ] ) ] .

@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Closed-world halves of the AI claim module's EL axioms (#54). The
+# ClaimNeedsEvidence WARNING (an ungrounded claim is a flagged hallucination)
+# ships with #55's audit machinery, where its message can cite the cookbook.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:ContradictionNeedsTwoClaimsShape
+    a sh:NodeShape ;
+    rdfs:label "Contradiction needs two claims shape" ;
+    sh:targetClass gmeow:Contradiction ;
+    sh:property [
+        sh:path gmeow:contradictsClaim ;
+        sh:minCount 2 ;
+        sh:severity sh:Violation ;
+        sh:message "A Contradiction must relate at least two claim nodes (gmeow:contradictsClaim) — one claim cannot conflict with nothing (P9)." ;
+    ] .
+
+gmeow:ChunkLocationShape
+    a sh:NodeShape ;
+    rdfs:label "Chunk location shape" ;
+    sh:targetClass gmeow:Chunk ;
+    sh:property [
+        sh:path gmeow:chunkOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Chunk must segment exactly one source (gmeow:chunkOf)." ;
+    ] .
+
+gmeow:SpanSanityShape
+    a sh:NodeShape ;
+    rdfs:label "Span sanity shape" ;
+    sh:targetSubjectsOf gmeow:spanStart ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A span's end offset must be greater than its start (spanEnd exclusive > spanStart inclusive)." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:spanStart ?s ; gmeow:spanEnd ?e .
+                FILTER (?e <= ?s)
+            }
+        """ ;
+    ] .
+
+gmeow:MemoryItemOwnerShape
+    a sh:NodeShape ;
+    rdfs:label "Memory item owner shape" ;
+    sh:targetClass gmeow:MemoryItem ;
+    sh:property [
+        sh:path gmeow:memoryOf ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A MemoryItem must name at least one remembering agent (gmeow:memoryOf) — a memory belonging to nobody is not a memory." ;
+    ] .

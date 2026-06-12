@@ -4,6 +4,15 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-east-wing-close> a owl:Axiom ;
+    owl:annotatedProperty gmeow:validUntil ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> ;
+    owl:annotatedTarget "2026-12-31T22:00:00+00:00"^^xsd:dateTime ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
+    gmeow:assertedAt "2026-06-12T03:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 ;
+    gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19> .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-ai-commit-authorship> a owl:Axiom ;
     owl:annotatedProperty gmeow:authoredBy ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/aiCommit> ;
@@ -824,6 +833,8 @@
     gmeow:confidence 0.6 ;
     gmeow:importanceLevel 2 ;
     gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/agent-corpus-classifier> .
+
+<https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> gmeow:validUntil "2026-12-31T22:00:00+00:00"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/aiCommit> gmeow:authoredBy <https://blackcatinformatics.ca/gmeow/examples/copilot> .
 

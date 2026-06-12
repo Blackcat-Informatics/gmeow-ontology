@@ -1,0 +1,273 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:  <http://purl.org/nemo/gufo#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/graphrag>
+    a owl:Ontology ;
+    rdfs:label "GMEOW GraphRAG Module"@x-gmeow-english ;
+    skos:definition "Pipeline observability for retrieval-augmented and GraphRAG systems (#54 facets A/B/F): the corpus, embedding, index, and retrieval substrate, and the derived entity-graph artifacts (extracted entities/relationships, communities, community summaries) — every artifact content-addressed, every step an attributed activity, so the derived graph is AUDITABLE and revisable rather than a black box (GraphRAG, arXiv:2404.16130). Claims extracted by the pipeline are the CORE ai slice's business (a StandpointClaim with model vantage); this extension carries the machinery around them. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english ;
+    rdfs:comment "Per-result epistemics (a retrieval's score for ONE chunk) ride RDF 1.2 statement annotations on the gmeow:retrievedChunk triple (gmeow:retrievalScore) — competing re-ranker scores coexist attributed, never overwritten (P9, P3)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+# --------------------------------------------------------------------------- #
+# Retrieval substrate: content-addressed information objects. Build and
+# derivation provenance ride the EXISTING gmeow:wasGeneratedBy /
+# gmeow:wasDerivedFrom (provenance slice) — no forward output properties.
+# --------------------------------------------------------------------------- #
+
+gmeow:Corpus
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Corpus"@x-gmeow-english ;
+    skos:definition "An indexed collection of source information objects over which retrieval operates — the working document set behind a pipeline, distinct from the documents slice's bibliographic gmeow:Collection (a Work). Members via gmeow:corpusMember; content-addressable via the EXISTING gmeow:contentDigest, so an index can prove WHAT it indexed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:corpusMember
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:domain gmeow:Corpus ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:label "corpus member"@x-gmeow-english ;
+    skos:definition "Relates a corpus to a source information object it collects. Non-functional: a source may belong to many corpora."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:Embedding
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:someValuesFrom gmeow:InformationObject ] ;
+    rdfs:label "Embedding"@x-gmeow-english ;
+    skos:definition "A vector representation of an information object (usually a core gmeow:Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (#54): model, dimensionality, and metric have no agreed RDF representation, so the refusal is recorded in the alignment trailer rather than papered over. The vector payload stays OUTSIDE the graph (gmeow:vectorRef, P12); the graph carries the provenance that makes it auditable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:embeddingOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:label "embedding of"@x-gmeow-english ;
+    skos:definition "The information object this embedding represents. Functional: one embedding represents exactly one object under one model."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:embeddingModel
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range gmeow:SoftwareAgent ;
+    rdfs:label "embedding model"@x-gmeow-english ;
+    skos:definition "The model agent that produced this embedding. Two models' embeddings of the same chunk are two Embedding individuals — never merged (P9: machine-derived values are attributed)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:embeddingDimensions
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:label "embedding dimensions"@x-gmeow-english ;
+    skos:definition "The dimensionality of the embedding vector."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:vectorRef
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "vector ref"@x-gmeow-english ;
+    skos:definition "A dereferenceable locator for the vector payload (an object-store key, an index slot). The vector lives outside the graph by reference (P12); the graph holds the audit trail, not the floats."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:distanceMetric
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range gmeow:DistanceMetric ;
+    rdfs:label "distance metric"@x-gmeow-english ;
+    skos:definition "The similarity/distance function under which an embedding or index is meaningful — cosine and euclidean disagree about what is 'near', so the metric is provenance, not a detail. Domain-free: carried by Embedding and VectorIndex alike."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:DistanceMetric
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Distance Metric"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of vector similarity/distance functions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:distanceMetricCosine a gmeow:DistanceMetric ;
+    rdfs:label "cosine"@x-gmeow-english ;
+    skos:definition "Cosine similarity — angle between vectors, magnitude-invariant."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ;
+    rdfs:label "euclidean"@x-gmeow-english ;
+    skos:definition "Euclidean (L2) distance between vectors."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ;
+    rdfs:label "dot product"@x-gmeow-english ;
+    skos:definition "Inner-product similarity — magnitude-sensitive; common for normalized embeddings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:VectorIndex
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Vector Index"@x-gmeow-english ;
+    skos:definition "A built retrieval structure over a corpus's embeddings — the artifact a RetrievalEvent queries. Carries its algorithm (gmeow:indexAlgorithm), parameters (verbatim, for reproducibility), and metric; its build provenance rides the EXISTING gmeow:wasGeneratedBy, tying index contents to the corpus state (contentDigest) at build time."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:indexesCorpus
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:VectorIndex ;
+    rdfs:range gmeow:Corpus ;
+    rdfs:label "indexes corpus"@x-gmeow-english ;
+    skos:definition "The corpus whose embeddings this index serves. Non-functional: a federated index may span corpora."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:indexAlgorithm
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:VectorIndex ;
+    rdfs:range gmeow:IndexAlgorithm ;
+    rdfs:label "index algorithm"@x-gmeow-english ;
+    skos:definition "The approximate-nearest-neighbour structure this index uses (open vocabulary)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:IndexAlgorithm
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Index Algorithm"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of vector-index structures."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:indexAlgorithmHnsw a gmeow:IndexAlgorithm ;
+    rdfs:label "HNSW"@x-gmeow-english ;
+    skos:definition "Hierarchical Navigable Small World graph index."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+gmeow:indexAlgorithmIvf a gmeow:IndexAlgorithm ;
+    rdfs:label "IVF"@x-gmeow-english ;
+    skos:definition "Inverted-file (coarse-quantizer) index."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+gmeow:indexAlgorithmFlat a gmeow:IndexAlgorithm ;
+    rdfs:label "flat"@x-gmeow-english ;
+    skos:definition "Exhaustive (brute-force) scan — exact, no approximation structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:indexParameters
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:VectorIndex ;
+    rdfs:range xsd:string ;
+    rdfs:label "index parameters"@x-gmeow-english ;
+    skos:definition "The build parameters (efConstruction, nlist, M, ...) recorded verbatim as a JSON object string — reproducibility provenance; their semantics stay in the solver layer (P12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:RetrievalEvent
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Retrieval Event"@x-gmeow-english ;
+    skos:definition "One retrieval against a vector index: the query, the index queried, and the chunks returned — the answer to 'why did the model see this passage?'. An agent-memory recall is a RetrievalEvent too (the core MemoryItem doctrine's read operation). Per-chunk relevance rides gmeow:retrievalScore statement annotations on each gmeow:retrievedChunk triple."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:forQuery
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:range xsd:string ;
+    rdfs:label "for query"@x-gmeow-english ;
+    skos:definition "The query text this retrieval served, recorded verbatim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:againstIndex
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:range gmeow:VectorIndex ;
+    rdfs:label "against index"@x-gmeow-english ;
+    skos:definition "The index this retrieval queried. Functional: federated retrieval is several RetrievalEvents under one parent activity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:retrievedChunk
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:range gmeow:Chunk ;
+    rdfs:label "retrieved chunk"@x-gmeow-english ;
+    skos:definition "A chunk this retrieval returned. Score, rank, and re-ranker attribution ride RDF 1.2 statement annotations on each retrievedChunk triple (gmeow:retrievalScore + the existing provenance annotations)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:retrievalScore
+    a owl:AnnotationProperty ;
+    rdfs:label "retrieval score"@x-gmeow-english ;
+    skos:definition "Statement-level annotation: the relevance score a retrieval (or re-ranker) assigned to ONE retrievedChunk triple. An annotation property so competing scores coexist attributed (P9) and the OWL downcast stays DL-clean (P3)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+# --------------------------------------------------------------------------- #
+# GraphRAG-derived artifacts: the extracted entity graph as an auditable,
+# revisable provenance graph. Extracted descriptions are wasDerivedFrom their
+# chunks and wasGeneratedBy their extraction invocation (EXISTING properties);
+# promotion to first-class entities is a separate, attributable curation act
+# with coreference BY REFERENCE, never sameAs (P5).
+# --------------------------------------------------------------------------- #
+
+gmeow:ExtractedEntity
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Extracted Entity"@x-gmeow-english ;
+    skos:definition "A model-extracted entity DESCRIPTION — an information object about a putative entity, derived from source chunks. Deliberately NOT the entity itself: promotion to a first-class gmeow:Entity (with coreference by reference, never owl:sameAs — P5) is a separate, attributable curation act."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:ExtractedRelationship
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [ a owl:Restriction ; owl:onProperty gmeow:relationshipSource ; owl:someValuesFrom gmeow:ExtractedEntity ] ,
+        [ a owl:Restriction ; owl:onProperty gmeow:relationshipTarget ; owl:someValuesFrom gmeow:ExtractedEntity ] ;
+    rdfs:label "Extracted Relationship"@x-gmeow-english ;
+    skos:definition "A model-extracted relationship description between extracted-entity descriptions — the GraphRAG edge as a revisable, attributed artifact rather than a black-box triple."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:relationshipSource
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ExtractedRelationship ;
+    rdfs:range gmeow:ExtractedEntity ;
+    rdfs:label "relationship source"@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the tail of this extracted relationship."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:relationshipTarget
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ExtractedRelationship ;
+    rdfs:range gmeow:ExtractedEntity ;
+    rdfs:label "relationship target"@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the head of this extracted relationship."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:Community
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Community"@x-gmeow-english ;
+    skos:definition "A graph-clustering community (Leiden or similar) over extracted-entity descriptions, at a level (gmeow:communityLevel) of the cluster hierarchy. The clustering run is provenance via the EXISTING gmeow:wasGeneratedBy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:communityMember
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:domain gmeow:Community ;
+    rdfs:range gmeow:ExtractedEntity ;
+    rdfs:label "community member"@x-gmeow-english ;
+    skos:definition "An extracted-entity description this community clusters."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:communityLevel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Community ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "community level"@x-gmeow-english ;
+    skos:definition "The hierarchy level of this community (0 = leaf clustering)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:CommunitySummary
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Summary ,
+        [ a owl:Restriction ; owl:onProperty gmeow:summarizesCommunity ; owl:someValuesFrom gmeow:Community ] ;
+    rdfs:label "Community Summary"@x-gmeow-english ;
+    skos:definition "A pre-generated summary of a community — GraphRAG's global-question substrate, gmeow:wasDerivedFrom the community's members and chunks and gmeow:wasGeneratedBy its generating invocation (EXISTING provenance), hence revisable rather than a black box."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+gmeow:summarizesCommunity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CommunitySummary ;
+    rdfs:range gmeow:Community ;
+    rdfs:label "summarizes community"@x-gmeow-english ;
+    skos:definition "The community this summary condenses."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .

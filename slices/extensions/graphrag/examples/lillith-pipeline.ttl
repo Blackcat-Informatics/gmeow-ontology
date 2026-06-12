@@ -1,0 +1,89 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a Project-Lillith-shaped pipeline, end to end — every
+# artifact content-addressed, every step attributed via the EXISTING
+# provenance properties, the derived entity graph auditable and revisable.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Corpus and chunking (the core ai slice's Chunk).
+ex:mail-archive a gmeow:Document ;
+    rdfs:label "list archive, 2025"@en ;
+    gmeow:contentDigest "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0" .
+
+ex:corpus-lillith a gmeow:Corpus ;
+    rdfs:label "Lillith working corpus"@en ;
+    gmeow:corpusMember ex:mail-archive ;
+    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" .
+
+ex:chunk-7 a gmeow:Chunk ;
+    gmeow:chunkOf ex:mail-archive ;
+    gmeow:spanStart "5200"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "6100"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" .
+
+# --- Embedding + index: attributed, metric-explicit, vector OUTSIDE (P12).
+ex:embedder a gmeow:SoftwareAgent ; rdfs:label "embedder-v3"@en .
+
+ex:embedding-7 a gmeow:Embedding ;
+    gmeow:embeddingOf ex:chunk-7 ;
+    gmeow:embeddingModel ex:embedder ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI .
+
+ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@en .
+
+ex:index-lillith a gmeow:VectorIndex ;
+    gmeow:indexesCorpus ex:corpus-lillith ;
+    gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:indexParameters "{\"M\": 16, \"efConstruction\": 200}" ;
+    gmeow:wasGeneratedBy ex:index-build .
+
+# --- Retrieval: why did the model see this passage?
+ex:retrieval-3 a gmeow:RetrievalEvent ;
+    gmeow:forQuery "who maintained the build system?" ;
+    gmeow:againstIndex ex:index-lillith ;
+    gmeow:retrievedChunk ex:chunk-7 .
+
+# --- Extraction (core ModelInvocation) → derived DESCRIPTIONS.
+ex:extractor a gmeow:SoftwareAgent ; rdfs:label "extraction model"@en .
+ex:invocation-44 a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:extractor ;
+    gmeow:samplingTemperature 0.0 .
+
+ex:desc-mara a gmeow:ExtractedEntity ;
+    rdfs:label "extracted: 'Mara' (maintainer?)"@en ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+
+ex:desc-buildsys a gmeow:ExtractedEntity ;
+    rdfs:label "extracted: 'the build system'"@en ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+
+ex:rel-maintains a gmeow:ExtractedRelationship ;
+    rdfs:label "extracted: Mara maintains the build system"@en ;
+    gmeow:relationshipSource ex:desc-mara ;
+    gmeow:relationshipTarget ex:desc-buildsys ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+
+# --- Community + summary: the global-question substrate, revisable.
+ex:cluster-run a gmeow:Activity ; rdfs:label "leiden clustering 2026-06-02"@en .
+
+ex:community-infra a gmeow:Community ;
+    rdfs:label "infrastructure community"@en ;
+    gmeow:communityLevel "0"^^xsd:nonNegativeInteger ;
+    gmeow:communityMember ex:desc-mara, ex:desc-buildsys ;
+    gmeow:wasGeneratedBy ex:cluster-run .
+
+ex:summary-infra a gmeow:CommunitySummary ;
+    rdfs:label "summary: the infrastructure crew"@en ;
+    gmeow:summarizesCommunity ex:community-infra ;
+    gmeow:wasDerivedFrom ex:desc-mara, ex:desc-buildsys, ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .

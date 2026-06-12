@@ -220,6 +220,14 @@
             edoal:measure 6e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ] ],
         [ a align:Cell ;
+            rdfs:label "StandpointClaim with model vantage → schema:Claim (text + appearance, NO reviewRating)"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:StandpointClaim ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Claim ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
             rdfs:label "given-name part → schema:givenName"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:partText ] ;
@@ -389,6 +397,14 @@
                     edoal:uri schema:maximumAttendeeCapacity ] ;
             align:relation "<=" ;
             edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "ModelCard → schema:SoftwareApplication on the described model agent"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:ModelCard ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:SoftwareApplication ] ;
+            align:relation "<=" ;
+            edoal:measure 7.5e-01 ],
         [ a align:Cell ;
             rdfs:label "displayable fullName → schema:name"@en ;
             align:entity1 [ a edoal:Relation ;

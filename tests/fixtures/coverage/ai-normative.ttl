@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# The AI claim layer's NORMATIVE seams, as pure instance data over the norms
+# and risk EXTENSIONS (a core slice cannot reference extension terms; a
+# fixture sees the full merged graph). Two patterns:
+#   1. evaluation = norms' Assessment (judge-as-vantage; an LLM judge is just
+#      a vantage) scoring a model claim against a faithfulness criterion;
+#   2. hallucination-as-hazard = risk's Hazard/Mitigation, zero new TBox.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/ai-normative/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The judged claim (core ai pattern, abbreviated).
+ex:judge a gmeow:SoftwareAgent ; rdfs:label "LLM judge"@en .
+ex:claim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:generator-model ;
+    gmeow:observedFeature ex:stmt ;
+    gmeow:observationMethod gmeow:methodLlmExtraction .
+ex:generator-model a gmeow:SoftwareAgent .
+ex:stmt a gmeow:InformationObject .
+
+# --- 1. Evaluation as Assessment: the metric is a Criterion of a published
+# Rubric (instance data — the RAGAS family lands as #298's rubric).
+ex:faithfulness a gmeow:Criterion ;
+    rdfs:label "faithfulness"@en ;
+    gmeow:criterionDomain gmeow:criterionDomainFactual ;
+    gmeow:rewardPole ex:pole-grounded ;
+    gmeow:penaltyPole ex:pole-fabricated .
+
+# Named poles (the norms contract: no poles is no axis) — the evaluative
+# semantics as first-class content, not numeric extremes.
+ex:pole-grounded a gmeow:CriterionPole ;
+    rdfs:label "Grounded in the retrieved evidence"@en .
+ex:pole-fabricated a gmeow:CriterionPole ;
+    rdfs:label "Fabricated beyond the evidence"@en .
+
+ex:eval-rubric a gmeow:Rubric ;
+    rdfs:label "grounding rubric v1"@en ;
+    gmeow:normIssuer ex:judge ;
+    gmeow:hasCriterion ex:faithfulness .
+
+ex:assessment-1 a gmeow:Assessment ;
+    gmeow:vantage ex:judge ;
+    gmeow:assessmentTarget ex:claim ;
+    gmeow:assessmentCriterion ex:faithfulness ;
+    gmeow:assessmentRubric ex:eval-rubric ;
+    gmeow:assessmentScoreValue 0.92 .
+
+# --- 2. Hallucination as hazard (risk extension): the deployment bears the
+# hazard; the grounding gate mitigates it.
+ex:hallucination-events a gmeow:EventType ;
+    rdfs:label "ungrounded-claim emission"@en .
+
+ex:deployment a gmeow:SoftwareAgent ;
+    rdfs:label "the assistant deployment"@en .
+
+ex:deployment-hazard a gmeow:Hazard ;
+    rdfs:label "hallucination hazard of the assistant deployment"@en ;
+    gmeow:hazardBearer ex:deployment ;
+    gmeow:manifestedAsType ex:hallucination-events .
+
+ex:grounding-gate a gmeow:Norm ;
+    rdfs:label "every published claim must carry a groundedIn span"@en ;
+    gmeow:normIssuer ex:judge ;
+    gmeow:deonticModality gmeow:deonticObligation .
