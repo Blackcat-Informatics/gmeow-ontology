@@ -185,6 +185,22 @@ def validate() -> None:
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
+@app.command(name="constitution-check")
+def constitution_check() -> None:
+    """Verify every constitutional principle has live enforcement (#280)."""
+    from gmeow_tools.constitution import check_constitution
+
+    result = check_constitution()
+    for warning in result.warnings:
+        err_console.print(f"[yellow]warning[/yellow] {warning}")
+    for error in result.errors:
+        err_console.print(f"[red]error[/red] {error}")
+    if result.ok:
+        console.print("[green]✓ constitution check passed[/green]")
+    else:
+        raise _fail(f"✗ {len(result.errors)} error(s)")
+
+
 @app.command(name="crosscheck-queries")
 def crosscheck_queries() -> None:
     """Prove rdflib and pyoxigraph answer every committed query identically.

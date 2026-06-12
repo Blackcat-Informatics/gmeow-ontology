@@ -42,8 +42,9 @@ remains OWL 2 DL because RDF 1.2 triple-terms are not OWL 2 DL — and GMEOW nev
 otherwise. The positioning must never overclaim: "RDF-1.2-first" means the metadata layer, not
 the ontology's logic.
 
-*Embodied in:* the authored `statement-dsl/` source; [`README.md`](./README.md) § RDF 1.2.
-*Tested by:* `gmeow compile-statements --check`, the RDF 1.2 round-trip tests.
+*Embodied in:* the authored `dsl/statements/` source; [`README.md`](./README.md) § RDF 1.2.
+*Tested by:* the `statements` generator drift gate (`gmeow check-generated`), the RDF 1.2
+round-trip tests.
 
 ## 3. The OWL axiom-annotation form is a generated, reasoning-lossless downcast
 
@@ -92,8 +93,8 @@ survives its building). Coreference to external records is asserted **by referen
 rest — never an `owl:sameAs` merge that would collapse contested or standpoint-indexed claims
 into one.
 
-*Embodied in:* [`docs/RATIONALE.md`](./docs/RATIONALE.md) § The solution; `mapping-dsl/`,
-`mappings/*.sssom.tsv`; the foundational bridge
+*Embodied in:* [`docs/RATIONALE.md`](./docs/RATIONALE.md) § The solution; `dsl/mappings/`,
+`generated/mappings/*.sssom.tsv`; the foundational bridge
 [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
 
 ## 6. Greenfield — get it right, not compatible
@@ -301,7 +302,7 @@ term is minted: *who consumes this, through which surface (Principle 13), in whi
 (Principle 14)?* "The mail corpus", "the claim spine worked example", and "a named external
 adopter" are answers. "It would be modelled beautifully" is not.
 
-*Embodied in:* the issue template's consumer question (to be added with this amendment).
+*Embodied in:* the issue templates' required "Who is the consumer?" question.
 *Tested by:* review practice — cite this principle when a module proposal names no consumer.
 
 ## 16. A small core; everything else a published extension
@@ -346,6 +347,13 @@ request that edits this file. A design change that conflicts with a principle ei
 comply or ships *together with* the amending pull request — it is never merged in silent
 conflict. Principle numbers are stable identifiers: additions append; existing numbers are not
 reused or reshuffled casually, so "Principle N" stays meaningful across history.
+
+The amendment process has a mechanical counterpart:
+[`governance/constitution.ttl`](./governance/constitution.ttl) restates each principle's
+enforcement as machine-readable RDF, and `gmeow constitution-check` (in `make check`) fails
+when a principle loses its last enforcing gate, cites an artifact that no longer exists, or
+drifts from this document's headings. Amending a principle without updating its enforcement
+fails CI.
 
 ---
 

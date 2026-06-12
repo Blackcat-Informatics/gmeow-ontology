@@ -41,6 +41,7 @@ make lint            # Run ruff check, ruff format --check, and mypy
 make validate        # Validate Turtle syntax, term annotations, and SHACL
 make regenerate      # Rebuild ALL committed generated artifacts (the #279 registry)
 make check-generated # Drift + orphan + internal-tag-leak check for every registered generator
+make constitution-check # Every principle has live enforcement (governance/constitution.ttl, #280)
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
 ```
 
