@@ -51,11 +51,17 @@ def pylode_html(source: Path | None = None, *, output: Path | None = None) -> Pa
     doc = OntPub(ontology=str(src))
     doc.make_html(destination=str(out))
     html = out.read_text(encoding="utf-8")
-    if "</body>" in html:
-        out.write_text(
-            html.replace("</body>", profiles_section_html() + "\n</body>", 1),
-            encoding="utf-8",
+    if "</body>" not in html:
+        msg = (
+            "pyLODE output has no </body> tag — cannot inject the Profiles "
+            "section (#330); the landing page would silently lose its "
+            "composition listing. Inspect the pylode_html output step."
         )
+        raise RuntimeError(msg)
+    out.write_text(
+        html.replace("</body>", profiles_section_html() + "\n</body>", 1),
+        encoding="utf-8",
+    )
     return out
 
 

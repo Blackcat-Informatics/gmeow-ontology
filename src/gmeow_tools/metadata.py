@@ -194,7 +194,9 @@ def build_dcat_graph(view: FoldView | None = None) -> Graph:
     slices = discover_slices()
     full = URIRef(FULL_PROFILE_IRI)
     graph.add((full, RDF.type, DCAT.Dataset))
-    graph.add((full, DCTERMS.title, Literal("GMEOW — full profile", lang="en")))
+    graph.add(
+        (full, DCTERMS.title, Literal("GMEOW — full profile", lang="x-gmeow-english"))
+    )
     graph.add((full, DCTERMS.hasPart, dataset))
     graph.add((full, DCAT.landingPage, full))
     for name, members in sorted(group_named_profiles(slices).items()):
@@ -202,7 +204,11 @@ def build_dcat_graph(view: FoldView | None = None) -> Graph:
         closure = dependency_closure(members, slices)
         graph.add((profile, RDF.type, DCAT.Dataset))
         graph.add(
-            (profile, DCTERMS.title, Literal(f"GMEOW — {name} profile", lang="en"))
+            (
+                profile,
+                DCTERMS.title,
+                Literal(f"GMEOW — {name} profile", lang="x-gmeow-english"),
+            )
         )
         graph.add(
             (
@@ -211,7 +217,7 @@ def build_dcat_graph(view: FoldView | None = None) -> Graph:
                 Literal(
                     f"Slim dependency-closed profile: {len(members)} declared "
                     f"slice(s), {len(closure)} in the import closure.",
-                    lang="en",
+                    lang="x-gmeow-english",
                 ),
             )
         )

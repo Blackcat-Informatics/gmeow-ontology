@@ -57,8 +57,13 @@ def dependency_closure(members: list[str], slices: dict[str, Slice]) -> list[str
     an import chain that leaves the registry is a manifest bug.
 
     Raises:
-        ValueError: When a dependency chain references an unknown slice IRI.
+        ValueError: When a dependency chain references an unknown slice IRI,
+            or the member list is empty (an importless ontology document is
+            never a profile).
     """
+    if not members:
+        msg = "named profile has no declared members (#330)"
+        raise ValueError(msg)
     closed: set[str] = set()
     frontier = list(members)
     while frontier:
@@ -90,6 +95,9 @@ def _profile_document(iri: str, label: str, comment: str, imports: list[str]) ->
         "",
         f"<{iri}>",
         "    a owl:Ontology ;",
+        # Raw-text writer: this IS the published document, so the public
+        # @en tag is correct here (write_turtle's x-gmeow-* retagging only
+        # applies to graph-serialized generators; the leak gate enforces it).
         f'    rdfs:label "{label}"@en ;',
         f'    skos:definition "{comment}"@en ;',
         f"    rdfs:isDefinedBy <{iri}> ;",
