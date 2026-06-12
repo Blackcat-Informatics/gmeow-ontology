@@ -36,8 +36,8 @@ One row per slice (#287): tier and dependencies from the manifest, term counts
 from the module, documentation status from the guide. STUB guides are the #325
 Tier-2 uplift backlog.
 
-| slice | tier | group | deps | classes | props | individuals | guide |
-|---|---|---|---:|---:|---:|---:|---|
+| slice | tier | group | deps | classes | props | individuals | examples | guide |
+|---|---|---|---:|---:|---:|---:|---:|---|
 """
 
 
@@ -75,9 +75,10 @@ def render_matrix() -> str:
         classes, props, inds = _term_counts(s.module_path)
         guide = _guide_status(s)
         stubs += guide == "stub"
+        examples = len(list((s.path / "examples").glob("*.ttl")))
         rows.append(
             f"| {s.name} | {s.tier} | {s.group} | {len(s.depends_on)} "
-            f"| {classes} | {props} | {inds} | {guide} |"
+            f"| {classes} | {props} | {inds} | {examples} | {guide} |"
         )
     footer = (
         f"\n**{len(slices)} slices** · documentation: "

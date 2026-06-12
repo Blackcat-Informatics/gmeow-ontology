@@ -452,6 +452,38 @@ def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
     return result
 
 
+def check_examples(merged: Graph) -> ValidationResult:
+    """Validate every slice example against the ontology + SHACL (#332).
+
+    Examples are canonical worked data, not test scaffolding: each file is
+    parsed, merged with the ontology, and SHACL-validated in isolation (so
+    one example's IRIs can never mask another's violations). The merged
+    graph itself is gated separately, so any NEW violation here belongs to
+    the example.
+    """
+    from gmeow_tools.slices import iter_slice_example_files
+
+    result = ValidationResult()
+    for example in iter_slice_example_files():
+        data = Graph()
+        try:
+            data.parse(example, format="turtle")
+        except Exception as exc:
+            result.errors.append(f"{example}: does not parse: {exc}")
+            continue
+        union = Graph()
+        for triple in merged:
+            union.add(triple)
+        for triple in data:
+            union.add(triple)
+        shacl = run_shacl(union)
+        for err in shacl.errors:
+            result.errors.append(f"example {example.name}: {err}")
+        for warn in shacl.warnings:
+            result.warnings.append(f"example {example.name}: {warn}")
+    return result
+
+
 def validate_all() -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks."""
     result = check_syntax()
@@ -465,6 +497,7 @@ def validate_all() -> ValidationResult:
     result.extend(slice_ownership_lint())
     result.extend(reasoning_lint(merged))
     result.extend(run_shacl(merged))
+    result.extend(check_examples(merged))
     result.extend(_dsl_shacl(MAPPING_DSL_DIR, "mapping"))
     result.extend(_dsl_shacl(STATEMENT_DSL_DIR, "statement"))
     return result
