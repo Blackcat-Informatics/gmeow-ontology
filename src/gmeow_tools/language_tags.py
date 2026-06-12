@@ -54,11 +54,30 @@ def _language_class_iri() -> URIRef:
     return URIRef(NAMESPACE + "Language")
 
 
+def _formal_language_class_iri() -> URIRef:
+    return URIRef(NAMESPACE + "FormalLanguage")
+
+
+def _programming_language_class_iri() -> URIRef:
+    return URIRef(NAMESPACE + "ProgrammingLanguage")
+
+
+class _MissingTagError(ValueError):
+    """Raised when a required language tag property is absent."""
+
+
+class _AmbiguousTagError(ValueError):
+    """Raised when a language tag property has more than one distinct value."""
+
+
 def load_tag_map(graph: Graph) -> dict[str, str]:
     """Build a mapping from internal language tag to BCP-47 tag.
 
-    Scans every ``gmeow:Language`` in *graph* for ``gmeow:languageTag`` and
-    ``gmeow:bcp47Tag`` values. Returns ``{internal_tag: bcp47_tag}``.
+    Scans ``gmeow:Language`` and its explicit subclasses
+    (``gmeow:FormalLanguage``, ``gmeow:ProgrammingLanguage``) in *graph*.
+    Because rdflib does not perform OWL inference, each concrete class is
+    queried directly and a seen-set deduplicates shared individuals.
+    Returns ``{internal_tag: bcp47_tag}``.
 
     Args:
         graph: An rdflib graph containing GMEOW language individuals.
@@ -66,18 +85,53 @@ def load_tag_map(graph: Graph) -> dict[str, str]:
     Returns:
         A dict mapping internal tag strings to BCP-47 tag strings.
     """
-    lang_cls = _language_class_iri()
     tag_prop = _language_tag_iri()
     bcp_prop = _bcp47_tag_iri()
+    lang_classes = [
+        _language_class_iri(),
+        _formal_language_class_iri(),
+        _programming_language_class_iri(),
+    ]
+
+    def _single_value(subject: URIRef, predicate: URIRef) -> str:
+        """Return the single lexical value for *predicate* on *subject*.
+
+        ``rdflib.Graph.value`` is non-deterministic when multiple objects exist,
+        so we collect all literal values, deduplicate by lexical form, and
+        require exactly one distinct value. This keeps retagging deterministic
+        and surfaces conflicting BCP-47 tags immediately.
+        """
+        values = sorted(
+            {
+                str(obj)
+                for obj in graph.objects(subject, predicate)
+                if isinstance(obj, Literal)
+            }
+        )
+        if not values:
+            raise _MissingTagError(f"{subject} has no value for {predicate}")
+        if len(values) > 1:
+            raise _AmbiguousTagError(
+                f"{subject} has ambiguous values for {predicate}: {values}. "
+                "Tag-map projection requires a single canonical value."
+            )
+        return values[0]
 
     tag_map: dict[str, str] = {}
-    for lang in graph.subjects(RDF.type, lang_cls):
-        if not isinstance(lang, URIRef):
-            continue
-        int_lit = graph.value(lang, tag_prop)
-        bcp_lit = graph.value(lang, bcp_prop)
-        if isinstance(int_lit, Literal) and isinstance(bcp_lit, Literal):
-            tag_map[str(int_lit)] = str(bcp_lit)
+    seen: set[URIRef] = set()
+    for cls in lang_classes:
+        for lang in graph.subjects(RDF.type, cls):
+            if not isinstance(lang, URIRef) or lang in seen:
+                continue
+            seen.add(lang)
+            try:
+                int_val = _single_value(lang, tag_prop)
+                bcp_val = _single_value(lang, bcp_prop)
+            except _MissingTagError:
+                # Skip language-like individuals that are missing one of the
+                # required tags; the ontology/SHACL layers enforce completeness.
+                continue
+            tag_map[int_val] = bcp_val
     return tag_map
 
 

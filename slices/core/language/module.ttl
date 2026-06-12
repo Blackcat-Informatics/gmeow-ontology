@@ -75,36 +75,39 @@ gmeow:languageCode
 # exhaustive reference catalog is tracked as issue #111).
 # =========================================================================== #
 
-gmeow:languageEnglish
+gmeow:langEnglish
     a owl:NamedIndividual, gmeow:Language ;
     rdfs:label "English"@x-gmeow-english ;
-    skos:definition "The English language — the seed gmeow:Language individual anchoring the internal private-use tag x-gmeow-english carried by the framework's own literals. Registry codes are alignments, never identity."@x-gmeow-english ;
+    skos:definition "The English language — the seed gmeow:Language individual (gmeow:langEnglish) anchoring the internal private-use tag x-gmeow-english carried by the framework's own literals. Registry codes are alignments, never identity."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en" ;
     gmeow:languageCode "eng" ;
     skos:exactMatch <http://www.wikidata.org/entity/Q1860> ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/eng> ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
-gmeow:languageMandarin
+gmeow:langMandarin
     a owl:NamedIndividual, gmeow:Language ;
     rdfs:label "Mandarin Chinese"@x-gmeow-english ;
     rdfs:label "普通话"@x-gmeow-mandarin ;
-    skos:definition "Mandarin Chinese — a seed gmeow:Language individual anchoring the internal private-use tag x-gmeow-mandarin. Registry codes are alignments, never identity."@x-gmeow-english ;
+    skos:definition "Mandarin Chinese — the seed gmeow:Language individual (gmeow:langMandarin) anchoring the internal private-use tag x-gmeow-mandarin. Registry codes are alignments, never identity."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-mandarin" ;
     gmeow:bcp47Tag "zh" ;
     gmeow:languageCode "cmn" ;
     skos:exactMatch <http://www.wikidata.org/entity/Q9192> ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/cmn> ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
-gmeow:languageFrench
+gmeow:langFrench
     a owl:NamedIndividual, gmeow:Language ;
     rdfs:label "French"@x-gmeow-english ;
     rdfs:label "français"@x-gmeow-french ;
-    skos:definition "The French language — a seed gmeow:Language individual anchoring the internal private-use tag x-gmeow-french. Registry codes are alignments, never identity."@x-gmeow-english ;
+    skos:definition "The French language — the seed gmeow:Language individual (gmeow:langFrench) anchoring the internal private-use tag x-gmeow-french. Registry codes are alignments, never identity."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-french" ;
     gmeow:bcp47Tag "fr" ;
     gmeow:languageCode "fra" ;
     skos:exactMatch <http://www.wikidata.org/entity/Q150> ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/fra> ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 # =========================================================================== #

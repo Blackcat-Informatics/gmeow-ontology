@@ -958,9 +958,9 @@ export enum LandTenureTypeEnum {
 
 export enum LanguageEnum {
 
-    English = "languageEnglish",
-    French = "languageFrench",
-    Mandarin_Chinese = "languageMandarin",
+    English = "langEnglish",
+    French = "langFrench",
+    Mandarin_Chinese = "langMandarin",
 };
 
 export enum LanguageChangeTypeEnum {

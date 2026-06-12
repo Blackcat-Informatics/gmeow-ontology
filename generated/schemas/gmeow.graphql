@@ -975,9 +975,9 @@ enum LanguageChangeTypeEnum
 
 enum LanguageEnum
   {
-    languageEnglish
-    languageFrench
-    languageMandarin
+    langEnglish
+    langFrench
+    langMandarin
   }
 
 enum LanguageModalityEnum
