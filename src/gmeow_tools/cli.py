@@ -59,6 +59,7 @@ def regenerate(
     # Import all generator modules to trigger @register side effects.
     from gmeow_tools import (  # noqa: F401
         apache,
+        catalog_gen,
         export,
         gts_gen,
         gts_vectors_gen,
@@ -97,6 +98,7 @@ def check_generated(
     # Import all generator modules to trigger @register side effects.
     from gmeow_tools import (  # noqa: F401
         apache,
+        catalog_gen,
         export,
         gts_gen,
         gts_vectors_gen,
