@@ -232,6 +232,12 @@ class Memory:
         if not tool.strip():
             msg = "a tool call needs its tool agent IRI"
             raise ValueError(msg)
+        if invocation is not None and not invocation.strip():
+            msg = "invocation must be a non-empty IRI when given"
+            raise ValueError(msg)
+        if any(not entity.strip() for entity in generated):
+            msg = "generated entity IRIs must be non-empty"
+            raise ValueError(msg)
         call = f"urn:gmeow:toolcall:{uuid.uuid4()}"
         created = _dt.datetime.now(tz=_dt.UTC).isoformat(timespec="seconds")
 

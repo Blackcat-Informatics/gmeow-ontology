@@ -183,6 +183,9 @@ def test_mcp_triad_is_the_first_live_producer(
         "urn:gmeow:tool:revise_belief",
     ]
     assert calls[0].generated == (claim_id,)
-    assert calls[0].result == claim_id
+    # toolResult is the VERBATIM payload the tool returned, byte-faithful.
+    result = json.loads(calls[0].result or "{}")
+    assert result["ok"] is True
+    assert result["claim"]["id"] == claim_id
     args = json.loads(calls[0].arguments or "{}")
     assert args["text"] == "tool calls are provenance"

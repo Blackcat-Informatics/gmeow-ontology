@@ -25,18 +25,21 @@ gmeow:ToolCallShape
     ] ;
     sh:property [
         sh:path gmeow:usedTool ;
+        sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:class gmeow:SoftwareAgent ;
-        sh:message "A ToolCall uses exactly one tool agent — a multi-tool turn is several ToolCalls."@x-gmeow-english ;
+        sh:message "A ToolCall uses exactly one tool agent — a call without a tool is not a call, and a multi-tool turn is several ToolCalls."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path gmeow:toolArguments ;
         sh:maxCount 1 ;
-        sh:message "One verbatim arguments payload per call (large payloads: a content digest literal instead)."@x-gmeow-english ;
+        sh:nodeKind sh:Literal ;
+        sh:message "One verbatim arguments payload per call, as a literal (large payloads: a content digest literal instead)."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path gmeow:toolResult ;
         sh:maxCount 1 ;
-        sh:message "One verbatim result payload per call — produced ENTITIES link back via gmeow:wasGeneratedBy (P5), never forward from the call."@x-gmeow-english ;
+        sh:nodeKind sh:Literal ;
+        sh:message "One verbatim result payload per call, as a literal — produced ENTITIES link back via gmeow:wasGeneratedBy (P5), never forward from the call."@x-gmeow-english ;
     ] .

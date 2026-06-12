@@ -474,6 +474,9 @@ def store_claim(
         )
     except (ValueError, OSError) as exc:
         return json.dumps({"ok": False, "error": str(exc)})
+    response = json.dumps({"ok": True, "claim": _claim_dict(claim)})
+    # toolResult is the VERBATIM payload the tool returned (byte-faithful);
+    # the produced claim links back via wasGeneratedBy (P5).
     _record_tool_call(
         memory,
         "store_claim",
@@ -483,10 +486,10 @@ def store_claim(
             "confidence": confidence,
             "according_to": according_to,
         },
-        result=claim.id,
+        result=response,
         generated=(claim.id,),
     )
-    return json.dumps({"ok": True, "claim": _claim_dict(claim)})
+    return response
 
 
 @mcp.tool()
@@ -543,15 +546,16 @@ def revise_belief(
         memory.revise(claim_id, reason=reason, superseded_by=superseded_by)
     except (ValueError, OSError) as exc:
         return json.dumps({"ok": False, "error": str(exc)})
+    response = json.dumps(
+        {"ok": True, "suppressed": claim_id, "superseded_by": superseded_by}
+    )
     _record_tool_call(
         memory,
         "revise_belief",
         {"claim_id": claim_id, "reason": reason, "superseded_by": superseded_by},
-        result=claim_id,
+        result=response,
     )
-    return json.dumps(
-        {"ok": True, "suppressed": claim_id, "superseded_by": superseded_by}
-    )
+    return response
 
 
 def run() -> None:
