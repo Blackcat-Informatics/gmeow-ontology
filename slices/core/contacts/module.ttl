@@ -39,6 +39,7 @@ gmeow:PostalAddress
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Postal Address"@x-gmeow-english ;
     skos:definition "A contact point reachable by physical mail at a postal address. It is expressed in the postal/administrative topological reference frame (gmeow:referenceFramePostalAddress); its components below are the coordinate values along that frame's axes — the as-written surface form. The resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:postalAddressFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:postalAddressFrame

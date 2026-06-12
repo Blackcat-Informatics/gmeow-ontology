@@ -60,6 +60,7 @@ gmeow:hasGenderIdentity
     rdfs:range gmeow:GenderIdentity ;
     rdfs:label "has gender identity"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted gender-identity facet they hold. Non-functional and contextual — a person bears many co-equal identities; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasPronounSet, gmeow:honorific, gmeow:hasGenderExpression or gmeow:sexAssignedAtBirth."@x-gmeow-english ;
+    gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:genderValue
@@ -87,6 +88,7 @@ gmeow:hasGenderExpression
     rdfs:range gmeow:GenderExpression ;
     rdfs:label "has gender expression"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted gender-expression facet. Non-functional and contextual. MUST NOT be inferred from gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
+    gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:expressionValue
@@ -111,6 +113,7 @@ gmeow:sexAssignedAtBirth
     rdfs:range gmeow:SexAssignedAtBirth ;
     rdfs:label "sex assigned at birth"@x-gmeow-english ;
     skos:definition "The sex recorded for a person at birth (a gmeow:SexAssignedAtBirth value) — a RECORDED administrative datum, NOT a self-asserted identity and NOT a gufo IdentityFacet. Deliberately separate from gender identity/expression, which it never implies and is never implied by. Non-functional: a correction and a prior record coexist rather than contradict."@x-gmeow-english ;
+    gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:intersexVariation

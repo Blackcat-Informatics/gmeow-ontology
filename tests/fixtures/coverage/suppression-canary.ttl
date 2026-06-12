@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# The suppression LEAK CANARY (#282, CONSTITUTION P10). Every projection
+# profile is run over this fixture by tests/test_suppression_conformance.py:
+# the SUPPRESSED-CANARY literals must never appear in ANY profile's output
+# (the withhold contract, enforced by the guards the mapping compiler injects
+# into every generated CONSTRUCT), while the CONTROL-CANARY twin — identical
+# except for the gmeow:displayable marker — proves the projection actually
+# covers the pattern, so the suppressed half can never pass vacuously.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/canary/> .
+
+# --- A person whose SUPERSEDED name is withheld; the current name projects.
+ex:canaryPerson a gmeow:Person ;
+    gmeow:hasAppellation ex:controlName, ex:suppressedName .
+
+ex:controlName a gmeow:Appellation ;
+    gmeow:fullName "CONTROL-CANARY-NAME" ;
+    gmeow:displayable true .
+
+ex:suppressedName a gmeow:Appellation ;
+    gmeow:fullName "SUPPRESSED-CANARY-NAME" ;
+    gmeow:displayable false .
+
+# --- A person who is ENTIRELY suppressed: even an unmarked, otherwise
+# projectable name must be withheld because its bearer is (the entity-level
+# guard the compiler injects for every required subject variable).
+ex:suppressedPerson a gmeow:Person ;
+    gmeow:displayable false ;
+    gmeow:hasAppellation ex:leakName .
+
+ex:leakName a gmeow:Appellation ;
+    gmeow:fullName "SUPPRESSED-CANARY-BEARER-NAME" .

@@ -12,14 +12,18 @@ CONSTRUCT {
 WHERE {
     {
         ?work gmeow:hasLicense ?lic .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?lic a gmeow:License .
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:attributionText ?credit .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:attributionUrl ?au .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
 }

@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Sensory environment alignments — SOSA/SSN. Putative (#104).
+# comment: "Sensory environment alignments \u2014 SOSA/SSN. Putative (#104)."
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   gmeow: https://blackcatinformatics.ca/gmeow/

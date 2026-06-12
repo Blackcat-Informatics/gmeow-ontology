@@ -13,17 +13,21 @@ WHERE {
     {
         ?img a gmeow:MediaObject .
         ?img gmeow:pixelWidth ?w .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?img a gmeow:MediaObject .
         ?img gmeow:pixelHeight ?h .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?img a gmeow:MediaObject .
         ?img gmeow:imageOrientation ?o .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?img a gmeow:MediaObject .
         ?img gmeow:captureTime ?dt .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
 }

@@ -21,21 +21,27 @@ CONSTRUCT {
 WHERE {
     {
         ?prod a gmeow:SoftwareProduct .
+        FILTER NOT EXISTS { ?prod gmeow:displayable false . }
     }
     UNION {
         ?pkg a gmeow:Package .
+        FILTER NOT EXISTS { ?pkg gmeow:displayable false . }
     }
     UNION {
         ?proj gmeow:hasRepository ?repo .
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
     }
     UNION {
         ?rel gmeow:releaseVersion ?ver .
+        FILTER NOT EXISTS { ?rel gmeow:displayable false . }
     }
     UNION {
         ?proj gmeow:projectLicense ?lic .
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
     }
     UNION {
         ?entity gmeow:contentDigest ?digest .
+        FILTER NOT EXISTS { ?entity gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -44,6 +50,8 @@ WHERE {
         ?contrib gmeow:contributor ?authorAgent .
         ?contrib gmeow:contributionRole gmeow:roleSoftwareMaintainer .
         FILTER NOT EXISTS { ?authorAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -52,6 +60,8 @@ WHERE {
         ?contrib gmeow:contributor ?devAgent .
         ?contrib gmeow:contributionRole gmeow:roleSoftwareDeveloper .
         FILTER NOT EXISTS { ?devAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -60,6 +70,8 @@ WHERE {
         ?contrib gmeow:contributor ?revAgent .
         ?contrib gmeow:contributionRole gmeow:roleCodeReviewer .
         FILTER NOT EXISTS { ?revAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -68,6 +80,8 @@ WHERE {
         ?contrib gmeow:contributor ?relAgent .
         ?contrib gmeow:contributionRole gmeow:roleReleaser .
         FILTER NOT EXISTS { ?relAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -76,6 +90,8 @@ WHERE {
         ?contrib gmeow:contributor ?secAgent .
         ?contrib gmeow:contributionRole gmeow:roleSecurityContact .
         FILTER NOT EXISTS { ?secAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -84,6 +100,8 @@ WHERE {
         ?contrib gmeow:contributor ?botAgent .
         ?contrib gmeow:contributionRole gmeow:roleBotContributor .
         FILTER NOT EXISTS { ?botAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
     UNION {
         ?proj a gmeow:SoftwareProject .
@@ -92,5 +110,7 @@ WHERE {
         ?contrib gmeow:contributor ?aiAgent .
         ?contrib gmeow:contributionRole gmeow:roleAIAssistant .
         FILTER NOT EXISTS { ?aiAgent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?proj gmeow:displayable false . }
+        FILTER NOT EXISTS { ?contrib gmeow:displayable false . }
     }
 }

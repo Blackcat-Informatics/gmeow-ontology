@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Tag alignments — SKOS, schema.org, Dublin Core, FOAF, W3C Web Annotation, MOAT and the Tag Ontology. The reified gmeow:Tagging relator (with provenance, confidence, temporal scope and suppression) is canonical; flat projections are lossy downcasts.
+# comment: "Tag alignments \u2014 SKOS, schema.org, Dublin Core, FOAF, W3C Web Annotation, MOAT and the Tag Ontology. The reified gmeow:Tagging relator (with provenance, confidence, temporal scope and suppression) is canonical; flat projections are lossy downcasts."
 # curie_map:
 #   dcterms: http://purl.org/dc/terms/
 #   foaf: http://xmlns.com/foaf/0.1/

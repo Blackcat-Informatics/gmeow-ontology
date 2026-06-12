@@ -370,6 +370,7 @@ gmeow:hasPronounSet
     rdfs:range gmeow:PronounSet ;
     rdfs:label "has pronoun set"@x-gmeow-english ;
     skos:definition "Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
+    gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounSubject
@@ -418,6 +419,7 @@ gmeow:honorific
     rdfs:range gmeow:Honorific ;
     rdfs:label "honorific"@x-gmeow-english ;
     skos:definition "An honorific/title of address for a person (a gmeow:Honorific value). Non-functional and contextual. A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
+    gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificPosition

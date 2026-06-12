@@ -61,6 +61,7 @@ def regenerate(
         apache,
         catalog_gen,
         export,
+        frame_shapes_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -101,6 +102,7 @@ def check_generated(
         apache,
         catalog_gen,
         export,
+        frame_shapes_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -199,6 +201,15 @@ def constitution_check() -> None:
         console.print("[green]✓ constitution check passed[/green]")
     else:
         raise _fail(f"✗ {len(result.errors)} error(s)")
+
+
+@app.command(name="compliance-report")
+def compliance_report_cmd() -> None:
+    """Run the in-process gates and emit the RDF compliance report (#285)."""
+    from gmeow_tools.compliance import write_report
+
+    path = write_report()
+    console.print(f"[green]✓ compliance report written to {path}[/green]")
 
 
 @app.command(name="crosscheck-queries")

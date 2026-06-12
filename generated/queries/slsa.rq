@@ -15,9 +15,11 @@ WHERE {
         OPTIONAL { ?build gmeow:buildOutput ?dist . }
         OPTIONAL { ?build gmeow:buildSource ?src . }
         OPTIONAL { ?build gmeow:buildConfigUri ?cfg . }
+        FILTER NOT EXISTS { ?build gmeow:displayable false . }
     }
     UNION {
         ?att a gmeow:Attestation .
         ?att gmeow:hasSLSALevel ?lvl .
+        FILTER NOT EXISTS { ?att gmeow:displayable false . }
     }
 }

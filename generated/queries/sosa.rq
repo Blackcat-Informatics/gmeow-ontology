@@ -22,12 +22,15 @@ WHERE {
     }
     UNION {
         ?sensor a gmeow:Sensor .
+        FILTER NOT EXISTS { ?sensor gmeow:displayable false . }
     }
     UNION {
         ?platform a gmeow:SensorPlatform .
+        FILTER NOT EXISTS { ?platform gmeow:displayable false . }
     }
     UNION {
         ?prop a gmeow:ObservableProperty .
+        FILTER NOT EXISTS { ?prop gmeow:displayable false . }
     }
     UNION {
         ?obs gmeow:sensoryProperty ?prop .
@@ -35,6 +38,7 @@ WHERE {
     }
     UNION {
         ?platform gmeow:platformLocation ?place .
+        FILTER NOT EXISTS { ?platform gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:SensoryObservation .
@@ -46,6 +50,7 @@ WHERE {
         ?obs gmeow:vantage ?sensor .
         ?sensor a gmeow:Sensor .
         FILTER NOT EXISTS { ?obs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?sensor gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:SensoryObservation .

@@ -12,5 +12,6 @@ WHERE {
         ?entry a gmeow:TransparencyLogEntry .
         OPTIONAL { ?entry gmeow:logEntryUrl ?url . }
         OPTIONAL { ?entry gmeow:logEntryIndex ?idx . }
+        FILTER NOT EXISTS { ?entry gmeow:displayable false . }
     }
 }

@@ -15,7 +15,7 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full quality \
         normalize build project test test-fast check check-generated release regenerate commit clean pull-images \
-        coverage crossref constitution-check
+        coverage crossref constitution-check compliance-report
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -105,6 +105,9 @@ check-generated: ## Drift + orphan check for all registered generators.
 
 constitution-check: ## Every constitutional principle must have live enforcement (#280).
 	uv run gmeow constitution-check
+
+compliance-report: ## Run in-process gates, emit dist/compliance-report.ttl (#285).
+	uv run gmeow compliance-report
 
 build: ## Build serializations and JSON-LD context into dist/.
 	uv run gmeow build

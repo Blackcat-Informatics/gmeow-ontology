@@ -41,11 +41,14 @@ WHERE {
         OPTIONAL { ?addr gmeow:postalCode ?pcode . }
         OPTIONAL { ?addr gmeow:countryCode ?ccode . }
         BIND ( CONCAT(COALESCE(?street, ""), ", ", COALESCE(?locality, ""), " ", COALESCE(?region, ""), " ", COALESCE(?pcode, ""), " ", COALESCE(?ccode, "")) AS ?label )
+        FILTER NOT EXISTS { ?holder gmeow:displayable false . }
+        FILTER NOT EXISTS { ?addr gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:hasAppellation|gmeow:hasName|gmeow:hasOrganizationName|gmeow:hasTitle|gmeow:hasAgreementName|gmeow:hasSoftwareName ?app .
         ?app gmeow:fullName ?dispName .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
@@ -62,6 +65,8 @@ WHERE {
         ?np gmeow:partText ?given .
         BIND ( IRI(CONCAT(STR(?ent), "-vcardname")) AS ?vname )
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?np gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
@@ -78,6 +83,8 @@ WHERE {
         ?np gmeow:partText ?family .
         BIND ( IRI(CONCAT(STR(?ent), "-vcardname")) AS ?vname )
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?np gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
@@ -92,6 +99,7 @@ WHERE {
         ?nn gmeow:namePurpose gmeow:namePurposeNickname .
         ?nn gmeow:fullName ?nick .
         FILTER NOT EXISTS { ?nn gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?b gmeow:eventType gmeow:eventTypeBirth .
@@ -99,15 +107,20 @@ WHERE {
         ?p gmeow:participationRole gmeow:roleParticipantPrincipal .
         ?p gmeow:participationParticipant ?ent .
         ?b gmeow:eventTime ?bdate .
+        FILTER NOT EXISTS { ?b gmeow:displayable false . }
+        FILTER NOT EXISTS { ?p gmeow:displayable false . }
     }
     UNION {
         ?m a gmeow:Membership .
         ?m gmeow:membershipMember ?ent .
         ?m gmeow:hasRole ?r .
         ?r rdfs:label|gmeow:name ?title .
+        FILTER NOT EXISTS { ?m gmeow:displayable false . }
+        FILTER NOT EXISTS { ?r gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:description ?desc .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?desc) && LANG(?desc) = ?_intTag)
@@ -123,9 +136,12 @@ WHERE {
         ?ps gmeow:pronounPossessive ?ppos .
         ?ps gmeow:pronounReflexive ?prefl .
         BIND ( CONCAT(?psubj, "/", ?pobj, "/", ?pdet, "/", ?ppos, "/", ?prefl) AS ?pronouns )
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ps gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:hasWebPage ?wp .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -134,5 +150,7 @@ WHERE {
         ?c gmeow:longitude ?lon .
         BIND ( IRI(CONCAT("geo:", STR(?lat), ",", STR(?lon))) AS ?geoNode )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?c gmeow:displayable false . }
     }
 }

@@ -28,21 +28,25 @@ WHERE {
         OPTIONAL { ?tmpl gmeow:eventInterval ?iv . }
         OPTIONAL { ?iv gmeow:startedAtTime ?start . }
         OPTIONAL { ?iv gmeow:endedAtTime ?end . }
+        FILTER NOT EXISTS { ?sched gmeow:displayable false . }
     }
     UNION {
         ?sched gmeow:scheduleOccurrence ?occ .
         OPTIONAL { ?occ gmeow:eventInterval ?iv . }
         OPTIONAL { ?iv gmeow:startedAtTime ?occStart . }
         OPTIONAL { ?iv gmeow:endedAtTime ?occEnd . }
+        FILTER NOT EXISTS { ?sched gmeow:displayable false . }
     }
     UNION {
         ?series rdf:type ?type .
         OPTIONAL { ?series gmeow:hasRecurrenceRule ?rule . }
         OPTIONAL { ?rule gmeow:recurrenceRuleText ?freq . }
+        FILTER NOT EXISTS { ?series gmeow:displayable false . }
     }
     UNION {
         ?task rdf:type ?type .
         OPTIONAL { ?task gmeow:taskDueDate ?due . }
         OPTIONAL { ?task gmeow:taskStatus ?ts . }
+        FILTER NOT EXISTS { ?task gmeow:displayable false . }
     }
 }

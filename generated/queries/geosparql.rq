@@ -27,6 +27,7 @@ CONSTRUCT {
 WHERE {
     {
         ?place a gmeow:Place .
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -34,6 +35,8 @@ WHERE {
         ?g gmeow:asWKT ?wkt .
         BIND ( STRDT(STR(?wkt), geo:wktLiteral) AS ?wktTagged )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?g gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -44,6 +47,10 @@ WHERE {
         ?sourceGeom gmeow:asWKT ?wkt .
         BIND ( IRI(CONCAT(STR(?place), "-geom-coarsened-wkt")) AS ?coarseGeom )
         BIND ( STRDT(STR(?wkt), geo:wktLiteral) AS ?wktTagged )
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:displayable false . }
+        FILTER NOT EXISTS { ?sourceGeom gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:coarsenTo [] . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -53,6 +60,8 @@ WHERE {
         BIND ( IRI(CONCAT(STR(?place), "-geom")) AS ?ptGeom )
         BIND ( STRDT(CONCAT("POINT(", STR(?lon), " ", STR(?lat), ")"), geo:wktLiteral) AS ?pointWkt )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?c gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -64,6 +73,10 @@ WHERE {
         ?c gmeow:longitude ?lon .
         BIND ( IRI(CONCAT(STR(?place), "-geom-coarsened")) AS ?ptGeom )
         BIND ( STRDT(CONCAT("POINT(", STR(?lon), " ", STR(?lat), ")"), geo:wktLiteral) AS ?pointWkt )
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:displayable false . }
+        FILTER NOT EXISTS { ?c gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:coarsenTo [] . }
     }
     UNION {
         ?entity gmeow:hasPose ?pose .
@@ -73,14 +86,19 @@ WHERE {
         BIND ( IRI(CONCAT(STR(?entity), "-pose-geom")) AS ?ptGeom )
         BIND ( STRDT(CONCAT("POINT(", STR(?lon), " ", STR(?lat), ")"), geo:wktLiteral) AS ?pointWkt )
         FILTER NOT EXISTS { ?entity gmeow:coarsenTo ?anyLvl . }
+        FILTER NOT EXISTS { ?entity gmeow:displayable false . }
+        FILTER NOT EXISTS { ?pose gmeow:displayable false . }
+        FILTER NOT EXISTS { ?c gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
         ?place gmeow:containedInPlace ?parent .
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?parent a gmeow:Place .
         ?parent gmeow:containsPlace ?place .
+        FILTER NOT EXISTS { ?parent gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -88,6 +106,8 @@ WHERE {
         ?g gmeow:asGeoJSON ?gj .
         BIND ( STRDT(STR(?gj), geo:geoJSONLiteral) AS ?gjTagged )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?g gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -98,9 +118,14 @@ WHERE {
         ?sourceGeom gmeow:asGeoJSON ?gj .
         BIND ( IRI(CONCAT(STR(?place), "-geom-coarsened-geojson")) AS ?coarseGeom )
         BIND ( STRDT(STR(?gj), geo:geoJSONLiteral) AS ?gjTagged )
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:displayable false . }
+        FILTER NOT EXISTS { ?sourceGeom gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:coarsenTo [] . }
     }
     UNION {
         ?traj a gmeow:Trajectory .
+        FILTER NOT EXISTS { ?traj gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -108,6 +133,8 @@ WHERE {
         ?g_centroid gmeow:asWKT ?wkt .
         BIND ( STRDT(STR(?wkt), geo:wktLiteral) AS ?wktTagged_centroid )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?g_centroid gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -119,6 +146,8 @@ WHERE {
         BIND ( STRDT(CONCAT("POINT(", STR(?lon), " ", STR(?lat), ")"), geo:wktLiteral) AS ?pointWkt )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
         FILTER NOT EXISTS { ?obs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?c gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -128,5 +157,7 @@ WHERE {
         BIND ( STRDT(STR(?wkt), geo:wktLiteral) AS ?wktTagged )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
         FILTER NOT EXISTS { ?obs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?g gmeow:displayable false . }
     }
 }

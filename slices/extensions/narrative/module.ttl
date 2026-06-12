@@ -52,6 +52,8 @@ gmeow:CharacterArc
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Character Arc"@x-gmeow-english ;
     skos:definition "A first-class interpretive/structural information object describing a character's trajectory through a narrative — a standpoint-scoped analysis, never canonical truth. A gufo:Kind with distinct identity criteria (subject, frame, and type). Cross-continuity variants are linked by counterpartOf, never merged."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:arcFrame ;
+    gmeow:frameCardinality "exactly-one" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 # =========================================================================== #
@@ -225,6 +227,8 @@ gmeow:Myth
     rdfs:subClassOf gmeow:SocialObject ;
     rdfs:label "Myth"@x-gmeow-english ;
     skos:definition "A socially-sustained narrative whose currency is independent of its truth-value — a founding myth, an urban legend, a propaganda narrative, or a debunked claim that persists. GMEOW asserts no truth verdict on a myth (Principle 1); in-myth claims are scoped accordingTo an associated gmeow:NarrativeReferenceFrame. A myth is the abstract narrative (WEMI Work level); concrete tellings are linked via gmeow:hasMythTelling."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:mythFrame ;
+    gmeow:frameCardinality "exactly-one" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:subClassOf
         [ a owl:Restriction ; owl:onProperty gmeow:hasMythTelling ; owl:someValuesFrom gmeow:CreativeWork ] .
@@ -340,6 +344,8 @@ gmeow:NarrativePosition
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Narrative Position"@x-gmeow-english ;
     skos:definition "A frame-relative position in a narrative — the narrative analogue of SpatialCoordinates. Carries its frame (mandatory: a position without a frame is the bare-integer anti-pattern this class exists to forbid), an ordinal (chapter_index 31), a label ('Thirty-Three', 'the Longest Night'), or both. Ranges are expressed as paired positions. Comparison, ordering, and discourse↔story reconciliation are solver-layer computations (Principle 12)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:positionFrame ;
+    gmeow:frameCardinality "exactly-one" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:positionFrame

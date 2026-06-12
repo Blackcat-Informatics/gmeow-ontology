@@ -25,18 +25,23 @@ CONSTRUCT {
 WHERE {
     {
         ?work gmeow:title ?title .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:hasAuthor ?author .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:hasContributor ?contrib .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:isAbout ?topic .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:description ?desc .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?desc) && LANG(?desc) = ?_intTag)
@@ -46,107 +51,144 @@ WHERE {
     }
     UNION {
         ?work gmeow:datePublished ?date .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:identifier ?id .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:sourceLocation ?src .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:hasAppellation|gmeow:hasName|gmeow:hasTitle ?name .
         ?name gmeow:nameLanguage ?lang .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
+        FILTER NOT EXISTS { ?name gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:hasPart ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:partOf ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:hasLicense ?lic .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:containedInPlace ?cov .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:embodiedIn ?manif .
         ?manif gmeow:hasFormat ?fmt .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
+        FILTER NOT EXISTS { ?manif gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:wasGeneratedBy ?act .
         ?act gmeow:wasAssociatedWith ?pub .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
+        FILTER NOT EXISTS { ?act gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:dateCreated ?date .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:dateModified ?date .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:dateAvailable ?date .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:dateAccepted ?date .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:dateSubmitted ?date .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:abstract ?val .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:tableOfContents ?val .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:references ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:isReferencedBy ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:requires ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:isRequiredBy ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:supersedes ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:supersededBy ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:hasVersion ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:versionOf ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:conformsTo ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:spatialCoverage ?cov .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:temporalCoverage ?cov .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:bibliographicCitation ?rel .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:extent ?fmt .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:medium ?fmt .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:audience ?desc .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:provenance ?src .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:conditionsOfAccess ?rights .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
 }

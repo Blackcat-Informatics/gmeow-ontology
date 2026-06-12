@@ -24,6 +24,8 @@ import json
 import re
 import shutil
 from collections.abc import Sequence
+from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 import sssom
@@ -695,7 +697,9 @@ def _sssom_header(meta: MappingSet | None, prefixes: list[str]) -> list[str]:
         # """...""" source literal) to single spaces, so the comment stays on one
         # SSSOM header line regardless of how it is wrapped in the DSL source.
         comment = " ".join(meta.comment.split())
-        lines.append(f"# comment: {comment}")
+        # JSON-quoted = a valid YAML double-quoted scalar: prose with ": "
+        # sequences must not break the sssom-py metadata parse.
+        lines.append(f"# comment: {json.dumps(comment)}")
     lines.append("# curie_map:")
     for prefix in prefixes:
         lines.append(f"#   {prefix}: {PREFIXES[prefix]}")
@@ -749,14 +753,21 @@ def emit_sssom(dsl: Dsl) -> dict[str, str]:
             }
         )
         lines = _sssom_header(meta, used_prefixes)
+        if meta is not None and meta.trailer:
+            # Refused/deferred mappings are provenance worth keeping IN the
+            # artifact, but sssom-py reads every leading "#" line as YAML
+            # metadata and treats trailing "#" lines as malformed rows. The
+            # extra "#" makes each line a YAML comment: human-readable,
+            # parser-invisible, spec-conformant.
+            lines.extend(
+                "# #" + line.removeprefix("#") for line in meta.trailer.splitlines()
+            )
         lines.append("\t".join(columns))
         for r in sorted(
             file_rows,
             key=lambda r: (r["subject_id"], r["predicate_id"], r["object_id"]),
         ):
             lines.append("\t".join(r[c] for c in columns))
-        if meta is not None and meta.trailer:
-            lines.extend(meta.trailer.splitlines())
         out[file] = "\n".join(lines) + "\n"
     return out
 
@@ -911,7 +922,173 @@ def _where_items(
     return out
 
 
-def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
+@dataclass(frozen=True, slots=True)
+class SuppressionVocab:
+    """Ontology-derived suppression knowledge for guard injection (#282).
+
+    "Suppression-bearing" is determined from the ontology, never from a
+    hand-maintained list: a new appellation subclass or bearer property
+    extends the guards on the next regenerate.
+    """
+
+    #: Properties whose range is ⊑ gmeow:Appellation — the bearer→appellation
+    #: links, used (as an alternation) to guard an appellation whose bearer is
+    #: not bound in the branch pattern.
+    bearer_props: tuple[URIRef, ...]
+    #: Properties whose domain is ⊑ gmeow:Appellation — reading one marks the
+    #: subject variable as an appellation.
+    appellation_domain_props: frozenset[URIRef]
+    #: Classes ⊑ gmeow:Appellation, for explicit ``a gmeow:X`` pattern atoms.
+    appellation_classes: frozenset[URIRef]
+    #: Properties annotated ``gmeow:coarsenGuarded true`` — reading one means
+    #: the subject's precise values must not pass a ``gmeow:coarsenTo`` mark.
+    coarsen_guarded: frozenset[URIRef]
+
+
+def _subclass_closure(graph: Graph, root: URIRef) -> frozenset[URIRef]:
+    """``root`` plus every class transitively ``rdfs:subClassOf`` it."""
+    closure: set[URIRef] = {root}
+    grew = True
+    while grew:
+        grew = False
+        for sub, sup in graph.subject_objects(RDFS.subClassOf):
+            if sup in closure and isinstance(sub, URIRef) and sub not in closure:
+                closure.add(sub)
+                grew = True
+    return frozenset(closure)
+
+
+def suppression_vocab(onto: Graph) -> SuppressionVocab:
+    """Derive the suppression vocabulary from the merged ontology."""
+    appellation = GM.Appellation
+    guarded = GM.coarsenGuarded
+    classes = _subclass_closure(onto, appellation)
+    bearer: set[URIRef] = set()
+    domain_props: set[URIRef] = set()
+    for prop, rng in onto.subject_objects(RDFS.range):
+        if rng in classes and isinstance(prop, URIRef):
+            bearer.add(prop)
+    for prop, dom in onto.subject_objects(RDFS.domain):
+        if dom in classes and isinstance(prop, URIRef):
+            domain_props.add(prop)
+    coarsen = {
+        s
+        for s, o in onto.subject_objects(guarded)
+        if isinstance(s, URIRef) and str(o) == "true"
+    }
+    return SuppressionVocab(
+        bearer_props=tuple(sorted(bearer)),
+        appellation_domain_props=frozenset(domain_props),
+        appellation_classes=classes,
+        coarsen_guarded=frozenset(coarsen),
+    )
+
+
+@lru_cache(maxsize=1)
+def _default_suppression_vocab() -> SuppressionVocab:
+    """The vocab over the merged ontology (cached; used outside _artifacts)."""
+    return suppression_vocab(load_merged_graph(include_imports=False))
+
+
+def _suppression_anchors(p: MappingPattern) -> list[str]:
+    """Subject variables of the REQUIRED pattern atoms, in pattern order.
+
+    These are the gmeow-side entities a branch reads; ``gmeow:displayable``
+    is deliberately domain-free, so EVERY one of them may carry
+    ``displayable false`` and every one gets a withhold guard (#282,
+    CONSTITUTION P10 — the producer enforces the display contract; consumers
+    are never trusted to). Variables bound only inside OPTIONAL groups (or
+    optional atoms) are excluded: a ``FILTER NOT EXISTS`` over a variable the
+    solution leaves unbound would match ANY suppressed entity in the dataset
+    and silently kill the whole branch.
+    """
+    anchors: list[str] = []
+    for item in p.atoms:
+        if isinstance(item, OptionalGroup) or item.optional:
+            continue
+        if item.subject_var not in anchors:
+            anchors.append(item.subject_var)
+    return anchors
+
+
+def _required_atoms(p: MappingPattern) -> list[Atom]:
+    """The top-level, non-optional pattern atoms (guard-injection scope)."""
+    return [
+        item
+        for item in p.atoms
+        if not isinstance(item, OptionalGroup) and not item.optional
+    ]
+
+
+def _injected_guards(p: MappingPattern, vocab: SuppressionVocab) -> list[str]:
+    """The ontology-derived suppression guards for one branch (#282, P10).
+
+    Three families, all fail-closed:
+
+    * a ``displayable false`` withhold per required subject variable;
+    * a ``coarsenTo`` filter wherever a required atom reads a
+      ``gmeow:coarsenGuarded`` property — precise values never pass the
+      mark; the coarse form is published only by a profile's explicit
+      coarsening branch;
+    * a bearer guard for appellation variables whose bearer is NOT bound in
+      the pattern — a suppressed entity's otherwise-unmarked name must not
+      surface through a bearer-less lexical branch.
+    """
+    required = _required_atoms(p)
+    guards: list[str] = []
+    # A variable whose pattern (or authored guards) already SPEAKS about
+    # gmeow:displayable keeps its authored polarity — e.g. the mailmap
+    # remapping cell positively matches `displayable false` because emitting
+    # superseded identities under the canonical one IS the projection
+    # (a licensed, reviewable re-publication; P10's retain-don't-delete).
+    displayable_authored = {
+        atom.subject_var
+        for atom in (*required, *p.suppress_when, *p.project_when)
+        if atom.predicate == GM.displayable
+    }
+    for var in _suppression_anchors(p):
+        if var in displayable_authored:
+            continue
+        guards.append(f"FILTER NOT EXISTS {{ ?{var} gmeow:displayable false . }}")
+    coarsen_suppressed = {
+        atom.subject_var for atom in p.suppress_when if atom.predicate == GM.coarsenTo
+    }
+    for atom in required:
+        if atom.predicate in vocab.coarsen_guarded:
+            if atom.subject_var in coarsen_suppressed:
+                continue  # the profile's authored coarsening branch governs
+            guard = f"FILTER NOT EXISTS {{ ?{atom.subject_var} gmeow:coarsenTo [] . }}"
+            if guard not in guards:
+                guards.append(guard)
+    bearer_visible = {
+        atom.object_var
+        for atom in required
+        if atom.predicate in vocab.bearer_props
+        or (atom.path_alts and set(atom.path_alts) & set(vocab.bearer_props))
+    }
+    appellation_vars: list[str] = []
+    for atom in required:
+        is_appellation = atom.predicate in vocab.appellation_domain_props or (
+            atom.predicate == RDF.type
+            and atom.object_value in vocab.appellation_classes
+        )
+        if (
+            is_appellation
+            and atom.subject_var not in bearer_visible
+            and atom.subject_var not in appellation_vars
+        ):
+            appellation_vars.append(atom.subject_var)
+    if appellation_vars and vocab.bearer_props:
+        alternation = "|".join(curie(prop) for prop in vocab.bearer_props)
+        for var in appellation_vars:
+            guards.append(
+                f"FILTER NOT EXISTS {{ ?_supBearer {alternation} ?{var} . "
+                f"?_supBearer gmeow:displayable false . }}"
+            )
+    return guards
+
+
+def _branch(cell: ProjectionCell, b: ProfileBinding, vocab: SuppressionVocab) -> str:
     p = cell.pattern
     lines: list[str] = _where_items(p.atoms)
     if b.value_class_map:
@@ -924,8 +1101,16 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
         lines.append(f"BIND ( {render_expr(mint.expr)} AS ?{mint.var} )")
     for bind in p.binds:
         lines.append(f"BIND ( {render_expr(bind.expr)} AS ?{bind.var} )")
+    authored_guards: set[str] = set()
     for atom in (*p.suppress_when, *p.exclude_when):
-        lines.append(f"FILTER NOT EXISTS {{ {_atom_triple(atom)} }}")
+        guard = f"FILTER NOT EXISTS {{ {_atom_triple(atom)} }}"
+        authored_guards.add(guard)
+        lines.append(guard)
+    # Suppression by construction (#282): P10's guards are injected into
+    # every branch — derived from the pattern + ontology, never hand lists.
+    for guard in _injected_guards(p, vocab):
+        if guard not in authored_guards:
+            lines.append(guard)
     for atom in p.project_when:
         lines.append(f"FILTER EXISTS {{ {_atom_triple(atom)} }}")
     for flt in p.filters:
@@ -1528,8 +1713,10 @@ def emit_standpoint_bbc_sparql() -> str:
     return f"{header}{_prefix_block(body)}\n\n{body}"
 
 
-def emit_sparql(dsl: Dsl, profile: str) -> str:
+def emit_sparql(dsl: Dsl, profile: str, vocab: SuppressionVocab | None = None) -> str:
     """Render the SPARQL CONSTRUCT executor for one profile."""
+    if vocab is None:
+        vocab = _default_suppression_vocab()
     templates: list[str] = []
     branches: list[str] = []
     drops: list[str] = []
@@ -1541,7 +1728,7 @@ def emit_sparql(dsl: Dsl, profile: str) -> str:
             for tmpl in _templates(cell, b):
                 if tmpl not in templates:
                     templates.append(tmpl)
-            branch = _branch(cell, b)
+            branch = _branch(cell, b, vocab)
             if branch not in seen_branches:
                 seen_branches.add(branch)
                 branches.append(branch)
@@ -1601,11 +1788,14 @@ def _artifacts(
         f"generated/projections/{_FNO_FILE}": emit_fno(dsl, onto)
     }
     sparql_texts: dict[str, str] = {}
+    vocab = suppression_vocab(onto)
     for profile in _PROFILES:
         rdf_graphs[f"generated/projections/{profile}.edoal.ttl"] = emit_edoal(
             dsl, profile
         )
-        sparql_texts[f"generated/queries/{profile}.rq"] = emit_sparql(dsl, profile)
+        sparql_texts[f"generated/queries/{profile}.rq"] = emit_sparql(
+            dsl, profile, vocab
+        )
     sparql_texts[_STANDPOINT_OWL2_QUERY] = emit_standpoint_owl2_sparql()
     sparql_texts[_STANDPOINT_CRMINF_QUERY] = emit_standpoint_crminf_sparql()
     sparql_texts[_STANDPOINT_PROV_QUERY] = emit_standpoint_prov_sparql()

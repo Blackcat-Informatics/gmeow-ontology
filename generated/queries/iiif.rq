@@ -20,6 +20,7 @@ WHERE {
         ?img a gmeow:MediaObject .
         OPTIONAL { ?img gmeow:pixelWidth ?w . }
         OPTIONAL { ?img gmeow:pixelHeight ?h . }
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?region a gmeow:ImageRegion .
@@ -28,5 +29,6 @@ WHERE {
         ?sel gmeow:selectorType ?st .
         ?sel gmeow:selectorValue ?sv .
         FILTER NOT EXISTS { ?region gmeow:displayable false . }
+        FILTER NOT EXISTS { ?sel gmeow:displayable false . }
     }
 }

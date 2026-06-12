@@ -13,10 +13,12 @@ WHERE {
         ?att a gmeow:Attestation .
         OPTIONAL { ?att gmeow:attestedSubject ?subj . }
         OPTIONAL { ?att gmeow:attestationType ?ptype . }
+        FILTER NOT EXISTS { ?att gmeow:displayable false . }
     }
     UNION {
         ?sig a gmeow:CryptographicSignature .
         ?sig gmeow:signingKey ?key .
         OPTIONAL { ?key gmeow:keyId ?keyid . }
+        FILTER NOT EXISTS { ?sig gmeow:displayable false . }
     }
 }

@@ -109,7 +109,7 @@ def test_malformed_narrative_time_fixture_is_flagged() -> None:
     errors = "\n".join(result.errors)
     assert "exactly one gmeow:narrativeTimeAxis" in errors
     assert "never the other anchor" in errors
-    assert "must name exactly one gmeow:positionFrame" in errors
+    assert "exactly one reference frame (gmeow:positionFrame)" in errors
 
 
 # --------------------------------------------------------------------------- #

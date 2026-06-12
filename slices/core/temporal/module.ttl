@@ -24,6 +24,8 @@ gmeow:TimeInterval
     rdfs:subClassOf gufo:AbstractIndividual ;
     rdfs:label "Time Interval"@x-gmeow-english ;
     skos:definition "A bounded stretch of time, optionally open-ended, delimited by a start and/or end instant."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:hasTemporalFrame ;
+    gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
 
 gmeow:TimeScopedRelation
@@ -261,6 +263,8 @@ gmeow:Instant
     rdfs:subClassOf gufo:AbstractIndividual ;
     rdfs:label "Instant"@x-gmeow-english ;
     skos:definition "A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:inTemporalFrame ;
+    gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
 
 gmeow:instantValue

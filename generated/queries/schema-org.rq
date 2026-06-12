@@ -114,6 +114,7 @@ WHERE {
     }
     UNION {
         ?img a gmeow:MediaObject .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?img gmeow:depicts ?subj .
@@ -122,45 +123,58 @@ WHERE {
     UNION {
         ?img a gmeow:MediaObject .
         ?img gmeow:pixelWidth ?w .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?img a gmeow:MediaObject .
         ?img gmeow:pixelHeight ?h .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?img a gmeow:MediaObject .
         ?img gmeow:captureTime ?ct .
+        FILTER NOT EXISTS { ?img gmeow:displayable false . }
     }
     UNION {
         ?proc a gmeow:Procedure .
         OPTIONAL { ?proc gmeow:procedureType gmeow:procedureTypeRecipe . }
+        FILTER NOT EXISTS { ?proc gmeow:displayable false . }
     }
     UNION {
         ?recipe a gmeow:Procedure .
         ?recipe gmeow:procedureType gmeow:procedureTypeRecipe .
+        FILTER NOT EXISTS { ?recipe gmeow:displayable false . }
     }
     UNION {
         ?step a gmeow:ProcedureStep .
+        FILTER NOT EXISTS { ?step gmeow:displayable false . }
     }
     UNION {
         ?proc gmeow:hasProcedureStep ?step .
+        FILTER NOT EXISTS { ?proc gmeow:displayable false . }
     }
     UNION {
         ?step gmeow:stepInput ?inp .
+        FILTER NOT EXISTS { ?step gmeow:displayable false . }
     }
     UNION {
         ?step gmeow:stepInput ?tool .
         ?tool a gmeow:PhysicalObject .
+        FILTER NOT EXISTS { ?step gmeow:displayable false . }
+        FILTER NOT EXISTS { ?tool gmeow:displayable false . }
     }
     UNION {
         ?step gmeow:stepOutput ?out .
+        FILTER NOT EXISTS { ?step gmeow:displayable false . }
     }
     UNION {
         ?exec a gmeow:Execution .
+        FILTER NOT EXISTS { ?exec gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
         OPTIONAL { ?place gmeow:containedInPlace ?parent . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -175,6 +189,7 @@ WHERE {
             ?coords gmeow:elevation ?elev .
         }
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -189,18 +204,26 @@ WHERE {
             ?ccoords gmeow:longitude ?lon .
         }
         BIND ( IRI(CONCAT(STR(?place), "-geo-coarsened")) AS ?coarseGeo )
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:displayable false . }
+        FILTER NOT EXISTS { ?coarse gmeow:coarsenTo [] . }
     }
     UNION {
         ?part ?partPredicate ?whole .
         ?partPredicate rdfs:subPropertyOf* gmeow:partOf .
+        FILTER NOT EXISTS { ?part gmeow:displayable false . }
+        FILTER NOT EXISTS { ?partPredicate gmeow:displayable false . }
     }
     UNION {
         ?whole ?hasPartPredicate ?part .
         ?hasPartPredicate rdfs:subPropertyOf* gmeow:hasPart .
+        FILTER NOT EXISTS { ?whole gmeow:displayable false . }
+        FILTER NOT EXISTS { ?hasPartPredicate gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:authorityLink ?auth .
         ?ent skos:exactMatch ?auth .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?place gmeow:placeType ?pt .
@@ -210,34 +233,41 @@ WHERE {
             ( gmeow:placeTypeAdministrativeArea schema:AdministrativeArea )
             ( gmeow:placeTypeRegion schema:AdministrativeArea )
         }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?place gmeow:hasPlaceName ?pn .
         ?pn gmeow:namePurpose gmeow:namePurposeEndonym .
         ?pn gmeow:fullName ?endo .
         FILTER NOT EXISTS { ?pn gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?place gmeow:hasPlaceName ?pnx .
         ?pnx gmeow:namePurpose gmeow:namePurposeExonym .
         ?pnx gmeow:fullName ?exo .
         FILTER NOT EXISTS { ?pnx gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?place gmeow:hasPlaceName ?pn .
         ?pn gmeow:fullName ?name .
         FILTER NOT EXISTS { ?pn gmeow:displayable false . }
         FILTER NOT EXISTS { ?pn gmeow:namePurpose ?anyPurpose . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?vl a gmeow:VirtualLocation .
         OPTIONAL { ?vl gmeow:accessUrl ?vurl . }
+        FILTER NOT EXISTS { ?vl gmeow:displayable false . }
     }
     UNION {
         ?vl a gmeow:VirtualLocation .
         ?vl gmeow:hasNetworkAddress ?na .
         ?na gmeow:networkAddressType gmeow:networkAddressTypeURL .
         ?na gmeow:networkAddressValue ?nval .
+        FILTER NOT EXISTS { ?vl gmeow:displayable false . }
+        FILTER NOT EXISTS { ?na gmeow:displayable false . }
     }
     UNION {
         ?holder gmeow:hasContactPoint ?addr .
@@ -247,11 +277,14 @@ WHERE {
         OPTIONAL { ?addr gmeow:addressRegion ?region . }
         OPTIONAL { ?addr gmeow:postalCode ?pcode . }
         OPTIONAL { ?addr gmeow:countryCode ?ccode . }
+        FILTER NOT EXISTS { ?holder gmeow:displayable false . }
+        FILTER NOT EXISTS { ?addr gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:hasAppellation|gmeow:hasName|gmeow:hasOrganizationName|gmeow:hasTitle|gmeow:hasAgreementName|gmeow:hasSoftwareName ?app .
         ?app gmeow:fullName ?dispName .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
@@ -267,6 +300,8 @@ WHERE {
         ?np gmeow:namePartType gmeow:namePartGiven .
         ?np gmeow:partText ?given .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?np gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
@@ -282,6 +317,8 @@ WHERE {
         ?np gmeow:namePartType gmeow:namePartSurname .
         ?np gmeow:partText ?family .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?np gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
@@ -296,6 +333,8 @@ WHERE {
         ?gi gmeow:genderValue ?gv .
         ?gv rdfs:label ?genderLabel .
         FILTER NOT EXISTS { ?gi gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?gv gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?genderLabel) && LANG(?genderLabel) = ?_intTag)
@@ -307,6 +346,8 @@ WHERE {
         ?ent gmeow:honorific ?h .
         ?h rdfs:label ?honPrefix .
         ?h gmeow:honorificPosition gmeow:honorificPositionPrefix .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?h gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?honPrefix) && LANG(?honPrefix) = ?_intTag)
@@ -318,6 +359,8 @@ WHERE {
         ?ent gmeow:honorific ?h .
         ?h rdfs:label ?honSuffix .
         ?h gmeow:honorificPosition gmeow:honorificPositionSuffix .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+        FILTER NOT EXISTS { ?h gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?honSuffix) && LANG(?honSuffix) = ?_intTag)
@@ -327,9 +370,11 @@ WHERE {
     }
     UNION {
         ?lang rdf:type/rdfs:subClassOf* gmeow:Language .
+        FILTER NOT EXISTS { ?lang gmeow:displayable false . }
     }
     UNION {
         ?prog a gmeow:ProgrammingLanguage .
+        FILTER NOT EXISTS { ?prog gmeow:displayable false . }
     }
     UNION {
         ?lang rdf:type/rdfs:subClassOf* gmeow:Language .
@@ -340,24 +385,29 @@ WHERE {
         }
         BIND ( IF(BOUND(?sc), CONCAT(STR(?code), "-", STR(?sc)), STR(?code)) AS ?bcp47 )
         FILTER NOT EXISTS { ?lang rdf:type/rdfs:subClassOf* gmeow:FormalLanguage . }
+        FILTER NOT EXISTS { ?lang gmeow:displayable false . }
         FILTER( regex(STR(?code), "^[a-zA-Z]{2,3}$") )
     }
     UNION {
         ?knower gmeow:knowsLanguage ?known .
+        FILTER NOT EXISTS { ?knower gmeow:displayable false . }
     }
     UNION {
         ?prof a gmeow:LanguageProficiency .
         ?prof gmeow:proficiencyAgent ?knower .
         ?prof gmeow:proficiencyLanguage ?known .
+        FILTER NOT EXISTS { ?prof gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:hasWebPage ?wp .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:hasName ?nname .
         ?nname gmeow:namePurpose gmeow:namePurposeNickname .
         ?nname gmeow:fullName ?nick .
         FILTER NOT EXISTS { ?nname gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?birth gmeow:eventType gmeow:eventTypeBirth .
@@ -365,15 +415,20 @@ WHERE {
         ?p gmeow:participationRole gmeow:roleParticipantPrincipal .
         ?p gmeow:participationParticipant ?person .
         ?birth gmeow:eventTime ?bdate .
+        FILTER NOT EXISTS { ?birth gmeow:displayable false . }
+        FILTER NOT EXISTS { ?p gmeow:displayable false . }
     }
     UNION {
         ?m a gmeow:Membership .
         ?m gmeow:membershipMember ?member .
         ?m gmeow:hasRole ?role .
         ?role rdfs:label|gmeow:name ?title .
+        FILTER NOT EXISTS { ?m gmeow:displayable false . }
+        FILTER NOT EXISTS { ?role gmeow:displayable false . }
     }
     UNION {
         ?dept gmeow:subOrganizationOf ?parent .
+        FILTER NOT EXISTS { ?dept gmeow:displayable false . }
     }
     UNION {
         ?pAtt gmeow:participationEvent ?attEvent .
@@ -395,52 +450,71 @@ WHERE {
     }
     UNION {
         ?event gmeow:earliestStart ?start .
+        FILTER NOT EXISTS { ?event gmeow:displayable false . }
     }
     UNION {
         ?work gmeow:hasLicense ?lic .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
     UNION {
         ?cw gmeow:hasCopyright ?cr .
         ?cr gmeow:copyrightHolder ?holder .
+        FILTER NOT EXISTS { ?cw gmeow:displayable false . }
+        FILTER NOT EXISTS { ?cr gmeow:displayable false . }
     }
     UNION {
         ?cw gmeow:hasCopyright ?cr .
         ?cr gmeow:copyrightYear ?yr .
+        FILTER NOT EXISTS { ?cw gmeow:displayable false . }
+        FILTER NOT EXISTS { ?cr gmeow:displayable false . }
     }
     UNION {
         ?cw gmeow:hasCopyright ?cr .
         ?cr gmeow:copyrightNotice ?notice .
+        FILTER NOT EXISTS { ?cw gmeow:displayable false . }
+        FILTER NOT EXISTS { ?cr gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:attributionText ?credit .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?mark a gmeow:Mark .
+        FILTER NOT EXISTS { ?mark gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:isAccessibleForFree ?free .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:acquireLicensePage ?alp .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:usageInfo ?ui .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:conditionsOfAccess ?coa .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?route a gmeow:Route .
+        FILTER NOT EXISTS { ?route gmeow:displayable false . }
     }
     UNION {
         ?org a gmeow:Organization .
         ?org gmeow:hasCreationEvent ?cevent .
         ?cevent gmeow:eventTime ?fdate .
+        FILTER NOT EXISTS { ?org gmeow:displayable false . }
+        FILTER NOT EXISTS { ?cevent gmeow:displayable false . }
     }
     UNION {
         ?org a gmeow:Organization .
         ?org gmeow:hasDestructionEvent ?devent .
         ?devent gmeow:eventTime ?ddate .
+        FILTER NOT EXISTS { ?org gmeow:displayable false . }
+        FILTER NOT EXISTS { ?devent gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -448,6 +522,8 @@ WHERE {
         ?cap gmeow:observationResult ?sq .
         ?sq gmeow:quantityValue ?capVal .
         FILTER NOT EXISTS { ?cap gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?sq gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -455,14 +531,18 @@ WHERE {
         ?occ gmeow:observationResult ?sq2 .
         ?sq2 gmeow:quantityValue ?occVal .
         FILTER NOT EXISTS { ?occ gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
+        FILTER NOT EXISTS { ?sq2 gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:locatedAt ?loc .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?place gmeow:hasPlaceName ?pn .
         ?pn gmeow:fullName ?allName .
         FILTER NOT EXISTS { ?pn gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?place a gmeow:Place .
@@ -479,9 +559,11 @@ WHERE {
         }
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
         FILTER NOT EXISTS { ?obs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:description ?desc .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
         FILTER EXISTS { ?ent gmeow:eligibleForConsumer gmeow:consumerPublicSite . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
@@ -500,6 +582,7 @@ WHERE {
             ( gmeow:organizationTypeAssociation schema:Organization )
             ( gmeow:organizationTypeCollaboration schema:Project )
         }
+        FILTER NOT EXISTS { ?org gmeow:displayable false . }
     }
     UNION {
         ?post a gmeow:Post .
@@ -507,45 +590,60 @@ WHERE {
         ?mem gmeow:fillsPost ?post .
         ?mem gmeow:hasRole ?role .
         ?role rdfs:label|gmeow:name ?roleName .
+        FILTER NOT EXISTS { ?post gmeow:displayable false . }
+        FILTER NOT EXISTS { ?mem gmeow:displayable false . }
+        FILTER NOT EXISTS { ?role gmeow:displayable false . }
     }
     UNION {
         ?org gmeow:hasSite ?site .
+        FILTER NOT EXISTS { ?org gmeow:displayable false . }
     }
     UNION {
         ?org gmeow:legalIdentifier ?id .
         ?id gmeow:identifierValue ?lei .
         ?id gmeow:identifierScheme "lei" .
+        FILTER NOT EXISTS { ?org gmeow:displayable false . }
+        FILTER NOT EXISTS { ?id gmeow:displayable false . }
     }
     UNION {
         ?org gmeow:industryClassification ?id .
         ?id gmeow:identifierValue ?naics .
         ?id gmeow:identifierScheme "naics" .
+        FILTER NOT EXISTS { ?org gmeow:displayable false . }
+        FILTER NOT EXISTS { ?id gmeow:displayable false . }
     }
     UNION {
         ?org gmeow:industryClassification ?id .
         ?id gmeow:identifierValue ?isic .
         ?id gmeow:identifierScheme "isicV4" .
+        FILTER NOT EXISTS { ?org gmeow:displayable false . }
+        FILTER NOT EXISTS { ?id gmeow:displayable false . }
     }
     UNION {
         ?prof a gmeow:SkillProficiency .
         ?prof gmeow:skillProficiencyAgent ?agent .
         ?prof gmeow:skillProficiencyOf ?skill .
+        FILTER NOT EXISTS { ?prof gmeow:displayable false . }
     }
     UNION {
         ?agent gmeow:holdsCredential ?cred .
+        FILTER NOT EXISTS { ?agent gmeow:displayable false . }
     }
     UNION {
         ?cred a gmeow:Credential .
         ?cred gmeow:credentialIssuer ?issuer .
+        FILTER NOT EXISTS { ?cred gmeow:displayable false . }
     }
     UNION {
         ?cred a gmeow:Credential .
         ?cred gmeow:credentialFor ?target .
+        FILTER NOT EXISTS { ?cred gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:hasTag ?tag .
         ?tag rdfs:label ?kw .
         FILTER NOT EXISTS { ?tag gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?kw) && LANG(?kw) = ?_intTag)

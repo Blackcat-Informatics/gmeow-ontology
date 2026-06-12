@@ -17,23 +17,30 @@ CONSTRUCT {
 WHERE {
     {
         ?obs a gmeow:SensoryObservation .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:SensoryObservation .
         ?obs gmeow:hasReferenceFrame ?frame .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:SensoryObservation .
         ?obs gmeow:vantage ?sensor .
         ?sensor a gmeow:Sensor .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?sensor gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:SensoryObservation .
         ?obs gmeow:observationResult ?qty .
         ?qty a gmeow:ScalarQuantity .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?qty gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:SensoryObservation .
         ?obs gmeow:observationResult ?result .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
 }

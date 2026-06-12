@@ -176,6 +176,10 @@ PROFILES_DIR = GENERATED_DIR / "profiles"
 FULL_PROFILE_IRI = ONTOLOGY_IRI + "/full"
 FULL_PROFILE_FILE = PROFILES_DIR / "full.ttl"
 NAMED_PROFILE_NS = ONTOLOGY_IRI + "/profiles/"
+# Generated SHACL shapes (#283): frame-relativity shapes derived from
+# gmeow:requiresFrame declarations, drift-gated like every other artifact.
+GENERATED_SHAPES_DIR = GENERATED_DIR / "shapes"
+FRAME_SHAPES_FILE = GENERATED_SHAPES_DIR / "frame-shapes.ttl"
 #: The OWL 2 axiom-annotation downcast (generated; consumed by the reasoner).
 STATEMENT_OWL_FILE = STATEMENTS_DIR / "gmeow-statements.owl.ttl"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.

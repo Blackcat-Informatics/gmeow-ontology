@@ -35,12 +35,14 @@ WHERE {
         OPTIONAL { ?iv gmeow:startedAtTime ?start . }
         OPTIONAL { ?iv gmeow:endedAtTime ?end . }
         OPTIONAL { ?event gmeow:eventLocation ?loc . }
+        FILTER NOT EXISTS { ?event gmeow:displayable false . }
     }
     UNION {
         ?event gmeow:eventTime ?start .
         OPTIONAL { ?event gmeow:eventLocation ?loc . }
         FILTER NOT EXISTS { ?event gmeow:eventInterval ?ivAny . }
         FILTER NOT EXISTS { ?event gmeow:earliestStart ?esAny . }
+        FILTER NOT EXISTS { ?event gmeow:displayable false . }
     }
     UNION {
         ?event gmeow:earliestStart ?start .
@@ -48,10 +50,13 @@ WHERE {
         OPTIONAL { ?event gmeow:eventLocation ?loc . }
         FILTER NOT EXISTS { ?event gmeow:eventInterval ?ivAny . }
         FILTER NOT EXISTS { ?event gmeow:eventTime ?etAny . }
+        FILTER NOT EXISTS { ?event gmeow:displayable false . }
     }
     UNION {
         ?event gmeow:eventType ?et .
         ?et rdfs:label ?summary .
+        FILTER NOT EXISTS { ?event gmeow:displayable false . }
+        FILTER NOT EXISTS { ?et gmeow:displayable false . }
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?summary) && LANG(?summary) = ?_intTag)
@@ -61,6 +66,7 @@ WHERE {
     }
     UNION {
         ?event gmeow:hasParticipant ?att .
+        FILTER NOT EXISTS { ?event gmeow:displayable false . }
     }
     UNION {
         ?p gmeow:participationEvent ?event .
@@ -72,31 +78,39 @@ WHERE {
         OPTIONAL { ?task gmeow:taskDueDate ?due . }
         OPTIONAL { ?task gmeow:taskPriority ?prio . }
         OPTIONAL { ?task gmeow:taskStatus ?ts . }
+        FILTER NOT EXISTS { ?task gmeow:displayable false . }
     }
     UNION {
         ?reminder gmeow:reminderTrigger ?trig .
         ?reminder gmeow:reminderAction ?act .
+        FILTER NOT EXISTS { ?reminder gmeow:displayable false . }
     }
     UNION {
         ?avail gmeow:availabilitySlot ?slot .
         ?slot gmeow:startedAtTime ?start .
         OPTIONAL { ?slot gmeow:endedAtTime ?end . }
         ?avail gmeow:availabilityStatus ?fbtype .
+        FILTER NOT EXISTS { ?avail gmeow:displayable false . }
+        FILTER NOT EXISTS { ?slot gmeow:displayable false . }
     }
     UNION {
         ?tz gmeow:timeZoneIanaId ?tzid .
+        FILTER NOT EXISTS { ?tz gmeow:displayable false . }
     }
     UNION {
         ?inv gmeow:invitationEvent ?event .
         ?inv gmeow:invitationInvitee ?att .
         ?inv gmeow:invitationStatus ?st .
+        FILTER NOT EXISTS { ?inv gmeow:displayable false . }
     }
     UNION {
         ?rule gmeow:recurrenceRuleText ?rrule .
+        FILTER NOT EXISTS { ?rule gmeow:displayable false . }
     }
     UNION {
         ?cal rdf:type ?type .
         OPTIONAL { ?cal gmeow:calendarTimeZone ?tz . }
         OPTIONAL { ?tz gmeow:timeZoneIanaId ?tzid . }
+        FILTER NOT EXISTS { ?cal gmeow:displayable false . }
     }
 }

@@ -13,17 +13,22 @@ WHERE {
     {
         ?act a gmeow:ObservationalActivity .
         ?act gmeow:eventType gmeow:eventTypeExcavation .
+        FILTER NOT EXISTS { ?act gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:Observation .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
     UNION {
         ?obs a gmeow:Observation .
         ?obs gmeow:observedFeature ?feature .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
     UNION {
         ?obs1 a gmeow:Observation .
         ?obs2 a gmeow:Observation .
         ?obs1 gmeow:connectsTo ?obs2 .
+        FILTER NOT EXISTS { ?obs1 gmeow:displayable false . }
+        FILTER NOT EXISTS { ?obs2 gmeow:displayable false . }
     }
 }

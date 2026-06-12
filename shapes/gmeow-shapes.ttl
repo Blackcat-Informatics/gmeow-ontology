@@ -953,14 +953,6 @@ gmeow:NarrativePositionShape
     a sh:NodeShape ;
     rdfs:label "Narrative Position Shape" ;
     sh:targetClass gmeow:NarrativePosition ;
-    sh:property [
-        sh:path gmeow:positionFrame ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:NarrativeTimeFrame ;
-        sh:severity sh:Violation ;
-        sh:message "A NarrativePosition must name exactly one gmeow:positionFrame — a position without its frame is a bare integer (#359)." ;
-    ] ;
     sh:or (
         [ sh:path gmeow:positionOrdinal ; sh:minCount 1 ]
         [ sh:path gmeow:positionLabel ;   sh:minCount 1 ]
@@ -984,13 +976,6 @@ gmeow:PoseShape
         sh:class gmeow:Orientation ;
         sh:severity sh:Violation ;
         sh:message "A Pose must have exactly one orientation (gmeow:hasPoseOrientation) as Orientation." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:poseFrame ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:class gmeow:ReferenceFrame ;
-        sh:severity sh:Violation ;
-        sh:message "A Pose must declare exactly one reference frame (gmeow:poseFrame)." ;
     ] .
 
 gmeow:OrientationShape
@@ -1932,14 +1917,8 @@ gmeow:RetractedAccessibilityAssertionShape
 gmeow:GeocodeShape
     a sh:NodeShape ;
     rdfs:label "Geocode well-formedness shape" ;
-    skos:definition "Enforces that a Geocode carries exactly one code value in exactly one reference frame. sh:xone (not sh:or) is intentional: a single Geocode instance represents one code in one system; competing or supplementary codes for the same place are modeled as multiple Geocode instances linked via gmeow:hasGeocode, coexisting as standpoint-indexed claims per Principle 9."@en ;
+    skos:definition "Enforces that a Geocode carries exactly one code value (the exactly-one-frame half is the generated gmeow:GeocodeFrameRequirementShape, #283). sh:xone (not sh:or) is intentional: a single Geocode instance represents one code in one system; competing or supplementary codes for the same place are modeled as multiple Geocode instances linked via gmeow:hasGeocode, coexisting as standpoint-indexed claims per Principle 9."@en ;
     sh:targetClass gmeow:Geocode ;
-    sh:property [
-        sh:path gmeow:geocodeFrame ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Geocode must declare exactly one reference frame (gmeow:geocodeFrame)." ;
-    ] ;
     sh:xone (
         [ sh:path gmeow:geocodeValue ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ]
         [ sh:path gmeow:plusCode ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
@@ -2060,17 +2039,6 @@ gmeow:ItemExemplifiesManifestationShape
     ] .
 
 # Expression well-formedness: carries a reference frame (language/notation/arrangement).
-gmeow:ExpressionHasFrameShape
-    a sh:NodeShape ;
-    rdfs:label "Expression reference-frame shape" ;
-    sh:targetClass gmeow:Expression ;
-    sh:property [
-        sh:path gmeow:hasReferenceFrame ;
-        sh:minCount 1 ;
-        sh:severity sh:Warning ;
-        sh:message "An Expression should carry at least one reference frame (gmeow:hasReferenceFrame) — language, script, notation, or arrangement." ;
-    ] .
-
 # =========================================================================== #
 # Evidence module (#224) — evidential warrant & source-typing shapes
 # =========================================================================== #
@@ -2167,14 +2135,6 @@ gmeow:CharacterArcShape
         sh:message "A CharacterArc must have exactly one gmeow:arcSubject." ;
     ] ;
     sh:property [
-        sh:path gmeow:arcFrame ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:NarrativeReferenceFrame ;
-        sh:severity sh:Violation ;
-        sh:message "A CharacterArc must have exactly one gmeow:arcFrame." ;
-    ] ;
-    sh:property [
         sh:path gmeow:arcType ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -2187,14 +2147,6 @@ gmeow:MythShape
     a sh:NodeShape ;
     rdfs:label "Myth Shape" ;
     sh:targetClass gmeow:Myth ;
-    sh:property [
-        sh:path gmeow:mythFrame ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:NarrativeReferenceFrame ;
-        sh:severity sh:Violation ;
-        sh:message "A Myth must have exactly one gmeow:mythFrame." ;
-    ] ;
     sh:property [
         sh:path gmeow:hasMythTelling ;
         sh:minCount 0 ;
@@ -2229,20 +2181,6 @@ gmeow:ReadingOrderShape
 # =========================================================================== #
 
 # Every MonetaryAmount must have exactly one currency (frame-relativity, P11).
-gmeow:MonetaryAmountHasCurrencyShape
-    a sh:NodeShape ;
-    rdfs:label "MonetaryAmount currency shape" ;
-    sh:targetClass gmeow:MonetaryAmount ;
-    sh:property [
-        sh:path gmeow:currency ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:ReferenceFrame ;
-        sh:severity sh:Violation ;
-        sh:message "Every MonetaryAmount must have exactly one currency reference frame (gmeow:currency)." ;
-    ] .
-
 # FinancialAccount well-formedness — holder (required) and type (functional).
 gmeow:FinancialAccountShape
     a sh:NodeShape ;

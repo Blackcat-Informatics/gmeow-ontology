@@ -34,6 +34,7 @@ gmeow:hasSexualOrientation
     rdfs:range gmeow:SexualOrientation ;
     rdfs:label "has sexual orientation"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted sexual-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasRomanticOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
+    gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:sexualOrientationValue
@@ -57,6 +58,7 @@ gmeow:hasRomanticOrientation
     rdfs:range gmeow:RomanticOrientation ;
     rdfs:label "has romantic orientation"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted romantic-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasSexualOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
+    gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:romanticOrientationValue

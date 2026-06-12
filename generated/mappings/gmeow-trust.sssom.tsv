@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Trust + contact-relationship alignments for the contacts revisit. Cryptographic keys / certifications / owner-trust use skos:closeMatch to the WOT schema (the PGP Web-of-Trust RDF vocabulary); the interpersonal-relationship convenience properties align to the REL (Relationship) vocabulary and FOAF. Perspectival owner-trust (TrustAssertion/trustor/trustLevel) and endorses are canonical — no maintained external RDF vocabulary models subjective, perspectival trust. W3C Verifiable Credentials / DID alignment is forward-looking (see commented rows below); the vc/did prefixes are deferred until those rows are added.
+# comment: "Trust + contact-relationship alignments for the contacts revisit. Cryptographic keys / certifications / owner-trust use skos:closeMatch to the WOT schema (the PGP Web-of-Trust RDF vocabulary); the interpersonal-relationship convenience properties align to the REL (Relationship) vocabulary and FOAF. Perspectival owner-trust (TrustAssertion/trustor/trustLevel) and endorses are canonical \u2014 no maintained external RDF vocabulary models subjective, perspectival trust. W3C Verifiable Credentials / DID alignment is forward-looking (see commented rows below); the vc/did prefixes are deferred until those rows are added."
 # curie_map:
 #   foaf: http://xmlns.com/foaf/0.1/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
@@ -12,6 +12,9 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wot: http://xmlns.com/wot/0.1/
+# # Forward-looking (W3C Verifiable Credentials / DID) — uncomment after adding vc/did prefixes to config.py:
+# # gmeow:Certification	skos:relatedMatch	vc:VerifiableCredential	semapv:ManualMappingCuration	0.5	a certification is a credential-like signed claim by an issuer about a subject
+# # gmeow:certifier	skos:relatedMatch	vc:issuer	semapv:ManualMappingCuration	0.5
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Certification	skos:closeMatch	wot:Endorsement	semapv:ManualMappingCuration	0.8	
 gmeow:CryptographicKey	skos:closeMatch	wot:PubKey	semapv:ManualMappingCuration	0.9	
@@ -25,6 +28,3 @@ gmeow:hasWorkedWith	skos:closeMatch	rel:collaboratesWith	semapv:ManualMappingCur
 gmeow:hasWorkedWith	skos:closeMatch	rel:worksWith	semapv:ManualMappingCuration	0.85	
 gmeow:holdsKey	skos:closeMatch	wot:hasKey	semapv:ManualMappingCuration	0.9	
 gmeow:keyId	skos:closeMatch	wot:hex_id	semapv:ManualMappingCuration	0.9	
-# Forward-looking (W3C Verifiable Credentials / DID) — uncomment after adding vc/did prefixes to config.py:
-# gmeow:Certification	skos:relatedMatch	vc:VerifiableCredential	semapv:ManualMappingCuration	0.5	a certification is a credential-like signed claim by an issuer about a subject
-# gmeow:certifier	skos:relatedMatch	vc:issuer	semapv:ManualMappingCuration	0.5

@@ -540,6 +540,7 @@ gmeow:ScriptRole
 
 gmeow:scriptRolePrimary            a gmeow:ScriptRole ; rdfs:label "primary"@x-gmeow-english .
 gmeow:scriptRolePrimary skos:definition "The primary script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    gmeow:namingNote "Names a linguistic reality — the script carrying a passage's main text, one co-equal value among seven script roles — not a selector privileging one co-equal claim." ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 gmeow:scriptRoleLogographicContent a gmeow:ScriptRole ; rdfs:label "logographic content"@x-gmeow-english .
 gmeow:scriptRoleLogographicContent skos:definition "The logographic content script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;

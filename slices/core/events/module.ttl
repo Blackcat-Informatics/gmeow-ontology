@@ -35,6 +35,8 @@ gmeow:Event
     rdfs:subClassOf gufo:Event ;
     rdfs:label "Event"@x-gmeow-english ;
     skos:definition "A temporal occurrence in which entities participate in roles, over possibly fuzzy time, at possibly several locations, asserted by possibly conflicting sources. The universal event of the model: gmeow:Activity (provenance) and gmeow:LifeEvent re-parent onto it. The kind of occurrence is a gmeow:eventType value, never a subclass."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:eventTemporalFrame ;
+    gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:LifeEvent

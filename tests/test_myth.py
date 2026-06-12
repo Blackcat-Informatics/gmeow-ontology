@@ -159,7 +159,9 @@ def test_myth_missing_frame_fails_shacl() -> None:
 
     result = run_shacl(g)
     assert not result.ok
-    assert any("Myth must have exactly one gmeow:mythFrame" in e for e in result.errors)
+    assert any(
+        "exactly one reference frame (gmeow:mythFrame)" in e for e in result.errors
+    )
 
 
 def test_myth_propagation_shacl_passes() -> None:

@@ -68,6 +68,8 @@ gmeow:MediaObject
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Media Object"@x-gmeow-english ;
     skos:definition "An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:colourspace ;
+    gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:WebPage
