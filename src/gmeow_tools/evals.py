@@ -62,9 +62,10 @@ def _slug(model: str) -> str:
     import re
     from hashlib import blake2s
 
-    base = re.sub(r"[^A-Za-z0-9_-]+", "-", model).strip("-").lower() or "model"
-    if base == model:
-        return base
+    sanitized = re.sub(r"[^A-Za-z0-9_-]+", "-", model).strip("-")
+    if sanitized == model and model:
+        return model  # already safe, any case — its own slug, byte-stable
+    base = (sanitized or "model").lower()
     return f"{base}-{blake2s(model.encode('utf-8'), digest_size=4).hexdigest()}"
 
 
