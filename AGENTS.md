@@ -111,6 +111,20 @@ make test            # Run the pytest test suite (Python/SPARQL competency tests
 make check           # Run FULL gate: lint, validate, compilation check, reason, verify, tests
 ```
 
+#### Go GTS engine (go/gts, #339)
+
+The Go engine is a third independent implementation of the GTS baseline reader
+and files-profile writer. It gates against the same frozen conformance corpus
+(`generated/gts-vectors/`) as the Python and Rust engines, and exposes the same
+`gts` CLI surface.
+
+```bash
+cd go/gts
+go build ./...       # Build the engine and CLI
+go vet ./...         # Static analysis
+go test ./...        # Conformance corpus + unit + CLI integration tests
+```
+
 > [!IMPORTANT]
 > Always run `make check` locally and ensure it passes completely before proposing changes, committing, or submitting a PR.
 
@@ -196,6 +210,8 @@ generated/               # EVERY committed generated artifact, one root:
                          #   lpg/ metadata/ apache/ module-status.md
 dist/                    # Ephemeral build products (one .gitignore line)
 src/gmeow_tools/         # The toolchain (CLI: `gmeow …`)
+crates/gts/              # Rust GTS engine (#277)
+go/gts/                  # Go GTS engine (#339)
 tests/                   # Cross-slice tests (slice-local tests live IN slices)
 ```
 
