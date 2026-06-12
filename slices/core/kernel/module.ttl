@@ -157,6 +157,48 @@ gmeow:generalizesVia
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
+# Compliance-by-construction annotations (#278). These three carry no logical
+# semantics — they DECLARE which invariants the toolchain must generate, so a
+# new module is enforced automatically rather than by authorial discipline.
+# --------------------------------------------------------------------------- #
+
+gmeow:coequalFacet
+    a owl:AnnotationProperty ;
+    rdfs:label "co-equal facet"@x-gmeow-english ;
+    skos:definition "Marks a property as one co-equal identity-facet axis among peers (CONSTITUTION P9, #281). Every property annotated coequalFacet true is held orthogonal to every other by the generated reasoning lint: its range is its own (distinct from every other axis), no rdfs:subPropertyOf or owl:equivalentProperty bridge may connect two axes, none may be owl:FunctionalProperty (a single locked value invites exactly the owl:sameAs collapse Principle 5 forbids), and all axis ranges must be jointly declared owl:AllDisjointClasses. A new annotated axis receives Principle 9 enforcement by construction."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:namingNote
+    a owl:AnnotationProperty ;
+    rdfs:label "naming note"@x-gmeow-english ;
+    skos:definition "An explicit justification for a term local name that the primary/preferred/default/main naming lint (CONSTITUTION P9, #281) would otherwise reject. Legitimate value-vocabulary uses exist — gmeow:scriptRolePrimary names a linguistic reality (one co-equal value among seven), gmeow:sourceTierPrimary is the standard bibliographic axis — and this annotation records that judgment so the lint enforces it instead of relying on audit-time discretion. A term carrying namingNote must still never be a selector that privileges one co-equal claim over another."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:requiresFrame
+    a owl:AnnotationProperty ;
+    rdfs:label "requires frame"@x-gmeow-english ;
+    skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, #283): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:frameRequirementSeverity \"warning\" to downgrade from violation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:frameRequirementSeverity
+    a owl:AnnotationProperty ;
+    rdfs:label "frame requirement severity"@x-gmeow-english ;
+    skos:definition "Optional severity for a gmeow:requiresFrame declaration: \"warning\" downgrades the generated frame-relativity shape from sh:Violation to sh:Warning (used while a module's data corpus is still being brought up to frame completeness). Absent means violation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:coarsenGuarded
+    a owl:AnnotationProperty ;
+    rdfs:label "coarsen guarded"@x-gmeow-english ;
+    skos:definition "Marks a property as PRECISION-BEARING for disclosure control (#282, CONSTITUTION P10): when a projection branch reads this property of a subject, the mapping compiler injects a guard so the subject's precise values never pass a gmeow:coarsenTo mark — the coarse form is published only by a profile's explicit coarsening branch. Ontology-derived, never a hand list: annotating a new precise-value property extends every generated projection's guards on the next regenerate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:frameCardinality
+    a owl:AnnotationProperty ;
+    rdfs:label "frame cardinality"@x-gmeow-english ;
+    skos:definition "Optional cardinality override for a gmeow:requiresFrame declaration: \"exactly-one\" or \"at-least-one\". Absent, the cardinality is derived from the frame property's character — owl:FunctionalProperty means exactly one, otherwise at least one. The override exists for carriers whose frame property is logically non-functional (the property serves several carrier classes with different multiplicities) but whose instances each live in a single frame, e.g. gmeow:Pose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+# --------------------------------------------------------------------------- #
 # Determinacy — universal ontic-uncertainty vocabulary (#71).
 #
 # Ontic indeterminacy (how inherently defined a value is) is held distinct from

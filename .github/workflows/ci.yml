@@ -121,8 +121,11 @@ jobs:
       - name: Engine cross-check (rdflib ≡ pyoxigraph on every query)
         run: uv run gmeow crosscheck-queries
 
-      - name: Mapping DSL compiles with no drift
-        run: uv run gmeow check-generated mappings
+      - name: Full-registry drift gate (statements has its own Docker-backed job)
+        run: uv run gmeow check-generated --skip statements
+
+      - name: Constitution check (every principle has live enforcement)
+        run: uv run gmeow constitution-check
 
       - name: Mappings → axioms + linksets, QID syntax
         run: uv run gmeow mappings
@@ -136,8 +139,8 @@ jobs:
       - name: Alignment direction lint
         run: uv run gmeow lint-alignment
 
-      - name: Schema compilation sanity check
-        run: uv run gmeow check-generated schemas
+      - name: Compliance report (per-principle gate evidence)
+        run: uv run gmeow compliance-report
 
   reason:
     runs-on: ubuntu-latest

@@ -72,7 +72,7 @@ meta:gate-generator-registry a meta:Gate ;
     meta:makeTarget "check-generated", "regenerate" ;
     meta:generator "statements", "mappings", "gts", "exports", "metadata",
         "schemas", "lpg", "matrix", "apache", "gts-vectors", "catalog",
-        "profiles" .
+        "profiles", "frame-shapes" .
 
 meta:tests-narrow-waist a meta:TestSuite ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)" ;
@@ -177,6 +177,42 @@ meta:tests-slices a meta:TestSuite ;
     rdfs:label "slice anatomy and profile tests" ;
     meta:artifact "tests/test_slices.py", "tests/test_profiles.py" .
 
+meta:lint-coequal-facet a meta:Lint ;
+    rdfs:label "annotation-driven identity-axis orthogonality (#281)" ;
+    meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
+    meta:symbol "coequal_facet_orthogonality" .
+
+meta:lint-term-naming a meta:Lint ;
+    rdfs:label "no selector tokens in term local names (#281)" ;
+    meta:artifact "src/gmeow_tools/validate.py" ;
+    meta:symbol "term_naming_lint" .
+
+meta:gate-suppression-injection a meta:Gate ;
+    rdfs:label "suppression guards injected into every projection CONSTRUCT (#282)" ;
+    meta:artifact "src/gmeow_tools/mapping_compile.py" ;
+    meta:symbol "_injected_guards" .
+
+meta:tests-leak-conformance a meta:TestSuite ;
+    rdfs:label "generated per-profile leak-conformance suite (#282)" ;
+    meta:artifact "tests/test_suppression_conformance.py" .
+
+meta:shapes-frame-generated a meta:Shape ;
+    rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame (#283)" ;
+    meta:artifact "src/gmeow_tools/frame_shapes_gen.py", "generated/shapes/frame-shapes.ttl" ;
+    meta:symbol "render_frame_shapes" .
+
+meta:lint-frame-completeness a meta:Lint ;
+    rdfs:label "frame-pointing properties demand a requiresFrame declaration (#283)" ;
+    meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
+    meta:symbol "frame_declaration_completeness" .
+
+meta:gate-compliance-report a meta:Gate ;
+    rdfs:label "machine-readable per-principle compliance report (#285)" ;
+    meta:artifact "src/gmeow_tools/compliance.py" ;
+    meta:symbol "build_report" ;
+    meta:cliCommand "compliance-report" ;
+    meta:makeTarget "compliance-report" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -220,23 +256,26 @@ meta:Principle7 a meta:Principle ;
 meta:Principle8 a meta:Principle ;
     meta:number 8 ;
     meta:title "Reasoning-gated and FAIR" ;
-    meta:enforcedBy meta:gate-reasoning, meta:gate-fair-metadata .
+    meta:enforcedBy meta:gate-reasoning, meta:gate-fair-metadata,
+        meta:gate-compliance-report .
 
 meta:Principle9 a meta:Principle ;
     meta:number 9 ;
     meta:title "Inclusive without overtyping; anti-colonial in every direction; self-assertion is top authority" ;
     meta:enforcedBy meta:lint-no-preferred-rank, meta:tests-identity-orthogonality,
-        meta:shapes-core .
+        meta:shapes-core, meta:lint-coequal-facet, meta:lint-term-naming .
 
 meta:Principle10 a meta:Principle ;
     meta:number 10 ;
     meta:title "Suppression, never erasure" ;
-    meta:enforcedBy meta:gate-suppression, meta:tests-suppression .
+    meta:enforcedBy meta:gate-suppression, meta:tests-suppression,
+        meta:gate-suppression-injection, meta:tests-leak-conformance .
 
 meta:Principle11 a meta:Principle ;
     meta:number 11 ;
     meta:title "Frame-relativity — values live in an explicit reference system" ;
-    meta:enforcedBy meta:shapes-core, meta:tests-reference-frames .
+    meta:enforcedBy meta:shapes-core, meta:tests-reference-frames,
+        meta:shapes-frame-generated, meta:lint-frame-completeness .
 
 meta:Principle12 a meta:Principle ;
     meta:number 12 ;

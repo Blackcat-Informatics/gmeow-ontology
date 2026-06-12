@@ -61,6 +61,7 @@ def regenerate(
         apache,
         catalog_gen,
         export,
+        frame_shapes_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -90,6 +91,15 @@ def check_generated(
         None,
         help="Generator names to check (default: all).",
     ),
+    skip: list[str] | None = typer.Option(  # noqa: B008
+        None,
+        "--skip",
+        help=(
+            "Generator names to exclude (e.g. --skip statements in a CI job "
+            "without the Docker/Jena toolchain). A NEW generator is always "
+            "included by default — exclusion is explicit, never wiring lag."
+        ),
+    ),
 ) -> None:
     """Drift + orphan check for every registered generator.
 
@@ -101,6 +111,7 @@ def check_generated(
         apache,
         catalog_gen,
         export,
+        frame_shapes_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -111,9 +122,15 @@ def check_generated(
         schema_compile,
         statement_compile,
     )
-    from gmeow_tools.generator import check_all
+    from gmeow_tools.generator import check_all, registry
 
-    results = check_all(names or None)
+    selected = names or None
+    if skip:
+        unknown = sorted(set(skip) - set(registry()))
+        if unknown:
+            raise _fail(f"✗ --skip names not in the registry: {', '.join(unknown)}")
+        selected = sorted(set(selected or registry()) - set(skip))
+    results = check_all(selected)
     total_drift = 0
     total_orphans = 0
     for name, report in results.items():
@@ -199,6 +216,15 @@ def constitution_check() -> None:
         console.print("[green]✓ constitution check passed[/green]")
     else:
         raise _fail(f"✗ {len(result.errors)} error(s)")
+
+
+@app.command(name="compliance-report")
+def compliance_report_cmd() -> None:
+    """Run the in-process gates and emit the RDF compliance report (#285)."""
+    from gmeow_tools.compliance import write_report
+
+    path = write_report()
+    console.print(f"[green]✓ compliance report written to {path}[/green]")
 
 
 @app.command(name="crosscheck-queries")

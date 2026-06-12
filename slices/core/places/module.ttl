@@ -110,6 +110,8 @@ gmeow:NetworkAddress
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Network Address"@x-gmeow-english ;
     skos:definition "A network-layer address or locator expressed as a coordinate in a network reference frame — an IP address, MAC address, DNS name, URL, port number, or BGP autonomous-system number. The flat shortcut for the common case is gmeow:accessUrl on a VirtualLocation; promote to NetworkAddress when frame, provenance, confidence, or standpoint matters."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:networkAddressFrame ;
+    gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:NetworkAddressType
@@ -175,6 +177,7 @@ gmeow:Geocode
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Geocode"@x-gmeow-english ;
     skos:definition "A geographic location code expressed in an alternative geocoding reference frame — a Plus Code, what3words address, geohash, MGRS grid reference, UN/LOCODE, or linear-referencing mile-marker."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:geocodeFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:hasGeocode
@@ -394,6 +397,7 @@ gmeow:hasCoordinates
     rdfs:range gmeow:GeoCoordinates ;
     rdfs:label "has coordinates"@x-gmeow-english ;
     skos:definition "Relates a place to its geographic point coordinates. Flat shortcut for the common case; the full relator form is a CoordinateObservation linking the place to a GeoCoordinates result via gmeow:coordinateResult, carrying provenance, reference frame, confidence, and standpoint (Principle 3). Non-simple: derived via property chain from the reified observation path."@x-gmeow-english ;
+    gmeow:coarsenGuarded true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:hasGeometry
@@ -402,6 +406,7 @@ gmeow:hasGeometry
     rdfs:range gmeow:Geometry ;
     rdfs:label "has geometry"@x-gmeow-english ;
     skos:definition "Relates a place to its spatial geometry (point, line, or polygon). Flat shortcut for the common case; the full relator form is a CoordinateObservation linking the place to a Geometry result via gmeow:geometryResult, carrying provenance, reference frame, confidence, and standpoint (Principle 3). Non-simple: derived via property chain from the reified observation path."@x-gmeow-english ;
+    gmeow:coarsenGuarded true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:placeType
@@ -600,6 +605,8 @@ gmeow:SpatialCoordinates
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Spatial Coordinates"@x-gmeow-english ;
     skos:definition "A set of coordinate values representing a position in a specific coordinate reference frame."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:coordinateFrame ;
+    gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:Pose
@@ -607,6 +614,8 @@ gmeow:Pose
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Pose"@x-gmeow-english ;
     skos:definition "A frame-relative position and orientation of an object — a 6-DOF pose. A pose consists of a position (spatial coordinates in a reference frame) and an orientation (quaternion, Euler angles, heading/bearing, or a homogeneous transform matrix). Aligns by reference to IEEE 1872-2015 pos:QuantitativePose and structurally to OGC GeoPose 1.0."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:poseFrame ;
+    gmeow:frameCardinality "exactly-one" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:Orientation
@@ -642,6 +651,7 @@ gmeow:LocationState
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Location State"@x-gmeow-english ;
     skos:definition "The state of a moving entity at a specific point or period in time, including its location, velocity, and pose (position + orientation)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:stateReferenceFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:Trajectory
@@ -649,6 +659,7 @@ gmeow:Trajectory
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Trajectory"@x-gmeow-english ;
     skos:definition "A continuous path of motion representing the space-time history of a moving entity."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:trajectoryReferenceFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 # =========================================================================== #
@@ -3069,6 +3080,7 @@ gmeow:SequenceCoordinates
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Sequence Coordinates"@x-gmeow-english ;
     skos:definition "Frame-relative coordinates on a biological sequence: a start position, an end position, and a strand orientation, all expressed relative to an explicit reference assembly (Principle 11)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:inReferenceAssembly ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:StrandOrientation

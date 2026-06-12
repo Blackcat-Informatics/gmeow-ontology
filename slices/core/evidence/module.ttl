@@ -183,6 +183,7 @@ gmeow:sourceTierPrimary
     a gmeow:SourceTier ;
     rdfs:label "primary"@x-gmeow-english ;
     skos:definition "A primary source — an original document, artifact, or direct record created at the time of the event or by the subject (a birth certificate, a legal filing, a self-published memoir)."@x-gmeow-english ;
+    gmeow:namingNote "The standard bibliographic source-tier axis (primary/secondary/tertiary) — a value vocabulary naming an evidentiary reality, not a selector privileging one co-equal claim." ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:sourceTierSecondary

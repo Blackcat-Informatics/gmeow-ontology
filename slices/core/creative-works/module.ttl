@@ -52,6 +52,8 @@ gmeow:Expression
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Expression"@x-gmeow-english ;
     skos:definition "A realization of a gmeow:Work in a specific language, script, notation, or arrangement. The original-language text, a translation, and an audiobook narration are distinct Expressions of one Work. The realizing language/notation is carried as a reference frame (gmeow:hasReferenceFrame), not as a subclass. Identity changes when the language, notation, or arrangement differs."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:hasReferenceFrame ;
+    gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Manifestation
