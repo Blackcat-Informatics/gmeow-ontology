@@ -1,0 +1,6 @@
+{
+  "model": "reference-baseline",
+  "provider": "hand-authored",
+  "version": "v1",
+  "$comment": "A hand-authored emission with KNOWN scoring properties so the harness is testable offline: 3 verified-grounded claims matching the expectations, 1 hallucination (no evidence), 1 quote-mismatch span, 1 schema-invalid line. Real frontier-model outputs are produced by `gmeow evals run` (network-gated)."
+}

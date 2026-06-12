@@ -15,7 +15,7 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full quality \
         normalize build project test test-fast check check-generated release regenerate commit clean pull-images \
-        coverage crossref constitution-check compliance-report
+        coverage crossref constitution-check compliance-report audit evals-score
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -109,6 +109,12 @@ constitution-check: ## Every constitutional principle must have live enforcement
 compliance-report: ## Run in-process gates, emit dist/compliance-report.ttl (#285).
 	uv run gmeow compliance-report
 
+audit: ## Claim audit gates over the worked fixture (#55): ungrounded/contradicted/stale.
+	uv run gmeow audit tests/fixtures/coverage/hallucination-kg.ttl
+
+evals-score: ## Score committed model emissions against the published contract (offline, #298).
+	uv run gmeow evals score
+
 build: ## Build serializations and JSON-LD context into dist/.
 	uv run gmeow build
 
@@ -122,7 +128,7 @@ test-fast: ## Run the fast test suite (excludes ci_only heavy/secondary export t
 	uv run pytest -n auto -m "not ci_only"
 
 check: ## Fast local gate: core ontology + transforms.
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage reason reason-hermit verify mappings-only lint-alignment
 	$(MAKE) test-fast
 	$(MAKE) compliance-report
 	@echo "✓ all checks passed"

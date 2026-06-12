@@ -139,6 +139,9 @@ jobs:
       - name: Alignment direction lint
         run: uv run gmeow lint-alignment
 
+      - name: Claim audit gates on the worked fixture (#55)
+        run: uv run gmeow audit tests/fixtures/coverage/hallucination-kg.ttl
+
       - name: Compliance report (per-principle gate evidence)
         run: uv run gmeow compliance-report
 

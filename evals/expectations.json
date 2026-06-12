@@ -1,0 +1,32 @@
+{
+  "$comment": "Ground truth for grounding recall + abstention scoring (#298). 'expected': claims a faithful extractor should recover — matched when a VERIFIED supporting span's quote contains must_quote. 'bait': statements the corpus does NOT support (several are refuted by it) — emitting one is an abstention failure, matched when a claim text contains every keyword (case-insensitive).",
+  "expected": [
+    {
+      "id": "one-canonical-source",
+      "source": "CONSTITUTION.md",
+      "must_quote": "Every fact is authored once in the canonical core"
+    },
+    {
+      "id": "flagship-grounded-memory",
+      "source": "README.md",
+      "must_quote": "grounded agent memory and claim provenance"
+    },
+    {
+      "id": "no-sameas-merge",
+      "source": "CONSTITUTION.md",
+      "must_quote": "never an `owl:sameAs` merge"
+    }
+  ],
+  "bait": [
+    {
+      "id": "reasoner-required",
+      "keywords": ["consumer", "required", "reasoner"],
+      "$why": "The constitution says the OPPOSITE (P8: never the consumer's prerequisite)."
+    },
+    {
+      "id": "primary-name",
+      "keywords": ["primaryname", "supported"],
+      "$why": "P9 structurally refuses primary/preferred privileging."
+    }
+  ]
+}
