@@ -35,12 +35,28 @@ if TYPE_CHECKING:
     from gts.model import Graph
 
 _RDF_VALUE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#value"
+_RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 _GMEOW = "https://blackcatinformatics.ca/gmeow/"
 _CONFIDENCE = _GMEOW + "confidence"
 _ACCORDING_TO = _GMEOW + "accordingTo"
 _SOURCE_LOCATION = _GMEOW + "sourceLocation"
 _WAS_DERIVED_FROM = _GMEOW + "wasDerivedFrom"
 _DCT_CREATED = "http://purl.org/dc/terms/created"
+
+# Agentic tool-call provenance (#390): the agent's ACTIONS join the same
+# provenance graph as its claims.
+_TOOL_CALL = _GMEOW + "ToolCall"
+_SOFTWARE_AGENT = _GMEOW + "SoftwareAgent"
+_USED_TOOL = _GMEOW + "usedTool"
+_TOOL_ARGUMENTS = _GMEOW + "toolArguments"
+_TOOL_RESULT = _GMEOW + "toolResult"
+_CALLED_BY_INVOCATION = _GMEOW + "calledByInvocation"
+_WAS_GENERATED_BY = _GMEOW + "wasGeneratedBy"
+
+#: Verbatim-or-digest doctrine (#390): payloads beyond this many UTF-8 bytes
+#: are stored as a content digest literal ("blake3:…") instead of the bytes —
+#: the digest IS the value, self-describing by prefix.
+_INLINE_PAYLOAD_BUDGET = 4096
 
 _XSD_DECIMAL = "http://www.w3.org/2001/XMLSchema#decimal"
 _XSD_DATETIME = "http://www.w3.org/2001/XMLSchema#dateTime"
@@ -62,6 +78,24 @@ class Claim:
     #: True when a later revision suppressed this assertion (P10: it remains
     #: in the package and is recoverable with ``include_suppressed=True``).
     suppressed: bool = False
+
+
+@dataclass(frozen=True)
+class ToolCallRecord:
+    """One recorded tool call — the agent's action as provenance (#390)."""
+
+    #: The call IRI — the node produced entities link back to.
+    id: str
+    #: The tool agent IRI (a gmeow:SoftwareAgent).
+    tool: str
+    arguments: str | None = None
+    result: str | None = None
+    #: The requesting gmeow:ModelInvocation IRI, when the harness exposes it.
+    invocation: str | None = None
+    created: str | None = None
+    #: IRIs of entities that link back to this call via gmeow:wasGeneratedBy
+    #: (P5: the produced entity points at the call, never the other way).
+    generated: tuple[str, ...] = ()
 
 
 class Memory:
@@ -174,6 +208,125 @@ class Memory:
         w.add_suppress([{"kind": "term", "id": 0}], reason=reason)
         self._append(w.to_bytes())
 
+    def record_tool_call(
+        self,
+        tool: str,
+        *,
+        arguments: str | None = None,
+        result: str | None = None,
+        invocation: str | None = None,
+        generated: tuple[str, ...] | list[str] = (),
+    ) -> ToolCallRecord:
+        """Append one tool-call provenance record (#390).
+
+        The call is plain quads in its own segment: a ``gmeow:ToolCall``
+        with its tool agent (``gmeow:usedTool``), verbatim payloads
+        (``gmeow:toolArguments``/``gmeow:toolResult`` — beyond the inline
+        budget, a content digest literal stands in for the bytes), the
+        requesting invocation when known, and a ``gmeow:wasGeneratedBy``
+        BACKLINK from every IRI in ``generated`` (P5: produced entities
+        point at the call, never the other way). Claims and tool calls
+        ride the same append-only package — the agent's actions ARE
+        grounded memory.
+        """
+        # Normalize once, then persist the normalized forms — whitespace-
+        # padded IRIs must never reach the package.
+        tool = tool.strip()
+        if not tool:
+            msg = "a tool call needs its tool agent IRI"
+            raise ValueError(msg)
+        if invocation is not None:
+            invocation = invocation.strip()
+            if not invocation:
+                msg = "invocation must be a non-empty IRI when given"
+                raise ValueError(msg)
+        generated = tuple(entity.strip() for entity in generated)
+        if any(not entity for entity in generated):
+            msg = "generated entity IRIs must be non-empty"
+            raise ValueError(msg)
+        call = f"urn:gmeow:toolcall:{uuid.uuid4()}"
+        created = _dt.datetime.now(tz=_dt.UTC).isoformat(timespec="seconds")
+
+        w = Writer(profile=_PROFILE)
+        terms: list[Term] = []
+        quads: list[tuple[int, int, int, int | None]] = []
+
+        def tid(term: Term) -> int:
+            terms.append(term)
+            return len(terms) - 1
+
+        t_call = tid(Term(TermKind.IRI, call))
+        t_type = tid(Term(TermKind.IRI, _RDF_TYPE))
+        quads.append((t_call, t_type, tid(Term(TermKind.IRI, _TOOL_CALL)), None))
+        t_tool = tid(Term(TermKind.IRI, tool))
+        quads.append((t_call, tid(Term(TermKind.IRI, _USED_TOOL)), t_tool, None))
+        quads.append((t_tool, t_type, tid(Term(TermKind.IRI, _SOFTWARE_AGENT)), None))
+        t_dt = tid(Term(TermKind.IRI, _XSD_DATETIME))
+        quads.append(
+            (
+                t_call,
+                tid(Term(TermKind.IRI, _DCT_CREATED)),
+                tid(Term(TermKind.LITERAL, created, datatype=t_dt)),
+                None,
+            )
+        )
+        arguments = self._inline_or_digest(arguments)
+        result = self._inline_or_digest(result)
+        if arguments is not None:
+            quads.append(
+                (
+                    t_call,
+                    tid(Term(TermKind.IRI, _TOOL_ARGUMENTS)),
+                    tid(Term(TermKind.LITERAL, arguments)),
+                    None,
+                )
+            )
+        if result is not None:
+            quads.append(
+                (
+                    t_call,
+                    tid(Term(TermKind.IRI, _TOOL_RESULT)),
+                    tid(Term(TermKind.LITERAL, result)),
+                    None,
+                )
+            )
+        if invocation is not None:
+            quads.append(
+                (
+                    t_call,
+                    tid(Term(TermKind.IRI, _CALLED_BY_INVOCATION)),
+                    tid(Term(TermKind.IRI, invocation)),
+                    None,
+                )
+            )
+        if generated:
+            t_wgb = tid(Term(TermKind.IRI, _WAS_GENERATED_BY))
+            for entity in generated:
+                quads.append((tid(Term(TermKind.IRI, entity)), t_wgb, t_call, None))
+
+        w.add_terms(terms)
+        w.add_quads(quads)
+        self._append(w.to_bytes())
+        return ToolCallRecord(
+            id=call,
+            tool=tool,
+            arguments=arguments,
+            result=result,
+            invocation=invocation,
+            created=created,
+            generated=tuple(generated),
+        )
+
+    @staticmethod
+    def _inline_or_digest(payload: str | None) -> str | None:
+        """The verbatim-or-digest doctrine (#390): big payloads become digests."""
+        if payload is None:
+            return None
+        data = payload.encode("utf-8")
+        if len(data) <= _INLINE_PAYLOAD_BUDGET:
+            return payload
+        return "blake3:" + blake3_256(data).hex()
+
     # -- read side ----------------------------------------------------------
 
     def recall(
@@ -233,6 +386,48 @@ class Memory:
                     source=ann.get(_SOURCE_LOCATION),
                     created=ann.get(_DCT_CREATED),
                     suppressed=rid in suppressed or s in suppressed,
+                )
+            )
+        return out
+
+    def tool_calls(self) -> list[ToolCallRecord]:
+        """Every recorded tool call in the package, in storage order (#390)."""
+        if not self._path.exists():
+            return []
+        g = read(self._path.read_bytes())
+
+        def value(tid: int) -> str:
+            return g.terms[tid].value or ""
+
+        props: dict[int, dict[str, str]] = {}
+        call_ids: list[int] = []
+        backlinks: dict[int, list[str]] = {}
+        for s, p, o, _graph in g.quads:
+            pred = value(p)
+            if pred == _RDF_TYPE and value(o) == _TOOL_CALL:
+                call_ids.append(s)
+            elif pred == _WAS_GENERATED_BY:
+                backlinks.setdefault(o, []).append(value(s))
+            elif pred in (
+                _USED_TOOL,
+                _TOOL_ARGUMENTS,
+                _TOOL_RESULT,
+                _CALLED_BY_INVOCATION,
+                _DCT_CREATED,
+            ):
+                props.setdefault(s, {})[pred] = value(o)
+        out: list[ToolCallRecord] = []
+        for cid in call_ids:
+            ann = props.get(cid, {})
+            out.append(
+                ToolCallRecord(
+                    id=value(cid),
+                    tool=ann.get(_USED_TOOL, ""),
+                    arguments=ann.get(_TOOL_ARGUMENTS),
+                    result=ann.get(_TOOL_RESULT),
+                    invocation=ann.get(_CALLED_BY_INVOCATION),
+                    created=ann.get(_DCT_CREATED),
+                    generated=tuple(backlinks.get(cid, ())),
                 )
             )
         return out

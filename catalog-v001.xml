@@ -15,6 +15,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/accessibility" uri="slices/extensions/accessibility/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/accounts" uri="slices/core/accounts/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/affect" uri="slices/extensions/affect/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/agentic" uri="slices/extensions/agentic/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/aggregation" uri="slices/extensions/aggregation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/agreements" uri="slices/core/agreements/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/ai" uri="slices/core/ai/module.ttl"/>

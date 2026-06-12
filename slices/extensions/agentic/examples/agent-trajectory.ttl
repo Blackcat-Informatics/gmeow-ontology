@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example (#390): one agent turn as auditable provenance — a model
+# invocation requests two tool calls; the entity the second call produced
+# links BACK via gmeow:wasGeneratedBy (P5: no forward output property).
+# Large payloads ride as content digest literals (the verbatim-or-digest
+# doctrine); ordering is temporal (gmeow:atTime), not a TBox link.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:assistant a gmeow:SoftwareAgent ;
+    rdfs:label "assistant model agent"@x-gmeow-english .
+
+ex:webSearch a gmeow:SoftwareAgent ;
+    rdfs:label "web search tool"@x-gmeow-english .
+
+ex:storeClaim a gmeow:SoftwareAgent ;
+    rdfs:label "memory store_claim tool"@x-gmeow-english .
+
+ex:invocation-7 a gmeow:ModelInvocation ;
+    rdfs:label "turn 7 model invocation"@x-gmeow-english ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:samplingTemperature "0.2"^^xsd:decimal .
+
+ex:call-7-1 a gmeow:ToolCall ;
+    rdfs:label "turn 7, call 1: search"@x-gmeow-english ;
+    gmeow:calledByInvocation ex:invocation-7 ;
+    gmeow:usedTool ex:webSearch ;
+    gmeow:toolArguments "{\"query\": \"GTS deterministic encoding spec\"}" ;
+    # Large result: the digest IS the value (gmeow:contentDigest convention).
+    gmeow:toolResult "blake3:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a" ;
+    gmeow:atTime "2026-06-12T17:03:11Z"^^xsd:dateTime .
+
+ex:call-7-2 a gmeow:ToolCall ;
+    rdfs:label "turn 7, call 2: store a memory note"@x-gmeow-english ;
+    gmeow:calledByInvocation ex:invocation-7 ;
+    gmeow:usedTool ex:storeClaim ;
+    gmeow:toolArguments "{\"text\": \"the GTS spec mandates RFC 8949 deterministic encoding\"}" ;
+    gmeow:toolResult "{\"ok\": true}" ;
+    gmeow:atTime "2026-06-12T17:03:14Z"^^xsd:dateTime .
+
+# The produced entity links BACK to the call that wrote it (P5).
+ex:note-2200 a gmeow:Document ;
+    rdfs:label "stored memory note"@x-gmeow-english ;
+    gmeow:wasGeneratedBy ex:call-7-2 ;
+    gmeow:wasAttributedTo ex:assistant .
