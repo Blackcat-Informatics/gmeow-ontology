@@ -954,5 +954,30 @@ def mcp_start() -> None:
     run()
 
 
+@app.command(name="import-foundation")
+def import_foundation(
+    jsonl: Path = typer.Argument(  # noqa: B008
+        ..., help="Foundation corpus JSONL (private; never committed)."
+    ),
+    out_dir: Path = typer.Option(  # noqa: B008
+        Path("build/foundation"), "--out", help="Output directory."
+    ),
+    nq: Path | None = typer.Option(  # noqa: B008
+        None, "--nq", help="Optional .nq form for reconciliation."
+    ),
+) -> None:
+    """Import the foundation corpus (#364).
+
+    Emits the graph, the budget report, and the six lossy projections
+    (+ optional .nq reconciliation). Corpus-derived artifacts are external
+    products, never repo artifacts (privacy).
+    """
+    from gmeow_tools.foundation_import import run_import
+
+    _, budget = run_import(jsonl, out_dir, nq)
+    typer.echo(budget.as_text())
+    typer.echo(f"artifacts → {out_dir}")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
