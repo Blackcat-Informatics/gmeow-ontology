@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/risk>
+    a gmeow:Slice ;
+    rdfs:label "risk"@x-gmeow-english ;
+    skos:definition "The risk slice of the GMEOW ontology (extension tier): GMEOW Risk Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    dcterms:title "GMEOW Risk Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:sliceConsumer "The lbox principia importer (EPIC #348: failure_cascades — Trust Collapse and five siblings as named, graded, type-level chains) and threat-model worked examples (D3FEND countermeasures ↔ Mitigation; bowtie barriers ↔ mitigationCounters on CausalLinks). The norms (#351) and procedures extensions plug in through Mitigation's deliberately open measure range — no extension→extension dependency exists or may exist (P16 DAG rule)."@x-gmeow-english .

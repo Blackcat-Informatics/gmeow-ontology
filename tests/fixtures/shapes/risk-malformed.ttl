@@ -1,0 +1,50 @@
+# Malformed risk fixture (#354, EPIC #348). Five malformed constructs
+# (several produce more than one SHACL failure each; every expected
+# message is asserted in tests/test_risk.py):
+#   1. ex:freeFloatingHazard — a hazard with no bearer and no feared type
+#      (two violations from one node).
+#   2. ex:selfCausingLink — a link whose antecedent IS its consequent
+#      (plus no modality — two violations).
+#   3. ex:loopLinkA/B — a linkNext cycle (each link reaches itself).
+#   4. ex:ungradedCascade — a cascade with no severity.
+#   5. ex:idleMitigation — a mitigation with no measure and a counter that
+#      is neither a CausalLink nor a Hazard.
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:etA a gmeow:EventType ; rdfs:label "kind A"@en .
+ex:etB a gmeow:EventType ; rdfs:label "kind B"@en .
+
+# Violation 1: a disposition of nothing, toward nothing.
+ex:freeFloatingHazard a gmeow:Hazard ;
+    rdfs:label "ungrounded dread"@en .
+
+# Violation 2: self-causation, modality-less.
+ex:selfCausingLink a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etA ;
+    gmeow:linkConsequent ex:etA .
+
+# Violation 3: a two-link cycle.
+ex:loopLinkA a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etA ;
+    gmeow:linkConsequent ex:etB ;
+    gmeow:causalModality gmeow:causallyPromotes ;
+    gmeow:linkNext ex:loopLinkB .
+ex:loopLinkB a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etB ;
+    gmeow:linkConsequent ex:etA ;
+    gmeow:causalModality gmeow:causallyPromotes ;
+    gmeow:linkNext ex:loopLinkA .
+
+# Violation 4: an ungraded cascade is just a story.
+ex:ungradedCascade a gmeow:Cascade ;
+    rdfs:label "vague doom"@en ;
+    gmeow:cascadeFirstLink ex:loopLinkA .
+
+# Violation 5: no measure; counter is a plain person.
+ex:somebody a gmeow:Person ; rdfs:label "somebody"@en .
+ex:idleMitigation a gmeow:Mitigation ;
+    gmeow:mitigationCounters ex:somebody .

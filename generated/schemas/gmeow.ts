@@ -254,6 +254,14 @@ export enum CarrierMediumEnum {
     server_object = "mediumServerObject",
 };
 
+export enum CausalModalityEnum {
+
+    enables = "causallyEnables",
+    necessitates = "causallyNecessitates",
+    prevents = "causallyPrevents",
+    promotes = "causallyPromotes",
+};
+
 export enum CelestialObjectTypeEnum {
 
     asteroid = "celestialObjectTypeAsteroid",
@@ -1151,6 +1159,13 @@ export enum MetricKindEnum {
     phase_space_Euclidean = "metricSymplectic",
 };
 
+export enum MitigationStatusEnum {
+
+    active = "mitigationActive",
+    proposed = "mitigationProposed",
+    retired = "mitigationRetired",
+};
+
 export enum MultipartTypeEnum {
 
     alternative = "multipartTypeAlternative",
@@ -1874,6 +1889,14 @@ export enum SequenceFeatureTypeEnum {
     single_nucleotide_polymorphism_LEFT_PARENTHESISSNPRIGHT_PARENTHESIS = "sequenceFeatureTypeSNP",
 };
 
+export enum SeverityLevelEnum {
+
+    catastrophic = "severityCatastrophic",
+    minor = "severityMinor",
+    moderate = "severityModerate",
+    severe = "severitySevere",
+};
+
 export enum SexAssignedAtBirthEnum {
 
     assigned_female = "saabFemale",
@@ -2524,6 +2547,29 @@ export interface Capacity extends Measurement {
 
 
 export interface CarrierMedium {
+}
+
+
+
+export interface Cascade extends SocialObject {
+    cascadeFirstLink?: CausalLink,
+    cascadeSeverity?: SeverityLevel[],
+}
+
+
+
+export interface CausalLink {
+    causalModality?: CausalModality,
+    linkAntecedent?: EventType,
+    linkConsequent?: EventType,
+    linkMechanism?: string[],
+    linkNext?: CausalLink[],
+    linkStrength?: string[],
+}
+
+
+
+export interface CausalModality {
 }
 
 
@@ -3241,6 +3287,10 @@ export interface EventSeries extends Entity {
 
 
 export interface EventType {
+    typeCauses?: EventType[],
+    typeEnables?: EventType[],
+    typeMitigates?: EventType[],
+    typePrevents?: EventType[],
 }
 
 
@@ -3478,6 +3528,14 @@ export interface Group extends Entity {
 
 
 export interface GroupOperator {
+}
+
+
+
+export interface Hazard {
+    hazardBearer?: Entity,
+    hazardSeverity?: SeverityLevel[],
+    manifestedAsType?: EventType[],
 }
 
 
@@ -4064,6 +4122,19 @@ export interface MessageParticipantRole {
 
 
 export interface MetricKind {
+}
+
+
+
+export interface Mitigation {
+    mitigationCounters?: RiskFactor[],
+    mitigationMeasure?: string[],
+    mitigationStatus?: MitigationStatus[],
+}
+
+
+
+export interface MitigationStatus {
 }
 
 
@@ -4847,6 +4918,11 @@ export interface RightsType {
 
 
 
+export interface RiskFactor extends Entity {
+}
+
+
+
 export interface Role {
 }
 
@@ -5072,6 +5148,12 @@ export interface SerialWork extends Work {
 
 
 export interface Service extends Work {
+}
+
+
+
+export interface SeverityLevel {
+    moreSevereThan?: SeverityLevel[],
 }
 
 
