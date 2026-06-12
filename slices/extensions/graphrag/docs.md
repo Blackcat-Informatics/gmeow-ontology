@@ -7,7 +7,7 @@ GraphRAG systems derive an entity knowledge graph and pre-generated community
 summaries from a corpus — and throw the provenance away (arXiv:2404.16130).
 This extension keeps it: every artifact content-addressed (the existing
 `gmeow:contentDigest`), every step an attributed activity (the existing
-`gmeow:wasGeneratedBy` / `wasDerivedFrom`), every score a statement-level
+`gmeow:wasGeneratedBy` / `gmeow:wasDerivedFrom`), every score a statement-level
 annotation that coexists with its rivals (P9, P3).
 
 Consumer: **Project Lillith** (manifest, P15).

@@ -14,11 +14,11 @@
 # # REFUSED (Principle 5 — the genuine gap, #54): gmeow:Embedding / gmeow:VectorIndex have no external RDF vocabulary to cell against — model, dimensionality, metric, and index parameters have no agreed semantic representation anywhere. Recorded rather than papered over; revisit when a standard emerges.
 # # REFUSED (Principle 5 — no stable RDF namespace): OpenLineage and MLflow describe runs/lineage as JSON specs, not RDF vocabularies; bridging is a projection concern (#58 Workflow Run Crate), not a term alignment.
 # # REFUSED (Principle 5 — instance-level): Leiden/Louvain algorithm identities belong on the clustering Activity as instance data, not as TBox alignments.
+# # REFUSED (Principles 5/9 — the description/entity boundary): ExtractedEntity aligns to NOTHING entity-shaped (schema:Thing included): a description is not the thing it describes, and a mapping-layer bridge would invite consumers to skip the curation act that promotes one.
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Community	skos:relatedMatch	wd:Q105222918	semapv:ManualMappingCuration	0.6	Wikidata 'community detection' — the technique producing the artifact; curl-validated 2026-06-12
 gmeow:CommunitySummary	skos:relatedMatch	wd:Q1394144	semapv:ManualMappingCuration	0.6	Wikidata 'automatic summarization' — the technique; the artifact also bridges via its Summary parent; curl-validated 2026-06-12
 gmeow:Corpus	skos:closeMatch	schema:Dataset	semapv:ManualMappingCuration	0.7	the working retrieval dataset; the #58 Croissant/RO-Crate profiles project through this cell
 gmeow:Corpus	skos:closeMatch	wd:Q461183	semapv:ManualMappingCuration	0.8	Wikidata 'text corpus'; curl-validated 2026-06-12
 gmeow:Embedding	skos:closeMatch	wd:Q18395344	semapv:ManualMappingCuration	0.7	Wikidata 'word embedding' — the vector-representation technique family (no artifact-level RDF vocabulary exists; see trailer); curl-validated 2026-06-12
-gmeow:ExtractedEntity	skos:relatedMatch	schema:Thing	semapv:ManualMappingCuration	0.4	an extracted-entity DESCRIPTION projects as the schema:Thing it putatively describes only AFTER curation promotes it; the low confidence is the point
 gmeow:RetrievalEvent	skos:relatedMatch	wd:Q121362277	semapv:ManualMappingCuration	0.6	Wikidata 'retrieval-augmented generation' — the technique this event instruments; curl-validated 2026-06-12

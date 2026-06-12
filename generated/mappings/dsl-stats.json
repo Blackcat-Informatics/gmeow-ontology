@@ -22,7 +22,7 @@
   "gmeow-foundational.sssom.tsv": 7,
   "gmeow-gender.sssom.tsv": 28,
   "gmeow-genealogy.sssom.tsv": 23,
-  "gmeow-graphrag.sssom.tsv": 7,
+  "gmeow-graphrag.sssom.tsv": 6,
   "gmeow-gts.sssom.tsv": 3,
   "gmeow-images.sssom.tsv": 21,
   "gmeow-iso4217.sssom.tsv": 8,
@@ -53,7 +53,7 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1582,
+ "equivalences": 1581,
  "functions": 38,
  "mapping_sets": 52,
  "projections": 349

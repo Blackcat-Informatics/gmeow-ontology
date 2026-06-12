@@ -7,12 +7,15 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 gmeow:ContradictionNeedsTwoClaimsShape
     a sh:NodeShape ;
     rdfs:label "Contradiction needs two claims shape" ;
+    skos:definition "Closed-world half of the Contradiction relator's EL existential: a surfaced conflict relates at least two claim nodes — one claim cannot conflict with nothing (P9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetClass gmeow:Contradiction ;
     sh:property [
         sh:path gmeow:contradictsClaim ;
@@ -24,6 +27,8 @@ gmeow:ContradictionNeedsTwoClaimsShape
 gmeow:ChunkLocationShape
     a sh:NodeShape ;
     rdfs:label "Chunk location shape" ;
+    skos:definition "A Chunk segments exactly one source — re-chunking mints new individuals, never re-points one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetClass gmeow:Chunk ;
     sh:property [
         sh:path gmeow:chunkOf ;
@@ -35,6 +40,8 @@ gmeow:ChunkLocationShape
 gmeow:SpanSanityShape
     a sh:NodeShape ;
     rdfs:label "Span sanity shape" ;
+    skos:definition "A span's exclusive end offset must exceed its inclusive start; nonsensical spans would silently break the mechanical AIS checking the typed offsets exist for (#55)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetSubjectsOf gmeow:spanStart ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -51,6 +58,8 @@ gmeow:SpanSanityShape
 gmeow:MemoryItemOwnerShape
     a sh:NodeShape ;
     rdfs:label "Memory item owner shape" ;
+    skos:definition "Closed-world half of the MemoryItem role's relational dependence: a memory belonging to nobody is not a memory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetClass gmeow:MemoryItem ;
     sh:property [
         sh:path gmeow:memoryOf ;

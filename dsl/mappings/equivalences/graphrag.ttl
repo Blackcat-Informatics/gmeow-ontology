@@ -19,7 +19,7 @@ gmeow:mapsetGraphrag a gmeow:MappingSet ;
         The pipeline activities are prov:Activity by inheritance (provenance set); cells here cover the artifacts.
         schema.org: the corpus is the working dataset surface (#58's Croissant profile builds on this cell).
         Wikidata: hub identifiers for the technique family — several cells are relatedMatch because Wikidata names the TECHNIQUE (community detection, summarization) where GMEOW names the derived ARTIFACT.""" ;
-    gmeow:setTrailer "# REFUSED (Principle 5 — the genuine gap, #54): gmeow:Embedding / gmeow:VectorIndex have no external RDF vocabulary to cell against — model, dimensionality, metric, and index parameters have no agreed semantic representation anywhere. Recorded rather than papered over; revisit when a standard emerges.\n# REFUSED (Principle 5 — no stable RDF namespace): OpenLineage and MLflow describe runs/lineage as JSON specs, not RDF vocabularies; bridging is a projection concern (#58 Workflow Run Crate), not a term alignment.\n# REFUSED (Principle 5 — instance-level): Leiden/Louvain algorithm identities belong on the clustering Activity as instance data, not as TBox alignments." .
+    gmeow:setTrailer "# REFUSED (Principle 5 — the genuine gap, #54): gmeow:Embedding / gmeow:VectorIndex have no external RDF vocabulary to cell against — model, dimensionality, metric, and index parameters have no agreed semantic representation anywhere. Recorded rather than papered over; revisit when a standard emerges.\n# REFUSED (Principle 5 — no stable RDF namespace): OpenLineage and MLflow describe runs/lineage as JSON specs, not RDF vocabularies; bridging is a projection concern (#58 Workflow Run Crate), not a term alignment.\n# REFUSED (Principle 5 — instance-level): Leiden/Louvain algorithm identities belong on the clustering Activity as instance data, not as TBox alignments.\n# REFUSED (Principles 5/9 — the description/entity boundary): ExtractedEntity aligns to NOTHING entity-shaped (schema:Thing included): a description is not the thing it describes, and a mapping-layer bridge would invite consumers to skip the curation act that promotes one." .
 
 gmeow:eqGr001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Corpus ;
@@ -73,13 +73,4 @@ gmeow:eqGr006 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "Wikidata 'automatic summarization' — the technique; the artifact also bridges via its Summary parent; curl-validated 2026-06-12" ;
-    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
-
-gmeow:eqGr007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ExtractedEntity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:Thing ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.4 ;
-    gmeow:comment "an extracted-entity DESCRIPTION projects as the schema:Thing it putatively describes only AFTER curation promotes it; the low confidence is the point" ;
     gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
