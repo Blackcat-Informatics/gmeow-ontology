@@ -22,6 +22,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/employment> ,
         <https://blackcatinformatics.ca/gmeow/slices/finance> ,
         <https://blackcatinformatics.ca/gmeow/slices/genealogy> ,
+        <https://blackcatinformatics.ca/gmeow/slices/graphrag> ,
         <https://blackcatinformatics.ca/gmeow/slices/images> ,
         <https://blackcatinformatics.ca/gmeow/slices/languages> ,
         <https://blackcatinformatics.ca/gmeow/slices/lexicon> ,

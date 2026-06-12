@@ -412,6 +412,16 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/identity-sockpuppet-001>
         gmeow:counterpartOf  <https://blackcatinformatics.ca/gmeow/examples/identity-deceiver-001> .
 
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-east-wing-close>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> gmeow:validUntil "2026-12-31T22:00:00+00:00"^^xsd:dateTime )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/ai/assistant>;
+        gmeow:assertedAt   "2026-06-12T03:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.85;
+        gmeow:mappedFrom   <https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19> .
+
+<https://blackcatinformatics.ca/gmeow/examples/ai/east-wing>
+        gmeow:validUntil  "2026-12-31T22:00:00+00:00"^^xsd:dateTime .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-projected-001>
         rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> )>>;
         gmeow:assertedAt  "2026-06-06T00:00:00+00:00"^^xsd:dateTime;
