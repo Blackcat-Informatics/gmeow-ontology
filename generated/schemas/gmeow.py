@@ -967,9 +967,9 @@ class LandTenureTypeEnum(str, Enum):
 
 
 class LanguageEnum(str, Enum):
-    English = "languageEnglish"
-    French = "languageFrench"
-    Mandarin_Chinese = "languageMandarin"
+    English = "langEnglish"
+    French = "langFrench"
+    Mandarin_Chinese = "langMandarin"
 
 
 class LanguageChangeTypeEnum(str, Enum):

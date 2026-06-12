@@ -66,7 +66,7 @@ registries at once, and a code-less language carries none and loses nothing.
 
 ## The seed languages
 
-### gmeow:languageEnglish · gmeow:languageMandarin · gmeow:languageFrench
+### gmeow:langEnglish · gmeow:langMandarin · gmeow:langFrench
 
 The languages the framework itself speaks — the individuals anchoring `x-gmeow-english`,
 `x-gmeow-mandarin`, and `x-gmeow-french` on GMEOW's own labels and definitions. They are
