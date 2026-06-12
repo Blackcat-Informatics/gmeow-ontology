@@ -278,6 +278,8 @@ def evals_run(
     """Call a model API over the corpus (network; keys from env)."""
     from gmeow_tools.evals import run_model
 
+    if api not in ("openai", "anthropic"):
+        raise _fail(f"✗ unsupported --api {api!r} (openai | anthropic)")
     try:
         out = run_model(model=model, endpoint=endpoint, api=api)
     except httpx.HTTPError as exc:

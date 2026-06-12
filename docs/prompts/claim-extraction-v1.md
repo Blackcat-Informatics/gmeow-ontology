@@ -28,15 +28,19 @@ For EVERY claim you emit:
 3. "confidence": your credence in the claim, 0.0–1.0. Calibrate honestly:
    confidence is scored against measured grounding, not rewarded for size.
 4. "method":     "llm-extraction"
+5. "source":     the source id exactly as given ({source_id}) — REQUIRED;
+                 multi-document runs are scored per source.
 
 ABSTAIN rather than fabricate: if the document does not support a claim,
 DO NOT emit it. Emitting nothing for an unsupported topic is scored as
 correct abstention; emitting an ungrounded claim is scored as a
 hallucination. Never invent quotes; never adjust offsets to fit.
 
-If the document CONTRADICTS a commonly believed statement, you may emit the
-contradicting claim grounded in the refuting passage with
-"polarity": "refutes".
+"polarity" describes the SPAN'S stance toward YOUR claim: a span that
+states or entails your claim is "supports"; emit "refutes" only when you are
+deliberately recording that a passage contradicts the claim (a claim whose
+only evidence refutes it is scored as a hallucination — assert what the
+document supports, not what it denies).
 
 SOURCE DOCUMENT ({source_id}, content digest {content_digest}):
 ---

@@ -49,6 +49,18 @@ _CRITERIA = (
 )
 
 
+def _slug(model: str) -> str:
+    """Path- and IRI-safe key for a model id (raw id stays in metadata).
+
+    Provider-style ids contain ``/`` and ``.``; a raw id used as a path
+    would nest directories (or escape the outputs root via ``..``) and as a
+    Turtle local name would be illegal.
+    """
+    import re
+
+    return re.sub(r"[^A-Za-z0-9_-]+", "-", model).strip("-").lower() or "model"
+
+
 @dataclass(slots=True)
 class Scorecard:
     """One model's mechanical scores, all in [0, 1]."""
@@ -226,7 +238,7 @@ def _render_scores_ttl(cards: list[Scorecard]) -> str:
         "",
     ]
     for card in cards:
-        safe = card.model.replace(".", "-")
+        safe = _slug(card.model)
         lines.append(f"ev:model-{safe} a gmeow:SoftwareAgent .")
         for criterion in _CRITERIA:
             crit_local = {
@@ -257,10 +269,13 @@ class EvalsGenerator(Generator):
 
     @property
     def inputs(self) -> Sequence[Path]:
-        """The contract + the committed emissions + the corpus sources."""
+        """The contract + the committed emissions + the corpus sources.
+
+        The source files are DERIVED from the corpus manifest — adding or
+        renaming a corpus entry invalidates the generator with it.
+        """
         corpus_sources = [
-            PROJECT_ROOT / "README.md",
-            PROJECT_ROOT / "CONSTITUTION.md",
+            PROJECT_ROOT / location for location in sorted(_corpus_texts())
         ]
         return [
             _SCHEMA_FILE,
@@ -349,7 +364,7 @@ def run_model(
     key = api_key or os.environ.get(
         "ANTHROPIC_API_KEY" if api == "anthropic" else "OPENAI_API_KEY", ""
     )
-    out_dir = _OUTPUTS_DIR / model
+    out_dir = _OUTPUTS_DIR / _slug(model)
     out_dir.mkdir(parents=True, exist_ok=True)
     lines: list[str] = []
     for location, (text, digest) in sorted(_corpus_texts().items()):

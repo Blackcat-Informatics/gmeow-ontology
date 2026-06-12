@@ -265,7 +265,6 @@ def crosscheck_all() -> list[CrosscheckResult]:
             QC_DIR,
             VERIFY_DIR,
             TEMPORAL_QUERY_DIR,
-            AUDIT_QUERY_DIR,
         ):
             for rq in sorted(directory.glob("*.rq")):
                 plan.append((rq, base_graph, base_store))

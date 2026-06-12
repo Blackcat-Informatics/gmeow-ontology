@@ -74,7 +74,7 @@ JSON API" shape (no RDF knowledge required of consumers, P13):
   "method": "llm-extraction",
   "confidence": 0.95,
   "evidence": [
-    {"source": "…", "chunk": "…", "start": 60, "end": 141, "polarity": "polaritySupports"}
+    {"span": "…the span iri…", "source": "…", "chunk": "…", "start": 60, "end": 141, "polarity": "polaritySupports"}
   ],
   "flags": {"ungrounded": false, "contradicted": false, "stale": false},
   "contradicts": []

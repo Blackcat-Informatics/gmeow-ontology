@@ -4,7 +4,7 @@
   "title": "GMEOW claim emission",
   "description": "The flat shape a model emits per extracted claim (one JSON object per JSONL line) — #298's structured-output contract, mirrored by `gmeow audit --json`. No RDF is required of the model (CONSTITUTION P13); the harness converts valid emissions onto the claim spine and runs the #55 audit gates over them.",
   "type": "object",
-  "required": ["text", "method"],
+  "required": ["text", "method", "source"],
   "additionalProperties": false,
   "properties": {
     "text": {
@@ -24,7 +24,7 @@
     },
     "source": {
       "type": "string",
-      "description": "The source document id this claim was extracted from (a corpus sourceLocation)."
+      "description": "The source document id this claim was extracted from (a corpus sourceLocation). Required: multi-document runs are scored per source."
     },
     "evidence": {
       "type": "array",
@@ -47,7 +47,7 @@
           "end": {
             "type": "integer",
             "minimum": 1,
-            "description": "Offset, exclusive. Must exceed start."
+            "description": "Offset, exclusive. MUST exceed start (cross-field constraints are beyond declarative JSON Schema; the harness span verifier enforces it at runtime)."
           },
           "polarity": {
             "enum": ["supports", "refutes", "neutral"]
