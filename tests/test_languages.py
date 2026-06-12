@@ -11,6 +11,7 @@ usageInterval.
 from __future__ import annotations
 
 from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from rdflib.namespace import SKOS
 
 from gmeow_tools.graph import load_merged_graph
 
@@ -196,3 +197,100 @@ def test_projection_bcp47_tags_are_distinct_from_registry_codes() -> None:
         RDFS.range,
         URIRef("http://www.w3.org/2001/XMLSchema#language"),
     ) in graph
+
+
+def test_core_seed_languages_use_reference_catalog_iris() -> None:
+    """Core seeds share the gmeow:lang* IRI style with the reference catalog (#111)."""
+    graph = _graph()
+    for lang_iri in ("langEnglish", "langFrench", "langMandarin"):
+        iri = URIRef(GMEOW + lang_iri)
+        assert (iri, RDF.type, URIRef(GMEOW + "Language")) in graph
+        assert (iri, URIRef(GMEOW + "languageTag"), None) in graph
+        assert (iri, URIRef(GMEOW + "bcp47Tag"), None) in graph
+
+
+def test_reference_catalog_languages_are_annotated_and_aligned() -> None:
+    """Reference-catalog languages carry labels, tags, and alignments (#111)."""
+    graph = load_merged_graph(include_imports=True)
+    defined_by = URIRef(GMEOW + "imports/languages-reference")
+    tag_prop = URIRef(GMEOW + "languageTag")
+    bcp_prop = URIRef(GMEOW + "bcp47Tag")
+    code_prop = URIRef(GMEOW + "languageCode")
+    catalog_subjects: set[URIRef] = set()
+    for cls_name in ("Language", "FormalLanguage", "ProgrammingLanguage"):
+        for subject in graph.subjects(RDF.type, URIRef(GMEOW + cls_name)):
+            if (
+                isinstance(subject, URIRef)
+                and (
+                    subject,
+                    RDFS.isDefinedBy,
+                    defined_by,
+                )
+                in graph
+            ):
+                catalog_subjects.add(subject)
+    catalog_languages = sorted(catalog_subjects, key=str)
+    assert len(catalog_languages) >= 30, "catalog should contain many languages"
+
+    for lang in catalog_languages:
+        assert (lang, RDFS.label, None) in graph, f"{lang} missing rdfs:label"
+        assert (lang, SKOS.definition, None) in graph, f"{lang} missing skos:definition"
+        assert (lang, tag_prop, None) in graph, f"{lang} missing languageTag"
+        assert (lang, bcp_prop, None) in graph, f"{lang} missing bcp47Tag"
+        assert (lang, code_prop, None) in graph, f"{lang} missing languageCode"
+        assert (lang, SKOS.exactMatch, None) in graph, f"{lang} missing skos:exactMatch"
+
+
+def test_reference_catalog_programming_languages_typed() -> None:
+    """Reference-catalog programming languages are typed correctly (#111)."""
+    graph = load_merged_graph(include_imports=True)
+    for lang_iri in (
+        "langPython",
+        "langRust",
+        "langJavaScript",
+        "langTypeScript",
+        "langJava",
+    ):
+        iri = URIRef(GMEOW + lang_iri)
+        assert (iri, RDF.type, URIRef(GMEOW + "ProgrammingLanguage")) in graph
+
+
+def test_reference_catalog_glottolog_alignments() -> None:
+    """Natural languages in the reference catalog link to Glottolog (#111)."""
+    graph = load_merged_graph(include_imports=True)
+    defined_by = URIRef(GMEOW + "imports/languages-reference")
+    # langEnglish is defined in both core and catalog; use catalog-only languages.
+    glottolog_base = "https://glottolog.org/resource/languoid/id/"
+    for lang_iri in ("langJapanese", "langArabic", "langHindi", "langSpanish"):
+        iri = URIRef(GMEOW + lang_iri)
+        assert (iri, RDFS.isDefinedBy, defined_by) in graph
+        matches = list(graph.objects(iri, SKOS.exactMatch))
+        glottos = [
+            m
+            for m in matches
+            if isinstance(m, URIRef) and str(m).startswith(glottolog_base)
+        ]
+        assert glottos, f"{lang_iri} missing Glottolog skos:exactMatch"
+
+
+def test_language_tag_map_is_deterministic_and_covers_catalog() -> None:
+    """Public retagging map is deterministic and covers the catalog (#111, #164)."""
+    from gmeow_tools.language_tags import load_tag_map
+
+    graph_a = load_merged_graph(include_imports=True)
+    graph_b = load_merged_graph(include_imports=True)
+    tag_map_a = load_tag_map(graph_a)
+    tag_map_b = load_tag_map(graph_b)
+    assert tag_map_a == tag_map_b, "load_tag_map output must be deterministic"
+
+    for internal_tag in (
+        "x-gmeow-english",
+        "x-gmeow-french",
+        "x-gmeow-mandarin",
+        "x-gmeow-japanese",
+        "x-gmeow-arabic",
+        "x-gmeow-hindi",
+        "x-gmeow-python",
+    ):
+        assert internal_tag in tag_map_a, f"missing tag mapping for {internal_tag}"
+        assert tag_map_a[internal_tag], f"empty BCP-47 mapping for {internal_tag}"

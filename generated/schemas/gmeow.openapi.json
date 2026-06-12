@@ -50521,9 +50521,9 @@
           "LanguageEnum": {
             "description": "",
             "enum": [
-              "languageEnglish",
-              "languageFrench",
-              "languageMandarin"
+              "langEnglish",
+              "langFrench",
+              "langMandarin"
             ],
             "title": "LanguageEnum",
             "type": "string"
