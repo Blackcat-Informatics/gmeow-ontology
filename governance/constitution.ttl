@@ -72,7 +72,7 @@ meta:gate-generator-registry a meta:Gate ;
     meta:makeTarget "check-generated", "regenerate" ;
     meta:generator "statements", "mappings", "gts", "exports", "metadata",
         "schemas", "lpg", "matrix", "apache", "gts-vectors", "catalog",
-        "profiles", "frame-shapes" .
+        "profiles", "frame-shapes", "evals" .
 
 meta:tests-narrow-waist a meta:TestSuite ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)" ;
@@ -213,6 +213,25 @@ meta:gate-compliance-report a meta:Gate ;
     meta:cliCommand "compliance-report" ;
     meta:makeTarget "compliance-report" .
 
+meta:gate-claim-audit a meta:Gate ;
+    rdfs:label "the claim audit gates: ungrounded/contradicted/stale, flagged never deleted (#55)" ;
+    meta:artifact "src/gmeow_tools/audit.py", "queries/audit",
+        "docs/hallucination-resistant-kg.md", "docs/prompts/claim-extraction-v1.md" ;
+    meta:symbol "audit_graph" ;
+    meta:cliCommand "audit" ;
+    meta:makeTarget "audit" .
+
+meta:gate-evals a meta:Gate ;
+    rdfs:label "the claim-extraction eval suite + leaderboard (#298)" ;
+    meta:artifact "src/gmeow_tools/evals.py", "evals/rubric.ttl",
+        "evals/claim-emission.schema.json" ;
+    meta:symbol "score_emissions" .
+
+meta:tests-claim-pattern a meta:TestSuite ;
+    rdfs:label "audit + evals mechanical-scoring tests" ;
+    meta:artifact "tests/test_audit.py", "tests/test_evals.py",
+        "tests/fixtures/coverage/hallucination-kg.ttl" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -269,7 +288,8 @@ meta:Principle10 a meta:Principle ;
     meta:number 10 ;
     meta:title "Suppression, never erasure" ;
     meta:enforcedBy meta:gate-suppression, meta:tests-suppression,
-        meta:gate-suppression-injection, meta:tests-leak-conformance .
+        meta:gate-suppression-injection, meta:tests-leak-conformance,
+        meta:gate-claim-audit .
 
 meta:Principle11 a meta:Principle ;
     meta:number 11 ;
@@ -291,7 +311,8 @@ meta:Principle13 a meta:Principle ;
 meta:Principle14 a meta:Principle ;
     meta:number 14 ;
     meta:title "Grounded agent memory and claim provenance are the flagship" ;
-    meta:enforcedBy meta:tests-claim-spine, meta:gate-statements .
+    meta:enforcedBy meta:tests-claim-spine, meta:gate-statements,
+        meta:gate-claim-audit, meta:gate-evals, meta:tests-claim-pattern .
 
 meta:Principle15 a meta:Principle ;
     meta:number 15 ;

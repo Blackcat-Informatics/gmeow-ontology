@@ -180,6 +180,7 @@ def _registered_generators() -> frozenset[str]:
     from gmeow_tools import (  # noqa: F401  (@register side effects)
         apache,
         catalog_gen,
+        evals,
         export,
         frame_shapes_gen,
         gts_gen,

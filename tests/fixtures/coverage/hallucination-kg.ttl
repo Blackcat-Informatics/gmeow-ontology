@@ -1,0 +1,196 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# The hallucination-resistant KG worked example (#55) — DOGFOODED: the corpus
+# is GMEOW's own README.md and CONSTITUTION.md, with REAL content digests and
+# REAL character offsets (computed 2026-06-12; the digests pin the version —
+# offsets are valid FOR THAT DIGEST, and the quote selectors re-anchor when
+# the documents move, the dual-selector doctrine).
+#
+# Four engineered cases:
+#   1. ex:claim-grounded      — evidence-backed (the clean path)
+#   2. ex:claim-hallucinated  — no groundedIn span (flagged by
+#                               ClaimNeedsEvidenceShape + claims-without-evidence.rq)
+#   3. ex:claim-low / ex:claim-high — contradiction where the rival carries
+#                               HIGHER confidence (claims-contradicted-by-
+#                               higher-confidence.rq)
+#   4. ex:claim-stale         — the source was modified AFTER assertion
+#                               (StaleSourceShape + stale-source-claims.rq)
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/hallucination-kg/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The corpus: GMEOW's own documents.
+ex:constitution a gmeow:Document ;
+    rdfs:label "CONSTITUTION.md"@en ;
+    gmeow:sourceLocation "CONSTITUTION.md" ;
+    gmeow:contentDigest "blake3:28095794e8c96325ecafcf36dbc10266132d3da5483e62779f398811cd8d780d" .
+
+ex:readme a gmeow:Document ;
+    rdfs:label "README.md"@en ;
+    gmeow:sourceLocation "README.md" ;
+    gmeow:contentDigest "blake3:796331d99dbaab78c0f9857aedb0aa3cfaea1c30910c390634d1b34823b933ea" ;
+    # Engineered for case 4: 'modified' after ex:claim-stale's assertedAt.
+    gmeow:sourceModifiedAt "2026-06-12T09:00:00Z"^^xsd:dateTime .
+
+ex:chunk-const-p4 a gmeow:Chunk ;
+    gmeow:chunkOf ex:constitution ;
+    gmeow:spanStart "3400"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "3661"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "blake3:df79c4bebb18c9fc56c0f2eaf382524735b51700a48b0daee1e82cd3fa59eec5" .
+
+ex:chunk-readme-memory a gmeow:Chunk ;
+    gmeow:chunkOf ex:readme ;
+    gmeow:spanStart "315"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "557"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "blake3:1394dd14604a74bcde1662e69b94215b765bb3adf0bdd6a081e2bdfdfe7b34b4" .
+
+# --- The published extraction prompt (its text is docs/prompts/
+# claim-extraction-v1.md; the digest pins the version).
+ex:extraction-template-v1 a gmeow:PromptTemplate ;
+    rdfs:label "claim-extraction prompt v1"@en ;
+    gmeow:promptRole gmeow:promptRoleSystem ;
+    gmeow:sourceLocation "docs/prompts/claim-extraction-v1.md" .
+
+ex:extractor a gmeow:SoftwareAgent ; rdfs:label "extraction model"@en .
+ex:auditor   a gmeow:SoftwareAgent ; rdfs:label "grounding auditor"@en .
+
+ex:invocation a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:extractor ;
+    gmeow:samplingTemperature 0.0 .
+
+# --- Case 1: the GROUNDED claim. Quote within the chunk at [60,141).
+ex:stmt-grounded a owl:Axiom ;
+    owl:annotatedSource   <https://blackcatinformatics.ca/gmeow> ;
+    owl:annotatedProperty rdfs:comment ;
+    owl:annotatedTarget   "Every fact is authored once in the canonical core; all other forms are generated." .
+
+ex:claim-grounded a gmeow:StandpointClaim ;
+    rdfs:label "GMEOW authors every fact once; all other forms are generated."@en ;
+    gmeow:vantage ex:extractor ;
+    gmeow:observedFeature ex:stmt-grounded ;
+    gmeow:observationMethod gmeow:methodLlmExtraction ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:wasGeneratedBy ex:invocation ;
+    gmeow:wasAttributedTo ex:extractor ;
+    gmeow:confidence 0.95 ;
+    gmeow:assertedAt "2026-06-12T08:00:00Z"^^xsd:dateTime ;
+    gmeow:groundedIn ex:span-grounded .
+
+ex:span-grounded a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk ex:chunk-const-p4 ;
+    gmeow:spanStart "60"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "141"^^xsd:nonNegativeInteger ;
+    gmeow:selectorTextQuote "Every fact is authored once in the canonical core; all other forms are generated." ;
+    gmeow:supportPolarity gmeow:polaritySupports .
+
+# --- Case 2: the HALLUCINATION — no groundedIn span. Retained, flagged.
+ex:stmt-hallucinated a owl:Axiom ;
+    owl:annotatedSource   <https://blackcatinformatics.ca/gmeow> ;
+    owl:annotatedProperty rdfs:comment ;
+    owl:annotatedTarget   "GMEOW requires every consumer to run a reasoner." .
+
+ex:claim-hallucinated a gmeow:StandpointClaim ;
+    rdfs:label "GMEOW requires every consumer to run a reasoner. (FABRICATED — the constitution says the opposite)"@en ;
+    gmeow:vantage ex:extractor ;
+    gmeow:observedFeature ex:stmt-hallucinated ;
+    gmeow:observationMethod gmeow:methodLlmExtraction ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:wasGeneratedBy ex:invocation ;
+    gmeow:wasAttributedTo ex:extractor ;
+    gmeow:confidence 0.7 ;
+    gmeow:assertedAt "2026-06-12T08:00:00Z"^^xsd:dateTime .
+
+# The auditor's verdict on the hallucination: itself a vantage-indexed claim,
+# Frankfurt's category from the standpoint slice.
+ex:stmt-hallu-claimed a owl:Axiom ;
+    owl:annotatedSource   ex:claim-hallucinated ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedTarget   gmeow:probable .
+
+ex:verdict-hallucinated a gmeow:StandpointClaim ;
+    gmeow:vantage ex:auditor ;
+    gmeow:observedFeature ex:stmt-hallu-claimed ;
+    gmeow:observationMethod gmeow:methodNliDerivation ;
+    gmeow:claimModality gmeow:bullshit ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+
+# --- Case 3: CONTRADICTED by a higher-confidence claim. Both remain.
+ex:stmt-low a owl:Axiom ;
+    owl:annotatedSource   <https://blackcatinformatics.ca/gmeow> ;
+    owl:annotatedProperty rdfs:comment ;
+    owl:annotatedTarget   "GMEOW's home market is the linked-data community." .
+
+ex:claim-low a gmeow:StandpointClaim ;
+    rdfs:label "GMEOW's home market is the linked-data community."@en ;
+    gmeow:vantage ex:extractor ;
+    gmeow:observedFeature ex:stmt-low ;
+    gmeow:observationMethod gmeow:methodLlmExtraction ;
+    gmeow:claimModality gmeow:conceivable ;
+    gmeow:wasGeneratedBy ex:invocation ;
+    gmeow:confidence 0.4 ;
+    gmeow:assertedAt "2026-06-12T10:00:00Z"^^xsd:dateTime ;
+    gmeow:groundedIn ex:span-low .
+
+ex:span-low a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk ex:chunk-readme-memory ;
+    gmeow:spanStart "40"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "82"^^xsd:nonNegativeInteger ;
+    gmeow:selectorTextQuote "grounded agent memory and claim provenance" ;
+    # The span REFUTES the low claim: the README names the AI ecosystem.
+    gmeow:supportPolarity gmeow:polarityRefutes .
+
+ex:stmt-high a owl:Axiom ;
+    owl:annotatedSource   <https://blackcatinformatics.ca/gmeow> ;
+    owl:annotatedProperty rdfs:comment ;
+    owl:annotatedTarget   "GMEOW's flagship is grounded agent memory and claim provenance." .
+
+ex:claim-high a gmeow:StandpointClaim ;
+    rdfs:label "GMEOW's flagship is grounded agent memory and claim provenance."@en ;
+    gmeow:vantage ex:extractor ;
+    gmeow:observedFeature ex:stmt-high ;
+    gmeow:observationMethod gmeow:methodLlmExtraction ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:wasGeneratedBy ex:invocation ;
+    gmeow:confidence 0.9 ;
+    gmeow:assertedAt "2026-06-12T10:00:00Z"^^xsd:dateTime ;
+    gmeow:groundedIn ex:span-high .
+
+ex:span-high a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk ex:chunk-readme-memory ;
+    gmeow:spanStart "40"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "82"^^xsd:nonNegativeInteger ;
+    gmeow:selectorTextQuote "grounded agent memory and claim provenance" ;
+    gmeow:supportPolarity gmeow:polaritySupports .
+
+ex:contradiction-market a gmeow:Contradiction ;
+    gmeow:contradictsClaim ex:claim-low, ex:claim-high ;
+    gmeow:contradictionKind gmeow:contradictionKindFraming ;
+    gmeow:detectedBy ex:auditor .
+
+# --- Case 4: STALE SOURCE — the README's sourceModifiedAt (09:00) is after
+# this claim's assertedAt (08:00): the evidence may have drifted.
+ex:stmt-stale a owl:Axiom ;
+    owl:annotatedSource   <https://blackcatinformatics.ca/gmeow> ;
+    owl:annotatedProperty rdfs:comment ;
+    owl:annotatedTarget   "The README's positioning paragraph reads as captured at 08:00." .
+
+ex:claim-stale a gmeow:StandpointClaim ;
+    rdfs:label "claim grounded in a chunk of the since-modified README"@en ;
+    gmeow:vantage ex:extractor ;
+    gmeow:observedFeature ex:stmt-stale ;
+    gmeow:observationMethod gmeow:methodLlmExtraction ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:wasGeneratedBy ex:invocation ;
+    gmeow:confidence 0.8 ;
+    gmeow:assertedAt "2026-06-12T08:00:00Z"^^xsd:dateTime ;
+    gmeow:groundedIn ex:span-stale .
+
+ex:span-stale a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk ex:chunk-readme-memory ;
+    gmeow:spanStart "40"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "82"^^xsd:nonNegativeInteger ;
+    gmeow:selectorTextQuote "grounded agent memory and claim provenance" ;
+    gmeow:supportPolarity gmeow:polaritySupports .
