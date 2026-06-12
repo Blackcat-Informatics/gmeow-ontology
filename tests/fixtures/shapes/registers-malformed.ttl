@@ -1,0 +1,37 @@
+# Malformed registers fixture (#355, EPIC #348). Four violations:
+#   1. ex:orphanPersona — a persona with no bearer.
+#   2. ex:mutePersona — a persona with no register (and a literal register
+#      on a second triple — two violations from one node).
+#   3. ex:aimlessGuide — a style guide voicing nothing.
+#   4. ex:driftingGuide — a style guide whose exemplar document carries no
+#      content digest.
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:agent a gmeow:Person ; rdfs:label "an agent"@en .
+
+# Violation 1: nobody's persona.
+ex:orphanPersona a gmeow:Persona ;
+    rdfs:label "free-floating mask"@en ;
+    gmeow:personaRegister gmeow:registerPublic .
+
+# Violation 2: no register IRI — only a free literal.
+ex:mutePersona a gmeow:Persona ;
+    rdfs:label "registerless persona"@en ;
+    gmeow:personaBearer ex:agent ;
+    gmeow:personaRegister "formal" .
+
+# Violation 3: a style guide for nothing.
+ex:aimlessGuide a gmeow:StyleGuide ;
+    rdfs:label "guide to nowhere"@en .
+
+# Violation 4: an undigested voice exemplar can drift silently.
+ex:driftingGuide a gmeow:StyleGuide ;
+    rdfs:label "drifting guide"@en ;
+    gmeow:styleGuideFor gmeow:registerPublic ;
+    gmeow:exemplifiedBy ex:undigestedDoc .
+ex:undigestedDoc a gmeow:Document ;
+    rdfs:label "no digest"@en .

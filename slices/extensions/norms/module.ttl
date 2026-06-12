@@ -743,3 +743,116 @@ gmeow:assessmentScoreValue
     rdfs:label "assessment score value"@x-gmeow-english ;
     skos:definition "The numeric score, on the scale the criterion or rubric declares. Functional and mandatory (SHACL). A datatype twin of observationResult (which is entity-valued — the claimModality pattern); zeros are scores, never absences (false positives are worse than zeros)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# =========================================================================== #
+# REGISTERS & PERSONAS — context-activated expression (issue #355, EPIC #348)
+#
+# Same agent, same norms, different expression by context. A persona is not
+# a different self and not a deception — where projected and held standpoints
+# DIVERGE, that is the deception module's territory (#212; the boundary
+# between register-switching and impersonation is documented there and here,
+# never axiomatized). A persona that merely switches register deceives
+# nobody.
+#
+# GROUNDING DECISION (deviation from the #355 sketch, recorded): Persona is
+# a RELATOR (the NameUsage / Participation / DepictionUsage idiom), not a
+# gufo:Role class. gUFO roles CLASSIFY endurants — one individual under
+# contingent classification — but a persona needs its own identity: PRIMARY
+# and PRIVATE are two nodes of one agent, each carrying registers, style
+# guides, activation conditions, and a suppressible tenure. The DUL
+# Role-isDefinedIn-Description-classifiedIn-Situation grounding maps onto
+# relator + Condition: the Description is the persona's norm set, the
+# Situation its activation context. Reify-on-demand has no flat 80% here —
+# a persona IS the reification.
+#
+# The register vocabulary spine lives in the names CORE slice
+# (gmeow:Register, with gmeow:NameRegister ⊑ gmeow:Register): the dependency
+# direction requires the umbrella below its consumers, and register-of-
+# address was already core. This section mints persona-facing Register
+# individuals and the expression machinery. Persona precedence under
+# conflict needs NO new machinery: gmeow:overrides / gmeow:PrecedenceTenure
+# on their activation norms. The same-norms invariant ("one agent's personas
+# express one Tier-1 norm set") is a COMPETENCY QUERY, not a shape —
+# divergence is legal (P9); the query makes it visible.
+# =========================================================================== #
+
+gmeow:Persona
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Persona"@x-gmeow-english ;
+    skos:definition "A reified expression policy of one agent — the relator binding {bearer} × {register(s)} × {expressed norms} × {activation context}. PRIMARY and PRIVATE are two Personas of one agent; 'Dr. Chen at the clinic' and 'Mom at home' are two of another. No primaryPersona exists or ever will (Principle 9): personas are co-equal, context-activated, and withdrawn by suppression, never deletion (Principle 10). Register-switching is not deception — divergence of held and projected standpoints is the deception module's territory (#212), a documented boundary with no axiom coupling."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:personaBearer
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Persona ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "persona bearer"@x-gmeow-english ;
+    skos:definition "The agent whose expression policy this persona is. Functional and mandatory (SHACL): one persona, one bearer; an agent bears many co-equal personas."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:personaRegister
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Persona ;
+    rdfs:range gmeow:Register ;
+    rdfs:label "persona register"@x-gmeow-english ;
+    skos:definition "A register this persona expresses in — drawn from the names-core gmeow:Register spine (a name register IS a register; persona and address registers share one vocabulary). NOT functional, at least one (SHACL): a persona may span registers (public-formal sliding to public-wry), and the vocabulary is OPEN (sh:nodeKind sh:IRI, never sh:in — Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:activatedIn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Persona ;
+    rdfs:label "activated in"@x-gmeow-english ;
+    skos:definition "The context that activates this persona — a gmeow:Condition (the norms machinery: prose-canonical, optionally formalized, evaluated only as vantage-indexed ConditionEvaluations) or a situation type. Range intentionally open. NOT functional: several activation contexts coexist; blend-vs-compete dynamics between simultaneously-activated personas are solver work over the recorded precedence claims (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:expressesNorm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Persona ;
+    rdfs:range gmeow:Norm ;
+    rdfs:label "expresses norm"@x-gmeow-english ;
+    skos:definition "A norm this persona expresses — the 'same principia, different registers' invariant made queryable: whether all personas of one agent express the same authority-absolute norm set is a COMPETENCY QUERY, deliberately not a shape, because divergence is legal (Principle 9) and the query makes it visible rather than forbidden. NOT functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# --------------------------------------------------------------------------- #
+# Style guides — the voice payload, byte-perfect, never shredded
+# --------------------------------------------------------------------------- #
+
+gmeow:StyleGuide
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Style Guide"@x-gmeow-english ;
+    skos:definition "The voice payload of a persona or register — prose whose REGISTER IS THE CONTENT. The prose-voice doctrine (EPIC #348 gap analysis): voice documents attach byte-perfect via gmeow:exemplifiedBy (content-digested Documents carrying gmeow:hasAboutness gmeow:aboutnessEnacts — the document does not describe the voice, it IS the voice), never shredded into pseudo-quantified style triples. Style dimensions, when stated, are prose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:styleGuideFor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:StyleGuide ;
+    rdfs:label "style guide for"@x-gmeow-english ;
+    skos:definition "What this guide voices — a gmeow:Persona or a gmeow:Register value. Range intentionally open across the two. NOT functional (one guide may voice a persona and its register); at least one (SHACL): a style guide for nothing is just a document."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:exemplifiedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:StyleGuide ;
+    rdfs:range gmeow:Document ;
+    rdfs:label "exemplified by"@x-gmeow-english ;
+    skos:definition "A document whose prose EXEMPLIFIES the voice — byte-perfect, carrying gmeow:contentDigest (SHACL: an undigested exemplar can drift silently) and gmeow:hasAboutness gmeow:aboutnessEnacts (#349: it does not describe the voice, it performs it). NOT functional: several exemplifying documents coexist."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# Persona-facing Register individuals (the names-core spine, extended here).
+gmeow:registerPublic     a gmeow:Register ; rdfs:label "public"@x-gmeow-english ;
+    skos:definition "The public register — expression toward an undifferentiated or hostile audience."@x-gmeow-english .
+gmeow:registerPublic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:registerPrivate    a gmeow:Register ; rdfs:label "private"@x-gmeow-english ;
+    skos:definition "The private register — expression within a trusted inner scope."@x-gmeow-english .
+gmeow:registerPrivate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:registerCeremonial a gmeow:Register ; rdfs:label "ceremonial"@x-gmeow-english ;
+    skos:definition "The ceremonial register — ritual, liturgical, or protocol-bound expression."@x-gmeow-english .
+gmeow:registerCeremonial rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:registerClinical   a gmeow:Register ; rdfs:label "clinical"@x-gmeow-english ;
+    skos:definition "The clinical register — professional, affect-controlled expression (bedside manner, counsel)."@x-gmeow-english .
+gmeow:registerClinical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:registerBrandVoice a gmeow:Register ; rdfs:label "brand voice"@x-gmeow-english ;
+    skos:definition "The brand-voice register — an organization's curated public expression identity."@x-gmeow-english .
+gmeow:registerBrandVoice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .

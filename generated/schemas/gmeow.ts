@@ -1632,6 +1632,15 @@ export enum ReferenceFrameEnum {
     what3words_Reference_Frame = "referenceFrameWhat3Words",
 };
 
+export enum RegisterEnum {
+
+    brand_voice = "registerBrandVoice",
+    ceremonial = "registerCeremonial",
+    clinical = "registerClinical",
+    private = "registerPrivate",
+    public = "registerPublic",
+};
+
 export enum RegulatoryOverlayTypeEnum {
 
     aerodrome_traffic_zone_LEFT_PARENTHESISATZRIGHT_PARENTHESIS = "overlayTypeAerodromeTrafficZone",
@@ -3924,7 +3933,7 @@ export interface MaintenanceStatus {
 
 export interface Manifestation extends CreativeWork {
     embodies?: Expression[],
-    exemplifiedBy?: Item[],
+    exemplifiedBy?: Document[],
     hasManifestationFormat?: ManifestationFormat,
 }
 
@@ -4461,6 +4470,15 @@ export interface PersonName extends Appellation {
 
 
 
+export interface Persona {
+    activatedIn?: string[],
+    expressesNorm?: Norm[],
+    personaBearer?: Agent,
+    personaRegister?: Register[],
+}
+
+
+
 export interface PhysicalCarrierType {
 }
 
@@ -4728,6 +4746,11 @@ export interface ReferencePosition extends Entity {
 export interface RegionSelector extends InformationObject {
     selectorType?: SelectorType,
     selectorValue?: string[],
+}
+
+
+
+export interface Register {
 }
 
 
@@ -5247,6 +5270,12 @@ export interface Stream extends Entity {
     streamPlatform?: Agent[],
     streamSample?: Entity[],
     streamSensor?: Agent[],
+}
+
+
+
+export interface StyleGuide extends InformationObject {
+    styleGuideFor?: string[],
 }
 
 

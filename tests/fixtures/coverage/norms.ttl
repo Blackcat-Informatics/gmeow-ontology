@@ -63,3 +63,18 @@ ex:assessment a gmeow:ComplianceAssessment ;
     gmeow:assessedEvent ex:event ;
     gmeow:assessedNorm ex:norm1 ;
     gmeow:complianceVerdict gmeow:verdictHeld .
+
+# Registers & personas coverage (#355).
+ex:persona a gmeow:Persona ;
+    gmeow:personaBearer ex:agent ;
+    gmeow:personaRegister gmeow:registerPublic ;
+    gmeow:expressesNorm ex:norm1 ;
+    gmeow:activatedIn ex:condA .
+
+ex:styleGuide a gmeow:StyleGuide ;
+    gmeow:styleGuideFor ex:persona ;
+    gmeow:exemplifiedBy ex:voiceDoc .
+
+ex:voiceDoc a gmeow:Document ;
+    gmeow:contentDigest "blake3:coverage" ;
+    gmeow:hasAboutness gmeow:aboutnessEnacts .
