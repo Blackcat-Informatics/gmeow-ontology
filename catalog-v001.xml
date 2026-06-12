@@ -16,6 +16,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/accounts" uri="slices/core/accounts/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/aggregation" uri="slices/extensions/aggregation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/agreements" uri="slices/core/agreements/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/ai" uri="slices/core/ai/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence" uri="slices/extensions/archaeological-evidence/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/attestation" uri="slices/core/attestation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/calendar" uri="slices/core/calendar/module.ttl"/>

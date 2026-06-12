@@ -1,0 +1,96 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: one grounded extracted claim, end to end — corpus, chunk,
+# retrieval, invocation, claim, pinned evidence — plus an UNGROUNDED claim
+# (the flagged hallucination) and the Contradiction surfacing their conflict.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/ai/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:handbook a gmeow:Document ;
+    rdfs:label "facilities handbook, 2026 edition"@en ;
+    gmeow:contentDigest "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0" .
+
+ex:corpus-facilities a gmeow:Corpus ;
+    rdfs:label "facilities corpus"@en ;
+    gmeow:corpusMember ex:handbook .
+
+ex:chunk-042 a gmeow:Chunk ;
+    gmeow:chunkOf ex:handbook ;
+    gmeow:spanStart "18200"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "18950"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" .
+
+ex:embedding-042 a gmeow:Embedding ;
+    gmeow:embeddingOf ex:chunk-042 ;
+    gmeow:embeddingModel ex:embedder ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:vectorRef "s3://vectors/facilities/chunk-042"^^xsd:anyURI .
+
+ex:embedder a gmeow:SoftwareAgent ; rdfs:label "embedder-v3"@en .
+
+ex:index-facilities a gmeow:VectorIndex ;
+    gmeow:indexesCorpus ex:corpus-facilities ;
+    gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:indexParameters "{\"M\": 16, \"efConstruction\": 200}" .
+
+ex:retrieval-7 a gmeow:RetrievalEvent ;
+    gmeow:forQuery "when does the east wing close?" ;
+    gmeow:againstIndex ex:index-facilities ;
+    gmeow:retrievedChunk ex:chunk-042 .
+
+ex:assistant a gmeow:SoftwareAgent ; rdfs:label "facilities assistant model"@en .
+
+ex:card-assistant a gmeow:ModelCard ;
+    gmeow:describesModel ex:assistant ;
+    gmeow:modelProvider "Example Labs" ;
+    gmeow:modelVersionTag "assistant-2026-05-01" ;
+    gmeow:modelContextWindow "200000"^^xsd:positiveInteger ;
+    gmeow:modelTrainingCutoff "2026-01-31"^^xsd:date .
+
+ex:prompt-extract a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleSystem ;
+    gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" .
+
+ex:invocation-19 a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:hasPrompt ex:prompt-extract ;
+    gmeow:samplingTemperature 0.0 ;
+    gmeow:producedOutput ex:claim-close-2200 .
+
+# The GROUNDED claim: evidence pinned into the retrieved chunk.
+ex:claim-close-2200 a gmeow:Claim, gmeow:GeneratedClaim, gmeow:ExtractedClaim ;
+    gmeow:claimText "The east wing closes at 22:00 on weekdays." ;
+    gmeow:extractionMethod gmeow:extractionMethodLlm ;
+    gmeow:wasGeneratedBy ex:invocation-19 ;
+    gmeow:wasAttributedTo ex:assistant ;
+    gmeow:groundedIn ex:span-close-2200 .
+
+ex:span-close-2200 a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk ex:chunk-042 ;
+    gmeow:spanStart "310"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "366"^^xsd:nonNegativeInteger ;
+    gmeow:supportPolarity gmeow:polaritySupports .
+
+# The UNGROUNDED claim: no groundedIn span — the flagged hallucination,
+# retained, never deleted (P10); #55's audit gate surfaces it.
+ex:claim-close-2300 a gmeow:Claim, gmeow:GeneratedClaim ;
+    gmeow:claimText "The east wing closes at 23:00 on weekdays." ;
+    gmeow:extractionMethod gmeow:extractionMethodLlm ;
+    gmeow:wasGeneratedBy ex:invocation-19 ;
+    gmeow:wasAttributedTo ex:assistant .
+
+# The conflict, SURFACED and attributed — never resolved by rank (P9).
+ex:contradiction-close a gmeow:Contradiction ;
+    gmeow:contradictsClaim ex:claim-close-2200, ex:claim-close-2300 ;
+    gmeow:contradictionKind gmeow:contradictionKindNumeric ;
+    gmeow:detectedBy ex:assistant .
+
+# Memory: the grounded claim remembered by the agent (semantic register).
+ex:claim-close-2200 a gmeow:MemoryItem ;
+    gmeow:memoryOf ex:assistant ;
+    gmeow:memoryKind gmeow:memoryKindSemantic .

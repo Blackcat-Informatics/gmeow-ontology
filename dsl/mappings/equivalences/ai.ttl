@@ -1,0 +1,101 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix mls:    <http://www.w3.org/ns/mls#> .
+@prefix schema: <https://schema.org/> .
+@prefix oa:     <http://www.w3.org/ns/oa#> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences for the AI claim layer (#54) — GMEOW authoring source.
+# All alignments BY REFERENCE (Principle 5); the literature's own verdict —
+# a combined claim-provenance schema is "an emerging intersection, not an
+# established specification" — is why most cells are closeMatch/relatedMatch:
+# each external vocabulary owns one slice of the picture.
+
+gmeow:mapsetAi a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/ai" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """AI / RAG / GraphRAG claim-layer alignments (#54).
+        PROV-O: the activity spine (ModelInvocation/RetrievalEvent/EvaluationRun are prov:Activity by inheritance — the parent gmeow:Activity cell carries that; here only the AI-specific seams are added).
+        ML-Schema: mls:Run is the W3C member-submission counterpart of a model invocation; mls:Model the trained-model artifact.
+        schema.org: schema:Claim is the published claim documented in fact-checking markup — GMEOW's Claim is broader (any contestable assertion with statement-level epistemics), so closeMatch; the principled REFUSAL of schema:ClaimReview's single reviewRating verdict is recorded in the trailer.
+        Web Annotation: an EvidenceSpan grounding a claim is near-isomorphic to an oa:Annotation whose target is the chunk with selectors; the full projection is #55's deliverable.
+        Wikidata: hub identifiers for the headline concepts.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5/9 — verdict semantics): schema:ClaimReview. Its single reviewRating adjudicates a winner; GMEOW contradictions coexist standpoint-indexed, surfaced by gmeow:Contradiction and never resolved by rank.\n# REFUSED (Principle 5 — no faithful term): gmeow:Embedding / gmeow:VectorIndex have no external RDF counterpart (the #54 survey's genuine gap); cells will be added when a standard emerges.\n# REFUSED (Principle 5 — scope mismatch): C2PA assertions sign MEDIA provenance at the container level, not statement-level claims; the attestation slice owns that seam." .
+
+gmeow:eqAi001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Claim ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Claim ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema:Claim is the fact-check-markup claim; GMEOW's carries statement-level confidence/standpoint/time the schema.org term lacks" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+
+gmeow:eqAi002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Claim ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q18603603 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Wikidata 'assertion' — the proposition-put-forward sense" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+
+gmeow:eqAi003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ModelInvocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mls:Run ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "ML-Schema's Run is the executed model task; GMEOW's invocation adds prompt + sampling provenance" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+
+gmeow:eqAi004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ModelCard ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mls:Model ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "mls:Model is the trained artifact itself; the ModelCard is the description of one — the nearest stable RDF term (Model Cards have no canonical RDF vocabulary)" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+
+gmeow:eqAi005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:groundedIn ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject oa:hasTarget ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "in the Web Annotation projection (#55) the claim is the annotation body and the evidence span its target; the property directions differ, hence relatedMatch" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+
+gmeow:eqAi006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Prompt ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "a prompt is a prov:Entity used by the invocation activity; PROV-O has nothing finer" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+
+gmeow:eqAi007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Corpus ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q461183 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Wikidata 'text corpus'" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+
+gmeow:eqAi008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Embedding ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q105042925 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Wikidata 'word embedding' family — the vector-representation concept; no RDF vocabulary exists (the #54 gap)" ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" .

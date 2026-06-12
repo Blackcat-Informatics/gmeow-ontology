@@ -1,0 +1,843 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:  <http://purl.org/nemo/gufo#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/ai>
+    a owl:Ontology ;
+    rdfs:label "GMEOW AI Claim Module"@x-gmeow-english ;
+    skos:definition "The AI / RAG / GraphRAG layer (#54): LLM output as claim-not-truth. An LLM output is a claim — emitted by a model invocation, grounded (or not) in retrieved evidence, asserted at a time, true only to some confidence, and, when models or sources conflict, held accordingTo a standpoint rather than adjudicated by fiat (CONSTITUTION P9, P14). This module names the whole pipeline as one provenance graph — corpus, chunk, embedding, index, retrieval, prompt, invocation, claim, evidence, evaluation, memory — reusing the provenance, standpoint, evidence, and statement layers rather than reinventing them."@x-gmeow-english ;
+    rdfs:comment """The claim-not-truth axioms (#54): (1) every generated statement is a reified RDF 1.2 claim, never asserted into the logical TBox as fact; (2) the whole RAG/GraphRAG pipeline is one content-addressed provenance graph; (3) contradiction is standpoint, not error — surfaced by gmeow:Contradiction, never resolved by rank; (4) grounding is evidence (gmeow:groundedIn an EvidenceSpan into a retrieved Chunk) and a claim with none is a flagged hallucination, retained and flagged, never deleted (P10); (5) evaluation metrics are meta-claims about claims, attributed to an evaluator and themselves contestable; (6) GraphRAG-derived entities, relationships, and community summaries are wasDerivedFrom their sources and revisable; (7) agent memory is provenance-bearing, time-scoped, contestable claims — belief revision is supersession, never deletion. Statement-level axes (confidence, accordingTo, validFrom/validUntil, retrievalScore) ride RDF 1.2 statement annotations, keeping the OWL downcast DL-clean (P2-P3)."""@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# A — Retrieval substrate: content-addressed information objects.
+# Content addressing reuses gmeow:contentDigest (sources slice); a Chunk is
+# located in its source by character offsets, the same span idiom as
+# gmeow:EvidenceSpan (evidence slice).
+# --------------------------------------------------------------------------- #
+
+gmeow:Corpus
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Corpus"@x-gmeow-english ;
+    skos:definition "An indexed collection of source information objects over which retrieval operates — the document set behind a RAG pipeline or an agent's reference library. Members are linked via gmeow:corpusMember; the corpus itself is content-addressable via gmeow:contentDigest so an index can prove WHAT it indexed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:corpusMember
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Corpus ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:label "corpus member"@x-gmeow-english ;
+    skos:definition "Relates a corpus to a source information object it collects. Non-functional; a source may belong to many corpora. Specializes the universal part/whole spine."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:Chunk
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Chunk"@x-gmeow-english ;
+    skos:definition "A contiguous segment of a source information object, produced by a chunking step for retrieval — the unit a vector index stores, a retrieval returns, and an evidence span pins into. Located in its source by gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd (unicode code points) and content-addressed via gmeow:contentDigest, so 'which exact bytes did the model see?' is answerable after the fact."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:chunkOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Chunk ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:subPropertyOf gmeow:partOf ;
+    rdfs:label "chunk of"@x-gmeow-english ;
+    skos:definition "The source information object this chunk segments. Functional: a chunk is cut from exactly one source (re-chunking produces new Chunk individuals, never a re-pointed one)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:spanStart
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "span start"@x-gmeow-english ;
+    skos:definition "The starting character offset (unicode code points, zero-based, inclusive) of a span — a Chunk within its source, or an evidence span within a chunk. Domain-free: the span idiom is shared by the retrieval substrate and the evidence layer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:spanEnd
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "span end"@x-gmeow-english ;
+    skos:definition "The ending character offset (unicode code points, zero-based, exclusive) of a span. Pairs with gmeow:spanStart."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:Embedding
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Embedding"@x-gmeow-english ;
+    skos:definition "A vector representation of an information object (usually a Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (#54): model, dimensionality, and distance metric have no agreed RDF representation. The vector payload itself stays OUTSIDE the graph by reference (gmeow:vectorRef), per the solver boundary (P12); the graph carries the provenance that makes the vector auditable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:embeddingOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:label "embedding of"@x-gmeow-english ;
+    skos:definition "The information object (usually a Chunk) this embedding represents. Functional: one embedding represents exactly one object under one model."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:embeddingModel
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range gmeow:SoftwareAgent ;
+    rdfs:label "embedding model"@x-gmeow-english ;
+    skos:definition "The model agent that produced this embedding. Two models' embeddings of the same chunk are two Embedding individuals — never merged (P9: machine-derived values are attributed)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:embeddingDimensions
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:label "embedding dimensions"@x-gmeow-english ;
+    skos:definition "The dimensionality of the embedding vector."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:vectorRef
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "vector ref"@x-gmeow-english ;
+    skos:definition "A dereferenceable locator for the vector payload (an object-store key, a file offset, an index slot) — the vector lives outside the graph by reference (P12); the graph holds the audit trail, not the floats."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:distanceMetric
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range gmeow:DistanceMetric ;
+    rdfs:label "distance metric"@x-gmeow-english ;
+    skos:definition "The similarity/distance function under which an embedding or index is meaningful — cosine similarity and euclidean distance disagree about what is 'near', so the metric is provenance, not a detail. Domain-free: carried by Embedding and VectorIndex alike."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:DistanceMetric
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Distance Metric"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of vector similarity/distance functions. Seeded with the common three; extensions add their own individuals."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:distanceMetricCosine a gmeow:DistanceMetric ;
+    rdfs:label "cosine"@x-gmeow-english ;
+    skos:definition "Cosine similarity — angle between vectors, magnitude-invariant."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ;
+    rdfs:label "euclidean"@x-gmeow-english ;
+    skos:definition "Euclidean (L2) distance between vectors."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ;
+    rdfs:label "dot product"@x-gmeow-english ;
+    skos:definition "Inner-product similarity — magnitude-sensitive; common for normalized embeddings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:VectorIndex
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Vector Index"@x-gmeow-english ;
+    skos:definition "A built retrieval structure over a corpus's embeddings — the artifact a RetrievalEvent queries. Carries its build provenance (gmeow:builtBy an Activity), its algorithm (gmeow:indexAlgorithm, open vocabulary), its parameters, and its metric, so a retrieval result is reproducible and auditable rather than an opaque pipeline internal."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:indexesCorpus
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:VectorIndex ;
+    rdfs:range gmeow:Corpus ;
+    rdfs:label "indexes corpus"@x-gmeow-english ;
+    skos:definition "The corpus whose embeddings this index serves. Non-functional: a federated index may span corpora."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:indexAlgorithm
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:VectorIndex ;
+    rdfs:range gmeow:IndexAlgorithm ;
+    rdfs:label "index algorithm"@x-gmeow-english ;
+    skos:definition "The approximate-nearest-neighbour structure this index uses (open vocabulary: HNSW, IVF, flat scan, ...)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:IndexAlgorithm
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Index Algorithm"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of vector-index structures."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:indexAlgorithmHnsw a gmeow:IndexAlgorithm ;
+    rdfs:label "HNSW"@x-gmeow-english ;
+    skos:definition "Hierarchical Navigable Small World graph index."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:indexAlgorithmIvf a gmeow:IndexAlgorithm ;
+    rdfs:label "IVF"@x-gmeow-english ;
+    skos:definition "Inverted-file (coarse-quantizer) index."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:indexAlgorithmFlat a gmeow:IndexAlgorithm ;
+    rdfs:label "flat"@x-gmeow-english ;
+    skos:definition "Exhaustive (brute-force) scan — exact, no approximation structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:indexParameters
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:VectorIndex ;
+    rdfs:range xsd:string ;
+    rdfs:label "index parameters"@x-gmeow-english ;
+    skos:definition "The build parameters of the index (efConstruction, nlist, M, ...) as a JSON object string — recorded verbatim for reproducibility; their semantics stay in the solver layer (P12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:builtBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:VectorIndex ;
+    rdfs:range gmeow:Activity ;
+    rdfs:label "built by"@x-gmeow-english ;
+    skos:definition "The build activity that produced this index — the provenance hook tying index contents to the corpus state (contentDigest) at build time."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# B — Pipeline activities. All specialize gmeow:Activity (provenance slice),
+# so PROV-O alignment and the event spine come for free. Per-result values
+# (a retrieval's score for ONE chunk) ride RDF 1.2 statement annotations on
+# the gmeow:retrievedChunk triple — never a flattened property.
+# --------------------------------------------------------------------------- #
+
+gmeow:RetrievalEvent
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Retrieval Event"@x-gmeow-english ;
+    skos:definition "One retrieval against a vector index: the query, the index queried, and the chunks returned. The per-chunk relevance score is a statement annotation (gmeow:retrievalScore) on the gmeow:retrievedChunk triple, so competing scores from re-ranking coexist attributed rather than overwriting. The answer to 'why did the model see this passage?'."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:forQuery
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:range xsd:string ;
+    rdfs:label "for query"@x-gmeow-english ;
+    skos:definition "The query text this retrieval served, recorded verbatim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:againstIndex
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:range gmeow:VectorIndex ;
+    rdfs:label "against index"@x-gmeow-english ;
+    skos:definition "The index this retrieval queried. Functional: one retrieval, one index (federated retrieval is several RetrievalEvents under one parent activity)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:retrievedChunk
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:range gmeow:Chunk ;
+    rdfs:label "retrieved chunk"@x-gmeow-english ;
+    skos:definition "A chunk this retrieval returned. The relevance score, rank, and re-ranker attribution ride RDF 1.2 statement annotations on each retrievedChunk triple (gmeow:retrievalScore, gmeow:wasAttributedTo)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:retrievalScore
+    a owl:AnnotationProperty ;
+    rdfs:label "retrieval score"@x-gmeow-english ;
+    skos:definition "Statement-level annotation: the relevance score a retrieval (or re-ranker) assigned to ONE retrievedChunk triple. An annotation property so scores stay claim-shaped — attributed, coexisting, never a flattened single value (P9); the OWL downcast stays DL-clean (P3)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:ModelInvocation
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Model Invocation"@x-gmeow-english ;
+    skos:definition "One call to a generative model: the model agent, the prompt, the sampling parameters, and the produced output. The provenance anchor of every GeneratedClaim — 'which model, under which prompt and parameters, at what time?' is answerable after the fact, the question RAG pipelines famously cannot answer (#54)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:usedModel
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ModelInvocation ;
+    rdfs:range gmeow:SoftwareAgent ;
+    rdfs:label "used model"@x-gmeow-english ;
+    skos:definition "The model agent this invocation called. The model is a first-class gmeow:SoftwareAgent (P9: machine subjects are attributable), described by a gmeow:ModelCard."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:hasPrompt
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelInvocation ;
+    rdfs:range gmeow:Prompt ;
+    rdfs:label "has prompt"@x-gmeow-english ;
+    skos:definition "A prompt presented in this invocation. Non-functional: a chat invocation carries several prompts in roles (system, user, assistant, tool — gmeow:promptRole)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:producedOutput
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelInvocation ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:label "produced output"@x-gmeow-english ;
+    skos:definition "An information object this invocation generated — raw completion text, a tool-call request, or the claim set extracted from the completion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:samplingTemperature
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInvocation ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "sampling temperature"@x-gmeow-english ;
+    skos:definition "The temperature parameter of this invocation. Sampling parameters are claim provenance: the same prompt at temperature 0 and 1.2 are different epistemic acts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:samplingTopP
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInvocation ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "sampling top-p"@x-gmeow-english ;
+    skos:definition "The nucleus-sampling parameter of this invocation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:samplingMaxTokens
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInvocation ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:label "sampling max tokens"@x-gmeow-english ;
+    skos:definition "The output-length ceiling of this invocation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:ToolCall
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Tool Call"@x-gmeow-english ;
+    skos:definition "A tool invocation requested by a model during generation — the agentic step. Carries the tool agent, the arguments, and the result, and links back to the requesting invocation (gmeow:calledByInvocation), so an agent's actions are part of the same provenance graph as its claims."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:calledByInvocation
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range gmeow:ModelInvocation ;
+    rdfs:label "called by invocation"@x-gmeow-english ;
+    skos:definition "The model invocation that requested this tool call."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:usedTool
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range gmeow:SoftwareAgent ;
+    rdfs:label "used tool"@x-gmeow-english ;
+    skos:definition "The tool agent this call invoked."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:toolArguments
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range xsd:string ;
+    rdfs:label "tool arguments"@x-gmeow-english ;
+    skos:definition "The arguments of this tool call, recorded verbatim as a JSON object string."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:toolResult
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:range xsd:string ;
+    rdfs:label "tool result"@x-gmeow-english ;
+    skos:definition "The result this tool call returned, recorded verbatim (or by reference for large payloads — pair with gmeow:contentDigest)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:Prompt
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Prompt"@x-gmeow-english ;
+    skos:definition "A concrete prompt presented to a model in an invocation — content-addressable (gmeow:contentDigest), role-tagged (gmeow:promptRole), and optionally derived from a template (gmeow:filledFrom). Prompts are provenance: a claim is only auditable when the instruction that elicited it is recorded."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:PromptTemplate
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Prompt ;
+    rdfs:label "Prompt Template"@x-gmeow-english ;
+    skos:definition "A reusable, versioned prompt with unfilled variables — the published artifact (#55 ships one for claim extraction). Concrete prompts link back via gmeow:filledFrom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:filledFrom
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Prompt ;
+    rdfs:range gmeow:PromptTemplate ;
+    rdfs:label "filled from"@x-gmeow-english ;
+    skos:definition "The template this concrete prompt instantiates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:promptRole
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Prompt ;
+    rdfs:range gmeow:PromptRole ;
+    rdfs:label "prompt role"@x-gmeow-english ;
+    skos:definition "The conversational role this prompt occupies (open vocabulary: system, user, assistant, tool)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:PromptRole
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Prompt Role"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of conversational prompt roles."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:promptRoleSystem a gmeow:PromptRole ;
+    rdfs:label "system"@x-gmeow-english ;
+    skos:definition "The system-instruction role."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:promptRoleUser a gmeow:PromptRole ;
+    rdfs:label "user"@x-gmeow-english ;
+    skos:definition "The user-turn role."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:promptRoleAssistant a gmeow:PromptRole ;
+    rdfs:label "assistant"@x-gmeow-english ;
+    skos:definition "The assistant-turn role (a prior model output replayed as context)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:promptRoleTool a gmeow:PromptRole ;
+    rdfs:label "tool"@x-gmeow-english ;
+    skos:definition "The tool-result role (a ToolCall's result replayed as context)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# C — Claims and evidence. The centerpiece: gmeow:Claim names the reified-
+# statement pattern the whole substrate exists for. A Claim individual types
+# the node that carries a claim's content and its statement-level metadata
+# (confidence, accordingTo, validFrom/validUntil ride RDF 1.2 annotations);
+# gmeow:groundedIn ties it to pinned evidence. A claim with no evidence is a
+# FLAGGED HALLUCINATION — retained and flagged (P10), never deleted.
+# --------------------------------------------------------------------------- #
+
+gmeow:Claim
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Claim"@x-gmeow-english ;
+    skos:definition "An asserted, contestable statement held as CLAIM-NOT-TRUTH: attributed (gmeow:wasAttributedTo), confidence-weighted (gmeow:confidence), time-scoped (gmeow:validFrom/validUntil), optionally standpoint-indexed (gmeow:accordingTo), and grounded in pinned evidence (gmeow:groundedIn) — never asserted into the logical TBox as fact. The class names the reified RDF 1.2 statement pattern (P2-P3): the Claim individual is the information object carrying the claim's content; its epistemics ride statement annotations. Conflicting claims COEXIST (P9); revision is supersession with gmeow:displayable false (P10), never deletion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:claimText
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Claim ;
+    rdfs:range xsd:string ;
+    rdfs:label "claim text"@x-gmeow-english ;
+    skos:definition "The natural-language content of the claim, recorded verbatim. A claim may ALSO be expressed as a reified RDF 1.2 statement (statement-dsl); the text form is the floor every claim has."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:GeneratedClaim
+    a owl:Class, gufo:Role ;
+    rdfs:subClassOf gmeow:Claim ;
+    rdfs:label "Generated Claim"@x-gmeow-english ;
+    skos:definition "A claim in the role of model output: gmeow:wasGeneratedBy a ModelInvocation and gmeow:wasAttributedTo the model agent. A Role, not a SubKind — being machine-generated is a contingent provenance fact about a claim, not a different kind of claim; the same claim re-asserted by a person sheds the role, never its identity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:ExtractedClaim
+    a owl:Class, gufo:Role ;
+    rdfs:subClassOf gmeow:Claim ;
+    rdfs:label "Extracted Claim"@x-gmeow-english ;
+    skos:definition "A claim in the role of extraction output: derived from source material by an extraction step (gmeow:wasDerivedFrom its Chunks; gmeow:extractionMethod names how). The #55 spine's claim: Source → Chunk → EvidenceSpan → ExtractedClaim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:groundedIn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Claim ;
+    rdfs:range gmeow:EvidenceSpan ;
+    rdfs:label "grounded in"@x-gmeow-english ;
+    skos:definition "Ties a claim to a pinned evidence span supporting (or refuting — see gmeow:supportPolarity) it. Grounding is evidence, not a vibe: the span carries re-anchorable selectors into a content-addressed Chunk, so faithfulness (AIS — 'attributable to identified sources') is mechanically checkable. A claim with NO groundedIn span is a flagged hallucination (#55's ClaimNeedsEvidence gate)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:spanOfChunk
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:EvidenceSpan ;
+    rdfs:range gmeow:Chunk ;
+    rdfs:label "span of chunk"@x-gmeow-english ;
+    skos:definition "The retrieved chunk this evidence span pins into — the retrieval-substrate seam of the evidence layer. With gmeow:spanStart/spanEnd (and the quote selectors of the citations slice), the exact evidentiary bytes are recoverable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:supportPolarity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:EvidenceSpan ;
+    rdfs:range gmeow:SupportPolarity ;
+    rdfs:label "support polarity"@x-gmeow-english ;
+    skos:definition "Whether this evidence span supports, refutes, or is neutral toward the claim it grounds — the NLI/AIS verdict as data. A refuting span does NOT delete the claim; it feeds a gmeow:Contradiction and the audit queries (P9, P10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:SupportPolarity
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Support Polarity"@x-gmeow-english ;
+    skos:definition "The closed three-value polarity of an evidence span toward its claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:polaritySupports a gmeow:SupportPolarity ;
+    rdfs:label "supports"@x-gmeow-english ;
+    skos:definition "The span entails or substantiates the claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:polarityRefutes a gmeow:SupportPolarity ;
+    rdfs:label "refutes"@x-gmeow-english ;
+    skos:definition "The span contradicts the claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:polarityNeutral a gmeow:SupportPolarity ;
+    rdfs:label "neutral"@x-gmeow-english ;
+    skos:definition "The span is topically related but neither entails nor contradicts the claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:extractionMethod
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Claim ;
+    rdfs:range gmeow:ExtractionMethod ;
+    rdfs:label "extraction method"@x-gmeow-english ;
+    skos:definition "How this claim was produced (open vocabulary): LLM extraction, rule-based extraction, human curation, NLI derivation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:ExtractionMethod
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Extraction Method"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of claim-production methods."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:extractionMethodLlm a gmeow:ExtractionMethod ;
+    rdfs:label "LLM extraction"@x-gmeow-english ;
+    skos:definition "Extracted by a generative model invocation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:extractionMethodRule a gmeow:ExtractionMethod ;
+    rdfs:label "rule"@x-gmeow-english ;
+    skos:definition "Extracted by a deterministic rule or pattern."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:extractionMethodHumanCuration a gmeow:ExtractionMethod ;
+    rdfs:label "human curation"@x-gmeow-english ;
+    skos:definition "Asserted or reviewed by a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:extractionMethodNli a gmeow:ExtractionMethod ;
+    rdfs:label "NLI"@x-gmeow-english ;
+    skos:definition "Derived by a natural-language-inference judgment over existing text."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# D — Contradiction. A relator that SURFACES conflict between claims and
+# never resolves it by rank (P9: no single winner). A standpoint may mark a
+# claim refuted (standpoint slice's modality); the Contradiction itself is
+# vantage-attributed via gmeow:detectedBy.
+# --------------------------------------------------------------------------- #
+
+gmeow:Contradiction
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Contradiction"@x-gmeow-english ;
+    skos:definition "A reified conflict between two or more claims — surfaced, attributed (gmeow:detectedBy), and kind-classified (gmeow:contradictionKind), NEVER resolved by rank. Conflicting claims coexist accordingTo their standpoints (P9); a standpoint may hold one refuted (gmeow:claimModality on the standpoint slice), but the universal graph keeps both. Detection is itself a contestable act: two detectors may disagree about whether a contradiction exists."@x-gmeow-english ;
+    rdfs:subClassOf
+        [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:someValuesFrom gmeow:Claim ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:contradictsClaim
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Contradiction ;
+    rdfs:range gmeow:Claim ;
+    rdfs:label "contradicts claim"@x-gmeow-english ;
+    skos:definition "Relates a contradiction to one of the claims in conflict. At least two per contradiction (enforced by SHACL; the OWL existential documents the relator's relata for the reasoner)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:detectedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Contradiction ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "detected by"@x-gmeow-english ;
+    skos:definition "The agent (a person, an NLI model, an evaluation run's agent) that surfaced this contradiction. Detection is attributed because it is contestable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:contradictionKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Contradiction ;
+    rdfs:range gmeow:ContradictionKind ;
+    rdfs:label "contradiction kind"@x-gmeow-english ;
+    skos:definition "The flavour of conflict (open vocabulary): factual, temporal, numeric, framing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:ContradictionKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Contradiction Kind"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of contradiction flavours."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:contradictionKindFactual a gmeow:ContradictionKind ;
+    rdfs:label "factual"@x-gmeow-english ;
+    skos:definition "The claims assert incompatible facts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:contradictionKindTemporal a gmeow:ContradictionKind ;
+    rdfs:label "temporal"@x-gmeow-english ;
+    skos:definition "The claims disagree about timing or ordering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:contradictionKindNumeric a gmeow:ContradictionKind ;
+    rdfs:label "numeric"@x-gmeow-english ;
+    skos:definition "The claims carry incompatible quantities."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:contradictionKindFraming a gmeow:ContradictionKind ;
+    rdfs:label "framing"@x-gmeow-english ;
+    skos:definition "The claims presuppose incompatible framings of the same matter — often standpoint difference rather than factual conflict."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# E — Evaluation as meta-claims. A metric score is a confidence-bearing
+# claim ABOUT a claim or invocation, attributed to an evaluator and itself
+# contestable — never a detached dashboard number (#54 axiom 5; aligns
+# RAGAS / ARES / AIS / RAGTruth by reference).
+# --------------------------------------------------------------------------- #
+
+gmeow:EvaluationRun
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Evaluation Run"@x-gmeow-english ;
+    skos:definition "An activity that scores claims, invocations, or retrievals against evaluation metrics, producing metric observations as meta-claims: each score is attributed to this run's agent, confidence-weighted, and contestable. Faithfulness IS AIS coverage over gmeow:groundedIn spans; hallucination IS the ungrounded/refuted-claim condition — the metrics bind to the graph, not to a dashboard."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:evaluatedSubject
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EvaluationRun ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:label "evaluated subject"@x-gmeow-english ;
+    skos:definition "A claim, output, or other information object this run scored."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:metricObservation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EvaluationRun ;
+    rdfs:range gmeow:MetricObservation ;
+    rdfs:label "metric observation"@x-gmeow-english ;
+    skos:definition "A scored metric this run produced."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:MetricObservation
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Metric Observation"@x-gmeow-english ;
+    skos:definition "One metric score as a meta-claim: the metric (gmeow:observesMetric), the value (gmeow:metricValue), and the scored subject (gmeow:scoresSubject). Attribution, confidence, and time ride the same statement annotations every claim carries — an evaluation disagreeing with another evaluation is two coexisting observations, not an overwrite (P9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:observesMetric
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricObservation ;
+    rdfs:range gmeow:EvaluationMetric ;
+    rdfs:label "observes metric"@x-gmeow-english ;
+    skos:definition "The metric this observation scores."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:scoresSubject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricObservation ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:label "scores subject"@x-gmeow-english ;
+    skos:definition "The claim, output, or retrieval this observation scores."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:metricValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MetricObservation ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "metric value"@x-gmeow-english ;
+    skos:definition "The numeric score of this observation, in the metric's own scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:EvaluationMetric
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Evaluation Metric"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of claim/RAG evaluation metrics, seeded with the RAGAS / AIS / RAGTruth family. Extensions add their own individuals."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:metricFaithfulness a gmeow:EvaluationMetric ;
+    rdfs:label "faithfulness"@x-gmeow-english ;
+    skos:definition "The fraction of a response's claims grounded in retrieved evidence — AIS coverage over gmeow:groundedIn (RAGAS faithfulness)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:metricAnswerRelevancy a gmeow:EvaluationMetric ;
+    rdfs:label "answer relevancy"@x-gmeow-english ;
+    skos:definition "How directly a response addresses the query (RAGAS answer relevancy)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:metricContextPrecision a gmeow:EvaluationMetric ;
+    rdfs:label "context precision"@x-gmeow-english ;
+    skos:definition "The fraction of retrieved chunks that were relevant (RAGAS context precision)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:metricContextRecall a gmeow:EvaluationMetric ;
+    rdfs:label "context recall"@x-gmeow-english ;
+    skos:definition "The fraction of needed evidence the retrieval recovered (RAGAS context recall)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:metricAttributionPrecision a gmeow:EvaluationMetric ;
+    rdfs:label "attribution precision"@x-gmeow-english ;
+    skos:definition "Of the claims marked attributable, the fraction genuinely supported by their cited spans (AIS / Auto-AIS)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:metricAttributionRecall a gmeow:EvaluationMetric ;
+    rdfs:label "attribution recall"@x-gmeow-english ;
+    skos:definition "Of the genuinely supported claims, the fraction the attribution marked (AIS / Auto-AIS)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:metricHallucinationRate a gmeow:EvaluationMetric ;
+    rdfs:label "hallucination rate"@x-gmeow-english ;
+    skos:definition "The fraction of claims with no — or refuting — evidence (RAGTruth)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# F — GraphRAG-derived artifacts: the extracted entity graph and community
+# summaries become an AUDITABLE, revisable provenance graph instead of a
+# black box (#54 axiom 6; GraphRAG arXiv:2404.16130).
+# --------------------------------------------------------------------------- #
+
+gmeow:ExtractedEntity
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Extracted Entity"@x-gmeow-english ;
+    skos:definition "A model-extracted entity DESCRIPTION — an information object about a putative entity, wasDerivedFrom its source chunks, attributed and confidence-weighted. Deliberately NOT the entity itself: promotion to a first-class gmeow:Entity (with coreference by reference, never sameAs — P5) is a separate, attributable curation act."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:ExtractedRelationship
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Extracted Relationship"@x-gmeow-english ;
+    skos:definition "A model-extracted relationship description between extracted entities — the GraphRAG edge as a revisable artifact, wasDerivedFrom its chunks, attributed and confidence-weighted, linking gmeow:relationshipSource and gmeow:relationshipTarget descriptions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:relationshipSource
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ExtractedRelationship ;
+    rdfs:range gmeow:ExtractedEntity ;
+    rdfs:label "relationship source"@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the tail of this extracted relationship."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:relationshipTarget
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ExtractedRelationship ;
+    rdfs:range gmeow:ExtractedEntity ;
+    rdfs:label "relationship target"@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the head of this extracted relationship."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:Community
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Community"@x-gmeow-english ;
+    skos:definition "A graph-clustering community (Leiden or similar) over extracted entities — a derived grouping artifact at a level (gmeow:communityLevel) of the cluster hierarchy, with members via gmeow:communityMember. The clustering parameters and run are provenance (gmeow:wasGeneratedBy)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:communityMember
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Community ;
+    rdfs:range gmeow:ExtractedEntity ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:label "community member"@x-gmeow-english ;
+    skos:definition "An extracted-entity description this community clusters."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:communityLevel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Community ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "community level"@x-gmeow-english ;
+    skos:definition "The hierarchy level of this community (0 = leaf clustering)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:CommunitySummary
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Summary ;
+    rdfs:label "Community Summary"@x-gmeow-english ;
+    skos:definition "A pre-generated summary of a community (gmeow:summarizesCommunity) — GraphRAG's global-question substrate, wasDerivedFrom the community's members and chunks, attributed and confidence-weighted, hence revisable rather than a black box."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:summarizesCommunity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CommunitySummary ;
+    rdfs:range gmeow:Community ;
+    rdfs:label "summarizes community"@x-gmeow-english ;
+    skos:definition "The community this summary condenses."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# G — Agent memory: the synthesis. Memory is claims, not vectors (#54 axiom
+# 7). A MemoryItem is a claim in its memory role; write = asserting a claim,
+# read = a RetrievalEvent, revision = supersession + displayable false (P10).
+# This is the substrate the gmeow client and the MCP memory triad sit on.
+# --------------------------------------------------------------------------- #
+
+gmeow:MemoryItem
+    a owl:Class, gufo:Role ;
+    rdfs:subClassOf gmeow:Claim ;
+    rdfs:label "Memory Item"@x-gmeow-english ;
+    skos:definition "A claim in the role of an agent's remembered belief (gmeow:memoryOf the remembering agent; gmeow:memoryKind classifies episodic/semantic/working/procedural). A Role: being remembered is contingent — the same claim may be one agent's memory and another's input. Belief revision is supersession with gmeow:displayable false (P10), never deletion; the audit trail of what an agent believed WHEN is a query, not an archaeology project. Salience for consolidation/recall rides the EXISTING statement-level gmeow:importanceLevel annotation (provenance slice), and recency derives from the statement clocks — epistemics never become a second property (P3)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:memoryOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MemoryItem ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "memory of"@x-gmeow-english ;
+    skos:definition "The agent whose memory holds this item."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:memoryKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MemoryItem ;
+    rdfs:range gmeow:MemoryKind ;
+    rdfs:label "memory kind"@x-gmeow-english ;
+    skos:definition "The cognitive register of this memory item (open vocabulary): episodic, semantic, working, procedural."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:MemoryKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Memory Kind"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of agent-memory registers."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:memoryKindEpisodic a gmeow:MemoryKind ;
+    rdfs:label "episodic"@x-gmeow-english ;
+    skos:definition "A memory of a specific experienced event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:memoryKindSemantic a gmeow:MemoryKind ;
+    rdfs:label "semantic"@x-gmeow-english ;
+    skos:definition "A general fact or belief, detached from its acquisition episode."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:memoryKindWorking a gmeow:MemoryKind ;
+    rdfs:label "working"@x-gmeow-english ;
+    skos:definition "A short-horizon item held for the current task."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+gmeow:memoryKindProcedural a gmeow:MemoryKind ;
+    rdfs:label "procedural"@x-gmeow-english ;
+    skos:definition "A how-to: a learned procedure or skill description."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# Model identity. The model is a first-class SoftwareAgent; the ModelCard is
+# the information object DESCRIBING it (aligns Model Cards / FAIR4ML /
+# Croissant / SPDX AI by reference).
+# --------------------------------------------------------------------------- #
+
+gmeow:ModelCard
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Model Card"@x-gmeow-english ;
+    skos:definition "A structured description of a model agent (gmeow:describesModel): name, provider, version tag, context window, training cutoff. The card is a document ABOUT the agent — claims about a model's capabilities belong in the claim layer, attributed, like every other claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:describesModel
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ModelCard ;
+    rdfs:range gmeow:SoftwareAgent ;
+    rdfs:label "describes model"@x-gmeow-english ;
+    skos:definition "The model agent this card describes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:modelProvider
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelCard ;
+    rdfs:range xsd:string ;
+    rdfs:label "model provider"@x-gmeow-english ;
+    skos:definition "The organization providing the model, as named on the card."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:modelVersionTag
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelCard ;
+    rdfs:range xsd:string ;
+    rdfs:label "model version tag"@x-gmeow-english ;
+    skos:definition "The provider's version identifier for the described model snapshot (e.g. a dated model id). Version identity for citation rides #44's DOI machinery; this is the wire-level tag."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:modelContextWindow
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelCard ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:label "model context window"@x-gmeow-english ;
+    skos:definition "The context-window size, in tokens, the card declares."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+gmeow:modelTrainingCutoff
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelCard ;
+    rdfs:range xsd:date ;
+    rdfs:label "model training cutoff"@x-gmeow-english ;
+    skos:definition "The training-data cutoff date the card declares — claim-staleness context for everything the model asserts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .

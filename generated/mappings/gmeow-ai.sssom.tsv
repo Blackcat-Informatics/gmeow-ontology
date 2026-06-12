@@ -1,0 +1,28 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/ai
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: "AI / RAG / GraphRAG claim-layer alignments (#54). PROV-O: the activity spine (ModelInvocation/RetrievalEvent/EvaluationRun are prov:Activity by inheritance \u2014 the parent gmeow:Activity cell carries that; here only the AI-specific seams are added). ML-Schema: mls:Run is the W3C member-submission counterpart of a model invocation; mls:Model the trained-model artifact. schema.org: schema:Claim is the published claim documented in fact-checking markup \u2014 GMEOW's Claim is broader (any contestable assertion with statement-level epistemics), so closeMatch; the principled REFUSAL of schema:ClaimReview's single reviewRating verdict is recorded in the trailer. Web Annotation: an EvidenceSpan grounding a claim is near-isomorphic to an oa:Annotation whose target is the chunk with selectors; the full projection is #55's deliverable. Wikidata: hub identifiers for the headline concepts."
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   mls: http://www.w3.org/ns/mls#
+#   oa: http://www.w3.org/ns/oa#
+#   prov: http://www.w3.org/ns/prov#
+#   schema: https://schema.org/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   wd: http://www.wikidata.org/entity/
+# # REFUSED (Principle 5/9 — verdict semantics): schema:ClaimReview. Its single reviewRating adjudicates a winner; GMEOW contradictions coexist standpoint-indexed, surfaced by gmeow:Contradiction and never resolved by rank.
+# # REFUSED (Principle 5 — no faithful term): gmeow:Embedding / gmeow:VectorIndex have no external RDF counterpart (the #54 survey's genuine gap); cells will be added when a standard emerges.
+# # REFUSED (Principle 5 — scope mismatch): C2PA assertions sign MEDIA provenance at the container level, not statement-level claims; the attestation slice owns that seam.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:Claim	skos:closeMatch	schema:Claim	semapv:ManualMappingCuration	0.8	schema:Claim is the fact-check-markup claim; GMEOW's carries statement-level confidence/standpoint/time the schema.org term lacks
+gmeow:Claim	skos:closeMatch	wd:Q18603603	semapv:ManualMappingCuration	0.7	Wikidata 'assertion' — the proposition-put-forward sense
+gmeow:Corpus	skos:closeMatch	wd:Q461183	semapv:ManualMappingCuration	0.7	Wikidata 'text corpus'
+gmeow:Embedding	skos:closeMatch	wd:Q105042925	semapv:ManualMappingCuration	0.7	Wikidata 'word embedding' family — the vector-representation concept; no RDF vocabulary exists (the #54 gap)
+gmeow:ModelCard	skos:closeMatch	mls:Model	semapv:ManualMappingCuration	0.6	mls:Model is the trained artifact itself; the ModelCard is the description of one — the nearest stable RDF term (Model Cards have no canonical RDF vocabulary)
+gmeow:ModelInvocation	skos:closeMatch	mls:Run	semapv:ManualMappingCuration	0.75	ML-Schema's Run is the executed model task; GMEOW's invocation adds prompt + sampling provenance
+gmeow:Prompt	skos:relatedMatch	prov:Entity	semapv:ManualMappingCuration	0.6	a prompt is a prov:Entity used by the invocation activity; PROV-O has nothing finer
+gmeow:groundedIn	skos:relatedMatch	oa:hasTarget	semapv:ManualMappingCuration	0.6	in the Web Annotation projection (#55) the claim is the annotation body and the evidence span its target; the property directions differ, hence relatedMatch
