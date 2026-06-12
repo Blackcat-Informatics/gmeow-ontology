@@ -50,10 +50,34 @@ impl Writer {
     /// Create a writer and emit the Header (the chain genesis).
     pub fn new(profile: &str) -> Self {
         let catalog: HashMap<i64, Codec> = [
-            (0i64, Codec { name: "identity".to_string(), cls: "encode".to_string() }),
-            (1, Codec { name: "gzip".to_string(), cls: "compress".to_string() }),
-            (2, Codec { name: "zstd".to_string(), cls: "compress".to_string() }),
-            (7, Codec { name: "cose-encrypt0".to_string(), cls: "encrypt".to_string() }),
+            (
+                0i64,
+                Codec {
+                    name: "identity".to_string(),
+                    cls: "encode".to_string(),
+                },
+            ),
+            (
+                1,
+                Codec {
+                    name: "gzip".to_string(),
+                    cls: "compress".to_string(),
+                },
+            ),
+            (
+                2,
+                Codec {
+                    name: "zstd".to_string(),
+                    cls: "compress".to_string(),
+                },
+            ),
+            (
+                7,
+                Codec {
+                    name: "cose-encrypt0".to_string(),
+                    cls: "encrypt".to_string(),
+                },
+            ),
         ]
         .into_iter()
         .collect();
@@ -69,7 +93,7 @@ impl Writer {
                     ("name".into(), c.name.clone().into()),
                     ("cls".into(), c.cls.clone().into()),
                 ];
-                ce.sort_by(|a, b| canonical(&a.0).cmp(&canonical(&b.0)));
+                ce.sort_by_key(|a| canonical(&a.0));
                 (iv(*id), Value::Map(ce))
             })
             .collect();
@@ -80,10 +104,10 @@ impl Writer {
             ("prof".into(), profile.into()),
             ("cat".into(), Value::Map(cat_entries)),
         ];
-        header.sort_by(|a, b| canonical(&a.0).cmp(&canonical(&b.0)));
+        header.sort_by_key(|a| canonical(&a.0));
         let id = header_id(&header);
         header.push(("id".into(), Value::Bytes(id.clone())));
-        header.sort_by(|a, b| canonical(&a.0).cmp(&canonical(&b.0)));
+        header.sort_by_key(|a| canonical(&a.0));
 
         let tagged = Value::Tag(SELF_DESCRIBE_TAG, Box::new(Value::Map(header)));
         let buf = canonical(&tagged);
@@ -101,10 +125,7 @@ impl Writer {
     }
 
     fn chain_ids(&self, chain: &[String]) -> Vec<i64> {
-        chain
-            .iter()
-            .map(|name| self.name_to_id[name])
-            .collect()
+        chain.iter().map(|name| self.name_to_id[name]).collect()
     }
 
     /// Append one frame and return its `"id"`.
@@ -122,13 +143,17 @@ impl Writer {
         );
         let mut frame: Vec<(Value, Value)> = vec![("t".into(), frame_type.into())];
 
-        let data = match (transform, &payload, &raw) {
+        let data: Option<Value> = match (transform, &payload, &raw) {
             (Some(chain), _, _) if !chain.is_empty() => {
                 assert!(
                     raw.is_some() || payload.is_some(),
                     "transform requires a raw or payload source"
                 );
-                let source = raw.clone().unwrap_or_else(|| canonical(&payload.clone().unwrap()));
+                let source = match (raw.as_ref(), payload.as_ref()) {
+                    (Some(r), _) => r.clone(),
+                    (None, Some(p)) => canonical(p),
+                    (None, None) => panic!("transform requires a raw or payload source"),
+                };
                 // For the files profile we only need identity; compression is
                 // intentionally not implemented in this minimal writer.
                 assert!(
@@ -137,23 +162,25 @@ impl Writer {
                 );
                 let x_ids: Vec<Value> = self.chain_ids(chain).into_iter().map(iv).collect();
                 frame.push(("x".into(), Value::Array(x_ids)));
-                Value::Bytes(source)
+                Some(Value::Bytes(source))
             }
-            (None, _, Some(r)) => Value::Bytes(r.clone()),
-            (None, Some(p), None) => p.clone(),
-            _ => Value::Null,
+            (None, _, Some(r)) => Some(Value::Bytes(r.clone())),
+            (None, Some(p), None) => Some(p.clone()),
+            _ => None,
         };
-        frame.push(("d".into(), data));
+        if let Some(data) = data {
+            frame.push(("d".into(), data));
+        }
 
         if let Some(meta) = pub_meta {
             frame.push(("pub".into(), meta));
         }
         frame.push(("prev".into(), Value::Bytes(self.prev.clone())));
 
-        frame.sort_by(|a, b| canonical(&a.0).cmp(&canonical(&b.0)));
+        frame.sort_by_key(|a| canonical(&a.0));
         let id = content_id(&frame);
         frame.push(("id".into(), Value::Bytes(id.clone())));
-        frame.sort_by(|a, b| canonical(&a.0).cmp(&canonical(&b.0)));
+        frame.sort_by_key(|a| canonical(&a.0));
 
         self.buf.extend_from_slice(&canonical(&Value::Map(frame)));
         self.prev = id.clone();
@@ -171,11 +198,7 @@ impl Writer {
         let rows: Vec<Value> = quads
             .iter()
             .map(|&(s, p, o, g)| {
-                let mut row = vec![
-                    iv(s as i64),
-                    iv(p as i64),
-                    iv(o as i64),
-                ];
+                let mut row = vec![iv(s as i64), iv(p as i64), iv(o as i64)];
                 if let Some(gv) = g {
                     row.push(iv(gv as i64));
                 }
@@ -191,11 +214,7 @@ impl Writer {
         for (rid, (s, p, o)) in bindings {
             map.push((
                 iv(*rid as i64),
-                Value::Array(vec![
-                    iv(*s as i64),
-                    iv(*p as i64),
-                    iv(*o as i64),
-                ]),
+                Value::Array(vec![iv(*s as i64), iv(*p as i64), iv(*o as i64)]),
             ));
         }
         self.add_frame("reifies", Some(Value::Map(map)), None, None, None)
@@ -205,22 +224,14 @@ impl Writer {
     pub fn add_annot(&mut self, rows: &[Triple3]) -> Vec<u8> {
         let rows: Vec<Value> = rows
             .iter()
-            .map(|&(s, p, o)| {
-                Value::Array(vec![
-                    iv(s as i64),
-                    iv(p as i64),
-                    iv(o as i64),
-                ])
-            })
+            .map(|&(s, p, o)| Value::Array(vec![iv(s as i64), iv(p as i64), iv(o as i64)]))
             .collect();
         self.add_frame("annot", Some(Value::Array(rows)), None, None, None)
     }
 
     /// Append an inline `blob` frame.
     pub fn add_blob(&mut self, data: &[u8], mt: Option<&str>) -> Vec<u8> {
-        let pub_meta = mt.map(|m| {
-            Value::Map(vec![("mt".into(), m.into())])
-        });
+        let pub_meta = mt.map(|m| Value::Map(vec![("mt".into(), m.into())]));
         self.add_frame("blob", None, Some(data.to_vec()), None, pub_meta)
     }
 
@@ -235,7 +246,7 @@ impl Writer {
         if let Some(r) = reason {
             payload.push(("reason".into(), r.into()));
         }
-        payload.sort_by(|a, b| canonical(&a.0).cmp(&canonical(&b.0)));
+        payload.sort_by_key(|a| canonical(&a.0));
         self.add_frame("suppress", Some(Value::Map(payload)), None, None, None)
     }
 

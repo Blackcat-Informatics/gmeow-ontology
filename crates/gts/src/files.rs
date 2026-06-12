@@ -62,11 +62,16 @@ fn safe_archive_path(name: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn to_posix_path(path: &Path) -> String {
-    path.components()
-        .map(|c| c.as_os_str().to_string_lossy().into_owned())
-        .collect::<Vec<_>>()
-        .join("/")
+fn to_posix_path(path: &Path) -> Result<String, String> {
+    let mut parts = Vec::new();
+    for c in path.components() {
+        let s = c
+            .as_os_str()
+            .to_str()
+            .ok_or_else(|| format!("non-UTF-8 path component in {path:?}"))?;
+        parts.push(s.to_string());
+    }
+    Ok(parts.join("/"))
 }
 
 fn walk_dir_sorted(dir: &Path) -> Result<Vec<std::path::PathBuf>, String> {
@@ -75,10 +80,16 @@ fn walk_dir_sorted(dir: &Path) -> Result<Vec<std::path::PathBuf>, String> {
         entries.sort_by_key(|a| a.file_name());
         for entry in entries {
             let path = entry.path();
-            let meta = entry.metadata()?;
-            if meta.is_dir() {
+            let ftype = entry.file_type()?;
+            if ftype.is_symlink() {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    format!("symlink not supported: {}", path.display()),
+                ));
+            }
+            if ftype.is_dir() {
                 recurse(out, &path)?;
-            } else if meta.is_file() {
+            } else if ftype.is_file() {
                 out.push(path);
             }
         }
@@ -91,6 +102,7 @@ fn walk_dir_sorted(dir: &Path) -> Result<Vec<std::path::PathBuf>, String> {
 
 fn resolve_sources(sources: &[&Path]) -> Result<Vec<(std::path::PathBuf, String)>, String> {
     let mut entries: Vec<(std::path::PathBuf, String)> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
     for src in sources {
         let meta = fs::metadata(src).map_err(|e| format!("{src:?}: {e}"))?;
         if meta.is_file() {
@@ -100,14 +112,22 @@ fn resolve_sources(sources: &[&Path]) -> Result<Vec<(std::path::PathBuf, String)
                 .ok_or_else(|| format!("invalid source name: {src:?}"))?
                 .to_string();
             safe_archive_path(&name)?;
+            if !seen.insert(name.clone()) {
+                return Err(format!("duplicate archive path: {name}"));
+            }
             entries.push((src.to_path_buf(), name));
         } else if meta.is_dir() {
             let files = walk_dir_sorted(src)?;
             for fspath in files {
-                let relpath = to_posix_path(fspath.strip_prefix(src).map_err(|_| {
-                    format!("path outside source: {fspath:?}")
-                })?);
+                let relpath = to_posix_path(
+                    fspath
+                        .strip_prefix(src)
+                        .map_err(|_| format!("path outside source: {fspath:?}"))?,
+                )?;
                 safe_archive_path(&relpath)?;
+                if !seen.insert(relpath.clone()) {
+                    return Err(format!("duplicate archive path: {relpath}"));
+                }
                 entries.push((fspath, relpath));
             }
         } else {
@@ -137,7 +157,7 @@ fn guess_media_type(path: &Path) -> String {
 }
 
 /// Pack files/directories into a deterministic GTS files-profile archive.
-pub fn pack(sources: &[&Path], external_over: Option<u64>) -> Result<Vec<u8>, String> {
+pub fn pack(sources: &[&Path]) -> Result<Vec<u8>, String> {
     let mut w = Writer::new("files");
 
     let shared = vec![
@@ -190,8 +210,8 @@ pub fn pack(sources: &[&Path], external_over: Option<u64>) -> Result<Vec<u8>, St
         let digest_term = literal_term(&digest, None);
         let size_term = literal_term(&size.to_string(), Some(xsd_integer_id));
         let mode_term = literal_term(&mode.to_string(), Some(xsd_integer_id));
-        let modified_text = format_datetime(&mtime)
-            .map_err(|e| format!("datetime {fspath:?}: {e}"))?;
+        let modified_text =
+            format_datetime(&mtime).map_err(|e| format!("datetime {fspath:?}: {e}"))?;
         let modified_term = literal_term(&modified_text, Some(xsd_datetime_id));
         let media_term = literal_term(&mt, None);
 
@@ -224,19 +244,11 @@ pub fn pack(sources: &[&Path], external_over: Option<u64>) -> Result<Vec<u8>, St
     }
 
     let mut seen: HashSet<String> = HashSet::new();
-    for (data, digest, mt) in blobs {
-        if !seen.insert(digest.clone()) {
+    for (data, _digest, mt) in blobs {
+        if !seen.insert(digest_string(&data)) {
             continue;
         }
-        if external_over.is_some_and(|limit| data.len() as u64 > limit) {
-            let pub_meta = Value::Map(vec![
-                ("digest".into(), digest.into()),
-                ("mt".into(), mt.into()),
-            ]);
-            w.add_frame("blob", None, None, None, Some(pub_meta));
-        } else {
-            w.add_blob(&data, Some(&mt));
-        }
+        w.add_blob(&data, Some(&mt));
     }
 
     Ok(w.to_bytes())
@@ -255,9 +267,7 @@ fn format_datetime(time: &std::time::SystemTime) -> Result<String, String> {
     Ok(text.replace("+00:00", "Z"))
 }
 
-fn read_file_entries(
-    graph: &Graph,
-) -> Result<BTreeMap<String, BTreeMap<String, String>>, String> {
+fn read_file_entries(graph: &Graph) -> Result<BTreeMap<String, BTreeMap<String, String>>, String> {
     let mut type_id: Option<usize> = None;
     let mut file_entry_id: Option<usize> = None;
     let mut field_ids: BTreeMap<String, usize> = BTreeMap::new();
@@ -302,6 +312,9 @@ fn read_file_entries(
             continue;
         }
         if let Some(path) = entry.get("path") {
+            if by_path.contains_key(path) {
+                return Err(format!("duplicate files:path in archive: {path}"));
+            }
             by_path.insert(path.clone(), entry);
         }
     }
@@ -319,12 +332,12 @@ fn dest_path(dest: &Path, archive_path: &str) -> Result<std::path::PathBuf, Stri
     }
     // Resolve the destination itself (e.g. `/tmp` -> `/private/tmp` on macOS)
     // before joining the relative archive path, so symlinked parents do not
-    // trigger false-positive traversal errors.
-    let dest_canon = dest
-        .canonicalize()
-        .unwrap_or_else(|_| dest.to_path_buf());
+    // trigger false-positive traversal errors. Then resolve the target if it
+    // already exists to catch symlinked escapes inside the destination.
+    let dest_canon = dest.canonicalize().unwrap_or_else(|_| dest.to_path_buf());
     let target = dest_canon.join(archive_path);
-    if !target.starts_with(&dest_canon) {
+    let target_canon = target.canonicalize().unwrap_or_else(|_| target.clone());
+    if !target_canon.starts_with(&dest_canon) {
         return Err(format!("path escapes destination: {archive_path}"));
     }
     Ok(target)
@@ -334,7 +347,9 @@ fn suppressed_blob_digests(graph: &Graph) -> HashSet<String> {
     let mut out: HashSet<String> = HashSet::new();
     for sup in &graph.suppressions {
         for target in &sup.targets {
-            let Value::Map(entries) = target else { continue };
+            let Value::Map(entries) = target else {
+                continue;
+            };
             let mut kind = "";
             let mut digest: Option<String> = None;
             for (k, v) in entries {
@@ -410,10 +425,8 @@ pub fn unpack(graph: &Graph, dest: &Path, include_suppressed: bool) -> Result<()
 
         if let Some(modified) = entry.get("modified") {
             if let Ok(ts) = parse_datetime(modified) {
-                let _ = filetime::set_file_mtime(
-                    &target,
-                    filetime::FileTime::from_unix_time(ts, 0),
-                );
+                let _ =
+                    filetime::set_file_mtime(&target, filetime::FileTime::from_unix_time(ts, 0));
             }
         }
     }
@@ -441,16 +454,20 @@ pub fn diff(graph: &Graph, directory: &Path) -> Result<Vec<String>, String> {
         .map(|(p, e)| (p.clone(), e.get("digest").cloned().unwrap_or_default()))
         .collect();
 
+    if !directory.exists() {
+        return Err(format!("diff destination does not exist: {directory:?}"));
+    }
+
     let mut disk_digests: BTreeMap<String, String> = BTreeMap::new();
-    if directory.exists() {
-        let files = walk_dir_sorted(directory)?;
-        for fspath in files {
-            let relpath = to_posix_path(fspath.strip_prefix(directory).map_err(|_| {
-                format!("path outside directory: {fspath:?}")
-            })?);
-            let data = fs::read(&fspath).map_err(|e| format!("read {fspath:?}: {e}"))?;
-            disk_digests.insert(relpath, digest_string(&data));
-        }
+    let files = walk_dir_sorted(directory)?;
+    for fspath in files {
+        let relpath = to_posix_path(
+            fspath
+                .strip_prefix(directory)
+                .map_err(|_| format!("path outside directory: {fspath:?}"))?,
+        )?;
+        let data = fs::read(&fspath).map_err(|e| format!("read {fspath:?}: {e}"))?;
+        disk_digests.insert(relpath, digest_string(&data));
     }
 
     let archive_paths: HashSet<&String> = archive_digests.keys().collect();

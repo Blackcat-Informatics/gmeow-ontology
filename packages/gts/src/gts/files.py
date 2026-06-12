@@ -78,6 +78,15 @@ def _resolve_sources(sources: Iterable[Path]) -> list[tuple[Path, str]]:
     added under their basename; directories are walked recursively.
     """
     entries: list[tuple[Path, str]] = []
+    seen: set[str] = set()
+
+    def _add_entry(fspath: Path, relpath: str) -> None:
+        if relpath in seen:
+            msg = f"duplicate archive path: {relpath}"
+            raise ValueError(msg)
+        seen.add(relpath)
+        entries.append((fspath, relpath))
+
     for src in sources:
         src = src.resolve()
         if not src.exists():
@@ -86,14 +95,14 @@ def _resolve_sources(sources: Iterable[Path]) -> list[tuple[Path, str]]:
         if src.is_file():
             name = src.name
             _safe_archive_path(name)
-            entries.append((src, name))
+            _add_entry(src, name)
         elif src.is_dir():
             for root, _dirs, files in os.walk(src):
                 for fname in files:
                     fspath = Path(root) / fname
                     relpath = fspath.relative_to(src).as_posix()
                     _safe_archive_path(relpath)
-                    entries.append((fspath, relpath))
+                    _add_entry(fspath, relpath)
         else:
             msg = f"unsupported source type: {src}"
             raise ValueError(msg)
@@ -118,8 +127,6 @@ def _size_literal(size: int, xsd_integer_id: int) -> Term:
 
 def pack(
     sources: Iterable[Path],
-    *,
-    external_over: int | None = None,
 ) -> bytes:
     """Pack files/directories into a deterministic GTS files-profile archive."""
     w = Writer(profile="files")
@@ -204,20 +211,12 @@ def pack(
 
     # Emit blob frames after the catalog. Deduplicate by digest.
     seen: set[str] = set()
-    for data, digest, mt in blobs:
+    for data, _digest, mt in blobs:
+        digest = digest_str(data)
         if digest in seen:
             continue
         seen.add(digest)
-        if external_over is not None and len(data) > external_over:
-            # External blob: register by digest only.
-            w.add_frame(
-                "blob",
-                payload=None,
-                raw=None,
-                pub={"digest": digest, "mt": mt},
-            )
-        else:
-            w.add_blob(data, mt=mt)
+        w.add_blob(data, mt=mt)
 
     return bytes(w.to_bytes())
 
@@ -273,6 +272,9 @@ def _read_file_entries(graph: Graph) -> dict[str, dict[str, object]]:
         path = entry.get("path")
         if not isinstance(path, str):
             continue
+        if path in by_path:
+            msg = f"duplicate files:path in archive: {path}"
+            raise ValueError(msg)
         by_path[path] = entry
     return by_path
 
@@ -364,13 +366,16 @@ def diff(graph: Graph, directory: Path) -> list[str]:
     entries = _read_file_entries(graph)
     archive_digests = {p: e.get("digest") for p, e in entries.items()}
 
+    if not directory.exists():
+        msg = f"diff destination does not exist: {directory}"
+        raise ValueError(msg)
+
     disk_digests: dict[str, str] = {}
-    if directory.exists():
-        for root, _dirs, files in os.walk(directory):
-            for fname in files:
-                fspath = Path(root) / fname
-                relpath = fspath.relative_to(directory).as_posix()
-                disk_digests[relpath] = digest_str(fspath.read_bytes())
+    for root, _dirs, files in os.walk(directory):
+        for fname in files:
+            fspath = Path(root) / fname
+            relpath = fspath.relative_to(directory).as_posix()
+            disk_digests[relpath] = digest_str(fspath.read_bytes())
 
     archive_paths = set(archive_digests.keys())
     disk_paths = set(disk_digests.keys())

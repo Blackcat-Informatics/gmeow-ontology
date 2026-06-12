@@ -30,7 +30,7 @@ commands:
                             the declared media type (never converts)
   cat -o <out> <file>...    validating composer: refuse degenerate inputs,
                             then byte-concatenate (§3.1, §14.1)
-  pack <dir|file>... -o out.gts [--external-over N]
+  pack <dir|file>... -o out.gts
                             pack files/directories into a files-profile archive
   unpack <archive> [-C dir] [--include-suppressed]
                             unpack a files-profile archive
@@ -437,7 +437,6 @@ fn cmd_cat(args: &[String]) -> ExitCode {
 /// Pack files/directories into a files-profile GTS archive (tar's `c`).
 fn cmd_pack(args: &[String]) -> ExitCode {
     let mut out_path: Option<&str> = None;
-    let mut external_over: Option<u64> = None;
     let mut sources: Vec<&str> = Vec::new();
     let mut it = args.iter();
     while let Some(a) = it.next() {
@@ -446,19 +445,6 @@ fn cmd_pack(args: &[String]) -> ExitCode {
                 Some(p) => out_path = Some(p),
                 None => {
                     eprintln!("gts: -o requires a path\n{USAGE}");
-                    return ExitCode::from(2);
-                }
-            },
-            "--external-over" => match it.next() {
-                Some(n) => match n.parse() {
-                    Ok(v) => external_over = Some(v),
-                    Err(_) => {
-                        eprintln!("gts: --external-over requires an integer\n{USAGE}");
-                        return ExitCode::from(2);
-                    }
-                },
-                None => {
-                    eprintln!("gts: --external-over requires a size\n{USAGE}");
                     return ExitCode::from(2);
                 }
             },
@@ -478,7 +464,7 @@ fn cmd_pack(args: &[String]) -> ExitCode {
     };
 
     let paths: Vec<&std::path::Path> = sources.iter().map(std::path::Path::new).collect();
-    match gts::files::pack(&paths, external_over) {
+    match gts::files::pack(&paths) {
         Ok(data) => {
             if let Err(e) = std::fs::write(out_path, &data) {
                 eprintln!("gts: cannot write {out_path}: {e}");
@@ -524,6 +510,10 @@ fn cmd_unpack(args: &[String]) -> ExitCode {
     for d in &g.diagnostics {
         eprintln!("gts: diagnostic {}: {}", d.code, d.detail);
     }
+    if !g.diagnostics.is_empty() || g.segment_heads.is_empty() {
+        eprintln!("gts: refusing unpack: archive did not read cleanly");
+        return ExitCode::from(1);
+    }
     let dest_path = std::path::Path::new(dest.unwrap_or("."));
     match gts::files::unpack(&g, dest_path, include_suppressed) {
         Ok(()) => ExitCode::SUCCESS,
@@ -547,6 +537,10 @@ fn cmd_diff(args: &[String]) -> ExitCode {
     let g = read(&data, true, None);
     for d in &g.diagnostics {
         eprintln!("gts: diagnostic {}: {}", d.code, d.detail);
+    }
+    if !g.diagnostics.is_empty() || g.segment_heads.is_empty() {
+        eprintln!("gts: refusing diff: archive did not read cleanly");
+        return ExitCode::from(1);
     }
     match gts::files::diff(&g, std::path::Path::new(directory)) {
         Ok(lines) => {

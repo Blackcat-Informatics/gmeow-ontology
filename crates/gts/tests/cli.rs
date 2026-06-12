@@ -140,10 +140,7 @@ fn tmpdir() -> PathBuf {
     use std::sync::atomic::{AtomicUsize, Ordering};
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
     let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-    std::env::temp_dir().join(format!(
-        "gts-cli-test-{}-{n}",
-        std::process::id()
-    ))
+    std::env::temp_dir().join(format!("gts-cli-test-{}-{n}", std::process::id()))
 }
 
 fn make_tree(root: &Path) {
@@ -164,11 +161,24 @@ fn pack_unpack_round_trip_bit_for_bit() {
         "-o",
         archive.to_str().unwrap(),
     ]);
-    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
 
     let dst = tmp.join("dst");
-    let out = gts(&["unpack", archive.to_str().unwrap(), "-C", dst.to_str().unwrap()]);
-    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    let out = gts(&[
+        "unpack",
+        archive.to_str().unwrap(),
+        "-C",
+        dst.to_str().unwrap(),
+    ]);
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     assert_eq!(std::fs::read_to_string(dst.join("a.txt")).unwrap(), "hello");
     assert_eq!(
         std::fs::read_to_string(dst.join("subdir").join("b.txt")).unwrap(),
@@ -177,7 +187,12 @@ fn pack_unpack_round_trip_bit_for_bit() {
 
     // Re-packing the extracted tree yields the same bytes.
     let archive2 = tmp.join("out2.gts");
-    let out = gts(&["pack", dst.to_str().unwrap(), "-o", archive2.to_str().unwrap()]);
+    let out = gts(&[
+        "pack",
+        dst.to_str().unwrap(),
+        "-o",
+        archive2.to_str().unwrap(),
+    ]);
     assert!(out.status.success());
     assert_eq!(
         std::fs::read(&archive).unwrap(),
@@ -194,13 +209,22 @@ fn pack_deduplicates_identical_content() {
     std::fs::write(src.join("a.txt"), "shared").unwrap();
     std::fs::write(src.join("b.txt"), "shared").unwrap();
     let archive = tmp.join("out.gts");
-    let out = gts(&["pack", src.to_str().unwrap(), "-o", archive.to_str().unwrap()]);
+    let out = gts(&[
+        "pack",
+        src.to_str().unwrap(),
+        "-o",
+        archive.to_str().unwrap(),
+    ]);
     assert!(out.status.success());
 
     use gts::reader::read;
     let data = std::fs::read(&archive).unwrap();
     let g = read(&data, true, None);
-    assert_eq!(g.blobs.len(), 1, "two files with identical content -> one blob");
+    assert_eq!(
+        g.blobs.len(),
+        1,
+        "two files with identical content -> one blob"
+    );
 }
 
 #[test]
@@ -272,7 +296,12 @@ fn unpack_refuses_traversal() {
     std::fs::write(&archive, w.to_bytes()).unwrap();
 
     let dst = tmp.join("dst");
-    let out = gts(&["unpack", archive.to_str().unwrap(), "-C", dst.to_str().unwrap()]);
+    let out = gts(&[
+        "unpack",
+        archive.to_str().unwrap(),
+        "-C",
+        dst.to_str().unwrap(),
+    ]);
     assert_eq!(out.status.code(), Some(1));
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
@@ -295,12 +324,20 @@ fn diff_reports_changes() {
     ]);
     assert!(out.status.success());
 
-    let out = gts(&["diff", archive.to_str().unwrap(), tmp.join("src").to_str().unwrap()]);
+    let out = gts(&[
+        "diff",
+        archive.to_str().unwrap(),
+        tmp.join("src").to_str().unwrap(),
+    ]);
     assert!(out.status.success(), "identical tree -> exit 0");
     assert!(out.stdout.is_empty());
 
     std::fs::write(tmp.join("src").join("a.txt"), "changed").unwrap();
-    let out = gts(&["diff", archive.to_str().unwrap(), tmp.join("src").to_str().unwrap()]);
+    let out = gts(&[
+        "diff",
+        archive.to_str().unwrap(),
+        tmp.join("src").to_str().unwrap(),
+    ]);
     assert_eq!(out.status.code(), Some(1));
     let text = String::from_utf8(out.stdout).unwrap();
     assert!(text.contains("modified: a.txt"));

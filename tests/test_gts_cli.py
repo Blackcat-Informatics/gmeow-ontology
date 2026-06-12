@@ -9,6 +9,7 @@ same refusals, same exit codes.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -115,6 +116,10 @@ def _make_tree(tmp_path: Path) -> Path:
     (src / "a.txt").write_text("hello")
     (src / "subdir").mkdir()
     (src / "subdir" / "b.txt").write_text("world")
+    fixed_mtime = 1_700_000_000.0
+    for p in [src / "a.txt", src / "subdir" / "b.txt"]:
+        p.chmod(0o644)
+        os.utime(p, (fixed_mtime, fixed_mtime))
     return src
 
 

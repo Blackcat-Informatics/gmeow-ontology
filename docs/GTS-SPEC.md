@@ -893,12 +893,11 @@ The `files` profile adds three publish-class commands. They share the refuse-don
 of §14.1: raw byte operations are always valid GTS, but a tool refuses pathological states
 rather than trusting them to be intentional.
 
-- **`gts pack <dir|file>... -o out.gts [--external-over N]`**
+- **`gts pack <dir|file>... -o out.gts`**
   Produce a single-segment GTS whose header declares `"prof": "files"`. Each argument is
   archived: a file is added under its basename; a directory is added recursively. The resulting
   archive contains, in order, the `terms` and `quads` describing every `files:FileEntry`,
-  followed by the inline `blob` frames for the file contents (or external references when
-  `--external-over` is used). The command MUST refuse:
+  followed by the inline `blob` frames for the file contents. The command MUST refuse:
   - inputs that contain `..` components or absolute paths in their stored path;
   - inputs that are not readable or that disappear during the walk.
 
