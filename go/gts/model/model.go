@@ -86,11 +86,29 @@ type Diagnostic struct {
 }
 
 // Signature is the verification outcome for a signed frame (§9.2).
+//
+// Cose retains the raw COSE_Sign1 bytes so streamable compaction (§10.1) can
+// carry the signature detached — forever verifiable against FrameID even
+// after the frame itself is re-authored into a new chain.
 type Signature struct {
 	FrameID []byte
 	Kid     string
 	// "valid" | "invalid" | "unverified"
 	Status string
+	Cose   []byte
+}
+
+// StreamableInfo is one segment's layout state (§3.3).
+//
+// Covered/Head come from the segment's last intact index frame; Tail counts
+// the legal unpresaged frames after it ("streamable through frame Covered,
+// accretive tail of Tail frame(s)"). For an unclaimed (accretive) segment all
+// fields are their zero values.
+type StreamableInfo struct {
+	Claimed bool
+	Covered int
+	Tail    int
+	Head    []byte
 }
 
 // MetaEntry is a single key/value metadata pair.
@@ -133,6 +151,10 @@ type Graph struct {
 	SegmentHeads    [][]byte
 	SegmentProfiles []string
 	SegmentMeta     [][]MetaEntry
+	// SegmentStreamable is the per-segment layout state (§3.3), in file order —
+	// the declared-vs-computed streamable claim, its covered boundary, and the
+	// accretive tail.
+	SegmentStreamable []StreamableInfo
 }
 
 // Reifier looks up a reifier binding.

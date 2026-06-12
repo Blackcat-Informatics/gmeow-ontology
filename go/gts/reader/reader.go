@@ -10,6 +10,7 @@ import (
 
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/codec"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
+	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/stream"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -63,9 +64,31 @@ func codecErrToPayload(e error) *payloadError {
 	return &payloadError{damaged: true, detail: e.Error()}
 }
 
+// indexRecord is one intact index frame (§6.2): its absolute item position
+// plus the covered-region boundary (count, head).
+type indexRecord struct {
+	pos   int
+	count int
+	head  []byte
+}
+
+// blobEvent is one inline blob arrival (§3.3): its absolute item position,
+// digest, and whether a stream:digest description preceded it.
+type blobEvent struct {
+	pos       int
+	digest    string
+	described bool
+}
+
 type folder struct {
 	g       *model.Graph
 	catalog map[int64]*codec.Codec
+	// Layout-state bookkeeping (§3.3): intact index frames seen, digests the
+	// graph has described via stream:digest so far, and each inline blob's
+	// arrival.
+	indexRecords []indexRecord
+	described    map[string]struct{}
+	blobEvents   []blobEvent
 }
 
 func (f *folder) diag(code, detail string, index *int) {
@@ -155,13 +178,15 @@ func (f *folder) foldFrame(frame map[interface{}]interface{}, index int) {
 	case "annot":
 		f.hAnnot(payload, index)
 	case "blob":
-		f.hBlob(payload, frame)
+		f.hBlob(payload, frame, index)
 	case "meta":
 		f.hMeta(payload)
 	case "suppress":
 		f.hSuppress(payload)
 	case "snapshot":
 		f.hSnapshot(payload, index)
+	case "index":
+		f.hIndex(payload, index)
 	case "opaque":
 		f.hOpaque(payload)
 	default:
@@ -264,6 +289,13 @@ func (f *folder) hQuads(payload interface{}, index int) {
 			continue
 		}
 		f.g.Quads = append(f.g.Quads, model.Quad{S: s, P: p, O: o, G: gslot})
+		// Layout bookkeeping (§3.3): a stream:digest quad describes an
+		// upcoming manifestation — record the IOU for the blob check.
+		if f.g.Terms[p].Value == stream.Digest {
+			if obj := &f.g.Terms[o]; obj.Value != "" {
+				f.described[obj.Value] = struct{}{}
+			}
+		}
 	}
 }
 
@@ -329,7 +361,7 @@ func (f *folder) hAnnot(payload interface{}, index int) {
 	}
 }
 
-func (f *folder) hBlob(payload interface{}, frame map[interface{}]interface{}) {
+func (f *folder) hBlob(payload interface{}, frame map[interface{}]interface{}, index int) {
 	if b, ok := payload.([]byte); ok {
 		digest := wire.DigestStr(b)
 		if pub, ok := wire.MapGet(frame, "pub"); ok {
@@ -338,7 +370,12 @@ func (f *folder) hBlob(payload interface{}, frame map[interface{}]interface{}) {
 			}
 		}
 		f.g.SetBlob(digest, b)
+		// Layout bookkeeping (§3.3): was this delivery presaged by a
+		// stream:digest description in an earlier frame?
+		_, described := f.described[digest]
+		f.blobEvents = append(f.blobEvents, blobEvent{pos: index, digest: digest, described: described})
 	}
+	// else: external blob — bytes live elsewhere, referenced by "pub".digest (§12).
 }
 
 func (f *folder) hMeta(payload interface{}) {
@@ -476,6 +513,35 @@ func (f *folder) hSnapshot(payload interface{}, index int) {
 			}
 		}
 	}
+}
+
+// hIndex records an intact index frame (§6.2) for the layout check (§3.3).
+//
+// The index stays an accelerator for the fold itself; only "count" and
+// "head" are consumed here, as the covered-region boundary. A payload
+// without a valid count/head pair is simply not an intact index.
+func (f *folder) hIndex(payload interface{}, index int) {
+	entries, ok := payload.(map[interface{}]interface{})
+	if !ok {
+		return
+	}
+	countRaw, ok := wire.MapGet(entries, "count")
+	if !ok {
+		return
+	}
+	count, ok := asIdx(countRaw)
+	if !ok {
+		return
+	}
+	headRaw, ok := wire.MapGet(entries, "head")
+	if !ok {
+		return
+	}
+	head, ok := headRaw.([]byte)
+	if !ok {
+		return
+	}
+	f.indexRecords = append(f.indexRecords, indexRecord{pos: index, count: count, head: head})
 }
 
 func (f *folder) hOpaque(payload interface{}) {
@@ -670,20 +736,21 @@ func bytesEqual(a, b []byte) bool {
 // serialization and downstream consumers see empty arrays instead of null.
 func emptyGraph() *model.Graph {
 	return &model.Graph{
-		Terms:           []model.Term{},
-		Quads:           []model.Quad{},
-		Reifiers:        []model.ReifierEntry{},
-		Annotations:     []model.Triple3{},
-		Blobs:           []model.BlobEntry{},
-		BlobMeta:        []model.BlobMetaEntry{},
-		Meta:            []model.MetaEntry{},
-		Suppressions:    []model.Suppression{},
-		Opaque:          []model.OpaqueNode{},
-		Signatures:      []model.Signature{},
-		Diagnostics:     []model.Diagnostic{},
-		SegmentHeads:    [][]byte{},
-		SegmentProfiles: []string{},
-		SegmentMeta:     [][]model.MetaEntry{},
+		Terms:             []model.Term{},
+		Quads:             []model.Quad{},
+		Reifiers:          []model.ReifierEntry{},
+		Annotations:       []model.Triple3{},
+		Blobs:             []model.BlobEntry{},
+		BlobMeta:          []model.BlobMetaEntry{},
+		Meta:              []model.MetaEntry{},
+		Suppressions:      []model.Suppression{},
+		Opaque:            []model.OpaqueNode{},
+		Signatures:        []model.Signature{},
+		Diagnostics:       []model.Diagnostic{},
+		SegmentHeads:      [][]byte{},
+		SegmentProfiles:   []string{},
+		SegmentMeta:       [][]model.MetaEntry{},
+		SegmentStreamable: []model.StreamableInfo{},
 	}
 }
 
@@ -751,12 +818,14 @@ func readSegment(items []struct {
 	expectedPrev := storedHID
 
 	catalog := catalogFrom(header)
-	fld := &folder{g: g, catalog: catalog}
+	fld := &folder{g: g, catalog: catalog, described: make(map[string]struct{})}
+	var frameIDs [][]byte // per-frame chain ids, by 0-based frame position
 	for idx, it := range items[1:] {
 		absIndex := idx + 1 + indexOffset
 		frame, ok := it.Item.(map[interface{}]interface{})
 		if !ok {
 			fld.diag("DamagedFrame", "frame is not a map", &absIndex)
+			frameIDs = append(frameIDs, []byte{})
 			continue
 		}
 		var storedID []byte
@@ -773,6 +842,7 @@ func readSegment(items []struct {
 			} else {
 				expectedPrev = computed
 			}
+			frameIDs = append(frameIDs, expectedPrev)
 			continue
 		}
 		prevOk := false
@@ -785,12 +855,16 @@ func readSegment(items []struct {
 			fld.diag("BrokenChain", "prev does not match", &absIndex)
 		}
 		expectedPrev = computed
+		frameIDs = append(frameIDs, expectedPrev)
 		if sig, ok := frame["sig"]; ok {
-			status := "unverified"
-			if _, ok := sig.([]byte); !ok {
-				status = "invalid"
+			// The raw COSE bytes are retained so streamable compaction (§10.1)
+			// can carry the signature detached.
+			if cose, ok := sig.([]byte); ok {
+				g.Signatures = append(g.Signatures, model.Signature{FrameID: computed, Status: "unverified", Cose: cose})
+			} else {
+				// present but malformed — record as invalid, never silently drop
+				g.Signatures = append(g.Signatures, model.Signature{FrameID: computed, Status: "invalid"})
 			}
-			g.Signatures = append(g.Signatures, model.Signature{FrameID: computed, Status: status})
 		}
 		fld.foldFrame(frame, absIndex)
 	}
@@ -800,7 +874,64 @@ func readSegment(items []struct {
 	copy(segMeta, g.Meta)
 	g.SegmentMeta = append(g.SegmentMeta, segMeta)
 	g.SegmentProfiles = append(g.SegmentProfiles, textOr(header["prof"], "generic"))
+	g.SegmentStreamable = append(g.SegmentStreamable, layoutCheck(g, header, fld, frameIDs, indexOffset))
 	return g
+}
+
+// layoutCheck computes one segment's layout state and checks its claim (§3.3).
+//
+// For a segment claiming "layout": "streamable": (a) it must carry an intact
+// index footer, (b) the last index's head must be the id of frame count, and
+// (c) every covered inline blob must arrive after the stream:digest quad
+// describing it. Frames after the last index are the legal accretive tail —
+// boundary info, never a diagnostic. Unknown layout values impose no check (§5).
+func layoutCheck(
+	g *model.Graph,
+	header map[interface{}]interface{},
+	fld *folder,
+	frameIDs [][]byte,
+	indexOffset int,
+) model.StreamableInfo {
+	layout, _ := wire.MapGet(header, "layout")
+	claimed := textOr(layout, "") == "streamable"
+	total := len(frameIDs)
+	if !claimed {
+		return model.StreamableInfo{}
+	}
+	if len(fld.indexRecords) == 0 {
+		g.Diagnostics = append(g.Diagnostics, model.Diagnostic{
+			Code: "StreamableLayoutError",
+			Detail: "segment claims layout 'streamable' but carries no intact " +
+				"index footer (§3.3)",
+		})
+		return model.StreamableInfo{Claimed: true, Covered: 0, Tail: total}
+	}
+	last := fld.indexRecords[len(fld.indexRecords)-1]
+	absPos, count, head := last.pos, last.count, last.head
+	relPos := absPos - indexOffset // 1-based frame position of the index
+	tail := total - relPos
+	if !(1 <= count && count <= relPos-1) || !bytesEqual(frameIDs[count-1], head) {
+		pos := absPos
+		g.Diagnostics = append(g.Diagnostics, model.Diagnostic{
+			Code: "StreamableLayoutError",
+			Detail: fmt.Sprintf("index footer contradicts the frames it covers: count %d "+
+				"/ head do not name a covered frame (§3.3)", count),
+			FrameIndex: &pos,
+		})
+	}
+	for _, ev := range fld.blobEvents {
+		blobRel := ev.pos - indexOffset
+		if blobRel <= count && !ev.described {
+			pos := ev.pos
+			g.Diagnostics = append(g.Diagnostics, model.Diagnostic{
+				Code: "StreamableLayoutError",
+				Detail: fmt.Sprintf("covered blob %s delivered before its stream:digest "+
+					"description (catalog-before-payload, §3.3)", ev.digest),
+				FrameIndex: &pos,
+			})
+		}
+	}
+	return model.StreamableInfo{Claimed: true, Covered: count, Tail: tail, Head: head}
 }
 
 type internKey struct {
@@ -998,6 +1129,7 @@ func unionSegments(segments []*model.Graph) *model.Graph {
 		u.out.Diagnostics = append(u.out.Diagnostics, seg.Diagnostics...)
 		u.out.SegmentHeads = append(u.out.SegmentHeads, seg.SegmentHeads...)
 		u.out.SegmentProfiles = append(u.out.SegmentProfiles, seg.SegmentProfiles...)
+		u.out.SegmentStreamable = append(u.out.SegmentStreamable, seg.SegmentStreamable...)
 	}
 	return u.out
 }

@@ -11,6 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
+	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/stream"
+	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/writer"
 )
 
 var binPath string
@@ -208,4 +212,155 @@ func readFile(t *testing.T, path string) string {
 		t.Fatal(err)
 	}
 	return string(b)
+}
+
+// --------------------------------------------------------------------------
+// gts compact --streamable (§10.1, §14.1) + layout reporting (§3.3)
+// --------------------------------------------------------------------------
+
+func accretiveFile(t *testing.T, dir string) string {
+	t.Helper()
+	w := writer.New("generic")
+	w.AddBlob(bytes.Repeat([]byte("Z"), 64), "application/octet-stream", "") // blob before catalog
+	w.AddTerms([]model.Term{
+		{Kind: model.Iri, Value: "https://example.org/Cat"},
+		{Kind: model.Iri, Value: "http://www.w3.org/2000/01/rdf-schema#label"},
+		{Kind: model.Literal, Value: "Cat", Lang: "en"},
+	})
+	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
+	path := filepath.Join(dir, "accretive.gts")
+	if err := os.WriteFile(path, w.ToBytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func TestCompactRequiresStreamableFlag(t *testing.T) {
+	tmp := t.TempDir()
+	path := accretiveFile(t, tmp)
+	cmd, _, stderr := run(t, "compact", path, "-o", filepath.Join(tmp, "x.gts"))
+	if cmd.ProcessState.ExitCode() != 2 {
+		t.Fatalf("expected exit 2, got %d", cmd.ProcessState.ExitCode())
+	}
+	if !bytes.Contains(stderr.Bytes(), []byte("compact requires --streamable")) {
+		t.Fatalf("stderr did not name the missing mode: %s", stderr.String())
+	}
+}
+
+func TestCompactVerifyInfoRoundTrip(t *testing.T) {
+	tmp := t.TempDir()
+	path := accretiveFile(t, tmp)
+	out := filepath.Join(tmp, "streamable.gts")
+	cmd, _, stderr := run(t, "compact", path, "-o", out, "--streamable", "--timestamp", "2026-01-01T00:00:00Z")
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("compact exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
+	}
+	cmd, stdout, stderr := run(t, "verify", out)
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("verify exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "layout: streamable through frame") {
+		t.Fatalf("ledger missing layout line: %s", stdout.String())
+	}
+	if strings.Contains(stdout.String(), "accretive tail") {
+		t.Fatalf("clean compaction must not report a tail: %s", stdout.String())
+	}
+	if strings.Contains(stderr.String(), "warning") {
+		t.Fatalf("unexpected warning: %s", stderr.String())
+	}
+}
+
+func TestCompactReproducesFrozenVectorViaCLI(t *testing.T) {
+	tmp := t.TempDir()
+	out := filepath.Join(tmp, "compacted.gts")
+	cmd, _, stderr := run(t, "compact", vector(t, "25-streamable-source.gts"),
+		"-o", out, "--streamable", "--timestamp", "2026-01-01T00:00:00Z")
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("compact exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
+	}
+	got, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected, err := os.ReadFile(vector(t, "25b-streamable-compacted.gts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, expected) {
+		t.Fatalf("compacted bytes diverge from the frozen oracle (§14.1)")
+	}
+}
+
+func TestVerifyRefusesStreamableLie(t *testing.T) {
+	cmd, stdout, _ := run(t, "verify", vector(t, "26-streamable-lie.gts"))
+	if cmd.ProcessState.ExitCode() != 1 {
+		t.Fatalf("expected exit 1, got %d", cmd.ProcessState.ExitCode())
+	}
+	if !strings.Contains(stdout.String(), "StreamableLayoutError") {
+		t.Fatalf("ledger did not list StreamableLayoutError: %s", stdout.String())
+	}
+}
+
+func TestInfoReportsAccretiveTail(t *testing.T) {
+	cmd, stdout, _ := run(t, "info", vector(t, "27-streamable-tail.gts"))
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("expected exit 0, got %d", cmd.ProcessState.ExitCode())
+	}
+	if !strings.Contains(stdout.String(), "layout: streamable through frame") {
+		t.Fatalf("ledger missing layout line: %s", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "accretive tail 2 frame(s)") {
+		t.Fatalf("ledger missing the accretive tail: %s", stdout.String())
+	}
+}
+
+func TestVerifyWarnsOnStreamVocabWithoutClaim(t *testing.T) {
+	// §13.3: stream# provenance in an unclaimed segment is a warning, never
+	// an error — it legitimately survives nq → gts round trips.
+	tmp := t.TempDir()
+	w := writer.New("generic")
+	w.AddTerms([]model.Term{
+		{Kind: model.Bnode, Value: "c"},
+		{Kind: model.Iri, Value: stream.Compaction},
+		{Kind: model.Literal, Value: stream.CompactAgent},
+	})
+	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
+	path := filepath.Join(tmp, "unclaimed-stream.gts")
+	if err := os.WriteFile(path, w.ToBytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd, _, stderr := run(t, "verify", path)
+	if cmd.ProcessState.ExitCode() != 0 { // warning, exit stays 0
+		t.Fatalf("expected exit 0, got %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
+	}
+	if !strings.Contains(stderr.String(), "layout warning") {
+		t.Fatalf("stderr missing the layout warning: %s", stderr.String())
+	}
+}
+
+func TestCompactRefusalExitsOne(t *testing.T) {
+	tmp := t.TempDir()
+	w := writer.New("evidence")
+	w.AddTerms([]model.Term{
+		{Kind: model.Iri, Value: "https://example.org/Cat"},
+		{Kind: model.Iri, Value: "http://www.w3.org/2000/01/rdf-schema#label"},
+		{Kind: model.Literal, Value: "Cat", Lang: "en"},
+	})
+	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
+	path := filepath.Join(tmp, "evidence.gts")
+	if err := os.WriteFile(path, w.ToBytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(tmp, "out.gts")
+	cmd, _, stderr := run(t, "compact", path, "-o", out, "--streamable")
+	if cmd.ProcessState.ExitCode() != 1 {
+		t.Fatalf("expected exit 1, got %d", cmd.ProcessState.ExitCode())
+	}
+	if !strings.Contains(stderr.String(), "seal-original") {
+		t.Fatalf("refusal did not name seal-original: %s", stderr.String())
+	}
+	cmd, _, stderr = run(t, "compact", path, "-o", out, "--streamable", "--seal-original")
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("seal-original compact exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
+	}
 }

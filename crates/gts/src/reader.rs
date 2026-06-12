@@ -16,8 +16,10 @@ use ciborium::value::Value;
 
 use crate::codec::{decode_chain, Codec, CodecError};
 use crate::model::{
-    Diagnostic, Graph, OpaqueNode, Quad, Signature, Suppression, Term, TermKind, Triple3,
+    Diagnostic, Graph, OpaqueNode, Quad, Signature, StreamableInfo, Suppression, Term, TermKind,
+    Triple3,
 };
+use crate::stream::DIGEST as STREAM_DIGEST;
 use crate::wire::{content_id, digest_str, header_id, iter_items, map_get, unwrap_header};
 
 fn as_i128(v: &Value) -> Option<i128> {
@@ -85,6 +87,12 @@ impl From<CodecError> for PayloadError {
 struct Folder<'a> {
     g: &'a mut Graph,
     catalog: HashMap<i128, Codec>,
+    // Layout-state bookkeeping (§3.3): intact index frames seen, digests the
+    // graph has described via stream:digest so far, and each inline blob's
+    // arrival (frame index, digest, was-it-described-at-arrival).
+    index_records: Vec<(usize, usize, Vec<u8>)>,
+    described: HashSet<String>,
+    blob_events: Vec<(usize, String, bool)>,
 }
 
 impl Folder<'_> {
@@ -163,12 +171,13 @@ impl Folder<'_> {
             "quads" => self.h_quads(&payload, index),
             "reifies" => self.h_reifies(&payload, index),
             "annot" => self.h_annot(&payload, index),
-            "blob" => self.h_blob(&payload, frame),
+            "blob" => self.h_blob(&payload, frame, index),
             "meta" => self.h_meta(&payload),
             "suppress" => self.h_suppress(&payload),
             "snapshot" => self.h_snapshot(&payload, index),
+            "index" => self.h_index(&payload, index),
             "opaque" => self.h_opaque(&payload),
-            // index / unknown structural frames are ignored by the baseline
+            // unknown structural frames are ignored by the baseline
             _ => {}
         }
     }
@@ -237,6 +246,13 @@ impl Folder<'_> {
                 continue;
             }
             self.g.quads.push((s, p, o, gslot));
+            // Layout bookkeeping (§3.3): a stream:digest quad describes an
+            // upcoming manifestation — record the IOU for the blob check.
+            if self.g.terms[p].value.as_deref() == Some(STREAM_DIGEST) {
+                if let Some(obj) = &self.g.terms[o].value {
+                    self.described.insert(obj.clone());
+                }
+            }
         }
     }
 
@@ -309,7 +325,7 @@ impl Folder<'_> {
         }
     }
 
-    fn h_blob(&mut self, payload: &Value, frame: &[(Value, Value)]) {
+    fn h_blob(&mut self, payload: &Value, frame: &[(Value, Value)], index: usize) {
         if let Value::Bytes(b) = payload {
             let digest = digest_str(b);
             if let Some(pub_meta) = map_get(frame, "pub") {
@@ -317,6 +333,10 @@ impl Folder<'_> {
                     self.g.set_blob_meta(digest.clone(), pub_meta.clone());
                 }
             }
+            // Layout bookkeeping (§3.3): was this delivery presaged by a
+            // stream:digest description in an earlier frame?
+            self.blob_events
+                .push((index, digest.clone(), self.described.contains(&digest)));
             self.g.set_blob(digest, b.clone());
         }
         // else: external blob — bytes live elsewhere, referenced by "pub".digest (§12).
@@ -422,6 +442,20 @@ impl Folder<'_> {
                     .unwrap_or_else(|| format!("{k:?}"));
                 self.g.set_meta(key, v.clone());
             }
+        }
+    }
+
+    /// Record an intact `index` frame (§6.2) for the layout check (§3.3).
+    ///
+    /// The index stays an accelerator for the fold itself; only `count` and
+    /// `head` are consumed here, as the covered-region boundary. A payload
+    /// without a valid count/head pair is simply not an intact index.
+    fn h_index(&mut self, payload: &Value, index: usize) {
+        let Value::Map(entries) = payload else { return };
+        let count = map_get(entries, "count").and_then(as_idx);
+        let head = map_get(entries, "head");
+        if let (Some(count), Some(Value::Bytes(head))) = (count, head) {
+            self.index_records.push((index, count, head.clone()));
         }
     }
 
@@ -723,10 +757,18 @@ fn read_segment(items: &[(usize, Value)], index_offset: usize) -> Graph {
         });
     }
     let mut expected_prev: Vec<u8> = stored_hid.unwrap_or_default();
+    // per-frame chain ids, by 0-based frame position
+    let mut frame_ids: Vec<Vec<u8>> = Vec::new();
 
-    {
+    let (index_records, blob_events) = {
         let catalog = catalog_from(header);
-        let mut folder = Folder { g: &mut g, catalog };
+        let mut folder = Folder {
+            g: &mut g,
+            catalog,
+            index_records: Vec::new(),
+            described: HashSet::new(),
+            blob_events: Vec::new(),
+        };
         for (index, (_, raw)) in items[1..].iter().enumerate() {
             let abs_index = index + 1 + index_offset;
             let Value::Map(frame) = raw else {
@@ -735,6 +777,7 @@ fn read_segment(items: &[(usize, Value)], index_offset: usize) -> Graph {
                     "frame is not a map".to_string(),
                     Some(abs_index),
                 );
+                frame_ids.push(Vec::new());
                 continue;
             };
             let stored_id: Option<&Vec<u8>> = match map_get(frame, "id") {
@@ -751,6 +794,7 @@ fn read_segment(items: &[(usize, Value)], index_offset: usize) -> Graph {
                 let ftype = text_or(map_get(frame, "t"), "").to_string();
                 folder.opaque(frame, &ftype, "damaged");
                 expected_prev = stored_id.cloned().unwrap_or(computed);
+                frame_ids.push(expected_prev.clone());
                 continue;
             }
             let prev_ok = matches!(map_get(frame, "prev"),
@@ -763,30 +807,113 @@ fn read_segment(items: &[(usize, Value)], index_offset: usize) -> Graph {
                 );
             }
             expected_prev = computed.clone();
+            frame_ids.push(expected_prev.clone());
             if let Some(sig) = map_get(frame, "sig") {
-                let status = if matches!(sig, Value::Bytes(_)) {
-                    // no key provider in this baseline — recorded, not verified
-                    "unverified"
-                } else {
-                    // present but malformed — record as invalid, never drop
-                    "invalid"
+                // No key provider in this baseline — a well-formed signature
+                // is recorded as "unverified" with its raw COSE bytes retained
+                // (compaction carries it detached, §10.1); a malformed one is
+                // recorded as "invalid", never silently dropped.
+                let (status, cose) = match sig {
+                    Value::Bytes(b) => ("unverified", Some(b.clone())),
+                    _ => ("invalid", None),
                 };
                 folder.g.signatures.push(Signature {
                     frame_id: computed.clone(),
                     kid: None,
                     status: status.to_string(),
+                    cose,
                 });
             }
             folder.fold_frame(frame, abs_index);
         }
-    }
+        (folder.index_records, folder.blob_events)
+    };
 
     g.segment_heads.push(expected_prev);
     let seg_meta = g.meta.clone();
     g.segment_meta.push(seg_meta);
     g.segment_profiles
         .push(text_or(map_get(header, "prof"), "generic").to_string());
+    let info = layout_check(
+        &mut g,
+        header,
+        &index_records,
+        &blob_events,
+        &frame_ids,
+        index_offset,
+    );
+    g.segment_streamable.push(info);
     g
+}
+
+/// Compute one segment's layout state and check its claim (§3.3).
+///
+/// For a segment claiming `"layout": "streamable"`: (a) it must carry an
+/// intact `index` footer, (b) the last index's `head` must be the id of
+/// frame `count`, and (c) every covered inline blob must arrive after the
+/// `stream:digest` quad describing it. Frames after the last index are the
+/// legal accretive tail — boundary info, never a diagnostic. Unknown layout
+/// values impose no check (§5).
+fn layout_check(
+    g: &mut Graph,
+    header: &[(Value, Value)],
+    index_records: &[(usize, usize, Vec<u8>)],
+    blob_events: &[(usize, String, bool)],
+    frame_ids: &[Vec<u8>],
+    index_offset: usize,
+) -> StreamableInfo {
+    let claimed = matches!(map_get(header, "layout"), Some(Value::Text(t)) if t == "streamable");
+    let total = frame_ids.len();
+    if !claimed {
+        return StreamableInfo::default();
+    }
+    let Some((abs_pos, count, head)) = index_records.last() else {
+        g.diagnostics.push(Diagnostic {
+            code: "StreamableLayoutError".to_string(),
+            detail: "segment claims layout 'streamable' but carries no intact \
+                     index footer (§3.3)"
+                .to_string(),
+            frame_index: None,
+        });
+        return StreamableInfo {
+            claimed: true,
+            covered: 0,
+            tail: total,
+            head: None,
+        };
+    };
+    let (abs_pos, count) = (*abs_pos, *count);
+    let rel_pos = abs_pos - index_offset; // 1-based frame position of the index
+    let tail = total - rel_pos;
+    if !(1..rel_pos).contains(&count) || frame_ids[count - 1] != *head {
+        g.diagnostics.push(Diagnostic {
+            code: "StreamableLayoutError".to_string(),
+            detail: format!(
+                "index footer contradicts the frames it covers: count {count} \
+                 / head do not name a covered frame (§3.3)"
+            ),
+            frame_index: Some(abs_pos),
+        });
+    }
+    for (blob_abs, digest, described) in blob_events {
+        let blob_rel = blob_abs - index_offset;
+        if blob_rel <= count && !described {
+            g.diagnostics.push(Diagnostic {
+                code: "StreamableLayoutError".to_string(),
+                detail: format!(
+                    "covered blob {digest} delivered before its stream:digest \
+                     description (catalog-before-payload, §3.3)"
+                ),
+                frame_index: Some(*blob_abs),
+            });
+        }
+    }
+    StreamableInfo {
+        claimed: true,
+        covered: count,
+        tail,
+        head: Some(head.clone()),
+    }
 }
 
 // --------------------------------------------------------------------------- //
@@ -982,6 +1109,9 @@ fn union_segments(segments: &[Graph]) -> Graph {
         u.out
             .segment_profiles
             .extend(seg.segment_profiles.iter().cloned());
+        u.out
+            .segment_streamable
+            .extend(seg.segment_streamable.iter().cloned());
     }
     u.out
 }
