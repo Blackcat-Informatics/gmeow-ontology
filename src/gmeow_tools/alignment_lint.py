@@ -56,7 +56,6 @@ from gmeow_tools.config import (
     TARGET_SNAPSHOT_DIR,
 )
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.mapping_dsl import curie
 from gmeow_tools.mappings import Mapping, expand_curie, load_mappings
 from gmeow_tools.target_axioms import (
     SCHEMA_DOMAIN_INCLUDES,
@@ -394,6 +393,30 @@ def _equivalence_adjacency(
     return adjacency
 
 
+def _equivalence_components(
+    adjacency: dict[URIRef, set[URIRef]],
+) -> dict[URIRef, int]:
+    """Label each node with its connected-component id (one O(V+E) pass).
+
+    Lets the collapse check decide "connected or not?" for every disjoint
+    pair by dict lookup; the per-pair BFS then runs only to RENDER the
+    chain of an actual violation — i.e. never on a clean run.
+    """
+    component: dict[URIRef, int] = {}
+    for comp_id, start in enumerate(adjacency):
+        if start in component:
+            continue
+        component[start] = comp_id
+        queue: deque[URIRef] = deque([start])
+        while queue:
+            node = queue.popleft()
+            for nxt in adjacency.get(node, ()):
+                if nxt not in component:
+                    component[nxt] = comp_id
+                    queue.append(nxt)
+    return component
+
+
 def _equivalence_path(
     adjacency: dict[URIRef, set[URIRef]],
     start: URIRef,
@@ -439,19 +462,22 @@ def _check_equivalence_collapse(
     present, so absence can never mask a collapse asserted by the mappings.
     """
     adjacency = _equivalence_adjacency(mappings, onto, target_graphs)
+    component = _equivalence_components(adjacency)
     findings: list[AlignmentFinding] = []
     for a, b, axiom in _disjoint_pairs(onto):
-        path = _equivalence_path(adjacency, a, b)
-        if path is None:
+        if a not in component or component[a] != component.get(b):
             continue
-        chain = " = ".join(curie(node) for node in path)
+        path = _equivalence_path(adjacency, a, b)
+        if path is None:  # pragma: no cover — same component implies a path
+            continue
+        chain = " = ".join(_shorten(node) for node in path)
         findings.append(
             AlignmentFinding(
                 severity=Severity.ERROR,
                 check="equivalence-collapse",
-                subject_id=curie(a),
+                subject_id=_shorten(a),
                 predicate_id=axiom,
-                object_id=curie(b),
+                object_id=_shorten(b),
                 message=(
                     "declared disjoint, but the equivalence closure "
                     f"connects them (Principle 5): {chain}"
