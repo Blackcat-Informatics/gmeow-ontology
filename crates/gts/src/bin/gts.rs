@@ -29,7 +29,12 @@ commands:
                             extract one blob by content digest; --mt asserts
                             the declared media type (never converts)
   cat -o <out> <file>...    validating composer: refuse degenerate inputs,
-                            then byte-concatenate (§3.1, §14.1)";
+                            then byte-concatenate (§3.1, §14.1)
+  pack <dir|file>... -o out.gts
+                            pack files/directories into a files-profile archive
+  unpack <archive> [-C dir] [--include-suppressed]
+                            unpack a files-profile archive
+  diff <archive> <dir>      compare archive to directory by digest";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -44,6 +49,9 @@ fn main() -> ExitCode {
         "ls" => cmd_ls(&args[1..]),
         "extract" => cmd_extract(&args[1..]),
         "cat" => cmd_cat(&args[1..]),
+        "pack" => cmd_pack(&args[1..]),
+        "unpack" => cmd_unpack(&args[1..]),
+        "diff" => cmd_diff(&args[1..]),
         "-h" | "--help" | "help" => {
             println!("{USAGE}");
             ExitCode::SUCCESS
@@ -424,6 +432,133 @@ fn cmd_cat(args: &[String]) -> ExitCode {
         }
     }
     ExitCode::SUCCESS
+}
+
+/// Pack files/directories into a files-profile GTS archive (tar's `c`).
+fn cmd_pack(args: &[String]) -> ExitCode {
+    let mut out_path: Option<&str> = None;
+    let mut sources: Vec<&str> = Vec::new();
+    let mut it = args.iter();
+    while let Some(a) = it.next() {
+        match a.as_str() {
+            "-o" | "--out" => match it.next() {
+                Some(p) => out_path = Some(p),
+                None => {
+                    eprintln!("gts: -o requires a path\n{USAGE}");
+                    return ExitCode::from(2);
+                }
+            },
+            other => sources.push(other),
+        }
+    }
+    if sources.is_empty() {
+        eprintln!("{USAGE}");
+        return ExitCode::from(2);
+    }
+    let out_path = match out_path {
+        Some(p) => p,
+        None => {
+            eprintln!("gts: pack requires -o\n{USAGE}");
+            return ExitCode::from(2);
+        }
+    };
+
+    let paths: Vec<&std::path::Path> = sources.iter().map(std::path::Path::new).collect();
+    match gts::files::pack(&paths) {
+        Ok(data) => {
+            if let Err(e) = std::fs::write(out_path, &data) {
+                eprintln!("gts: cannot write {out_path}: {e}");
+                return ExitCode::from(2);
+            }
+            ExitCode::SUCCESS
+        }
+        Err(msg) => {
+            eprintln!("gts: refusing pack: {msg}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+/// Unpack a files-profile GTS archive (tar's `x`), verifying digests.
+fn cmd_unpack(args: &[String]) -> ExitCode {
+    let mut dest: Option<&str> = None;
+    let mut include_suppressed = false;
+    let mut positional: Vec<&str> = Vec::new();
+    let mut it = args.iter();
+    while let Some(a) = it.next() {
+        match a.as_str() {
+            "-C" => match it.next() {
+                Some(d) => dest = Some(d),
+                None => {
+                    eprintln!("gts: -C requires a directory\n{USAGE}");
+                    return ExitCode::from(2);
+                }
+            },
+            "--include-suppressed" => include_suppressed = true,
+            other => positional.push(other),
+        }
+    }
+    let [path] = positional[..] else {
+        eprintln!("{USAGE}");
+        return ExitCode::from(2);
+    };
+    let data = match load(path) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let g = read(&data, true, None);
+    for d in &g.diagnostics {
+        eprintln!("gts: diagnostic {}: {}", d.code, d.detail);
+    }
+    if !g.diagnostics.is_empty() || g.segment_heads.is_empty() {
+        eprintln!("gts: refusing unpack: archive did not read cleanly");
+        return ExitCode::from(1);
+    }
+    let dest_path = std::path::Path::new(dest.unwrap_or("."));
+    match gts::files::unpack(&g, dest_path, include_suppressed) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(msg) => {
+            eprintln!("gts: refusing unpack: {msg}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+/// Compare an archive to a directory by content digest (tar's `d`).
+fn cmd_diff(args: &[String]) -> ExitCode {
+    let [archive, directory] = args else {
+        eprintln!("{USAGE}");
+        return ExitCode::from(2);
+    };
+    let data = match load(archive) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let g = read(&data, true, None);
+    for d in &g.diagnostics {
+        eprintln!("gts: diagnostic {}: {}", d.code, d.detail);
+    }
+    if !g.diagnostics.is_empty() || g.segment_heads.is_empty() {
+        eprintln!("gts: refusing diff: archive did not read cleanly");
+        return ExitCode::from(1);
+    }
+    match gts::files::diff(&g, std::path::Path::new(directory)) {
+        Ok(lines) => {
+            let has_changes = !lines.is_empty();
+            for line in &lines {
+                println!("{line}");
+            }
+            if has_changes {
+                ExitCode::from(1)
+            } else {
+                ExitCode::SUCCESS
+            }
+        }
+        Err(msg) => {
+            eprintln!("gts: refusing diff: {msg}");
+            ExitCode::from(1)
+        }
+    }
 }
 
 fn target_idx(target: &Value, key: &str) -> Option<usize> {
