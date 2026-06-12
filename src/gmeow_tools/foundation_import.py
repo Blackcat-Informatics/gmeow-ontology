@@ -129,7 +129,15 @@ class FoundationImporter:
         activity = CORP["activity/import"]
         g.add((activity, RDF.type, GM.ImportActivity))
         g.add((activity, GM.wasAssociatedWith, self._pipeline))
-        g.add((activity, GM.sourceLocation, Literal(source_path)))
+        # Basename only: raw local paths leak usernames/layout into shared
+        # artifacts (PR #389 review).
+        g.add(
+            (
+                activity,
+                GM.sourceLocation,
+                Literal(Path(source_path).name if source_path else ""),
+            )
+        )
         g.add((self._rubric, RDF.type, GM.Rubric))
         g.add((self._rubric, RDFS.label, Literal("principia goal rubric", lang=LANG)))
         g.add((self._rubric, GM.normIssuer, self._pipeline))
@@ -193,6 +201,16 @@ class FoundationImporter:
                 Literal(record.get("title", record["section_id"]), lang=LANG),
             )
         )
+
+    def _character_iri(self, record: dict[str, Any], name: str) -> URIRef:
+        """Work-scoped character IRI (the corpus .nq convention).
+
+        Identically-named characters in different books are DIFFERENT nodes:
+        cross-work identity is a coreference claim (counterpartOf /
+        statement-layer mode), never string equality (PR #389 review).
+        """
+        book = record.get("book_number", _slug(record.get("title", "x")))
+        return CORP[f"character/{book}/{_slug(name)}"]
 
     def _book_iri(self, record: dict[str, Any]) -> URIRef:
         return CORP[f"book/{record.get('book_number', _slug(record['title']))}"]
@@ -290,15 +308,17 @@ class FoundationImporter:
             g.add((segment, GM.atNarrativePosition, pos))
             positions[index] = pos
             segments[index] = segment
-            for event_text in chapter.get("key_events") or []:
-                event = URIRef(str(segment) + f"/event/{_slug(event_text[:48])}")
+            for event_no, event_text in enumerate(chapter.get("key_events") or [], 1):
+                event = URIRef(
+                    str(segment) + f"/event/{event_no}-{_slug(event_text[:48])}"
+                )
                 g.add((event, RDF.type, GM.Event))
                 g.add((event, RDFS.label, Literal(event_text[:120], lang=LANG)))
                 g.add((event, GM.eventType, self._narrated_event_type()))
                 g.add((segment, GM.narrates, event))
                 self.budget.flat["narrates → key event"] += 1
             for name in chapter.get("active_characters") or []:
-                g.add((segment, GM.narrates, CORP[f"character/{_slug(name)}"]))
+                g.add((segment, GM.narrates, self._character_iri(record, name)))
                 self.budget.flat["narrates → active character"] += 1
         return frame, positions, segments
 
@@ -313,7 +333,7 @@ class FoundationImporter:
         g = self.graph
         characters: dict[str, URIRef] = {}
         for char in record.get("corpus_db_characters") or []:
-            iri = CORP[f"character/{_slug(char['name'])}"]
+            iri = self._character_iri(record, char["name"])
             characters[char["name"]] = iri
             g.add((iri, RDF.type, GM.Person))
             g.add((iri, RDFS.label, Literal(char["name"], lang=LANG)))
@@ -395,7 +415,7 @@ class FoundationImporter:
                 if not name or not state_text:
                     self.budget.skipped["arc entries without state"] += 1
                     continue
-                subject = characters.get(name) or CORP[f"character/{_slug(name)}"]
+                subject = characters.get(name) or self._character_iri(record, name)
                 # One cell, one state: a second reading at the same position
                 # (duplicate corpus rows, blended states) is a SIBLING sample,
                 # so the IRI carries the state slug (#361 doctrine).
@@ -541,9 +561,13 @@ def project_tei_xml(graph: Graph) -> str:
 
     DECLARED LOSS: positions flatten to div order; roles/arcs drop.
     """
+    narrated = set(graph.objects(None, GM.narrates)) | set(
+        graph.subjects(GM.narratedIn, None)
+    )
     people = sorted(
         str(graph.value(p, RDFS.label) or p)
         for p in graph.subjects(RDF.type, GM.Person)
+        if p in narrated  # cast = narrative characters; authors stay out
     )
     segments = []
     for s in graph.subjects(RDF.type, GM.ContentSegment):

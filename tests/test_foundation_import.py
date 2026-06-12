@@ -74,11 +74,12 @@ def test_budget_report_has_no_silent_caps() -> None:
 def test_zeros_are_scores() -> None:
     """The 0.0 axis imports as an Assessment like any other."""
     graph, _ = _imported()
-    zero = [
-        a
-        for a in graph.subjects(RDF.type, GM.Assessment)
-        if float(str(graph.value(a, GM.assessmentScoreValue))) == 0.0
-    ]
+    zero = []
+    for a in graph.subjects(RDF.type, GM.Assessment):
+        value = graph.value(a, GM.assessmentScoreValue)
+        assert value is not None, a
+        if float(str(value)) == 0.0:
+            zero.append(a)
     assert len(zero) == 1
 
 

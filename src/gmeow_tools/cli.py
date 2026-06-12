@@ -975,8 +975,8 @@ def import_foundation(
     from gmeow_tools.foundation_import import run_import
 
     _, budget = run_import(jsonl, out_dir, nq)
-    typer.echo(budget.as_text())
-    typer.echo(f"artifacts → {out_dir}")
+    console.print(budget.as_text())
+    console.print(f"[green]✓[/green] artifacts → {out_dir}")
 
 
 if __name__ == "__main__":  # pragma: no cover
