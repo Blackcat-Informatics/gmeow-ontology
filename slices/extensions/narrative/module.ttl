@@ -696,3 +696,8 @@ gmeow:motifOccursIn
     rdfs:label "motif occurs in"@x-gmeow-english ;
     skos:definition "An occurrence of the motif in a carrying segment — the narration seam reused (⊑ gmeow:narratedIn, #360), inheriting the efficiency discipline: flat by default, promoted to a NarrationUsage only when a vantage disputes the occurrence or a mode matters. NOT functional: 16,002 corpus tag-instances become occurrence edges."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+# Flat-first/reify-on-demand pairings, machine-usable (#325).
+gmeow:narrates gmeow:pairsWith gmeow:NarrationUsage .
+gmeow:hasNarrativeRole gmeow:pairsWith gmeow:RoleInNarrative .
+gmeow:motifOccursIn gmeow:pairsWith gmeow:NarrationUsage .

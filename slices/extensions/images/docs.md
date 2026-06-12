@@ -1,13 +1,98 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# images
+# Images — contextual depiction, regions, and scene graphs
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/images` · **tier: extension**
+> Who is shown, where in the pixels, and how the parts relate — without a "primary photo".
 
-The Images super-ontology — a layered model for contextual depiction, region encoding, scene graphs, and technical metadata (issue #22). Builds on the WEMI spine (#208): a visual work is a gmeow:Work with workTypeVisual / workTypePhotographic; the digital file is a gmeow:Manifestation (gmeow:MediaObject) plus gmeow:Item / hasCarrier. Colourspace is carried via gmeow:hasReferenceFrame (#70). Rights reuse the #21 facility directly. LAYERS. 1. Contextual depiction — the DepictionUsage relator (mirrors NameUsage) and the flat gmeow:depicts shortcut (⊑ gmeow:isAbout). 2. Region encoding — …
+Most schemas reduce imagery to a `photo` URL field. GMEOW treats depiction the way it
+treats naming: as a **contextual, attributed, time-scoped claim**. The flat
+`gmeow:depicts` shortcut (a subproperty of `gmeow:isAbout`, domain `MediaObject`) covers
+the 80 % case; when context, audience, period, or authority must be recorded, promote to
+the **DepictionUsage** relator — the exact mirror of `NameUsage`. That pairing is
+machine-readable: the module asserts `gmeow:depicts gmeow:pairsWith gmeow:DepictionUsage`,
+so tooling knows the flat form and the reified form are the same fact at two fidelities.
+There is **no primary or preferred depiction** (Principle 9): co-equal depictions coexist,
+and a superseded one is suppressed with `gmeow:displayable false`, never deleted
+(Principle 10). The slice builds on the WEMI spine (issue #208) — a visual work is a
+`gmeow:Work`, the file a `gmeow:Manifestation`/`MediaObject` — and exists for its
+Principle-15 consumer: **high-fidelity depiction (regions, scene graphs) atop the core
+MediaObject, driven by the `gmeow-image` CLI (issue #326)**.
 
-*This is a STUB guide (#325 Tier-2): the slice is modelled, aligned, and
-reasoned, but its narrative documentation has not been written yet. The
-module-status matrix tracks the gap; term-level documentation (labels,
-definitions) lives in `module.ttl` and renders via `gmeow describe`.*
+## Layer 1 — contextual depiction
+
+### gmeow:DepictionUsage
+
+The reified, context-dependent depiction relator — an `Observation` in the universal claim
+stack. Mint one per *(entity, image, context)* tuple: `depictionSubject` (functional),
+`depictionImage` (functional), `depictionContext`, plus optional `depictionAudience` and
+`depictionInterval`. Perspectival, never global; paired with the flat `gmeow:depicts` via
+`gmeow:pairsWith`.
+
+### gmeow:depictionAuthority
+
+The `gmeow:Agent` that confers or sanctions the depiction in this use — a photographer, an
+archive, a self-asserting subject. Deliberately **non-functional**: joint or competing
+authorities coexist with no privileged claimant (Principle 9), each attributable and
+confidence-weighted.
+
+### gmeow:DepictionContext
+
+The open value vocabulary (Principle 9 — individuals, never subclasses) for *how* an image
+shows its subject: work, family, childhood, portrait, candid, self-portrait, event, and so
+on. A new context is data, not a schema change.
+
+## Layer 2 — region encoding
+
+### gmeow:ImageRegion
+
+A structural part of an image — the visual counterpart of `ContentSegment`: a face, a
+bounding box, a pixel mask. Belongs to exactly one image (`gmeow:regionOf`, functional;
+inverse `gmeow:hasRegion`) and carries a human-readable `gmeow:regionLabel`.
+
+### gmeow:RegionSelector
+
+The encoding descriptor for a region's boundaries: one `gmeow:selectorType` plus the raw
+`gmeow:selectorValue` literal. The canonical superset of W3C Web Annotation selectors,
+IIIF selectors, and domain mask formats. Attached via `gmeow:regionSelector` (functional —
+one selector per region).
+
+### gmeow:SelectorType
+
+Open value vocabulary of encoding kinds: SVG path, pixel rectangle, fractional rectangle,
+polygon, RLE, COCO RLE, DICOM-SEG, pixel mask, Web Annotation fragment. Parsing and
+coordinate conversion are **solver-layer work** (Principle 12) — the graph records which
+encoding was used, never re-derives geometry.
+
+## Layer 4 — scene graphs
+
+### gmeow:SceneGraphEdge
+
+A reified spatial or semantic relationship between two regions — a `gufo:Relator`
+mediating `sceneSubject` and `sceneObject` (both functional, both `ImageRegion`), a
+`sceneRelation`, and an explicit `gmeow:sceneConfidence` decimal in [0.0, 1.0]. Aligns by
+reference to Visual Genome and OVSR relation strings.
+
+### gmeow:SceneRelationType
+
+The open relation vocabulary for edges — `leftOf`, `inside`, `holding`, `wearing`,
+`riding`, `sameAs` (co-reference), `partOf` (mereological), and friends. The relation is a
+**value, never a subclass** (Principle 9): a new predicate from a new detector is a fresh
+individual.
+
+## Solver layer & projections
+
+The slice models *which* facts hold; computation lives outside the graph (Principle 12):
+mask parsing, coordinate-space conversion, scene-graph inference, and IIIF Presentation
+API 3 rendering (Layer 3 of the design is *purely projection* — Canvas/Annotation mapping
+adds no ontology terms). Technical metadata (`pixelWidth`, `captureDevice`, colourspace
+via `gmeow:hasReferenceFrame`) lives on `MediaObject` in the documents slice; rights reuse
+the issue #21 facility; provenance reuses `wasGeneratedBy`/`wasDerivedFrom`.
+
+## Alignment & dependencies
+
+All alignments are by reference, never import (Principle 5): schema.org `ImageObject`,
+IIIF, W3C Web Annotation, W3C EXIF Ontology, XMP, IPTC, and CIDOC-CRM/CRMdig. Depends on
+`kernel`, `documents` (MediaObject), `observations` (the claim stack DepictionUsage sits
+in), and `temporal` (depiction intervals).

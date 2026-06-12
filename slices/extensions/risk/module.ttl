@@ -288,3 +288,6 @@ gmeow:mitigationStatus
     rdfs:label "mitigation status"@x-gmeow-english ;
     skos:definition "The mitigation's lifecycle status. NOT functional (PR #385 review): lifecycle is mutable and source-variable — status-over-time rides validFrom/validUntil on the statement, and single-valuedness per base graph is SHACL's job. Open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
+
+# Flat-first/reify-on-demand pairings, machine-usable (#325).
+gmeow:typeCauses gmeow:pairsWith gmeow:CausalLink .

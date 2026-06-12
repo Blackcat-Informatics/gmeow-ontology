@@ -29,6 +29,54 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
+def build_snapshot_bytes() -> bytes:
+    """Build the dist snapshot exactly as the generator commits it.
+
+    Docs ride the package (#325): every slice guide embeds as a
+    content-addressed markdown blob, linked from the graph via
+    ``gmeow:guideBlob``, and the build FAILS if any guide anchors a missing
+    term — docs-in-sync is a build invariant (Principle 7). Shared by the
+    generator's render and the reproducibility tests, so there is exactly
+    one definition of "the snapshot" (Principle 4).
+    """
+    from blake3 import blake3
+    from rdflib import Literal, URIRef
+
+    from gmeow_tools.config import NAMESPACE, SLICES_DIR
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.mappings import build_alignment_graph, load_mappings
+    from gmeow_tools.validate import guide_anchor_lint
+
+    graph = load_merged_graph(include_imports=False)
+    lint = guide_anchor_lint(graph)
+    if lint.errors:
+        details = "; ".join(lint.errors[:5])
+        msg = (
+            f"docs-in-sync invariant violated (#325): {len(lint.errors)} "
+            f"guide anchor error(s) — {details}"
+        )
+        raise ValueError(msg)
+    doc_blobs: list[tuple[bytes, str, str]] = []
+    guide_blob = URIRef(NAMESPACE + "guideBlob")
+    for manifest in sorted(SLICES_DIR.glob("*/*/manifest.ttl")):
+        slice_dir = manifest.parent
+        guide = slice_dir / "docs.md"
+        if not guide.exists():
+            continue
+        payload = guide.read_bytes()
+        digest = "blake3:" + blake3(payload).hexdigest()
+        slice_iri = URIRef(NAMESPACE + "slices/" + slice_dir.name)
+        graph.add((slice_iri, guide_blob, Literal(digest)))
+        doc_blobs.append((payload, "text/markdown", f"docs:{slice_dir.name}"))
+
+    return compile_gts(
+        graph,
+        STATEMENT_RDF12_FILE,
+        alignment_graph=build_alignment_graph(load_mappings()),
+        doc_blobs=doc_blobs,
+    )
+
+
 @register
 class GtsSnapshotGenerator(Generator):
     """Emit the byte-deterministic GTS dist snapshot of the canonical sources."""
@@ -37,12 +85,15 @@ class GtsSnapshotGenerator(Generator):
 
     @property
     def inputs(self) -> Sequence[Path]:
-        """Everything the snapshot folds: ontology, statements, alignments."""
+        """Everything the snapshot folds: ontology, statements, alignments, guides."""
+        from gmeow_tools.config import SLICES_DIR
+
         return [
             PROJECT_ROOT / "ontology" / "gmeow.ttl",
             *iter_module_files(),
             STATEMENT_RDF12_FILE,
             *sorted(MAPPINGS_DIR.glob("*.sssom.tsv")),
+            *sorted(SLICES_DIR.glob("*/*/docs.md")),
         ]
 
     @property
@@ -52,14 +103,7 @@ class GtsSnapshotGenerator(Generator):
 
     def render(self, staging: Path) -> None:
         """Compile the snapshot into the staging tree."""
-        from gmeow_tools.graph import load_merged_graph
-        from gmeow_tools.mappings import build_alignment_graph, load_mappings
-
-        data = compile_gts(
-            load_merged_graph(include_imports=False),
-            STATEMENT_RDF12_FILE,
-            alignment_graph=build_alignment_graph(load_mappings()),
-        )
+        data = build_snapshot_bytes()
         target = staging / GTS_SNAPSHOT_FILE.relative_to(PROJECT_ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)

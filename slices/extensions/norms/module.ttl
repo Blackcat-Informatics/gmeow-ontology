@@ -856,3 +856,8 @@ gmeow:registerClinical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/sl
 gmeow:registerBrandVoice a gmeow:Register ; rdfs:label "brand voice"@x-gmeow-english ;
     skos:definition "The brand-voice register — an organization's curated public expression identity."@x-gmeow-english .
 gmeow:registerBrandVoice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# Flat-first/reify-on-demand pairings, machine-usable (#325).
+gmeow:overrides gmeow:pairsWith gmeow:PrecedenceTenure .
+gmeow:violates gmeow:pairsWith gmeow:ComplianceAssessment .
+gmeow:complies gmeow:pairsWith gmeow:ComplianceAssessment .
