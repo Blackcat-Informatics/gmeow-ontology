@@ -414,6 +414,42 @@ def _claim_dict(claim: Any) -> dict[str, Any]:
     return asdict(claim)
 
 
+#: Tool agent IRIs for the triad's own provenance records (#390): tools are
+#: SoftwareAgents; tool-ness is the role they play in the call event.
+_TOOL_AGENT_NS = "urn:gmeow:tool:"
+
+
+def _record_tool_call(
+    memory: Any,
+    tool: str,
+    arguments: dict[str, Any],
+    *,
+    result: str | None = None,
+    generated: tuple[str, ...] = (),
+) -> None:
+    """Record the triad's own call as ToolCall provenance (#390).
+
+    The memory MCP is the agentic slice's first live producer: every
+    store/revise appends a gmeow:ToolCall record alongside the claims it
+    touched, and produced claims link back via gmeow:wasGeneratedBy (P5).
+    Best-effort by design — provenance recording must never fail the
+    user-facing operation it describes. recall is the read path and
+    records nothing.
+    """
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        memory.record_tool_call(
+            _TOOL_AGENT_NS + tool,
+            arguments=json.dumps(
+                {k: v for k, v in arguments.items() if v is not None},
+                sort_keys=True,
+            ),
+            result=result,
+            generated=generated,
+        )
+
+
 @mcp.tool()
 def store_claim(
     text: str,
@@ -429,7 +465,8 @@ def store_claim(
     (its ``id`` is the handle for ``revise_belief``).
     """
     try:
-        claim = _memory().store(
+        memory = _memory()
+        claim = memory.store(
             text,
             source=source,
             confidence=confidence,
@@ -437,7 +474,22 @@ def store_claim(
         )
     except (ValueError, OSError) as exc:
         return json.dumps({"ok": False, "error": str(exc)})
-    return json.dumps({"ok": True, "claim": _claim_dict(claim)})
+    response = json.dumps({"ok": True, "claim": _claim_dict(claim)})
+    # toolResult is the VERBATIM payload the tool returned (byte-faithful);
+    # the produced claim links back via wasGeneratedBy (P5).
+    _record_tool_call(
+        memory,
+        "store_claim",
+        {
+            "text": text,
+            "source": source,
+            "confidence": confidence,
+            "according_to": according_to,
+        },
+        result=response,
+        generated=(claim.id,),
+    )
+    return response
 
 
 @mcp.tool()
@@ -494,9 +546,16 @@ def revise_belief(
         memory.revise(claim_id, reason=reason, superseded_by=superseded_by)
     except (ValueError, OSError) as exc:
         return json.dumps({"ok": False, "error": str(exc)})
-    return json.dumps(
+    response = json.dumps(
         {"ok": True, "suppressed": claim_id, "superseded_by": superseded_by}
     )
+    _record_tool_call(
+        memory,
+        "revise_belief",
+        {"claim_id": claim_id, "reason": reason, "superseded_by": superseded_by},
+        result=response,
+    )
+    return response
 
 
 def run() -> None:

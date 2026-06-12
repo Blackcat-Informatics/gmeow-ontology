@@ -13,6 +13,6 @@ never deletion.
 
 from __future__ import annotations
 
-from gmeow.memory import Claim, Memory
+from gmeow.memory import Claim, Memory, ToolCallRecord
 
-__all__ = ["Claim", "Memory"]
+__all__ = ["Claim", "Memory", "ToolCallRecord"]

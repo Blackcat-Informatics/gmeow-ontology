@@ -5800,6 +5800,15 @@ export interface TimeZone extends Entity {
 
 
 
+export interface ToolCall extends Activity {
+    calledByInvocation?: ModelInvocation,
+    toolArguments?: string,
+    toolResult?: string,
+    usedTool?: SoftwareAgent,
+}
+
+
+
 export interface Trademark {
     registrationNumber?: string,
     trademarkHolder?: Agent[],
