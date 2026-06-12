@@ -148,11 +148,11 @@ gmeow:linkMechanism
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:linkStrength
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:range xsd:decimal ;
     rdfs:label "link strength"@x-gmeow-english ;
-    skos:definition "A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12); whose estimate it is rides the statement layer."@x-gmeow-english ;
+    skos:definition "A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional (PR #385 review): strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing owl:sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 # =========================================================================== #
@@ -186,7 +186,7 @@ gmeow:SeverityLevel
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Severity Level"@x-gmeow-english ;
-    skos:definition "The graded severity of a cascade or hazard — an ordered value vocabulary (catastrophic ≻ severe ≻ moderate ≻ minor), the kernel GranularityLevel pattern (fourth use). gmeow:moreSevereThan is transitive ON LEVELS ONLY. Terminology anchored to ISO 31000 / IEC 60812 in docs, never axioms; what a grade DEMANDS in response is the norms extension's business, plugged in via Mitigation."@x-gmeow-english ;
+    skos:definition "The graded severity of a cascade or hazard — an OPEN, ordered value vocabulary (catastrophic ≻ severe ≻ moderate ≻ minor; deployments add grades — negligible, critical, FMEA 1–10 bands — without schema change, Principle 9), the kernel GranularityLevel pattern (fourth use). gmeow:moreSevereThan is transitive ON LEVELS ONLY. Terminology anchored to ISO 31000 / IEC 60812 in docs, never axioms; what a grade DEMANDS in response is the norms extension's business, plugged in via Mitigation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:moreSevereThan
@@ -214,19 +214,19 @@ gmeow:severityMinor        a gmeow:SeverityLevel ; rdfs:label "minor"@x-gmeow-en
 gmeow:severityMinor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:cascadeSeverity
-    a owl:ObjectProperty, owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Cascade ;
     rdfs:range gmeow:SeverityLevel ;
     rdfs:label "cascade severity"@x-gmeow-english ;
-    skos:definition "The cascade's graded severity — according to whoever grades it (statement-layer indexed). Functional and mandatory (SHACL): an ungraded cascade is just a story."@x-gmeow-english ;
+    skos:definition "The cascade's graded severity — according to whoever grades it (statement-layer indexed). NOT functional (PR #385 review): grading is evaluative and source-variable; divergent grades coexist through the statement layer, and single-valuedness per base graph is SHACL's job (the hasAuthorityLevel convention). Mandatory: an ungraded cascade is just a story."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:hazardSeverity
-    a owl:ObjectProperty, owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Hazard ;
     rdfs:range gmeow:SeverityLevel ;
     rdfs:label "hazard severity"@x-gmeow-english ;
-    skos:definition "The hazard's graded severity, when graded standalone (a hazard feeding a cascade usually inherits attention from the cascade's grade). Functional, optional."@x-gmeow-english ;
+    skos:definition "The hazard's graded severity, when graded standalone (a hazard feeding a cascade usually inherits attention from the cascade's grade). NOT functional (PR #385 review — evaluative, source-variable; the hasAuthorityLevel convention); optional, at most one per base graph (SHACL)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 # =========================================================================== #
@@ -282,9 +282,9 @@ gmeow:mitigationRetired  a gmeow:MitigationStatus ; rdfs:label "retired"@x-gmeow
 gmeow:mitigationRetired rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:mitigationStatus
-    a owl:ObjectProperty, owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Mitigation ;
     rdfs:range gmeow:MitigationStatus ;
     rdfs:label "mitigation status"@x-gmeow-english ;
-    skos:definition "The mitigation's lifecycle status. Functional; open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
+    skos:definition "The mitigation's lifecycle status. NOT functional (PR #385 review): lifecycle is mutable and source-variable — status-over-time rides validFrom/validUntil on the statement, and single-valuedness per base graph is SHACL's job. Open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .

@@ -2536,7 +2536,7 @@ class CausalLink(ConfiguredBaseModel):
     linkNext: Optional[list[CausalLink]] = Field(default=None, title="link next", json_schema_extra = { "linkml_meta": {'domain': 'CausalLink',
          'domain_of': ['CausalLink'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/linkNext'} })
-    linkStrength: Optional[Decimal] = Field(default=None, title="link strength", json_schema_extra = { "linkml_meta": {'domain': 'CausalLink',
+    linkStrength: Optional[list[Decimal]] = Field(default=None, title="link strength", json_schema_extra = { "linkml_meta": {'domain': 'CausalLink',
          'domain_of': ['CausalLink'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/linkStrength'} })
 
@@ -6592,7 +6592,7 @@ class Hazard(ConfiguredBaseModel):
     hazardBearer: Optional[Entity] = Field(default=None, title="hazard bearer", json_schema_extra = { "linkml_meta": {'domain': 'Hazard',
          'domain_of': ['Hazard'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hazardBearer'} })
-    hazardSeverity: Optional[SeverityLevel] = Field(default=None, title="hazard severity", json_schema_extra = { "linkml_meta": {'domain': 'Hazard',
+    hazardSeverity: Optional[list[SeverityLevel]] = Field(default=None, title="hazard severity", json_schema_extra = { "linkml_meta": {'domain': 'Hazard',
          'domain_of': ['Hazard'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hazardSeverity'} })
     manifestedAsType: Optional[list[EventType]] = Field(default=None, title="manifested as type", json_schema_extra = { "linkml_meta": {'domain': 'Hazard',
@@ -19512,7 +19512,7 @@ class Mitigation(ConfiguredBaseModel):
     mitigationMeasure: Optional[list[str]] = Field(default=None, title="mitigation measure", json_schema_extra = { "linkml_meta": {'domain': 'Mitigation',
          'domain_of': ['Mitigation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mitigationMeasure'} })
-    mitigationStatus: Optional[MitigationStatus] = Field(default=None, title="mitigation status", json_schema_extra = { "linkml_meta": {'domain': 'Mitigation',
+    mitigationStatus: Optional[list[MitigationStatus]] = Field(default=None, title="mitigation status", json_schema_extra = { "linkml_meta": {'domain': 'Mitigation',
          'domain_of': ['Mitigation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mitigationStatus'} })
 
@@ -31805,7 +31805,7 @@ class Cascade(SocialObject):
     cascadeFirstLink: Optional[CausalLink] = Field(default=None, title="cascade first link", json_schema_extra = { "linkml_meta": {'domain': 'Cascade',
          'domain_of': ['Cascade'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/cascadeFirstLink'} })
-    cascadeSeverity: Optional[SeverityLevel] = Field(default=None, title="cascade severity", json_schema_extra = { "linkml_meta": {'domain': 'Cascade',
+    cascadeSeverity: Optional[list[SeverityLevel]] = Field(default=None, title="cascade severity", json_schema_extra = { "linkml_meta": {'domain': 'Cascade',
          'domain_of': ['Cascade'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/cascadeSeverity'} })
     acquireLicensePage: Optional[list[str]] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',

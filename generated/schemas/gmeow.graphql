@@ -3585,7 +3585,7 @@ type Cascade
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     cascadeFirstLink: CausalLink
-    cascadeSeverity: SeverityLevel
+    cascadeSeverity: [SeverityLevel]
   }
 
 type CausalLink
@@ -3595,7 +3595,7 @@ type CausalLink
     linkConsequent: EventType
     linkMechanism: [String]
     linkNext: [CausalLink]
-    linkStrength: Float
+    linkStrength: [Float]
   }
 
 type CausalModality
@@ -6968,7 +6968,7 @@ type GTSSegment
 type Hazard
   {
     hazardBearer: Entity
-    hazardSeverity: SeverityLevel
+    hazardSeverity: [SeverityLevel]
     manifestedAsType: [EventType]
   }
 
@@ -9420,7 +9420,7 @@ type Mitigation
   {
     mitigationCounters: [RiskFactor]
     mitigationMeasure: [String]
-    mitigationStatus: MitigationStatus
+    mitigationStatus: [MitigationStatus]
   }
 
 type MitigationStatus

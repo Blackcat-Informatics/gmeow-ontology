@@ -11053,13 +11053,12 @@
                 ]
               },
               "cascadeSeverity": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/SeverityLevel"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "items": {
+                  "$ref": "#/$defs/SeverityLevel"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "cites": {
@@ -11516,8 +11515,11 @@
                 ]
               },
               "linkStrength": {
+                "items": {
+                  "type": "number"
+                },
                 "type": [
-                  "number",
+                  "array",
                   "null"
                 ]
               }
@@ -39241,13 +39243,12 @@
                 ]
               },
               "hazardSeverity": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/SeverityLevel"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "items": {
+                  "$ref": "#/$defs/SeverityLevel"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "manifestedAsType": {
@@ -59499,13 +59500,12 @@
                 ]
               },
               "mitigationStatus": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/MitigationStatus"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "items": {
+                  "$ref": "#/$defs/MitigationStatus"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               }
             },

@@ -2553,7 +2553,7 @@ export interface CarrierMedium {
 
 export interface Cascade extends SocialObject {
     cascadeFirstLink?: CausalLink,
-    cascadeSeverity?: SeverityLevel,
+    cascadeSeverity?: SeverityLevel[],
 }
 
 
@@ -2564,7 +2564,7 @@ export interface CausalLink {
     linkConsequent?: EventType,
     linkMechanism?: string[],
     linkNext?: CausalLink[],
-    linkStrength?: string,
+    linkStrength?: string[],
 }
 
 
@@ -3534,7 +3534,7 @@ export interface GroupOperator {
 
 export interface Hazard {
     hazardBearer?: Entity,
-    hazardSeverity?: SeverityLevel,
+    hazardSeverity?: SeverityLevel[],
     manifestedAsType?: EventType[],
 }
 
@@ -4129,7 +4129,7 @@ export interface MetricKind {
 export interface Mitigation {
     mitigationCounters?: RiskFactor[],
     mitigationMeasure?: string[],
-    mitigationStatus?: MitigationStatus,
+    mitigationStatus?: MitigationStatus[],
 }
 
 

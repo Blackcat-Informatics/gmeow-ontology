@@ -78,14 +78,20 @@ def test_causal_link_constituents() -> None:
     g = _graph()
     assert (GM.CausalLink, RDFS.subClassOf, GUFO.Relator) in g
     assert (GM.CausalLink, RDFS.subClassOf, GM.RiskFactor) in g
-    functional = (
-        GM.linkAntecedent,
-        GM.linkConsequent,
-        GM.causalModality,
-        GM.linkStrength,
-    )
+    functional = (GM.linkAntecedent, GM.linkConsequent, GM.causalModality)
     for prop in functional:
         assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
+    # Source-variable values are deliberately NOT OWL-functional (PR #385):
+    # divergent estimates/grades/statuses coexist via the statement layer;
+    # single-valuedness per base graph is SHACL's job.
+    multi_source = (
+        GM.linkStrength,
+        GM.cascadeSeverity,
+        GM.hazardSeverity,
+        GM.mitigationStatus,
+    )
+    for prop in multi_source:
+        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
     # Mechanism prose is localizable: NOT functional, range-open (#376 lesson).
     assert (GM.linkMechanism, RDF.type, OWL.FunctionalProperty) not in g
     assert g.value(GM.linkMechanism, RDFS.range) is None

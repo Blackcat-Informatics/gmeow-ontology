@@ -11,5 +11,5 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 SELECT ?top WHERE {
     ?top a gmeow:SeverityLevel .
     ?top gmeow:moreSevereThan+ gmeow:severityMinor .
-    FILTER NOT EXISTS { ?graver gmeow:moreSevereThan ?top . }
+    FILTER NOT EXISTS { ?graver gmeow:moreSevereThan+ ?top . }
 }
