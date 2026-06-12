@@ -91,6 +91,11 @@ class Writer:
         ``layout`` writes the header layout-state claim (§3.3; ``"streamable"``
         is the only value this revision defines).
         """
+        if layout is not None and layout != "streamable":
+            # §5: "streamable" is the only layout this revision defines; a
+            # typo'd claim would persist into the tamper-evident header.
+            msg = f"unsupported layout claim {layout!r} (§3.3)"
+            raise ValueError(msg)
         self._signer = signer
         self.catalog = catalog or dict(DEFAULT_CATALOG)
         self._name_to_id = {c.name: i for i, c in self.catalog.items()}

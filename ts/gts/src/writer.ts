@@ -46,6 +46,11 @@ export class Writer {
      * the only value this revision defines).
      */
     constructor(profile: string, layout?: string) {
+        if (layout !== undefined && layout !== "streamable") {
+            // §5: "streamable" is the only layout this revision defines; a
+            // typo'd claim would persist into the tamper-evident header.
+            throw new Error(`unsupported layout claim '${layout}' (§3.3)`);
+        }
         this.nameToId = new Map<string, number>();
         const catEntries = new Map<unknown, unknown>();
         for (const [id, c] of Object.entries(Catalog)) {

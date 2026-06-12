@@ -364,3 +364,46 @@ func TestCompactRefusalExitsOne(t *testing.T) {
 		t.Fatalf("seal-original compact exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
 	}
 }
+
+func TestVerifyEnforcesDeclaredVsComputedProfiles(t *testing.T) {
+	tmp := t.TempDir()
+	// files# vocabulary in a generic segment: an error, exit 1 (§14.1).
+	w := writer.New("generic")
+	w.AddTerms([]model.Term{
+		{Kind: model.Bnode, Value: "f0"},
+		{Kind: model.Iri, Value: "https://w3id.org/gts/files#path"},
+		{Kind: model.Literal, Value: "a.txt"},
+	})
+	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
+	undeclared := filepath.Join(tmp, "undeclared.gts")
+	if err := os.WriteFile(undeclared, w.ToBytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd, _, stderr := run(t, "verify", undeclared)
+	if cmd.ProcessState.ExitCode() != 1 {
+		t.Fatalf("verify exit = %d, want 1\n%s", cmd.ProcessState.ExitCode(), stderr.String())
+	}
+	if !strings.Contains(stderr.String(), "profile error: segment uses https://w3id.org/gts/files#") {
+		t.Fatalf("missing profile error, got:\n%s", stderr.String())
+	}
+
+	// declared-but-unused profile: a warning, exit stays 0.
+	w2 := writer.New("files")
+	w2.AddTerms([]model.Term{
+		{Kind: model.Iri, Value: "https://example.org/Cat"},
+		{Kind: model.Iri, Value: "http://www.w3.org/2000/01/rdf-schema#label"},
+		{Kind: model.Literal, Value: "Cat", Lang: "en"},
+	})
+	w2.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
+	unused := filepath.Join(tmp, "unused.gts")
+	if err := os.WriteFile(unused, w2.ToBytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd, _, stderr = run(t, "verify", unused)
+	if cmd.ProcessState.ExitCode() != 0 {
+		t.Fatalf("verify exit = %d, want 0\n%s", cmd.ProcessState.ExitCode(), stderr.String())
+	}
+	if !strings.Contains(stderr.String(), "profile warning: segment declares 'files'") {
+		t.Fatalf("missing profile warning, got:\n%s", stderr.String())
+	}
+}

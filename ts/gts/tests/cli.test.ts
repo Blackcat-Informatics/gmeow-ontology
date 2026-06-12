@@ -213,11 +213,13 @@ test("CLI verify enforces declared-vs-computed profiles (§14.1)", () => {
 });
 
 test("CLI compact reports an unwritable output as exit 2", () => {
+    // A unique missing parent keeps the ENOENT assertion deterministic.
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
     const r = run([
         "compact",
         join(vectorsDir, "25-streamable-source.gts"),
         "-o",
-        join(tmpdir(), "no-such-dir-gts", "deep", "out.gts"),
+        join(tmp, "missing", "deep", "out.gts"),
         "--streamable",
     ]);
     assert.equal(r.code, 2);

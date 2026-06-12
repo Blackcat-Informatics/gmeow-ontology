@@ -5,6 +5,8 @@
 package writer
 
 import (
+	"fmt"
+
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
 	"github.com/fxamacker/cbor/v2"
@@ -49,6 +51,11 @@ func New(profile string) *Writer {
 // (§3.3; "streamable" is the only value this revision defines). The layout
 // key participates in the header self-hash. An empty layout writes no claim.
 func NewWithLayout(profile, layout string) *Writer {
+	if layout != "" && layout != "streamable" {
+		// §5: "streamable" is the only layout this revision defines; a
+		// typo'd claim would persist into the tamper-evident header.
+		panic(fmt.Sprintf("unsupported layout claim %q (§3.3)", layout))
+	}
 	catalog := map[int64]struct {
 		name string
 		cls  string

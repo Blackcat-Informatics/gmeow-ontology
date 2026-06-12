@@ -181,23 +181,16 @@ fn term_iri_value(seg: &Graph, tid: usize) -> Option<&str> {
 /// Vocabulary namespaces actually used by IRIs in a segment's quads.
 fn used_vocabs(seg: &Graph) -> HashSet<&'static str> {
     let mut out = HashSet::new();
-    for &(s, p, o, _g) in &seg.quads {
-        let p_iri = term_iri_value(seg, p);
-        let s_iri = term_iri_value(seg, s);
-        let o_iri = term_iri_value(seg, o);
-
-        for &(_prof, vocab) in PROFILE_VOCABS {
-            if let Some(iri) = p_iri {
-                if namespace(iri) == vocab {
-                    out.insert(vocab);
-                }
-            }
-            if let Some(iri) = o_iri {
-                if namespace(iri) == vocab {
-                    out.insert(vocab);
-                }
-            }
-            if let Some(iri) = s_iri {
+    for &(s, p, o, g) in &seg.quads {
+        // The graph slot is a term position like any other (§14.1): a
+        // vocabulary IRI used only as a graph name still rots a declaration.
+        let ids = [Some(s), Some(p), Some(o), g];
+        for iri in ids
+            .into_iter()
+            .flatten()
+            .filter_map(|tid| term_iri_value(seg, tid))
+        {
+            for &(_prof, vocab) in PROFILE_VOCABS {
                 if namespace(iri) == vocab {
                     out.insert(vocab);
                 }
@@ -250,10 +243,13 @@ fn stream_vocab_check(seg: &Graph) -> Vec<String> {
     if claimed {
         return Vec::new();
     }
-    let uses = seg.quads.iter().any(|&(s, p, o, _g)| {
-        [s, p, o].into_iter().any(|tid| {
-            term_iri_value(seg, tid).is_some_and(|iri| iri.starts_with(gts::stream::STREAM_NS))
-        })
+    let uses = seg.quads.iter().any(|&(s, p, o, g)| {
+        [Some(s), Some(p), Some(o), g]
+            .into_iter()
+            .flatten()
+            .any(|tid| {
+                term_iri_value(seg, tid).is_some_and(|iri| iri.starts_with(gts::stream::STREAM_NS))
+            })
     });
     if uses {
         vec![format!(

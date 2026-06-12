@@ -201,6 +201,85 @@ func cmdFold(paths []string) int {
 	return 0
 }
 
+// quadTermIDs returns every term position of a quad, including the graph
+// slot when present (§14.1): a vocabulary IRI used only as a graph name still
+// rots a declaration.
+func quadTermIDs(q model.Quad) []int {
+	if q.G != nil {
+		return []int{q.S, q.P, q.O, *q.G}
+	}
+	return []int{q.S, q.P, q.O}
+}
+
+// profileVocabs maps profile names to the spec-owned vocabulary they imply.
+var profileVocabs = map[string]string{
+	"files": "https://w3id.org/gts/files#",
+}
+
+func namespaceOf(iri string) string {
+	if i := strings.LastIndex(iri, "#"); i >= 0 {
+		return iri[:i+1]
+	}
+	if i := strings.LastIndex(iri, "/"); i >= 0 {
+		return iri[:i+1]
+	}
+	return iri
+}
+
+// profileCheck implements the §14.1 declared-vs-computed profile checks:
+// vocabulary used without its profile declared is an error; a declared-but-
+// unused profile is a warning. Returns (message, isError) pairs.
+func profileCheck(seg *model.Graph) []struct {
+	Msg   string
+	IsErr bool
+} {
+	declared := make(map[string]struct{}, len(seg.SegmentProfiles))
+	for _, p := range seg.SegmentProfiles {
+		declared[p] = struct{}{}
+	}
+	used := make(map[string]struct{})
+	for _, q := range seg.Quads {
+		for _, tid := range quadTermIDs(q) {
+			if tid < 0 || tid >= len(seg.Terms) {
+				continue // never crash a report over a malformed reference
+			}
+			term := &seg.Terms[tid]
+			if term.Kind != model.Iri || term.Value == "" {
+				continue
+			}
+			ns := namespaceOf(term.Value)
+			for _, vocab := range profileVocabs {
+				if ns == vocab {
+					used[ns] = struct{}{}
+				}
+			}
+		}
+	}
+	var out []struct {
+		Msg   string
+		IsErr bool
+	}
+	for prof, vocab := range profileVocabs {
+		_, declares := declared[prof]
+		_, uses := used[vocab]
+		if uses && !declares {
+			out = append(out, struct {
+				Msg   string
+				IsErr bool
+			}{fmt.Sprintf("profile error: segment uses %s vocabulary "+
+				"but does not declare '%s'", vocab, prof), true})
+		}
+		if declares && !uses {
+			out = append(out, struct {
+				Msg   string
+				IsErr bool
+			}{fmt.Sprintf("profile warning: segment declares '%s' "+
+				"but uses no %s vocabulary", prof, vocab), false})
+		}
+	}
+	return out
+}
+
 // streamVocabCheck warns on stream# vocabulary in an unclaimed segment (§13.3).
 //
 // A warning, never an error: compaction-provenance quads legitimately survive
@@ -212,7 +291,7 @@ func streamVocabCheck(seg *model.Graph) []string {
 		return nil
 	}
 	for _, q := range seg.Quads {
-		for _, tid := range []int{q.S, q.P, q.O} {
+		for _, tid := range quadTermIDs(q) {
 			if tid < 0 || tid >= len(seg.Terms) {
 				continue // never crash a report over a malformed reference
 			}
@@ -244,8 +323,16 @@ func cmdVerify(paths []string) int {
 		if hasProblems(fs) {
 			problems = true
 		}
-		// §14.1: declared-vs-computed layout warnings (exit stays 0).
+		// §14.1: declared-vs-computed profile requirements + layout warnings.
 		for idx, seg := range fs.Segments {
+			for _, check := range profileCheck(seg) {
+				prefix := "warning"
+				if check.IsErr {
+					prefix = "error"
+					problems = true
+				}
+				fmt.Fprintf(os.Stderr, "  segment %d: %s: %s\n", idx, prefix, check.Msg)
+			}
 			for _, msg := range streamVocabCheck(seg) {
 				fmt.Fprintf(os.Stderr, "  segment %d: warning: %s\n", idx, msg)
 			}

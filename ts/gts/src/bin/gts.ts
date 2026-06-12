@@ -238,13 +238,19 @@ function namespaceOf(iri: string): string {
     return iri;
 }
 
+/** Every term position of a quad, including the graph slot (§14.1): a
+ * vocabulary IRI used only as a graph name still rots a declaration. */
+function quadTermIds(q: Quad): number[] {
+    return q.g !== undefined ? [q.s, q.p, q.o, q.g] : [q.s, q.p, q.o];
+}
+
 function profileCheck(seg: Graph): Array<[string, boolean]> {
     const declared = new Set(seg.segmentProfiles);
     const vocabs = new Set(Object.values(PROFILE_VOCABS));
     const used = new Set<string>();
     const n = seg.terms.length;
     for (const q of seg.quads) {
-        for (const tid of [q.s, q.p, q.o]) {
+        for (const tid of quadTermIds(q)) {
             if (tid < 0 || tid >= n) continue;
             const term = seg.terms[tid];
             if (term.kind !== TermKind.Iri || term.value === "") continue;
@@ -280,7 +286,7 @@ function streamVocabCheck(seg: Graph): string[] {
     if (claimed) return [];
     const n = seg.terms.length;
     for (const q of seg.quads) {
-        for (const tid of [q.s, q.p, q.o]) {
+        for (const tid of quadTermIds(q)) {
             // Never crash a report over a malformed reference.
             if (tid < 0 || tid >= n) continue;
             const term = seg.terms[tid];

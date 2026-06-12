@@ -60,6 +60,12 @@ impl Writer {
     /// Create a writer with a header layout-state claim (§3.3;
     /// `"streamable"` is the only value this revision defines).
     pub fn with_layout(profile: &str, layout: Option<&str>) -> Self {
+        // §5: "streamable" is the only layout this revision defines; a typo'd
+        // claim would persist into the tamper-evident header.
+        assert!(
+            layout.is_none() || layout == Some("streamable"),
+            "unsupported layout claim {layout:?} (§3.3)"
+        );
         let catalog: HashMap<i64, Codec> = [
             (
                 0i64,

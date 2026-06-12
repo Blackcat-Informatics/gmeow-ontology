@@ -106,8 +106,8 @@ def _namespace(iri: str) -> str:
 def _used_vocabs(seg: Graph) -> set[str]:
     out: set[str] = set()
     vocabs = set(PROFILE_VOCABS.values())
-    for s, p, o, _g in seg.quads:
-        for tid in (s, p, o):
+    for s, p, o, g in seg.quads:
+        for tid in (s, p, o) if g is None else (s, p, o, g):
             term = seg.term(tid)
             if term.kind is TermKind.IRI and term.value:
                 ns = _namespace(term.value)
@@ -164,8 +164,8 @@ def _stream_vocab_check(seg: Graph) -> list[str]:
         term.kind is TermKind.IRI
         and term.value is not None
         and term.value.startswith(STREAM_NS)
-        for s, p, o, _g in seg.quads
-        for tid in (s, p, o)
+        for s, p, o, g in seg.quads
+        for tid in ((s, p, o) if g is None else (s, p, o, g))
         if 0 <= tid < n  # never crash a report over a malformed reference
         for term in (seg.term(tid),)
     )

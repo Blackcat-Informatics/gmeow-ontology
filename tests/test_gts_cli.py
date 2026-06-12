@@ -498,3 +498,31 @@ def test_compact_seal_original_extracts_verbatim(tmp_path: Path) -> None:
         == 0
     )
     assert extracted.read_bytes() == src
+
+
+def test_verify_scans_the_graph_slot_for_vocab(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """§14.1: a vocabulary IRI used only as a quad's GRAPH NAME still rots a
+    declaration — the scans cover all four term positions."""
+    w = Writer()
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Cat"),
+            Term(TermKind.IRI, "http://www.w3.org/2000/01/rdf-schema#label"),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#graph"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, 3)])  # files# vocabulary in the graph slot ONLY
+    path = tmp_path / "graph-slot.gts"
+    path.write_bytes(w.to_bytes())
+    assert main(["verify", str(path)]) == 1
+    assert "profile error" in capsys.readouterr().err
+
+
+def test_writer_rejects_unsupported_layout_claim() -> None:
+    """§5: 'streamable' is the only layout this revision defines; a typo'd
+    claim must fail at construction, not persist into the header."""
+    with pytest.raises(ValueError, match="unsupported layout claim"):
+        Writer(layout="streamabel")
