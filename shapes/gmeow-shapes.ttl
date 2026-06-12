@@ -3565,3 +3565,173 @@ gmeow:NarrationUsageShape
         sh:severity sh:Violation ;
         sh:message "A NarrationUsage must state at least one gmeow:narrationMode (an IRI — the vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention) — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine, #360)." ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Rubrics shapes (#353, EPIC #348) — reified evaluation frameworks.
+# --------------------------------------------------------------------------- #
+
+gmeow:CriterionShape
+    a sh:NodeShape ;
+    rdfs:label "Criterion Shape" ;
+    sh:targetClass gmeow:Criterion ;
+    sh:property [
+        sh:path gmeow:rewardPole ;
+        sh:maxCount 1 ;
+        sh:class gmeow:CriterionPole ;
+        sh:severity sh:Violation ;
+        sh:message "A Criterion has at most one gmeow:rewardPole, a CriterionPole." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:penaltyPole ;
+        sh:maxCount 1 ;
+        sh:class gmeow:CriterionPole ;
+        sh:severity sh:Violation ;
+        sh:message "A Criterion has at most one gmeow:penaltyPole, a CriterionPole." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A Criterion's reward and penalty poles must be distinct — one pole is no axis." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/rewardPole> ?p .
+                $this <https://blackcatinformatics.ca/gmeow/penaltyPole> ?p .
+            }
+        """ ;
+    ] .
+
+gmeow:ScoreScaleShape
+    a sh:NodeShape ;
+    rdfs:label "Score Scale Shape" ;
+    sh:targetClass gmeow:ScoreScale ;
+    sh:property [
+        sh:path gmeow:scaleMin ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ScoreScale must declare exactly one gmeow:scaleMin." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:scaleMax ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ScoreScale must declare exactly one gmeow:scaleMax." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A ScoreScale's minimum must be strictly below its maximum." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/scaleMin> ?min .
+                $this <https://blackcatinformatics.ca/gmeow/scaleMax> ?max .
+                FILTER(?min >= ?max)
+            }
+        """ ;
+    ] .
+
+gmeow:ScoreAnchorShape
+    a sh:NodeShape ;
+    rdfs:label "Score Anchor Shape" ;
+    sh:targetClass gmeow:ScoreAnchor ;
+    sh:property [
+        sh:path gmeow:anchorMeaning ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ScoreAnchor must carry exactly one gmeow:anchorMeaning — an anchor without a meaning is just an interval." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A ScoreAnchor's range minimum must not exceed its range maximum." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ?min .
+                $this <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ?max .
+                FILTER(?min > ?max)
+            }
+        """ ;
+    ] .
+
+gmeow:ExemplarShape
+    a sh:NodeShape ;
+    rdfs:label "Exemplar Shape" ;
+    sh:targetClass gmeow:Exemplar ;
+    sh:property [
+        sh:path gmeow:exemplarPolarity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( gmeow:polarityPositive gmeow:polarityNegative gmeow:polarityCautionary ) ;
+        sh:severity sh:Violation ;
+        sh:message "An Exemplar must state exactly one gmeow:exemplarPolarity (positive / negative / cautionary — a CLOSED vocabulary, hence sh:in)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:citingEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Exemplar (a CitationAct) must have exactly one gmeow:citingEntity — restated here because closed-world targeting does not inherit." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:citedEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Exemplar (a CitationAct) must have exactly one gmeow:citedEntity." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:citationIntent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Exemplar (a CitationAct) must specify exactly one gmeow:citationIntent." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An Exemplar must pin its evidence: at least one of gmeow:viaSelector (a span) or gmeow:exemplarSubject (an entity whose pattern is the example)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/viaSelector> ?sel . }
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/exemplarSubject> ?subj . }
+            }
+        """ ;
+    ] .
+
+gmeow:AssessmentShape
+    a sh:NodeShape ;
+    rdfs:label "Assessment Shape" ;
+    sh:targetClass gmeow:Assessment ;
+    sh:property [
+        sh:path gmeow:assessmentTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Assessment must score exactly one gmeow:assessmentTarget." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assessmentScoreValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Assessment must carry exactly one gmeow:assessmentScoreValue — a zero is a score, not an absence." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Assessment must name its judge vantage — a score is somebody's observation, never a graph fact (Principle 9)." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An Assessment must name what it applies: a gmeow:assessmentCriterion, a gmeow:assessmentRubric, or both." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ?c . }
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/assessmentRubric> ?r . }
+            }
+        """ ;
+    ] .

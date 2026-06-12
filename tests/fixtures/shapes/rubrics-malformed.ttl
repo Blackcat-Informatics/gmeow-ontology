@@ -1,0 +1,56 @@
+# Malformed rubrics fixture (#353, EPIC #348). Six violations:
+#   1. ex:onePoleAxis — a criterion whose reward and penalty poles coincide.
+#   2. ex:invertedScale — a scale whose minimum meets its maximum.
+#   3. ex:meaninglessAnchor — an anchor with an inverted range and no meaning
+#      (two violations from one node).
+#   4. ex:unpinnedExemplar — an exemplar with neither selector nor subject.
+#   5. ex:apatheticExemplar — an exemplar with no polarity.
+#   6. ex:methodlessScore — an assessment naming neither criterion nor rubric.
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:judge a gmeow:Person ; rdfs:label "a judge"@en .
+ex:novel a gmeow:BookRelease ; rdfs:label "a novel"@en .
+ex:rubric a gmeow:Rubric ; rdfs:label "a rubric"@en ; gmeow:normIssuer ex:judge .
+
+# Violation 1: one pole is no axis.
+ex:samePole a gmeow:CriterionPole ; rdfs:label "the only pole"@en .
+ex:onePoleAxis a gmeow:Criterion ;
+    gmeow:rewardPole ex:samePole ;
+    gmeow:penaltyPole ex:samePole .
+
+# Violation 2: min >= max.
+ex:invertedScale a gmeow:ScoreScale ;
+    gmeow:scaleMin 1.0 ;
+    gmeow:scaleMax 1.0 .
+
+# Violation 3: inverted range, no meaning.
+ex:meaninglessAnchor a gmeow:ScoreAnchor ;
+    gmeow:anchorRangeMin 0.9 ;
+    gmeow:anchorRangeMax 0.2 .
+
+# Violation 4: pinned to nothing.
+ex:unpinnedExemplar a gmeow:Exemplar ;
+    gmeow:citingEntity ex:rubric ;
+    gmeow:citedEntity ex:novel ;
+    gmeow:citationIntent gmeow:intentSupports ;
+    gmeow:exemplarPolarity gmeow:polarityPositive .
+
+# Violation 5: no polarity (selector present, so only polarity fires).
+ex:someSpan a gmeow:Selector ; gmeow:selectorTextQuote "a passage" .
+ex:apatheticExemplar a gmeow:Exemplar ;
+    gmeow:citingEntity ex:rubric ;
+    gmeow:citedEntity ex:novel ;
+    gmeow:citationIntent gmeow:intentSupports ;
+    gmeow:viaSelector ex:someSpan .
+
+# Violation 6: a score with no method.
+ex:chunk a gmeow:TextExtraction ; rdfs:label "a chunk"@en .
+ex:methodlessScore a gmeow:Assessment ;
+    gmeow:vantage ex:judge ;
+    gmeow:assessmentTarget ex:chunk ;
+    gmeow:assessmentScoreValue 0.5 .

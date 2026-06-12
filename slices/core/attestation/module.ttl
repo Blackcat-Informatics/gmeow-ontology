@@ -430,8 +430,8 @@ gmeow:signatureSchemeECDSASecp256k1 skos:definition "ECDSA over the secp256k1 cu
 gmeow:signatureSchemeECDSAP256    a gmeow:SignatureScheme ; rdfs:label "ECDSA-P256"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> .
 gmeow:signatureSchemeECDSAP256 skos:definition "ECDSA over the NIST P-256 curve — widely used in TLS, government, and enterprise identity systems."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> .
-gmeow:signatureSchemeBLS12-381    a gmeow:SignatureScheme ; rdfs:label "BLS12-381"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> .
-gmeow:signatureSchemeBLS12-381 skos:definition "BLS signature over the pairing-friendly BLS12-381 curve, supporting signature aggregation."@x-gmeow-english ;
+gmeow:signatureSchemeBls12381     a gmeow:SignatureScheme ; rdfs:label "BLS12-381"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> .
+gmeow:signatureSchemeBls12381 skos:definition "BLS signature over the pairing-friendly BLS12-381 curve, supporting signature aggregation. The local name is hyphen-free by design — it is the repo's one IRI that would otherwise be illegal in generated GraphQL/LinkML surfaces; the curve's standard spelling lives in the label."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> .
 
 gmeow:VerificationStatus

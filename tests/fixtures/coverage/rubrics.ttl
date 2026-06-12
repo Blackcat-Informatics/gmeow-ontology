@@ -1,0 +1,54 @@
+# Coverage fixture for the rubrics facility (#353, EPIC #348): exercises the
+# rubric spine, poles, scale, anchor, both exemplar pinning forms, and a
+# vantage-indexed assessment in instance data.
+
+@prefix ex:    <https://example.org/coverage/rubrics/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:issuer a gmeow:Standpoint ; rdfs:label "coverage issuer"@en .
+ex:judge  a gmeow:SoftwareAgent ; rdfs:label "coverage judge"@en .
+ex:work   a gmeow:BookRelease ; rdfs:label "coverage work"@en .
+ex:chunk  a gmeow:TextExtraction ; rdfs:label "coverage chunk"@en .
+
+ex:rubric a gmeow:Rubric ;
+    gmeow:normIssuer ex:issuer ;
+    gmeow:hasCriterion ex:criterion ;
+    gmeow:usesScale ex:scale .
+
+ex:scale a gmeow:ScoreScale ; gmeow:scaleMin 0.0 ; gmeow:scaleMax 1.0 .
+
+ex:criterion a gmeow:Criterion ;
+    gmeow:criterionDomain gmeow:criterionDomainRelational ;
+    gmeow:rewardPole ex:up ;
+    gmeow:penaltyPole ex:down ;
+    gmeow:hasScoreAnchor ex:anchor .
+
+ex:up   a gmeow:CriterionPole ; rdfs:label "coverage reward pole"@en .
+ex:down a gmeow:CriterionPole ; rdfs:label "coverage penalty pole"@en .
+
+ex:anchor a gmeow:ScoreAnchor ;
+    gmeow:anchorRangeMin 0.8 ;
+    gmeow:anchorRangeMax 1.0 ;
+    gmeow:anchorMeaning "coverage anchor meaning" ;
+    gmeow:anchorExemplar ex:exemplar .
+
+ex:subject a gmeow:Person ; rdfs:label "coverage exemplar subject"@en .
+
+ex:exemplar a gmeow:Exemplar ;
+    gmeow:citingEntity ex:rubric ;
+    gmeow:citedEntity ex:work ;
+    gmeow:citationIntent gmeow:intentSupports ;
+    gmeow:exemplarSubject ex:subject ;
+    gmeow:exemplarPolarity gmeow:polarityPositive ;
+    gmeow:hasAboutness gmeow:aboutnessEnacts ;
+    gmeow:exemplarRationale "coverage rationale" ;
+    gmeow:exemplarRedirect ex:criterion .
+
+ex:assessment a gmeow:Assessment ;
+    gmeow:vantage ex:judge ;
+    gmeow:assessmentTarget ex:chunk ;
+    gmeow:assessmentCriterion ex:criterion ;
+    gmeow:assessmentRubric ex:rubric ;
+    gmeow:assessmentScoreValue 0.9 .
