@@ -10,6 +10,9 @@
         },
         {
           "@id": "https://w3id.org/ro/wfrun/process/0.5"
+        },
+        {
+          "@id": "https://w3id.org/ro/wfrun/workflow/0.5"
         }
       ],
       "about": {
@@ -51,7 +54,10 @@
         {
           "@id": "scores.ttl"
         }
-      ]
+      ],
+      "mainEntity": {
+        "@id": "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml"
+      }
     },
     {
       "@id": "https://spdx.org/licenses/CC-BY-4.0",
@@ -163,6 +169,20 @@
       "name": "extraction model"
     },
     {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-runner",
+      "@type": "SoftwareApplication",
+      "name": "lillith pipeline runner"
+    },
+    {
+      "@id": "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml",
+      "@type": [
+        "File",
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "name": "benchmark.yml"
+    },
+    {
       "@id": "https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19",
       "@type": "CreateAction",
       "name": "https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19",
@@ -216,6 +236,79 @@
       "@type": "CreateAction",
       "name": "lillith corpus ingest",
       "endTime": "2026-06-01T09:00:00+00:00"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-run",
+      "@type": "CreateAction",
+      "name": "lillith benchmark pipeline run 2026-06-02",
+      "instrument": {
+        "@id": "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml"
+      },
+      "agent": {
+        "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-runner"
+      },
+      "object": [
+        {
+          "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo"
+        }
+      ],
+      "result": [
+        {
+          "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-crate"
+        }
+      ],
+      "endTime": "2026-06-02T08:00:00+00:00"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200",
+      "@type": "Thing",
+      "name": "https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300",
+      "@type": "Thing",
+      "name": "https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7",
+      "@type": "Thing",
+      "name": "https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7",
+      "identifier": "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys",
+      "@type": "Thing",
+      "name": "extracted: 'the build system'",
+      "identifier": "blake3:4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara",
+      "@type": "Thing",
+      "name": "extracted: 'Mara' (maintainer?)",
+      "identifier": "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-crate",
+      "@type": "Thing",
+      "name": "lillith.crate.zip",
+      "identifier": "blake3:8888999900001111222233334444555566667777aaaabbbbccccddddeeeeff66"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo",
+      "@type": "Thing",
+      "name": "lillith-pipeline repository"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/rel-maintains",
+      "@type": "Thing",
+      "name": "extracted: Mara maintains the build system",
+      "identifier": "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33"
+    },
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/summary-infra",
+      "@type": "Thing",
+      "name": "summary: the infrastructure crew",
+      "identifier": "blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55"
     }
   ]
 }

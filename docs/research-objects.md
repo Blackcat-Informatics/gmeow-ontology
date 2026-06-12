@@ -70,13 +70,17 @@ descriptor `description` · Frictionless `notes` · DataCite
   declarative twin. This deviation from #58's original acceptance wording is
   deliberate and authorized by its own "pure-rdflib + hand-rolled packager"
   allowance.
-- **Process Run Crate, not Workflow Run Crate**: `gmeow:ModelInvocation` /
+- **Tiered Run-Crate conformance, honestly earned (P1)**: every crate is at
+  least a **Process Run Crate** — `gmeow:ModelInvocation` /
   `gmeow:ImportActivity` map to `CreateAction` (instrument = the
   `SoftwareAgent`, objects from `wasDerivedFrom`, results from
-  `wasGeneratedBy`), which is exactly the Process Run profile. Workflow Run
-  Crate requires a `ComputationalWorkflow` entity GMEOW cannot truthfully
-  mint until a workflow vocabulary lands (#47's successor) — honesty over
-  aspiration (P1).
+  `wasGeneratedBy`). When the A-Box carries a **#47 workflow run** — a
+  `gmeow:BuildActivity` whose `gmeow:buildConfigUri` names the workflow
+  definition — the crate upgrades to **Workflow Run Crate**: the definition
+  becomes the `ComputationalWorkflow` `mainEntity`, the run's `CreateAction`
+  takes it as `instrument`, the `gmeow:Builder` participant becomes the
+  `agent`, and `buildSource`/`buildOutput` become `object`/`result`. The
+  flagship example exercises the full tier.
 - The module reads instance A-Boxes with rdflib and is intentionally **not**
   narrow-waist sealed (the seal governs exporters of the ontology's own
   data).

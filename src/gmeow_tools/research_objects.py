@@ -68,6 +68,8 @@ _DOCUMENT = _g("Document")
 _CHUNK = _g("Chunk")
 _MODEL_INVOCATION = _g("ModelInvocation")
 _IMPORT_ACTIVITY = _g("ImportActivity")
+_BUILD_ACTIVITY = _g("BuildActivity")
+_BUILDER = _g("Builder")
 _SOFTWARE_AGENT = _g("SoftwareAgent")
 _STANDPOINT_CLAIM = _g("StandpointClaim")
 _ASSESSMENT = _g("Assessment")
@@ -87,6 +89,11 @@ _SPAN_START = _g("spanStart")
 _SPAN_END = _g("spanEnd")
 _USED_MODEL = _g("usedModel")
 _INGESTED_AT = _g("ingestedAt")
+_BUILD_SOURCE = _g("buildSource")
+_BUILD_OUTPUT = _g("buildOutput")
+_BUILD_CONFIG_URI = _g("buildConfigUri")
+_HAS_PARTICIPANT = _g("hasParticipant")
+_EVENT_TIME = _g("eventTime")
 _DESCRIBES_MODEL = _g("describesModel")
 _MODEL_VERSION_TAG = _g("modelVersionTag")
 _MODEL_PROVIDER = _g("modelProvider")
@@ -119,10 +126,15 @@ CROISSANT_CONTEXT: dict[str, object] = {
 
 RO_CRATE_CONTEXT = "https://w3id.org/ro/crate/1.1/context"
 RO_CRATE_SPEC = "https://w3id.org/ro/crate/1.1"
-#: Process Run Crate — NOT Workflow Run Crate: GMEOW has no Workflow class
-#: yet (#47 closed design-only), and claiming a ComputationalWorkflow we
-#: cannot mint would be aspiration over honesty (P1).
+#: Tiered Workflow-Run-RO-Crate conformance, honestly earned (P1): every
+#: crate is at least a Process Run Crate (ModelInvocation/ImportActivity →
+#: CreateAction); when the A-Box carries a #47 workflow run — a
+#: gmeow:BuildActivity whose gmeow:buildConfigUri names the workflow
+#: definition — the crate upgrades to Workflow Run Crate (the definition
+#: becomes the ComputationalWorkflow mainEntity, the run's CreateAction
+#: takes it as instrument).
 PROCESS_RUN_PROFILE = "https://w3id.org/ro/wfrun/process/0.5"
+WORKFLOW_RUN_PROFILE = "https://w3id.org/ro/wfrun/workflow/0.5"
 
 #: DataCite Metadata Schema kernel-4 namespace; validate against the official
 #: kernel-4.5 XSD (https://schema.datacite.org/meta/kernel-4.5/metadata.xsd)
@@ -259,7 +271,10 @@ def _documents(g: Graph) -> list[dict[str, str]]:
 def _agents(g: Graph) -> list[dict[str, str]]:
     """Every SoftwareAgent, with model-card detail where described."""
     out: list[dict[str, str]] = []
-    for agent in sorted(set(g.subjects(RDF.type, _SOFTWARE_AGENT)), key=str):
+    nodes = set(g.subjects(RDF.type, _SOFTWARE_AGENT)) | set(
+        g.subjects(RDF.type, _BUILDER)
+    )
+    for agent in sorted(nodes, key=str):
         card = next(iter(sorted(g.subjects(_DESCRIBES_MODEL, agent), key=str)), None)
         out.append(
             {
@@ -274,7 +289,10 @@ def _agents(g: Graph) -> list[dict[str, str]]:
 
 @dataclass(frozen=True, slots=True)
 class _Action:
-    """A provenance action (ModelInvocation or ImportActivity), flattened."""
+    """A flattened provenance action.
+
+    ModelInvocation / ImportActivity / the #47 BuildActivity workflow run.
+    """
 
     iri: str
     name: str
@@ -282,16 +300,25 @@ class _Action:
     objects: tuple[str, ...]
     results: tuple[str, ...]
     end_time: str
+    workflow: str = ""  # buildConfigUri — the workflow definition (Run Crate)
+    agent: str = ""  # the performing Builder/participant
 
 
 def _activities(g: Graph) -> list[_Action]:
-    """ModelInvocations + ImportActivities as provenance actions, sorted."""
+    """ModelInvocations + ImportActivities + BuildActivities, sorted."""
     actions: list[_Action] = []
-    nodes = set(g.subjects(RDF.type, _MODEL_INVOCATION)) | set(
-        g.subjects(RDF.type, _IMPORT_ACTIVITY)
+    nodes = (
+        set(g.subjects(RDF.type, _MODEL_INVOCATION))
+        | set(g.subjects(RDF.type, _IMPORT_ACTIVITY))
+        | set(g.subjects(RDF.type, _BUILD_ACTIVITY))
     )
     for act in sorted(nodes, key=str):
-        results = tuple(sorted(str(s) for s in g.subjects(_WAS_GENERATED_BY, act)))
+        results = tuple(
+            sorted(
+                {str(s) for s in g.subjects(_WAS_GENERATED_BY, act)}
+                | {str(o) for o in g.objects(act, _BUILD_OUTPUT)}
+            )
+        )
         objects = tuple(
             sorted(
                 {
@@ -299,9 +326,11 @@ def _activities(g: Graph) -> list[_Action]:
                     for result in g.subjects(_WAS_GENERATED_BY, act)
                     for src in g.objects(result, _WAS_DERIVED_FROM)
                 }
+                | {str(o) for o in g.objects(act, _BUILD_SOURCE)}
             )
         )
         instrument = g.value(act, _USED_MODEL)
+        participant = g.value(act, _HAS_PARTICIPANT)
         actions.append(
             _Action(
                 iri=str(act),
@@ -309,7 +338,9 @@ def _activities(g: Graph) -> list[_Action]:
                 instrument=str(instrument) if instrument else "",
                 objects=objects,
                 results=results,
-                end_time=_text(g, act, _INGESTED_AT),
+                end_time=_text(g, act, _INGESTED_AT) or _text(g, act, _EVENT_TIME),
+                workflow=_text(g, act, _BUILD_CONFIG_URI),
+                agent=str(participant) if participant else "",
             )
         )
     return actions
@@ -541,25 +572,35 @@ def build_ro_crate_metadata(
         ds: The dataset descriptor.
         payload: Crate-relative file names packaged alongside the metadata.
     """
+    actions = _activities(g)
+    workflows = sorted({a.workflow for a in actions if a.workflow})
+    conforms = [_ref(RO_CRATE_SPEC), _ref(PROCESS_RUN_PROFILE)]
+    if workflows:
+        # A #47 workflow run is present — the crate honestly earns the
+        # Workflow Run Crate tier (the definition is the mainEntity).
+        conforms.append(_ref(WORKFLOW_RUN_PROFILE))
+    root: dict[str, object] = {
+        "@id": "./",
+        "@type": "Dataset",
+        "name": ds.title,
+        "description": ds.description,
+        "datePublished": ds.date_published,
+        "license": _ref(ds.license_url),
+        "publisher": _ref(NAMESPACE + "ro-crate/publisher"),
+        "hasPart": [_ref(name) for name in payload],
+    }
+    if workflows:
+        root["mainEntity"] = _ref(workflows[0])
     entities: list[dict[str, object]] = [
         {
             "@id": "ro-crate-metadata.json",
             "@type": "CreativeWork",
-            "conformsTo": [_ref(RO_CRATE_SPEC), _ref(PROCESS_RUN_PROFILE)],
+            "conformsTo": conforms,
             "about": _ref("./"),
             "description": "Generated from canonical GMEOW instance data;"
             " declared drops: " + "; ".join(DECLARED_DROPS) + ".",
         },
-        {
-            "@id": "./",
-            "@type": "Dataset",
-            "name": ds.title,
-            "description": ds.description,
-            "datePublished": ds.date_published,
-            "license": _ref(ds.license_url),
-            "publisher": _ref(NAMESPACE + "ro-crate/publisher"),
-            "hasPart": [_ref(name) for name in payload],
-        },
+        root,
         {
             "@id": ds.license_url,
             "@type": "CreativeWork",
@@ -602,14 +643,25 @@ def build_ro_crate_metadata(
         if agent["version"]:
             app["softwareVersion"] = agent["version"]
         entities.append(app)
-    for act in _activities(g):
+    for workflow in workflows:
+        entities.append(
+            {
+                "@id": workflow,
+                "@type": ["File", "SoftwareSourceCode", "ComputationalWorkflow"],
+                "name": workflow.rsplit("/", 1)[-1],
+            }
+        )
+    for act in actions:
         action: dict[str, object] = {
             "@id": act.iri,
             "@type": "CreateAction",
             "name": act.name,
         }
-        if act.instrument:
-            action["instrument"] = _ref(act.instrument)
+        instrument = act.workflow or act.instrument
+        if instrument:
+            action["instrument"] = _ref(instrument)
+        if act.agent:
+            action["agent"] = _ref(act.agent)
         if act.objects:
             action["object"] = [_ref(o) for o in act.objects]
         if act.results:
@@ -617,6 +669,20 @@ def build_ro_crate_metadata(
         if act.end_time:
             action["endTime"] = act.end_time
         entities.append(action)
+
+    # Backfill: every action object/result resolves to an entity (build
+    # sources/outputs are not Documents, so the loops above missed them).
+    present = {str(e["@id"]) for e in entities}
+    referenced = sorted(
+        {iri for act in actions for iri in (*act.objects, *act.results)} - present
+    )
+    for iri in referenced:
+        node = URIRef(iri)
+        entity = {"@id": iri, "@type": "Thing", "name": _label(g, node)}
+        digest = _text(g, node, _CONTENT_DIGEST)
+        if digest:
+            entity["identifier"] = digest
+        entities.append(entity)
 
     return {"@context": RO_CRATE_CONTEXT, "@graph": entities}
 
@@ -681,6 +747,14 @@ def validate_ro_crate(crate_dir: Path) -> list[str]:
     for key in ("name", "description", "datePublished", "license"):
         if not root.get(key):
             problems.append(f"ro-crate: root missing {key}")
+    if _ref(WORKFLOW_RUN_PROFILE) in conforms:
+        main = root.get("mainEntity")
+        main_id = main.get("@id") if isinstance(main, dict) else None
+        main_entity = by_id.get(main_id)
+        if main_entity is None:
+            problems.append("ro-crate: workflow tier needs a resolving mainEntity")
+        elif "ComputationalWorkflow" not in main_entity.get("@type", []):
+            problems.append("ro-crate: mainEntity is not a ComputationalWorkflow")
     for part in _as_list(root.get("hasPart")):
         part_id = str(part.get("@id", "")) if isinstance(part, dict) else ""
         if not part_id or part_id not in by_id:

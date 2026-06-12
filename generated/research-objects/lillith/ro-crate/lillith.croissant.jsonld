@@ -238,7 +238,8 @@
     "facilities assistant model (Example Labs assistant-2026-05-01)",
     "grounding auditor",
     "embedder-v3",
-    "extraction model"
+    "extraction model",
+    "lillith pipeline runner"
   ],
   "rai:dataLimitation": [
     "reified relators (Copyright, roles, memberships) flatten or vanish",
