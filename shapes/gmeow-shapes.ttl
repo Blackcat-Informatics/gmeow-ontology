@@ -4001,6 +4001,12 @@ gmeow:AppraisalShape
         sh:message "An Appraisal reads at most one gmeow:appraisalDimension — a PAD triple is three Appraisals sharing a vantage." ;
     ] ;
     sh:property [
+        sh:path gmeow:appraisalQuality ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:appraisalQuality targets vocabulary IRIs (the open AestheticQuality vocabulary) — never literals or blank nodes." ;
+    ] ;
+    sh:property [
         sh:path gmeow:appraisalValue ;
         sh:maxCount 1 ;
         sh:datatype xsd:decimal ;
@@ -4013,6 +4019,7 @@ gmeow:AppraisalShape
         sh:severity sh:Violation ;
         sh:select """
             SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/Appraisal> .
                 FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalQuality> ?q . }
                 FILTER NOT EXISTS {
                     $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d .
@@ -4109,8 +4116,9 @@ gmeow:MotifShape
     sh:property [
         sh:path rdfs:label ;
         sh:minCount 1 ;
+        sh:uniqueLang true ;
         sh:severity sh:Violation ;
-        sh:message "A Motif must carry at least one rdfs:label — identity-bearing means nameable; an unnameable recurring unit is a tag." ;
+        sh:message "A Motif must carry at least one rdfs:label, at most one per language tag — identity-bearing means nameable; an unnameable recurring unit is a tag." ;
     ] ;
     sh:property [
         sh:path gmeow:motifKind ;

@@ -77,8 +77,12 @@ def test_appraisal_is_a_vantage_indexed_observation() -> None:
     g = _graph()
     assert (GM.Appraisal, RDFS.subClassOf, GM.Observation) in g
     assert (GM.appraisalOf, RDFS.subPropertyOf, GM.observedFeature) in g
-    # Qualities are plural; one cell reads one dimension at most (SHACL).
-    assert (GM.appraisalQuality, RDF.type, OWL.FunctionalProperty) not in g
+    # Constitutive constituent: one appraisal, one subject.
+    assert (GM.appraisalOf, RDF.type, OWL.FunctionalProperty) in g
+    # Per-cell readings are NOT OWL-functional (the #385 convention):
+    # single-valuedness per cell is SHACL's job; rival cells coexist (P9).
+    for prop in (GM.appraisalDimension, GM.appraisalValue, GM.appraisalQuality):
+        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
 
 
 def test_no_emotion_tenure_class_exists() -> None:
