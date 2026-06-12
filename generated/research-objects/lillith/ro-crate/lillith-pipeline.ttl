@@ -1,0 +1,98 @@
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:embedding-7 a gmeow:Embedding ;
+    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:embeddingModel ex:embedder ;
+    gmeow:embeddingOf ex:chunk-7 ;
+    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:embed-run .
+
+ex:rel-maintains a gmeow:ExtractedRelationship ;
+    rdfs:label "extracted: Mara maintains the build system"@en ;
+    gmeow:contentDigest "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33" ;
+    gmeow:relationshipSource ex:desc-mara ;
+    gmeow:relationshipTarget ex:desc-buildsys ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+
+ex:retrieval-3 a gmeow:RetrievalEvent ;
+    gmeow:againstIndex ex:index-lillith ;
+    gmeow:forQuery "who maintained the build system?" ;
+    gmeow:retrievedChunk ex:chunk-7 .
+
+ex:summary-infra a gmeow:CommunitySummary ;
+    rdfs:label "summary: the infrastructure crew"@en ;
+    gmeow:contentDigest "blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55" ;
+    gmeow:summarizesCommunity ex:community-infra ;
+    gmeow:wasDerivedFrom ex:chunk-7,
+        ex:desc-buildsys,
+        ex:desc-mara ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+
+ex:cluster-run a gmeow:Activity ;
+    rdfs:label "leiden clustering 2026-06-02"@en .
+
+ex:community-infra a gmeow:Community ;
+    rdfs:label "infrastructure community"@en ;
+    gmeow:communityLevel "0"^^xsd:nonNegativeInteger ;
+    gmeow:communityMember ex:desc-buildsys,
+        ex:desc-mara ;
+    gmeow:contentDigest "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
+    gmeow:wasGeneratedBy ex:cluster-run .
+
+ex:corpus-lillith a gmeow:Corpus ;
+    rdfs:label "Lillith working corpus"@en ;
+    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
+    gmeow:corpusMember ex:mail-archive .
+
+ex:embed-run a gmeow:Activity ;
+    rdfs:label "embedding pass 2026-06-01"@en .
+
+ex:embedder a gmeow:SoftwareAgent ;
+    rdfs:label "embedder-v3"@en .
+
+ex:extractor a gmeow:SoftwareAgent ;
+    rdfs:label "extraction model"@en .
+
+ex:index-build a gmeow:Activity ;
+    rdfs:label "index build 2026-06-01"@en .
+
+ex:index-lillith a gmeow:VectorIndex ;
+    gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
+    gmeow:indexParameters "{\"M\": 16, \"efConstruction\": 200}" ;
+    gmeow:indexesCorpus ex:corpus-lillith ;
+    gmeow:wasGeneratedBy ex:index-build .
+
+ex:mail-archive a gmeow:Document ;
+    rdfs:label "list archive, 2025"@en ;
+    gmeow:contentDigest "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0" .
+
+ex:desc-buildsys a gmeow:ExtractedEntity ;
+    rdfs:label "extracted: 'the build system'"@en ;
+    gmeow:contentDigest "blake3:4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22" ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+
+ex:desc-mara a gmeow:ExtractedEntity ;
+    rdfs:label "extracted: 'Mara' (maintainer?)"@en ;
+    gmeow:contentDigest "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11" ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+
+ex:invocation-44 a gmeow:ModelInvocation ;
+    gmeow:samplingTemperature 0.0 ;
+    gmeow:usedModel ex:extractor .
+
+ex:chunk-7 a gmeow:Chunk ;
+    gmeow:chunkOf ex:mail-archive ;
+    gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ;
+    gmeow:spanEnd "6100"^^xsd:nonNegativeInteger ;
+    gmeow:spanStart "5200"^^xsd:nonNegativeInteger .
