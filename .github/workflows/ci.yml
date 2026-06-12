@@ -121,8 +121,8 @@ jobs:
       - name: Engine cross-check (rdflib ≡ pyoxigraph on every query)
         run: uv run gmeow crosscheck-queries
 
-      - name: All 13 generators match committed sources (no drift, no orphans)
-        run: uv run gmeow check-generated
+      - name: Full-registry drift gate (statements has its own Docker-backed job)
+        run: uv run gmeow check-generated --skip statements
 
       - name: Constitution check (every principle has live enforcement)
         run: uv run gmeow constitution-check

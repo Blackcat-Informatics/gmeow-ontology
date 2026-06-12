@@ -63,9 +63,17 @@ def _shapes_graph(shapes_path: Path) -> Graph:
             continue
         graph.parse(extra, format="turtle")
     # Generated shapes (#283): frame-relativity derived from gmeow:requiresFrame.
-    if GENERATED_SHAPES_DIR.is_dir():
-        for generated in sorted(GENERATED_SHAPES_DIR.glob("*.ttl")):
-            graph.parse(generated, format="turtle")
+    # FAIL CLOSED: the hand-written frame constraints were deleted in favor of
+    # these, so their absence would silently stop enforcing P11.
+    generated_shapes = sorted(GENERATED_SHAPES_DIR.glob("*.ttl"))
+    if not generated_shapes:
+        msg = (
+            f"no generated shapes under {GENERATED_SHAPES_DIR} — "
+            f"run `gmeow regenerate frame-shapes` (P11 enforcement lives there)"
+        )
+        raise FileNotFoundError(msg)
+    for generated in generated_shapes:
+        graph.parse(generated, format="turtle")
     for slice_shapes in iter_slice_shape_files():
         graph.parse(slice_shapes, format="turtle")
     return graph

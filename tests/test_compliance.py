@@ -37,7 +37,7 @@ def test_report_is_valid_turtle_covering_every_principle() -> None:
     from rdflib import RDF, URIRef
 
     results = list(graph.subjects(RDF.type, URIRef(meta + "PrincipleResult")))
-    assert len(results) == 16
+    assert len(results) == len(load_manifest().principles)
 
 
 def test_runnable_gates_report_passed_and_failures_propagate() -> None:

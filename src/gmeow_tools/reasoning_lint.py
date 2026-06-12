@@ -324,16 +324,38 @@ def coequal_facet_orthogonality(graph: Graph) -> list[str]:
                 f"co-equal facets {names} share the range {_local(rng)} — "
                 f"axes collapsed into one value space"
             )
-    bridges = (RDFS.subPropertyOf, OWL.equivalentProperty)
+    # Bridge check over the TRANSITIVE closure: a ⊑ helper ⊑ b (or an
+    # equivalentProperty chain) makes one axis inferable from another just as
+    # surely as a direct edge. equivalentProperty edges are symmetric.
+    adjacency: dict[URIRef, set[URIRef]] = {}
+    for s, o in graph.subject_objects(RDFS.subPropertyOf):
+        if isinstance(s, URIRef) and isinstance(o, URIRef):
+            adjacency.setdefault(s, set()).add(o)
+    for s, o in graph.subject_objects(OWL.equivalentProperty):
+        if isinstance(s, URIRef) and isinstance(o, URIRef):
+            adjacency.setdefault(s, set()).add(o)
+            adjacency.setdefault(o, set()).add(s)
+
+    def _reachable(start: URIRef) -> set[URIRef]:
+        seen: set[URIRef] = set()
+        stack = [start]
+        while stack:
+            node = stack.pop()
+            for nxt in adjacency.get(node, ()):
+                if nxt not in seen:
+                    seen.add(nxt)
+                    stack.append(nxt)
+        return seen
+
     for i, a in enumerate(axes):
+        reach = _reachable(a)
         for b in axes[i + 1 :]:
-            for predicate in bridges:
-                if (a, predicate, b) in graph or (b, predicate, a) in graph:
-                    problems.append(
-                        f"co-equal facets {_local(a)} and {_local(b)} are bridged "
-                        f"by {_local(predicate)} — one axis must never be "
-                        f"inferred from another"
-                    )
+            if b in reach or a in _reachable(b):
+                problems.append(
+                    f"co-equal facets {_local(a)} and {_local(b)} are bridged "
+                    f"by a subPropertyOf/equivalentProperty chain — one axis "
+                    f"must never be inferred from another"
+                )
     member_sets = _all_disjoint_member_sets(graph)
     range_set = set(ranges.values())
     if len(range_set) > 1 and not any(range_set <= s for s in member_sets):
@@ -361,8 +383,8 @@ def frame_declaration_completeness(graph: Graph) -> list[str]:
     problems: list[str] = []
     props = sorted(
         p
-        for p in graph.subjects(RDFS.subPropertyOf, has_frame)
-        if isinstance(p, URIRef)
+        for p in graph.transitive_subjects(RDFS.subPropertyOf, has_frame)
+        if isinstance(p, URIRef) and p != has_frame
     )
     for prop in props:
         domains = sorted(

@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from rdflib import RDF, RDFS, URIRef
+from rdflib import RDF, URIRef
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import (
@@ -55,18 +55,16 @@ _HEADER = """\
 """
 
 
-def frame_requirements(
-    graph: Graph,
-) -> list[tuple[str, str, str | None, bool, str]]:
+def frame_requirements(graph: Graph) -> list[tuple[str, str, bool, str]]:
     """Every ``gmeow:requiresFrame`` declaration, resolved and sorted.
 
-    Returns ``(carrier local, frame-property local, range local or None,
-    exactly_one, severity)`` per declaration.
+    Returns ``(carrier local, frame-property local, exactly_one, severity)``
+    per declaration.
     """
     requires = URIRef(NAMESPACE + "requiresFrame")
     cardinality = URIRef(NAMESPACE + "frameCardinality")
     severity_prop = URIRef(NAMESPACE + "frameRequirementSeverity")
-    rows: list[tuple[str, str, str | None, bool, str]] = []
+    rows: list[tuple[str, str, bool, str]] = []
     for carrier, frame_prop in sorted(graph.subject_objects(requires)):
         if not isinstance(carrier, URIRef) or not isinstance(frame_prop, URIRef):
             continue
@@ -75,18 +73,11 @@ def frame_requirements(
             exactly_one = str(override) == "exactly-one"
         else:
             exactly_one = (frame_prop, RDF.type, OWL.FunctionalProperty) in graph
-        ranges = sorted(
-            r
-            for r in graph.objects(frame_prop, RDFS.range)
-            if isinstance(r, URIRef) and str(r).startswith(NAMESPACE)
-        )
-        range_local = str(ranges[0]).removeprefix(NAMESPACE) if ranges else None
         severity = str(graph.value(carrier, severity_prop) or "violation")
         rows.append(
             (
                 str(carrier).removeprefix(NAMESPACE),
                 str(frame_prop).removeprefix(NAMESPACE),
-                range_local,
                 exactly_one,
                 severity,
             )
@@ -99,7 +90,7 @@ def render_frame_shapes(graph: Graph | None = None) -> str:
     if graph is None:
         graph = load_merged_graph(include_imports=False)
     blocks: list[str] = [_HEADER]
-    for carrier, prop, _range, exactly_one, severity in frame_requirements(graph):
+    for carrier, prop, exactly_one, severity in frame_requirements(graph):
         sh_severity = "sh:Warning" if severity == "warning" else "sh:Violation"
         count = "exactly one" if exactly_one else "at least one"
         lines = [

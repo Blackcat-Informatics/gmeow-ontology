@@ -131,6 +131,7 @@ release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + regen
 	uv run gmeow regenerate
 	uv run gmeow reason --reasoner hermit --full
 	uv run gmeow build
+	uv run gmeow compliance-report
 	uv run gmeow crossref
 
 regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.

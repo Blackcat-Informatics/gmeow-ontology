@@ -107,6 +107,7 @@ def test_every_branch_carries_its_injected_guards(profile: str) -> None:
     the injection.
     """
     from gmeow_tools.mapping_compile import (
+        _branch,
         _default_suppression_vocab,
         _injected_guards,
     )
@@ -117,10 +118,17 @@ def test_every_branch_carries_its_injected_guards(profile: str) -> None:
     vocab = _default_suppression_vocab()
     checked = 0
     for cell in dsl.projections:
-        if not any(b.profile == profile for b in cell.bindings):
-            continue
-        for guard in _injected_guards(cell.pattern, vocab):
-            assert guard in query, f"profile {profile}: missing guard {guard}"
-            checked += 1
+        for binding in cell.bindings:
+            if binding.profile != profile:
+                continue
+            # The WHOLE rendered branch (guards in place) must appear verbatim
+            # in the committed query — per BRANCH, so one branch keeping a
+            # guard can never mask another branch dropping it.
+            rendered = _branch(cell, binding, vocab)
+            assert rendered in query, (
+                f"profile {profile}: a branch's rendered form (incl. its "
+                f"injected guards) is missing from the committed query"
+            )
+            checked += len(_injected_guards(cell.pattern, vocab))
     if checked == 0:
-        pytest.skip(f"profile {profile} has no projection cells in the DSL")
+        pytest.skip(f"profile {profile} has no guarded projection cells")

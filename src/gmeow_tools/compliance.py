@@ -75,11 +75,20 @@ def _run_alignment() -> ValidationResult:
 def _run_check_generated() -> ValidationResult:
     from gmeow_tools.constitution import _registered_generators
     from gmeow_tools.generator import check_all
+    from gmeow_tools.runner import ToolUnavailableError
 
-    _registered_generators()  # @register side effects
+    generators = _registered_generators()  # @register side effects
 
     result = ValidationResult()
-    for name, report in check_all(None).items():
+    try:
+        reports = check_all(None)
+    except ToolUnavailableError as exc:
+        # The statements generator renders via Docker/Jena, absent in some
+        # CI jobs — it is gated by its own Docker-backed job; the skip is
+        # recorded in the report, never silent.
+        result.warnings.append(f"statements drift not checked here: {exc}")
+        reports = check_all(sorted(generators - {"statements"}))
+    for name, report in reports.items():
         for rel in sorted(report.drifted):
             result.errors.append(f"drift {name}: {rel}")
         for rel in sorted(report.orphans):
@@ -126,7 +135,9 @@ def _enforcement_status(
     citations: tuple[str, ...], kind: str, gate_runs: Mapping[str, GateRun]
 ) -> tuple[str, int, int]:
     """(status, errors, warnings) for one enforcement's citations."""
-    ran = [gate_runs[c] for c in citations if c in gate_runs]
+    # dict.fromkeys-dedupe: an enforcement may cite the same runnable as both
+    # makeTarget and cliCommand; its run must be counted once.
+    ran = [gate_runs[c] for c in dict.fromkeys(citations) if c in gate_runs]
     if ran:
         errors = sum(r.errors for r in ran)
         warnings = sum(r.warnings for r in ran)

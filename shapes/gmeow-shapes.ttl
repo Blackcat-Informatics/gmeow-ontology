@@ -2927,12 +2927,9 @@ gmeow:MediaObjectColourspaceShape
     a sh:NodeShape ;
     rdfs:label "Media Object colourspace shape" ;
     sh:targetClass gmeow:MediaObject ;
-    sh:property [
-        sh:path gmeow:colourspace ;
-        sh:minCount 1 ;
-        sh:severity sh:Warning ;
-        sh:message "A MediaObject (image, video) should carry a colourspace (gmeow:colourspace) — pixel values are meaningless without their reference frame (Principle 11)." ;
-    ] ;
+    # The at-least-one half is the GENERATED MediaObjectFrameRequirementShape
+    # (#283); only the max-one violation — colourspace is deliberately
+    # non-functional in OWL, single-valued by SHACL contract — stays here.
     sh:property [
         sh:path gmeow:colourspace ;
         sh:maxCount 1 ;
