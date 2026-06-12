@@ -180,9 +180,9 @@ slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segmen
                          #   manifest.ttl is the SOLE source of identity (IRI) and
                          #   tier. Anatomy (discovered, never configured):
                          #   manifest.ttl, module.ttl, shapes.ttl, mappings/,
-                         #   queries/, tests/, docs.md
+                         #   queries/, examples/, tests/, docs.md
 slices/vocabulary.ttl    # The slice-manifest authoring vocabulary (spec layer)
-ontology/gmeow.ttl       # Root ontology (owl:imports of every slice)
+ontology/gmeow.ttl       # Root ontology = the CORE profile (generated imports, #330)
 dsl/mappings/            # Mapping DSL: vocabulary, foundational bridge, per-target
                          #   projections, shared equivalences, transforms.fno.ttl
 dsl/statements/          # Statement DSL (canonical RDF 1.2 statement metadata)

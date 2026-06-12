@@ -22,12 +22,17 @@ from gmeow_tools.config import (
     ONTOLOGY_IRI,
     SHAPES_DIR,
     SHAPES_FILE,
+    SLICES_DIR,
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_source_files, load_merged_graph
 from gmeow_tools.language_tags import check_annotation_literal
 from gmeow_tools.reasoning_lint import reasoning_invariants
-from gmeow_tools.slices import iter_slice_module_files, iter_slice_shape_files
+from gmeow_tools.slices import (
+    iter_slice_example_files,
+    iter_slice_module_files,
+    iter_slice_shape_files,
+)
 
 _DEFINITION = SKOS.definition
 
@@ -452,6 +457,32 @@ def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
     return result
 
 
+def check_examples(merged: Graph) -> ValidationResult:
+    """Validate every slice example against the ontology + SHACL (#332).
+
+    Examples are canonical worked data, not test scaffolding: each file is
+    parsed, merged with the ontology, and SHACL-validated in isolation (so
+    one example's IRIs can never mask another's violations). The merged
+    graph itself is gated separately, so any NEW violation here belongs to
+    the example.
+    """
+    result = ValidationResult()
+    for example in iter_slice_example_files():
+        name = example.relative_to(SLICES_DIR).as_posix()
+        data = Graph()
+        try:
+            data.parse(example, format="turtle")
+        except Exception as exc:
+            result.errors.append(f"example {name}: does not parse: {exc}")
+            continue
+        shacl = run_shacl(merged + data)
+        for err in shacl.errors:
+            result.errors.append(f"example {name}: {err}")
+        for warn in shacl.warnings:
+            result.warnings.append(f"example {name}: {warn}")
+    return result
+
+
 def validate_all() -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks."""
     result = check_syntax()
@@ -465,6 +496,7 @@ def validate_all() -> ValidationResult:
     result.extend(slice_ownership_lint())
     result.extend(reasoning_lint(merged))
     result.extend(run_shacl(merged))
+    result.extend(check_examples(merged))
     result.extend(_dsl_shacl(MAPPING_DSL_DIR, "mapping"))
     result.extend(_dsl_shacl(STATEMENT_DSL_DIR, "statement"))
     return result

@@ -53,7 +53,15 @@ _SUBCOMMAND = URIRef(NAMESPACE + "providesSubcommand")
 _BUILT_AGAINST = URIRef(NAMESPACE + "builtAgainstCore")
 
 #: The conventional anatomy, discovered beside the manifest (never declared).
-ANATOMY = ("module.ttl", "shapes.ttl", "mappings", "queries", "tests", "docs.md")
+ANATOMY = (
+    "module.ttl",
+    "shapes.ttl",
+    "mappings",
+    "queries",
+    "examples",
+    "tests",
+    "docs.md",
+)
 
 
 @dataclass(frozen=True)
@@ -178,6 +186,16 @@ def iter_slice_shape_files(root: Path = SLICES_DIR) -> list[Path]:
 def iter_slice_mapping_files(root: Path = SLICES_DIR) -> list[Path]:
     """Every slice's mapping-DSL cell file (``slices/*/*/mappings/*.ttl``), sorted."""
     return sorted(root.glob("*/*/mappings/*.ttl"))
+
+
+def iter_slice_example_files(root: Path = SLICES_DIR) -> list[Path]:
+    """Every slice's worked-example Turtle files (#332).
+
+    Examples are canonical worked instance data — consumed by slice tests,
+    coverage, the #325 guides, the eval corpus, and the slice's GTS package
+    sections — and they validate in ``make validate`` so they never rot.
+    """
+    return sorted(root.glob("*/*/examples/*.ttl"))
 
 
 def iter_slice_query_files(kind: str, root: Path = SLICES_DIR) -> list[Path]:
