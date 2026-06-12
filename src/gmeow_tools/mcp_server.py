@@ -382,6 +382,123 @@ def gmeow_constitution() -> str:
     return path.read_text(encoding="utf-8")
 
 
+# --------------------------------------------------------------------------- #
+# The grounded-memory triad (#297, D2 — CONSTITUTION P14): store / recall /
+# revise as the agent-native interface, wrapping the `gmeow` client's Memory
+# (a content-addressed, append-only GTS ai-package on disk). The server only
+# exposes: every behavior — claim reification, suppression-not-deletion,
+# token-overlap recall — lives in packages/gmeow. The one config knob is the
+# GMEOW_MEMORY_PATH environment variable (default ~/.gmeow/memory.gts), set
+# in the mcpServers block. See docs/mcp-server.md.
+# --------------------------------------------------------------------------- #
+
+
+def _memory() -> Any:
+    """The Memory over the configured package path (env-selected)."""
+    import os
+    from pathlib import Path as _Path
+
+    from gmeow import Memory
+
+    path = _Path(
+        os.environ.get("GMEOW_MEMORY_PATH", "")
+        or _Path.home() / ".gmeow" / "memory.gts"
+    ).expanduser()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return Memory(path)
+
+
+def _claim_dict(claim: Any) -> dict[str, Any]:
+    from dataclasses import asdict
+
+    return asdict(claim)
+
+
+@mcp.tool()
+def store_claim(
+    text: str,
+    source: str | None = None,
+    confidence: float | None = None,
+    according_to: str | None = None,
+) -> str:
+    """Store one claim in the agent's grounded memory.
+
+    The claim is appended as a reified RDF 1.2 statement — attributed,
+    optionally confidence-weighted ([0, 1]) and standpoint-indexed
+    (according_to), never asserted as bare truth. Returns the stored claim
+    (its ``id`` is the handle for ``revise_belief``).
+    """
+    try:
+        claim = _memory().store(
+            text,
+            source=source,
+            confidence=confidence,
+            according_to=according_to,
+        )
+    except (ValueError, OSError) as exc:
+        return json.dumps({"ok": False, "error": str(exc)})
+    return json.dumps({"ok": True, "claim": _claim_dict(claim)})
+
+
+@mcp.tool()
+def recall(
+    query: str = "",
+    min_confidence: float | None = None,
+    limit: int = 10,
+    include_suppressed: bool = False,
+) -> str:
+    """Recall claims from the agent's grounded memory.
+
+    Empty query returns the most recent claims; otherwise case-insensitive
+    token-overlap ranking. Revised (suppressed) claims are EXCLUDED by
+    default — suppression is honored on every recall path (P10); pass
+    include_suppressed=true only for audit views, where each claim's
+    ``suppressed`` flag tells you what you are looking at.
+    """
+    if limit < 0:
+        return json.dumps({"ok": False, "error": "limit must be non-negative"})
+    try:
+        claims = _memory().recall(
+            query,
+            min_confidence=min_confidence,
+            limit=limit,
+            include_suppressed=include_suppressed,
+        )
+    except (ValueError, OSError) as exc:
+        return json.dumps({"ok": False, "error": str(exc)})
+    return json.dumps({"ok": True, "claims": [_claim_dict(c) for c in claims]})
+
+
+@mcp.tool()
+def revise_belief(
+    claim_id: str,
+    reason: str | None = None,
+    superseded_by: str | None = None,
+) -> str:
+    """Revise a belief: suppress the claim, never delete it (P10).
+
+    The claim is retained with a suppression frame (the audit trail of what
+    the agent believed WHEN survives); ``reason`` records why, and
+    ``superseded_by`` links the successor claim for the derivation chain.
+    Recall stops returning it unless include_suppressed is requested.
+    """
+    try:
+        memory = _memory()
+        known = {c.id for c in memory.claims()}
+        if claim_id not in known:
+            return json.dumps({"ok": False, "error": f"unknown claim id: {claim_id}"})
+        if superseded_by is not None and superseded_by not in known:
+            return json.dumps(
+                {"ok": False, "error": f"unknown superseded_by id: {superseded_by}"}
+            )
+        memory.revise(claim_id, reason=reason, superseded_by=superseded_by)
+    except (ValueError, OSError) as exc:
+        return json.dumps({"ok": False, "error": str(exc)})
+    return json.dumps(
+        {"ok": True, "suppressed": claim_id, "superseded_by": superseded_by}
+    )
+
+
 def run() -> None:
     """Start the MCP stdio server."""
     mcp.run(transport="stdio")
