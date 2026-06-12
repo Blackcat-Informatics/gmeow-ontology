@@ -483,7 +483,15 @@ def revise_belief(
     Recall stops returning it unless include_suppressed is requested.
     """
     try:
-        _memory().revise(claim_id, reason=reason, superseded_by=superseded_by)
+        memory = _memory()
+        known = {c.id for c in memory.claims()}
+        if claim_id not in known:
+            return json.dumps({"ok": False, "error": f"unknown claim id: {claim_id}"})
+        if superseded_by is not None and superseded_by not in known:
+            return json.dumps(
+                {"ok": False, "error": f"unknown superseded_by id: {superseded_by}"}
+            )
+        memory.revise(claim_id, reason=reason, superseded_by=superseded_by)
     except (ValueError, OSError) as exc:
         return json.dumps({"ok": False, "error": str(exc)})
     return json.dumps(

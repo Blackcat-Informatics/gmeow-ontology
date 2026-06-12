@@ -105,6 +105,23 @@ def test_invalid_input_returns_ok_false_never_raises(memory_path: Path) -> None:
     assert json.loads(recall("x", limit=-1))["ok"] is False
 
 
+def test_unknown_ids_are_rejected_before_any_write(memory_path: Path) -> None:
+    """A typo'd id must not append a dangling suppression frame — that would
+    be persisted false audit history (ok:true suppressing nothing)."""
+    claim = _store("a real belief")
+    assert json.loads(revise_belief("urn:gmeow:assertion:no-such-id"))["ok"] is False
+    assert (
+        json.loads(
+            revise_belief(str(claim["id"]), superseded_by="urn:gmeow:assertion:ghost")
+        )["ok"]
+        is False
+    )
+    # Nothing was written: the real claim is still live and unsuppressed.
+    live = json.loads(recall("real belief"))
+    assert [c["id"] for c in live["claims"]] == [claim["id"]]
+    assert live["claims"][0]["suppressed"] is False
+
+
 def test_memory_persists_across_server_restarts(memory_path: Path) -> None:
     """A new Memory over the same file sees everything (append-only GTS)."""
     claim = _store("durable belief")
