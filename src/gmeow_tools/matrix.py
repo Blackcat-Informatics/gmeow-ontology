@@ -95,11 +95,12 @@ class MatrixGenerator(Generator):
 
     @property
     def inputs(self) -> Sequence[Path]:
-        """Manifests, modules, and guides drive the matrix."""
+        """Manifests, modules, guides, and examples drive the matrix."""
         return [
             *sorted(SLICES_DIR.glob("*/*/manifest.ttl")),
             *sorted(SLICES_DIR.glob("*/*/module.ttl")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
+            *sorted(SLICES_DIR.glob("*/*/examples/*.ttl")),
         ]
 
     @property

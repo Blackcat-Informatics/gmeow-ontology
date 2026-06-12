@@ -22,12 +22,17 @@ from gmeow_tools.config import (
     ONTOLOGY_IRI,
     SHAPES_DIR,
     SHAPES_FILE,
+    SLICES_DIR,
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_source_files, load_merged_graph
 from gmeow_tools.language_tags import check_annotation_literal
 from gmeow_tools.reasoning_lint import reasoning_invariants
-from gmeow_tools.slices import iter_slice_module_files, iter_slice_shape_files
+from gmeow_tools.slices import (
+    iter_slice_example_files,
+    iter_slice_module_files,
+    iter_slice_shape_files,
+)
 
 _DEFINITION = SKOS.definition
 
@@ -461,26 +466,20 @@ def check_examples(merged: Graph) -> ValidationResult:
     graph itself is gated separately, so any NEW violation here belongs to
     the example.
     """
-    from gmeow_tools.slices import iter_slice_example_files
-
     result = ValidationResult()
     for example in iter_slice_example_files():
+        name = example.relative_to(SLICES_DIR).as_posix()
         data = Graph()
         try:
             data.parse(example, format="turtle")
         except Exception as exc:
-            result.errors.append(f"{example}: does not parse: {exc}")
+            result.errors.append(f"example {name}: does not parse: {exc}")
             continue
-        union = Graph()
-        for triple in merged:
-            union.add(triple)
-        for triple in data:
-            union.add(triple)
-        shacl = run_shacl(union)
+        shacl = run_shacl(merged + data)
         for err in shacl.errors:
-            result.errors.append(f"example {example.name}: {err}")
+            result.errors.append(f"example {name}: {err}")
         for warn in shacl.warnings:
-            result.warnings.append(f"example {example.name}: {warn}")
+            result.warnings.append(f"example {name}: {warn}")
     return result
 
 
