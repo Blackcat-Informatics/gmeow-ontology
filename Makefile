@@ -15,7 +15,7 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full quality \
         normalize build project test test-fast check check-generated release regenerate commit clean pull-images \
-        coverage crossref
+        coverage crossref constitution-check
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \

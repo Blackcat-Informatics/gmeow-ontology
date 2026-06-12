@@ -140,7 +140,7 @@ def _python_names(path: Path) -> frozenset[str]:
     """Top-level def / class / assignment names in a Python file."""
     tree = ast.parse(path.read_text(encoding="utf-8"))
     names: set[str] = set()
-    for node in ast.walk(tree):
+    for node in tree.body:
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
             names.add(node.name)
         elif isinstance(node, ast.Assign):
@@ -248,9 +248,10 @@ def _check_enforcement_coverage(manifest: Manifest, result: ValidationResult) ->
 
 def _check_references(manifest: Manifest, root: Path, result: ValidationResult) -> None:
     """Every cited artifact / symbol / make target / CLI command must exist."""
+    makefile = root / MAKEFILE.name
     make_targets = (
-        frozenset(_MAKE_TARGET.findall(MAKEFILE.read_text(encoding="utf-8")))
-        if MAKEFILE.is_file()
+        frozenset(_MAKE_TARGET.findall(makefile.read_text(encoding="utf-8")))
+        if makefile.is_file()
         else frozenset()
     )
     cli_commands = _cli_command_names()
@@ -308,7 +309,11 @@ def check_constitution(
     except Exception as exc:
         result.errors.append(f"{manifest_path}: does not parse: {exc}")
         return result
-    headings = constitution_headings(constitution_path)
+    try:
+        headings = constitution_headings(constitution_path)
+    except Exception as exc:
+        result.errors.append(f"{constitution_path}: cannot read: {exc}")
+        return result
     _check_principle_sync(manifest, headings, result)
     _check_enforcement_coverage(manifest, result)
     _check_references(manifest, root, result)

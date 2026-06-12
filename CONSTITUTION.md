@@ -351,9 +351,9 @@ reused or reshuffled casually, so "Principle N" stays meaningful across history.
 The amendment process has a mechanical counterpart:
 [`governance/constitution.ttl`](./governance/constitution.ttl) restates each principle's
 enforcement as machine-readable RDF, and `gmeow constitution-check` (in `make check`) fails
-when a principle loses its last enforcing gate, cites an artifact that no longer exists, or
-drifts from this document's headings. Amending a principle without updating its enforcement
-fails CI.
+when a principle loses its last enforcing gate, cites an artifact that no longer exists, maps
+an enforcement to no principle, or drifts from this document's headings or from the live
+generator registry. Amending a principle without updating its enforcement fails CI.
 
 ---
 
