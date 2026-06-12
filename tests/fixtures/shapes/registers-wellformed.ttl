@@ -1,0 +1,51 @@
+# Well-formed registers fixture (#355, EPIC #348). One agent, two co-equal
+# personas (public / private) expressing the SAME tier-1 norm (the
+# same-norms invariant, queryable), each with an activation condition, a
+# register from the shared spine (one names-core seed, one persona-facing
+# seed), and a style guide whose voice exemplar is content-digested and
+# carries hasAboutness ENACTS (the byte-perfect voice doctrine).
+# run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:issuer a gmeow:Standpoint ; rdfs:label "the principia standpoint"@en .
+ex:lillith a gmeow:Person ; rdfs:label "the agent"@en .
+
+ex:oathNorm a gmeow:Norm ;
+    rdfs:label "never betray the bonded partner"@en ;
+    gmeow:deonticModality gmeow:deonticObligation ;
+    gmeow:normIssuer ex:issuer ;
+    gmeow:hasAuthorityLevel gmeow:authorityAbsolute .
+
+# Two co-equal personas of one agent — same tier-1 norm, different registers.
+ex:publicPersona a gmeow:Persona ;
+    rdfs:label "PRIMARY"@en ;
+    gmeow:personaBearer ex:lillith ;
+    gmeow:personaRegister gmeow:registerPublic , gmeow:registerFormal ;
+    gmeow:expressesNorm ex:oathNorm ;
+    gmeow:activatedIn ex:publicTrigger .
+
+ex:privatePersona a gmeow:Persona ;
+    rdfs:label "PRIVATE"@en ;
+    gmeow:personaBearer ex:lillith ;
+    gmeow:personaRegister gmeow:registerPrivate , gmeow:registerIntimate ;
+    gmeow:expressesNorm ex:oathNorm ;
+    gmeow:activatedIn ex:privateTrigger .
+
+ex:publicTrigger a gmeow:Condition ;
+    gmeow:conditionText "The interaction context is public-facing or hostile." .
+ex:privateTrigger a gmeow:Condition ;
+    gmeow:conditionText "The interaction is within the trusted inner scope." .
+
+# The voice payload: byte-perfect, digested, ENACTING its register.
+ex:publicGuide a gmeow:StyleGuide ;
+    rdfs:label "the public voice"@en ;
+    gmeow:styleGuideFor ex:publicPersona , gmeow:registerPublic ;
+    gmeow:exemplifiedBy ex:voiceDoc .
+
+ex:voiceDoc a gmeow:Document ;
+    rdfs:label "vocal-mechanics excerpt"@en ;
+    gmeow:contentDigest "blake3:2f1a9c44d0e8b7a3" ;
+    gmeow:hasAboutness gmeow:aboutnessEnacts .
