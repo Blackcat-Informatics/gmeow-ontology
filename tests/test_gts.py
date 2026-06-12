@@ -813,6 +813,8 @@ def test_compact_carries_suppressions_with_metadata() -> None:
     assert sup.reason == "superseded"
     [target] = sup.targets
     assert target["kind"] == "term"
-    suppressed = g.terms[target["id"]]  # type: ignore[index]
+    tid = target["id"]
+    assert isinstance(tid, int)
+    suppressed = g.terms[tid]
     assert suppressed.value == "Chat"
     assert suppressed.lang == "fr"
