@@ -113,6 +113,8 @@ _PROFILES = (
     "doap",
     "codemeta",
     "resume",
+    # Research-object / catalog packaging (#58)
+    "dcat",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.
@@ -1194,7 +1196,7 @@ def _branch(cell: ProjectionCell, b: ProfileBinding, vocab: SuppressionVocab) ->
                 f"IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), "
                 f"?{val})"
             )
-    elif p.edoal_source in (GM.description, GM.designGoal):
+    elif p.edoal_source in (GM.description, GM.designGoal, GM.title):
         retag_lines.extend(
             [
                 "OPTIONAL {",
@@ -1244,6 +1246,7 @@ def _templates(cell: ProjectionCell, b: ProfileBinding) -> list[str]:
             GM.romanization,
             GM.description,
             GM.designGoal,
+            GM.title,
         )
         and p.value is not None
     ):
