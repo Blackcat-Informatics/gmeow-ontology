@@ -218,6 +218,7 @@ def test_unpack_skips_suppressed_blob_by_default(tmp_path: Path) -> None:
     # Find the actual last frame id by walking items.
     items, _torn = iter_items(bytes(data))
     _off, last_item = items[-1]
+    assert isinstance(last_item, dict)
     last_id = last_item["id"]
     frame = {
         "t": "suppress",

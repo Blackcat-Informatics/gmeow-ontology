@@ -228,13 +228,13 @@ def _read_file_entries(graph: Graph) -> dict[str, dict[str, object]]:
     for idx, term in enumerate(graph.terms):
         if term.kind is not TermKind.IRI or term.value is None:
             continue
-        value = term.value
-        if value == RDF_TYPE:
+        term_value = term.value
+        if term_value == RDF_TYPE:
             type_id = idx
-        elif value == files_ns + "FileEntry":
+        elif term_value == files_ns + "FileEntry":
             file_entry_id = idx
-        elif value.startswith(files_ns):
-            field_name = value[len(files_ns) :]
+        elif term_value.startswith(files_ns):
+            field_name = term_value[len(files_ns) :]
             field_ids[field_name] = idx
 
     if type_id is None or file_entry_id is None:

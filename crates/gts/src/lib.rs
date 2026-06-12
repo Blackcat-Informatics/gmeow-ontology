@@ -19,3 +19,5 @@ pub mod model;
 pub mod nquads;
 pub mod reader;
 pub mod wire;
+pub mod writer;
+pub mod files;

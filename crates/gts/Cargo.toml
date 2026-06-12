@@ -15,6 +15,9 @@ ciborium = "0.2"
 flate2 = "1"
 # pure-Rust zstd decoder — no C toolchain, wasm-friendly
 ruzstd = "0.8"
+walkdir = "2"
+time = { version = "0.3", features = ["formatting", "parsing"] }
+filetime = "0.2"
 
 [dev-dependencies]
 serde_json = "1"

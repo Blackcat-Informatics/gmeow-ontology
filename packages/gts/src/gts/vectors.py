@@ -15,8 +15,10 @@ stay in ``tests/test_gts.py``; this module owns only byte construction.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from gts.codec import Codec
+from gts.files import pack
 from gts.model import Term, TermKind
 from gts.wire import canonical, content_id
 from gts.writer import Writer
@@ -274,6 +276,42 @@ def _inline_blob() -> bytes:
     return bytes(w.to_bytes())
 
 
+def _files_profile_tree() -> bytes:
+    """Vector 23: a deterministic files-profile archive of a small tree."""
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d) / "src"
+        root.mkdir()
+        (root / "hello.txt").write_text("hello")
+        sub = root / "subdir"
+        sub.mkdir()
+        (sub / "world.txt").write_text("world")
+        fixed_mtime = 1_700_000_000.0
+        for p in [root / "hello.txt", sub / "world.txt"]:
+            p.chmod(0o644)
+            os.utime(p, (fixed_mtime, fixed_mtime))
+        return bytes(pack([root]))
+
+
+def _files_profile_dedup() -> bytes:
+    """Vector 24: identical file content yields one shared inline blob."""
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d) / "src"
+        root.mkdir()
+        (root / "a.txt").write_text("shared")
+        (root / "b.txt").write_text("shared")
+        fixed_mtime = 1_700_000_000.0
+        for p in [root / "a.txt", root / "b.txt"]:
+            p.chmod(0o644)
+            os.utime(p, (fixed_mtime, fixed_mtime))
+        return bytes(pack([root]))
+
+
 def corpus() -> list[VectorCase]:
     """The full exportable corpus, in spec §18 order."""
     return [
@@ -297,6 +335,8 @@ def corpus() -> list[VectorCase]:
         VectorCase("18-cross-segment-suppression", _cross_segment_suppression()),
         VectorCase("19-profile-union-opacity", _profile_union_opacity()),
         VectorCase("22-inline-blob", _inline_blob()),
+        VectorCase("23-files-profile-tree", _files_profile_tree()),
+        VectorCase("24-files-profile-dedup", _files_profile_dedup()),
     ]
 
 
