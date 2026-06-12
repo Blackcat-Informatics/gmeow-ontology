@@ -3849,8 +3849,9 @@ gmeow:PersonaShape
     sh:property [
         sh:path gmeow:expressesNorm ;
         sh:nodeKind sh:IRI ;
+        sh:class gmeow:Norm ;
         sh:severity sh:Violation ;
-        sh:message "gmeow:expressesNorm must target norms as IRIs." ;
+        sh:message "gmeow:expressesNorm must target gmeow:Norm instances (sound here: instance norms are typed in data graphs, unlike module-typed vocabulary)." ;
     ] .
 
 gmeow:StyleGuideShape

@@ -166,6 +166,6 @@ def test_divergence_query_surfaces_legal_divergence() -> None:
     diverged = set()
     for row in rows:
         assert isinstance(row, ResultRow)
-        diverged.add((row[1], row[3]))
+        diverged.add((row[1], row[2]))
     assert (EX.publicPersona, EX.playNorm) not in diverged
     assert (EX.privatePersona, EX.playNorm) in diverged
