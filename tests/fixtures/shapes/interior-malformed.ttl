@@ -1,0 +1,48 @@
+# Malformed narrative-interior + affect fixture (#356/#361/#362/#363).
+# Six malformed constructs (several produce more than one SHACL failure;
+# every expected message is asserted in tests/test_interior.py):
+#   1. ex:floatingSample — an arc sample with no position and no state.
+#   2. ex:scopelessRole — a role claim with bearer and value but no scope.
+#   3. ex:namelessMotif — a motif without a label (an unnameable unit is a
+#      tag), occurring in a non-segment.
+#   4. ex:orphanEmotion — an emotion with no bearer and no type.
+#   5. ex:emptyAppraisal — an appraisal reading nothing.
+#   6. ex:halfReading — a dimensional appraisal with a value but no
+#      dimension.
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:someone a gmeow:Person ; rdfs:label "someone"@en .
+ex:judge   a gmeow:Person ; rdfs:label "a judge"@en .
+
+# Violation 1: a sample of nowhere, reading nothing.
+ex:floatingSample a gmeow:ArcSample ;
+    gmeow:vantage ex:judge ;
+    gmeow:sampleSubject ex:someone .
+
+# Violation 2: protagonist-of-what is half the claim.
+ex:scopelessRole a gmeow:RoleInNarrative ;
+    gmeow:narrativeRoleBearer ex:someone ;
+    gmeow:narrativeRoleValue gmeow:roleProtagonist .
+
+# Violation 3: nameless motif occurring in a person.
+ex:namelessMotif a gmeow:Motif ;
+    gmeow:motifOccursIn ex:someone .
+
+# Violation 4: an emotion of nobody, of no kind.
+ex:orphanEmotion a gmeow:Emotion ;
+    rdfs:label "free-floating feeling"@en .
+
+# Violation 5: a reading of nothing.
+ex:emptyAppraisal a gmeow:Appraisal ;
+    gmeow:vantage ex:judge ;
+    gmeow:appraisalOf ex:someone .
+
+# Violation 6: a value with no dimension.
+ex:halfReading a gmeow:Appraisal ;
+    gmeow:vantage ex:judge ;
+    gmeow:appraisalOf ex:someone ;
+    gmeow:appraisalValue 0.5 .

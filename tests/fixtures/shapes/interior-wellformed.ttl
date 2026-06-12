@@ -1,0 +1,111 @@
+# Well-formed narrative-interior + affect fixture (#356/#361/#362/#363,
+# EPICs #348 + #358). One scene exercising the whole parcel: a frame-scoped
+# character sampled at two discourse positions by two disagreeing analyzers
+# (affect EmotionType states by soft reference), a scoped protagonist claim
+# beside a chapter-scoped foil claim, a motif occurring in both segments via
+# the seam, an emotion inhering in a reader, and one PAD + one aesthetic
+# appraisal from rival critics. run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:novel a gmeow:CreativeWork ; rdfs:label "the novel"@en .
+
+ex:discourseFrame a gmeow:NarrativeTimeFrame ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
+    gmeow:discourseTimeOf ex:novel ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:dAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+ex:pos3  a gmeow:NarrativePosition ; gmeow:positionFrame ex:discourseFrame ; gmeow:positionOrdinal 3 .
+ex:pos31 a gmeow:NarrativePosition ; gmeow:positionFrame ex:discourseFrame ; gmeow:positionOrdinal 31 .
+
+ex:ch3  a gmeow:ContentSegment ; rdfs:label "Three"@en ;
+    gmeow:segmentOf ex:novel ; gmeow:atNarrativePosition ex:pos3 .
+ex:ch31 a gmeow:ContentSegment ; rdfs:label "Thirty-Three"@en ;
+    gmeow:segmentOf ex:novel ; gmeow:atNarrativePosition ex:pos31 .
+
+ex:phedre a gmeow:Person ; rdfs:label "the heroine"@en .
+ex:modelA a gmeow:SoftwareAgent ; rdfs:label "analyzer A"@en .
+ex:modelB a gmeow:SoftwareAgent ; rdfs:label "analyzer B"@en .
+
+# Arc samples (#361): trajectory of two positions; analyzers disagree at 31.
+ex:arc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:phedre ;
+    gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeQuest ;
+    gmeow:arcSample ex:s3 , ex:s31a , ex:s31b .
+
+ex:canon a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:cAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+ex:s3 a gmeow:ArcSample ;
+    gmeow:vantage ex:modelA ;
+    gmeow:sampleSubject ex:phedre ;
+    gmeow:samplePosition ex:pos3 ;
+    gmeow:sampleState gmeow:emotionAnticipation ;
+    gmeow:developmentSignalText "She accepts the assignation eagerly."@x-gmeow-english .
+
+ex:s31a a gmeow:ArcSample ;
+    gmeow:vantage ex:modelA ;
+    gmeow:sampleSubject ex:phedre ;
+    gmeow:samplePosition ex:pos31 ;
+    gmeow:sampleState gmeow:emotionFear .
+
+# Analyzer B reads the same position differently — both cells stand (P9).
+ex:s31b a gmeow:ArcSample ;
+    gmeow:vantage ex:modelB ;
+    gmeow:sampleSubject ex:phedre ;
+    gmeow:samplePosition ex:pos31 ;
+    gmeow:sampleState gmeow:emotionAnticipation .
+
+# Roles (#362): work-scoped protagonist beside a chapter-scoped foil.
+ex:roleClaim1 a gmeow:RoleInNarrative ;
+    gmeow:narrativeRoleBearer ex:phedre ;
+    gmeow:narrativeRoleScope ex:novel ;
+    gmeow:narrativeRoleValue gmeow:roleProtagonist .
+
+ex:rival a gmeow:Person ; rdfs:label "the rival"@en .
+ex:roleClaim2 a gmeow:RoleInNarrative ;
+    gmeow:narrativeRoleBearer ex:rival ;
+    gmeow:narrativeRoleScope ex:ch31 ;
+    gmeow:narrativeRoleValue gmeow:roleFoil .
+
+ex:rival gmeow:hasNarrativeRole gmeow:roleAntagonist .
+
+# Motif (#363): identity-bearing, occurring in both segments via the seam.
+ex:gameMotif a gmeow:Motif ;
+    rdfs:label "the rival's game"@en ;
+    gmeow:motifKind gmeow:motifKindTheme ;
+    gmeow:motifOccursIn ex:ch3 , ex:ch31 .
+
+# Affect (#356): an emotion inhering in a reader; rival critic appraisals.
+ex:reader a gmeow:Person ; rdfs:label "a reader"@en .
+ex:dread a gmeow:Emotion ;
+    gmeow:emotionBearer ex:reader ;
+    gmeow:emotionType gmeow:emotionFear , gmeow:emotionAnticipation .
+
+ex:criticA a gmeow:Person ; rdfs:label "critic A"@en .
+ex:criticB a gmeow:Person ; rdfs:label "critic B"@en .
+
+ex:padCell a gmeow:Appraisal ;
+    gmeow:vantage ex:criticA ;
+    gmeow:appraisalOf ex:ch31 ;
+    gmeow:appraisalDimension gmeow:dimensionArousal ;
+    gmeow:appraisalValue 0.85 .
+
+ex:tasteCell a gmeow:Appraisal ;
+    gmeow:vantage ex:criticB ;
+    gmeow:appraisalOf ex:ch31 ;
+    gmeow:appraisalQuality gmeow:qualityKitsch .
