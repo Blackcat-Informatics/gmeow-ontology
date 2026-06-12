@@ -182,3 +182,96 @@ def test_dc_refinement_lint_runs() -> None:
     # dc: alignments; we only assert that it runs and returns structured findings.
     for finding in findings:
         assert finding.render()
+
+
+# --------------------------------------------------------------------------- #
+# Equivalence-closure collapse (Principle 5, #284)
+# --------------------------------------------------------------------------- #
+
+
+def _collapses(findings: list[AlignmentFinding]) -> list[AlignmentFinding]:
+    return [f for f in findings if f.check == "equivalence-collapse"]
+
+
+def test_committed_mappings_have_no_equivalence_collapse() -> None:
+    """No equivalence chain in the real data connects a disjoint GMEOW pair."""
+    findings = lint_alignment_directions(allow_network=False)
+    collapsed = _collapses(findings)
+    assert not collapsed, "equivalence collapse:\n" + "\n".join(
+        f.render() for f in collapsed
+    )
+
+
+def test_detects_collapse_through_external_intermediate(tmp_path: Path) -> None:
+    """Two disjoint identity axes bridged via one external term is an ERROR.
+
+    Each cell is individually plausible — only the CLOSURE reveals that the
+    two mappings merge gmeow:GenderIdentity with gmeow:GenderExpression,
+    which the gender module's owl:AllDisjointClasses matrix forbids.
+    """
+    just = "semapv:ManualMappingCuration"
+    rows = [
+        ("gmeow:GenderIdentity", "skos:exactMatch", "schema:GenderType", "0.9"),
+        ("gmeow:GenderExpression", "owl:equivalentClass", "schema:GenderType", "0.9"),
+    ]
+    table = tmp_path / "collapse.sssom.tsv"
+    table.write_text(
+        _SSSOM_HEADER + "".join(f"{s}\t{p}\t{o}\t{just}\t{c}\n" for s, p, o, c in rows),
+        encoding="utf-8",
+    )
+    findings = lint_alignment_directions(
+        mappings_dir=tmp_path,
+        fixture_dir=TARGET_FIXTURE_DIR,
+        allow_network=False,
+    )
+    collapsed = _collapses(findings)
+    assert collapsed, "equivalence collapse through schema:GenderType not flagged"
+    flagged = collapsed[0]
+    assert flagged.severity is Severity.ERROR
+    assert {flagged.subject_id, flagged.object_id} == {
+        "gmeow:GenderIdentity",
+        "gmeow:GenderExpression",
+    }
+    assert "schema:GenderType" in flagged.message  # the chain is named
+
+
+def test_detects_property_axis_collapse(tmp_path: Path) -> None:
+    """The property analog: disjoint RCC-8 relations bridged by equivalence."""
+    just = "semapv:ManualMappingCuration"
+    rows = [
+        ("gmeow:rcc8dc", "owl:equivalentProperty", "schema:geoDisjoint", "0.9"),
+        ("gmeow:rcc8ec", "owl:equivalentProperty", "schema:geoDisjoint", "0.9"),
+    ]
+    table = tmp_path / "collapse-props.sssom.tsv"
+    table.write_text(
+        _SSSOM_HEADER + "".join(f"{s}\t{p}\t{o}\t{just}\t{c}\n" for s, p, o, c in rows),
+        encoding="utf-8",
+    )
+    findings = lint_alignment_directions(
+        mappings_dir=tmp_path,
+        fixture_dir=TARGET_FIXTURE_DIR,
+        allow_network=False,
+    )
+    collapsed = _collapses(findings)
+    assert collapsed, "property-axis collapse through schema:geoDisjoint not flagged"
+    assert collapsed[0].predicate_id == "owl:propertyDisjointWith"
+
+
+def test_close_match_does_not_bridge_the_collapse_closure(tmp_path: Path) -> None:
+    """skos:closeMatch is approximate, not coreference — it must not collapse."""
+    just = "semapv:ManualMappingCuration"
+    rows = [
+        ("gmeow:GenderIdentity", "skos:closeMatch", "schema:GenderType", "0.6"),
+        ("gmeow:GenderExpression", "skos:closeMatch", "schema:GenderType", "0.6"),
+    ]
+    table = tmp_path / "no-collapse.sssom.tsv"
+    table.write_text(
+        _SSSOM_HEADER + "".join(f"{s}\t{p}\t{o}\t{just}\t{c}\n" for s, p, o, c in rows),
+        encoding="utf-8",
+    )
+    findings = lint_alignment_directions(
+        mappings_dir=tmp_path,
+        fixture_dir=TARGET_FIXTURE_DIR,
+        allow_network=False,
+    )
+    assert not _collapses(findings)
