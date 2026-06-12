@@ -90,3 +90,36 @@ projections (ODRL JSON-LD, OPA/Rego, Cedar, XACML, LegalRuleML XML, each
 with declared-loss manifests — enforcement flattens the issuer index, said
 loudly). Target list fixed in #351; the `wip-aboutness-349` mapping-set
 precedent applies.
+
+## The rubrics facility (#353)
+
+A rubric **is** a norm for judging: `Rubric ⊑ Norm`, so `normIssuer` (no
+anonymous evaluation standards), `overrides`, `AuthorityLevel`, and
+`PrecedenceTenure` arrive free. It lives in this slice because the P16 DAG
+rule bars extension→extension dependencies — one slice carries the deontic
+family.
+
+- **Content reified, application solver-layer** (P12): `Criterion` with
+  *named* poles (`CriterionPole` — "Power from the Bottom" vs "Passive
+  Victimhood"), `ScoreScale` (min/max/step; arithmetic is solver work),
+  `ScoreAnchor` (range × meaning × exemplars; interpolation is solver work).
+- **`Exemplar ⊑ CitationAct`** — CiTO alignment free; pins by Selector span
+  AND/OR `exemplarSubject` (the entity-pattern case: a character's conduct
+  across a whole work — EPIC #358's 823 corpus links; at least one pin,
+  SHACL). Closed polarity trichotomy (positive / negative / cautionary) with
+  `exemplarRedirect` for the anti-pattern's correct-criterion correction.
+  The kernel aboutness axis (#349) carries the **phase-gate**: a span that
+  *describes* trust is source material; one that *enacts* it is embodiment —
+  same selector, different `hasAboutness`, different anchored range.
+- **`Assessment ⊑ Observation`** — the judge is a vantage; an LLM judge is
+  just a vantage, and two models disagreeing are two coexisting cells, no
+  winner (P9). `assessmentCriterion`/`assessmentRubric` play the
+  `observationMethod` role **without** the subproperty axiom (functional
+  QualityValue range vs Entity values — the `claimModality` pattern);
+  `assessmentScoreValue` is the datatype twin of `observationResult`.
+  Zeros are scores, never absences. Scoring-density guidance by target
+  granularity reuses kernel `hasGranularity`.
+- **Deferred to the compiler-arc window**: EARL (EDOAL — Assertion ↔
+  Assessment is structural), DQV, schema.org `Rating`/`Review`, 1EdTech
+  CASE, and the lm-eval task-YAML projection; judge outputs ingest back as
+  vantage-indexed Assessments. Target list fixed in #353.

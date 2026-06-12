@@ -450,6 +450,15 @@ enum CreativeWorkTypeEnum
     workTypeWritten
   }
 
+enum CriterionDomainEnum
+  {
+    criterionDomainAesthetic
+    criterionDomainFactual
+    criterionDomainRelational
+    criterionDomainSafety
+    criterionDomainStylistic
+  }
+
 enum DatingMethodEnum
   {
     datingMethodAminoAcidRacemization
@@ -659,6 +668,13 @@ enum ExecutionStatusEnum
     executionStatusRunning
     executionStatusSkipped
     executionStatusSucceeded
+  }
+
+enum ExemplarPolarityEnum
+  {
+    polarityCautionary
+    polarityNegative
+    polarityPositive
   }
 
 enum ExpressionLanguageEnum
@@ -1863,7 +1879,7 @@ enum SexualOrientationValueEnum
 
 enum SignatureSchemeEnum
   {
-    signatureSchemeBLS12__HYPHEN_MINUS__381
+    signatureSchemeBls12381
     signatureSchemeECDSAP256
     signatureSchemeECDSASecp256k1
     signatureSchemeEd25519
@@ -2389,6 +2405,24 @@ type Article
     temporalCoverage: [TimeInterval]
     title: [String]
     realizedThrough: [Expression]
+  }
+
+type Assessment
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    vantage: [Entity]
+    assessmentCriterion: Criterion
+    assessmentRubric: Rubric
+    assessmentScoreValue: Float
+    assessmentTarget: String
   }
 
 type Asset
@@ -4516,6 +4550,124 @@ type Credential
     credentialIssuer: Organization
   }
 
+type Criterion
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    criterionDomain: [CriterionDomain]
+    hasScoreAnchor: [ScoreAnchor]
+    penaltyPole: CriterionPole
+    rewardPole: CriterionPole
+  }
+
+type CriterionDomain
+  {
+  }
+
+type CriterionPole
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+  }
+
 type CryptographicKey
   {
     acquireLicensePage: [String]
@@ -5722,6 +5874,27 @@ type Execution
   }
 
 type ExecutionStatus
+  {
+  }
+
+type Exemplar
+  {
+    citationIntent: CitationIntent
+    citedEntity: CreativeWork
+    citingEntity: Entity
+    coverageDepth: [CoverageDepth]
+    hasEvidenceClass: [EvidenceClass]
+    sourceIndependence: [SourceIndependence]
+    sourceTier: [SourceTier]
+    supportsNotability: [Boolean]
+    viaSelector: [Selector]
+    exemplarPolarity: ExemplarPolarity
+    exemplarRationale: [String]
+    exemplarRedirect: [Criterion]
+    exemplarSubject: [String]
+  }
+
+type ExemplarPolarity
   {
   }
 
@@ -12363,6 +12536,65 @@ type RsvpStatus
   {
   }
 
+type Rubric
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    deonticModality: DeonticModality
+    hasAuthorityLevel: [AuthorityLevel]
+    normBearer: [Agent]
+    normCondition: [Condition]
+    overrides: [Norm]
+    prescribedConduct: [String]
+    hasCriterion: [Criterion]
+  }
+
 type Rule
   {
     acquireLicensePage: [String]
@@ -12498,6 +12730,123 @@ type ScheduleException
     exceptionReplacementEvent: Event
     exceptionSchedule: EventSchedule
     exceptionType: ExceptionType
+  }
+
+type ScoreAnchor
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    anchorExemplar: [Exemplar]
+    anchorMeaning: [String]
+    anchorRangeMax: Float
+    anchorRangeMin: Float
+  }
+
+type ScoreScale
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    scaleMax: Float
+    scaleMin: Float
+    scaleStep: Float
   }
 
 type ScriptLanguageAttribution

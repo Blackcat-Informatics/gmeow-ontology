@@ -21,5 +21,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
-        <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    gmeow:sliceConsumer "The lbox principia importer (EPIC #348: 4-tier authority hierarchy, special-directive triggers, paradigm precedence) and policy import/export (ODRL round-trip; OPA/Rego, Cedar, XACML down-projection — deferred to the compiler-arc window with the alignment set). The rubrics (#353) and registers (#355) extensions build on Norm and Condition."@x-gmeow-english .
+        <https://blackcatinformatics.ca/gmeow/slices/rights> ,
+        <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sliceConsumer "The lbox principia importer (EPIC #348: 4-tier authority hierarchy, special-directive triggers, paradigm precedence) and policy import/export (ODRL round-trip; OPA/Rego, Cedar, XACML down-projection — deferred to the compiler-arc window with the alignment set). The rubrics facility (#353) lives in this slice (Rubric ⊑ Norm; the P16 DAG rule bars extension→extension dependencies): consumers are the lm-eval-harness task projection, the principia RLAIF axes/score-anchor import, and LLM-judge score ingestion as vantage-indexed Assessments. The registers extension (#355) builds on Norm and Condition."@x-gmeow-english .

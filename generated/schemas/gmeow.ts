@@ -450,6 +450,15 @@ export enum CreativeWorkTypeEnum {
     written = "workTypeWritten",
 };
 
+export enum CriterionDomainEnum {
+
+    aesthetic = "criterionDomainAesthetic",
+    factual = "criterionDomainFactual",
+    relational = "criterionDomainRelational",
+    safety = "criterionDomainSafety",
+    stylistic = "criterionDomainStylistic",
+};
+
 export enum DatingMethodEnum {
 
     amino_acid_racemization = "datingMethodAminoAcidRacemization",
@@ -659,6 +668,13 @@ export enum ExecutionStatusEnum {
     running = "executionStatusRunning",
     skipped = "executionStatusSkipped",
     succeeded = "executionStatusSucceeded",
+};
+
+export enum ExemplarPolarityEnum {
+
+    cautionary = "polarityCautionary",
+    negative = "polarityNegative",
+    positive = "polarityPositive",
 };
 
 export enum ExpressionLanguageEnum {
@@ -1871,7 +1887,7 @@ export enum SexualOrientationValueEnum {
 
 export enum SignatureSchemeEnum {
 
-    BLS12_381 = "signatureSchemeBLS12-381",
+    BLS12_381 = "signatureSchemeBls12381",
     ECDSA_P256 = "signatureSchemeECDSAP256",
     ECDSA_secp256k1 = "signatureSchemeECDSASecp256k1",
     Ed25519 = "signatureSchemeEd25519",
@@ -2267,6 +2283,15 @@ export interface ArchaeologicalFindContext {
 
 
 export interface Article extends Work {
+}
+
+
+
+export interface Assessment extends Observation {
+    assessmentCriterion?: Criterion,
+    assessmentRubric?: Rubric,
+    assessmentScoreValue?: string,
+    assessmentTarget?: string,
 }
 
 
@@ -2843,6 +2868,25 @@ export interface Credential extends Entity {
 
 
 
+export interface Criterion extends InformationObject {
+    criterionDomain?: CriterionDomain[],
+    hasScoreAnchor?: ScoreAnchor[],
+    penaltyPole?: CriterionPole,
+    rewardPole?: CriterionPole,
+}
+
+
+
+export interface CriterionDomain {
+}
+
+
+
+export interface CriterionPole extends InformationObject {
+}
+
+
+
 export interface CryptoWallet extends FinancialAccount {
     walletAddress?: string[],
     walletKey?: CryptographicKey[],
@@ -3217,6 +3261,20 @@ export interface Execution extends Event {
 
 
 export interface ExecutionStatus {
+}
+
+
+
+export interface Exemplar extends CitationAct {
+    exemplarPolarity?: ExemplarPolarity,
+    exemplarRationale?: string[],
+    exemplarRedirect?: Criterion[],
+    exemplarSubject?: string[],
+}
+
+
+
+export interface ExemplarPolarity {
 }
 
 
@@ -4802,6 +4860,12 @@ export interface RsvpStatus {
 
 
 
+export interface Rubric extends Norm {
+    hasCriterion?: Criterion[],
+}
+
+
+
 export interface Rule extends Norm {
     ruleAction?: RightsAction,
     ruleAssignee?: Agent[],
@@ -4848,6 +4912,23 @@ export interface ScheduleException {
     exceptionReplacementEvent?: Event,
     exceptionSchedule?: EventSchedule,
     exceptionType?: ExceptionType,
+}
+
+
+
+export interface ScoreAnchor extends InformationObject {
+    anchorExemplar?: Exemplar[],
+    anchorMeaning?: string[],
+    anchorRangeMax?: string,
+    anchorRangeMin?: string,
+}
+
+
+
+export interface ScoreScale extends InformationObject {
+    scaleMax?: string,
+    scaleMin?: string,
+    scaleStep?: string,
 }
 
 

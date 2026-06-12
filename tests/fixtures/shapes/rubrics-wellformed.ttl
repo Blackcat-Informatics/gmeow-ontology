@@ -1,0 +1,108 @@
+# Well-formed rubrics fixture (#353, EPIC #348). One issued rubric end to
+# end: a criterion with named poles and a domain, a 0–1 scale, two anchors
+# (high range with a span-pinned ENACTS exemplar; a cautionary anchor whose
+# exemplar redirects to another criterion and pins by SUBJECT — the entity-
+# pattern case, EPIC #358), and two judges disagreeing about one chunk's
+# score — two coexisting Assessments, no winner (Principle 9).
+# run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:issuer a gmeow:Standpoint ; rdfs:label "the principia standpoint"@en .
+ex:judgeA a gmeow:SoftwareAgent ; rdfs:label "judge model A"@en .
+ex:judgeB a gmeow:SoftwareAgent ; rdfs:label "judge model B"@en .
+
+# The rubric: a Norm — issued, never anonymous.
+ex:rubric a gmeow:Rubric ;
+    rdfs:label "sovereign submission rubric"@en ;
+    gmeow:normIssuer ex:issuer ;
+    gmeow:hasCriterion ex:axis1 , ex:axis2 ;
+    gmeow:usesScale ex:unitScale .
+
+ex:unitScale a gmeow:ScoreScale ;
+    gmeow:scaleMin 0.0 ;
+    gmeow:scaleMax 1.0 .
+
+ex:axis1 a gmeow:Criterion ;
+    rdfs:label "sovereign submission"@en ;
+    gmeow:criterionDomain gmeow:criterionDomainRelational ;
+    gmeow:rewardPole ex:powerFromBottom ;
+    gmeow:penaltyPole ex:passiveVictimhood ;
+    gmeow:hasScoreAnchor ex:highAnchor , ex:cautionAnchor .
+
+ex:axis2 a gmeow:Criterion ;
+    rdfs:label "polymath competence"@en ;
+    gmeow:criterionDomain gmeow:criterionDomainFactual ;
+    gmeow:rewardPole ex:eruditeCommand ;
+    gmeow:penaltyPole ex:shallowRecitation .
+
+ex:eruditeCommand a gmeow:CriterionPole ;
+    rdfs:label "Erudite Command"@en .
+ex:shallowRecitation a gmeow:CriterionPole ;
+    rdfs:label "Shallow Recitation"@en .
+
+ex:powerFromBottom a gmeow:CriterionPole ;
+    rdfs:label "Power from the Bottom"@en .
+ex:passiveVictimhood a gmeow:CriterionPole ;
+    rdfs:label "Passive Victimhood"@en .
+
+# Anchors: high range pinned by a span exemplar that ENACTS its subject.
+ex:highAnchor a gmeow:ScoreAnchor ;
+    gmeow:anchorRangeMin 0.8 ;
+    gmeow:anchorRangeMax 1.0 ;
+    gmeow:anchorMeaning "The text embodies the dynamic as a sovereign choice."@x-gmeow-english ,
+        "Le texte incarne la dynamique comme un choix souverain."@x-gmeow-french ;
+    gmeow:anchorExemplar ex:spanExemplar .
+
+ex:novel a gmeow:BookRelease ; rdfs:label "an exemplary novel"@en .
+
+ex:spanExemplar a gmeow:Exemplar ;
+    gmeow:citingEntity ex:rubric ;
+    gmeow:citedEntity ex:novel ;
+    gmeow:citationIntent gmeow:intentSupports ;
+    gmeow:viaSelector ex:span ;
+    gmeow:exemplarPolarity gmeow:polarityPositive ;
+    gmeow:hasAboutness gmeow:aboutnessEnacts ;
+    gmeow:exemplarRationale "The oath is demanded as the price of partnership, not described." .
+
+ex:span a gmeow:Selector ;
+    gmeow:selectorTextQuote "her oath to answer truthfully was not a choice" .
+
+# Cautionary anchor: the exemplar pins by SUBJECT (an entity's pattern) and
+# redirects to the criterion it actually evidences.
+ex:cautionAnchor a gmeow:ScoreAnchor ;
+    gmeow:anchorRangeMin 0.0 ;
+    gmeow:anchorRangeMax 0.3 ;
+    gmeow:anchorMeaning "Clinical frameworks ABOUT the dynamic — source material, not embodiment." ;
+    gmeow:anchorExemplar ex:subjectExemplar .
+
+ex:advisor a gmeow:Person ; rdfs:label "a clinical advisor character"@en .
+
+ex:subjectExemplar a gmeow:Exemplar ;
+    gmeow:citingEntity ex:rubric ;
+    gmeow:citedEntity ex:novel ;
+    gmeow:citationIntent gmeow:intentDisagreesWith ;
+    gmeow:exemplarSubject ex:advisor ;
+    gmeow:exemplarPolarity gmeow:polarityCautionary ;
+    gmeow:exemplarRedirect ex:axis2 ;
+    gmeow:hasAboutness gmeow:aboutnessDescribes ;
+    gmeow:exemplarRationale "The advisor's framework DESCRIBES the dynamic; competence credit belongs to axis 2." .
+
+# Two judges, one chunk, different scores — coexisting cells, no winner.
+ex:chunk a gmeow:TextExtraction ; rdfs:label "chunk 17"@en .
+
+ex:scoreByA a gmeow:Assessment ;
+    gmeow:vantage ex:judgeA ;
+    gmeow:assessmentTarget ex:chunk ;
+    gmeow:assessmentCriterion ex:axis1 ;
+    gmeow:assessmentRubric ex:rubric ;
+    gmeow:assessmentScoreValue 0.9 .
+
+ex:scoreByB a gmeow:Assessment ;
+    gmeow:vantage ex:judgeB ;
+    gmeow:assessmentTarget ex:chunk ;
+    gmeow:assessmentCriterion ex:axis1 ;
+    gmeow:assessmentScoreValue 0.4 .
