@@ -1,5 +1,14 @@
 {
- "blobs": {},
+ "blobs": {
+  "blake3:572759598054983f55a7e11fb63d5e9068c0e51ce82eaf20ff6c2e8208771619": {
+   "mt": "text/plain",
+   "size": 10
+  },
+  "blake3:a798e35bebd1ab922596845ee52997f97680b6b7c81ecbd3e67cbd45c46be6eb": {
+   "mt": "image/webp",
+   "size": 100
+  }
+ },
  "diagnostics": [],
  "mode": "default",
  "nquads": [
@@ -11,7 +20,7 @@
  ],
  "quads": 1,
  "segment_heads": [
-  "8953ecab9072ea444fcf98e7e482318d16292bc76c03273cd1b42ed4bd3211d6"
+  "8e076845e2148c9ac58b7ca5ceff2d262f7943bce1b2148fcbae9c079ee7f6c0"
  ],
  "segments": 1,
  "streamable": [

@@ -587,3 +587,216 @@ def test_prefix_fold_streaming_property() -> None:
             full = read(case.data)
             assert full.terms == prev.terms, case.name
             assert full.quads == prev.quads, case.name
+
+
+# --------------------------------------------------------------------------- #
+# Streamable compaction (§3.3, §10.1, §13.3 - spec vectors 24-26)
+# --------------------------------------------------------------------------- #
+
+
+def test_vector_25b_compact_is_byte_deterministic() -> None:
+    """The frozen 25b bytes are the cross-engine determinism oracle (§14.1):
+    compacting the frozen 25 bytes with the frozen timestamp must reproduce
+    them exactly."""
+    from gmeow_tools.config import GENERATED_DIR
+    from gts.compact import compact_streamable
+
+    vdir = GENERATED_DIR / "gts-vectors"
+    source = (vdir / "25-streamable-source.gts").read_bytes()
+    frozen = (vdir / "25b-streamable-compacted.gts").read_bytes()
+    assert compact_streamable(source, timestamp="2026-01-01T00:00:00Z") == frozen
+
+
+def test_compact_preserves_the_content_graph() -> None:
+    """§10.1: re-authoring of the ordering, and only the ordering — every
+    source quad and blob survives; only stream# provenance is added."""
+    from gts.compact import compact_streamable
+    from gts.stream import STREAM_NS
+    from gts.vectors import _streamable_source
+
+    src = read(_streamable_source())
+    out = read(
+        compact_streamable(_streamable_source(), timestamp="2026-01-01T00:00:00Z")
+    )
+    assert not out.diagnostics
+    src_lines = set(to_nquads(src).splitlines())
+    out_lines = set(to_nquads(out).splitlines())
+    assert src_lines <= out_lines
+    assert all(STREAM_NS in ln for ln in out_lines - src_lines)
+    assert out.blobs == src.blobs
+    assert out.segment_streamable[0].claimed
+    assert out.segment_streamable[0].tail == 0
+
+
+def test_compact_detached_signatures_verify_against_source_frames() -> None:
+    """§10.1: a detached frame signature stays a checkable claim about the
+    original log — the carried COSE bytes verify against stream:sourceFrame."""
+    import base64
+
+    from gts.crypto import InMemoryKeys, verify_sig
+    from gts.vectors import _streamable_compacted, _streamable_signer
+
+    keys = InMemoryKeys()
+    keys.trust(_streamable_signer())  # type: ignore[arg-type]
+    g = read(_streamable_compacted())
+
+    def value_of(tid: int) -> str:
+        return g.terms[tid].value or ""
+
+    by_subject: dict[int, dict[str, str]] = {}
+    for s, p, o, _g in g.quads:
+        pred = value_of(p)
+        if pred.startswith("https://w3id.org/gts/stream#"):
+            by_subject.setdefault(s, {})[
+                pred.removeprefix("https://w3id.org/gts/stream#")
+            ] = value_of(o)
+    detached = [
+        fields
+        for fields in by_subject.values()
+        if "sourceFrame" in fields and "cose" in fields
+    ]
+    assert detached, "compacted vector must carry detached signatures"
+    for fields in detached:
+        frame_id = bytes.fromhex(fields["sourceFrame"].removeprefix("blake3:"))
+        pad = "=" * (-len(fields["cose"]) % 4)
+        cose = base64.urlsafe_b64decode(fields["cose"] + pad)
+        status, kid = verify_sig(cose, frame_id, keys)
+        assert status == "valid", fields["sourceFrame"]
+        assert kid == "vector-key"
+
+
+def test_vector_26_streamable_lie_is_diagnosed() -> None:
+    """§3.3 (vector 25 in the spec list): a covered blob delivered before its
+    stream:digest description MUST surface StreamableLayoutError."""
+    from gts.vectors import _streamable_lie
+
+    g = read(_streamable_lie())
+    assert "StreamableLayoutError" in [d.code for d in g.diagnostics]
+
+
+def test_claimed_segment_without_index_footer_is_diagnosed() -> None:
+    w = Writer(layout="streamable")
+    w.add_terms([Term(TermKind.IRI, "https://example.org/Cat")])
+    g = read(w.to_bytes())
+    assert [d.code for d in g.diagnostics] == ["StreamableLayoutError"]
+    info = g.segment_streamable[0]
+    assert info.claimed and info.covered == 0
+
+
+def test_index_head_contradiction_is_diagnosed() -> None:
+    """§3.3 check (b): an index whose head does not name frame `count`."""
+    from gts.vectors import _streamable_compacted
+    from gts.wire import iter_items
+
+    data = _streamable_compacted()
+    items, _ = iter_items(data)
+    # Rewrite the trailing index frame with a wrong head, re-chaining it.
+    *_, (last_off, last_item) = items
+    assert isinstance(last_item, dict) and last_item["t"] == "index"
+    payload = dict(last_item["d"])
+    payload["head"] = b"\x00" * 32
+    frame: dict[str, object] = {
+        "t": "index",
+        "d": payload,
+        "prev": last_item["prev"],
+    }
+    frame["id"] = content_id(frame)
+    g = read(data[:last_off] + canonical(frame))
+    assert "StreamableLayoutError" in [d.code for d in g.diagnostics]
+
+
+def test_vector_27_appended_tail_is_legal_and_reported() -> None:
+    """§3.3 (vector 26 in the spec list): the unpresaged tail after the index
+    footer folds cleanly and the boundary is reported."""
+    from gts.vectors import _streamable_compacted, _streamable_tail
+
+    g = read(_streamable_tail())
+    assert not g.diagnostics
+    info = g.segment_streamable[0]
+    base = read(_streamable_compacted()).segment_streamable[0]
+    assert info.claimed
+    assert info.covered == base.covered
+    assert info.tail == 2
+    # The appended content folded (it is unpresaged, not ignored).
+    assert any(g.terms[s].value == "https://example.org/Dog" for s, *_ in g.quads)
+
+
+def test_recompacting_a_tailed_file_absorbs_the_tail() -> None:
+    from gts.compact import compact_streamable
+    from gts.vectors import _streamable_tail
+
+    g = read(compact_streamable(_streamable_tail(), timestamp="2026-02-02T00:00:00Z"))
+    assert not g.diagnostics
+    assert g.segment_streamable[0].tail == 0
+    assert any(t.value == "https://example.org/Dog" for t in g.terms)
+
+
+def test_compact_refusals() -> None:
+    """§10.1/§14.1: dirty input, evidence-without-seal, frame suppressions,
+    and mixed profiles are refused."""
+    import pytest as _pytest
+
+    from gts.compact import CompactRefusedError, compact_streamable
+    from gts.vectors import _segment_one, _segment_two, _streamable_lie
+
+    ts = "2026-01-01T00:00:00Z"
+    with _pytest.raises(CompactRefusedError, match="does not verify cleanly"):
+        compact_streamable(_streamable_lie(), timestamp=ts)
+
+    ev = Writer(profile="evidence")
+    ev.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Cat"),
+            Term(TermKind.IRI, "http://www.w3.org/2000/01/rdf-schema#label"),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    ev.add_quads([(0, 1, 2, None)])
+    with _pytest.raises(CompactRefusedError, match="seal-original"):
+        compact_streamable(ev.to_bytes(), timestamp=ts)
+    assert compact_streamable(ev.to_bytes(), timestamp=ts, seal_original=True)
+
+    fs = Writer()
+    fs.add_terms([Term(TermKind.IRI, "https://example.org/Cat")])
+    fs.add_suppress([{"kind": "frame", "id": b"\x00" * 32}])
+    with _pytest.raises(CompactRefusedError, match="frame-addressed"):
+        compact_streamable(fs.to_bytes(), timestamp=ts)
+
+    with _pytest.raises(CompactRefusedError, match="mixed segment profiles"):
+        compact_streamable(_segment_one() + _segment_two(), timestamp=ts)
+
+
+def test_compact_seal_original_round_trips_verbatim() -> None:
+    """§10.1: --seal-original carries the source bytes intact as a nested GTS
+    blob (§12.1) whose inner fold equals the original's."""
+    from gts.compact import compact_streamable
+    from gts.vectors import _streamable_source
+    from gts.wire import digest_str
+
+    src = _streamable_source()
+    out = read(
+        compact_streamable(src, timestamp="2026-01-01T00:00:00Z", seal_original=True)
+    )
+    sealed = out.blobs[digest_str(src)]
+    assert sealed == src
+    inner = read(sealed)
+    assert not inner.diagnostics
+    assert to_nquads(inner) == to_nquads(read(src))
+    assert out.blob_meta[digest_str(src)]["mt"] == "application/gts"
+
+
+def test_streamable_lie_detection_is_prefix_stable() -> None:
+    """§3.3: the catalog-before-payload violation observed in any prefix is a
+    violation of the whole file; the clean 25b vector must never show it on
+    any prefix (only the missing-footer report may appear mid-flight)."""
+    from gts.vectors import _streamable_compacted
+    from gts.wire import iter_items
+
+    data = _streamable_compacted()
+    items, _ = iter_items(data)
+    boundaries = [off for off, _ in items[1:]] + [len(data)]
+    for end in boundaries:
+        g = read(data[:end])
+        for d in g.diagnostics:
+            assert d.code == "StreamableLayoutError"
+            assert "index footer" in d.detail  # never the order violation

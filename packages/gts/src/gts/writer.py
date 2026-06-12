@@ -80,11 +80,14 @@ class Writer:
         *,
         magic_tag: bool = True,
         signer: Signer | None = None,
+        layout: str | None = None,
     ) -> None:
         """Initialise the writer and emit the Header (the chain genesis).
 
         If ``signer`` is given, every appended frame is COSE_Sign1-signed over its
         ``id`` (§9.2) — the basis of the ``evidence`` profile's chain of custody.
+        ``layout`` writes the header layout-state claim (§3.3; ``"streamable"``
+        is the only value this revision defines).
         """
         self._signer = signer
         self.catalog = catalog or dict(DEFAULT_CATALOG)
@@ -95,12 +98,19 @@ class Writer:
             "prof": profile,
             "cat": {i: {"name": c.name, "cls": c.cls} for i, c in self.catalog.items()},
         }
+        if layout is not None:
+            header["layout"] = layout
         if meta is not None:
             header["meta"] = meta
         header["id"] = header_id(header)
         self._prev: bytes = header["id"]  # type: ignore[assignment]
         first = cbor2.CBORTag(SELF_DESCRIBE_TAG, header) if magic_tag else header
         self._buf = bytearray(canonical(first))
+        # Per-frame byte offsets and types, in append order — the raw material
+        # of an `index` footer (§6.2): offsets enable random access/parallel
+        # verify, types the "ti" locator map.
+        self._offsets: list[int] = []
+        self._types: list[str] = []
 
     @property
     def head(self) -> bytes:
@@ -175,6 +185,8 @@ class Writer:
             sig = sign_id(fid, self._signer)
         if sig is not None:
             frame["sig"] = sig
+        self._offsets.append(len(self._buf))
+        self._types.append(frame_type)
         self._buf += canonical(frame)
         self._prev = fid
         return self._prev
@@ -248,6 +260,27 @@ class Writer:
         if reason is not None:
             payload["reason"] = reason
         return self.add_frame("suppress", payload=payload)
+
+    def add_index(self) -> bytes:
+        """Append an ``index`` footer covering every frame appended so far (§6.2).
+
+        ``count``/``head`` delimit the covered region (the streamable boundary,
+        §3.3); ``off`` carries each covered frame's byte offset from the start
+        of this writer's output; ``ti`` locates frames by type (0-based frame
+        positions). A later ``add_index`` covers the earlier one too — the last
+        index wins (§6.2).
+        """
+        ti: dict[str, list[int]] = {}
+        for pos, ftype in enumerate(self._types):
+            ti.setdefault(ftype, []).append(pos)
+        payload: dict[str, object] = {
+            "count": len(self._types),
+            "head": self._prev,
+        }
+        if self._offsets:  # "off"/"ti" are [+ uint]-shaped — omit when empty
+            payload["off"] = list(self._offsets)
+            payload["ti"] = ti
+        return self.add_frame("index", payload=payload)
 
     def to_bytes(self) -> bytes:
         """Return the complete GTS file."""

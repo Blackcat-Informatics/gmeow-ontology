@@ -84,11 +84,33 @@ class Diagnostic:
 
 @dataclass
 class Signature:
-    """The verification outcome for a signed frame (§9.2)."""
+    """The verification outcome for a signed frame (§9.2).
+
+    ``cose`` retains the raw COSE_Sign1 bytes so streamable compaction (§10.1)
+    can carry the signature *detached* — forever verifiable against
+    ``frame_id`` even after the frame itself is re-authored into a new chain.
+    """
 
     frame_id: bytes
     kid: str | None
     status: str  # "valid" | "invalid" | "unverified"
+    cose: bytes | None = None
+
+
+@dataclass
+class StreamableInfo:
+    """One segment's layout state (§3.3).
+
+    ``covered``/``head`` come from the segment's last intact ``index`` frame;
+    ``tail`` counts the legal unpresaged frames after it ("streamable through
+    frame *covered*, accretive tail of *tail* frame(s)"). For an unclaimed
+    (accretive) segment all fields are their zero values.
+    """
+
+    claimed: bool = False
+    covered: int = 0
+    tail: int = 0
+    head: bytes | None = None
 
 
 @dataclass
@@ -123,6 +145,9 @@ class Graph:
     #: file-level shallow merge in ``meta`` so a later segment's keys win in
     #: ``meta`` but no segment's metadata is silently absorbed.
     segment_meta: list[dict[str, object]] = field(default_factory=list)
+    #: Per-segment layout state (§3.3), in file order — the declared-vs-computed
+    #: streamable claim, its covered boundary, and the accretive tail.
+    segment_streamable: list[StreamableInfo] = field(default_factory=list)
 
     def term(self, term_id: int) -> Term:
         """Resolve a term-id to its :class:`Term`."""

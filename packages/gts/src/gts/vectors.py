@@ -372,6 +372,99 @@ def _files_profile_dedup() -> bytes:
         return bytes(pack([root]))
 
 
+def _streamable_signer() -> object:
+    """A fixed-seed Ed25519 signer for reproducible signed vectors.
+
+    Ed25519 signatures are deterministic (RFC 8032), so the corpus
+    regenerates byte-identically.
+    """
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    from gts.crypto import Signer
+
+    return Signer("vector-key", Ed25519PrivateKey.from_private_bytes(b"\x42" * 32))
+
+
+def _streamable_source() -> bytes:
+    """Vector 25: an accretive source, no layout claim.
+
+    Blobs land interleaved before the catalog (arrival order); every frame is
+    COSE-signed so the compacted rewrite carries detached signatures.
+    """
+    w = Writer(signer=_streamable_signer())  # type: ignore[arg-type]
+    w.add_blob(b"B" * 100, mt="image/webp")  # delivered before any description
+    w.add_terms(
+        [
+            Term(TermKind.IRI, CAT),
+            Term(TermKind.IRI, LABEL),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    w.add_blob(b"A" * 10, mt="text/plain")
+    return bytes(w.to_bytes())
+
+
+def _streamable_compacted() -> bytes:
+    """Vector 25b: the streamable rewrite of vector 25 (§10.1).
+
+    The frozen bytes double as the cross-engine determinism oracle: every
+    engine's ``compact`` over the frozen 25 bytes with this timestamp MUST
+    reproduce these bytes exactly (§14.1).
+    """
+    from gts.compact import compact_streamable
+
+    return compact_streamable(_streamable_source(), timestamp="2026-01-01T00:00:00Z")
+
+
+def _streamable_lie() -> bytes:
+    """Vector 26: a streamable claim the bytes contradict (§3.3, negative).
+
+    The segment claims ``layout: "streamable"`` and carries a valid index
+    footer, but delivers a covered blob BEFORE the ``stream:digest`` quad
+    describing it — catalog-before-payload violated; verify MUST refuse.
+    """
+    from gts.stream import DIGEST
+    from gts.wire import digest_str
+
+    w = Writer(layout="streamable")
+    data = b"undescribed bytes"
+    w.add_blob(data, mt="text/plain")  # delivered first …
+    w.add_terms(
+        [
+            Term(TermKind.BNODE, "m0"),
+            Term(TermKind.IRI, DIGEST),
+            Term(TermKind.LITERAL, digest_str(data)),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])  # … described after
+    w.add_index()
+    return bytes(w.to_bytes())
+
+
+def _streamable_tail() -> bytes:
+    """Vector 27: frames appended after the index footer (§3.3).
+
+    The unpresaged tail is legal: the file folds cleanly and reports
+    "streamable through frame N, accretive tail of 2 frame(s)".
+    """
+    from gts.reader import read
+
+    compacted = _streamable_compacted()
+    g = read(compacted)
+    n = len(g.terms)
+    head = g.segment_heads[0]
+    f1: dict[str, object] = {
+        "t": "terms",
+        "d": [{"k": 0, "v": DOG}, {"k": 1, "v": "Dog", "l": "en"}],
+        "prev": head,
+    }
+    f1["id"] = content_id(f1)
+    f2: dict[str, object] = {"t": "quads", "d": [[n, 1, n + 1]], "prev": f1["id"]}
+    f2["id"] = content_id(f2)
+    return compacted + canonical(f1) + canonical(f2)
+
+
 def corpus() -> list[VectorCase]:
     """The full exportable corpus, in spec §18 order."""
     return [
@@ -399,6 +492,10 @@ def corpus() -> list[VectorCase]:
         VectorCase("22-inline-blob", _inline_blob()),
         VectorCase("23-files-profile-tree", _files_profile_tree()),
         VectorCase("24-files-profile-dedup", _files_profile_dedup()),
+        VectorCase("25-streamable-source", _streamable_source()),
+        VectorCase("25b-streamable-compacted", _streamable_compacted()),
+        VectorCase("26-streamable-lie", _streamable_lie()),
+        VectorCase("27-streamable-tail", _streamable_tail()),
     ]
 
 
@@ -424,6 +521,12 @@ def expected_for(case: VectorCase) -> dict[str, object]:
         "segments": len(g.segment_heads),
         "segment_heads": [h.hex() for h in g.segment_heads],
         "profiles": list(g.segment_profiles),
+        # Per-segment layout state (§3.3) — pins the streamable claim, its
+        # covered boundary, and the accretive tail across implementations.
+        "streamable": [
+            {"claimed": s.claimed, "covered": s.covered, "tail": s.tail}
+            for s in g.segment_streamable
+        ],
         "opaque_reasons": sorted(o.reason for o in g.opaque),
         "suppressions": len(g.suppressions),
         # Inline blobs: digest -> {size, declared media type} — pins blob

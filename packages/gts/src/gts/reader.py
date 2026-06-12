@@ -23,11 +23,13 @@ from gts.model import (
     OpaqueNode,
     Quad,
     Signature,
+    StreamableInfo,
     Suppression,
     Term,
     TermKind,
     Triple,
 )
+from gts.stream import DIGEST as STREAM_DIGEST
 from gts.wire import (
     content_id,
     digest_str,
@@ -90,6 +92,12 @@ class _Folder:
         self.keys = keys
         # A key-bound decryptor for encrypt-class codecs; None ⇒ encrypt → missing-key.
         self._decryptor = (lambda b: decrypt0(b, keys)) if keys is not None else None
+        # Layout-state bookkeeping (§3.3): intact index frames seen, digests the
+        # graph has described via stream:digest so far, and each inline blob's
+        # arrival (frame index, digest, was-it-described-at-arrival).
+        self.index_records: list[tuple[int, int, bytes]] = []
+        self.described: set[str] = set()
+        self.blob_events: list[tuple[int, str, bool]] = []
 
     def _resolve_codecs(self, ids: list[object]) -> list[Codec]:
         chain: list[Codec] = []
@@ -204,6 +212,12 @@ class _Folder:
             if not self._check_positions(s, p, o, g, index):
                 continue
             self.g.quads.append((s, p, o, g))
+            # Layout bookkeeping (§3.3): a stream:digest quad describes an
+            # upcoming manifestation — record the IOU for the blob check.
+            if self.g.terms[p].value == STREAM_DIGEST:
+                obj = self.g.terms[o]
+                if obj.value is not None:
+                    self.described.add(obj.value)
 
     def _h_reifies(self, payload: object, _f: Mapping[str, object], index: int) -> None:
         if not isinstance(payload, Mapping):
@@ -251,15 +265,16 @@ class _Folder:
                 continue
             self.g.annotations.append((r, p, v))
 
-    def _h_blob(
-        self, payload: object, frame: Mapping[str, object], _index: int
-    ) -> None:
+    def _h_blob(self, payload: object, frame: Mapping[str, object], index: int) -> None:
         if isinstance(payload, bytes):
             digest = digest_str(payload)
             self.g.blobs[digest] = payload
             pub = frame.get("pub")
             if isinstance(pub, Mapping):
                 self.g.blob_meta[digest] = {str(k): v for k, v in pub.items()}
+            # Layout bookkeeping (§3.3): was this delivery presaged by a
+            # stream:digest description in an earlier frame?
+            self.blob_events.append((index, digest, digest in self.described))
         # else: external blob — bytes live elsewhere, referenced by "pub".digest (§12).
 
     def _h_meta(self, payload: object, _f: Mapping[str, object], _index: int) -> None:
@@ -355,6 +370,20 @@ class _Folder:
             for k, v in meta.items():
                 self.g.meta[str(k)] = v
 
+    def _h_index(self, payload: object, _f: Mapping[str, object], index: int) -> None:
+        """Record an intact ``index`` frame (§6.2) for the layout check (§3.3).
+
+        The index stays an accelerator for the fold itself; only ``count`` and
+        ``head`` are consumed here, as the covered-region boundary. A payload
+        without a valid count/head pair is simply not an intact index.
+        """
+        if not isinstance(payload, Mapping):
+            return
+        count = _as_int(payload.get("count"))
+        head = payload.get("head")
+        if count is not None and isinstance(head, bytes):
+            self.index_records.append((index, count, head))
+
     def _h_opaque(self, payload: object, _f: Mapping[str, object], _index: int) -> None:
         if isinstance(payload, Mapping):
             self.g.opaque.append(
@@ -436,6 +465,7 @@ _HANDLERS = {
     "meta": _Folder._h_meta,
     "suppress": _Folder._h_suppress,
     "snapshot": _Folder._h_snapshot,
+    "index": _Folder._h_index,
     "opaque": _Folder._h_opaque,
 }
 
@@ -586,6 +616,7 @@ def _read_segment(
         )
     folder = _Folder(g, _catalog(header), keys)
     expected_prev = stored_hid if isinstance(stored_hid, bytes) else b""
+    frame_ids: list[bytes] = []  # per-frame chain ids, by 0-based frame position
 
     for index, (_, raw) in enumerate(items[1:], start=1):
         abs_index = index + index_offset
@@ -593,6 +624,7 @@ def _read_segment(
             g.diagnostics.append(
                 Diagnostic("DamagedFrame", "frame is not a map", abs_index)
             )
+            frame_ids.append(b"")
             continue
         frame: Mapping[str, object] = raw
         stored_id = frame.get("id")
@@ -603,12 +635,14 @@ def _read_segment(
             )
             folder._opaque(frame, str(frame.get("t", "")), "damaged")
             expected_prev = stored_id if isinstance(stored_id, bytes) else computed
+            frame_ids.append(expected_prev)
             continue
         if frame.get("prev") != expected_prev:
             g.diagnostics.append(
                 Diagnostic("BrokenChain", "prev does not match", abs_index)
             )
         expected_prev = stored_id if isinstance(stored_id, bytes) else computed
+        frame_ids.append(expected_prev)
         if "sig" in frame:
             sig = frame.get("sig")
             if not isinstance(sig, bytes):
@@ -616,16 +650,75 @@ def _read_segment(
                 g.signatures.append(Signature(computed, None, "invalid"))
             elif keys is not None:
                 status, kid = verify_sig(sig, computed, keys)
-                g.signatures.append(Signature(computed, kid, status))
+                g.signatures.append(Signature(computed, kid, status, sig))
             else:
-                g.signatures.append(Signature(computed, None, "unverified"))
+                g.signatures.append(Signature(computed, None, "unverified", sig))
         folder.fold_frame(frame, abs_index)
 
     g.segment_heads.append(expected_prev)
     g.segment_meta.append(dict(g.meta))
     prof = header.get("prof")
     g.segment_profiles.append(prof if isinstance(prof, str) else "generic")
+    g.segment_streamable.append(
+        _layout_check(g, header, folder, frame_ids, index_offset)
+    )
     return g
+
+
+def _layout_check(
+    g: Graph,
+    header: Mapping[str, object],
+    folder: _Folder,
+    frame_ids: list[bytes],
+    index_offset: int,
+) -> StreamableInfo:
+    """Compute one segment's layout state and check its claim (§3.3).
+
+    For a segment claiming ``"layout": "streamable"``: (a) it must carry an
+    intact ``index`` footer, (b) the last index's ``head`` must be the id of
+    frame ``count``, and (c) every covered inline blob must arrive after the
+    ``stream:digest`` quad describing it. Frames after the last index are the
+    legal accretive tail — boundary info, never a diagnostic. Unknown layout
+    values impose no check (§5).
+    """
+    claimed = header.get("layout") == "streamable"
+    total = len(frame_ids)
+    if not claimed:
+        return StreamableInfo()
+    if not folder.index_records:
+        g.diagnostics.append(
+            Diagnostic(
+                "StreamableLayoutError",
+                "segment claims layout 'streamable' but carries no intact "
+                "index footer (§3.3)",
+                None,
+            )
+        )
+        return StreamableInfo(claimed=True, covered=0, tail=total, head=None)
+    abs_pos, count, head = folder.index_records[-1]
+    rel_pos = abs_pos - index_offset  # 1-based frame position of the index
+    tail = total - rel_pos
+    if not (1 <= count <= rel_pos - 1) or frame_ids[count - 1] != head:
+        g.diagnostics.append(
+            Diagnostic(
+                "StreamableLayoutError",
+                f"index footer contradicts the frames it covers: count {count} "
+                f"/ head do not name a covered frame (§3.3)",
+                abs_pos,
+            )
+        )
+    for blob_abs, digest, described in folder.blob_events:
+        blob_rel = blob_abs - index_offset
+        if blob_rel <= count and not described:
+            g.diagnostics.append(
+                Diagnostic(
+                    "StreamableLayoutError",
+                    f"covered blob {digest} delivered before its stream:digest "
+                    "description (catalog-before-payload, §3.3)",
+                    blob_abs,
+                )
+            )
+    return StreamableInfo(claimed=True, covered=count, tail=tail, head=head)
 
 
 def blake3_256_header(header: Mapping[str, object]) -> bytes:
@@ -726,6 +819,7 @@ def _union_segments(segments: list[Graph]) -> Graph:
         out.diagnostics.extend(seg.diagnostics)
         out.segment_heads.extend(seg.segment_heads)
         out.segment_profiles.extend(seg.segment_profiles)
+        out.segment_streamable.extend(seg.segment_streamable)
     return out
 
 
