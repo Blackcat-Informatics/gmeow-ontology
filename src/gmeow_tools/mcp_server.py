@@ -403,7 +403,7 @@ def _memory() -> Any:
     path = _Path(
         os.environ.get("GMEOW_MEMORY_PATH", "")
         or _Path.home() / ".gmeow" / "memory.gts"
-    )
+    ).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
     return Memory(path)
 
@@ -435,7 +435,7 @@ def store_claim(
             confidence=confidence,
             according_to=according_to,
         )
-    except ValueError as exc:
+    except (ValueError, OSError) as exc:
         return json.dumps({"ok": False, "error": str(exc)})
     return json.dumps({"ok": True, "claim": _claim_dict(claim)})
 
@@ -455,6 +455,8 @@ def recall(
     include_suppressed=true only for audit views, where each claim's
     ``suppressed`` flag tells you what you are looking at.
     """
+    if limit < 0:
+        return json.dumps({"ok": False, "error": "limit must be non-negative"})
     try:
         claims = _memory().recall(
             query,

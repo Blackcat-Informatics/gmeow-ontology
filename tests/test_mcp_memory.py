@@ -102,6 +102,7 @@ def test_invalid_input_returns_ok_false_never_raises(memory_path: Path) -> None:
     assert json.loads(store_claim(""))["ok"] is False
     assert json.loads(store_claim("x", confidence=1.5))["ok"] is False
     assert json.loads(store_claim("x", confidence=float("nan")))["ok"] is False
+    assert json.loads(recall("x", limit=-1))["ok"] is False
 
 
 def test_memory_persists_across_server_restarts(memory_path: Path) -> None:
