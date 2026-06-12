@@ -14,7 +14,7 @@ ex:chunk  a gmeow:TextExtraction ; rdfs:label "coverage chunk"@en .
 
 ex:rubric a gmeow:Rubric ;
     gmeow:normIssuer ex:issuer ;
-    gmeow:hasCriterion ex:criterion ;
+    gmeow:hasCriterion ex:criterion , ex:criterion2 ;
     gmeow:usesScale ex:scale .
 
 ex:scale a gmeow:ScoreScale ; gmeow:scaleMin 0.0 ; gmeow:scaleMax 1.0 .
