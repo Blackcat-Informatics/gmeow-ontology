@@ -168,6 +168,7 @@ print("quickstart-ok")
 
         # 4. Verify the bundled ontology CLI and the engine CLI binaries.
         _run([str(bin_dir / "gmeow"), "--help"])
+        _run([str(bin_dir / "gmeow"), "info"])
         _run([str(bin_dir / "gts"), "info", str(assistant)])
 
     elapsed = time.monotonic() - start
