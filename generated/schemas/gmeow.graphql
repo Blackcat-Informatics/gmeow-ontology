@@ -330,6 +330,18 @@ enum CodecClassEnum
     codecClassEncrypt
   }
 
+enum CollectionMemberRoleEnum
+  {
+    collectionMemberRoleAscentOnly
+    collectionMemberRoleDescentOnly
+    collectionMemberRoleGhammaz
+    collectionMemberRoleMember
+    collectionMemberRoleOrnamental
+    collectionMemberRoleSamvadi
+    collectionMemberRoleTonicFinalis
+    collectionMemberRoleVadi
+  }
+
 enum ConflictStrategyEnum
   {
     conflictInvalid
@@ -1598,6 +1610,66 @@ enum PitchAnchorEnum
 enum PitchCollectionEnum
   {
     pitchCollectionExample
+    pitchCollectionMessiaenMode1
+    pitchCollectionPCSet027
+    pitchCollectionRastJinsC
+    pitchCollectionRastJinsHighC
+    pitchCollectionRastMaqam
+    pitchCollectionWustaJinsG
+    pitchCollectionYamanRaga
+  }
+
+enum PitchCollectionKindEnum
+  {
+    pitchCollectionKindJins
+    pitchCollectionKindMaqam
+    pitchCollectionKindMode
+    pitchCollectionKindModeOfLimitedTransposition
+    pitchCollectionKindPCSet
+    pitchCollectionKindPathet
+    pitchCollectionKindRaga
+    pitchCollectionKindRowSeries
+    pitchCollectionKindScale
+    pitchCollectionKindSpectrumCollection
+    pitchCollectionKindThaat
+  }
+
+enum PitchCollectionMembershipEnum
+  {
+    membershipMessiaenASharp
+    membershipMessiaenC
+    membershipMessiaenD
+    membershipMessiaenE
+    membershipMessiaenFSharp
+    membershipMessiaenGSharp
+    membershipPCSet0
+    membershipPCSet2
+    membershipPCSet7
+    membershipRastA
+    membershipRastBHalfFlat
+    membershipRastC
+    membershipRastD
+    membershipRastEHalfFlat
+    membershipRastF
+    membershipRastG
+    membershipRastHighC
+    membershipRastJinsCD
+    membershipRastJinsCEHalfFlat
+    membershipRastJinsCF
+    membershipRastJinsCTonic
+    membershipRastThirdArabic
+    membershipRastThirdTurkish
+    membershipWustaJinsGA
+    membershipWustaJinsGBHalfFlat
+    membershipWustaJinsGC
+    membershipWustaJinsGTonic
+    membershipYamanA
+    membershipYamanB
+    membershipYamanC
+    membershipYamanD
+    membershipYamanE
+    membershipYamanFSharp
+    membershipYamanG
   }
 
 enum PitchIntervalEnum
@@ -1607,10 +1679,48 @@ enum PitchIntervalEnum
     pitchIntervalSyntonicComma
   }
 
+enum PitchSpellingEnum
+  {
+    pitchSpellingCSharp4CMN
+    pitchSpellingDFlat4CMN
+    pitchSpellingGaSargam
+    pitchSpellingPlus7Johnston
+  }
+
+enum PitchSpellingSystemEnum
+  {
+    pitchSpellingSystemCMN
+    pitchSpellingSystemFixedDo
+    pitchSpellingSystemHelmholtz
+    pitchSpellingSystemJohnston
+    pitchSpellingSystemMovableDo
+    pitchSpellingSystemSargam
+  }
+
 enum PitchValueEnum
   {
+    pitchValue12EDOA4
+    pitchValue12EDOASharp4
+    pitchValue12EDOB4
+    pitchValue12EDOC5
+    pitchValue12EDOCSharp4
+    pitchValue12EDOD4
+    pitchValue12EDOE4
+    pitchValue12EDOF4
+    pitchValue12EDOFSharp4
     pitchValue12EDOFifth
+    pitchValue12EDOGSharp4
     pitchValue12EDOOrigin
+    pitchValue24EDOA4
+    pitchValue24EDOBHalfFlat4
+    pitchValue24EDOC4
+    pitchValue24EDOC5
+    pitchValue24EDOD4
+    pitchValue24EDOE4
+    pitchValue24EDOEHalfFlat4
+    pitchValue24EDOF4
+    pitchValue24EDOG4
+    pitchValueJI7Over4
   }
 
 enum PlaceTypeEnum
@@ -2158,6 +2268,8 @@ enum SpectrumEnum
 
 enum StandpointEnum
   {
+    standpointArabicTheory
+    standpointTurkishTheory
     universalStandpoint
   }
 
@@ -4407,6 +4519,10 @@ type Collection
     quotedText: [String]
     quotesContent: [Entity]
     realizedThrough: [Expression]
+  }
+
+type CollectionMemberRole
+  {
   }
 
 type Comment
@@ -13518,7 +13634,22 @@ type PitchCollection
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: [String]
     writtenInLanguage: [Language]
+    collectionKind: PitchCollectionKind
+    collectionPartOrder: Int
     derivedFromSpectrum: [Spectrum]
+  }
+
+type PitchCollectionKind
+  {
+  }
+
+type PitchCollectionMembership
+  {
+    membershipCollection: PitchCollection
+    membershipContext: [Entity]
+    membershipDegreeIndex: Int
+    membershipPitch: PitchValue
+    membershipRole: CollectionMemberRole
   }
 
 type PitchExpression
@@ -13639,6 +13770,72 @@ type PitchInterval
     hasTuningFrame: [TuningSystem]
     ratioDenominator: Int
     ratioNumerator: Int
+  }
+
+type PitchSpelling
+  {
+    spelledName: String
+    spellingPitch: PitchValue
+    spellingSystem: PitchSpellingSystem
+  }
+
+type PitchSpellingSystem
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
   }
 
 type PitchValue

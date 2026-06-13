@@ -11,7 +11,13 @@
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:PitchCollection	skos:closeMatch	wd:Q179651	semapv:ManualMappingCuration	0.9	Wikidata 'scale' (Q179651) — broader than the GMEOW collection view.
+gmeow:PitchSpellingSystem	skos:closeMatch	wd:Q233861	semapv:ManualMappingCuration	0.9	Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view.
+gmeow:PitchValue	skos:closeMatch	wd:Q1760309	semapv:ManualMappingCuration	0.85	Wikidata 'pitch class' (Q1760309) — a pitch value under octave equivalence.
 gmeow:TuningSystem	skos:closeMatch	wd:Q723441	semapv:ManualMappingCuration	0.9	Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view.
+gmeow:pitchCollectionKindMaqam	skos:exactMatch	wd:Q12826678	semapv:ManualMappingCuration	0.95	Wikidata 'Arabic maqam' (Q12826678).
+gmeow:pitchCollectionKindMode	skos:exactMatch	wd:Q731978	semapv:ManualMappingCuration	0.95	Wikidata 'mode (music)' (Q731978).
+gmeow:pitchCollectionKindRaga	skos:exactMatch	wd:Q216926	semapv:ManualMappingCuration	0.95	Wikidata 'raga' (Q216926).
 gmeow:tuningSystem12EDO	skos:exactMatch	wd:Q752518	semapv:ManualMappingCuration	0.98	Wikidata '12 equal temperament' (Q752518).
 gmeow:tuningSystemBohlenPierce	skos:exactMatch	wd:Q11901664	semapv:ManualMappingCuration	0.95	Wikidata 'Bohlen–Pierce scale' (Q11901664).
 gmeow:tuningSystemPelog	skos:exactMatch	wd:Q1094781	semapv:ManualMappingCuration	0.9	Wikidata 'pelog' (Q1094781).

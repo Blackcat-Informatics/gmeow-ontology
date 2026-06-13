@@ -330,6 +330,18 @@ export enum CodecClassEnum {
     encrypt = "codecClassEncrypt",
 };
 
+export enum CollectionMemberRoleEnum {
+
+    ascent_only = "collectionMemberRoleAscentOnly",
+    descent_only = "collectionMemberRoleDescentOnly",
+    ghammāz = "collectionMemberRoleGhammaz",
+    member = "collectionMemberRoleMember",
+    ornamental = "collectionMemberRoleOrnamental",
+    samvādī = "collectionMemberRoleSamvadi",
+    tonic_SOLIDUS_finalis = "collectionMemberRoleTonicFinalis",
+    vādī = "collectionMemberRoleVadi",
+};
+
 export enum ConflictStrategyEnum {
 
     policy_void_on_conflict = "conflictInvalid",
@@ -1598,6 +1610,66 @@ export enum PitchAnchorEnum {
 export enum PitchCollectionEnum {
 
     example_pitch_collection = "pitchCollectionExample",
+    Messiaen_mode_of_limited_transposition_1 = "pitchCollectionMessiaenMode1",
+    pitch_class_set_LEFT_SQUARE_BRACKET027RIGHT_SQUARE_BRACKET = "pitchCollectionPCSet027",
+    Rast_jins_on_C = "pitchCollectionRastJinsC",
+    Rast_jins_on_high_C = "pitchCollectionRastJinsHighC",
+    Rast_maqam_on_C = "pitchCollectionRastMaqam",
+    Wusta_jins_on_G = "pitchCollectionWustaJinsG",
+    Raga_Yaman = "pitchCollectionYamanRaga",
+};
+
+export enum PitchCollectionKindEnum {
+
+    jins = "pitchCollectionKindJins",
+    maqam = "pitchCollectionKindMaqam",
+    mode = "pitchCollectionKindMode",
+    mode_of_limited_transposition = "pitchCollectionKindModeOfLimitedTransposition",
+    pitch_class_set = "pitchCollectionKindPCSet",
+    pathet = "pitchCollectionKindPathet",
+    raga = "pitchCollectionKindRaga",
+    row_or_series = "pitchCollectionKindRowSeries",
+    scale = "pitchCollectionKindScale",
+    spectrum_collection = "pitchCollectionKindSpectrumCollection",
+    thaat = "pitchCollectionKindThaat",
+};
+
+export enum PitchCollectionMembershipEnum {
+
+    Messiaen_ASharp_membership = "membershipMessiaenASharp",
+    Messiaen_C_membership = "membershipMessiaenC",
+    Messiaen_D_membership = "membershipMessiaenD",
+    Messiaen_E_membership = "membershipMessiaenE",
+    Messiaen_FSharp_membership = "membershipMessiaenFSharp",
+    Messiaen_GSharp_membership = "membershipMessiaenGSharp",
+    PCSet_0_membership = "membershipPCSet0",
+    PCSet_2_membership = "membershipPCSet2",
+    PCSet_7_membership = "membershipPCSet7",
+    Rast_A_membership = "membershipRastA",
+    Rast_BHalf_Flat_membership = "membershipRastBHalfFlat",
+    Rast_C_membership = "membershipRastC",
+    Rast_D_membership = "membershipRastD",
+    Rast_EHalf_Flat_membership = "membershipRastEHalfFlat",
+    Rast_F_membership = "membershipRastF",
+    Rast_G_membership = "membershipRastG",
+    Rast_High_C_membership = "membershipRastHighC",
+    Rast_Jins_CD_membership = "membershipRastJinsCD",
+    Rast_Jins_CEHalf_Flat_membership = "membershipRastJinsCEHalfFlat",
+    Rast_Jins_CF_membership = "membershipRastJinsCF",
+    Rast_Jins_CTonic_membership = "membershipRastJinsCTonic",
+    Rast_third_per_Arabic_theory = "membershipRastThirdArabic",
+    Rast_third_per_Turkish_theory = "membershipRastThirdTurkish",
+    Wusta_Jins_GA_membership = "membershipWustaJinsGA",
+    Wusta_Jins_GBHalf_Flat_membership = "membershipWustaJinsGBHalfFlat",
+    Wusta_Jins_GC_membership = "membershipWustaJinsGC",
+    Wusta_Jins_GTonic_membership = "membershipWustaJinsGTonic",
+    Yaman_A_membership = "membershipYamanA",
+    Yaman_B_membership = "membershipYamanB",
+    Yaman_C_membership = "membershipYamanC",
+    Yaman_D_membership = "membershipYamanD",
+    Yaman_E_membership = "membershipYamanE",
+    Yaman_FSharp_membership = "membershipYamanFSharp",
+    Yaman_G_membership = "membershipYamanG",
 };
 
 export enum PitchIntervalEnum {
@@ -1607,10 +1679,48 @@ export enum PitchIntervalEnum {
     syntonic_comma = "pitchIntervalSyntonicComma",
 };
 
+export enum PitchSpellingEnum {
+
+    CMUSIC_SHARP_SIGN4_in_CMN = "pitchSpellingCSharp4CMN",
+    DMUSIC_FLAT_SIGN4_in_CMN = "pitchSpellingDFlat4CMN",
+    Ga_in_sargam = "pitchSpellingGaSargam",
+    PLUS_SIGN7_in_Johnston_accidentals = "pitchSpellingPlus7Johnston",
+};
+
+export enum PitchSpellingSystemEnum {
+
+    Common_Music_Notation_staff = "pitchSpellingSystemCMN",
+    fixed_do_solfège = "pitchSpellingSystemFixedDo",
+    Helmholtz_pitch_notation = "pitchSpellingSystemHelmholtz",
+    Ben_Johnston_accidentals = "pitchSpellingSystemJohnston",
+    movable_do_solfège = "pitchSpellingSystemMovableDo",
+    sargam = "pitchSpellingSystemSargam",
+};
+
 export enum PitchValueEnum {
 
+    number_12_EDO_A4 = "pitchValue12EDOA4",
+    number_12_EDO_AMUSIC_SHARP_SIGN4_SOLIDUS_BMUSIC_FLAT_SIGN4 = "pitchValue12EDOASharp4",
+    number_12_EDO_B4 = "pitchValue12EDOB4",
+    number_12_EDO_C5 = "pitchValue12EDOC5",
+    number_12_EDO_CMUSIC_SHARP_SIGN4_SOLIDUS_DMUSIC_FLAT_SIGN4 = "pitchValue12EDOCSharp4",
+    number_12_EDO_D4 = "pitchValue12EDOD4",
+    number_12_EDO_E4 = "pitchValue12EDOE4",
+    number_12_EDO_F4 = "pitchValue12EDOF4",
+    number_12_EDO_FMUSIC_SHARP_SIGN4 = "pitchValue12EDOFSharp4",
     number_12_EDO_fifth_LEFT_PARENTHESISGRIGHT_PARENTHESIS = "pitchValue12EDOFifth",
+    number_12_EDO_GMUSIC_SHARP_SIGN4_SOLIDUS_AMUSIC_FLAT_SIGN4 = "pitchValue12EDOGSharp4",
     number_12_EDO_origin_LEFT_PARENTHESISCRIGHT_PARENTHESIS = "pitchValue12EDOOrigin",
+    number_24_EDO_A4 = "pitchValue24EDOA4",
+    number_24_EDO_B_half_flat_4 = "pitchValue24EDOBHalfFlat4",
+    number_24_EDO_C4 = "pitchValue24EDOC4",
+    number_24_EDO_C5 = "pitchValue24EDOC5",
+    number_24_EDO_D4 = "pitchValue24EDOD4",
+    number_24_EDO_E4 = "pitchValue24EDOE4",
+    number_24_EDO_E_half_flat_4 = "pitchValue24EDOEHalfFlat4",
+    number_24_EDO_F4 = "pitchValue24EDOF4",
+    number_24_EDO_G4 = "pitchValue24EDOG4",
+    just_intonation_7SOLIDUS4 = "pitchValueJI7Over4",
 };
 
 export enum PlaceTypeEnum {
@@ -2158,6 +2268,8 @@ export enum SpectrumEnum {
 
 export enum StandpointEnum {
 
+    Arabic_maqam_theory = "standpointArabicTheory",
+    Turkish_makam_theory = "standpointTurkishTheory",
     universal_standpoint_LEFT_PARENTHESISASTERISKRIGHT_PARENTHESIS = "universalStandpoint",
 };
 
@@ -2941,6 +3053,11 @@ export interface CodecClass {
 
 
 export interface Collection extends Work {
+}
+
+
+
+export interface CollectionMemberRole {
 }
 
 
@@ -5098,7 +5215,24 @@ export interface PitchAnchor extends Entity {
 
 
 export interface PitchCollection extends InformationObject {
+    collectionKind?: PitchCollectionKind,
+    collectionPartOrder?: number,
     derivedFromSpectrum?: Spectrum[],
+}
+
+
+
+export interface PitchCollectionKind {
+}
+
+
+
+export interface PitchCollectionMembership {
+    membershipCollection?: PitchCollection,
+    membershipContext?: Entity[],
+    membershipDegreeIndex?: number,
+    membershipPitch?: PitchValue,
+    membershipRole?: CollectionMemberRole,
 }
 
 
@@ -5113,6 +5247,19 @@ export interface PitchExpression extends Entity {
 
 
 export interface PitchInterval extends PitchExpression {
+}
+
+
+
+export interface PitchSpelling {
+    spelledName?: string,
+    spellingPitch?: PitchValue,
+    spellingSystem?: PitchSpellingSystem,
+}
+
+
+
+export interface PitchSpellingSystem extends InformationObject {
 }
 
 
