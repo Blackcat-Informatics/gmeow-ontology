@@ -20,7 +20,8 @@ import time
 from pathlib import Path
 
 MAX_ELAPSED_SECONDS = 300
-INSTALL_POLL_SECONDS = 300
+POST_INSTALL_BUDGET_SECONDS = 60
+INSTALL_POLL_SECONDS = MAX_ELAPSED_SECONDS - POST_INSTALL_BUDGET_SECONDS
 INSTALL_INTERVAL_SECONDS = 10
 
 
@@ -122,8 +123,22 @@ def main(argv: list[str] | None = None) -> int:
         # 1. Create a clean virtual environment.
         _run([sys.executable, "-m", "venv", str(venv)])
 
-        # 2. Install the pinned published ``gmeow`` client from PyPI.
-        _install_pinned(python, "gmeow", args.version)
+        # 2. Install the pinned published ``gmeow`` client from PyPI,
+        #    reserving budget for the quickstart and CLI probes.
+        remaining_install_budget = max(
+            1,
+            int(
+                MAX_ELAPSED_SECONDS
+                - (time.monotonic() - start)
+                - POST_INSTALL_BUDGET_SECONDS
+            ),
+        )
+        _install_pinned(
+            python,
+            "gmeow",
+            args.version,
+            timeout=remaining_install_budget,
+        )
 
         # 3. Run the agent-memory example using a ``.gts`` file.
         assistant_literal = repr(str(assistant))

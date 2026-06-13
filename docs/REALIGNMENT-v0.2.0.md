@@ -31,13 +31,14 @@ native, not bolted on. No incumbent agent-memory product has any of this. The wi
 
 The package people type: **`gmeow`** installs the full ontology tooling (`gmeow`
 CLI), including validation, reasoning, documentation generation, and publication
-workflows. It depends on the engine package `gmeow-gts`, which also ships a
-runnable agent-memory example demonstrating the GTS ai-package profile.
+workflows.
+The `gmeow-gts` wheel carries the runnable agent-memory example used by the
+quickstart.
 
 The quickstart that *is* the product pitch:
 
 ```python
-# pip install gmeow-gts        — to first claim in under five minutes (P13 gate)
+# pip install gmeow-gts        — run the example demo (P13 gate)
 from gts.examples.agent_memory import Memory
 
 mem = Memory("assistant.gts")                      # a GTS ai-package on disk

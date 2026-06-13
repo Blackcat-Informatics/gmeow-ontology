@@ -14,6 +14,7 @@ import httpx
 import typer
 from rich.console import Console
 
+import gts
 from gmeow_tools import __version__
 from gmeow_tools.projections import PROFILES as _PROFILES
 
@@ -33,6 +34,16 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     return typer.Exit(code=code)
 
 
+def _read_gts_or_fail(path: Path) -> gts.Graph:
+    """Read a GTS file, converting I/O and parse errors into a CLI failure."""
+    try:
+        return gts.read(path.read_bytes())
+    except OSError as exc:
+        raise _fail(f"cannot read {path}: {exc}") from exc
+    except Exception as exc:
+        raise _fail(f"cannot parse GTS file {path}: {exc}") from exc
+
+
 @app.callback()
 def main() -> None:
     """GMEOW ontology toolchain (see subcommands)."""
@@ -47,15 +58,10 @@ def version() -> None:
 @app.command()
 def info() -> None:
     """Show a summary of the bundled GMEOW ontology snapshot."""
-    import gts
     from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE
 
     path = GTS_FULL_SNAPSHOT_FILE
-    try:
-        data = path.read_bytes()
-    except OSError as exc:
-        raise _fail(f"cannot read bundled ontology: {path}: {exc}") from exc
-    graph = gts.read(data)
+    graph = _read_gts_or_fail(path)
     console.print(
         f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
         f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
@@ -1044,14 +1050,8 @@ def gts_info(
     ),
 ) -> None:
     """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
-    import gts
-
     path = file or _default_gts_file()
-    try:
-        data = path.read_bytes()
-    except OSError as exc:
-        raise _fail(f"cannot read {path}: {exc}") from exc
-    graph = gts.read(data)
+    graph = _read_gts_or_fail(path)
     console.print(
         f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
         f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
@@ -1076,13 +1076,8 @@ def gts_to_nq(
     out: Path | None = _GTS_OUT_OPTION,
 ) -> None:
     """Transform a GTS file to N-Quads (§14 of GTS-SPEC.md)."""
-    import gts
-
     path = file or _default_gts_file()
-    try:
-        graph = gts.read(path.read_bytes())
-    except OSError as exc:
-        raise _fail(f"cannot read {path}: {exc}") from exc
+    graph = _read_gts_or_fail(path)
     text = gts.to_nquads(graph)
     if out is None:
         console.print(text, end="")
@@ -1125,13 +1120,9 @@ def gts_from_rdf(file: Path, out: Path | None = _GTS_GTS_OUT) -> None:
 
 def _gts_to_db(file: Path, out: Path | None, suffix: str, kind: str) -> None:
     """Shared body for the gts → {sqlite,duckdb} transforms."""
-    import gts
     from gmeow_tools.gts_db import to_duckdb, to_sqlite
 
-    try:
-        graph = gts.read(file.read_bytes())
-    except OSError as exc:
-        raise _fail(f"cannot read {file}: {exc}") from exc
+    graph = _read_gts_or_fail(file)
     target = out or file.with_suffix(suffix)
     writer = to_sqlite if kind == "sqlite" else to_duckdb
     try:
