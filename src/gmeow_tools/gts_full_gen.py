@@ -29,6 +29,7 @@ from gmeow_tools.graph import iter_import_files, iter_module_files
 from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.slices import discover_slices
+from gts import Signer
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -48,6 +49,33 @@ def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
         graph.add((URIRef(slice_iri), guide_blob, Literal(digest)))
         blobs.append((payload, "text/markdown", f"docs:{entry.name}"))
     return blobs
+
+
+def compile_full_snapshot(
+    *,
+    signer: Signer | None = None,
+    public_key_armor: str | None = None,
+) -> bytes:
+    """Compile the full offline GMEOW snapshot, optionally signed.
+
+    This is the shared body used by the registered ``gts-full`` generator and
+    by the ``gmeow gts compile-full`` release command. The committed artifact
+    produced by the generator is always unsigned; the release command supplies
+    a signer and the armored transport public key.
+    """
+    from gmeow_tools.graph import load_merged_graph
+
+    graph = load_merged_graph(include_imports=True)
+    doc_blobs = _doc_blobs(graph)
+    alignments = build_alignment_graph(load_mappings())
+    return compile_gts(
+        graph,
+        STATEMENT_RDF12_FILE,
+        alignment_graph=alignments,
+        doc_blobs=doc_blobs,
+        signer=signer,
+        public_key_armor=public_key_armor,
+    )
 
 
 @register
@@ -80,17 +108,7 @@ class GtsFullSnapshotGenerator(Generator):
 
     def render(self, staging: Path) -> None:
         """Compile the full snapshot into the staging tree."""
-        from gmeow_tools.graph import load_merged_graph
-
-        graph = load_merged_graph(include_imports=True)
-        doc_blobs = _doc_blobs(graph)
-        alignments = build_alignment_graph(load_mappings())
-        data = compile_gts(
-            graph,
-            STATEMENT_RDF12_FILE,
-            alignment_graph=alignments,
-            doc_blobs=doc_blobs,
-        )
+        data = compile_full_snapshot()
         target = staging / GTS_FULL_SNAPSHOT_FILE.relative_to(PROJECT_ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
