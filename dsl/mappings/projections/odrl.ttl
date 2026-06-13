@@ -230,4 +230,4 @@ gmeow:mapOdrlProfile a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:conformsTo ] ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:profile ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
-        gmeow:lossyDrop "the conformance claim is carried as asserted by the policy author — never verified by the transpiler (declared)" ] .
+        gmeow:lossyDrop "the conformance claim is carried exactly as declared by the policy author — the transpiler never verifies it" ] .

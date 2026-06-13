@@ -117,7 +117,10 @@ def load_cells(dsl_dir: Path | None = None) -> list[Cell]:
         raise FileNotFoundError(msg)
     paths = sorted(directory.glob("*.ttl"))
     if dsl_dir is None:
-        paths += iter_slice_mapping_files()
+        paths += iter_slice_mapping_files()  # already sorted (slices.py)
+    if not paths:
+        msg = f"no mapping .ttl files found under {directory}"
+        raise FileNotFoundError(msg)
     g = Graph()
     for path in paths:
         g.parse(path, format="turtle")
