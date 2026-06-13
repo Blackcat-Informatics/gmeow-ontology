@@ -10,13 +10,203 @@ usageInterval.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import SKOS
 
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+
+#: Complete ISO 639-1 two-letter code set (184 entries). Stable since 2000.
+EXPECTED_ISO639_1_CODES: frozenset[str] = frozenset(
+    {
+        "aa",
+        "ab",
+        "ae",
+        "af",
+        "ak",
+        "am",
+        "an",
+        "ar",
+        "as",
+        "av",
+        "ay",
+        "az",
+        "ba",
+        "be",
+        "bg",
+        "bi",
+        "bm",
+        "bn",
+        "bo",
+        "br",
+        "bs",
+        "ca",
+        "ce",
+        "ch",
+        "co",
+        "cr",
+        "cs",
+        "cu",
+        "cv",
+        "cy",
+        "da",
+        "de",
+        "dv",
+        "dz",
+        "ee",
+        "el",
+        "en",
+        "eo",
+        "es",
+        "et",
+        "eu",
+        "fa",
+        "ff",
+        "fi",
+        "fj",
+        "fo",
+        "fr",
+        "fy",
+        "ga",
+        "gd",
+        "gl",
+        "gn",
+        "gu",
+        "gv",
+        "ha",
+        "he",
+        "hi",
+        "ho",
+        "hr",
+        "ht",
+        "hu",
+        "hy",
+        "hz",
+        "ia",
+        "id",
+        "ie",
+        "ig",
+        "ii",
+        "ik",
+        "io",
+        "is",
+        "it",
+        "iu",
+        "ja",
+        "jv",
+        "ka",
+        "kg",
+        "ki",
+        "kj",
+        "kk",
+        "kl",
+        "km",
+        "kn",
+        "ko",
+        "kr",
+        "ks",
+        "ku",
+        "kv",
+        "kw",
+        "ky",
+        "la",
+        "lb",
+        "lg",
+        "li",
+        "ln",
+        "lo",
+        "lt",
+        "lu",
+        "lv",
+        "mg",
+        "mh",
+        "mi",
+        "mk",
+        "ml",
+        "mn",
+        "mr",
+        "ms",
+        "mt",
+        "my",
+        "na",
+        "nb",
+        "nd",
+        "ne",
+        "ng",
+        "nl",
+        "nn",
+        "no",
+        "nr",
+        "nv",
+        "ny",
+        "oc",
+        "oj",
+        "om",
+        "or",
+        "os",
+        "pa",
+        "pi",
+        "pl",
+        "ps",
+        "pt",
+        "qu",
+        "rm",
+        "rn",
+        "ro",
+        "ru",
+        "rw",
+        "sa",
+        "sc",
+        "sd",
+        "se",
+        "sg",
+        "sh",
+        "si",
+        "sk",
+        "sl",
+        "sm",
+        "sn",
+        "so",
+        "sq",
+        "sr",
+        "ss",
+        "st",
+        "su",
+        "sv",
+        "sw",
+        "ta",
+        "te",
+        "tg",
+        "th",
+        "ti",
+        "tk",
+        "tl",
+        "tn",
+        "to",
+        "tr",
+        "ts",
+        "tt",
+        "tw",
+        "ty",
+        "ug",
+        "uk",
+        "ur",
+        "uz",
+        "ve",
+        "vi",
+        "vo",
+        "wa",
+        "wo",
+        "xh",
+        "yi",
+        "yo",
+        "za",
+        "zh",
+        "zu",
+    }
+)
 
 
 def _graph() -> Graph:
@@ -210,27 +400,36 @@ def test_core_seed_languages_use_reference_catalog_iris() -> None:
 
 
 def test_reference_catalog_languages_are_annotated_and_aligned() -> None:
-    """Reference-catalog languages carry labels, tags, and alignments (#111)."""
+    """Reference-catalog languages carry labels, tags, and alignments (#111, #396)."""
     graph = load_merged_graph(include_imports=True)
     defined_by = URIRef(GMEOW + "imports/languages-reference")
     tag_prop = URIRef(GMEOW + "languageTag")
     bcp_prop = URIRef(GMEOW + "bcp47Tag")
     code_prop = URIRef(GMEOW + "languageCode")
     catalog_subjects: set[URIRef] = set()
-    for cls_name in ("Language", "FormalLanguage", "ProgrammingLanguage"):
-        for subject in graph.subjects(RDF.type, URIRef(GMEOW + cls_name)):
-            if (
-                isinstance(subject, URIRef)
-                and (
-                    subject,
-                    RDFS.isDefinedBy,
-                    defined_by,
-                )
-                in graph
-            ):
-                catalog_subjects.add(subject)
+    for subject in graph.subjects(RDF.type, URIRef(GMEOW + "Language")):
+        if (
+            isinstance(subject, URIRef)
+            and (
+                subject,
+                RDFS.isDefinedBy,
+                defined_by,
+            )
+            in graph
+        ):
+            catalog_subjects.add(subject)
     catalog_languages = sorted(catalog_subjects, key=str)
-    assert len(catalog_languages) >= 30, "catalog should contain many languages"
+
+    catalog_iso1_codes = {
+        str(obj)
+        for lang in catalog_languages
+        for obj in graph.objects(lang, code_prop)
+        if isinstance(obj, Literal) and len(str(obj)) == 2
+    }
+    assert catalog_iso1_codes == EXPECTED_ISO639_1_CODES, (
+        f"missing ISO 639-1 codes: {EXPECTED_ISO639_1_CODES - catalog_iso1_codes}; "
+        f"unexpected codes: {catalog_iso1_codes - EXPECTED_ISO639_1_CODES}"
+    )
 
     for lang in catalog_languages:
         assert (lang, RDFS.label, None) in graph, f"{lang} missing rdfs:label"
@@ -239,6 +438,33 @@ def test_reference_catalog_languages_are_annotated_and_aligned() -> None:
         assert (lang, bcp_prop, None) in graph, f"{lang} missing bcp47Tag"
         assert (lang, code_prop, None) in graph, f"{lang} missing languageCode"
         assert (lang, SKOS.exactMatch, None) in graph, f"{lang} missing skos:exactMatch"
+
+
+def test_reference_catalog_writing_systems_are_annotated() -> None:
+    """Every writing system referenced by the catalog carries required annotations."""
+    graph = load_merged_graph(include_imports=True)
+    defined_by = URIRef(GMEOW + "imports/languages-reference")
+    lang_type = URIRef(GMEOW + "Language")
+    uses_ws = URIRef(GMEOW + "usesWritingSystem")
+    ws_type = URIRef(GMEOW + "WritingSystem")
+
+    catalog_languages = {
+        s
+        for s in graph.subjects(RDF.type, lang_type)
+        if isinstance(s, URIRef) and (s, RDFS.isDefinedBy, defined_by) in graph
+    }
+    writing_systems = {
+        ws
+        for lang in catalog_languages
+        for ws in graph.objects(lang, uses_ws)
+        if isinstance(ws, URIRef)
+    }
+
+    assert writing_systems, "No writing systems found for reference-catalog languages"
+    for iri in writing_systems:
+        assert (iri, RDF.type, ws_type) in graph, f"{iri} missing gmeow:WritingSystem"
+        assert (iri, RDFS.label, None) in graph, f"{iri} missing rdfs:label"
+        assert (iri, SKOS.definition, None) in graph, f"{iri} missing skos:definition"
 
 
 def test_reference_catalog_programming_languages_typed() -> None:

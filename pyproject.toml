@@ -136,5 +136,7 @@ markers = [
 skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*"
 # False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
 # opNe (the not-equal expression operator in the mapping DSL algebra),
-# ser (Rust serde/ciborium module path `ciborium::ser`).
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr"
+# ser (Rust serde/ciborium module path `ciborium::ser`),
+# Beng (ISO 15924 script code for Bengali), fo (ISO 639-1 Faroese),
+# te (ISO 639-1 Telugu).
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te"
