@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: names as reified, perspectival appellations (#443). One person
+# carries several PersonNames at once — a chosen legal name decomposed into
+# parts, a superseded deadname kept but flagged non-displayable (P10:
+# suppression, never deletion), and a Han-script form. A NameUsage relator
+# records that close friends call them "Rob" in a familiar register — a usage is
+# always SOMEONE's, never a global "preferred name" (P9). Pronouns ride the
+# person, not any one name.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/names/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:robin a gmeow:Person ;
+    gmeow:hasName ex:nameChosen , ex:nameDead , ex:nameHan , ex:nickRob ;
+    gmeow:hasPronounSet gmeow:pronounTheyThem .
+
+# --- The chosen legal name, decomposed into ordered parts (displayable).
+ex:nameChosen a gmeow:PersonName ;
+    gmeow:fullName "Robin Avery Chen"@x-gmeow-english ;
+    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:displayable true ;
+    gmeow:hasNamePart ex:partGiven , ex:partMiddle , ex:partSurname .
+
+ex:partGiven a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Robin" ; gmeow:partOrder 0 .
+ex:partMiddle a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartMiddle ; gmeow:partText "Avery" ; gmeow:partOrder 1 .
+ex:partSurname a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "Chen" ; gmeow:partOrder 2 .
+
+# --- The superseded deadname: RETAINED (the record stays auditable) but
+#     displayable false, so no projection ever surfaces it (P10).
+ex:nameDead a gmeow:PersonName ;
+    gmeow:fullName "Jordan Chen"@x-gmeow-english ;
+    gmeow:namePurpose gmeow:namePurposeDeadname ;
+    gmeow:displayable false .
+
+# --- A Han-script form, co-equal with the Latin one — no privileged "main" name.
+ex:nameHan a gmeow:PersonName ;
+    gmeow:fullName "陳"@x-gmeow-chinese ;
+    gmeow:namePurpose gmeow:namePurposeLegal ;
+    gmeow:displayable true .
+
+# --- A perspectival NameUsage: among close friends, in a familiar register, this
+#     person is called "Rob". The nickname is its own Appellation.
+ex:nickRob a gmeow:PersonName ;
+    gmeow:fullName "Rob"@x-gmeow-english ;
+    gmeow:namePurpose gmeow:namePurposeNickname ;
+    gmeow:displayable true .
+
+ex:usageRobFriends a gmeow:NameUsage ;
+    gmeow:usageNamed ex:robin ;
+    gmeow:usageAppellation ex:nickRob ;
+    gmeow:usageRegister gmeow:registerIntimate .
