@@ -729,6 +729,37 @@ def dc_coverage(
     console.print(text)
 
 
+@app.command(name="up-projection-audit")
+def up_projection_audit(
+    report_path: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--report",
+        help="Write the full Markdown audit to this path (the summary still prints).",
+    ),
+    show_gaps: bool = typer.Option(
+        False, "--gaps", help="List the coverage-gap terms."
+    ),
+) -> None:
+    """Audit consumer→GMEOW up-projection invertibility on the real snapshots (#449)."""
+    from gmeow_tools.up_projection_audit import render_markdown, run_audit
+
+    report = run_audit()
+    if report_path is not None:
+        report_path.write_text(render_markdown(report), encoding="utf-8")
+        console.print(f"[green]wrote[/green] {report_path}")
+    pct = (100 * report.liftable // report.total) if report.total else 0
+    console.print(
+        f"[green]liftable[/green] {report.liftable}/{report.total} ({pct}%) "
+        f"· SSSOM terms {report.sssom_total} · structural terms {report.struct_total}"
+    )
+    for f in report.files:
+        console.print(f"  {f.name}: {f.liftable}/{f.total}")
+    console.print(f"[yellow]gaps[/yellow] {len(report.gaps)} distinct terms")
+    if show_gaps:
+        for term in report.gaps:
+            err_console.print(f"[yellow]gap[/yellow] {term}")
+
+
 @app.command()
 def coverage(
     show_gaps: bool = typer.Option(
