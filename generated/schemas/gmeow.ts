@@ -210,6 +210,7 @@ export enum AxisEnum {
     second = "axisSecond",
     sequence_position = "axisSequencePosition",
     street_address_axis = "axisStreetAddress",
+    musical_time_axis = "axisTime",
     CIE_X_tristimulus = "axisTristimulusX",
     CIE_Y_tristimulus = "axisTristimulusY",
     CIE_Z_tristimulus = "axisTristimulusZ",
@@ -667,7 +668,10 @@ export enum EmploymentTypeEnum {
 
 export enum EntityEnum {
 
+    polymeter_pattern = "polymeterPattern",
     raw_root_data_source = "procedureIngestionRawRoot",
+    drums_voice_placeholder = "voiceDrumsPlaceholder",
+    guitar_voice_placeholder = "voiceGuitarPlaceholder",
 };
 
 export enum EvaluationVerdictEnum {
@@ -948,6 +952,18 @@ export enum GranularityLevelEnum {
     point_SOLIDUS_exact_coordinate_level = "granularityPoint",
     region_level = "granularityRegion",
     year_level = "granularityYear",
+};
+
+export enum GrooveProfileEnum {
+
+    swing_groove_profile = "grooveProfileSwing",
+};
+
+export enum GrooveProfileKindEnum {
+
+    measured_groove = "grooveProfileKindMeasured",
+    position_offsets = "grooveProfileKindPositionOffsets",
+    swing_ratio = "grooveProfileKindSwingRatio",
 };
 
 export enum GroupOperatorEnum {
@@ -1293,6 +1309,24 @@ export enum MessageParticipantRoleEnum {
     to = "messageRoleTo",
 };
 
+export enum MeterAssignmentEnum {
+
+    number_4SOLIDUS4_meter_assignment = "meterAssignment44",
+    number_5SOLIDUS8_meter_assignment = "meterAssignment58",
+    number_7SOLIDUS8_meter_assignment = "meterAssignment78",
+    drums_4SOLIDUS4_polymeter_assignment = "meterAssignmentDrums44",
+    guitar_7SOLIDUS8_polymeter_assignment = "meterAssignmentGuitar78",
+};
+
+export enum MetricGroupEnum {
+
+    number_4SOLIDUS4_group = "metricGroup44",
+    number_5SOLIDUS8_group = "metricGroup58",
+    number_7SOLIDUS8_3SOLIDUS8_group = "metricGroup78Three",
+    number_7SOLIDUS8_first_2SOLIDUS8_group = "metricGroup78Two1",
+    number_7SOLIDUS8_second_2SOLIDUS8_group = "metricGroup78Two2",
+};
+
 export enum MetricKindEnum {
 
     cosine_similarity = "metricCosine",
@@ -1303,6 +1337,18 @@ export enum MetricKindEnum {
     logarithmic_LEFT_PARENTHESIScentsRIGHT_PARENTHESIS = "metricLogarithmic",
     positional_distance = "metricPositionalDistance",
     phase_space_Euclidean = "metricSymplectic",
+};
+
+export enum MetricModulationEnum {
+
+    Carter_metric_modulation = "metricModulationCarter",
+};
+
+export enum MetricStructureEnum {
+
+    number_4SOLIDUS4_metric_structure = "metricStructure44",
+    number_5SOLIDUS8_metric_structure = "metricStructure58",
+    number_7SOLIDUS8_metric_structure_LEFT_PARENTHESIS2PLUS_SIGN2PLUS_SIGN3RIGHT_PARENTHESIS = "metricStructure78",
 };
 
 export enum MitigationStatusEnum {
@@ -1332,6 +1378,21 @@ export enum MultipartTypeEnum {
     related = "multipartTypeRelated",
     report = "multipartTypeReport",
     signed = "multipartTypeSigned",
+};
+
+export enum MusicalTimeFrameEnum {
+
+    common_musical_time_frame = "musicalTimeFrameCommon",
+    drums_voice_musical_time_frame = "musicalTimeFrameVoiceDrums",
+    guitar_voice_musical_time_frame = "musicalTimeFrameVoiceGuitar",
+};
+
+export enum MusicalTimeSpanEnum {
+
+    bar_one_span = "musicalTimeSpanBarOne",
+    bar_three_span = "musicalTimeSpanBarThree",
+    bar_two_span = "musicalTimeSpanBarTwo",
+    whole_section_span = "musicalTimeSpanWholeSection",
 };
 
 export enum NamePartTypeEnum {
@@ -2354,6 +2415,24 @@ export enum TaskStatusEnum {
     not_started = "taskStatusNotStarted",
 };
 
+export enum TempoMapEnum {
+
+    common_constant_tempo_map = "tempoMapCommon",
+};
+
+export enum TempoMapKindEnum {
+
+    constant_tempo = "tempoMapKindConstant",
+    curved_tempo = "tempoMapKindCurve",
+    linear_ramp = "tempoMapKindLinearRamp",
+    measured_tempo = "tempoMapKindMeasured",
+};
+
+export enum TempoMapSegmentEnum {
+
+    common_tempo_map_segment = "tempoMapSegmentCommon",
+};
+
 export enum TemporalFrameEnum {
 
     GPS_Gregorian_LEFT_PARENTHESISsatellite_timeRIGHT_PARENTHESIS = "temporalFrameGPSGregorian",
@@ -2398,6 +2477,21 @@ export enum TextDirectionEnum {
     right_to_left = "directionRtl",
     vertical_columns_left_to_right = "directionVerticalLtr",
     vertical_columns_right_to_left = "directionVerticalRtl",
+};
+
+export enum TimeMappingEnum {
+
+    sqrtLEFT_PARENTHESIS2RIGHT_PARENTHESISCOLON2_tempo_canon_mapping = "timeMappingSqrt2Canon",
+    number_3COLON2_tuplet_mapping = "timeMappingTuplet32",
+    number_5COLON4_tuplet_mapping = "timeMappingTuplet54",
+};
+
+export enum TimeMappingKindEnum {
+
+    unsynchronized_ad_lib = "timeMappingKindSyncUnsynchronized",
+    tempo_canon = "timeMappingKindTempoCanon",
+    tempo_map = "timeMappingKindTempoMap",
+    tuplet = "timeMappingKindTuplet",
 };
 
 export enum TimeScaleEnum {
@@ -4091,6 +4185,20 @@ export interface GranularityLevel {
 
 
 
+export interface GrooveProfile extends Entity {
+    appliesToTimeFrame?: MusicalTimeFrame[],
+    grooveGridUnit?: string,
+    grooveKind?: GrooveProfileKind,
+    grooveProfileData?: string[],
+}
+
+
+
+export interface GrooveProfileKind {
+}
+
+
+
 export interface Group extends Entity {
 }
 
@@ -4710,7 +4818,40 @@ export interface MessageParticipantRole {
 
 
 
+export interface MeterAssignment {
+    assignedMeter?: MetricStructure,
+    assignmentSpan?: MusicalTimeSpan,
+    meterCarrier?: Entity,
+}
+
+
+
+export interface MetricGroup extends Entity {
+    groupAccentWeight?: number[],
+    groupLengthDenominator?: number,
+    groupLengthNumerator?: number,
+    metricGroupOrder?: number,
+}
+
+
+
 export interface MetricKind {
+}
+
+
+
+export interface MetricModulation {
+    modulationFromFrame?: MusicalTimeFrame,
+    modulationToFrame?: MusicalTimeFrame,
+    pivotSourceValue?: string,
+    pivotTargetValue?: string,
+}
+
+
+
+export interface MetricStructure extends Entity {
+    hasMetricGroup?: MetricGroup[],
+    metricStructureOf?: Entity,
 }
 
 
@@ -4774,6 +4915,21 @@ export interface MultipartBodyPart extends BodyPart {
 
 
 export interface MultipartType {
+}
+
+
+
+export interface MusicalTimeFrame extends ReferenceFrame {
+}
+
+
+
+export interface MusicalTimeSpan extends Entity {
+    hasMusicalTimeFrame?: MusicalTimeFrame[],
+    timeDurationDenominator?: number,
+    timeDurationNumerator?: number,
+    timeStartDenominator?: number,
+    timeStartNumerator?: number,
 }
 
 
@@ -6229,6 +6385,26 @@ export interface TelephoneNumber extends ContactPoint {
 
 
 
+export interface TempoMap extends TimeMapping {
+}
+
+
+
+export interface TempoMapKind {
+}
+
+
+
+export interface TempoMapSegment extends Entity {
+    segmentMapRatioDenominator?: number,
+    segmentMapRatioNumerator?: number,
+    segmentSpan?: MusicalTimeSpan,
+    segmentTempoMapKind?: TempoMapKind,
+    tempoMapSegmentOf?: TempoMap,
+}
+
+
+
 export interface TemporalFrame extends ReferenceFrame {
     frameCalendarSystem?: CalendarSystem,
     frameReferencePosition?: ReferencePosition,
@@ -6287,6 +6463,25 @@ export interface TimeInterval {
     intervalStartedBy?: TimeInterval[],
     intervalStarts?: TimeInterval[],
     startedAtTime?: string,
+}
+
+
+
+export interface TimeMapping extends Entity {
+    mapRatioDenominator?: number,
+    mapRatioNumerator?: number,
+    mapsFrame?: ReferenceFrame[],
+    mapsFromSpan?: MusicalTimeSpan[],
+    mapsToFrame?: ReferenceFrame[],
+    mapsToSpan?: MusicalTimeSpan[],
+    tempoRatioApprox?: number[],
+    tempoRatioExpression?: string,
+    timeMappingKind?: TimeMappingKind,
+}
+
+
+
+export interface TimeMappingKind {
 }
 
 

@@ -253,3 +253,379 @@ gmeow:PitchSpellingShape
         sh:severity sh:Violation ;
         sh:message "A PitchSpelling must provide exactly one spelled name string." ;
     ] .
+
+# =========================================================================== #
+# TIME FRAMES — issue #310 SHACL shapes
+# =========================================================================== #
+
+gmeow:MusicalTimeFrameShape
+    a sh:NodeShape ;
+    rdfs:label "Musical time frame shape"@x-gmeow-english ;
+    skos:definition "A MusicalTimeFrame must live in the musical-time realm, be scalar and one-dimensional, and declare the required frame profile descriptors."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MusicalTimeFrame ;
+    sh:property [
+        sh:path gmeow:frameRealm ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:hasValue gmeow:frameRealmMusicalTime ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeFrame must be in the frameRealmMusicalTime realm (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:frameKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:hasValue gmeow:frameKindScalar ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeFrame must be scalar (one-dimensional rational axis)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dimensionCount ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:minInclusive 1 ;
+        sh:maxInclusive 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeFrame must have dimensionCount 1." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasAxis ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeFrame must declare exactly one axis." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:requiresHost ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeFrame must declare whether it requires a host (Principle 11)." ;
+    ] .
+
+gmeow:MusicalTimeSpanShape
+    a sh:NodeShape ;
+    rdfs:label "Musical time span shape"@x-gmeow-english ;
+    skos:definition "A MusicalTimeSpan is expressed in exactly one MusicalTimeFrame and carries positive rational start and duration pairs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MusicalTimeSpan ;
+    sh:property [
+        sh:path gmeow:hasMusicalTimeFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeSpan must be relative to exactly one MusicalTimeFrame (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:timeStartNumerator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeSpan must declare exactly one start numerator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:timeStartDenominator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minExclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeSpan must declare exactly one positive start denominator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:timeDurationNumerator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeSpan must declare exactly one non-negative duration numerator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:timeDurationDenominator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minExclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalTimeSpan must declare exactly one positive duration denominator." ;
+    ] .
+
+gmeow:TimeMappingShape
+    a sh:NodeShape ;
+    rdfs:label "Time mapping shape"@x-gmeow-english ;
+    skos:definition "A TimeMapping must declare a kind, source/target frames, and one encoding: a rational ratio pair, a symbolic tempo-ratio expression with an optional approximation, or (for TempoMap) segment-backed data."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:TimeMapping ;
+    sh:property [
+        sh:path gmeow:timeMappingKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TimeMapping must have exactly one timeMappingKind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mapsFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TimeMapping must have exactly one source frame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mapsToFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TimeMapping must have exactly one target frame." ;
+    ] ;
+    sh:xone (
+        [ sh:property
+            [ sh:path gmeow:mapRatioNumerator ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:mapRatioDenominator ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:tempoRatioExpression ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:tempoRatioApprox ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:hasTempoMapSegment ; sh:maxCount 0 ; sh:severity sh:Violation ]
+        ]
+        [ sh:property
+            [ sh:path gmeow:tempoRatioExpression ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:tempoRatioApprox ; sh:maxCount 1 ; sh:datatype xsd:decimal ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:mapRatioNumerator ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:mapRatioDenominator ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:hasTempoMapSegment ; sh:maxCount 0 ; sh:severity sh:Violation ]
+        ]
+        [ sh:class gmeow:TempoMap ;
+          sh:property
+            [ sh:path gmeow:hasTempoMapSegment ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:mapRatioNumerator ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:mapRatioDenominator ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:tempoRatioExpression ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:tempoRatioApprox ; sh:maxCount 0 ; sh:severity sh:Violation ]
+        ]
+    ) ;
+    sh:message "A TimeMapping must provide exactly one encoding: either (mapRatioNumerator + mapRatioDenominator), (tempoRatioExpression with optional tempoRatioApprox), or (for TempoMap) hasTempoMapSegment." ;
+    sh:property [
+        sh:path gmeow:mapRatioDenominator ;
+        sh:minExclusive 0 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "The map ratio denominator must be a positive integer." ;
+    ] .
+
+gmeow:TempoMapShape
+    a sh:NodeShape ;
+    rdfs:label "Tempo map shape"@x-gmeow-english ;
+    skos:definition "A TempoMap is a TimeMapping from musical time to clock time. Measured/ramp/curve TempoMaps require at least one TempoMapSegment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:TempoMap ;
+    sh:property [
+        sh:path gmeow:hasTempoMapSegment ;
+        sh:minCount 0 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TempoMap segment reference, if present, must be an IRI." ;
+    ] .
+
+gmeow:TempoMapSegmentShape
+    a sh:NodeShape ;
+    rdfs:label "Tempo map segment shape"@x-gmeow-english ;
+    skos:definition "A TempoMapSegment must belong to exactly one TempoMap, declare exactly one span, declare exactly one tempo-map kind, and provide segment-level ratio data."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:TempoMapSegment ;
+    sh:property [
+        sh:path gmeow:tempoMapSegmentOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TempoMapSegment must belong to exactly one TempoMap." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:segmentSpan ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TempoMapSegment must declare exactly one span." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:segmentTempoMapKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TempoMapSegment must declare exactly one TempoMapKind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:segmentMapRatioNumerator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A TempoMapSegment must declare exactly one segment map ratio numerator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:segmentMapRatioDenominator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minExclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A TempoMapSegment must declare exactly one positive segment map ratio denominator." ;
+    ] .
+
+gmeow:MetricStructureShape
+    a sh:NodeShape ;
+    rdfs:label "Metric structure shape"@x-gmeow-english ;
+    skos:definition "A MetricStructure must contain at least one MetricGroup."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MetricStructure ;
+    sh:property [
+        sh:path gmeow:hasMetricGroup ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricStructure must have at least one MetricGroup." ;
+    ] .
+
+gmeow:MetricGroupShape
+    a sh:NodeShape ;
+    rdfs:label "Metric group shape"@x-gmeow-english ;
+    skos:definition "A MetricGroup must have a rational length with a positive denominator, a unique order within its structure, and an optional accent weight."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MetricGroup ;
+    sh:property [
+        sh:path gmeow:metricGroupOrder ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricGroup must declare exactly one order index." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:groupLengthNumerator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricGroup must declare exactly one length numerator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:groupLengthDenominator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minExclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricGroup must declare exactly one positive length denominator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:groupAccentWeight ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricGroup may have at most one accent weight." ;
+    ] ;
+    sh:sparql [
+        sh:message "A MetricGroup order must be unique within its MetricStructure." ;
+        sh:select """
+            SELECT $this WHERE {
+                ?ms gmeow:hasMetricGroup $this, ?other .
+                FILTER(?other != $this)
+                $this gmeow:metricGroupOrder ?order .
+                ?other gmeow:metricGroupOrder ?order .
+            }
+        """ ;
+    ] .
+
+gmeow:MeterAssignmentShape
+    a sh:NodeShape ;
+    rdfs:label "Meter assignment shape"@x-gmeow-english ;
+    skos:definition "A MeterAssignment relator must bind exactly one carrier, one MetricStructure, and one MusicalTimeSpan."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MeterAssignment ;
+    sh:property [
+        sh:path gmeow:meterCarrier ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MeterAssignment must have exactly one carrier." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assignedMeter ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MeterAssignment must assign exactly one MetricStructure." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assignmentSpan ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MeterAssignment must scope the assignment to exactly one MusicalTimeSpan." ;
+    ] .
+
+gmeow:MetricModulationShape
+    a sh:NodeShape ;
+    rdfs:label "Metric modulation shape"@x-gmeow-english ;
+    skos:definition "A MetricModulation relator must declare exactly one source frame, one target frame, and well-formed pivot values."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MetricModulation ;
+    sh:property [
+        sh:path gmeow:modulationFromFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricModulation must have exactly one source frame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:modulationToFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricModulation must have exactly one target frame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:pivotSourceValue ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[0-9]+/[1-9][0-9]*$" ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricModulation pivot source value must be a rational string (numerator/denominator)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:pivotTargetValue ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[0-9]+/[1-9][0-9]*$" ;
+        sh:severity sh:Violation ;
+        sh:message "A MetricModulation pivot target value must be a rational string (numerator/denominator)." ;
+    ] .
+
+gmeow:GrooveProfileShape
+    a sh:NodeShape ;
+    rdfs:label "Groove profile shape"@x-gmeow-english ;
+    skos:definition "A GrooveProfile must declare a kind, a grid unit, and the MusicalTimeFrame it applies to."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:GrooveProfile ;
+    sh:property [
+        sh:path gmeow:grooveKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A GrooveProfile must declare exactly one GrooveProfileKind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:grooveGridUnit ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A GrooveProfile must declare exactly one grid unit." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appliesToTimeFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A GrooveProfile must apply to exactly one MusicalTimeFrame." ;
+    ] .

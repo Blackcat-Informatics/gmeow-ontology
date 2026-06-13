@@ -45,6 +45,43 @@ Seed fixtures: Rast maqam (ordered ajnas in 24-EDO), Raga Yaman (member roles in
 12-EDO), Messiaen's whole-tone mode of limited transposition, the pitch-class
 set `[0,2,7]`, and co-equal C♯4 / D♭4 spellings.
 
+## Musical time (issue #310)
+
+A `gmeow:MusicalTimeFrame` is the time-layer analogue of `TuningSystem`: a
+reference frame that anchors musical events and defines what it means for one
+instant or span to precede, contain, or align with another. A
+`gmeow:MusicalTimeSpan` is a concrete interval within that frame, described by a
+rational start position and a rational duration.
+
+`gmeow:TimeMapping` relates two `ReferenceFrame`s — typically a musical frame
+(measure, beat, tatum) and another musical or clock-time frame. Each mapping
+carries a `gmeow:timeMappingKind` from the value vocabulary: tuplet, tempo
+canon, tempo map, or unsynchronized ad-lib. It references a solving function
+from the FnO catalogue for any arithmetic that the ontology does not assert as
+triples (Principle 12). A `gmeow:TempoMap` is a time-ordered piece-wise mapping
+composed of `TempoMapSegment`s; each segment carries its own ratio data, and
+segments may abut or overlap when multiple tempi coexist (metric modulation,
+metric polyphony).
+
+`gmeow:MetricStructure` groups `gmeow:MetricGroup`s. A `MetricGroup` is a
+regular pulse layer (e.g. quarter-note beat, eighth-note subdivision) and is
+instantiated by `gmeow:MeterAssignment`s that bind a meter signature to a span.
+`gmeow:MetricModulation` records a deliberate equivalence between two pulse
+durations across a boundary, making tempo changes derivable rather than
+mysterious. `gmeow:GrooveProfile` captures expressive timing and dynamics
+(e.g. swing ratio, lay-back) relative to a metric reference; it is a standpoint-
+relative projection, not a literal tempo-map override.
+
+The layer distinguishes **polymeter** from **polyrhythm** without inventing new
+primitives. In polymeter, concurrent `MeterAssignment`s on different carriers
+coexist over one shared tempo context. In polyrhythm, concurrent `TimeMapping`
+ratios over one span encode differing pulse relations that periodically align.
+Both coexist within a `MusicalTimeFrame`.
+
+Seed fixtures: a 5/8 → 7/8 → 4/4 sequence, 7/8-over-4/4 polymeter, nested 5:4
+and 3:2 tuplets, a √2:2 mensuration canon, a swing groove, and a Carter-style
+metric modulation.
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.

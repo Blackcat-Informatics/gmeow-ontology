@@ -210,6 +210,7 @@ enum AxisEnum
     axisSecond
     axisSequencePosition
     axisStreetAddress
+    axisTime
     axisTristimulusX
     axisTristimulusY
     axisTristimulusZ
@@ -667,7 +668,10 @@ enum EmploymentTypeEnum
 
 enum EntityEnum
   {
+    polymeterPattern
     procedureIngestionRawRoot
+    voiceDrumsPlaceholder
+    voiceGuitarPlaceholder
   }
 
 enum EvaluationVerdictEnum
@@ -937,6 +941,18 @@ enum GranularityLevelEnum
     granularityPoint
     granularityRegion
     granularityYear
+  }
+
+enum GrooveProfileEnum
+  {
+    grooveProfileSwing
+  }
+
+enum GrooveProfileKindEnum
+  {
+    grooveProfileKindMeasured
+    grooveProfileKindPositionOffsets
+    grooveProfileKindSwingRatio
   }
 
 enum GroupOperatorEnum
@@ -1293,6 +1309,24 @@ enum MessageParticipantRoleEnum
     messageRoleTo
   }
 
+enum MeterAssignmentEnum
+  {
+    meterAssignment44
+    meterAssignment58
+    meterAssignment78
+    meterAssignmentDrums44
+    meterAssignmentGuitar78
+  }
+
+enum MetricGroupEnum
+  {
+    metricGroup44
+    metricGroup58
+    metricGroup78Three
+    metricGroup78Two1
+    metricGroup78Two2
+  }
+
 enum MetricKindEnum
   {
     metricCosine
@@ -1303,6 +1337,18 @@ enum MetricKindEnum
     metricLogarithmic
     metricPositionalDistance
     metricSymplectic
+  }
+
+enum MetricModulationEnum
+  {
+    metricModulationCarter
+  }
+
+enum MetricStructureEnum
+  {
+    metricStructure44
+    metricStructure58
+    metricStructure78
   }
 
 enum MitigationStatusEnum
@@ -1332,6 +1378,21 @@ enum MultipartTypeEnum
     multipartTypeRelated
     multipartTypeReport
     multipartTypeSigned
+  }
+
+enum MusicalTimeFrameEnum
+  {
+    musicalTimeFrameCommon
+    musicalTimeFrameVoiceDrums
+    musicalTimeFrameVoiceGuitar
+  }
+
+enum MusicalTimeSpanEnum
+  {
+    musicalTimeSpanBarOne
+    musicalTimeSpanBarThree
+    musicalTimeSpanBarTwo
+    musicalTimeSpanWholeSection
   }
 
 enum NamedPeriodEnum
@@ -2354,6 +2415,24 @@ enum TaskStatusEnum
     taskStatusNotStarted
   }
 
+enum TempoMapEnum
+  {
+    tempoMapCommon
+  }
+
+enum TempoMapKindEnum
+  {
+    tempoMapKindConstant
+    tempoMapKindCurve
+    tempoMapKindLinearRamp
+    tempoMapKindMeasured
+  }
+
+enum TempoMapSegmentEnum
+  {
+    tempoMapSegmentCommon
+  }
+
 enum TemporalFrameEnum
   {
     temporalFrameGPSGregorian
@@ -2398,6 +2477,21 @@ enum TextDirectionEnum
     directionRtl
     directionVerticalLtr
     directionVerticalRtl
+  }
+
+enum TimeMappingEnum
+  {
+    timeMappingSqrt2Canon
+    timeMappingTuplet32
+    timeMappingTuplet54
+  }
+
+enum TimeMappingKindEnum
+  {
+    timeMappingKindSyncUnsynchronized
+    timeMappingKindTempoCanon
+    timeMappingKindTempoMap
+    timeMappingKindTuplet
   }
 
 enum TimeScaleEnum
@@ -8201,6 +8295,70 @@ type GranularityLevel
     coarserThan: [GranularityLevel]
   }
 
+type GrooveProfile
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    appliesToTimeFrame: [MusicalTimeFrame]
+    grooveGridUnit: String
+    grooveKind: GrooveProfileKind
+    grooveProfileData: [String]
+  }
+
+type GrooveProfileKind
+  {
+  }
+
 type Group
   {
     acquireLicensePage: [String]
@@ -11204,8 +11362,141 @@ type MessageParticipantRole
   {
   }
 
+type MeterAssignment
+  {
+    assignedMeter: MetricStructure
+    assignmentSpan: MusicalTimeSpan
+    meterCarrier: Entity
+  }
+
+type MetricGroup
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    groupAccentWeight: [Float]
+    groupLengthDenominator: Int
+    groupLengthNumerator: Int
+    metricGroupOrder: Int
+  }
+
 type MetricKind
   {
+  }
+
+type MetricModulation
+  {
+    modulationFromFrame: MusicalTimeFrame
+    modulationToFrame: MusicalTimeFrame
+    pivotSourceValue: String
+    pivotTargetValue: String
+  }
+
+type MetricStructure
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    hasMetricGroup: [MetricGroup]
+    metricStructureOf: Entity
   }
 
 type Mitigation
@@ -11526,6 +11817,136 @@ type MultipartBodyPart
 
 type MultipartType
   {
+  }
+
+type MusicalTimeFrame
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    determinacyModel: Determinacy
+    dimensionCount: Int
+    frameKind: FrameKind
+    frameRealm: FrameRealm
+    frameSolver: [String]
+    hasAxis: [Axis]
+    hasMetricKind: MetricKind
+    hasReferencePosition: CelestialReferenceOrigin
+    hasTimeScale: TimeScale
+    isHostedBy: [Entity]
+    parentFrame: ReferenceFrame
+    requiresHost: Boolean
+    transformsTo: [ReferenceFrame]
+  }
+
+type MusicalTimeSpan
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    hasMusicalTimeFrame: [MusicalTimeFrame]
+    timeDurationDenominator: Int
+    timeDurationNumerator: Int
+    timeStartDenominator: Int
+    timeStartNumerator: Int
   }
 
 type MusicalWork
@@ -19001,6 +19422,136 @@ type TelephoneNumber
     contactPointType: [ContactPointType]
   }
 
+type TempoMap
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    mapRatioDenominator: Int
+    mapRatioNumerator: Int
+    mapsFrame: [ReferenceFrame]
+    mapsFromSpan: [MusicalTimeSpan]
+    mapsToFrame: [ReferenceFrame]
+    mapsToSpan: [MusicalTimeSpan]
+    tempoRatioApprox: [Float]
+    tempoRatioExpression: String
+    timeMappingKind: TimeMappingKind
+  }
+
+type TempoMapKind
+  {
+  }
+
+type TempoMapSegment
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    segmentMapRatioDenominator: Int
+    segmentMapRatioNumerator: Int
+    segmentSpan: MusicalTimeSpan
+    segmentTempoMapKind: TempoMapKind
+    tempoMapSegmentOf: TempoMap
+  }
+
 type TemporalFrame
   {
     acquireLicensePage: [String]
@@ -19287,6 +19838,75 @@ type TimeInterval
     intervalStartedBy: [TimeInterval]
     intervalStarts: [TimeInterval]
     startedAtTime: String
+  }
+
+type TimeMapping
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    mapRatioDenominator: Int
+    mapRatioNumerator: Int
+    mapsFrame: [ReferenceFrame]
+    mapsFromSpan: [MusicalTimeSpan]
+    mapsToFrame: [ReferenceFrame]
+    mapsToSpan: [MusicalTimeSpan]
+    tempoRatioApprox: [Float]
+    tempoRatioExpression: String
+    timeMappingKind: TimeMappingKind
+  }
+
+type TimeMappingKind
+  {
   }
 
 type TimeScale
