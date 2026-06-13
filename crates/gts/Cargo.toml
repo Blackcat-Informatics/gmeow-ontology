@@ -4,12 +4,12 @@
 [package]
 name = "gmeow-gts"
 description = "GTS (Graph Transport Substrate) format engine: CBOR-sequence append-only RDF 1.2 log reader, folder, and verifier"
-version = "0.1.1"
+version = "0.1.2"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 readme = "README.md"
-keywords = ["rdf", "rdf-star", "cbor", "knowledge-graph", "linked-data", "gts"]
+keywords = ["rdf", "rdf-star", "cbor", "knowledge-graph", "linked-data"]
 
 # The package is named gmeow-gts on crates.io, but the CLI binary keeps the
 # shorter `gts` name for ergonomics.
