@@ -130,6 +130,13 @@ jobs:
           install-go: false
           working-directory: go/gts
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9.2.1
+        with:
+          version: v2.12.2
+          working-directory: go/gts
+          args: --timeout=5m
+
       - name: Conformance corpus + CLI tests (no CGO)
         working-directory: go/gts
         run: CGO_ENABLED=0 go test ./...

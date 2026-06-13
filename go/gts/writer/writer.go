@@ -106,6 +106,7 @@ func (w *Writer) Head() []byte {
 	return out
 }
 
+// chainIDs maps codec names to their catalog ids for the wire "x" field.
 func (w *Writer) chainIDs(chain []string) []interface{} {
 	out := make([]interface{}, len(chain))
 	for i, name := range chain {

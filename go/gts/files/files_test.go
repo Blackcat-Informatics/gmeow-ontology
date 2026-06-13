@@ -16,12 +16,15 @@ import (
 
 func makeTree(t *testing.T, root string) {
 	t.Helper()
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.MkdirAll(filepath.Join(root, "subdir"), 0o755); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.WriteFile(filepath.Join(root, "a.txt"), []byte("hello"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.WriteFile(filepath.Join(root, "subdir", "b.txt"), []byte("world"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -63,12 +66,15 @@ func TestPackUnpackRoundTripBitForBit(t *testing.T) {
 func TestPackDeduplicatesIdenticalContent(t *testing.T) {
 	tmp := t.TempDir()
 	src := filepath.Join(tmp, "src")
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.MkdirAll(src, 0o755); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.WriteFile(filepath.Join(src, "a.txt"), []byte("shared"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.WriteFile(filepath.Join(src, "b.txt"), []byte("shared"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -102,10 +108,12 @@ func TestUnpackRefusesTraversal(t *testing.T) {
 	})
 	w.AddQuads([]model.Quad{{S: 4, P: 3, O: 0}, {S: 4, P: 1, O: 5}, {S: 4, P: 2, O: 6}})
 	w.AddBlob(payload, "", "")
+	//nolint:gosec // test archive written to a temp path.
 	if err := os.WriteFile(archive, w.ToBytes(), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
+	//nolint:gosec // test reads back the archive it just wrote to a temp path.
 	data, err := os.ReadFile(archive)
 	if err != nil {
 		t.Fatal(err)
@@ -137,6 +145,7 @@ func TestDiffReportsChanges(t *testing.T) {
 		t.Fatalf("expected no changes, got %v", lines)
 	}
 
+	//nolint:gosec // test fixture needs world-readable permissions.
 	if err := os.WriteFile(filepath.Join(src, "a.txt"), []byte("changed"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -151,6 +160,7 @@ func TestDiffReportsChanges(t *testing.T) {
 
 func readFile(t *testing.T, path string) string {
 	t.Helper()
+	//nolint:gosec // test helper reads files from temp directories.
 	b, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)

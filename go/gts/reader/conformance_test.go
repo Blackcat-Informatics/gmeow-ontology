@@ -107,10 +107,12 @@ func TestCorpus(t *testing.T) {
 	}
 	for _, name := range names {
 		t.Run(name, func(t *testing.T) {
+			//nolint:gosec // test reads frozen conformance vectors by directory-listed name.
 			data, err := os.ReadFile(filepath.Join(dir, name+".gts"))
 			if err != nil {
 				t.Fatal(err)
 			}
+			//nolint:gosec // test reads frozen conformance expectations by directory-listed name.
 			expectedRaw, err := os.ReadFile(filepath.Join(dir, name+".expected.json"))
 			if err != nil {
 				t.Fatal(err)

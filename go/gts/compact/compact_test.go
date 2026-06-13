@@ -21,6 +21,7 @@ func vector(t *testing.T, name string) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test reads a frozen conformance vector by caller-supplied name.
 	data, err := os.ReadFile(filepath.Join(dir, name))
 	if err != nil {
 		t.Fatal(err)

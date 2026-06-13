@@ -13,6 +13,7 @@ import (
 
 const rdfReifies = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 
+// escape returns an N-Quads safe lexical form (§14).
 func escape(lex string) string {
 	var out strings.Builder
 	for _, ch := range lex {
@@ -29,7 +30,7 @@ func escape(lex string) string {
 			out.WriteString("\\t")
 		default:
 			if ch < 0x20 {
-				out.WriteString(fmt.Sprintf("\\u%04X", ch))
+				fmt.Fprintf(&out, "\\u%04X", ch)
 			} else {
 				out.WriteRune(ch)
 			}
@@ -38,6 +39,7 @@ func escape(lex string) string {
 	return out.String()
 }
 
+// render serialises the term at tid to its N-Quads surface form.
 func render(g *model.Graph, tid int) string {
 	if tid < 0 || tid >= len(g.Terms) {
 		return fmt.Sprintf("_:out_of_range_%d", tid)
