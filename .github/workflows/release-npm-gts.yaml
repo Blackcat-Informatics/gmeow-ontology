@@ -1,0 +1,41 @@
+name: Release npm gmeow-gts
+
+# On a ts/gts/v* tag, verify and publish the @blackcatinformatics/gmeow-gts
+# package to the npm registry.
+
+on:
+  push:
+    tags:
+      - 'ts/gts/v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ts/gts/package.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        working-directory: ts/gts
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ts/gts
+        run: npm test
+
+      - name: Publish to npm
+        working-directory: ts/gts
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
