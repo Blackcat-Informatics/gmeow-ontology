@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: places as first-class located things, not address strings
+# (#443). A containment hierarchy (country ⊃ region ⊃ city ⊃ site) carries
+# placeType, gazetteer coreference (authorityLink + skos:exactMatch, never
+# owl:sameAs — P5), and coordinates two ways: the flat gmeow:hasCoordinates for
+# the 80% case, and a reified gmeow:CoordinateObservation that makes the Principle
+# 11 reference frame EXPLICIT (a latitude is meaningless without the frame it is
+# expressed in) and carries the measurement's vantage, method, and confidence.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The containment spine: each place is a first-class Place, related by
+#     gmeow:containedInPlace, with gazetteer alignment by reference.
+ex:canada a gmeow:Place ;
+    gmeow:name "Canada" ;
+    gmeow:placeType gmeow:placeTypeCountry ;
+    gmeow:authorityLink wd:Q16 ;
+    skos:exactMatch wd:Q16 .
+
+ex:alberta a gmeow:Place ;
+    gmeow:name "Alberta" ;
+    gmeow:placeType gmeow:placeTypeRegion ;
+    gmeow:containedInPlace ex:canada ;
+    gmeow:authorityLink wd:Q1951 ;
+    skos:exactMatch wd:Q1951 .
+
+ex:edmonton a gmeow:Place ;
+    gmeow:name "Edmonton" ;
+    gmeow:placeType gmeow:placeTypeCity ;
+    gmeow:containedInPlace ex:alberta ;
+    gmeow:authorityLink wd:Q2096 ;
+    skos:exactMatch wd:Q2096 ;
+    # The flat coordinate shortcut: a GeoCoordinates point, no provenance needed.
+    gmeow:hasCoordinates ex:edmontonCoords .
+
+ex:edmontonCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude "53.5461"^^xsd:decimal ;
+    gmeow:longitude "-113.4938"^^xsd:decimal .
+
+# --- A surveyed site, with the reified observation form: the SAME place can
+#     carry competing measurements (different vantage/method/confidence), each in
+#     its explicit reference frame; none is privileged (P9).
+ex:officeSite a gmeow:Place ;
+    gmeow:name "Blackcat office site" ;
+    gmeow:placeType gmeow:placeTypeSite ;
+    gmeow:containedInPlace ex:edmonton .
+
+ex:surveyTeam a gmeow:Organization ;
+    gmeow:name "Precision Survey Co." .
+
+ex:officeGpsFix a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:officeSite ;
+    gmeow:vantage ex:surveyTeam ;
+    gmeow:observationMethod gmeow:methodGPS ;
+    gmeow:coordinateResult ex:officeCoords ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:confidence 0.95 ;
+    gmeow:assertedAt "2026-03-10T00:00:00Z"^^xsd:dateTime .
+
+ex:officeCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude "53.5443"^^xsd:decimal ;
+    gmeow:longitude "-113.4909"^^xsd:decimal ;
+    gmeow:elevation "645.0"^^xsd:decimal .

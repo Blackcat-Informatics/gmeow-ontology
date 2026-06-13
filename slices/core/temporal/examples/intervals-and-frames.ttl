@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: time under explicit frames (#443). Every crisp Instant is
+# asserted relative to a TemporalFrame (Principle 11) — a bare "10:00:00Z" is
+# ill-formed without saying which time scale and calendar interpret it. Two
+# intervals (a conference talk and its Q&A) are built from begin/end Instants and
+# related by an Allen relation (the talk is intervalBefore the Q&A). A third
+# instant, the same wall-clock moment expressed in the Hebrew-calendar civil
+# frame, shows that the frame — not the literal — carries the calendar.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/temporal/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The talk interval: begin and end Instants, each in the UTC/Gregorian frame.
+ex:talkStart a gmeow:Instant ;
+    gmeow:instantValue "2026-09-14T13:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:talkEnd a gmeow:Instant ;
+    gmeow:instantValue "2026-09-14T13:45:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:talkInterval a gmeow:TimeInterval ;
+    gmeow:hasBeginInstant ex:talkStart ;
+    gmeow:hasEndInstant ex:talkEnd ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- The Q&A interval, immediately after.
+ex:qaStart a gmeow:Instant ;
+    gmeow:instantValue "2026-09-14T13:45:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:qaEnd a gmeow:Instant ;
+    gmeow:instantValue "2026-09-14T14:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:qaInterval a gmeow:TimeInterval ;
+    gmeow:hasBeginInstant ex:qaStart ;
+    gmeow:hasEndInstant ex:qaEnd ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- Allen relation: the talk precedes the Q&A (no overlap).
+ex:talkInterval gmeow:intervalBefore ex:qaInterval .
+
+# --- The SAME wall-clock moment as the talk's start, but read in the Hebrew
+#     civil-time frame: identical instant value, different interpreting frame —
+#     the frame, not the literal, names the calendar (P11).
+ex:talkStartHebrew a gmeow:Instant ;
+    gmeow:instantValue "2026-09-14T13:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCHebrew .
