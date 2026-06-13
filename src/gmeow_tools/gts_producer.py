@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 
+from gts import Signer
 from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gts.writer import Writer, term_to_wire
 
@@ -313,6 +314,8 @@ class _Builder:
         profile: str = "dist",
         transform: list[str] | None = None,
         doc_blobs: list[tuple[bytes, str, str]] | None = None,
+        signer: Signer | None = None,
+        public_key_armor: str | None = None,
     ) -> bytes:
         """Emit a single ``dist`` snapshot frame from the accumulated tables.
 
@@ -322,10 +325,25 @@ class _Builder:
         stay a pure function of the inputs. The graph links each slice to
         its guide via ``gmeow:guideBlob "blake3:<hex>"`` (the reader keys
         blobs by BLAKE3 of the decoded content).
+
+        If ``signer`` and ``public_key_armor`` are supplied, a ``meta`` frame
+        carrying the file's transport key is emitted first and signed along
+        with every subsequent frame.
         """
+        if (signer is None) != (public_key_armor is None):
+            raise ValueError("signer and public_key_armor must be supplied together")
         chain = ["zstd"] if transform is None else transform
         terms, quads, reifies, annot = self._canonical_tables()
-        writer = Writer(profile=profile)
+        writer = Writer(profile=profile, signer=signer)
+        if signer is not None:
+            writer.add_meta(
+                {
+                    "gts:transportKey": {
+                        "kid": signer.kid,
+                        "gpg": public_key_armor,
+                    }
+                }
+            )
         for data, media_type, rep in sorted(
             doc_blobs or [], key=lambda row: (row[2], row[0])
         ):
@@ -412,6 +430,8 @@ def compile_gts(
     alignment_graph: Graph | None = None,
     transform: list[str] | None = None,
     doc_blobs: list[tuple[bytes, str, str]] | None = None,
+    signer: Signer | None = None,
+    public_key_armor: str | None = None,
 ) -> bytes:
     """Compile the statement-complete, byte-deterministic ``dist`` GTS snapshot.
 
@@ -423,6 +443,9 @@ def compile_gts(
     (:func:`rdflib.compare.to_canonical_graph`) — together with the
     content-sorted term table this makes the emitted bytes a pure function
     of the inputs (the drift-gate requirement).
+
+    If ``signer`` and ``public_key_armor`` are supplied, the snapshot is signed
+    and the armored transport public key is embedded in the first ``meta`` frame.
 
     Raises:
         FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
@@ -447,4 +470,10 @@ def compile_gts(
             graph_name=GTS_GRAPH_ALIGNMENTS,
             bnode_scope="align",
         )
-    return builder.to_gts(profile="dist", transform=transform, doc_blobs=doc_blobs)
+    return builder.to_gts(
+        profile="dist",
+        transform=transform,
+        doc_blobs=doc_blobs,
+        signer=signer,
+        public_key_armor=public_key_armor,
+    )

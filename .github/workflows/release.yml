@@ -55,6 +55,25 @@ jobs:
       - name: RDF 1.2 preview (gated; skips if Jena absent)
         run: uv run gmeow rdf12
 
+      - name: Sign gmeow-full.gts with the release key
+        env:
+          GMEOW_RELEASE_SIGNING_KEY: ${{ secrets.GMEOW_RELEASE_SIGNING_KEY }}
+        run: |
+          if [[ -z "$GMEOW_RELEASE_SIGNING_KEY" ]]; then
+            echo "::error::GMEOW_RELEASE_SIGNING_KEY secret is not configured"
+            exit 1
+          fi
+          mkdir -p /tmp/gpg
+          printf '%s' "$GMEOW_RELEASE_SIGNING_KEY" > /tmp/gpg/signing-key.asc
+          uv run gmeow gts compile-full \
+            --sign-key /tmp/gpg/signing-key.asc \
+            --public-key keys/gmeow-release-key.asc \
+            -o dist/gmeow-full.gts
+          rm -f /tmp/gpg/signing-key.asc
+
+      - name: Verify signed gmeow-full.gts
+        run: uv run gmeow gts verify dist/gmeow-full.gts
+
       - name: Upload published artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
