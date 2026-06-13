@@ -384,12 +384,12 @@ def gmeow_constitution() -> str:
 
 # --------------------------------------------------------------------------- #
 # The grounded-memory triad (#297, D2 — CONSTITUTION P14): store / recall /
-# revise as the agent-native interface, wrapping the `gmeow` client's Memory
+# revise as the agent-native interface, wrapping the GTS example Memory
 # (a content-addressed, append-only GTS ai-package on disk). The server only
 # exposes: every behavior — claim reification, suppression-not-deletion,
-# token-overlap recall — lives in packages/gmeow. The one config knob is the
-# GMEOW_MEMORY_PATH environment variable (default ~/.gmeow/memory.gts), set
-# in the mcpServers block. See docs/mcp-server.md.
+# token-overlap recall — lives in gts.examples.agent_memory. The one config
+# knob is the GMEOW_MEMORY_PATH environment variable (default
+# ~/.gmeow/memory.gts), set in the mcpServers block. See docs/mcp-server.md.
 # --------------------------------------------------------------------------- #
 
 
@@ -398,7 +398,7 @@ def _memory() -> Any:
     import os
     from pathlib import Path as _Path
 
-    from gmeow import Memory
+    from gts.examples.agent_memory import Memory
 
     path = _Path(
         os.environ.get("GMEOW_MEMORY_PATH", "")

@@ -3,13 +3,13 @@
 
 [project]
 name = "gmeow-gts"
-version = "0.1.0"
+version = "0.1.1"
 description = "GTS (Graph Transport Substrate): a single-file CBOR transport for RDF 1.2 graphs — append-only log, BLAKE3 chain verification, deterministic fold, multi-segment cat-append composition."
 readme = "README.md"
 requires-python = ">=3.13"
 license = "Apache-2.0"
 authors = [{ name = "Blackcat Informatics Inc." }]
-keywords = ["rdf", "rdf-star", "cbor", "knowledge-graph", "linked-data", "gts"]
+keywords = ["rdf", "rdf-star", "cbor", "knowledge-graph", "linked-data", "gts", "gmeow"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -22,6 +22,9 @@ dependencies = [
     "zstandard>=0.25.0",
     "cryptography>=44",
 ]
+
+[project.optional-dependencies]
+rdf = ["rdflib>=7.6"]
 
 [project.urls]
 Repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"

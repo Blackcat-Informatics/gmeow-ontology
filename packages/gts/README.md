@@ -50,6 +50,37 @@ gts cat -o <out> <file>...    validating composer: refuse degenerate inputs,
 never. It refuses dirty inputs, contributes-nothing segments, and compositions
 whose suppressions hide every folded quad.
 
+## Example: grounded agent memory
+
+The `gts.examples.agent_memory` module shows how to build a tiny claim store
+on top of GTS: every claim is a reified RDF 1.2 statement with confidence,
+standpoint, source, and timestamp; revision is supersession, never deletion;
+the file is always a valid, `gts verify`-able package.
+
+```bash
+pip install gmeow-gts
+python -m gts.examples.agent_memory
+```
+
+```python
+from gts.examples.agent_memory import Memory
+
+mem = Memory("assistant.gts")
+mem.store(
+    "Patrick prefers explicit error handling over exceptions-as-flow",
+    source="conversation 2026-06-10",
+    confidence=0.8,
+    according_to="claude-fable-5",
+)
+print([c.text for c in mem.recall("error handling")])
+```
+
+For `rdflib` interop, install the optional `rdf` extra:
+
+```bash
+pip install 'gmeow-gts[rdf]'
+```
+
 ## License
 
 Apache-2.0. © Blackcat Informatics® Inc.

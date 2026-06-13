@@ -1,7 +1,7 @@
 [project]
-name = "gmeow-ontology"
-version = "0.1.0"
-description = "Tooling to refine, validate, reason over, document, and publish the GMEOW ontology (Global Metadata and Entity Ontology for the Web)."
+name = "gmeow"
+version = "1.0.2"
+description = "GMEOW ontology tooling: refine, validate, reason over, document, and publish the Global Metadata and Entity Ontology for the Web."
 readme = "README.md"
 requires-python = ">=3.13"
 license = "Apache-2.0"
@@ -21,11 +21,10 @@ dependencies = [
     "duckdb>=1.5.3",
     "jsonschema>=4.23",
     "blake3>=0.4",
+    "pyoxigraph>=0.5.8",
     # the GTS format engine — the publishable workspace member (packages/gts);
     # the range matters for non-workspace installs of downstream packages
-    "gmeow-gts>=0.1.0,<0.2",
-    # the gmeow client (packages/gmeow) — in the dev env so its tests run
-    "gmeow>=1.0.1,<2",
+    "gmeow-gts>=0.1.1,<0.2",
 ]
 
 [project.scripts]
@@ -45,11 +44,10 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["packages/gts", "packages/gmeow"]
+members = ["packages/gts"]
 
 [tool.uv.sources]
 gmeow-gts = { workspace = true }
-gmeow = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
@@ -58,10 +56,13 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/gmeow_tools"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"generated/dist/gmeow-full.gts" = "generated/dist/gmeow-full.gts"
+
 [tool.ruff]
 line-length = 88
 target-version = "py313"
-src = ["src", "tests", "packages/gts/src", "packages/gmeow/src"]
+src = ["src", "tests", "packages/gts/src"]
 # generated/ is owned by registered generators (#287); never lint outputs.
 extend-exclude = ["generated"]
 
@@ -99,7 +100,7 @@ warn_unreachable = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
-files = ["src", "tests", "packages/gts/src", "packages/gmeow/src"]
+files = ["src", "tests", "packages/gts/src"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
@@ -108,7 +109,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths = ["tests", "slices"]
+testpaths = ["tests", "slices", "packages/gts/tests"]
 addopts = "-ra --strict-markers"
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
