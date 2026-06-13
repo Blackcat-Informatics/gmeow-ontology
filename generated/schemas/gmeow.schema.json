@@ -1894,6 +1894,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -2747,6 +2756,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -3331,6 +3349,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -3952,6 +3979,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -4498,6 +4534,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -5001,6 +5046,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -5757,6 +5811,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasOccupancy": {
                     "items": {
                         "$ref": "#/$defs/Occupancy"
@@ -6368,6 +6431,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -6874,6 +6946,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -7350,6 +7431,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -7817,6 +7907,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -8346,6 +8445,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -8843,6 +8951,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -9560,6 +9677,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -10310,6 +10436,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -11475,6 +11610,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -12220,6 +12364,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -12861,6 +13014,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -13599,6 +13761,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -14097,6 +14268,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -15402,6 +15582,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -16125,6 +16314,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -17277,6 +17475,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -17765,6 +17972,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -18429,6 +18645,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -19059,6 +19284,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -19596,6 +19830,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -20084,6 +20327,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -20775,6 +21027,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -21856,6 +22117,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -22637,6 +22907,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -23443,6 +23722,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -23931,6 +24219,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -24472,6 +24769,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -25027,6 +25333,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -25561,6 +25876,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -26108,6 +26432,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -26642,6 +26975,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -27396,6 +27738,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -28365,6 +28716,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -29349,6 +29709,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -29881,6 +30250,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -30595,6 +30973,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -31303,6 +31690,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -31783,6 +32179,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -32581,6 +32986,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -33434,6 +33848,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -33961,6 +34384,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -34619,6 +35051,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -35733,6 +36174,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -36384,6 +36834,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -37780,6 +38239,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -38512,6 +38980,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -39000,6 +39477,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -39496,6 +39982,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -40205,6 +40700,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -41095,6 +41599,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -42058,6 +42571,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -42555,6 +43077,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -43880,6 +44411,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -44859,6 +45399,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -45661,6 +46210,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -46140,6 +46698,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -46647,6 +47214,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -47186,6 +47762,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -47675,6 +48260,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -48237,6 +48831,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -49014,6 +49617,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -50002,6 +50614,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -50534,6 +51155,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -51031,6 +51661,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -51695,6 +52334,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -52456,6 +53104,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -53247,6 +53904,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -53958,6 +54624,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -55269,6 +55944,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -56953,6 +57637,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasNotationSystem": {
                     "items": {
                         "$ref": "#/$defs/NotationSystem"
@@ -57569,6 +58262,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasNotationSystem": {
                     "items": {
                         "$ref": "#/$defs/NotationSystem"
@@ -58117,6 +58819,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -59114,6 +59825,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -59694,6 +60414,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -60212,6 +60941,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -61479,6 +62217,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -62226,6 +62973,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasOccupancy": {
                     "items": {
                         "$ref": "#/$defs/Occupancy"
@@ -62810,6 +63566,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -63381,6 +64146,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -63982,6 +64756,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -64723,6 +65506,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -65457,6 +66249,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -65950,6 +66751,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -66804,6 +67614,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -67755,6 +68574,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -68787,6 +69615,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -69329,6 +70166,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -69930,6 +70776,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -70666,6 +71521,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -71679,6 +72543,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -72146,6 +73019,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -72706,6 +73588,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -73460,6 +74351,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -74171,6 +75071,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMythTelling": {
                     "items": {
                         "$ref": "#/$defs/CreativeWork"
@@ -74678,6 +75587,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -75371,6 +76289,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -76004,6 +76931,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -76490,6 +77426,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -76996,6 +77941,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -77543,6 +78497,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -78100,6 +79063,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -78631,6 +79603,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -79134,6 +80115,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -79622,6 +80612,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -80211,6 +81210,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -81483,6 +82491,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -81962,6 +82979,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -82533,6 +83559,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -83039,6 +84074,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -83571,6 +84615,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -84077,6 +85130,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -85042,6 +86104,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -85599,6 +86670,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -86142,6 +87222,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -86975,6 +88064,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -88205,6 +89303,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -89274,6 +90381,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -89747,6 +90863,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -90266,6 +91391,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -90750,6 +91884,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -91244,6 +92387,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -91748,6 +92900,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -92368,6 +93529,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -93195,6 +94365,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -93943,6 +95122,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -94431,6 +95619,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -95014,6 +96211,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -95707,6 +96913,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -96464,6 +97679,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -97204,6 +98428,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasNotationSystem": {
                     "items": {
                         "$ref": "#/$defs/NotationSystem"
@@ -97753,6 +98986,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -98312,6 +99554,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -98894,6 +100145,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -99425,6 +100685,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -99923,6 +101192,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -101159,6 +102437,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -101620,6 +102907,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -102361,6 +103657,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -103064,6 +104369,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -103558,6 +104872,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -104098,6 +105421,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -104699,6 +106031,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -105178,6 +106519,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -106325,6 +107675,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -106858,6 +108217,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -107876,6 +109244,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -108599,6 +109976,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -109149,6 +110535,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -109728,6 +111123,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -110244,6 +111648,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -110835,6 +112248,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -111351,6 +112773,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -111995,6 +113426,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -112718,6 +114158,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -113421,6 +114870,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -114085,6 +115543,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -114869,6 +116336,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -115367,6 +116843,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -116152,6 +117637,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -116613,6 +118107,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -117114,6 +118617,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -117859,6 +119371,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -118776,6 +120297,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -119716,6 +121246,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -120418,6 +121957,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -121039,6 +122587,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -121569,6 +123126,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -122030,6 +123596,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -123004,6 +124579,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -123715,6 +125299,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -124260,6 +125853,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -124748,6 +126350,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -125257,6 +126868,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -125956,6 +127576,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -126665,6 +128294,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -127390,6 +129028,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasOccupancy": {
                     "items": {
                         "$ref": "#/$defs/Occupancy"
@@ -128029,6 +129676,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -128623,6 +130279,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -129101,6 +130766,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -129884,6 +131558,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasOccupancy": {
                     "items": {
                         "$ref": "#/$defs/Occupancy"
@@ -130540,6 +132223,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -131072,6 +132764,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -131569,6 +133270,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -132079,6 +133789,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -132620,6 +134339,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -133145,6 +134873,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -134266,6 +136003,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMetricKind": {
                     "anyOf": [
                         {
@@ -135230,6 +136976,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -135950,6 +137705,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -136603,6 +138367,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -137094,6 +138867,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -138102,6 +139884,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -138710,6 +140501,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -139213,6 +141013,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -139838,6 +141647,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -140718,6 +142536,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -141682,6 +143509,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -142411,6 +144247,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -142936,6 +144781,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -143826,6 +145680,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -144777,6 +146640,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -145694,6 +147566,15 @@
                         "null"
                     ]
                 },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLyricist": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -146408,6 +148289,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",

@@ -10,6 +10,7 @@ CONSTRUCT {
     ?place wgs84:lat ?lat .
     ?place wgs84:long ?lon .
     ?ent foaf:name ?_final_dispName .
+    ?ent foaf:logo ?logo .
     ?ent foaf:gender ?_final_genderLabel .
     ?ent foaf:nick ?nick .
     ?ent foaf:homepage ?wp .
@@ -48,6 +49,10 @@ WHERE {
             OPTIONAL { ?app gmeow:nameScript ?_sc . }
         }
         BIND ( IF(BOUND(?_extTag), STRLANG(STR(?dispName), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?dispName) AS ?_final_dispName )
+    }
+    UNION {
+        ?ent gmeow:hasLogo ?logo .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?ent gmeow:hasGenderIdentity ?gi .

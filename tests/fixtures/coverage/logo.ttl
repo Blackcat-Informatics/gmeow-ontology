@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Logo coverage fixture (#410 follow-through). An entity (the GMEOW ontology
+# itself, as in the real site index) carrying an emblematic media object via
+# gmeow:hasLogo — projects to schema:logo and foaf:logo. Mirrors the single
+# residual schema term that closed the #34 schema-org parity gap.
+
+@prefix ex:    <https://example.org/logo/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:gmeow a gmeow:SoftwareProject ; rdfs:label "GMEOW"@en ;
+    gmeow:hasLogo ex:logoImg .
+
+ex:logoImg a gmeow:MediaObject ; rdfs:label "GMEOW logo"@en .

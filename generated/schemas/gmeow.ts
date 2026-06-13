@@ -3546,6 +3546,7 @@ export interface Entity {
     hasDirectReply?: Comment[],
     hasIdentifier?: Identifier[],
     hasLicense?: License[],
+    hasLogo?: MediaObject[],
     hasPose?: Pose[],
     hasReply?: Comment[],
     hasRightsStatement?: RightsStatement[],

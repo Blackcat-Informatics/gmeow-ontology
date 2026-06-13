@@ -765,3 +765,11 @@ gmeow:eqProperties092 a gmeow:TermEquivalence ;
 gmeow:eqProperties093 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:hasExifTag ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:exifData ;
     gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "reified EXIF tags → schema:exifData PropertyValues (#413, lossless)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties094 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasLogo ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:logo ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "an entity's emblematic media object → schema:logo (#410 follow-through)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties095 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasLogo ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject foaf:logo ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "an entity's emblematic media object → foaf:logo (#410 follow-through)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .

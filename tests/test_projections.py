@@ -564,6 +564,25 @@ def _fixture_store(name: str) -> pyoxigraph.Store:
     return sparql.store_with(include_imports=False, extra_triples=data)
 
 
+def test_logo_projection_schema_and_foaf() -> None:
+    """#410 follow-through: gmeow:hasLogo projects to BOTH schema:logo and
+    foaf:logo — the last residual schema term that closed the #34 parity gap.
+    hasLogo is distinct from depicts, so the logo image is NOT also emitted as
+    schema:about/schema:image of its bearer."""
+    ex = "https://example.org/logo/"
+    ent = URIRef(ex + "gmeow")
+    img = URIRef(ex + "logoImg")
+    gs = project_graph("schema-org", _fixture_store("logo.ttl"))
+    assert (ent, URIRef(SCHEMA + "logo"), img) in gs
+    # a logo represents, it does not depict: no spurious aboutness edge.
+    assert (ent, URIRef(SCHEMA + "about"), img) not in gs
+    assert (img, URIRef(SCHEMA + "about"), ent) not in gs
+    _assert_no_gmeow_leakage(gs)
+    gf = project_graph("foaf", _fixture_store("logo.ttl"))
+    assert (ent, URIRef(FOAF + "logo"), img) in gf
+    _assert_no_gmeow_leakage(gf)
+
+
 def test_gedcom_projection() -> None:
     """Minted Marriage + symmetric spouseIn; sex ONLY from the saab datum."""
     g = project_graph("gedcom", _fixture_store("genealogy.ttl"))

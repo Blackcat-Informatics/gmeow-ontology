@@ -58,6 +58,8 @@ gmeow:hasContactPoint	owl:equivalentProperty	schema:contactPoint		semapv:ManualM
 gmeow:hasContributor	skos:closeMatch	dcterms:contributor		semapv:ManualMappingCuration	0.85	DCTerms contributor — GMEOW's flat hasContributor shortcut downcasts to dcterms:contributor by projection
 gmeow:hasContributor	skos:closeMatch	doap:developer		semapv:ManualMappingCuration	0.7	
 gmeow:hasExifTag	skos:closeMatch	schema:exifData		semapv:ManualMappingCuration	0.9	reified EXIF tags → schema:exifData PropertyValues (#413, lossless)
+gmeow:hasLogo	skos:closeMatch	foaf:logo		semapv:ManualMappingCuration	0.95	an entity's emblematic media object → foaf:logo (#410 follow-through)
+gmeow:hasLogo	skos:closeMatch	schema:logo		semapv:ManualMappingCuration	0.95	an entity's emblematic media object → schema:logo (#410 follow-through)
 gmeow:hasMember	skos:closeMatch	org:member		semapv:ManualMappingCuration	0.8	
 gmeow:hasOccupation	owl:equivalentProperty	schema:hasOccupation		semapv:ManualMappingCuration	1.0	
 gmeow:hasOpeningHours	skos:closeMatch	schema:openingHoursSpecification		semapv:ManualMappingCuration	0.9	#413 offerings
