@@ -1048,8 +1048,18 @@ def gts_info(
         None,
         help="GTS file to summarise (default: bundled gmeow-full.gts).",
     ),
+    no_verify: bool = typer.Option(
+        False, "--no-verify", help="Skip embedded-signature verification."
+    ),
 ) -> None:
-    """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
+    """Summarise a GTS file: terms/quads/blobs counts and any diagnostics.
+
+    When the file contains signatures, verification is run automatically
+    (cheap because the embedded transport key is folded into the first meta
+    frame).  Use ``--no-verify`` to inspect a damaged or partially trusted file.
+    """
+    from gts.verify import verify_file
+
     path = file or _default_gts_file()
     graph = _read_gts_or_fail(path)
     console.print(
@@ -1058,8 +1068,111 @@ def gts_info(
         f"{len(graph.annotations)} annotations, {len(graph.blobs)} blobs, "
         f"{len(graph.opaque)} opaque"
     )
+    if not no_verify:
+        result = verify_file(path.read_bytes(), require_signatures=False)
+        if result.signed:
+            status = "[green]valid[/green]" if result.ok else "[red]FAILED[/red]"
+            console.print(
+                f"signatures: {result.signed} signed, {result.valid} valid, "
+                f"{result.invalid} invalid, {result.unverified} unverified — {status}"
+            )
+            if result.fingerprint:
+                console.print(
+                    f"transport key: [bold]{result.fingerprint}[/bold]  "
+                    f"{result.emojihash}"
+                )
+        else:
+            console.print("signatures: none")
+        for err in result.errors:
+            err_console.print(f"[red]{err}[/red]")
+        if result.signed and not result.ok:
+            raise _fail("signature verification failed")
     for diag in graph.diagnostics:
         err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
+
+
+@gts_app.command("verify")
+def gts_verify(
+    file: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="GTS file to verify (default: bundled gmeow-full.gts).",
+    ),
+    trusted_key: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--trusted-key",
+        help="Out-of-band armored OpenPGP public key (overrides embedded key).",
+    ),
+) -> None:
+    """Verify every embedded COSE signature against the transport key.
+
+    By default the transport key embedded in the file's first ``meta`` frame is
+    used.  Pass ``--trusted-key`` to verify against a key obtained out of band
+    (e.g. the release key published in the repository).
+    """
+    from gts.verify import verify_file
+
+    path = file or _default_gts_file()
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise _fail(f"cannot read {path}: {exc}") from exc
+    armored: str | None = None
+    if trusted_key is not None:
+        try:
+            armored = trusted_key.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
+    try:
+        result = verify_file(data, armored_key=armored, require_signatures=True)
+    except Exception as exc:
+        raise _fail(f"verification failed: {exc}") from exc
+
+    if result.fingerprint:
+        console.print(f"transport key: [bold]{result.fingerprint}[/bold]")
+        if result.emojihash:
+            console.print(f"emojihash:     {result.emojihash}")
+        if result.randomart:
+            console.print(result.randomart)
+    console.print(
+        f"signatures: {result.signed} signed, {result.valid} valid, "
+        f"{result.invalid} invalid, {result.unverified} unverified"
+    )
+    for err in result.errors:
+        err_console.print(f"[red]{err}[/red]")
+    for diag in result.diagnostics:
+        err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
+    if not result.ok:
+        raise _fail("verification failed")
+    console.print("[green]✓ verification passed[/green]")
+
+
+@gts_app.command("extract-key")
+def gts_extract_key(
+    file: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="GTS file to extract the key from (default: bundled gmeow-full.gts).",
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None, "--out", "-o", help="Write the armored public key here (else stdout)."
+    ),
+) -> None:
+    """Extract the embedded OpenPGP transport public key from a GTS file."""
+    from gts.verify import extract_transport_key
+
+    path = file or _default_gts_file()
+    graph = _read_gts_or_fail(path)
+    transport = extract_transport_key(graph)
+    if transport is None:
+        raise _fail("no gts:transportKey found in file metadata")
+    armor = transport["gpg"]
+    if out is None:
+        console.print(armor, end="")
+        return
+    try:
+        out.write_text(armor, encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"cannot write {out}: {exc}") from exc
+    console.print(f"[green]✓[/green] {out}")
 
 
 _GTS_OUT_OPTION = typer.Option(
@@ -1169,6 +1282,65 @@ def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
         console.print(f"[green]✓[/green] {out}")
     size = config.GTS_SNAPSHOT_FILE.stat().st_size
     console.print(f"[green]✓[/green] {config.GTS_SNAPSHOT_FILE} ({size} bytes)")
+
+
+_GTS_FULL_OUT = typer.Option(
+    None, "--out", "-o", help="Output .gts path (default: dist/gmeow-full.gts)."
+)
+
+
+@gts_app.command("compile-full")
+def gts_compile_full(
+    out: Path | None = _GTS_FULL_OUT,
+    sign_key: Path | None = typer.Option(  # noqa: B008
+        None, "--sign-key", help="Armored Ed25519 OpenPGP secret key file."
+    ),
+    public_key: Path | None = typer.Option(  # noqa: B008
+        None, "--public-key", help="Armored OpenPGP public key file to embed."
+    ),
+) -> None:
+    """Compile the offline-ready GMEOW full snapshot.
+
+    The registered ``gts-full`` generator already emits an unsigned snapshot to
+    ``generated/dist/gmeow-full.gts``. This command is the release path: it
+    compiles the same snapshot, optionally signs every frame, and embeds the
+    armored transport public key in the first ``meta`` frame.
+
+    When ``--sign-key`` and ``--public-key`` are supplied, the ``kid`` is the
+    OpenPGP fingerprint of the secret key and the public key armor is embedded
+    as the file's transport key.
+    """
+    from gmeow_tools.config import DIST_DIR
+    from gmeow_tools.gts_full_gen import compile_full_snapshot
+
+    signer: gts.Signer | None = None
+    public_key_armor: str | None = None
+    if sign_key is not None or public_key is not None:
+        if sign_key is None or public_key is None:
+            raise _fail("--sign-key and --public-key must be supplied together")
+        try:
+            secret_armor = sign_key.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise _fail(f"cannot read --sign-key {sign_key}: {exc}") from exc
+        try:
+            public_key_armor = public_key.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise _fail(f"cannot read --public-key {public_key}: {exc}") from exc
+        try:
+            signer = gts.Signer.from_gpg_secret_key(secret_armor)
+        except Exception as exc:
+            raise _fail(f"cannot load signer from {sign_key}: {exc}") from exc
+
+    data = compile_full_snapshot(signer=signer, public_key_armor=public_key_armor)
+    target = out or (DIST_DIR / "gmeow-full.gts")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        target.write_bytes(data)
+    except OSError as exc:
+        raise _fail(f"cannot write {target}: {exc}") from exc
+    console.print(f"[green]✓[/green] {target} ({len(data)} bytes)")
+    if signer is not None:
+        console.print(f"[green]✓[/green] signed with kid {signer.kid}")
 
 
 @app.command(name="mcp")

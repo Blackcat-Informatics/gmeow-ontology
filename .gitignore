@@ -32,3 +32,8 @@ htmlcov/
 
 # Rust build artifacts
 /target/
+
+# Release signing secrets (public keys live under keys/ and ARE committed).
+keys/*.secret.asc
+keys/*.secret
+keys/*.tmp

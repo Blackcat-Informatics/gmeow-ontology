@@ -33,6 +33,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from gts.codec import CodecUnavailableError
+from gts.openpgp import load_secret_key as _load_gpg_secret_key
+from gts.openpgp import public_key_fingerprint as _gpg_fingerprint
 
 # COSE header labels / algorithm ids (RFC 9052 §3.1, IANA COSE registries).
 _ALG, _KID, _IV = 1, 4, 5
@@ -53,6 +55,16 @@ class Signer:
     def generate(kid: str) -> Signer:
         """Generate a fresh Ed25519 signer (test/dev helper)."""
         return Signer(kid, Ed25519PrivateKey.generate())
+
+    @staticmethod
+    def from_gpg_secret_key(armored: str, kid: str | None = None) -> Signer:
+        """Load an Ed25519 signer from an armored OpenPGP secret key.
+
+        If ``kid`` is omitted, the OpenPGP fingerprint is used.
+        """
+        private = _load_gpg_secret_key(armored)
+        resolved = kid if kid is not None else _gpg_fingerprint(armored)
+        return Signer(resolved, private)
 
     @property
     def public_raw(self) -> bytes:
