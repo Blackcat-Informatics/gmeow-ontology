@@ -16,6 +16,15 @@ writer, COSE signing, N-Quads projection, and the frozen language-neutral
 conformance corpus. A Rust engine implementing the same spec is gated against
 the identical corpus and will ship inside this package as a native wheel.
 
+## Install
+
+```bash
+pip install gmeow-gts
+```
+
+The installed package name is `gmeow-gts`; the import name and CLI binary both
+remain `gts`, and GTS files keep the `.gts` extension.
+
 ## Library
 
 ```python

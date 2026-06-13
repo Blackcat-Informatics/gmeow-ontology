@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Publish gmeow to PyPI
+
+# Manual release of the gmeow five-minute client. This workflow uses PyPI
+# trusted publishing (OIDC); the repository environment `pypi-gmeow` must be
+# configured in the PyPI project before the first run.
+#
+# The client depends on the `gmeow-gts` engine, so `pypi-publish-gmeow-gts.yml`
+# must have completed and the engine package must be live on PyPI before this
+# workflow is triggered.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
+        with:
+          python-version: "3.13"
+
+      - name: Read package version
+        id: version
+        run: |
+          version=$(python -c "import tomllib; print(tomllib.load(open('packages/gmeow/pyproject.toml','rb'))['project']['version'])")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Build gmeow wheel and sdist
+        run: uv build --package gmeow --out-dir dist
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: gmeow-dist
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: pypi-gmeow
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        with:
+          name: gmeow-dist
+          path: dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+
+  smoke:
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      GMEOW_VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
+        with:
+          python-version: "3.13"
+
+      - name: PyPI smoke test — five-minute client quickstart
+        run: python scripts/pypi_smoke.py --version "${GMEOW_VERSION}"

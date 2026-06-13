@@ -23,7 +23,7 @@ dependencies = [
     "blake3>=0.4",
     # the GTS format engine — the publishable workspace member (packages/gts);
     # the range matters for non-workspace installs of downstream packages
-    "gts>=0.1.0,<0.2",
+    "gmeow-gts>=0.1.0,<0.2",
     # the gmeow client (packages/gmeow) — in the dev env so its tests run
     "gmeow>=1.0.1,<2",
 ]
@@ -48,7 +48,7 @@ dev = [
 members = ["packages/gts", "packages/gmeow"]
 
 [tool.uv.sources]
-gts = { workspace = true }
+gmeow-gts = { workspace = true }
 gmeow = { workspace = true }
 
 [build-system]
