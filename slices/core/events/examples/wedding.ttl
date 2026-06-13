@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an event on the four orthogonal axes (#443). A wedding has a
+# TYPE (eventTypeMarriage), a temporal placement carried in an EXPLICIT frame
+# (P11: the instant is meaningless without its TemporalFrame), and a LOCATION —
+# three independent axes. The fourth axis is participation: most attendees ride
+# the flat gmeow:hasParticipant (the 80% case), but the principals and the
+# officiant are promoted to reified gmeow:Participation relators so their ROLES
+# are recorded — the reify-on-demand idiom shared with NameUsage.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:wedding a gmeow:Event ;
+    rdfs:label "the marriage of Alex and Sam"@en ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:eventTime "2026-06-20T15:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventLocation ex:chapel ;
+    # Flat participation for the witnesses — no role/period/evidence needed here.
+    gmeow:hasParticipant ex:alex , ex:sam , ex:officiant , ex:witnessA , ex:witnessB .
+
+ex:chapel a gmeow:Place ; gmeow:name "Rosewood Chapel" .
+
+ex:alex a gmeow:Person ; gmeow:name "Alex Mercer" .
+ex:sam a gmeow:Person ; gmeow:name "Sam Okonkwo" .
+ex:officiant a gmeow:Person ; gmeow:name "Rev. Dana Pike" .
+ex:witnessA a gmeow:Person ; gmeow:name "Jordan Vance" .
+ex:witnessB a gmeow:Person ; gmeow:name "Priya Raman" .
+
+# --- Reified participations: the two principals and the officiant, with roles.
+#     A withdrawn or disputed role would coexist as another Participation
+#     (displayable false, or standpoint-indexed) — never overwritten (P9/P10).
+ex:partAlex a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:alex ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+
+ex:partSam a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:sam ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+
+ex:partOfficiant a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:officiant ;
+    gmeow:participationRole gmeow:roleOfficiant .
