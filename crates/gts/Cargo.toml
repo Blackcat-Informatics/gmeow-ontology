@@ -2,12 +2,18 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [package]
-name = "gts"
+name = "gmeow-gts"
 description = "GTS (Graph Transport Substrate) format engine: CBOR-sequence append-only RDF 1.2 log reader, folder, and verifier"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+
+# The package is named gmeow-gts on crates.io, but the CLI binary keeps the
+# shorter `gts` name for ergonomics.
+[[bin]]
+name = "gts"
+path = "src/bin/gts.rs"
 
 [dependencies]
 blake3 = "1"

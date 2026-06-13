@@ -140,7 +140,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gts"
+name = "gmeow-gts"
 version = "0.1.0"
 dependencies = [
  "blake3",
