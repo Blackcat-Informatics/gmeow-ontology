@@ -870,6 +870,15 @@
                   "null"
                 ]
               },
+              "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "telephone": {
                 "items": {
                   "type": "string"
@@ -11437,6 +11446,15 @@
               "ownerOf": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "slogan": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -69016,6 +69034,12 @@
                   "null"
                 ]
               },
+              "currencyCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "depictedIn": {
                 "items": {
                   "$ref": "#/$defs/MediaObject"
@@ -75729,6 +75753,12 @@
                   "null"
                 ]
               },
+              "currencyCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "depictedIn": {
                 "items": {
                   "$ref": "#/$defs/MediaObject"
@@ -81170,6 +81200,12 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "currencyCode": {
+                "type": [
+                  "string",
                   "null"
                 ]
               },
@@ -88379,6 +88415,24 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "acceptsCurrency": {
+                "items": {
+                  "$ref": "#/$defs/ReferenceFrame"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "acceptsPaymentMethod": {
+                "items": {
+                  "$ref": "#/$defs/PaymentMethod"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "email": {
                 "items": {
                   "type": "string"
@@ -88616,6 +88670,24 @@
               "ownerOf": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "priceRange": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "slogan": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -92859,6 +92931,15 @@
               "sexAssignedAtBirth": {
                 "items": {
                   "$ref": "#/$defs/SexAssignedAtBirth"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "slogan": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -108830,6 +108911,12 @@
                   "null"
                 ]
               },
+              "currencyCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "depictedIn": {
                 "items": {
                   "$ref": "#/$defs/MediaObject"
@@ -119719,6 +119806,15 @@
                   "null"
                 ]
               },
+              "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "telephone": {
                 "items": {
                   "type": "string"
@@ -127643,6 +127739,15 @@
               "ownerOf": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "slogan": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -140485,6 +140590,12 @@
                   "null"
                 ]
               },
+              "currencyCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "depictedIn": {
                 "items": {
                   "$ref": "#/$defs/MediaObject"
@@ -146722,6 +146833,12 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "currencyCode": {
+                "type": [
+                  "string",
                   "null"
                 ]
               },

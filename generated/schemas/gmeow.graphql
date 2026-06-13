@@ -2773,6 +2773,7 @@ type Agent
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    slogan: [String]
     telephone: [String]
   }
 
@@ -4052,6 +4053,7 @@ type Builder
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    slogan: [String]
     telephone: [String]
   }
 
@@ -11072,6 +11074,7 @@ type MentalReferenceFrame
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    currencyCode: String
     determinacyModel: Determinacy
     dimensionCount: Int
     frameKind: FrameKind
@@ -11873,6 +11876,7 @@ type MusicalTimeFrame
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    currencyCode: String
     determinacyModel: Determinacy
     dimensionCount: Int
     frameKind: FrameKind
@@ -12521,6 +12525,7 @@ type NarrativeTimeFrame
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    currencyCode: String
     determinacyModel: Determinacy
     dimensionCount: Int
     frameKind: FrameKind
@@ -13359,7 +13364,10 @@ type Organization
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    slogan: [String]
     telephone: [String]
+    acceptsCurrency: [ReferenceFrame]
+    acceptsPaymentMethod: [PaymentMethod]
     foundedBy: [Agent]
     hasMember: [Agent]
     hasOrganizationName: [OrganizationName]
@@ -13368,6 +13376,7 @@ type Organization
     legalIdentifier: [Identifier]
     organizationPurpose: [String]
     organizationType: [OrganizationType]
+    priceRange: [String]
     subOrganizationOf: [Organization]
   }
 
@@ -13790,6 +13799,7 @@ type Person
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    slogan: [String]
     telephone: [String]
     hasAncestor: [Person]
     hasChild: [Person]
@@ -15815,6 +15825,7 @@ type ReferenceFrame
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    currencyCode: String
     determinacyModel: Determinacy
     dimensionCount: Int
     frameKind: FrameKind
@@ -17009,6 +17020,7 @@ type Sensor
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    slogan: [String]
     telephone: [String]
   }
 
@@ -18028,6 +18040,7 @@ type SoftwareAgent
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    slogan: [String]
     telephone: [String]
   }
 
@@ -19606,6 +19619,7 @@ type TemporalFrame
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    currencyCode: String
     determinacyModel: Determinacy
     dimensionCount: Int
     frameKind: FrameKind
@@ -20356,6 +20370,7 @@ type TuningSystem
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    currencyCode: String
     determinacyModel: Determinacy
     dimensionCount: Int
     frameKind: FrameKind

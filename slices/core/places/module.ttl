@@ -1482,6 +1482,7 @@ gmeow:referenceFrameSI skos:definition "The si reference frame — a named coord
 gmeow:referenceFrameUSD
     a gmeow:ReferenceFrame ;
     rdfs:label "US Dollar Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "USD" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1494,6 +1495,7 @@ gmeow:referenceFrameUSD skos:definition "The usd reference frame — a named coo
 gmeow:referenceFrameEUR
     a gmeow:ReferenceFrame ;
     rdfs:label "Euro Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "EUR" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1506,6 +1508,7 @@ gmeow:referenceFrameEUR skos:definition "The eur reference frame — a named coo
 gmeow:referenceFrameGBP
     a gmeow:ReferenceFrame ;
     rdfs:label "British Pound Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "GBP" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1518,6 +1521,7 @@ gmeow:referenceFrameGBP skos:definition "The gbp reference frame — a named coo
 gmeow:referenceFrameJPY
     a gmeow:ReferenceFrame ;
     rdfs:label "Japanese Yen Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "JPY" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1530,6 +1534,7 @@ gmeow:referenceFrameJPY skos:definition "The jpy reference frame — a named coo
 gmeow:referenceFrameCAD
     a gmeow:ReferenceFrame ;
     rdfs:label "Canadian Dollar Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "CAD" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1542,6 +1547,7 @@ gmeow:referenceFrameCAD skos:definition "The cad reference frame — a named coo
 gmeow:referenceFrameCHF
     a gmeow:ReferenceFrame ;
     rdfs:label "Swiss Franc Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "CHF" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1554,6 +1560,7 @@ gmeow:referenceFrameCHF skos:definition "The chf reference frame — a named coo
 gmeow:referenceFrameAUD
     a gmeow:ReferenceFrame ;
     rdfs:label "Australian Dollar Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "AUD" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1566,6 +1573,7 @@ gmeow:referenceFrameAUD skos:definition "The aud reference frame — a named coo
 gmeow:referenceFrameCNY
     a gmeow:ReferenceFrame ;
     rdfs:label "Chinese Yuan Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "CNY" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1578,6 +1586,7 @@ gmeow:referenceFrameCNY skos:definition "The cny reference frame — a named coo
 gmeow:referenceFrameBTC
     a gmeow:ReferenceFrame ;
     rdfs:label "Bitcoin Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "BTC" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1590,6 +1599,7 @@ gmeow:referenceFrameBTC skos:definition "The btc reference frame — a named coo
 gmeow:referenceFrameETH
     a gmeow:ReferenceFrame ;
     rdfs:label "Ethereum Currency Reference Frame"@x-gmeow-english ;
+    gmeow:currencyCode "ETH" ;
     gmeow:frameRealm gmeow:frameRealmCurrency ;
     gmeow:hasAxis gmeow:axisScalar ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -1808,6 +1818,14 @@ gmeow:frameRealm
     rdfs:range gmeow:FrameRealm ;
     rdfs:label "frame realm"@x-gmeow-english ;
     skos:definition "Relates a reference frame to the realm it describes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:currencyCode
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range xsd:string ;
+    rdfs:label "currency code"@x-gmeow-english ;
+    skos:definition "The canonical short code of a currency reference frame (a member of gmeow:frameRealmCurrency) — the ISO 4217 alphabetic code for fiat currencies (USD, EUR, CAD …) and the conventional ticker for cryptocurrencies (BTC, ETH). Functional: one canonical code per frame. Lets a currency project to schema:currenciesAccepted and other code-bearing consumer terms."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:hasAxis

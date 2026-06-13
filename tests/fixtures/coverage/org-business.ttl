@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Organization commercial/business facet (#449): a business with the schema:Org
+# commercial properties — slogan, price range, accepted payment methods and
+# currencies, and a tax identifier (via the Identifier facet, scheme "tax").
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/orgbiz/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:acme a gmeow:Organization ;
+    rdfs:label "Acme Co"@x-gmeow-english ;
+    gmeow:slogan "We make everything"@x-gmeow-english ;
+    gmeow:priceRange "$$$" ;
+    gmeow:acceptsCurrency gmeow:referenceFrameUSD , gmeow:referenceFrameCAD ;
+    gmeow:acceptsPaymentMethod gmeow:paymentMethodCash ;
+    gmeow:hasIdentifier ex:acme-tax .
+
+ex:acme-tax a gmeow:Identifier ;
+    gmeow:identifierValue "12-3456789" ;
+    gmeow:identifierScheme "tax" .

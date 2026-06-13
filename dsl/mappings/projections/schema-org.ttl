@@ -885,6 +885,65 @@ gmeow:mapSchemaIndustryIsic a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "only ISIC-V4-scheme classifications are emitted; NAICS and other schemes are dropped" ] .
 
 # --------------------------------------------------------------------------- #
+# Commercial / business facet — full schema:Organization coverage (#449).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaSlogan a gmeow:ProjectionMapping ;
+    rdfs:label "slogan → schema:slogan"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ag" ; gmeow:value "slg" ;
+        gmeow:atom ( [ gmeow:subjectVar "ag" ; gmeow:predicate gmeow:slogan ; gmeow:objectVar "slg" ] ) ;
+        gmeow:edoalSource gmeow:slogan ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:slogan ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaPriceRange a gmeow:ProjectionMapping ;
+    rdfs:label "priceRange → schema:priceRange"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "pr" ;
+        gmeow:atom ( [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:priceRange ; gmeow:objectVar "pr" ] ) ;
+        gmeow:edoalSource gmeow:priceRange ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:priceRange ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaCurrenciesAccepted a gmeow:ProjectionMapping ;
+    rdfs:label "acceptsCurrency → schema:currenciesAccepted (frame's currencyCode)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "curCode" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:acceptsCurrency ; gmeow:objectVar "curFrame" ]
+            [ gmeow:subjectVar "curFrame" ; gmeow:predicate gmeow:currencyCode ; gmeow:objectVar "curCode" ] ) ;
+        gmeow:edoalSource gmeow:acceptsCurrency ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:currenciesAccepted ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the currency reference frame collapses to its ISO 4217 / ticker code; schema:currenciesAccepted is a free-text code list" ] .
+
+gmeow:mapSchemaPaymentAccepted a gmeow:ProjectionMapping ;
+    rdfs:label "acceptsPaymentMethod → schema:paymentAccepted (method label)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "pmLabel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:acceptsPaymentMethod ; gmeow:objectVar "pm" ]
+            [ gmeow:subjectVar "pm" ; gmeow:predicate rdfs:label ; gmeow:objectVar "pmLabel" ] ) ;
+        gmeow:edoalSource gmeow:acceptsPaymentMethod ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:paymentAccepted ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the PaymentMethod individual collapses to its label text; schema:paymentAccepted is a free-text list" ] .
+
+gmeow:mapSchemaTaxId a gmeow:ProjectionMapping ;
+    rdfs:label "hasIdentifier (tax scheme) → schema:taxID"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "tax" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:hasIdentifier ; gmeow:objectVar "id" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierValue ; gmeow:objectVar "tax" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "tax" ] ) ;
+        gmeow:edoalSource gmeow:hasIdentifier ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:taxID ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "only tax-scheme identifiers are emitted; other schemes are carried by their own cells" ] .
+
+# --------------------------------------------------------------------------- #
 # Issue #263 — Expertise depth: SkillProficiency and Credential projections
 # --------------------------------------------------------------------------- #
 

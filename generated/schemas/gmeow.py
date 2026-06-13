@@ -2644,6 +2644,9 @@ class Agent(ConfiguredBaseModel):
     ownerOf: Optional[list[Entity]] = Field(default=None, title="owner of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/ownerOf'} })
+    slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
@@ -27608,6 +27611,12 @@ class Organization(Agent):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Organization'})
 
+    acceptsCurrency: Optional[list[ReferenceFrame]] = Field(default=None, title="accepts currency", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acceptsCurrency'} })
+    acceptsPaymentMethod: Optional[list[PaymentMethod]] = Field(default=None, title="accepts payment method", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acceptsPaymentMethod'} })
     foundedBy: Optional[list[Agent]] = Field(default=None, title="founded by", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
          'domain_of': ['Organization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/foundedBy'} })
@@ -27632,6 +27641,9 @@ class Organization(Agent):
     organizationType: Optional[list[OrganizationType]] = Field(default=None, title="organization type", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
          'domain_of': ['Organization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/organizationType'} })
+    priceRange: Optional[list[str]] = Field(default=None, title="price range", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/priceRange'} })
     subOrganizationOf: Optional[list[Organization]] = Field(default=None, title="sub-organization of", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
          'domain_of': ['Organization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subOrganizationOf'} })
@@ -27692,6 +27704,9 @@ class Organization(Agent):
     ownerOf: Optional[list[Entity]] = Field(default=None, title="owner of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/ownerOf'} })
+    slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
@@ -28677,6 +28692,9 @@ class Person(Agent):
     ownerOf: Optional[list[Entity]] = Field(default=None, title="owner of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/ownerOf'} })
+    slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
@@ -33398,6 +33416,9 @@ class ReferenceFrame(Entity):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Reference Frame'})
 
+    currencyCode: Optional[str] = Field(default=None, title="currency code", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+         'domain_of': ['ReferenceFrame'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/currencyCode'} })
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
@@ -33600,6 +33621,9 @@ class MentalReferenceFrame(ReferenceFrame):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Mental Reference Frame'})
 
+    currencyCode: Optional[str] = Field(default=None, title="currency code", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+         'domain_of': ['ReferenceFrame'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/currencyCode'} })
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
@@ -33802,6 +33826,9 @@ class MusicalTimeFrame(ReferenceFrame):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Musical Time Frame'})
 
+    currencyCode: Optional[str] = Field(default=None, title="currency code", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+         'domain_of': ['ReferenceFrame'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/currencyCode'} })
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
@@ -34013,6 +34040,9 @@ class NarrativeTimeFrame(ReferenceFrame):
     storyTimeOf: Optional[NarrativeReferenceFrame] = Field(default=None, title="story time of", json_schema_extra = { "linkml_meta": {'domain': 'NarrativeTimeFrame',
          'domain_of': ['NarrativeTimeFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/storyTimeOf'} })
+    currencyCode: Optional[str] = Field(default=None, title="currency code", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+         'domain_of': ['ReferenceFrame'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/currencyCode'} })
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
@@ -38318,6 +38348,9 @@ class Sensor(Agent):
     ownerOf: Optional[list[Entity]] = Field(default=None, title="owner of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/ownerOf'} })
+    slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
@@ -41213,6 +41246,9 @@ class SoftwareAgent(Agent):
     ownerOf: Optional[list[Entity]] = Field(default=None, title="owner of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/ownerOf'} })
+    slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
@@ -41280,6 +41316,9 @@ class Builder(SoftwareAgent):
     ownerOf: Optional[list[Entity]] = Field(default=None, title="owner of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/ownerOf'} })
+    slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
@@ -45944,6 +45983,9 @@ class TemporalFrame(ReferenceFrame):
     frameTimeScale: Optional[TimeScale] = Field(default=None, title="frame time scale", json_schema_extra = { "linkml_meta": {'domain': 'TemporalFrame',
          'domain_of': ['TemporalFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/frameTimeScale'} })
+    currencyCode: Optional[str] = Field(default=None, title="currency code", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+         'domain_of': ['ReferenceFrame'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/currencyCode'} })
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
@@ -48171,6 +48213,9 @@ class TuningSystem(ReferenceFrame):
     tuningKind: Optional[TuningSystemKind] = Field(default=None, title="tuning kind", json_schema_extra = { "linkml_meta": {'domain': 'TuningSystem',
          'domain_of': ['TuningSystem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/tuningKind'} })
+    currencyCode: Optional[str] = Field(default=None, title="currency code", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+         'domain_of': ['ReferenceFrame'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/currencyCode'} })
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
