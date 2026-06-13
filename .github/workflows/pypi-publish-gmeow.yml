@@ -23,6 +23,8 @@ jobs:
     permissions:
       contents: read
       actions: write
+      id-token: write
+      attestations: write
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -66,6 +68,33 @@ jobs:
         run: uv run gmeow gts verify generated/dist/gmeow-full.gts
 
       - run: uv build --package gmeow --out-dir dist
+
+      - name: Attest build provenance
+        id: attest
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        with:
+          subject-path: dist/*
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom-gmeow.spdx.json
+          upload-artifact: false
+
+      - name: Upload attestation bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: attestation-gmeow
+          path: ${{ steps.attest.outputs.bundle-path }}
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: sbom-gmeow
+          path: sbom-gmeow.spdx.json
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: dist-gmeow
