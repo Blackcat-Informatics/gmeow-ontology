@@ -214,10 +214,9 @@ gmeow:PitchCollectionMembershipShape
     ] ;
     sh:property [
         sh:path gmeow:membershipContext ;
-        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "A PitchCollectionMembership may have at most one context." ;
+        sh:message "If provided, membershipContext must be an IRI." ;
     ] ;
     sh:property [
         sh:path gmeow:membershipDegreeIndex ;

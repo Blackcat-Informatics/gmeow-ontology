@@ -74,13 +74,14 @@ def test_pitch_spelling_is_relator() -> None:
     ) in graph
 
 
-def test_collection_kind_is_functional() -> None:
+def test_collection_properties_are_functional() -> None:
     graph = _graph()
-    assert (
-        URIRef(GMEOW + "collectionKind"),
-        RDF.type,
-        OWL.FunctionalProperty,
-    ) in graph
+    for prop in ("collectionKind", "collectionPartOrder"):
+        assert (
+            URIRef(GMEOW + prop),
+            RDF.type,
+            OWL.FunctionalProperty,
+        ) in graph, f"{prop} must be functional"
 
 
 def test_membership_constituents_are_functional() -> None:
@@ -96,6 +97,15 @@ def test_membership_constituents_are_functional() -> None:
             RDF.type,
             OWL.FunctionalProperty,
         ) in graph, f"{prop} must be functional"
+
+
+def test_membership_context_is_not_functional() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "membershipContext"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) not in graph
 
 
 def test_spelling_constituents_are_functional() -> None:
@@ -154,6 +164,40 @@ def test_pitch_collection_membership_missing_collection_fails_shacl() -> None:
     )
 
 
+def test_pitch_collection_membership_missing_pitch_fails_shacl() -> None:
+    g = Graph()
+    g.bind("gmeow", GMEOW)
+    g.bind("ex", EX)
+    membership = EX.membershipNoPitch
+    g.add((membership, RDF.type, GMEOW.PitchCollectionMembership))
+    g.add((membership, GMEOW.membershipCollection, GMEOW.pitchCollectionPCSet027))
+    g.add((membership, GMEOW.membershipRole, GMEOW.collectionMemberRoleMember))
+    result = run_shacl(g)
+    assert not result.ok
+    assert result.errors
+    assert (
+        "A PitchCollectionMembership must name exactly one PitchValue."
+        in _error_text(result)
+    )
+
+
+def test_pitch_collection_membership_missing_role_fails_shacl() -> None:
+    g = Graph()
+    g.bind("gmeow", GMEOW)
+    g.bind("ex", EX)
+    membership = EX.membershipNoRole
+    g.add((membership, RDF.type, GMEOW.PitchCollectionMembership))
+    g.add((membership, GMEOW.membershipCollection, GMEOW.pitchCollectionPCSet027))
+    g.add((membership, GMEOW.membershipPitch, GMEOW.pitchValue12EDOOrigin))
+    result = run_shacl(g)
+    assert not result.ok
+    assert result.errors
+    assert (
+        "A PitchCollectionMembership must declare exactly one CollectionMemberRole."
+        in _error_text(result)
+    )
+
+
 def test_pitch_spelling_valid_passes_shacl() -> None:
     g = Graph()
     g.bind("gmeow", GMEOW)
@@ -162,9 +206,39 @@ def test_pitch_spelling_valid_passes_shacl() -> None:
     g.add((spelling, RDF.type, GMEOW.PitchSpelling))
     g.add((spelling, GMEOW.spellingPitch, GMEOW.pitchValue12EDOCSharp4))
     g.add((spelling, GMEOW.spellingSystem, GMEOW.pitchSpellingSystemCMN))
-    g.add((spelling, GMEOW.spelledName, Literal("X4", datatype=XSD.string)))
+    g.add((spelling, GMEOW.spelledName, Literal("C♯4", datatype=XSD.string)))
     result = run_shacl(g)
     assert result.ok, _error_text(result)
+
+
+def test_pitch_spelling_missing_pitch_fails_shacl() -> None:
+    g = Graph()
+    g.bind("gmeow", GMEOW)
+    g.bind("ex", EX)
+    spelling = EX.spellingNoPitch
+    g.add((spelling, RDF.type, GMEOW.PitchSpelling))
+    g.add((spelling, GMEOW.spellingSystem, GMEOW.pitchSpellingSystemCMN))
+    g.add((spelling, GMEOW.spelledName, Literal("C♯4", datatype=XSD.string)))
+    result = run_shacl(g)
+    assert not result.ok
+    assert result.errors
+    assert "A PitchSpelling must name exactly one PitchValue." in _error_text(result)
+
+
+def test_pitch_spelling_missing_system_fails_shacl() -> None:
+    g = Graph()
+    g.bind("gmeow", GMEOW)
+    g.bind("ex", EX)
+    spelling = EX.spellingNoSystem
+    g.add((spelling, RDF.type, GMEOW.PitchSpelling))
+    g.add((spelling, GMEOW.spellingPitch, GMEOW.pitchValue12EDOCSharp4))
+    g.add((spelling, GMEOW.spelledName, Literal("C♯4", datatype=XSD.string)))
+    result = run_shacl(g)
+    assert not result.ok
+    assert result.errors
+    assert "A PitchSpelling must use exactly one PitchSpellingSystem." in _error_text(
+        result
+    )
 
 
 def test_pitch_spelling_missing_name_fails_shacl() -> None:
@@ -328,10 +402,36 @@ def test_standpoint_memberships_coexist() -> None:
 
 def test_standpoint_memberships_pass_shacl() -> None:
     """The two contested Rast-third memberships both validate individually."""
-    graph = _graph()
-    for membership_iri in (
-        GMEOW.membershipRastThirdArabic,
-        GMEOW.membershipRastThirdTurkish,
-    ):
+    cases = (
+        (
+            GMEOW.membershipRastThirdArabic,
+            GMEOW.pitchValue24EDOEHalfFlat4,
+            GMEOW.standpointArabicTheory,
+        ),
+        (
+            GMEOW.membershipRastThirdTurkish,
+            GMEOW.pitchValue24EDOE4,
+            GMEOW.standpointTurkishTheory,
+        ),
+    )
+    for membership_iri, pitch_iri, standpoint_iri in cases:
+        graph = Graph()
+        graph.bind("gmeow", GMEOW)
+        graph.add((membership_iri, RDF.type, GMEOW.PitchCollectionMembership))
+        graph.add(
+            (membership_iri, GMEOW.membershipCollection, GMEOW.pitchCollectionRastMaqam)
+        )
+        graph.add((membership_iri, GMEOW.membershipPitch, pitch_iri))
+        graph.add(
+            (membership_iri, GMEOW.membershipRole, GMEOW.collectionMemberRoleMember)
+        )
+        graph.add(
+            (
+                membership_iri,
+                GMEOW.membershipDegreeIndex,
+                Literal(2, datatype=XSD.integer),
+            )
+        )
+        graph.add((membership_iri, GMEOW.accordingTo, standpoint_iri))
         result = run_shacl(graph)
         assert result.ok, f"{membership_iri} failed SHACL: " + _error_text(result)

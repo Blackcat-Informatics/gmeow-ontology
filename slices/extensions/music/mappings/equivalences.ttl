@@ -132,15 +132,15 @@ gmeow:eqMu009 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 gmeow:eqMu010 a gmeow:TermEquivalence ;
-    rdfs:label "maqam kind ↔ Wikidata Q12826678"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW maqam PitchCollectionKind value to Wikidata 'Arabic maqam' (Q12826678)."@x-gmeow-english ;
+    rdfs:label "maqam kind ↔ Wikidata Q12826678 (close match)"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW maqam PitchCollectionKind value to Wikidata 'Arabic maqam' (Q12826678); the Wikidata concept is Arabic-only, while the GMEOW value also covers Turkish maqam practice."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     gmeow:alignSubject gmeow:pitchCollectionKindMaqam ;
-    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q12826678 ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'Arabic maqam' (Q12826678)." ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 gmeow:eqMu011 a gmeow:TermEquivalence ;
