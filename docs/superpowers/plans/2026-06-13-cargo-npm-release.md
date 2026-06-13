@@ -14,17 +14,21 @@
 
 **Files:**
 
-- Modify: `crates/gts/Cargo.toml:5`
+- Modify: `crates/gts/Cargo.toml:5` (rename + add explicit `[[bin]]` section)
 - Modify: `Cargo.lock` (regenerate)
-- Modify: `crates/gts/src/bin/gts.rs` (update `use gts::` → `use gmeow_gts::`)
-- Modify: `crates/gts/tests/cli.rs` (update `use gts::` / `gts::` → `gmeow_gts::`)
+- Modify: `crates/gts/src/bin/gts.rs` (update `use gts::` → `use gmeow_gts::`, then `cargo fmt`)
+- Modify: `crates/gts/tests/cli.rs` (update `use gts::` / `gts::` → `use gmeow_gts::`)
 - Modify: `crates/gts/tests/conformance.rs` (update `use gts::` → `use gmeow_gts::`)
 
-- [ ] **Step 1: Update crate name**
+- [ ] **Step 1: Update crate name and declare binary explicitly**
 
   ```toml
   [package]
   name = "gmeow-gts"
+
+  [[bin]]
+  name = "gts"
+  path = "src/bin/gts.rs"
   ```
 
 - [ ] **Step 2: Regenerate lockfile**
@@ -32,12 +36,12 @@
   Run: `cargo update`
   Expected: `Cargo.lock` shows `name = "gmeow-gts"`
 
-- [ ] **Step 3: Verify build and tests still pass**
+- [ ] **Step 3: Verify build, format, and tests pass**
 
-  Run: `cargo test`
-  Expected: all tests pass
+  Run: `cargo test` then `cargo fmt --check`
+  Expected: all tests pass and format gate is clean
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Commit"
 
   ```bash
   git add crates/gts/Cargo.toml crates/gts/src/bin/gts.rs crates/gts/tests/cli.rs crates/gts/tests/conformance.rs Cargo.lock

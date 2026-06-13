@@ -248,7 +248,8 @@ fn stream_vocab_check(seg: &Graph) -> Vec<String> {
             .into_iter()
             .flatten()
             .any(|tid| {
-                term_iri_value(seg, tid).is_some_and(|iri| iri.starts_with(gmeow_gts::stream::STREAM_NS))
+                term_iri_value(seg, tid)
+                    .is_some_and(|iri| iri.starts_with(gmeow_gts::stream::STREAM_NS))
             })
     });
     if uses {
