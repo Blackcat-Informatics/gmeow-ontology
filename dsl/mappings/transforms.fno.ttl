@@ -142,3 +142,134 @@ gmeow:oKnowsAbout       a fno:Output ;     fno:predicate schema:knowsAbout ;    
     rdfs:label "knowsAbout output"@x-gmeow-english ;
     skos:definition "The schema:knowsAbout value emitted for a skill proficiency by the projection."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --- Music / pitch solver (issue #308) -------------------------------------- #
+# Declarative function catalogue for the pitch frame layer.  These are specs;
+# executable implementations (Python/Rust/Go solvers) are issue #319.
+
+gmeow:fnRatioToCents
+    a fno:Function ;
+    rdfs:label "ratio → cents"@x-gmeow-english ;
+    dcterms:description "Converts an exact integer-ratio interval to cents: 1200·log₂(numerator/denominator). The canonical value remains the ratio pair; cents is a lossy projection."@x-gmeow-english ;
+    skos:definition "Converts an exact integer-ratio interval to cents: 1200·log₂(numerator/denominator). The canonical value remains the ratio pair; cents is a lossy projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pRatioNumerator gmeow:pRatioDenominator ) ;
+    fno:returns ( gmeow:oCents ) ;
+    rdfs:seeAlso gmeow:centsFromOrigin .
+
+gmeow:fnPitchToFrequency
+    a fno:Function ;
+    rdfs:label "pitch value + anchor → frequency (Hz)"@x-gmeow-english ;
+    dcterms:description "Maps a frame-relative PitchValue to a physical frequency in Hz using a PitchAnchor. Hz is never asserted directly on a PitchValue; it is always reached through this solver (Principle 11)."@x-gmeow-english ;
+    skos:definition "Maps a frame-relative PitchValue to a physical frequency in Hz using a PitchAnchor. Hz is never asserted directly on a PitchValue; it is always reached through this solver (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pPitchValue gmeow:pPitchAnchor ) ;
+    fno:returns ( gmeow:oFrequency ) ;
+    rdfs:seeAlso gmeow:PitchAnchor .
+
+gmeow:fnConvertTuning
+    a fno:Function ;
+    rdfs:label "convert pitch value to another tuning system"@x-gmeow-english ;
+    dcterms:description "Projects a PitchValue expressed in one TuningSystem into another TuningSystem, returning a new PitchValue (possibly approximate). Notation letters are projections, not inputs."@x-gmeow-english ;
+    skos:definition "Projects a PitchValue expressed in one TuningSystem into another TuningSystem, returning a new PitchValue (possibly approximate). Notation letters are projections, not inputs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pPitchValue gmeow:pTuningSystemTarget ) ;
+    fno:returns ( gmeow:oPitchValue ) ;
+    rdfs:seeAlso gmeow:hasTuningFrame .
+
+gmeow:fnSpectrumToPitchCollection
+    a fno:Function ;
+    rdfs:label "spectrum → pitch collection"@x-gmeow-english ;
+    dcterms:description "Derives a PitchCollection from a Spectrum via peak detection / fundamental estimation. The output is a standpoint-indexed projection of the spectral content (Principle 12)."@x-gmeow-english ;
+    skos:definition "Derives a PitchCollection from a Spectrum via peak detection / fundamental estimation. The output is a standpoint-indexed projection of the spectral content (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pSpectrum ) ;
+    fno:returns ( gmeow:oPitchCollection ) ;
+    rdfs:seeAlso gmeow:derivedFromSpectrum .
+
+# Parameters / outputs (declarative; no bound executor)
+
+gmeow:pRatioNumerator   a fno:Parameter ; fno:predicate gmeow:ratioNumerator ;   fno:type xsd:integer ;  fno:required true ;
+    rdfs:label "ratio numerator input"@x-gmeow-english ;
+    skos:definition "The numerator of the ratio supplied to a pitch solver function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pRatioDenominator a fno:Parameter ; fno:predicate gmeow:ratioDenominator ; fno:type xsd:integer ;  fno:required true ;
+    rdfs:label "ratio denominator input"@x-gmeow-english ;
+    skos:definition "The denominator of the ratio supplied to a pitch solver function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pPitchValue       a fno:Parameter ; fno:predicate gmeow:fnInputPitchValue ;       fno:type gmeow:PitchValue ;      fno:required true ;
+    rdfs:label "pitch value input"@x-gmeow-english ;
+    skos:definition "A frame-relative pitch value supplied to a pitch solver function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pPitchAnchor      a fno:Parameter ; fno:predicate gmeow:fnInputPitchAnchor ;      fno:type gmeow:PitchAnchor ;     fno:required true ;
+    rdfs:label "pitch anchor input"@x-gmeow-english ;
+    skos:definition "A PitchAnchor that supplies the tuning-system degree and frequency for a pitch-to-frequency conversion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pTuningSystemTarget a fno:Parameter ; fno:predicate gmeow:fnInputTuningSystem ;   fno:type gmeow:TuningSystem ;    fno:required true ;
+    rdfs:label "target tuning system input"@x-gmeow-english ;
+    skos:definition "The TuningSystem that a pitch value should be projected into."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pSpectrum         a fno:Parameter ; fno:predicate gmeow:fnInputSpectrum ;         fno:type gmeow:Spectrum ;        fno:required true ;
+    rdfs:label "spectrum input"@x-gmeow-english ;
+    skos:definition "A Spectrum supplied to a spectral-to-pitch derivation function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:oCents            a fno:Output ; fno:predicate gmeow:fnOutputCents ;          fno:type xsd:decimal ;
+    rdfs:label "cents output"@x-gmeow-english ;
+    skos:definition "A logarithmic interval size in cents, produced by fnRatioToCents."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oFrequency        a fno:Output ; fno:predicate gmeow:fnOutputFrequency ;      fno:type xsd:decimal ;
+    rdfs:label "frequency output (Hz)"@x-gmeow-english ;
+    skos:definition "A physical frequency in hertz, produced by fnPitchToFrequency."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oPitchValue       a fno:Output ; fno:predicate gmeow:fnOutputPitchValue ;     fno:type gmeow:PitchValue ;
+    rdfs:label "pitch value output"@x-gmeow-english ;
+    skos:definition "A PitchValue produced by a conversion or derivation function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oPitchCollection  a fno:Output ; fno:predicate gmeow:fnOutputPitchCollection ; fno:type gmeow:PitchCollection ;
+    rdfs:label "pitch collection output"@x-gmeow-english ;
+    skos:definition "A PitchCollection produced by fnSpectrumToPitchCollection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# Declarative argument-role properties for the music functions.
+
+gmeow:fnInputPitchValue        a owl:AnnotationProperty ;
+    rdfs:label "input pitch value"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch value input to a music solver function."@x-gmeow-english ;
+    rdfs:range gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputPitchAnchor       a owl:AnnotationProperty ;
+    rdfs:label "input pitch anchor"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch anchor input to a music solver function."@x-gmeow-english ;
+    rdfs:range gmeow:PitchAnchor ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputTuningSystem      a owl:AnnotationProperty ;
+    rdfs:label "input tuning system"@x-gmeow-english ;
+    skos:definition "FnO argument role: a tuning system input to a music solver function."@x-gmeow-english ;
+    rdfs:range gmeow:TuningSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputSpectrum          a owl:AnnotationProperty ;
+    rdfs:label "input spectrum"@x-gmeow-english ;
+    skos:definition "FnO argument role: a spectrum input to a music solver function."@x-gmeow-english ;
+    rdfs:range gmeow:Spectrum ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputCents            a owl:AnnotationProperty ;
+    rdfs:label "output cents"@x-gmeow-english ;
+    skos:definition "FnO argument role: a cents output of a music solver function."@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputFrequency        a owl:AnnotationProperty ;
+    rdfs:label "output frequency"@x-gmeow-english ;
+    skos:definition "FnO argument role: a frequency output of a music solver function."@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputPitchValue       a owl:AnnotationProperty ;
+    rdfs:label "output pitch value"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch value output of a music solver function."@x-gmeow-english ;
+    rdfs:range gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputPitchCollection  a owl:AnnotationProperty ;
+    rdfs:label "output pitch collection"@x-gmeow-english ;
+    skos:definition "FnO argument role: a pitch collection output of a music solver function."@x-gmeow-english ;
+    rdfs:range gmeow:PitchCollection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
