@@ -127,7 +127,7 @@ def test_memory_persists_across_server_restarts(memory_path: Path) -> None:
     claim = _store("durable belief")
     # Simulate a restart: the helper builds a fresh Memory per call already,
     # so a second read-side call IS a restart; verify against the client too.
-    from gmeow import Memory
+    from gts.examples.agent_memory import Memory
 
     direct = Memory(memory_path)
     assert [c.id for c in direct.claims()] == [claim["id"]]

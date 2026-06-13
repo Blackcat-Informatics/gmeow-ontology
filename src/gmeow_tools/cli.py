@@ -45,6 +45,28 @@ def version() -> None:
 
 
 @app.command()
+def info() -> None:
+    """Show a summary of the bundled GMEOW ontology snapshot."""
+    import gts
+    from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE
+
+    path = GTS_FULL_SNAPSHOT_FILE
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise _fail(f"cannot read bundled ontology: {path}: {exc}") from exc
+    graph = gts.read(data)
+    console.print(
+        f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
+        f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
+        f"{len(graph.annotations)} annotations, {len(graph.blobs)} docs blobs, "
+        f"{len(graph.opaque)} opaque"
+    )
+    for diag in graph.diagnostics:
+        err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
+
+
+@app.command()
 def regenerate(
     names: list[str] | None = typer.Argument(  # noqa: B008
         None,
@@ -63,6 +85,7 @@ def regenerate(
         evals,
         export,
         frame_shapes_gen,
+        gts_full_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -116,6 +139,7 @@ def check_generated(
         evals,
         export,
         frame_shapes_gen,
+        gts_full_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -1005,18 +1029,31 @@ gts_app = typer.Typer(
 app.add_typer(gts_app, name="gts")
 
 
+def _default_gts_file() -> Path:
+    """The bundled full ontology snapshot (offline wheel default)."""
+    from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE
+
+    return GTS_FULL_SNAPSHOT_FILE
+
+
 @gts_app.command("info")
-def gts_info(file: Path) -> None:
+def gts_info(
+    file: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="GTS file to summarise (default: bundled gmeow-full.gts).",
+    ),
+) -> None:
     """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
     import gts
 
+    path = file or _default_gts_file()
     try:
-        data = file.read_bytes()
+        data = path.read_bytes()
     except OSError as exc:
-        raise _fail(f"cannot read {file}: {exc}") from exc
+        raise _fail(f"cannot read {path}: {exc}") from exc
     graph = gts.read(data)
     console.print(
-        f"[bold]{file.name}[/bold]: {len(graph.terms)} terms, "
+        f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
         f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
         f"{len(graph.annotations)} annotations, {len(graph.blobs)} blobs, "
         f"{len(graph.opaque)} opaque"
@@ -1031,14 +1068,21 @@ _GTS_OUT_OPTION = typer.Option(
 
 
 @gts_app.command("to-nq")
-def gts_to_nq(file: Path, out: Path | None = _GTS_OUT_OPTION) -> None:
+def gts_to_nq(
+    file: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="GTS file to project (default: bundled gmeow-full.gts).",
+    ),
+    out: Path | None = _GTS_OUT_OPTION,
+) -> None:
     """Transform a GTS file to N-Quads (§14 of GTS-SPEC.md)."""
     import gts
 
+    path = file or _default_gts_file()
     try:
-        graph = gts.read(file.read_bytes())
+        graph = gts.read(path.read_bytes())
     except OSError as exc:
-        raise _fail(f"cannot read {file}: {exc}") from exc
+        raise _fail(f"cannot read {path}: {exc}") from exc
     text = gts.to_nquads(graph)
     if out is None:
         console.print(text, end="")
@@ -1186,11 +1230,18 @@ def describe(
 
     Composes definition, stereotype, slice + tier, alignments, scope notes,
     examples, and the flat-first/reify-on-demand pairing. Works offline
-    against any .gts file.
+    against any .gts file. Defaults to the repo graph when run inside the
+    checkout; otherwise falls back to the bundled gmeow-full.gts.
     """
     from gmeow_tools.describe import describe as _describe
 
-    text, code = _describe(term, gts)
+    gts_path = gts
+    if gts_path is None:
+        from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, ONTOLOGY_FILE
+
+        if not ONTOLOGY_FILE.exists():
+            gts_path = GTS_FULL_SNAPSHOT_FILE
+    text, code = _describe(term, gts_path)
     console.print(text)
     if code:
         raise typer.Exit(code=code)

@@ -136,7 +136,7 @@ def test_example_answers_which_tool_under_which_invocation() -> None:
 
 
 def test_memory_records_and_reads_tool_calls(tmp_path: Path) -> None:
-    from gmeow import Memory
+    from gts.examples.agent_memory import Memory
 
     mem = Memory(tmp_path / "m.gts")
     claim = mem.store("the spec mandates deterministic encoding")
@@ -158,7 +158,7 @@ def test_memory_records_and_reads_tool_calls(tmp_path: Path) -> None:
 
 
 def test_memory_applies_the_verbatim_or_digest_doctrine(tmp_path: Path) -> None:
-    from gmeow import Memory
+    from gts.examples.agent_memory import Memory
 
     mem = Memory(tmp_path / "m.gts")
     big = "x" * 5000
@@ -174,8 +174,8 @@ def test_mcp_triad_is_the_first_live_producer(
 ) -> None:
     """Dogfood (#390): store/revise record themselves; recall records
     nothing (read path); the stored claim links back via wasGeneratedBy."""
-    from gmeow import Memory
     from gmeow_tools.mcp_server import recall, revise_belief, store_claim
+    from gts.examples.agent_memory import Memory
 
     monkeypatch.setenv("GMEOW_MEMORY_PATH", str(tmp_path / "memory.gts"))
     stored = json.loads(store_claim("tool calls are provenance"))

@@ -27,18 +27,18 @@ native, not bolted on. No incumbent agent-memory product has any of this. The wi
 
 ## 2. The three products
 
-### Product 1 — `gmeow` (PyPI): the five-minute client
+### Product 1 — `gmeow` (PyPI): the ontology toolchain
 
-A thin, pure-Python client. No Docker, no Jena, no reasoner, no RDF knowledge required
-(Principle 13). The publisher account exists; naming claimed: **`gmeow`** (client, the package
-people type), with extras `gmeow[mcp]` (serve tools) and `gmeow[rdf]` (rdflib interop for those
-who want the engine room).
+The package people type: **`gmeow`** installs the full ontology tooling (`gmeow`
+CLI), including validation, reasoning, documentation generation, and publication
+workflows. It depends on the engine package `gmeow-gts`, which also ships a
+runnable agent-memory example demonstrating the GTS ai-package profile.
 
 The quickstart that *is* the product pitch:
 
 ```python
-# pip install gmeow            — to first claim in under five minutes (P13 gate)
-from gmeow import Memory
+# pip install gmeow-gts        — to first claim in under five minutes (P13 gate)
+from gts.examples.agent_memory import Memory
 
 mem = Memory("assistant.gts")                      # a GTS ai-package on disk
 
@@ -106,9 +106,10 @@ framing does not survive alongside the new one.
 ## 4. v0.2.0 deliverables
 
 **D1 — `gmeow` on PyPI** *(new issue)*
-`Memory` API over GTS ai-package; typed claims via generated Pydantic; flat-JSON wire shape;
-`gmeow[mcp]`, `gmeow[rdf]` extras; quickstart doc. **Gate:** the five-minute
-time-to-first-claim test runs in CI (P13).
+The ontology toolchain (`gmeow` CLI) published as `gmeow`. The GTS engine ships as
+`gmeow-gts`, including a runnable `gts.examples.agent_memory` example over the
+GTS ai-package profile. **Gate:** the example's time-to-first-claim test runs in
+CI (P13).
 
 **D2 — Grounded-memory MCP server** *(extends #54's facet G; new issue for the triad + docs)*
 `store_claim` / `recall` / `revise_belief`; `docs/mcp-server.md`; onboarding snippet.
@@ -166,7 +167,7 @@ now carrying D7) continues in parallel as planned — it is what makes fast move
 - The constitution amendment and this spec merge in the same PR (the amendment process
   requires design change and amending PR to ship together — this document is that design
   change).
-- Success criteria for the release, falsifiable: (1) the five-minute gate passes in CI;
-  (2) a stranger can go from PyPI to a recalled claim using only the quickstart;
+- Success criteria for the release, falsifiable: (1) the `gmeow-gts` example gate passes in CI;
+  (2) a stranger can go from PyPI (`gmeow-gts`) to a recalled claim using only the quickstart;
   (3) one signed `ai-package` worked example ships; (4) the MCP server is documented and
   installable in one config line.

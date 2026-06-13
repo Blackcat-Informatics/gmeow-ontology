@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
-"""Grounded agent memory over a GTS ai-package (#296, Principle 13).
+"""Grounded agent memory over a GTS ai-package — a runnable example.
 
 A :class:`Memory` is an append-only store of CLAIMS. Under the hood every
 claim is a genuinely reified RDF 1.2 statement — a ``(subject rdf:value
@@ -12,13 +12,20 @@ file by plain byte-append — crash-safe (a torn append is detected and
 ignored, never corrupting prior knowledge), and the file is a valid,
 ``gts verify``-able package at every moment of its life.
 
-Revision is supersession, never deletion (Principle 10): ``revise`` appends
-a suppression of the assertion plus an audit-trail derivation link; the
-original bytes remain present, hash-linked, and recoverable.
+Revision is supersession, never deletion: ``revise`` appends a suppression
+of the assertion plus an audit-trail derivation link; the original bytes
+remain present, hash-linked, and recoverable.
+
+Run this example after installing ``gmeow-gts``::
+
+    pip install gmeow-gts
+    python -m gts.examples.agent_memory
+
 """
 
 from __future__ import annotations
 
+import contextlib
 import datetime as _dt
 import math
 import uuid
@@ -43,7 +50,7 @@ _SOURCE_LOCATION = _GMEOW + "sourceLocation"
 _WAS_DERIVED_FROM = _GMEOW + "wasDerivedFrom"
 _DCT_CREATED = "http://purl.org/dc/terms/created"
 
-# Agentic tool-call provenance (#390): the agent's ACTIONS join the same
+# Agentic tool-call provenance: the agent's ACTIONS join the same
 # provenance graph as its claims.
 _TOOL_CALL = _GMEOW + "ToolCall"
 _SOFTWARE_AGENT = _GMEOW + "SoftwareAgent"
@@ -53,7 +60,7 @@ _TOOL_RESULT = _GMEOW + "toolResult"
 _CALLED_BY_INVOCATION = _GMEOW + "calledByInvocation"
 _WAS_GENERATED_BY = _GMEOW + "wasGeneratedBy"
 
-#: Verbatim-or-digest doctrine (#390): payloads beyond this many UTF-8 bytes
+#: Verbatim-or-digest doctrine: payloads beyond this many UTF-8 bytes
 #: are stored as a content digest literal ("blake3:…") instead of the bytes —
 #: the digest IS the value, self-describing by prefix.
 _INLINE_PAYLOAD_BUDGET = 4096
@@ -75,14 +82,14 @@ class Claim:
     according_to: str | None = None
     source: str | None = None
     created: str | None = None
-    #: True when a later revision suppressed this assertion (P10: it remains
+    #: True when a later revision suppressed this assertion (it remains
     #: in the package and is recoverable with ``include_suppressed=True``).
     suppressed: bool = False
 
 
 @dataclass(frozen=True)
 class ToolCallRecord:
-    """One recorded tool call — the agent's action as provenance (#390)."""
+    """One recorded tool call — the agent's action as provenance."""
 
     #: The call IRI — the node produced entities link back to.
     id: str
@@ -94,7 +101,7 @@ class ToolCallRecord:
     invocation: str | None = None
     created: str | None = None
     #: IRIs of entities that link back to this call via gmeow:wasGeneratedBy
-    #: (P5: the produced entity points at the call, never the other way).
+    #: (the produced entity points at the call, never the other way).
     generated: tuple[str, ...] = ()
 
 
@@ -187,7 +194,7 @@ class Memory:
         reason: str | None = None,
         superseded_by: Claim | str | None = None,
     ) -> None:
-        """Suppress a claim, optionally recording its successor (P10).
+        """Suppress a claim, optionally recording its successor.
 
         Appends a segment that suppresses the assertion BY VALUE (the §3.1
         union re-interns the assertion IRI, so the suppression reaches the
@@ -217,17 +224,16 @@ class Memory:
         invocation: str | None = None,
         generated: tuple[str, ...] | list[str] = (),
     ) -> ToolCallRecord:
-        """Append one tool-call provenance record (#390).
+        """Append one tool-call provenance record.
 
         The call is plain quads in its own segment: a ``gmeow:ToolCall``
         with its tool agent (``gmeow:usedTool``), verbatim payloads
         (``gmeow:toolArguments``/``gmeow:toolResult`` — beyond the inline
         budget, a content digest literal stands in for the bytes), the
         requesting invocation when known, and a ``gmeow:wasGeneratedBy``
-        BACKLINK from every IRI in ``generated`` (P5: produced entities
-        point at the call, never the other way). Claims and tool calls
-        ride the same append-only package — the agent's actions ARE
-        grounded memory.
+        BACKLINK from every IRI in ``generated`` (produced entities point
+        at the call, never the other way). Claims and tool calls ride the
+        same append-only package — the agent's actions ARE grounded memory.
         """
         # Normalize once, then persist the normalized forms — whitespace-
         # padded IRIs must never reach the package.
@@ -319,7 +325,7 @@ class Memory:
 
     @staticmethod
     def _inline_or_digest(payload: str | None) -> str | None:
-        """The verbatim-or-digest doctrine (#390): big payloads become digests."""
+        """The verbatim-or-digest doctrine: big payloads become digests."""
         if payload is None:
             return None
         data = payload.encode("utf-8")
@@ -327,7 +333,7 @@ class Memory:
             return payload
         return "blake3:" + blake3_256(data).hex()
 
-    # -- read side ----------------------------------------------------------
+    # -- read side ------------------------------------------------------------
 
     def recall(
         self,
@@ -391,7 +397,7 @@ class Memory:
         return out
 
     def tool_calls(self) -> list[ToolCallRecord]:
-        """Every recorded tool call in the package, in storage order (#390)."""
+        """Every recorded tool call in the package, in storage order."""
         if not self._path.exists():
             return []
         g = read(self._path.read_bytes())
@@ -439,10 +445,10 @@ class Memory:
         g = read(self._path.read_bytes())
         return [f"{d.code}: {d.detail}" for d in g.diagnostics]
 
-    # -- interop (extras) ---------------------------------------------------
+    # -- interop (extras) ----------------------------------------------------
 
     def to_rdflib(self) -> Dataset:
-        """Return the folded graph as an ``rdflib.Dataset`` (needs gmeow[rdf]).
+        """Return the folded graph as an ``rdflib.Dataset`` (needs gmeow-gts[rdf]).
 
         An explicitly LOSSY projection to RDF 1.1: rdflib does not parse
         RDF 1.2 quoted-triple terms, so the ``rdf:reifies <<( … )>>``
@@ -454,7 +460,7 @@ class Memory:
         try:
             from rdflib import Dataset
         except ImportError as exc:  # pragma: no cover
-            msg = "rdflib interop needs the extra: pip install 'gmeow[rdf]'"
+            msg = "rdflib interop needs the extra: pip install 'gmeow-gts[rdf]'"
             raise ImportError(msg) from exc
         from gts import to_nquads
 
@@ -498,3 +504,45 @@ class Memory:
             if pred is not None and value is not None:
                 out.setdefault(rid, {})[pred] = value
         return out
+
+
+def demo() -> None:
+    """Run the README quickstart in a temporary file."""
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(suffix=".gts", delete=False) as fh:
+        path = fh.name
+
+    try:
+        mem = Memory(path)
+        claim = mem.store(
+            "Patrick prefers explicit error handling over exceptions-as-flow",
+            source="conversation 2026-06-10",
+            confidence=0.8,
+            according_to="claude-fable-5",
+        )
+        print("stored:", claim.text)
+
+        hits = mem.recall("error handling preferences", min_confidence=0.5)
+        print("recall:", [h.text for h in hits])
+
+        mem.revise(
+            claim,
+            reason="user stated the opposite for scripts",
+            superseded_by=mem.store(
+                "For one-off scripts Patrick is fine with exceptions-as-flow",
+                confidence=0.9,
+                according_to="claude-fable-5",
+            ),
+        )
+        print("current:", [c.text for c in mem.recall("error handling")])
+        all_claims = mem.recall("error handling", include_suppressed=True)
+        print("history:", [c.text for c in all_claims])
+        print("verify:", mem.verify())
+    finally:
+        with contextlib.suppress(OSError):
+            Path(path).unlink()
+
+
+if __name__ == "__main__":
+    demo()
