@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the four agent sortals (#443). A small consultancy, two of its
+# people, an informal working group, and its CI bot — each a distinct gufo:Kind
+# beneath the kernel's gmeow:Agent. The flat naming tier (gmeow:name) carries the
+# 80% case here; anything that needs structure — a reified PersonName, a contact
+# point, a location — attaches to these Kinds from its own slice (the entities
+# slice stays deliberately thin). Person ⟂ Organization ⟂ SoftwareAgent are
+# pairwise disjoint (a human is never a bot); Group is deliberately NOT disjoint
+# (a structured organization is arguably also a group, P9).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/entities/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Organization: the flat name/description tier. A structured web presence
+#     (gmeow:hasWebPage → a WEMI gmeow:WebPage) is shown in the documents example;
+#     here the flat tier carries it.
+ex:blackcat a gmeow:Organization ;
+    gmeow:name "Blackcat Informatics Inc." ;
+    gmeow:description "A small ontology and tooling consultancy." .
+
+# --- People: gmeow:Person, the identity-supplying sortal everything else anchors
+#     to. Flat names suffice for the example; a contested or multilingual name
+#     would promote to the names slice's reified PersonName.
+ex:mara a gmeow:Person ;
+    gmeow:name "Mara Okafor" ;
+    gmeow:description "Backend engineer; maintains the release pipeline." .
+
+ex:tomas a gmeow:Person ;
+    gmeow:name "Tomáš Novák" .
+
+# --- Group: a collection of agents treated as a unit WITHOUT the formal
+#     structure of an organization. Sub-organization decomposition would instead
+#     use gmeow:subOrganizationOf in the organization slice.
+ex:platformTeam a gmeow:Group ;
+    gmeow:name "Platform team" ;
+    gmeow:description "An informal cross-functional working group, not a legal sub-organization." .
+
+# --- SoftwareAgent: a process acting on behalf of an organization. Disjoint with
+#     Person; the "acts on behalf of" delegation is a provenance-layer relation,
+#     not subclassing.
+ex:ciBot a gmeow:SoftwareAgent ;
+    gmeow:name "blackcat-ci" ;
+    gmeow:description "The CI build agent that runs Blackcat's release pipeline." .
