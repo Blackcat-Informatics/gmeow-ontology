@@ -81,6 +81,17 @@ For `rdflib` interop, install the optional `rdf` extra:
 pip install 'gmeow-gts[rdf]'
 ```
 
+## Verifying the build
+
+Wheels and sdists for `gmeow-gts` are built in GitHub Actions and signed with GitHub
+artifact attestations. After downloading a package from PyPI, verify it with:
+
+```bash
+gh attestation verify <path-to-wheel-or-sdist> --repo Blackcat-Informatics/gmeow-ontology
+```
+
+An SPDX SBOM is also generated for each release and attached as a workflow artifact.
+
 ## License
 
 Apache-2.0. © Blackcat Informatics® Inc.
