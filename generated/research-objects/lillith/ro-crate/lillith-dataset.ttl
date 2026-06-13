@@ -5,6 +5,7 @@
 
 ex:lillith-ingest a gmeow:ImportActivity ;
     rdfs:label "lillith corpus ingest"@en ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:ingestedAt "2026-06-01T09:00:00+00:00"^^xsd:dateTime .
 
 ex:pipeline-run a gmeow:BuildActivity ;
@@ -12,6 +13,7 @@ ex:pipeline-run a gmeow:BuildActivity ;
     gmeow:buildConfigUri "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml" ;
     gmeow:buildOutput ex:lillith-crate ;
     gmeow:buildSource ex:pipeline-repo ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:eventTime "2026-06-02T08:00:00+00:00"^^xsd:dateTime ;
     gmeow:hasParticipant ex:pipeline-runner .
 

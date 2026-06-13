@@ -79,13 +79,17 @@ def load_graph_from_gts(path: Path) -> Graph:
         for line in to_nquads(payload).splitlines()
         if "<<(" not in line and ")>>" not in line
     ]
-    from rdflib import ConjunctiveGraph
+    from rdflib import Dataset
 
-    ds = ConjunctiveGraph()
+    # Dataset (not the deprecated ConjunctiveGraph); flatten every quad's triple
+    # into a plain Graph via quads(). NB: rdflib's own nquads parser internally
+    # touches the deprecated Dataset.default_context — an upstream self-
+    # deprecation we cannot avoid here; it is filtered in pyproject.
+    ds = Dataset()
     ds.parse(data="\n".join(lines), format="nquads")
     graph = Graph()
-    for triple in ds.triples((None, None, None)):
-        graph.add(triple)
+    for s, p, o, _ctx in ds.quads((None, None, None, None)):
+        graph.add((s, p, o))
     return graph
 
 

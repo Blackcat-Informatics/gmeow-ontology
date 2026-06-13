@@ -2672,7 +2672,7 @@ export interface Appraisal extends Observation {
     appraisalDimension?: AppraisalDimension[],
     appraisalOf?: string,
     appraisalQuality?: AestheticQuality[],
-    appraisalValue?: string[],
+    appraisalValue?: number[],
 }
 
 
@@ -2715,7 +2715,7 @@ export interface Article extends Work {
 export interface Assessment extends Observation {
     assessmentCriterion?: Criterion,
     assessmentRubric?: Rubric,
-    assessmentScoreValue?: string,
+    assessmentScoreValue?: number,
     assessmentTarget?: string,
 }
 
@@ -2956,7 +2956,7 @@ export interface CausalLink {
     linkConsequent?: EventType,
     linkMechanism?: string[],
     linkNext?: CausalLink[],
-    linkStrength?: string[],
+    linkStrength?: number[],
 }
 
 
@@ -2967,9 +2967,9 @@ export interface CausalModality {
 
 
 export interface CelestialCoordinates {
-    celestialEpoch?: string[],
-    declination?: string[],
-    rightAscension?: string[],
+    celestialEpoch?: number[],
+    declination?: number[],
+    rightAscension?: number[],
 }
 
 
@@ -4010,9 +4010,9 @@ export interface Genre extends InformationObject {
 
 
 export interface GeoCoordinates extends Entity {
-    elevation?: string[],
-    latitude?: string[],
-    longitude?: string[],
+    elevation?: number[],
+    latitude?: number[],
+    longitude?: number[],
 }
 
 
@@ -4100,7 +4100,7 @@ export interface Holding {
     holdingAsset?: Asset,
     holdingCostBasis?: MonetaryAmount,
     holdingPeriod?: TimeInterval[],
-    holdingQuantity?: string,
+    holdingQuantity?: number,
 }
 
 
@@ -4587,7 +4587,7 @@ export interface MediaObject extends Manifestation {
     depicts?: Entity[],
     hasExifTag?: ExifTag[],
     hasRegion?: ImageRegion[],
-    imageOrientation?: string,
+    imageOrientation?: number,
     pixelHeight?: number,
     pixelWidth?: number,
 }
@@ -4722,8 +4722,8 @@ export interface ModelCard extends InformationObject {
 export interface ModelInvocation extends Activity {
     hasPrompt?: Prompt[],
     samplingMaxTokens?: number[],
-    samplingTemperature?: string[],
-    samplingTopP?: string[],
+    samplingTemperature?: number[],
+    samplingTopP?: number[],
     usedModel?: SoftwareAgent,
 }
 
@@ -4731,7 +4731,7 @@ export interface ModelInvocation extends Activity {
 
 export interface MonetaryAmount extends Entity {
     currency?: ReferenceFrame,
-    monetaryValue?: string,
+    monetaryValue?: number,
 }
 
 
@@ -4953,7 +4953,7 @@ export interface ObservableProperty {
 
 
 export interface Observation {
-    credibilityScore?: string[],
+    credibilityScore?: number[],
     facetSubject?: Person[],
     facetVantage?: Agent[],
     observationEvent?: Event[],
@@ -5208,7 +5208,7 @@ export interface PhysicalObject extends Entity {
 
 export interface PitchAnchor extends Entity {
     anchorDegree?: number,
-    anchorFrequency?: string,
+    anchorFrequency?: number,
     pitchAnchorOf?: TuningSystem,
 }
 
@@ -5238,7 +5238,7 @@ export interface PitchCollectionMembership {
 
 
 export interface PitchExpression extends Entity {
-    centsFromOrigin?: string,
+    centsFromOrigin?: number,
     hasTuningFrame?: TuningSystem[],
     ratioDenominator?: number,
     ratioNumerator?: number,
@@ -5744,14 +5744,14 @@ export interface SMIMESignature extends CryptographicSignature {
 
 
 export interface ScalarQuantity extends Entity {
-    quantityUncertainty?: string,
-    quantityValue?: string,
+    quantityUncertainty?: number,
+    quantityValue?: number,
 }
 
 
 
 export interface SceneGraphEdge {
-    sceneConfidence?: string,
+    sceneConfidence?: number,
     sceneObject?: ImageRegion,
     sceneRelation?: SceneRelationType,
     sceneSubject?: ImageRegion,
@@ -5776,8 +5776,8 @@ export interface ScheduleException {
 export interface ScoreAnchor extends InformationObject {
     anchorExemplar?: Exemplar[],
     anchorMeaning?: string[],
-    anchorRangeMax?: string,
-    anchorRangeMin?: string,
+    anchorRangeMax?: number,
+    anchorRangeMin?: number,
 }
 
 
@@ -5788,9 +5788,9 @@ export interface ScoreEdition extends Manifestation {
 
 
 export interface ScoreScale extends InformationObject {
-    scaleMax?: string,
-    scaleMin?: string,
-    scaleStep?: string,
+    scaleMax?: number,
+    scaleMin?: number,
+    scaleStep?: number,
 }
 
 
@@ -6081,7 +6081,7 @@ export interface Standpoint extends Entity {
 
 
 export interface StandpointClaim extends Observation {
-    argumentAcceptability?: string[],
+    argumentAcceptability?: number[],
     claimModality?: StandpointModality,
     claimVeridicality?: ClaimVeridicality[],
 }
@@ -6219,11 +6219,11 @@ export interface TemporalFrame extends ReferenceFrame {
 
 
 export interface TemporalMeasurement extends Measurement {
-    measuredAge?: string,
+    measuredAge?: number,
     measuredDate?: Instant,
     measurementDeterminacy?: Determinacy[],
     measurementMethod?: DatingMethod,
-    measurementUncertainty?: string,
+    measurementUncertainty?: number,
 }
 
 

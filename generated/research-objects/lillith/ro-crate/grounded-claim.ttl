@@ -93,6 +93,8 @@ ex:claim-close-2300 a gmeow:StandpointClaim ;
 ex:east-wing gmeow:validUntil "2026-12-31T22:00:00+00:00"^^xsd:dateTime .
 
 ex:invocation-19 a gmeow:ModelInvocation ;
+    gmeow:atTime "2026-05-15T10:00:00+00:00"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:hasPrompt ex:prompt-extract ;
     gmeow:samplingTemperature 0.0 ;
     gmeow:usedModel ex:assistant .

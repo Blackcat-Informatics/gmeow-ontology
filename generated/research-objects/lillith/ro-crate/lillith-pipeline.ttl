@@ -23,6 +23,8 @@ ex:rel-maintains a gmeow:ExtractedRelationship ;
 
 ex:retrieval-3 a gmeow:RetrievalEvent ;
     gmeow:againstIndex ex:index-lillith ;
+    gmeow:atTime "2026-06-02T10:00:00+00:00"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:forQuery "who maintained the build system?" ;
     gmeow:retrievedChunk ex:chunk-7 .
 
@@ -36,7 +38,9 @@ ex:summary-infra a gmeow:CommunitySummary ;
     gmeow:wasGeneratedBy ex:invocation-44 .
 
 ex:cluster-run a gmeow:Activity ;
-    rdfs:label "leiden clustering 2026-06-02"@en .
+    rdfs:label "leiden clustering 2026-06-02"@en ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2026-06-02T00:00:00+00:00"^^xsd:dateTime .
 
 ex:community-infra a gmeow:Community ;
     rdfs:label "infrastructure community"@en ;
@@ -52,7 +56,9 @@ ex:corpus-lillith a gmeow:Corpus ;
     gmeow:corpusMember ex:mail-archive .
 
 ex:embed-run a gmeow:Activity ;
-    rdfs:label "embedding pass 2026-06-01"@en .
+    rdfs:label "embedding pass 2026-06-01"@en ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2026-06-01T00:00:00+00:00"^^xsd:dateTime .
 
 ex:embedder a gmeow:SoftwareAgent ;
     rdfs:label "embedder-v3"@en .
@@ -61,7 +67,9 @@ ex:extractor a gmeow:SoftwareAgent ;
     rdfs:label "extraction model"@en .
 
 ex:index-build a gmeow:Activity ;
-    rdfs:label "index build 2026-06-01"@en .
+    rdfs:label "index build 2026-06-01"@en ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2026-06-01T00:00:00+00:00"^^xsd:dateTime .
 
 ex:index-lillith a gmeow:VectorIndex ;
     gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
@@ -88,6 +96,8 @@ ex:desc-mara a gmeow:ExtractedEntity ;
     gmeow:wasGeneratedBy ex:invocation-44 .
 
 ex:invocation-44 a gmeow:ModelInvocation ;
+    gmeow:atTime "2026-06-01T12:00:00+00:00"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:samplingTemperature 0.0 ;
     gmeow:usedModel ex:extractor .
 

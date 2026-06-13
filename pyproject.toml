@@ -111,6 +111,18 @@ ignore_missing_imports = true
 minversion = "8.0"
 testpaths = ["tests", "slices", "packages/gts/tests"]
 addopts = "-ra --strict-markers"
+# Upstream self-deprecations we cannot fix from here (pinned rdflib/linkml):
+# rdflib's own nquads parser and Dataset internals still touch the deprecated
+# Dataset.default_context / Dataset.identifier attributes; LinkML's generators
+# emit a dataclass-extension-patch deprecation. Our code uses the modern API
+# (Dataset + quads, default_graph.add). Revisit on dependency upgrade (#433).
+filterwarnings = [
+    "ignore:Dataset.default_context is deprecated:DeprecationWarning",
+    "ignore:Dataset.identifier is deprecated:DeprecationWarning",
+    # rdflib's own json-ld parser still constructs a ConjunctiveGraph internally.
+    "ignore:ConjunctiveGraph is deprecated:DeprecationWarning",
+    "ignore:The LinkML dataclass extension patch is deprecated:DeprecationWarning",
+]
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
     "docker: tests that require Docker (ROBOT/WIDOCO/Jena)",

@@ -849,6 +849,12 @@ def _validate_sssom(sssom_texts: dict[str, str]) -> list[str]:
     """
     problems: list[str] = []
     for rel_path, text in sssom_texts.items():
+        # The mappings-dir text artifacts include dsl-stats.json (#3); only the
+        # SSSOM TSVs are mapping sets. Feeding the JSON to parse_tsv makes
+        # sssom-py report every line as a malformed mapping ("predicate_id must
+        # be supplied").
+        if not rel_path.endswith(".sssom.tsv"):
+            continue
         safe = _sssom_for_validation(text)
         try:
             msdf = sssom.parse_tsv(io.StringIO(safe))

@@ -28,7 +28,9 @@ ex:chunk-7 a gmeow:Chunk ;
 # --- Embedding + index: attributed, metric-explicit, vector OUTSIDE (P12).
 ex:embedder a gmeow:SoftwareAgent ; rdfs:label "embedder-v3"@en .
 
-ex:embed-run a gmeow:Activity ; rdfs:label "embedding pass 2026-06-01"@en .
+ex:embed-run a gmeow:Activity ; rdfs:label "embedding pass 2026-06-01"@en ;
+    gmeow:eventTime "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:embedding-7 a gmeow:Embedding ;
     gmeow:embeddingOf ex:chunk-7 ;
@@ -40,7 +42,9 @@ ex:embedding-7 a gmeow:Embedding ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
     gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" .
 
-ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@en .
+ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@en ;
+    gmeow:eventTime "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:index-lillith a gmeow:VectorIndex ;
     gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
@@ -54,13 +58,17 @@ ex:index-lillith a gmeow:VectorIndex ;
 ex:retrieval-3 a gmeow:RetrievalEvent ;
     gmeow:forQuery "who maintained the build system?" ;
     gmeow:againstIndex ex:index-lillith ;
-    gmeow:retrievedChunk ex:chunk-7 .
+    gmeow:retrievedChunk ex:chunk-7 ;
+    gmeow:atTime "2026-06-02T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 # --- Extraction (core ModelInvocation) → derived DESCRIPTIONS.
 ex:extractor a gmeow:SoftwareAgent ; rdfs:label "extraction model"@en .
 ex:invocation-44 a gmeow:ModelInvocation ;
     gmeow:usedModel ex:extractor ;
-    gmeow:samplingTemperature 0.0 .
+    gmeow:samplingTemperature 0.0 ;
+    gmeow:atTime "2026-06-01T12:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:desc-mara a gmeow:ExtractedEntity ;
     rdfs:label "extracted: 'Mara' (maintainer?)"@en ;
@@ -83,7 +91,9 @@ ex:rel-maintains a gmeow:ExtractedRelationship ;
     gmeow:wasGeneratedBy ex:invocation-44 .
 
 # --- Community + summary: the global-question substrate, revisable.
-ex:cluster-run a gmeow:Activity ; rdfs:label "leiden clustering 2026-06-02"@en .
+ex:cluster-run a gmeow:Activity ; rdfs:label "leiden clustering 2026-06-02"@en ;
+    gmeow:eventTime "2026-06-02T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:community-infra a gmeow:Community ;
     rdfs:label "infrastructure community"@en ;
