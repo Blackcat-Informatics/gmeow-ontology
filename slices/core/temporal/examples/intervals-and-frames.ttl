@@ -40,8 +40,10 @@ ex:qaInterval a gmeow:TimeInterval ;
     gmeow:hasEndInstant ex:qaEnd ;
     gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
 
-# --- Allen relation: the talk precedes the Q&A (no overlap).
-ex:talkInterval gmeow:intervalBefore ex:qaInterval .
+# --- Allen relation: the talk's end instant is exactly the Q&A's start instant
+#     (13:45:00Z), so they MEET — adjacency, not Allen "before" (which would need
+#     a gap between them).
+ex:talkInterval gmeow:intervalMeets ex:qaInterval .
 
 # --- The SAME wall-clock moment as the talk's start, but read in the Hebrew
 #     civil-time frame: identical instant value, different interpreting frame —
