@@ -1472,8 +1472,823 @@ gmeow:pitchSpellingPlus7Johnston a gmeow:PitchSpelling ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# TIME FRAMES — reserved for issue #310 (MusicalTimeFrame, TimeMapping, ...)
+# TIME FRAMES — issue #310 (MusicalTimeFrame, TimeMapping, TempoMap, meter)
 # =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:MusicalTimeFrame
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ReferenceFrame ;
+    rdfs:label "Musical Time Frame"@x-gmeow-english ;
+    skos:definition "A reference frame for musical time — a one-dimensional rational-position axis relative to which durations, spans, tempi, and mappings are expressed. Per-voice frames are supported via gmeow:isHostedBy (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:MusicalTimeSpan
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Musical Time Span"@x-gmeow-english ;
+    skos:definition "A frame-relative span of musical time, delimited by a rational start position and a rational duration in an explicit MusicalTimeFrame. The musical-time analogue of gmeow:TimeInterval; clock-time conversion is performed by fnMusicalToClockTime (Principle 12)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:hasMusicalTimeFrame ;
+    gmeow:frameCardinality "exactly-one" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TimeMapping
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Time Mapping"@x-gmeow-english ;
+    skos:definition "A declared mapping between two musical time frames or spans. Tuplets, tempo canons, and tempo maps are kinds of TimeMapping; their arithmetic is solver-evaluated, never reasoner-asserted. MetricModulation and GrooveProfile are modeled as separate constructs (Principles 4, 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TempoMap
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:TimeMapping ;
+    rdfs:label "Tempo Map"@x-gmeow-english ;
+    skos:definition "A TimeMapping from a musical-time frame to a clock-time frame, expressed piecewise as constant, linear ramp, curve, or measured segments. Tempo is a frame mapping, not a single number, unless it happens to be one (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TempoMapSegment
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Tempo Map Segment"@x-gmeow-english ;
+    skos:definition "One piece of a piecewise TempoMap — a span together with a tempo-map kind (constant, linear ramp, curve, measured) and the segment-level ratio or expression data needed by the solver (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:MetricStructure
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Metric Structure"@x-gmeow-english ;
+    skos:definition "A recurring grouping cycle that defines a meter — an ordered set of MetricGroups with rational lengths and optional accent weights. Covers additive meters (2+2+3 aksak), fractional meters (2/10), tala, colotomic cycles, and the absence of meter when no structure is asserted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:MetricGroup
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Metric Group"@x-gmeow-english ;
+    skos:definition "One ordered group within a MetricStructure, carrying a rational length and an optional accent weight. Additive meters are sequences of MetricGroups."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:MeterAssignment
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Meter Assignment"@x-gmeow-english ;
+    skos:definition "A reified relator binding a carrier (e.g. a voice), a MetricStructure, and a MusicalTimeSpan. Consecutive assignments model bar-by-bar changes; concurrent assignments on different carriers over one shared TempoMap model polymeter (stress case 14)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:MetricModulation
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Metric Modulation"@x-gmeow-english ;
+    skos:definition "A reified relator declaring a transition from one MusicalTimeFrame to another via a pivot equivalence expressed as a rational pair (e.g. 3/8 = 1/4). The pivot resolution is solver-evaluated (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:GrooveProfile
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Groove Profile"@x-gmeow-english ;
+    skos:definition "A systematic, repeatable deviation from a strict metric grid — swing ratio, per-grid-position offsets, or a measured microtiming profile. Groove is content, not error (stress case 17)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARIES — individuals, never subclasses (Principle 9)
+# --------------------------------------------------------------------------- #
+
+gmeow:TimeMappingKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Time Mapping Kind"@x-gmeow-english ;
+    skos:definition "The kind of a TimeMapping — tuplet, tempo canon, tempo map, or unsynchronized ad-lib span. A value vocabulary of individuals; never subclassed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TempoMapKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Tempo Map Kind"@x-gmeow-english ;
+    skos:definition "The curve shape of a TempoMap or segment — constant, linear ramp, curve, or measured. A value vocabulary of individuals; never subclassed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:GrooveProfileKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Groove Profile Kind"@x-gmeow-english ;
+    skos:definition "The kind of a GrooveProfile — swing ratio, per-grid-position offsets, or a measured profile. A value vocabulary of individuals; never subclassed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:hasMusicalTimeFrame
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:MusicalTimeSpan ;
+    rdfs:range gmeow:MusicalTimeFrame ;
+    rdfs:label "has musical time frame"@x-gmeow-english ;
+    skos:definition "Relates a MusicalTimeSpan to the MusicalTimeFrame in which its start and duration are expressed. Non-functional globally so that coexisting frames may be asserted; each MusicalTimeSpan is constrained to exactly one frame by SHACL (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeMappingKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range gmeow:TimeMappingKind ;
+    rdfs:label "time mapping kind"@x-gmeow-english ;
+    skos:definition "The kind of a TimeMapping (tuplet, tempo canon, metric modulation, groove, etc.). Functional: a TimeMapping is of exactly one kind."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:mapsFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "maps frame"@x-gmeow-english ;
+    skos:definition "The source ReferenceFrame that a TimeMapping maps from."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:mapsToFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "maps to frame"@x-gmeow-english ;
+    skos:definition "The target ReferenceFrame that a TimeMapping maps to."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:mapsFromSpan
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:label "maps from span"@x-gmeow-english ;
+    skos:definition "An optional source MusicalTimeSpan when the mapping is scoped to a specific span rather than the whole frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:mapsToSpan
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:label "maps to span"@x-gmeow-english ;
+    skos:definition "An optional target MusicalTimeSpan when the mapping is scoped to a specific span rather than the whole frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tempoMapSegmentOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TempoMapSegment ;
+    rdfs:range gmeow:TempoMap ;
+    rdfs:label "tempo map segment of"@x-gmeow-english ;
+    skos:definition "The TempoMap that this segment belongs to. Functional per segment: one parent TempoMap."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:hasTempoMapSegment
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:tempoMapSegmentOf ;
+    rdfs:label "has tempo map segment"@x-gmeow-english ;
+    skos:definition "Links a TempoMap to one of its piecewise segments."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentSpan
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TempoMapSegment ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:label "segment span"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan over which this TempoMapSegment applies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentTempoMapKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TempoMapSegment ;
+    rdfs:range gmeow:TempoMapKind ;
+    rdfs:label "segment tempo map kind"@x-gmeow-english ;
+    skos:definition "The curve kind of this TempoMapSegment (constant, linear ramp, curve, measured)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentMapRatioNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TempoMapSegment ;
+    rdfs:range xsd:integer ;
+    rdfs:label "segment map ratio numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the segment-level constant mapping ratio (musical units per clock unit or vice versa)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentMapRatioDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TempoMapSegment ;
+    rdfs:range xsd:integer ;
+    rdfs:label "segment map ratio denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the segment-level constant mapping ratio; must be a positive integer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricStructureOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricStructure ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "metric structure of"@x-gmeow-english ;
+    skos:definition "The entity (a work, section, or voice) whose metric cycle this MetricStructure defines."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:hasMetricGroup
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MetricStructure ;
+    rdfs:range gmeow:MetricGroup ;
+    rdfs:label "has metric group"@x-gmeow-english ;
+    skos:definition "Relates a MetricStructure to one of its ordered MetricGroups. Non-functional: a structure typically has many groups."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricGroupOrder
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricGroup ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "metric group order"@x-gmeow-english ;
+    skos:definition "The zero-based position of this MetricGroup within its MetricStructure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:meterCarrier
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MeterAssignment ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "meter carrier"@x-gmeow-english ;
+    skos:definition "The entity (voice, performer, or part) that carries the assigned meter."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:assignedMeter
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MeterAssignment ;
+    rdfs:range gmeow:MetricStructure ;
+    rdfs:label "assigned meter"@x-gmeow-english ;
+    skos:definition "The MetricStructure assigned to the carrier over the assignment span."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:assignmentSpan
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MeterAssignment ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:label "assignment span"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan over which the meter assignment holds."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:modulationFromFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricModulation ;
+    rdfs:range gmeow:MusicalTimeFrame ;
+    rdfs:label "modulation from frame"@x-gmeow-english ;
+    skos:definition "The source MusicalTimeFrame of a MetricModulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:modulationToFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricModulation ;
+    rdfs:range gmeow:MusicalTimeFrame ;
+    rdfs:label "modulation to frame"@x-gmeow-english ;
+    skos:definition "The target MusicalTimeFrame of a MetricModulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:grooveKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:GrooveProfile ;
+    rdfs:range gmeow:GrooveProfileKind ;
+    rdfs:label "groove kind"@x-gmeow-english ;
+    skos:definition "The kind of groove profile (swing ratio, position offsets, measured)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:grooveGridUnit
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:GrooveProfile ;
+    rdfs:range xsd:string ;
+    rdfs:label "groove grid unit"@x-gmeow-english ;
+    skos:definition "The metric grid unit to which the groove profile applies, expressed as a human-readable fraction (e.g. \"1/16\")."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:appliesToTimeFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GrooveProfile ;
+    rdfs:range gmeow:MusicalTimeFrame ;
+    rdfs:label "applies to time frame"@x-gmeow-english ;
+    skos:definition "The MusicalTimeFrame to which this GrooveProfile applies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:grooveProfileData
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GrooveProfile ;
+    rdfs:range xsd:string ;
+    rdfs:label "groove profile data"@x-gmeow-english ;
+    skos:definition "Solver-interpreted data for the groove profile (e.g. a JSON literal of per-grid-position offsets or a swing ratio)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# DATATYPE PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:timeStartNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MusicalTimeSpan ;
+    rdfs:range xsd:integer ;
+    rdfs:label "time start numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the rational start position of a MusicalTimeSpan in its frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeStartDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MusicalTimeSpan ;
+    rdfs:range xsd:integer ;
+    rdfs:label "time start denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the rational start position of a MusicalTimeSpan in its frame. Always positive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeDurationNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MusicalTimeSpan ;
+    rdfs:range xsd:integer ;
+    rdfs:label "time duration numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the rational duration of a MusicalTimeSpan in its frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeDurationDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MusicalTimeSpan ;
+    rdfs:range xsd:integer ;
+    rdfs:label "time duration denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the rational duration of a MusicalTimeSpan in its frame. Always positive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:mapRatioNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range xsd:integer ;
+    rdfs:label "map ratio numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the rational ratio carried by a TimeMapping (e.g. 3 for a 3:2 tuplet)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:mapRatioDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range xsd:integer ;
+    rdfs:label "map ratio denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the rational ratio carried by a TimeMapping (e.g. 2 for a 3:2 tuplet). Always positive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tempoRatioExpression
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range xsd:string ;
+    rdfs:label "tempo ratio expression"@x-gmeow-english ;
+    skos:definition "A canonical symbolic expression for an irrational tempo ratio (e.g. \"sqrt(2)/2\"), stored as a literal and never reasoner-parsed. The generated decimal approximation is tempoRatioApprox (Principle 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tempoRatioApprox
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:TimeMapping ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "tempo ratio approximation"@x-gmeow-english ;
+    skos:definition "A generated decimal approximation of an irrational tempo ratio, produced from tempoRatioExpression by the solver. A lossy projection, not the canonical value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:groupLengthNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricGroup ;
+    rdfs:range xsd:integer ;
+    rdfs:label "group length numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the rational length of a MetricGroup."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:groupLengthDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricGroup ;
+    rdfs:range xsd:integer ;
+    rdfs:label "group length denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the rational length of a MetricGroup. Always positive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:groupAccentWeight
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MetricGroup ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "group accent weight"@x-gmeow-english ;
+    skos:definition "An optional accent weight for a MetricGroup, relative to the other groups in the same MetricStructure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pivotSourceValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricModulation ;
+    rdfs:range xsd:string ;
+    rdfs:label "pivot source value"@x-gmeow-english ;
+    skos:definition "The source side of a metric-modulation pivot equivalence, expressed as a human-readable rational string (e.g. \"3/8\")."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pivotTargetValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MetricModulation ;
+    rdfs:range xsd:string ;
+    rdfs:label "pivot target value"@x-gmeow-english ;
+    skos:definition "The target side of a metric-modulation pivot equivalence, expressed as a human-readable rational string (e.g. \"1/4\")."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — frame relativity and relator EL patterns
+# --------------------------------------------------------------------------- #
+
+gmeow:MusicalTimeFrame rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:hasValue gmeow:frameRealmMusicalTime ] .
+
+gmeow:MusicalTimeSpan rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasMusicalTimeFrame ; owl:someValuesFrom gmeow:MusicalTimeFrame ] .
+
+gmeow:MeterAssignment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:meterCarrier ;    owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assignedMeter ;  owl:someValuesFrom gmeow:MetricStructure ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentSpan ; owl:someValuesFrom gmeow:MusicalTimeSpan ] .
+
+gmeow:MetricModulation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:modulationFromFrame ; owl:someValuesFrom gmeow:MusicalTimeFrame ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:modulationToFrame ;   owl:someValuesFrom gmeow:MusicalTimeFrame ] .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — TimeMappingKind
+# --------------------------------------------------------------------------- #
+
+gmeow:timeMappingKindTuplet a gmeow:TimeMappingKind ;
+    rdfs:label "tuplet"@x-gmeow-english ;
+    skos:definition "A TimeMapping that expresses a tuplet — a rational grouping ratio such as 3:2 or 5:4."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeMappingKindTempoCanon a gmeow:TimeMappingKind ;
+    rdfs:label "tempo canon"@x-gmeow-english ;
+    skos:definition "A TimeMapping between two voice time frames in a tempo canon (e.g. Nancarrow's sqrt(2):2)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeMappingKindTempoMap a gmeow:TimeMappingKind ;
+    rdfs:label "tempo map"@x-gmeow-english ;
+    skos:definition "A TimeMapping kind for musical-time to clock-time tempo mappings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeMappingKindSyncUnsynchronized a gmeow:TimeMappingKind ;
+    rdfs:label "unsynchronized ad-lib"@x-gmeow-english ;
+    skos:definition "A TimeMapping that marks an unsynchronized ad-lib span bounded by shared clock-time cue anchors, as in Lutoslawski aleatoric counterpoint (stress case 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — TempoMapKind
+# --------------------------------------------------------------------------- #
+
+gmeow:tempoMapKindConstant a gmeow:TempoMapKind ;
+    rdfs:label "constant tempo"@x-gmeow-english ;
+    skos:definition "A TempoMap or segment with a constant mapping ratio."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tempoMapKindLinearRamp a gmeow:TempoMapKind ;
+    rdfs:label "linear ramp"@x-gmeow-english ;
+    skos:definition "A TempoMap segment with a linear acceleration or deceleration."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tempoMapKindCurve a gmeow:TempoMapKind ;
+    rdfs:label "curved tempo"@x-gmeow-english ;
+    skos:definition "A TempoMap segment with a non-linear tempo curve."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tempoMapKindMeasured a gmeow:TempoMapKind ;
+    rdfs:label "measured tempo"@x-gmeow-english ;
+    skos:definition "A TempoMap segment derived from measured performance data."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — GrooveProfileKind
+# --------------------------------------------------------------------------- #
+
+gmeow:grooveProfileKindSwingRatio a gmeow:GrooveProfileKind ;
+    rdfs:label "swing ratio"@x-gmeow-english ;
+    skos:definition "A groove profile expressed as a swing ratio (e.g. 2:1 triplet feel)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:grooveProfileKindPositionOffsets a gmeow:GrooveProfileKind ;
+    rdfs:label "position offsets"@x-gmeow-english ;
+    skos:definition "A groove profile expressed as per-grid-position time offsets."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:grooveProfileKindMeasured a gmeow:GrooveProfileKind ;
+    rdfs:label "measured groove"@x-gmeow-english ;
+    skos:definition "A groove profile derived from measured microtiming observations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# MUSICAL TIME FRAME SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:musicalTimeFrameCommon
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "common musical time frame"@x-gmeow-english ;
+    skos:definition "A generic one-dimensional rational musical-time frame used by the worked fixtures."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:voiceGuitarPlaceholder a gmeow:Entity ;
+    rdfs:label "guitar voice placeholder"@x-gmeow-english ;
+    skos:definition "A placeholder entity representing a guitar voice for the polymeter fixture; will be replaced by a Voice individual when #311 lands."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:voiceDrumsPlaceholder a gmeow:Entity ;
+    rdfs:label "drums voice placeholder"@x-gmeow-english ;
+    skos:definition "A placeholder entity representing a drums voice for the polymeter fixture; will be replaced by a Voice individual when #311 lands."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalTimeFrameVoiceGuitar
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "guitar voice musical time frame"@x-gmeow-english ;
+    skos:definition "A per-voice musical-time frame hosted by the guitar voice placeholder (Principle 11)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:voiceGuitarPlaceholder ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalTimeFrameVoiceDrums
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "drums voice musical time frame"@x-gmeow-english ;
+    skos:definition "A per-voice musical-time frame hosted by the drums voice placeholder (Principle 11)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:voiceDrumsPlaceholder ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# TEMPO MAP SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:tempoMapCommon
+    a gmeow:TempoMap ;
+    rdfs:label "common constant tempo map"@x-gmeow-english ;
+    skos:definition "A simple constant TempoMap used by the meter fixtures: one quarter-note beat in musicalTimeFrameCommon maps to one half-second in TAI (e.g. quarter = 120). The solver interprets the ratio relative to the declared frames."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTempoMap ;
+    gmeow:mapsFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:mapsToFrame gmeow:temporalFrameTAI ;
+    gmeow:mapRatioNumerator "1"^^xsd:integer ;
+    gmeow:mapRatioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tempoMapSegmentCommon
+    a gmeow:TempoMapSegment ;
+    rdfs:label "common tempo map segment"@x-gmeow-english ;
+    skos:definition "The single constant segment of tempoMapCommon: one quarter-note beat maps to one half-second."@x-gmeow-english ;
+    gmeow:tempoMapSegmentOf gmeow:tempoMapCommon ;
+    gmeow:segmentSpan gmeow:musicalTimeSpanWholeSection ;
+    gmeow:segmentTempoMapKind gmeow:tempoMapKindConstant ;
+    gmeow:segmentMapRatioNumerator "1"^^xsd:integer ;
+    gmeow:segmentMapRatioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# MUSICAL TIME SPAN SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:musicalTimeSpanWholeSection
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "whole section span"@x-gmeow-english ;
+    skos:definition "A MusicalTimeSpan covering the whole worked section, from 0 to 10 quarter-note beats."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "10"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalTimeSpanBarOne
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "bar one span"@x-gmeow-english ;
+    skos:definition "The first bar of the meter-sequence fixture (5/8 = 2.5 quarter-note beats)."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "5"^^xsd:integer ;
+    gmeow:timeDurationDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalTimeSpanBarTwo
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "bar two span"@x-gmeow-english ;
+    skos:definition "The second bar of the meter-sequence fixture (7/8 = 3.5 quarter-note beats)."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:timeStartNumerator "5"^^xsd:integer ;
+    gmeow:timeStartDenominator "2"^^xsd:integer ;
+    gmeow:timeDurationNumerator "7"^^xsd:integer ;
+    gmeow:timeDurationDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalTimeSpanBarThree
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "bar three span"@x-gmeow-english ;
+    skos:definition "The third bar of the meter-sequence fixture (4/4 = 4 quarter-note beats)."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:timeStartNumerator "6"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "4"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# METRIC STRUCTURE SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:metricStructure58
+    a gmeow:MetricStructure ;
+    rdfs:label "5/8 metric structure"@x-gmeow-english ;
+    skos:definition "A simple 5/8 metric structure as one group of five eighth-note beats."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:metricGroup58 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricGroup58
+    a gmeow:MetricGroup ;
+    rdfs:label "5/8 group"@x-gmeow-english ;
+    skos:definition "The single 5/8 group of metricStructure58."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "5"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricStructure78
+    a gmeow:MetricStructure ;
+    rdfs:label "7/8 metric structure (2+2+3)"@x-gmeow-english ;
+    skos:definition "An additive 7/8 metric structure grouped as 2+2+3 (aksak-style)."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:metricGroup78Two1 , gmeow:metricGroup78Two2 , gmeow:metricGroup78Three ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricGroup78Two1
+    a gmeow:MetricGroup ;
+    rdfs:label "7/8 first 2/8 group"@x-gmeow-english ;
+    skos:definition "The first 2/8 group of the additive 7/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricGroup78Two2
+    a gmeow:MetricGroup ;
+    rdfs:label "7/8 second 2/8 group"@x-gmeow-english ;
+    skos:definition "The second 2/8 group of the additive 7/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.8"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricGroup78Three
+    a gmeow:MetricGroup ;
+    rdfs:label "7/8 3/8 group"@x-gmeow-english ;
+    skos:definition "The final 3/8 group of the additive 7/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "2"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.2"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricStructure44
+    a gmeow:MetricStructure ;
+    rdfs:label "4/4 metric structure"@x-gmeow-english ;
+    skos:definition "A simple 4/4 metric structure as one group of four quarter-note beats."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:metricGroup44 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:metricGroup44
+    a gmeow:MetricGroup ;
+    rdfs:label "4/4 group"@x-gmeow-english ;
+    skos:definition "The single 4/4 group of metricStructure44."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "4"^^xsd:integer ;
+    gmeow:groupLengthDenominator "4"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# METER ASSIGNMENT SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:meterAssignment58
+    a gmeow:MeterAssignment ;
+    rdfs:label "5/8 meter assignment"@x-gmeow-english ;
+    skos:definition "The first bar of the 5/8->7/8->4/4 sequence."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:voiceGuitarPlaceholder ;
+    gmeow:assignedMeter gmeow:metricStructure58 ;
+    gmeow:assignmentSpan gmeow:musicalTimeSpanBarOne ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:meterAssignment78
+    a gmeow:MeterAssignment ;
+    rdfs:label "7/8 meter assignment"@x-gmeow-english ;
+    skos:definition "The second bar of the 5/8->7/8->4/4 sequence."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:voiceGuitarPlaceholder ;
+    gmeow:assignedMeter gmeow:metricStructure78 ;
+    gmeow:assignmentSpan gmeow:musicalTimeSpanBarTwo ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:meterAssignment44
+    a gmeow:MeterAssignment ;
+    rdfs:label "4/4 meter assignment"@x-gmeow-english ;
+    skos:definition "The third bar of the 5/8->7/8->4/4 sequence."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:voiceGuitarPlaceholder ;
+    gmeow:assignedMeter gmeow:metricStructure44 ;
+    gmeow:assignmentSpan gmeow:musicalTimeSpanBarThree ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:meterAssignmentGuitar78
+    a gmeow:MeterAssignment ;
+    rdfs:label "guitar 7/8 polymeter assignment"@x-gmeow-english ;
+    skos:definition "The guitar voice carrying 7/8 in the polymeter fixture; concurrent with drums 4/4 over the same TempoMap."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:voiceGuitarPlaceholder ;
+    gmeow:assignedMeter gmeow:metricStructure78 ;
+    gmeow:assignmentSpan gmeow:musicalTimeSpanWholeSection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:meterAssignmentDrums44
+    a gmeow:MeterAssignment ;
+    rdfs:label "drums 4/4 polymeter assignment"@x-gmeow-english ;
+    skos:definition "The drums voice carrying 4/4 in the polymeter fixture; concurrent with guitar 7/8 over the same TempoMap."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:voiceDrumsPlaceholder ;
+    gmeow:assignedMeter gmeow:metricStructure44 ;
+    gmeow:assignmentSpan gmeow:musicalTimeSpanWholeSection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# TUPLET & TEMPO CANON SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:timeMappingTuplet32
+    a gmeow:TimeMapping ;
+    rdfs:label "3:2 tuplet mapping"@x-gmeow-english ;
+    skos:definition "An outer 3:2 tuplet TimeMapping used for the nested tuplet fixture."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTuplet ;
+    gmeow:mapsFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:mapsToFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:mapRatioNumerator "3"^^xsd:integer ;
+    gmeow:mapRatioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeMappingTuplet54
+    a gmeow:TimeMapping ;
+    rdfs:label "5:4 tuplet mapping"@x-gmeow-english ;
+    skos:definition "An inner 5:4 tuplet TimeMapping nested inside the 3:2 tuplet fixture."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTuplet ;
+    gmeow:mapsFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:mapsToFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:mapRatioNumerator "5"^^xsd:integer ;
+    gmeow:mapRatioDenominator "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timeMappingSqrt2Canon
+    a gmeow:TimeMapping ;
+    rdfs:label "sqrt(2):2 tempo canon mapping"@x-gmeow-english ;
+    skos:definition "A tempo-canon mapping with an irrational sqrt(2)/2 ratio, as in Nancarrow (stress case 2). The canonical value is the symbolic literal; the decimal is a generated projection."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTempoCanon ;
+    gmeow:mapsFrame gmeow:musicalTimeFrameVoiceGuitar ;
+    gmeow:mapsToFrame gmeow:musicalTimeFrameVoiceDrums ;
+    gmeow:tempoRatioExpression "sqrt(2)/2"^^xsd:string ;
+    gmeow:tempoRatioApprox "0.70710678"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# METRIC MODULATION SEED
+# --------------------------------------------------------------------------- #
+
+gmeow:metricModulationCarter
+    a gmeow:MetricModulation ;
+    rdfs:label "Carter metric modulation"@x-gmeow-english ;
+    skos:definition "A metric modulation pivot equivalence: 3/8 in the source frame equals 1/4 in the target frame, as in Carter or Don Caballero (stress case 15)."@x-gmeow-english ;
+    gmeow:modulationFromFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:modulationToFrame gmeow:musicalTimeFrameVoiceGuitar ;
+    gmeow:pivotSourceValue "3/8"^^xsd:string ;
+    gmeow:pivotTargetValue "1/4"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# GROOVE PROFILE SEED
+# --------------------------------------------------------------------------- #
+
+gmeow:grooveProfileSwing
+    a gmeow:GrooveProfile ;
+    rdfs:label "swing groove profile"@x-gmeow-english ;
+    skos:definition "A simple swing-ratio groove profile on a 1/16 grid, illustrating systematic microtiming as content (stress case 17)."@x-gmeow-english ;
+    gmeow:grooveKind gmeow:grooveProfileKindSwingRatio ;
+    gmeow:grooveGridUnit "1/16"^^xsd:string ;
+    gmeow:appliesToTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:grooveProfileData "{\"swingRatio\": \"2:1\"}"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:polymeterPattern
+    a gmeow:Entity ;
+    rdfs:label "polymeter pattern"@x-gmeow-english ;
+    skos:definition "The realisation of polymeter as concurrent MeterAssignments on different carriers within one shared MusicalTimeFrame (stress case 14)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
 # STRUCTURE GRAPH — reserved for issue #311 (MusicalSegment, ToneEvent, ...)

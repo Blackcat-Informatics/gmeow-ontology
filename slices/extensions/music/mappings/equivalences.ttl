@@ -166,3 +166,55 @@ gmeow:eqMu012 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Wikidata — musical time / meter / tuplet (issue #310)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMu013 a gmeow:TermEquivalence ;
+    rdfs:label "MetricStructure ↔ Wikidata Q155234"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW MetricStructure class to Wikidata 'time signature' (Q155234)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:MetricStructure ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q155234 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'time signature' (Q155234) — a CMN projection of the underlying MetricStructure." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu014 a gmeow:TermEquivalence ;
+    rdfs:label "TempoMap ↔ Wikidata Q189214"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW TempoMap class to Wikidata 'tempo' (Q189214)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:TempoMap ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q189214 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'tempo' (Q189214) — the broad concept; GMEOW models tempo as a piecewise frame mapping." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu015 a gmeow:TermEquivalence ;
+    rdfs:label "polymeter pattern ↔ Wikidata Q2102956"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW polymeter pattern (concurrent MeterAssignments within a MusicalTimeFrame) to Wikidata 'polymeter' (Q2102956)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:polymeterPattern ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2102956 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'polymeter' (Q2102956) — in GMEOW polymeter is modelled as the concurrent MeterAssignment pattern, not as a class." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu016 a gmeow:TermEquivalence ;
+    rdfs:label "timeMappingKindTuplet ↔ Wikidata Q2092296"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW tuplet TimeMappingKind value to Wikidata 'tuplet' (Q2092296)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:timeMappingKindTuplet ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2092296 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'tuplet' (Q2092296) — a tuplet is one kind of rational TimeMapping." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
