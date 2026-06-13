@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Neutral organization/membership coverage fixture (#34 phases 2-3): a
+# person's reified Membership in a research institute (with a role), the
+# flat memberOf edge, and a department nesting — exercising the org
+# projection and the org/prov saturation. Deliberately uncontested (the
+# published worked examples stay neutral; the contested variant lives in
+# employment-contested.ttl).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/organizations/> .
+
+ex:meridian-institute a gmeow:Organization ;
+    gmeow:fullName "Meridian Research Institute" ;
+    gmeow:organizationType gmeow:organizationTypeNonprofit .
+
+ex:archives-dept a gmeow:Organization ;
+    gmeow:fullName "Meridian Archives Department" ;
+    gmeow:subOrganizationOf ex:meridian-institute .
+
+ex:noor a gmeow:Person ;
+    gmeow:fullName "Noor Haddad" ;
+    gmeow:memberOf ex:archives-dept .
+
+ex:role-archivist a gmeow:Role ;
+    gmeow:fullName "senior archivist" .
+
+ex:membership-noor a gmeow:Membership ;
+    gmeow:membershipMember ex:noor ;
+    gmeow:membershipOrganization ex:archives-dept ;
+    gmeow:hasRole ex:role-archivist .
+
+# --- An online account (the foaf/sioc account saturation surface).
+ex:noor gmeow:holdsAccount ex:noor-forum .
+ex:noor-forum a gmeow:OnlineAccount ;
+    gmeow:accountName "noor.h" .

@@ -286,7 +286,7 @@ def test_edoal_traversal_uses_compose_inverse() -> None:
     birth = sub_org = None
     for cell in graph.subjects(RDF.type, ALIGN.Cell):
         label = str(graph.value(cell, RDFS.label) or "")
-        if label.startswith("Birth"):
+        if label.startswith("Birth life-event date"):
             birth = cell
         elif "subOrganizationOf" in label:
             sub_org = cell

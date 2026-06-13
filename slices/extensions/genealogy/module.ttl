@@ -162,6 +162,14 @@ gmeow:relationshipChild
     skos:definition "The child in a reified parent-child relationship."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> .
 
+gmeow:withinFamily
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:KinRelationship ;
+    rdfs:range gmeow:Family ;
+    rdfs:label "within family"@x-gmeow-english ;
+    skos:definition "Anchors a reified kinship relationship in the family group it belongs to — the structural seam GEDCOM exchange requires (a child's family, a marriage's family). Optional: kinship claims stand alone; the family anchor is added when the family-group structure is itself a documented fact (#34 phase 3 — consumers: the gedcom projection and the published genealogy profiles)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> .
+
 # A person's sex/gender is modelled in the dedicated gender + sexuality modules:
 # gmeow:sexAssignedAtBirth (a recorded administrative datum) and the self-asserted
 # gmeow:hasGenderIdentity / gmeow:hasGenderExpression / orientation facets — kept

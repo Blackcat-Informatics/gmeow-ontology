@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Genealogy coverage fixture (#34 phases 2-3): a two-generation family
+# exercising the gedcom projection and the rel/schema kinship saturation.
+# Carries: a couple relator (the minted-Marriage source), flat kinship,
+# documentary sex via BOTH routes (sexAssignedAtBirth → projected, and
+# external gedcom:sex by reference — the slices' convention for historical
+# records), an external authority link (the coreference idiom), and a
+# SUPPRESSED relative (the #282 canary — no projection may surface them).
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:     <https://example.org/genealogy/> .
+@prefix gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Generation 1: the couple (one partner with a recorded saab datum,
+# one without — the projection must stay role-symmetric regardless).
+ex:mira a gmeow:Person ;
+    gmeow:fullName "Mira Okonkwo" ;
+    gmeow:sexAssignedAtBirth gmeow:saabFemale ;
+    gmeow:authorityLink <http://www.wikidata.org/entity/Q99999901> ;
+    gmeow:hasSpouse ex:tomas ;
+    gmeow:hasChild ex:lena, ex:ravi .
+
+ex:tomas a gmeow:Person ;
+    gmeow:fullName "Tomás Okonkwo" ;
+    gmeow:hasSpouse ex:mira ;
+    gmeow:hasChild ex:lena, ex:ravi .
+
+ex:couple-mt a gmeow:CoupleRelationship ;
+    gmeow:hasPartner ex:mira, ex:tomas ;
+    gmeow:withinFamily ex:family-okonkwo .
+
+# --- Generation 2: the children (one with flat parent links).
+ex:lena a gmeow:Person ;
+    gmeow:fullName "Lena Okonkwo" ;
+    gmeow:hasParent ex:mira, ex:tomas ;
+    gmeow:hasSibling ex:ravi .
+
+ex:ravi a gmeow:Person ;
+    gmeow:fullName "Ravi Okonkwo" ;
+    gmeow:hasParent ex:mira, ex:tomas ;
+    gmeow:hasSibling ex:lena .
+
+# --- The family group.
+ex:family-okonkwo a gmeow:Family ;
+    gmeow:hasMember ex:mira, ex:tomas, ex:lena, ex:ravi .
+
+# --- A historical record: documentary sex by reference (external term used
+# directly, the genealogy slice's stated convention) — passes through
+# MAXIMAL as a base triple, no projection involved.
+ex:ancestor-jozef a gmeow:Person ;
+    gmeow:fullName "Józef Okonkwo (b. 1890)" ;
+    gedcom:sex "M" .
+
+# --- The CLEAN documentary configuration: both partners carry unambiguous,
+# uncontested saab data (one M, one F) — the ONLY case where the
+# traditional gedcom:husband/wife terms emit. The family anchor also
+# yields childIn for the anchored parent-child relationship.
+ex:ancestor-helena a gmeow:Person ;
+    gmeow:fullName "Helena Okonkwo (b. 1892)" ;
+    gmeow:sexAssignedAtBirth gmeow:saabFemale .
+
+ex:ancestor-stefan a gmeow:Person ;
+    gmeow:fullName "Stefan Okonkwo (b. 1888)" ;
+    gmeow:sexAssignedAtBirth gmeow:saabMale .
+
+ex:family-1910 a gmeow:Family ;
+    gmeow:hasMember ex:ancestor-stefan, ex:ancestor-helena, ex:ancestor-jozef .
+
+ex:couple-1910 a gmeow:CoupleRelationship ;
+    gmeow:hasPartner ex:ancestor-stefan, ex:ancestor-helena ;
+    gmeow:withinFamily ex:family-1910 .
+
+ex:pcr-jozef a gmeow:ParentChildRelationship ;
+    gmeow:relationshipParent ex:ancestor-stefan ;
+    gmeow:relationshipChild ex:ancestor-jozef ;
+    gmeow:withinFamily ex:family-1910 .
+
+# --- The suppression canary (#282): a relative whose record is withheld.
+# No projection, saturation, or published output may carry the literal.
+ex:suppressed-relative a gmeow:Person ;
+    gmeow:fullName "SUPPRESSED-CANARY-RELATIVE" ;
+    gmeow:displayable false ;
+    gmeow:hasParent ex:mira .
+
+# --- The clean-or-unknown rule's ambiguous configurations: every one of
+# these must emit gedcom:sex "U" — never a forced M/F, never silence.
+ex:record-intersex a gmeow:Person ;
+    gmeow:fullName "Sam Okonkwo" ;
+    gmeow:sexAssignedAtBirth gmeow:saabIntersex .
+
+ex:record-contested a gmeow:Person ;
+    gmeow:fullName "Ode Okonkwo (records disagree)" ;
+    gmeow:sexAssignedAtBirth gmeow:saabMale, gmeow:saabFemale .
+
+ex:record-variation a gmeow:Person ;
+    gmeow:fullName "Chi Okonkwo" ;
+    gmeow:sexAssignedAtBirth gmeow:saabMale ;
+    gmeow:intersexVariation "recorded variation; binary code insufficient" .

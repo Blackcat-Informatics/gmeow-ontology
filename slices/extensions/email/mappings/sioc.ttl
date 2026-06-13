@@ -1,0 +1,119 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sioc:  <http://rdfs.org/sioc/ns#> .
+
+# Projection mappings: GMEOW email → SIOC (#34 phase 3). PARTIAL BY DESIGN
+# (P15): email is the online-community content GMEOW actually models — a
+# message is a sioc:Post, a thread is a sioc:Container, threading and
+# authorship flatten to SIOC's reply/creator edges. General forum/blog/
+# ActivityPub modeling is DEFERRED until a consumer names it (declared
+# partiality, not an oversight).
+
+gmeow:mapSiocPost a gmeow:ProjectionMapping ;
+    rdfs:label "EmailMessage → sioc:Post"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "smsg" ;
+        gmeow:atom ( [ gmeow:subjectVar "smsg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:EmailMessage ] ) ;
+        gmeow:edoalSource gmeow:EmailMessage ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toClass sioc:Post ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "RFC 5322 header structure (cc/bcc, address vs agent) flattens to SIOC's post model" ] .
+
+gmeow:mapSiocContainer a gmeow:ProjectionMapping ;
+    rdfs:label "Thread → sioc:Container"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "sthread" ;
+        gmeow:atom ( [ gmeow:subjectVar "sthread" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Thread ] ) ;
+        gmeow:edoalSource gmeow:Thread ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toClass sioc:Thread ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Thread ]
+            [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Container ] ) ] .
+
+gmeow:mapSiocHasContainer a gmeow:ProjectionMapping ;
+    rdfs:label "partOfThread → sioc:has_container"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "scmsg" ; gmeow:value "scthread" ;
+        gmeow:atom ( [ gmeow:subjectVar "scmsg" ; gmeow:predicate gmeow:partOfThread ; gmeow:objectVar "scthread" ] ) ;
+        gmeow:edoalSource gmeow:partOfThread ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:has_container ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "scmsg" ; gmeow:tPred sioc:has_container ; gmeow:tObj "scthread" ]
+            [ gmeow:tSubj "scthread" ; gmeow:tPred sioc:container_of ; gmeow:tObj "scmsg" ] ) ] .
+
+gmeow:mapSiocReplyOf a gmeow:ProjectionMapping ;
+    rdfs:label "inReplyTo → sioc:reply_of"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "srmsg" ; gmeow:value "sparent" ;
+        gmeow:atom ( [ gmeow:subjectVar "srmsg" ; gmeow:predicate gmeow:inReplyTo ; gmeow:objectVar "sparent" ] ) ;
+        gmeow:edoalSource gmeow:inReplyTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:reply_of ; gmeow:relation "=" ; gmeow:confidence 0.95 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "srmsg" ; gmeow:tPred sioc:reply_of ; gmeow:tObj "sparent" ]
+            [ gmeow:tSubj "sparent" ; gmeow:tPred sioc:has_reply ; gmeow:tObj "srmsg" ] ) ] .
+
+# Authorship: the From ADDRESS resolves to the agent holding it as a contact
+# point — SIOC's creator is the agent, never the mailbox string.
+gmeow:mapSiocHasCreator a gmeow:ProjectionMapping ;
+    rdfs:label "from-address holder → sioc:has_creator"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "samsg" ; gmeow:value "sauthor" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "samsg" ; gmeow:predicate gmeow:from ; gmeow:objectVar "saddr" ]
+            [ gmeow:subjectVar "sauthor" ; gmeow:predicate gmeow:hasContactPoint ; gmeow:objectVar "saddr" ] ) ;
+        gmeow:edoalSource gmeow:from ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:has_creator ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the address-vs-agent distinction collapses: the contact-point holder is read as the creator" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "samsg" ; gmeow:tPred sioc:has_creator ; gmeow:tObj "sauthor" ] ) ] .
+
+gmeow:mapSiocUserAccount a gmeow:ProjectionMapping ;
+    rdfs:label "OnlineAccount → sioc:UserAccount + account_of"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "sagent" ; gmeow:value "sacct" ;
+        gmeow:atom ( [ gmeow:subjectVar "sagent" ; gmeow:predicate gmeow:holdsAccount ; gmeow:objectVar "sacct" ] ) ;
+        gmeow:edoalSource gmeow:holdsAccount ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:account_of ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "every held online account over-types as a SIOC user account" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "sacct" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:UserAccount ]
+            [ gmeow:tSubj "sacct" ; gmeow:tPred sioc:account_of ; gmeow:tObj "sagent" ] ) ] .
+
+
+# --- #34 backlog audit: topic/name/link have real sources after all. ------ #
+
+gmeow:mapSiocTopic a gmeow:ProjectionMapping ;
+    rdfs:label "message isAbout → sioc:topic"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "stMsg" ; gmeow:value "stTopic" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "stMsg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:EmailMessage ]
+            [ gmeow:subjectVar "stMsg" ; gmeow:predicate gmeow:isAbout ; gmeow:objectVar "stTopic" ] ) ;
+        gmeow:edoalSource gmeow:isAbout ] ;
+    gmeow:hasBinding [ gmeow:profile "sioc" ; gmeow:toPredicate sioc:topic ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSiocName a gmeow:ProjectionMapping ;
+    rdfs:label "accountName → sioc:name (the account display name)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "snAcct" ; gmeow:value "snName" ;
+        gmeow:atom ( [ gmeow:subjectVar "snAcct" ; gmeow:predicate gmeow:accountName ; gmeow:objectVar "snName" ] ) ;
+        gmeow:edoalSource gmeow:accountName ] ;
+    gmeow:hasBinding [ gmeow:profile "sioc" ; gmeow:toPredicate sioc:name ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapSiocLink a gmeow:ProjectionMapping ;
+    rdfs:label "message sourceLocation → sioc:link"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "slMsg" ; gmeow:value "slUrl" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "slMsg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:EmailMessage ]
+            [ gmeow:subjectVar "slMsg" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "slUrl" ] ) ;
+        gmeow:edoalSource gmeow:sourceLocation ] ;
+    gmeow:hasBinding [ gmeow:profile "sioc" ; gmeow:toPredicate sioc:link ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .

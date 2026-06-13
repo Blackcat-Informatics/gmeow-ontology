@@ -229,3 +229,16 @@ gmeow:mapVcardGeo a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "geoNode" ; gmeow:tPred rdf:type ; gmeow:tObjValue vcard:Geo ]
             [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:latitude ; gmeow:tObj "lat" ]
             [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:longitude ; gmeow:tObj "lon" ] ) ] .
+
+# --- #34 phases 2-3 backlog work-down. ------------------------------------ #
+gmeow:mapVcardHasEmail a gmeow:ProjectionMapping ;
+    rdfs:label "contact-point email address → vcard:hasEmail"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "vheAgent" ; gmeow:value "vheAddr" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "vheAgent" ; gmeow:predicate gmeow:hasContactPoint ; gmeow:objectVar "vheAddr" ]
+            [ gmeow:subjectVar "vheAddr" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:EmailAddress ] ) ;
+        gmeow:edoalSource gmeow:hasContactPoint ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:hasEmail ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "contact-point usage context and validity drop; the bare email edge survives" ] .

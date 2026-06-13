@@ -109,3 +109,71 @@ gmeow:mapFoafNetworkAddress a gmeow:ProjectionMapping ;
         gmeow:profile "foaf" ; gmeow:toPredicate foaf:page ; gmeow:relation "<=" ;
         gmeow:confidence 0.8 ;
         gmeow:lossyDrop "the NetworkAddress frame, type, provenance, and standpoint are dropped; only the URL string survives" ] .
+
+# --- #34 phases 2-3 backlog work-down: name parts, acquaintance, makership. #
+
+gmeow:mapFoafGivenName a gmeow:ProjectionMapping ;
+    rdfs:label "given-name part → foaf:givenName"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fgnEnt" ; gmeow:value "fgnText" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "fgnEnt" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "fgnApp" ]
+            [ gmeow:subjectVar "fgnApp" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "fgnPart" ]
+            [ gmeow:subjectVar "fgnPart" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartGiven ]
+            [ gmeow:subjectVar "fgnPart" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "fgnText" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "fgnApp" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:partText ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:givenName ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
+
+gmeow:mapFoafFamilyName a gmeow:ProjectionMapping ;
+    rdfs:label "family-name part → foaf:familyName"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ffnEnt" ; gmeow:value "ffnText" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ffnEnt" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "ffnApp" ]
+            [ gmeow:subjectVar "ffnApp" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "ffnPart" ]
+            [ gmeow:subjectVar "ffnPart" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartSurname ]
+            [ gmeow:subjectVar "ffnPart" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "ffnText" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ffnApp" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:partText ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:familyName ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
+
+# Acquaintance: foaf:knows is "some relationship" — derived from kinship and
+# the met-in-person trust edge between PERSONS only; the relationship kind
+# drops (declared). Never from bare connectsTo (any-entity links are broader
+# than acquaintance).
+gmeow:mapFoafKnows a gmeow:ProjectionMapping ;
+    rdfs:label "kinship/hasMet between persons → foaf:knows"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fkA" ; gmeow:value "fkB" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "fkA" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Person ]
+            [ gmeow:subjectVar "fkA" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasParent gmeow:hasChild gmeow:hasSpouse gmeow:hasSibling gmeow:hasPartner gmeow:hasMet ) ] ;
+              gmeow:objectVar "fkB" ]
+            [ gmeow:subjectVar "fkB" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Person ] ) ;
+        gmeow:edoalSource gmeow:hasMet ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:knows ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the relationship KIND (parent/child/spouse/sibling/partner/met) collapses to bare acquaintance" ] .
+
+gmeow:mapFoafMaker a gmeow:ProjectionMapping ;
+    rdfs:label "hasAuthor → foaf:maker (+ foaf:made inverse)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fmWork" ; gmeow:value "fmAgent" ;
+        gmeow:atom ( [ gmeow:subjectVar "fmWork" ; gmeow:predicate gmeow:hasAuthor ; gmeow:objectVar "fmAgent" ] ) ;
+        gmeow:edoalSource gmeow:hasAuthor ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:maker ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "authorship narrows to FOAF's generic makership; the made inverse is emitted alongside" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "fmWork" ; gmeow:tPred foaf:maker ; gmeow:tObj "fmAgent" ]
+            [ gmeow:tSubj "fmAgent" ; gmeow:tPred foaf:made ; gmeow:tObj "fmWork" ] ) ] .

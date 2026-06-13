@@ -49,6 +49,16 @@ PROFILES: dict[str, Profile] = {
     "exif": Profile("exif", ("exif",)),
     "iiif": Profile("iiif", ("iiif", "oa", "rdf")),
     "dcat": Profile("dcat", ("dcat", "dcterms", "prov", "spdx")),
+    # #34 phases 2-3: the coverage profiles — plus doap/codemeta, which were
+    # compile-only (in mapping_compile._PROFILES but absent here, so their
+    # queries never ran in MAXIMAL).
+    "org": Profile("org", ("org",)),
+    "bibo": Profile("bibo", ("bibo",)),
+    "bibframe": Profile("bibframe", ("bibframe", "rdf")),
+    "gedcom": Profile("gedcom", ("gedcom",)),
+    "sioc": Profile("sioc", ("sioc",)),
+    "doap": Profile("doap", ("doap",)),
+    "codemeta": Profile("codemeta", ("codemeta",)),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +
@@ -67,6 +77,13 @@ _EXAMPLE_FIXTURES = (
     "tags.ttl",
     "identity-over-history.ttl",
     "images.ttl",
+    # #34 phases 2-3: the coverage-profile sources (genealogy, publications,
+    # email threading, neutral memberships, software projects).
+    "genealogy.ttl",
+    "publications.ttl",
+    "email.ttl",
+    "organizations.ttl",
+    "software-project.ttl",
 )
 
 

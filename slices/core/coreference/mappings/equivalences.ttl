@@ -1,4 +1,5 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix mads:   <http://www.loc.gov/mads/rdf/v1#> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix schema: <https://schema.org/> .
 @prefix prov:   <http://www.w3.org/ns/prov#> .
@@ -57,4 +58,13 @@ gmeow:eqCoreference005 a gmeow:TermEquivalence ;
     gmeow:alignObject dcterms:replaces ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+
+gmeow:eqCoreference006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:authorityLink ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject mads:hasCloseExternalAuthority ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "both relate a local description to a close external authority record, by reference (#34 phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role." ;
     gmeow:sssomFile "gmeow-coreference.sssom.tsv" .

@@ -8,9 +8,21 @@
 @prefix oa:     <http://www.w3.org/ns/oa#> .
 
 # Projection mappings: the AI claim layer (#54) → W3C Web Annotation and
-# schema.org. Generated lossy downcasts (P4); every drop declared. The
-# refusal of schema:ClaimReview is structural: NO binding emits a
-# reviewRating — contradictions coexist (P9).
+# schema.org. Generated lossy downcasts (P4); every drop declared.
+#
+# schema:ClaimReview — THE CORRECTED TRANSLATION (#34 audit): the original
+# blanket refusal was a translation error. ClaimReview is per-REVIEW, not
+# per-claim: each review node carries its own schema:author and its own
+# reviewRating, so N competing Assessments translate faithfully as N
+# coexisting ClaimReview nodes, each authored by its vantage — nothing
+# computed, no winner picked, no verdict dropped. The rule is EPISTEMIC-
+# SHAPE PRESERVATION in both directions: an attributed verdict stays
+# authored; an ANONYMOUS aggregate in the input is an anonymous claim in
+# the review set and passes through anonymous — neither fabricate an
+# author for it nor demand one before carrying it (imposed attribution
+# structure is fabrication too); and a projection that COMPUTED an
+# unasserted aggregate would not be violating a principle, it would be
+# broken. There is NO ClaimReview refusal.
 
 # --------------------------------------------------------------------------- #
 # Grounded claim → oa:Annotation: body = the claim node, target = the chunk
@@ -83,7 +95,7 @@ gmeow:mapSchemaGeneratedClaim a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
         gmeow:edoalTarget schema:Claim ; gmeow:edoalTargetKind "class" ;
         gmeow:confidence 0.8 ;
-        gmeow:lossyDrop "modality, veridicality, confidence, standpoint poset, the reified statement content, and ALL verdict machinery dropped — schema:ClaimReview/reviewRating REFUSED (P9: no single winner); appearance only when the evidence spine is complete" ;
+        gmeow:lossyDrop "modality, veridicality, confidence, standpoint poset, and the reified statement content dropped; verdicts ride as per-review ClaimReview nodes (mapSchemaClaimReview) preserving the data's epistemic shape — attributed stays authored, anonymous stays anonymous, nothing computed; appearance only when the evidence spine is complete" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "claim" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Claim ]
             [ gmeow:tSubj "claim" ; gmeow:tPred schema:text ; gmeow:tObj "text" ]
@@ -113,3 +125,39 @@ gmeow:mapSchemaModelCard a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "model" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:SoftwareApplication ]
             [ gmeow:tSubj "model" ; gmeow:tPred schema:name ; gmeow:tObj "mname" ]
             [ gmeow:tSubj "model" ; gmeow:tPred schema:softwareVersion ; gmeow:tObj "vtag" ] ) ] .
+
+
+# --------------------------------------------------------------------------- #
+# Assessment-of-claim → schema:ClaimReview, ONE PER REVIEW (#34 audit): the
+# Assessment node IS the review (reused, not minted); its vantage is the
+# author; its score rides a minted schema:Rating. Competing assessments
+# yield coexisting ClaimReviews — the standpoint structure in schema.org's
+# own idiom. The claim itself never carries an aggregated rating (P9).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaClaimReview a gmeow:ProjectionMapping ;
+    rdfs:label "Assessment of a claim → schema:ClaimReview (vantage as author, per-review Rating)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "crAssess" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "crAssess" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Assessment ]
+            [ gmeow:subjectVar "crAssess" ; gmeow:predicate gmeow:assessmentTarget ; gmeow:objectVar "crClaim" ]
+            [ gmeow:subjectVar "crClaim" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:StandpointClaim ]
+            [ gmeow:subjectVar "crAssess" ; gmeow:predicate gmeow:vantage ; gmeow:objectVar "crJudge" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "crAssess" ; gmeow:predicate gmeow:assessmentScoreValue ; gmeow:objectVar "crScore" ] ) ] ) ;
+        gmeow:mint [ gmeow:bindVar "crRating" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "crAssess" ] ) ]
+                    "-rating" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:assessmentTarget ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toClass schema:ClaimReview ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the criterion/rubric structure and scale metadata collapse to a bare ratingValue; each review stays authored by its vantage — N competing assessments emit N coexisting ClaimReviews, never one aggregated rating (P9)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "crAssess" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:ClaimReview ]
+            [ gmeow:tSubj "crAssess" ; gmeow:tPred schema:itemReviewed ; gmeow:tObj "crClaim" ]
+            [ gmeow:tSubj "crAssess" ; gmeow:tPred schema:author ; gmeow:tObj "crJudge" ]
+            [ gmeow:tSubj "crAssess" ; gmeow:tPred schema:reviewRating ; gmeow:tObj "crRating" ]
+            [ gmeow:tSubj "crRating" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Rating ]
+            [ gmeow:tSubj "crRating" ; gmeow:tPred schema:ratingValue ; gmeow:tObj "crScore" ] ) ] .
