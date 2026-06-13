@@ -45,6 +45,14 @@ gmeow:CoupleRelationship
     skos:definition "A reified couple relationship (marriage, civil union, or partnership) between two persons; bears marriage, divorce and related events."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> .
 
+gmeow:hasCoupleEvent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CoupleRelationship ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "has couple event"@x-gmeow-english ;
+    skos:definition "Relates a couple relationship to an event in its history — the marriage, the divorce, an anniversary (#413). The seam the GEDCOM projection walks: a marriage gmeow:Event's gmeow:eventTime / gmeow:eventLocation source gedcom:date / gedcom:place on the couple's Marriage node. Non-functional: a couple bears several events."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> .
+
 gmeow:ParentChildRelationship
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:KinRelationship ;

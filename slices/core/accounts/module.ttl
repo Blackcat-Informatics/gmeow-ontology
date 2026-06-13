@@ -60,3 +60,86 @@ gmeow:nip05
     rdfs:label "NIP-05 identifier"@x-gmeow-english ;
     skos:definition "A Nostr NIP-05 identifier (user@domain) verifying a Nostr account against a domain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+# --------------------------------------------------------------------------- #
+# Online-presence history (#417, #411): the SERVICE an account is held with,
+# its liveness, the account's own status, and the service homepage. A retired
+# account or a shut-down service is RETAINED with status + dates, never deleted
+# (P10). Flat-first: a service's shutdown is the flat gmeow:serviceShutdownDate;
+# promote to a destruction LifeEvent (lifecycle slice) when evidence or
+# standpoint matters.
+# --------------------------------------------------------------------------- #
+
+gmeow:OnlineService
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Online Service"@x-gmeow-english ;
+    skos:definition "An online service or platform an account is held with — a social network, code forge, email provider, or federated instance. Carries the service's liveness (gmeow:serviceStatus / gmeow:serviceShutdownDate) so historical services (Yahoo 360, Google+) remain first-class with their shutdown recorded."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:accountService
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:OnlineAccount ;
+    rdfs:range gmeow:OnlineService ;
+    rdfs:label "account service"@x-gmeow-english ;
+    skos:definition "The online service an account is held with. Functional — an account is on one service."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:accountServiceHomepage
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:OnlineAccount ;
+    rdfs:label "account service homepage"@x-gmeow-english ;
+    skos:definition "The homepage of the service an account is held with — the foaf:accountServiceHomepage of FOAF's OnlineAccount idiom. Range open (an IRI)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:serviceShutdownDate
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:OnlineService ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "service shutdown date"@x-gmeow-english ;
+    skos:definition "The date a historical online service shut down (Yahoo 360: 2009-07-13). The flat shortcut for service liveness; projects to schema:dissolutionDate. Promote to a destruction LifeEvent when evidence/standpoint matters."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:ServiceStatus
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Service Status"@x-gmeow-english ;
+    skos:definition "The liveness status of an online service — a VALUE vocabulary (live, shut-down, …); open set."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:serviceStatus
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:OnlineService ;
+    rdfs:range gmeow:ServiceStatus ;
+    rdfs:label "service status"@x-gmeow-english ;
+    skos:definition "The liveness status of a service — a gmeow:ServiceStatus value (live / shut-down)."@x-gmeow-english ;
+    skos:scopeNote "Source-variable observation, deliberately NOT functional: competing source- or standpoint-asserted statuses coexist (P9). A functional object property would force the distinct ServiceStatus values to be owl:sameAs and could drive a global OWL inconsistency that halts reasoning."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:serviceStatusLive     a gmeow:ServiceStatus ; rdfs:label "live"@x-gmeow-english ;     skos:definition "The service is currently operating."@x-gmeow-english .
+gmeow:serviceStatusLive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+gmeow:serviceStatusShutDown a gmeow:ServiceStatus ; rdfs:label "shut down"@x-gmeow-english ; skos:definition "The service has ceased operation (its gmeow:serviceShutdownDate records when)."@x-gmeow-english .
+gmeow:serviceStatusShutDown rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:AccountStatus
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Account Status"@x-gmeow-english ;
+    skos:definition "The usage status of an account from its holder's standpoint — a VALUE vocabulary (active, dormant, historical, …); open set."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:accountStatus
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:OnlineAccount ;
+    rdfs:range gmeow:AccountStatus ;
+    rdfs:label "account status"@x-gmeow-english ;
+    skos:definition "The holder's usage status of an account — a gmeow:AccountStatus value (active / dormant / historical). A retired account is status 'historical' with validUntil in the past, never deleted (P10)."@x-gmeow-english ;
+    skos:scopeNote "Source-variable observation, deliberately NOT functional: competing source- or standpoint-asserted statuses coexist (P9). A functional object property would force the distinct AccountStatus values to be owl:sameAs and could drive a global OWL inconsistency that halts reasoning."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+gmeow:accountStatusActive     a gmeow:AccountStatus ; rdfs:label "active"@x-gmeow-english ;     skos:definition "An account in current use."@x-gmeow-english .
+gmeow:accountStatusActive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+gmeow:accountStatusDormant    a gmeow:AccountStatus ; rdfs:label "dormant"@x-gmeow-english ;    skos:definition "An account retained but not actively used."@x-gmeow-english .
+gmeow:accountStatusDormant rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+gmeow:accountStatusHistorical a gmeow:AccountStatus ; rdfs:label "historical"@x-gmeow-english ; skos:definition "A retired account, kept for the record (P10): the holder no longer uses it."@x-gmeow-english .
+gmeow:accountStatusHistorical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .

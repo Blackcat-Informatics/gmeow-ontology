@@ -118,3 +118,16 @@ canonical and survive only here (Principle 4).
 Depends on `kernel`, `temporal` (clocks, intervals, `TimeScopedRelation`), `places`
 (`addressPlace` and the place hierarchy), `accounts` (`deliversToAccount`), `agreements`,
 and `observations`. Consumed by the mail corpus's address book and the email extension.
+
+## Contact-point usage (#411, #417)
+
+### gmeow:ContactPointType · gmeow:contactPointType · gmeow:contactPointProvider
+
+The usage role of a contact point — personal, work, personal-domain, support — is an
+**open value vocabulary** (`gmeow:ContactPointType`, P9), bound by
+`gmeow:contactPointType` (non-functional: a point may serve several roles).
+`gmeow:contactPointProvider` (range `gmeow:Agent`, to avoid a contacts→organization
+dependency) is the issuing/scoping agent — the employer behind a work address, the
+provider behind an email's domain. A retired contact point keeps `gmeow:validUntil` in
+the past (P10), never deletion. Projects to `schema:contactType` and the vCard TYPE
+parameter.

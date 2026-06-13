@@ -105,3 +105,12 @@ form is canonical, the flat GEDCOM record is the lossy down-projection.
 Depends on `kernel`, `entities` (Person, Group), and `observations` (the Observation
 spine the relators sit on). Leans on events, names, gender, and connectivity by
 convention — each contribution declared in the slice that owns it.
+
+## Couple events (#413)
+
+### gmeow:hasCoupleEvent
+
+Links a `gmeow:CoupleRelationship` to an event in its history — the marriage, divorce,
+or anniversary. The seam the GEDCOM projection walks: a marriage `gmeow:Event`'s
+`gmeow:eventTime` / `gmeow:eventLocation` source `gedcom:date` / `gedcom:place` on the
+couple's minted Marriage node.

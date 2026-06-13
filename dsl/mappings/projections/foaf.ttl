@@ -177,3 +177,21 @@ gmeow:mapFoafMaker a gmeow:ProjectionMapping ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "fmWork" ; gmeow:tPred foaf:maker ; gmeow:tObj "fmAgent" ]
             [ gmeow:tSubj "fmAgent" ; gmeow:tPred foaf:made ; gmeow:tObj "fmWork" ] ) ] .
+
+gmeow:mapFoafAccount a gmeow:ProjectionMapping ;
+    rdfs:label "holdsAccount + OnlineAccount → foaf:account / OnlineAccount / accountName / accountServiceHomepage"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "faAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "faAgent" ; gmeow:predicate gmeow:holdsAccount ; gmeow:objectVar "faAcct" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "faAcct" ; gmeow:predicate gmeow:accountName ; gmeow:objectVar "faName" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "faAcct" ; gmeow:predicate gmeow:accountServiceHomepage ; gmeow:objectVar "faHome" ] ) ] ) ;
+        gmeow:edoalSource gmeow:holdsAccount ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "decentralized-identity detail (nostr/activitypub/nip05) and account status/validity drop; FOAF carries the OnlineAccount idiom" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "faAgent" ; gmeow:tPred foaf:account ; gmeow:tObj "faAcct" ]
+            [ gmeow:tSubj "faAcct" ; gmeow:tPred rdf:type ; gmeow:tObjValue foaf:OnlineAccount ]
+            [ gmeow:tSubj "faAcct" ; gmeow:tPred foaf:accountName ; gmeow:tObj "faName" ]
+            [ gmeow:tSubj "faAcct" ; gmeow:tPred foaf:accountServiceHomepage ; gmeow:tObj "faHome" ] ) ] .
