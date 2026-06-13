@@ -244,3 +244,30 @@ gmeow:mapGedcomHusbandWife a gmeow:ProjectionMapping ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "ghwMarriage" ; gmeow:tPred gedcom:husband ; gmeow:tObj "ghwHim" ]
             [ gmeow:tSubj "ghwMarriage" ; gmeow:tPred gedcom:wife ; gmeow:tObj "ghwHer" ] ) ] .
+
+# Marriage date + place (#413): the couple's marriage gmeow:Event sources
+# gedcom:date / gedcom:place on the SAME minted <couple>-marriage node.
+gmeow:mapGedcomMarriageDate a gmeow:ProjectionMapping ;
+    rdfs:label "couple marriage event → gedcom:date / gedcom:place"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "gmdCouple" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "gmdCouple" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:CoupleRelationship ]
+            [ gmeow:subjectVar "gmdCouple" ; gmeow:predicate gmeow:hasCoupleEvent ; gmeow:objectVar "gmdEvent" ]
+            [ gmeow:subjectVar "gmdEvent" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeMarriage ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "gmdEvent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "gmdDate" ] ) ]
+            [ gmeow:optionalGroup (
+                [ gmeow:subjectVar "gmdEvent" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "gmdPlaceEnt" ]
+                [ gmeow:subjectVar "gmdPlaceEnt" ; gmeow:predicate rdfs:label ; gmeow:objectVar "gmdPlace" ] ) ] ) ;
+        gmeow:mint [ gmeow:bindVar "gmdMarriage" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "gmdCouple" ] ) ]
+                    "-marriage" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:hasCoupleEvent ] ;
+    gmeow:hasBinding [
+        gmeow:profile "gedcom" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the marriage event's participants, evidence and standpoint drop; only date + place survive on the Marriage node" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "gmdMarriage" ; gmeow:tPred gedcom:date ; gmeow:tObj "gmdDate" ]
+            [ gmeow:tSubj "gmdMarriage" ; gmeow:tPred gedcom:place ; gmeow:tObj "gmdPlace" ] ) ] .

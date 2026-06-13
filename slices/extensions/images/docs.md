@@ -96,3 +96,16 @@ All alignments are by reference, never import (Principle 5): schema.org `ImageOb
 IIIF, W3C Web Annotation, W3C EXIF Ontology, XMP, IPTC, and CIDOC-CRM/CRMdig. Depends on
 `kernel`, `documents` (MediaObject), `observations` (the claim stack DepictionUsage sits
 in), and `temporal` (depiction intervals).
+
+## EXIF tags (#413)
+
+### gmeow:ExifTag · gmeow:hasExifTag · gmeow:exifTagId · gmeow:exifTagValue
+
+A camera's EXIF metadata is an **open, camera-defined** set of tag/value pairs. To carry
+it **losslessly** — every tag survives an `index.ttl → GMEOW → index.ttl` round-trip —
+each tag is a reified `gmeow:ExifTag` in the `schema:PropertyValue` shape:
+`gmeow:exifTagId` (the tag, "FNumber" → `schema:propertyID`), `gmeow:exifTagValue`
+("f/2.0" → `schema:value`), and `rdfs:label` ("Aperture" → `schema:name`). Never a fixed
+property per tag (P9). The meaningful facts (capture device/time, GPS, colourspace) also
+ride their typed properties; the ExifTag set is the complete, faithful carrier, projected
+to `schema:exifData`.

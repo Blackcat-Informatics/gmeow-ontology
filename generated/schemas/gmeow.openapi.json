@@ -127,6 +127,22 @@
             "title": "AccessibilityPolarityEnum",
             "type": "string"
           },
+          "AccountStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "AccountStatus",
+            "type": "object"
+          },
+          "AccountStatusEnum": {
+            "description": "",
+            "enum": [
+              "accountStatusActive",
+              "accountStatusDormant",
+              "accountStatusHistorical"
+            ],
+            "title": "AccountStatusEnum",
+            "type": "string"
+          },
           "AcquaintanceRelationship": {
             "additionalProperties": false,
             "description": "",
@@ -701,6 +717,15 @@
                   "null"
                 ]
               },
+              "founderOf": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasAgreement": {
                 "items": {
                   "$ref": "#/$defs/Agreement"
@@ -809,6 +834,15 @@
                   "null"
                 ]
               },
+              "makesOffer": {
+                "items": {
+                  "$ref": "#/$defs/Offering"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "memberOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
@@ -821,6 +855,15 @@
               "nativeLanguage": {
                 "items": {
                   "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownerOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -2138,6 +2181,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -2901,6 +2953,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -3476,6 +3537,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -4088,6 +4158,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -4625,6 +4704,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -5119,6 +5207,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -5893,6 +5990,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -6468,6 +6574,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -6965,6 +7080,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -7432,6 +7556,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -7890,6 +8023,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -8410,6 +8552,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "partId": {
                 "items": {
                   "type": "string"
@@ -8898,6 +9049,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -9703,6 +9863,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -10353,6 +10522,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -10974,6 +11152,15 @@
                   "null"
                 ]
               },
+              "founderOf": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasAgreement": {
                 "items": {
                   "$ref": "#/$defs/Agreement"
@@ -11082,6 +11269,15 @@
                   "null"
                 ]
               },
+              "makesOffer": {
+                "items": {
+                  "$ref": "#/$defs/Offering"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "memberOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
@@ -11094,6 +11290,15 @@
               "nativeLanguage": {
                 "items": {
                   "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownerOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -11470,6 +11675,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -12212,6 +12426,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -12862,6 +13085,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -13573,6 +13805,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -14062,6 +14303,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -15439,6 +15689,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -16128,6 +16387,15 @@
                 "items": {
                   "format": "date-time",
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -17215,6 +17483,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -17694,6 +17971,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -18349,6 +18635,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -18970,6 +19265,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -19498,6 +19802,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -19983,6 +20296,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "parameterEntity": {
                 "type": [
                   "string",
@@ -20210,8 +20532,45 @@
           "ContactPoint": {
             "additionalProperties": false,
             "description": "",
+            "properties": {
+              "contactPointProvider": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contactPointType": {
+                "items": {
+                  "$ref": "#/$defs/ContactPointType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
             "title": "ContactPoint",
             "type": "object"
+          },
+          "ContactPointType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ContactPointType",
+            "type": "object"
+          },
+          "ContactPointTypeEnum": {
+            "description": "",
+            "enum": [
+              "contactPointTypePersonal",
+              "contactPointTypePersonalDomain",
+              "contactPointTypeSupport",
+              "contactPointTypeWork"
+            ],
+            "title": "ContactPointTypeEnum",
+            "type": "string"
           },
           "ContainmentTenure": {
             "additionalProperties": false,
@@ -20637,6 +20996,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -20988,6 +21356,7 @@
               "roleFormalAnalysis",
               "roleFundingAcquisition",
               "roleIllustrator",
+              "roleInventor",
               "roleInvestigation",
               "roleLLMAssistedEditor",
               "roleLetterer",
@@ -21002,6 +21371,7 @@
               "rolePhotographer",
               "roleProducer",
               "roleProjectAdministration",
+              "rolePublisher",
               "roleRecordingEngineer",
               "roleReleaser",
               "roleRemixer",
@@ -21692,6 +22062,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -21818,6 +22197,15 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "hasCoupleEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasPartner": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -22542,6 +22930,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -23252,6 +23649,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -23740,6 +24146,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -24263,6 +24678,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -24812,6 +25236,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -25387,6 +25820,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -25866,6 +26308,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -26397,6 +26848,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -27223,6 +27683,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -28189,6 +28658,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -28477,6 +28955,26 @@
               "datingMethodUraniumLead"
             ],
             "title": "DatingMethodEnum",
+            "type": "string"
+          },
+          "DayOfWeek": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "DayOfWeek",
+            "type": "object"
+          },
+          "DayOfWeekEnum": {
+            "description": "",
+            "enum": [
+              "dayFriday",
+              "dayMonday",
+              "daySaturday",
+              "daySunday",
+              "dayThursday",
+              "dayTuesday",
+              "dayWednesday"
+            ],
+            "title": "DayOfWeekEnum",
             "type": "string"
           },
           "DeonticModality": {
@@ -29057,6 +29555,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -29580,6 +30087,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -30366,6 +30882,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -30984,6 +31509,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -31488,6 +32022,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "prescribedConduct": {
                 "items": {
                   "type": "string"
@@ -31664,6 +32207,24 @@
               "addressValue": {
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "contactPointProvider": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contactPointType": {
+                "items": {
+                  "$ref": "#/$defs/ContactPointType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -32376,6 +32937,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "partOfThread": {
                 "items": {
                   "$ref": "#/$defs/Thread"
@@ -33070,6 +33640,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "partId": {
                 "items": {
                   "type": "string"
@@ -33588,6 +34167,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -34237,6 +34825,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -35351,6 +35948,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -35984,6 +36590,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -36774,6 +37389,26 @@
             "title": "ExemplarPolarityEnum",
             "type": "string"
           },
+          "ExifTag": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "exifTagId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "exifTagValue": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "title": "ExifTag",
+            "type": "object"
+          },
           "Expression": {
             "additionalProperties": false,
             "description": "",
@@ -37432,6 +38067,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -38074,6 +38718,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -38553,6 +39206,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -39040,6 +39702,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -39821,6 +40492,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -40630,6 +41310,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -41575,6 +42264,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -42114,6 +42812,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -43470,6 +44177,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -44440,6 +45156,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -45142,6 +45867,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -45636,6 +46370,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -46122,6 +46865,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -46640,6 +47392,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -47120,6 +47881,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -47673,6 +48443,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -48441,6 +49220,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -49420,6 +50208,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -49943,6 +50740,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "partId": {
                 "items": {
                   "type": "string"
@@ -50441,6 +51247,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -51105,6 +51920,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -51972,6 +52796,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -52614,6 +53447,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -53403,6 +54245,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -54675,6 +55526,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -56350,6 +57210,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -56957,6 +57826,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -57473,6 +58351,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -58433,6 +59320,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -59004,6 +59900,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -59523,6 +60428,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -60852,6 +61766,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -61527,6 +62450,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -62078,6 +63010,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -62713,6 +63654,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "parentMailbox": {
                 "items": {
                   "$ref": "#/$defs/Mailbox"
@@ -63238,6 +64188,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -64061,6 +65020,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -64701,6 +65669,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -65179,6 +66156,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -65817,6 +66803,15 @@
                   "null"
                 ]
               },
+              "hasExifTag": {
+                "items": {
+                  "$ref": "#/$defs/ExifTag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasGenre": {
                 "items": {
                   "$ref": "#/$defs/Genre"
@@ -66121,6 +67116,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -66996,6 +68000,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -67980,6 +68993,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -68555,6 +69577,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "partOfThread": {
                 "items": {
                   "$ref": "#/$defs/Thread"
@@ -69117,6 +70148,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -69869,6 +70909,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -70841,6 +71890,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -71311,6 +72369,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -71854,6 +72921,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -72670,6 +73746,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -73310,6 +74395,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -73803,6 +74897,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "partExpansion": {
@@ -74473,6 +75576,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "periodContainsPeriod": {
                 "items": {
                   "$ref": "#/$defs/NamedPeriod"
@@ -75097,6 +76209,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "positionFrame": {
                 "anyOf": [
                   {
@@ -75589,6 +76710,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -76071,6 +77201,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -76664,6 +77803,15 @@
                   }
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "parentFrame": {
                 "anyOf": [
                   {
@@ -77179,6 +78327,15 @@
               "networkAddressValue": {
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -77706,6 +78863,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "prescribedConduct": {
                 "items": {
                   "type": "string"
@@ -78167,6 +79333,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -78670,6 +79845,15 @@
               "notationSystemKind": {
                 "items": {
                   "$ref": "#/$defs/SymbolicSystemKind"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -79288,6 +80472,15 @@
                 "items": {
                   "format": "date-time",
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -80504,6 +81697,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -80617,6 +81819,509 @@
             "title": "Occupation",
             "type": "object"
           },
+          "Offering": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "areaServed": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasOpeningHours": {
+                "items": {
+                  "$ref": "#/$defs/OpeningHoursSpecification"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "itemOffered": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "offeringProvider": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "Offering",
+            "type": "object"
+          },
           "OnlineAccount": {
             "additionalProperties": false,
             "description": "",
@@ -80633,6 +82338,31 @@
               "accountName": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "accountService": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/OnlineService"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "accountServiceHomepage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "accountStatus": {
+                "items": {
+                  "$ref": "#/$defs/AccountStatus"
                 },
                 "type": [
                   "array",
@@ -81026,6 +82756,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -81146,6 +82885,516 @@
               }
             },
             "title": "OnlineAccount",
+            "type": "object"
+          },
+          "OnlineService": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contributesToFrame": {
+                "items": {
+                  "$ref": "#/$defs/NarrativeReferenceFrame"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "detectedMediaType": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "serviceShutdownDate": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "serviceStatus": {
+                "items": {
+                  "$ref": "#/$defs/ServiceStatus"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "OnlineService",
             "type": "object"
           },
           "OpacityReason": {
@@ -81547,6 +83796,15 @@
                   }
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -81678,6 +83936,496 @@
             "title": "OpaqueFrame",
             "type": "object"
           },
+          "OpeningHoursSpecification": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "closesAt": {
+                "format": "time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "openingDay": {
+                "items": {
+                  "$ref": "#/$defs/DayOfWeek"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "opensAt": {
+                "format": "time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "OpeningHoursSpecification",
+            "type": "object"
+          },
           "Order": {
             "additionalProperties": false,
             "description": "",
@@ -81775,6 +84523,24 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "foundedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "founderOf": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
                 },
                 "type": [
                   "array",
@@ -81934,6 +84700,15 @@
                   "null"
                 ]
               },
+              "makesOffer": {
+                "items": {
+                  "$ref": "#/$defs/Offering"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "memberOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
@@ -81964,6 +84739,15 @@
               "organizationType": {
                 "items": {
                   "$ref": "#/$defs/OrganizationType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownerOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -82466,6 +85250,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -83011,6 +85804,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -83545,6 +86347,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -84450,6 +87261,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -85617,6 +88437,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "prescribedConduct": {
                 "items": {
                   "type": "string"
@@ -85802,6 +88631,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "founderOf": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
                 },
                 "type": [
                   "array",
@@ -86069,6 +88907,15 @@
                   "null"
                 ]
               },
+              "makesOffer": {
+                "items": {
+                  "$ref": "#/$defs/Offering"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "memberOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
@@ -86081,6 +88928,15 @@
               "nativeLanguage": {
                 "items": {
                   "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownerOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -86617,6 +89473,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -87219,6 +90084,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -88028,6 +90902,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "poseFrame": {
                 "items": {
                   "$ref": "#/$defs/ReferenceFrame"
@@ -88193,6 +91076,24 @@
               "addressRegion": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contactPointProvider": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contactPointType": {
+                "items": {
+                  "$ref": "#/$defs/ContactPointType"
                 },
                 "type": [
                   "array",
@@ -88725,6 +91626,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -89270,6 +92180,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "procedureType": {
                 "items": {
                   "$ref": "#/$defs/ProcedureType"
@@ -89784,6 +92703,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -90468,6 +93396,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -91307,6 +94244,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "pageOfSite": {
                 "items": {
                   "$ref": "#/$defs/WebSite"
@@ -91998,6 +94944,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -92514,6 +95469,15 @@
               "overrides": {
                 "items": {
                   "$ref": "#/$defs/Norm"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -93070,6 +96034,30 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "programmingLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "projectHomepage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "projectIdentifier": {
                 "items": {
                   "type": "string"
@@ -93589,6 +96577,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -94117,6 +97114,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "promptRole": {
                 "anyOf": [
                   {
@@ -94606,6 +97612,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -95833,6 +98848,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -96285,6 +99309,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -97108,6 +100141,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -97711,6 +100753,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -98196,6 +101247,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -98772,6 +101832,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "parentFrame": {
                 "anyOf": [
                   {
@@ -99319,6 +102388,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -99789,6 +102867,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -100927,6 +104014,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -101467,6 +104563,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -102460,6 +105565,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -103174,6 +106288,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -103724,6 +106847,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -104312,6 +107444,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "prescribedConduct": {
                 "items": {
                   "type": "string"
@@ -104819,6 +107960,15 @@
               "overrides": {
                 "items": {
                   "$ref": "#/$defs/Norm"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -105374,6 +108524,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -105881,6 +109040,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -106516,6 +109684,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -107321,6 +110498,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -107918,6 +111104,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -108585,6 +111780,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -108843,6 +112047,15 @@
                   "null"
                 ]
               },
+              "founderOf": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasAgreement": {
                 "items": {
                   "$ref": "#/$defs/Agreement"
@@ -108951,6 +112164,15 @@
                   "null"
                 ]
               },
+              "makesOffer": {
+                "items": {
+                  "$ref": "#/$defs/Offering"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "memberOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
@@ -108963,6 +112185,15 @@
               "nativeLanguage": {
                 "items": {
                   "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownerOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -109321,6 +112552,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -109834,6 +113074,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -110592,6 +113841,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -111054,6 +114312,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -111545,6 +114812,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -112363,6 +115639,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -113261,6 +116546,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -114192,6 +117486,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -114457,6 +117760,503 @@
               }
             },
             "title": "Service",
+            "type": "object"
+          },
+          "ServiceOffering": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "serviceType": {
+                "items": {
+                  "$ref": "#/$defs/ServiceType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "ServiceOffering",
+            "type": "object"
+          },
+          "ServiceStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ServiceStatus",
+            "type": "object"
+          },
+          "ServiceStatusEnum": {
+            "description": "",
+            "enum": [
+              "serviceStatusLive",
+              "serviceStatusShutDown"
+            ],
+            "title": "ServiceStatusEnum",
+            "type": "string"
+          },
+          "ServiceType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ServiceType",
             "type": "object"
           },
           "SeverityLevel": {
@@ -114922,6 +118722,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -115449,6 +119258,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -115907,6 +119725,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -116042,6 +119869,15 @@
                   "null"
                 ]
               },
+              "founderOf": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasAgreement": {
                 "items": {
                   "$ref": "#/$defs/Agreement"
@@ -116150,6 +119986,15 @@
                   "null"
                 ]
               },
+              "makesOffer": {
+                "items": {
+                  "$ref": "#/$defs/Offering"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "memberOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
@@ -116162,6 +120007,15 @@
               "nativeLanguage": {
                 "items": {
                   "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownerOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -116920,6 +120774,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -117568,6 +121431,30 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "programmingLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "projectHomepage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "projectIdentifier": {
                 "items": {
                   "type": "string"
@@ -118062,6 +121949,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -118541,6 +122437,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -119041,6 +122946,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -119818,6 +123732,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -120431,6 +124354,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -121174,6 +125106,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "placeDeterminacy": {
                 "items": {
                   "$ref": "#/$defs/Determinacy"
@@ -121777,6 +125718,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -122338,6 +126288,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -123130,6 +127089,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "physicalPlace": {
                 "items": {
                   "$ref": "#/$defs/Place"
@@ -123759,6 +127727,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -124282,6 +128259,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -124770,6 +128756,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -125271,6 +129266,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -125812,6 +129816,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -126319,6 +130332,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -126978,6 +131000,26 @@
           "TelephoneNumber": {
             "additionalProperties": false,
             "description": "",
+            "properties": {
+              "contactPointProvider": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contactPointType": {
+                "items": {
+                  "$ref": "#/$defs/ContactPointType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
             "title": "TelephoneNumber",
             "type": "object"
           },
@@ -127444,6 +131486,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -128447,6 +132498,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -129071,6 +133131,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -129721,6 +133790,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -130203,6 +134281,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -131211,6 +135298,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -131816,6 +135912,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -132295,6 +136400,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -133142,6 +137256,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -134078,6 +138201,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -134789,6 +138921,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "provenance": {
                 "items": {
                   "type": "string"
@@ -135332,6 +139473,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",
@@ -136283,6 +140433,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "pageOfSite": {
                 "items": {
                   "$ref": "#/$defs/WebSite"
@@ -137219,6 +141378,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -138117,6 +142285,15 @@
                   "null"
                 ]
               },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "propagatesFrom": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -138741,6 +142918,15 @@
               "name": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
                 },
                 "type": [
                   "array",

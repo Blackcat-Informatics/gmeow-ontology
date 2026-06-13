@@ -104,3 +104,20 @@ Depends only on `kernel` — accounts sit near the bottom of the core stack so t
 (`deliversToAccount`), the email extension, and finance can all build on them without
 cycles. Consumers: the mail corpus, email delivery, and finance (Principle 15, named in the
 manifest).
+
+## Online-presence history (#417, #411)
+
+### gmeow:OnlineService · gmeow:accountService · gmeow:accountServiceHomepage · gmeow:serviceShutdownDate · gmeow:serviceStatus
+
+The **service** an account is held with is a first-class `gmeow:OnlineService`
+(`gmeow:accountService`, functional). Its liveness rides the flat
+`gmeow:serviceStatus` (live / shut-down) and `gmeow:serviceShutdownDate` — so a
+historical service (Yahoo 360, shut 2009-07-13) stays first-class with its shutdown
+recorded (→ `schema:dissolutionDate`). `gmeow:accountServiceHomepage` is FOAF's
+`accountServiceHomepage` idiom.
+
+### gmeow:AccountStatus · gmeow:accountStatus
+
+The holder's usage status of an account — an **open value vocabulary** (active /
+dormant / historical). A retired account is `accountStatusHistorical` with
+`validUntil` in the past, retained for the record (P10), never deleted.

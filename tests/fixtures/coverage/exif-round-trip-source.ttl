@@ -1,0 +1,86 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# EXIF round-trip parity fixture (#413). These are the 12 real schema:exifData
+# PropertyValues from the paudley site index.ttl, committed verbatim so the
+# losslessness regression runs in every environment (not just where the live
+# site is checked out). The test parses these, expresses them in GMEOW's
+# reified gmeow:ExifTag model, projects back to schema:exifData, and asserts a
+# byte-for-byte multiset match — guarding the camera-defined open tag set
+# against silent loss.
+
+@prefix schema: <https://schema.org/> .
+
+<https://example.org/exif/photo> a schema:ImageObject ;
+    schema:exifData <https://example.org/exif/tag0> ;
+    schema:exifData <https://example.org/exif/tag1> ;
+    schema:exifData <https://example.org/exif/tag2> ;
+    schema:exifData <https://example.org/exif/tag3> ;
+    schema:exifData <https://example.org/exif/tag4> ;
+    schema:exifData <https://example.org/exif/tag5> ;
+    schema:exifData <https://example.org/exif/tag6> ;
+    schema:exifData <https://example.org/exif/tag7> ;
+    schema:exifData <https://example.org/exif/tag8> ;
+    schema:exifData <https://example.org/exif/tag9> ;
+    schema:exifData <https://example.org/exif/tag10> ;
+    schema:exifData <https://example.org/exif/tag11> .
+
+<https://example.org/exif/tag0> a schema:PropertyValue ;
+    schema:propertyID "ColorSpace"@en ;
+    schema:value "sRGB"@en ;
+    schema:name "Color space"@en .
+
+<https://example.org/exif/tag1> a schema:PropertyValue ;
+    schema:propertyID "ExposureTime"@en ;
+    schema:value "1/1595"@en ;
+    schema:name "Exposure time"@en .
+
+<https://example.org/exif/tag2> a schema:PropertyValue ;
+    schema:propertyID "FNumber"@en ;
+    schema:value "f/2.0"@en ;
+    schema:name "Aperture"@en .
+
+<https://example.org/exif/tag3> a schema:PropertyValue ;
+    schema:propertyID "FocalLength"@en ;
+    schema:value "2.6 mm"@en ;
+    schema:name "Focal length"@en .
+
+<https://example.org/exif/tag4> a schema:PropertyValue ;
+    schema:propertyID "FocalLengthIn35mmFormat"@en ;
+    schema:value "24 mm"@en ;
+    schema:name "35 mm equivalent focal length"@en .
+
+<https://example.org/exif/tag5> a schema:PropertyValue ;
+    schema:propertyID "GPSAltitude"@en ;
+    schema:value "77.9 m Above Sea Level"@en ;
+    schema:name "GPS altitude"@en .
+
+<https://example.org/exif/tag6> a schema:PropertyValue ;
+    schema:propertyID "GPSImgDirection"@en ;
+    schema:value "165 degrees magnetic north"@en ;
+    schema:name "GPS image direction"@en .
+
+<https://example.org/exif/tag7> a schema:PropertyValue ;
+    schema:propertyID "ISO"@en ;
+    schema:value "38"@en ;
+    schema:name "ISO speed"@en .
+
+<https://example.org/exif/tag8> a schema:PropertyValue ;
+    schema:propertyID "LensModel"@en ;
+    schema:value "Pixel 5 front camera 2.57mm f/2.0"@en ;
+    schema:name "Lens model"@en .
+
+<https://example.org/exif/tag9> a schema:PropertyValue ;
+    schema:propertyID "Make"@en ;
+    schema:value "Google"@en ;
+    schema:name "Camera make"@en .
+
+<https://example.org/exif/tag10> a schema:PropertyValue ;
+    schema:propertyID "Model"@en ;
+    schema:value "Pixel 5"@en ;
+    schema:name "Camera model"@en .
+
+<https://example.org/exif/tag11> a schema:PropertyValue ;
+    schema:propertyID "Software"@en ;
+    schema:value "HDR+ 1.0.471358035zd"@en ;
+    schema:name "Camera software"@en .

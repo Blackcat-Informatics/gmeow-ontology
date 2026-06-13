@@ -352,3 +352,45 @@ gmeow:SceneGraphEdge rdfs:subClassOf
 
 # Flat-first/reify-on-demand pairings, machine-usable (#325).
 gmeow:depicts gmeow:pairsWith gmeow:DepictionUsage .
+
+# --------------------------------------------------------------------------- #
+# EXIF tags as reified key-value records (#413). A camera's EXIF metadata is an
+# OPEN set of tag/value pairs (FNumber, ExposureTime, GPSImgDirection, …). To
+# carry it LOSSLESSLY — every tag survives the index.ttl → GMEOW → index.ttl
+# round-trip — each tag is a reified gmeow:ExifTag (the schema:PropertyValue
+# shape: a propertyID, a value, and a human label), never a fixed property per
+# tag (P9: the EXIF tag set is open and camera-defined). The meaningful facts
+# (captureDevice, captureTime, GPS, colourspace) ALSO ride their typed
+# properties; the ExifTag set is the faithful, complete carrier.
+# --------------------------------------------------------------------------- #
+
+gmeow:ExifTag
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:FunctionalComplex ;
+    rdfs:label "EXIF Tag"@x-gmeow-english ;
+    skos:definition "A reified EXIF metadata tag of a media object — a tag identifier (gmeow:exifTagId, e.g. 'FNumber'), its value (gmeow:exifTagValue, e.g. 'f/2.0'), and a human-readable label (rdfs:label, e.g. 'Aperture'). The schema:PropertyValue shape: reification keeps each tag's id/value/label paired correctly and lets an OPEN, camera-defined EXIF set round-trip losslessly to schema:exifData."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+
+gmeow:hasExifTag
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range gmeow:ExifTag ;
+    rdfs:label "has EXIF tag"@x-gmeow-english ;
+    skos:definition "Relates a media object to one of its reified EXIF tags. Non-functional: an image carries many tags. Projects to schema:exifData."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+
+gmeow:exifTagId
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ExifTag ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "EXIF tag id"@x-gmeow-english ;
+    skos:definition "The EXIF tag identifier — 'FNumber', 'ExposureTime', 'ColorSpace', 'GPSImgDirection'. The machine key; projects to schema:PropertyValue/propertyID."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+
+gmeow:exifTagValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ExifTag ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "EXIF tag value"@x-gmeow-english ;
+    skos:definition "The value of an EXIF tag — 'f/2.0', '1/1595', 'sRGB'. Projects to schema:PropertyValue/value. The human-readable tag name ('Aperture') rides rdfs:label → schema:name."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
