@@ -258,6 +258,154 @@ gmeow:temporalFrameTDBGregorian
 gmeow:temporalFrameTDBGregorian skos:definition "The tdb gregorian temporal frame — a named combination of timescale and calendar used to interpret temporal coordinates."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
 
+# Canonical civil-time frames for the non-Gregorian calendar systems (#443):
+# each is the same UTC-based civil clock interpreted on a different calendar, so
+# a date expressed in any of these calendars has an explicit TemporalFrame (P11)
+# and every CalendarSystem value is wired into a profile descriptor.
+gmeow:temporalFrameUTCHebrew
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Hebrew (civil time, Hebrew calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarHebrew ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the lunisolar Hebrew calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUTCIslamic
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Islamic (civil time, Hijri calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarIslamic ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the lunar Islamic (Hijri) calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUTCChinese
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Chinese (civil time, Chinese calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarChinese ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the lunisolar Chinese calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUTCPersian
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Persian (civil time, Solar Hijri calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarPersian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the solar Persian (Solar Hijri) calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUTCEthiopian
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Ethiopian (civil time, Ethiopian calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarEthiopian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the Ethiopian calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUTCCoptic
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Coptic (civil time, Coptic calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarCoptic ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the Coptic calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUTCJulian
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Julian (civil time, Julian calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarJulian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the Julian calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUTCISOWeek
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC ISO week date (civil time, ISO 8601 week numbering)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarISOWeek ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    # ISO 8601 week dates are (week-based year, week 1–53, weekday 1–7) — not
+    # month/day-of-month — so this frame uses the week axes, not axisMonth/axisDay.
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisWeek, gmeow:axisDayOfWeek, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Civil time on the ISO 8601 week-numbering calendar, interpreted in the UTC time scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+# The remaining atomic/rotational time scales paired with the Gregorian calendar
+# (#443) — so GPS and UT1 are each wired into a profile descriptor.
+gmeow:temporalFrameGPSGregorian
+    a gmeow:TemporalFrame ;
+    rdfs:label "GPS Gregorian (satellite time)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleGPS ;
+    gmeow:frameCalendarSystem gmeow:calendarGregorian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "The GPS time scale on the Gregorian calendar — satellite-system time, offset from TAI."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameUT1Gregorian
+    a gmeow:TemporalFrame ;
+    rdfs:label "UT1 Gregorian (Earth-rotation time)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUT1 ;
+    gmeow:frameCalendarSystem gmeow:calendarGregorian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "The UT1 (Earth-rotation) time scale on the Gregorian calendar — the basis for civil solar alignment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
 gmeow:Instant
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:AbstractIndividual ;

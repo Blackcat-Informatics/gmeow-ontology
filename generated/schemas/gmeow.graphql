@@ -145,6 +145,7 @@ enum AxisEnum
     axisCyan
     axisDNSName
     axisDay
+    axisDayOfWeek
     axisDeclination
     axisDepth
     axisEgocentricForward
@@ -216,6 +217,7 @@ enum AxisEnum
     axisURL
     axisValence
     axisVirtualAddress
+    axisWeek
     axisWhat3Words
     axisX
     axisY
@@ -1910,6 +1912,7 @@ enum ReferenceFrameEnum
     referenceFrameCMYK
     referenceFrameCNY
     referenceFrameCelestialEquatorial
+    referenceFrameConfigurationSpace
     referenceFrameDNS
     referenceFrameDepthBelowChartDatum
     referenceFrameDepthBelowSeaLevel
@@ -1934,7 +1937,12 @@ enum ReferenceFrameEnum
     referenceFrameMAC
     referenceFrameMGRS
     referenceFrameMileMarker
+    referenceFrameMusicalTime
+    referenceFrameNarrativeSpace
+    referenceFrameNavigationCylindrical
     referenceFrameNetworkGraph
+    referenceFrameOrientationQuaternion
+    referenceFramePhaseSpace
     referenceFramePhaseSpace3DOF
     referenceFramePlusCode
     referenceFramePort
@@ -1947,6 +1955,7 @@ enum ReferenceFrameEnum
     referenceFrameRobotVelocity
     referenceFrameSI
     referenceFrameSRGB
+    referenceFrameStringEditSpace
     referenceFrameUNLocode
     referenceFrameURL
     referenceFrameUSD
@@ -2347,10 +2356,20 @@ enum TaskStatusEnum
 
 enum TemporalFrameEnum
   {
+    temporalFrameGPSGregorian
     temporalFrameTAI
     temporalFrameTDBGregorian
     temporalFrameTTGregorian
+    temporalFrameUT1Gregorian
+    temporalFrameUTCChinese
+    temporalFrameUTCCoptic
+    temporalFrameUTCEthiopian
     temporalFrameUTCGregorian
+    temporalFrameUTCHebrew
+    temporalFrameUTCISOWeek
+    temporalFrameUTCIslamic
+    temporalFrameUTCJulian
+    temporalFrameUTCPersian
   }
 
 enum TemporalMeasurementEnum
