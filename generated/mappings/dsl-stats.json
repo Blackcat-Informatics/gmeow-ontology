@@ -11,7 +11,7 @@
   "gmeow-classes.sssom.tsv": 53,
   "gmeow-connectivity.sssom.tsv": 2,
   "gmeow-coreference.sssom.tsv": 6,
-  "gmeow-creative-works.sssom.tsv": 55,
+  "gmeow-creative-works.sssom.tsv": 58,
   "gmeow-deception.sssom.tsv": 22,
   "gmeow-determinacy.sssom.tsv": 6,
   "gmeow-dublin-core.sssom.tsv": 43,
@@ -55,8 +55,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1598,
+ "equivalences": 1601,
  "functions": 38,
- "mapping_sets": 54,
+ "mapping_sets": 55,
  "projections": 444
 }

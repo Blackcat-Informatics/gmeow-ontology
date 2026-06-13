@@ -255,10 +255,9 @@ def test_creative_work_type_value_vocab() -> None:
 
     Verifies that GMEOW.CreativeWorkType rdfs:subClassOf GUFO.QualityValue and that each
     expected work-type resource (e.g., workTypeLiterary, workTypeWritten,
-    workTypeNarrative, workTypeMusical, workTypeComposedMusical, workTypeVisual,
-    workTypePhotographic, workTypeAudiovisual, workTypeFilm, workTypeChoreographic,
-    workTypeCartographic, workTypeSoftware, workTypeDataset) has rdf:type
-    GMEOW.CreativeWorkType.
+    workTypeNarrative, workTypeMusical, workTypeVisual, workTypePhotographic,
+    workTypeAudiovisual, workTypeFilm, workTypeChoreographic, workTypeCartographic,
+    workTypeSoftware, workTypeDataset) has rdf:type GMEOW.CreativeWorkType.
     """
     graph = _graph()
     assert (GMEOW.CreativeWorkType, RDFS.subClassOf, GUFO.QualityValue) in graph
@@ -267,7 +266,6 @@ def test_creative_work_type_value_vocab() -> None:
         GMEOW.workTypeWritten,
         GMEOW.workTypeNarrative,
         GMEOW.workTypeMusical,
-        GMEOW.workTypeComposedMusical,
         GMEOW.workTypeVisual,
         GMEOW.workTypePhotographic,
         GMEOW.workTypeAudiovisual,
@@ -278,6 +276,12 @@ def test_creative_work_type_value_vocab() -> None:
         GMEOW.workTypeDataset,
     ):
         assert (ind, RDF.type, GMEOW.CreativeWorkType) in graph
+
+    # Regression guard: the conflated workTypeComposedMusical was removed in
+    # issue #307 in favor of MusicalWork + realizationMode.
+    deprecated = GMEOW.workTypeComposedMusical
+    assert not any(graph.triples((deprecated, None, None)))
+    assert not any(graph.triples((None, None, deprecated)))
 
 
 def test_contribution_role_value_vocab() -> None:

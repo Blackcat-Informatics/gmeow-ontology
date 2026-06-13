@@ -288,10 +288,9 @@ gmeow:workTypeWritten         a gmeow:CreativeWorkType ; rdfs:label "written"@x-
 gmeow:workTypeWritten rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:workTypeNarrative       a gmeow:CreativeWorkType ; rdfs:label "narrative"@x-gmeow-english ;       skos:definition "A work whose primary content is a story or narrative."@x-gmeow-english .
 gmeow:workTypeNarrative rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
-gmeow:workTypeMusical         a gmeow:CreativeWorkType ; rdfs:label "musical"@x-gmeow-english ;         skos:definition "A work of music — a song, symphony, or composition."@x-gmeow-english .
+gmeow:workTypeMusical         a gmeow:CreativeWorkType ; rdfs:label "musical"@x-gmeow-english ;         skos:definition "A work whose primary content is music — a song, symphony, composition, or other musical creation, whether notated, performed, improvised, orally transmitted, or machine-generated (Principle 9: realization mode is a frame-carried fact, never a subclass)."@x-gmeow-english .
 gmeow:workTypeMusical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
-gmeow:workTypeComposedMusical a gmeow:CreativeWorkType ; rdfs:label "composed musical"@x-gmeow-english ; skos:definition "A notated musical work — a score, sheet music, or composition in written form."@x-gmeow-english .
-gmeow:workTypeComposedMusical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
 gmeow:workTypeVisual          a gmeow:CreativeWorkType ; rdfs:label "visual"@x-gmeow-english ;          skos:definition "A visual artwork — a painting, drawing, or digital image."@x-gmeow-english .
 gmeow:workTypeVisual rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:workTypePhotographic    a gmeow:CreativeWorkType ; rdfs:label "photographic"@x-gmeow-english ;    skos:definition "A photographic work — a still photograph or photo essay."@x-gmeow-english .
@@ -323,7 +322,7 @@ gmeow:roleIllustrator         a gmeow:ContributionRole ; rdfs:label "illustrator
 gmeow:roleIllustrator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:roleNarrator            a gmeow:ContributionRole ; rdfs:label "narrator"@x-gmeow-english ;            skos:definition "An agent who narrated or performed a spoken-word rendition."@x-gmeow-english .
 gmeow:roleNarrator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
-gmeow:roleComposer            a gmeow:ContributionRole ; rdfs:label "composer"@x-gmeow-english ;            skos:definition "An agent who composed the musical content."@x-gmeow-english .
+gmeow:roleComposer            a gmeow:ContributionRole ; rdfs:label "composer"@x-gmeow-english ;            skos:definition "An agent who created the musical content of a work — the abstract artistic conception, independent of any particular notation or performance (Principle 4: notation and performance are downstream projections)."@x-gmeow-english .
 gmeow:roleComposer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:roleDirector            a gmeow:ContributionRole ; rdfs:label "director"@x-gmeow-english ;            skos:definition "An agent who directed a film, theatre, or choreographic production."@x-gmeow-english .
 gmeow:roleDirector rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
@@ -473,3 +472,308 @@ gmeow:audience
     rdfs:label "audience"@x-gmeow-english ;
     skos:definition "The intended audience of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+# =========================================================================== #
+# MUSIC UNIVERSALS — core touch-points for the #306 Music EPIC
+# =========================================================================== #
+# These terms are deliberately authored in the core creative-works slice because
+# they are cross-cutting WEMI specializations and derivation/genre machinery
+# used by every music child issue. Music-only classes (TuningSystem, PitchValue,
+# etc.) belong in slices/extensions/music/.
+# =========================================================================== #
+
+gmeow:MusicalWork
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Work ;
+    rdfs:label "Musical Work"@x-gmeow-english ;
+    skos:definition "A work whose primary content is music — the abstract artistic conception independent of any particular notation, performance, or recording. A specialization of gmeow:Work; identity is unaffected by realization mode or notation system (Principles 4, 9, 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:Recording
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Manifestation ;
+    rdfs:label "Recording"@x-gmeow-english ;
+    skos:definition "A concrete audio manifestation of a musical work or expression — a take, master, released track, or any other fixed sound recording. Co-equal sibling of gmeow:ScoreEdition and other manifestations (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:ScoreEdition
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Manifestation ;
+    rdfs:label "Score Edition"@x-gmeow-english ;
+    skos:definition "A concrete notated manifestation of a musical work or expression — a printed score, engraving, MusicXML file, MEI document, or any other symbolic edition. Co-equal sibling of gmeow:Recording (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:CreativeDerivation
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Creative Derivation"@x-gmeow-english ;
+    skos:definition "A reified relator binding a source creative work, a product creative work, one or more derivation types, and optional source/product segments. Tier-honest: a sample derives from a Recording region, a cover is a new Expression, and 'same Work?' is a separate standpoint-indexed gmeow:realizes claim (Principles 4, 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:Genre
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Genre"@x-gmeow-english ;
+    skos:definition "A contested, registry-independent, lineage-bearing information object used to characterise creative works. Like gmeow:Language, a genre is a first-class individual-bearing class; it is never a subclass tree and never a privileged winner of a genre dispute (Principles 5, 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:derivationSource
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CreativeDerivation ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "derivation source"@x-gmeow-english ;
+    skos:definition "The source creative work from which the derivation product was derived. Functional per relator: one source per CreativeDerivation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:derivationProduct
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CreativeDerivation ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "derivation product"@x-gmeow-english ;
+    skos:definition "The product creative work that was derived from the source. Functional per relator: one product per CreativeDerivation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:derivationType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeDerivation ;
+    rdfs:range gmeow:DerivationType ;
+    rdfs:label "derivation type"@x-gmeow-english ;
+    skos:definition "The kind(s) of derivation relating source and product — cover, remix, sample, arrangement, etc. Non-functional: a single derivation may combine types (e.g. a sampled cover)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:realizationMode
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Expression ;
+    rdfs:range gmeow:RealizationMode ;
+    rdfs:label "realization mode"@x-gmeow-english ;
+    skos:definition "The mode in which an Expression realizes its Work — notated, performed, improvised, orally transmitted, or machine-generated. A frame-carried, value-vocabulary fact at the Expression tier; no shape may require a Work to be notated (the oral-tradition guarantee)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:hasGenre
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Genre ;
+    rdfs:label "has genre"@x-gmeow-english ;
+    skos:definition "Relates a creative work to a genre that characterises it. Non-functional and always contestable: competing genre claims coexist as standpoint-indexed statements (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:coverOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "cover of"@x-gmeow-english ;
+    skos:definition "A flat shortcut asserting that a creative work is a cover version derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeCover."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:remixOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "remix of"@x-gmeow-english ;
+    skos:definition "A flat shortcut asserting that a creative work is a remix derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeRemix."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:samples
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "samples"@x-gmeow-english ;
+    skos:definition "A flat shortcut asserting that a creative work incorporates a sample derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeSample."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:arrangementOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "arrangement of"@x-gmeow-english ;
+    skos:definition "A flat shortcut asserting that a creative work is an arrangement derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeArrangement."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:transcriptionOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "transcription of"@x-gmeow-english ;
+    skos:definition "A flat shortcut asserting that a creative work is a transcription derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeTranscription."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:quotesWork
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "quotes work"@x-gmeow-english ;
+    skos:definition "A flat shortcut asserting that a creative work includes a quotation derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeQuotation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:hasComposer
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasContributor ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has composer"@x-gmeow-english ;
+    skos:definition "Relates a creative work to the agent who composed its musical content. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:hasLyricist
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasContributor ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has lyricist"@x-gmeow-english ;
+    skos:definition "Relates a creative work to the agent who wrote its lyrics. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:hasArranger
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasContributor ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has arranger"@x-gmeow-english ;
+    skos:definition "Relates a creative work to the agent who arranged its musical content. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:hasPerformer
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasContributor ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has performer"@x-gmeow-english ;
+    skos:definition "Relates a creative work or expression to the agent who performed it. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:hasConductor
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasContributor ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has conductor"@x-gmeow-english ;
+    skos:definition "Relates a creative work or expression to the agent who conducted its musical performance. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:hasProducer
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasContributor ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has producer"@x-gmeow-english ;
+    skos:definition "Relates a creative work or expression to the agent who produced its recording or performance. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — CreativeDerivation relator mediation
+# --------------------------------------------------------------------------- #
+
+gmeow:CreativeDerivation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:derivationSource ; owl:someValuesFrom gmeow:CreativeWork ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:derivationProduct ; owl:someValuesFrom gmeow:CreativeWork ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:derivationType ; owl:someValuesFrom gmeow:DerivationType ] .
+
+# --------------------------------------------------------------------------- #
+# OPEN VALUE VOCABULARIES — music-specific individuals, never subclasses (P9)
+# --------------------------------------------------------------------------- #
+
+gmeow:RealizationMode
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Realization Mode"@x-gmeow-english ;
+    skos:definition "The mode in which a musical Expression realizes its Work — a VALUE vocabulary (individuals, never subclasses). The oral-tradition guarantee requires that no shape ever mandate a notated realization."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+gmeow:DerivationType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Derivation Type"@x-gmeow-english ;
+    skos:definition "The kind of creative derivation relating a source and product — a VALUE vocabulary (individuals, never subclasses). Cover, remix, sample, arrangement, transcription, quotation, and others are co-equal seeds."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+# RealizationMode seeds
+gmeow:realizationModeNotated          a gmeow:RealizationMode ; rdfs:label "notated"@x-gmeow-english ;          skos:definition "The Expression is realized as a notated score or symbolic representation."@x-gmeow-english .
+gmeow:realizationModeNotated          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:realizationModePerformed        a gmeow:RealizationMode ; rdfs:label "performed"@x-gmeow-english ;        skos:definition "The Expression is realized through live or recorded performance."@x-gmeow-english .
+gmeow:realizationModePerformed        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:realizationModeImprovised       a gmeow:RealizationMode ; rdfs:label "improvised"@x-gmeow-english ;       skos:definition "The Expression is realized through improvisation."@x-gmeow-english .
+gmeow:realizationModeImprovised       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:realizationModeOral             a gmeow:RealizationMode ; rdfs:label "oral"@x-gmeow-english ;             skos:definition "The Expression is realized through oral tradition, with no required notated form."@x-gmeow-english .
+gmeow:realizationModeOral             rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:realizationModeMachineGenerated a gmeow:RealizationMode ; rdfs:label "machine generated"@x-gmeow-english ; skos:definition "The Expression is realized by a machine-generative process."@x-gmeow-english .
+gmeow:realizationModeMachineGenerated rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+# DerivationType seeds
+gmeow:derivationTypeCover         a gmeow:DerivationType ; rdfs:label "cover"@x-gmeow-english ;         skos:definition "A new performance or Expression of an existing Work."@x-gmeow-english .
+gmeow:derivationTypeCover         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeRemix         a gmeow:DerivationType ; rdfs:label "remix"@x-gmeow-english ;         skos:definition "A new work produced by altering or combining elements of an existing recording."@x-gmeow-english .
+gmeow:derivationTypeRemix         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeSample        a gmeow:DerivationType ; rdfs:label "sample"@x-gmeow-english ;        skos:definition "A work that incorporates a region or segment of another recording."@x-gmeow-english .
+gmeow:derivationTypeSample        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeInterpolation a gmeow:DerivationType ; rdfs:label "interpolation"@x-gmeow-english ; skos:definition "A work that reuses a portion of another work's melody or material in a new composition."@x-gmeow-english .
+gmeow:derivationTypeInterpolation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeQuotation     a gmeow:DerivationType ; rdfs:label "quotation"@x-gmeow-english ;     skos:definition "A work that quotes another work."@x-gmeow-english .
+gmeow:derivationTypeQuotation     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeArrangement   a gmeow:DerivationType ; rdfs:label "arrangement"@x-gmeow-english ;   skos:definition "A re-working of a work for different forces or format."@x-gmeow-english .
+gmeow:derivationTypeArrangement   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeOrchestration a gmeow:DerivationType ; rdfs:label "orchestration"@x-gmeow-english ; skos:definition "An arrangement specifically for orchestra or instrumental forces."@x-gmeow-english .
+gmeow:derivationTypeOrchestration rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeTranscription a gmeow:DerivationType ; rdfs:label "transcription"@x-gmeow-english ; skos:definition "A transfer of a work into a different notation system or medium."@x-gmeow-english .
+gmeow:derivationTypeTranscription rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeContrafact    a gmeow:DerivationType ; rdfs:label "contrafact"@x-gmeow-english ;    skos:definition "A new melody composed over an existing harmonic structure."@x-gmeow-english .
+gmeow:derivationTypeContrafact    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeVariation     a gmeow:DerivationType ; rdfs:label "variation"@x-gmeow-english ;     skos:definition "A work that varies upon a theme or source."@x-gmeow-english .
+gmeow:derivationTypeVariation     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeParody        a gmeow:DerivationType ; rdfs:label "parody"@x-gmeow-english ;        skos:definition "A work that imitates another work for comic or critical effect."@x-gmeow-english .
+gmeow:derivationTypeParody        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:derivationTypeMashup        a gmeow:DerivationType ; rdfs:label "mashup"@x-gmeow-english ;        skos:definition "A work combining two or more existing sources into a new whole."@x-gmeow-english .
+gmeow:derivationTypeMashup        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+# Additional ContributionRole seeds (music-specific)
+gmeow:roleArranger           a gmeow:ContributionRole ; rdfs:label "arranger"@x-gmeow-english ;           skos:definition "An agent who arranged a musical work for different forces or format."@x-gmeow-english .
+gmeow:roleArranger           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleOrchestrator       a gmeow:ContributionRole ; rdfs:label "orchestrator"@x-gmeow-english ;       skos:definition "An agent who orchestrated a musical work."@x-gmeow-english .
+gmeow:roleOrchestrator       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleLyricist           a gmeow:ContributionRole ; rdfs:label "lyricist"@x-gmeow-english ;           skos:definition "An agent who wrote the lyrics of a musical work."@x-gmeow-english .
+gmeow:roleLyricist           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleLibrettist         a gmeow:ContributionRole ; rdfs:label "librettist"@x-gmeow-english ;         skos:definition "An agent who wrote the libretto of an opera, musical, or other staged work."@x-gmeow-english .
+gmeow:roleLibrettist         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleSongwriter         a gmeow:ContributionRole ; rdfs:label "songwriter"@x-gmeow-english ;         skos:definition "An agent who wrote the words and/or music of a song."@x-gmeow-english .
+gmeow:roleSongwriter         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleRecordingEngineer  a gmeow:ContributionRole ; rdfs:label "recording engineer"@x-gmeow-english ;  skos:definition "An agent who engineered the recording of a musical work."@x-gmeow-english .
+gmeow:roleRecordingEngineer  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleMixingEngineer     a gmeow:ContributionRole ; rdfs:label "mixing engineer"@x-gmeow-english ;     skos:definition "An agent who mixed a recording."@x-gmeow-english .
+gmeow:roleMixingEngineer     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleMasteringEngineer  a gmeow:ContributionRole ; rdfs:label "mastering engineer"@x-gmeow-english ;  skos:definition "An agent who mastered a recording."@x-gmeow-english .
+gmeow:roleMasteringEngineer  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleRemixer            a gmeow:ContributionRole ; rdfs:label "remixer"@x-gmeow-english ;            skos:definition "An agent who created a remix of an existing recording."@x-gmeow-english .
+gmeow:roleRemixer            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleSamplingArtist     a gmeow:ContributionRole ; rdfs:label "sampling artist"@x-gmeow-english ;     skos:definition "An agent who created a work by sampling existing material."@x-gmeow-english .
+gmeow:roleSamplingArtist     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleSoundDesigner      a gmeow:ContributionRole ; rdfs:label "sound designer"@x-gmeow-english ;      skos:definition "An agent who designed sound or sonic material for a work."@x-gmeow-english .
+gmeow:roleSoundDesigner      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+
+# Dual-typed roles: performer/conductor/producer are fully declared as
+# ParticipantRoles in events.ttl; here we only assert the extra ContributionRole type.
+gmeow:rolePerformer a gmeow:ContributionRole .
+gmeow:roleConductor a gmeow:ContributionRole .
+gmeow:roleProducer  a gmeow:ContributionRole .
+
+# ManifestationFormat seeds (music-specific)
+gmeow:formatCD                    a gmeow:ManifestationFormat ; rdfs:label "CD"@x-gmeow-english ;                    skos:definition "A compact disc audio release."@x-gmeow-english .
+gmeow:formatCD                    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:formatCassette              a gmeow:ManifestationFormat ; rdfs:label "cassette"@x-gmeow-english ;              skos:definition "A cassette tape audio release."@x-gmeow-english .
+gmeow:formatCassette              rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:formatStreamingAudio        a gmeow:ManifestationFormat ; rdfs:label "streaming audio"@x-gmeow-english ;        skos:definition "A streaming audio distribution."@x-gmeow-english .
+gmeow:formatStreamingAudio        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:formatLosslessDigitalAudio  a gmeow:ManifestationFormat ; rdfs:label "lossless digital audio"@x-gmeow-english ;  skos:definition "A lossless digital audio file release."@x-gmeow-english .
+gmeow:formatLosslessDigitalAudio  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:formatPrintedScore          a gmeow:ManifestationFormat ; rdfs:label "printed score"@x-gmeow-english ;          skos:definition "A printed musical score."@x-gmeow-english .
+gmeow:formatPrintedScore          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:formatMusicXML              a gmeow:ManifestationFormat ; rdfs:label "MusicXML"@x-gmeow-english ;              skos:definition "A MusicXML-encoded digital score."@x-gmeow-english .
+gmeow:formatMusicXML              rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:formatMEI                   a gmeow:ManifestationFormat ; rdfs:label "MEI"@x-gmeow-english ;                   skos:definition "An MEI-encoded digital score."@x-gmeow-english .
+gmeow:formatMEI                   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:formatMIDIFile              a gmeow:ManifestationFormat ; rdfs:label "MIDI file"@x-gmeow-english ;              skos:definition "A MIDI file manifestation."@x-gmeow-english .
+gmeow:formatMIDIFile              rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .

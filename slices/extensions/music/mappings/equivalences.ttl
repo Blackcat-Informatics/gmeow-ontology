@@ -1,0 +1,16 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+# Music slice alignments.
+# Compiled to mappings/gmeow-music.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetMusic a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/music" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)." .
+
+# Alignments will be added in child issues (#318 and following).

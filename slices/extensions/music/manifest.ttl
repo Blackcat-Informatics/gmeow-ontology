@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Slice manifest — authored in slices/vocabulary.ttl terms; validated by
+# shapes/slice-manifest-shapes.ttl + the slice gates. Anatomy is convention:
+# module.ttl, shapes.ttl, mappings/, queries/, tests/, docs.md live beside
+# this file and are discovered, never pointed at.
+
+<https://blackcatinformatics.ca/gmeow/slices/music>
+    a gmeow:Slice ;
+    rdfs:label "music"@x-gmeow-english ;
+    skos:definition "The music slice of the GMEOW ontology (extension tier): frame-relative musical content and every notation as a lossy projection. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    dcterms:title "GMEOW Music — frame-relative content, lossy notation projections"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceProfile "music" ;
+    gmeow:providesSubcommand "music" ;
+    gmeow:builtAgainstCore "0.1.0" ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
+        <https://blackcatinformatics.ca/gmeow/slices/places> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
+        <https://blackcatinformatics.ca/gmeow/slices/versions> ,
+        <https://blackcatinformatics.ca/gmeow/slices/language> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:sliceConsumer "The GTS music-package single-file format, the MCP analysis-claims surface, and the 19-case stress corpus that closes the #306 Music EPIC."@x-gmeow-english .
