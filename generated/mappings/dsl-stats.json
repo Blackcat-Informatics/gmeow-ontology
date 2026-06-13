@@ -32,6 +32,7 @@
   "gmeow-lifecycle.sssom.tsv": 8,
   "gmeow-names.sssom.tsv": 55,
   "gmeow-narrative.sssom.tsv": 14,
+  "gmeow-norms.sssom.tsv": 2,
   "gmeow-notation.sssom.tsv": 8,
   "gmeow-notes.sssom.tsv": 16,
   "gmeow-observations.sssom.tsv": 75,
@@ -54,8 +55,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1593,
+ "equivalences": 1595,
  "functions": 38,
- "mapping_sets": 53,
- "projections": 433
+ "mapping_sets": 54,
+ "projections": 434
 }

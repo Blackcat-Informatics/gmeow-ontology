@@ -88,6 +88,8 @@ _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
         # has_container projection's inverse row — outputs of declared
         # minting templates, not standalone term correspondences.
         "http://www.w3.org/2006/time#inXSDDateTime",
+        # the per-review ClaimReview's minted Rating node link (#34)
+        "https://schema.org/reviewRating",
         "http://id.loc.gov/ontologies/bibframe/Doi",
         "http://id.loc.gov/ontologies/bibframe/Identifier",
         "http://rdfs.org/sioc/ns#container_of",

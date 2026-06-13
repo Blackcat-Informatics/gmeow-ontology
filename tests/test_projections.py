@@ -688,3 +688,41 @@ def test_owl_time_boundary_instants() -> None:
     assert (instant, RDF.type, URIRef(time_ns + "Instant")) in g
     assert next(g.objects(instant, URIRef(time_ns + "inXSDDateTime")), None) is not None
     _assert_no_gmeow_leakage(g)
+
+
+def test_claim_review_per_review_translation() -> None:
+    """N competing Assessments -> N coexisting ClaimReviews (#34 correction).
+
+    Each review is authored by its vantage and carries its OWN Rating; the
+    contested claim loses nothing and no winner is picked — what stays
+    refused is only an aggregated rating on the claim itself (P9).
+    """
+    g = project_graph("schema-org", _fixture_store("claim-reviews.ttl"))
+    schema = "https://schema.org/"
+    ex = "https://example.org/reviews/"
+    reviews_of = {
+        str(r): str(next(g.objects(r, URIRef(schema + "author"))))
+        for r in g.subjects(RDF.type, URIRef(schema + "ClaimReview"))
+        if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-disputed")) in g
+    }
+    assert len(reviews_of) == 2, "both competing verdicts must survive"
+    assert set(reviews_of.values()) == {ex + "auditor-a", ex + "auditor-b"}
+    # each review carries its own rating value — 0.9 and 0.2 both present
+    values = set()
+    for r in g.subjects(RDF.type, URIRef(schema + "ClaimReview")):
+        if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-disputed")) in g:
+            rating = next(g.objects(r, URIRef(schema + "reviewRating")))
+            values.add(str(next(g.objects(rating, URIRef(schema + "ratingValue")))))
+    assert values == {"0.9", "0.2"}
+    # the claim ITSELF carries no rating (the P9 line that remains)
+    assert not list(
+        g.objects(URIRef(ex + "claim-disputed"), URIRef(schema + "reviewRating"))
+    )
+    # the singular case emits exactly one review
+    singles = [
+        r
+        for r in g.subjects(RDF.type, URIRef(schema + "ClaimReview"))
+        if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-single")) in g
+    ]
+    assert len(singles) == 1
+    _assert_no_gmeow_leakage(g)
