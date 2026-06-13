@@ -1344,6 +1344,9 @@ gmeow:mapSchemaQuotedText a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:quotedText ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        # a clean 1:1 property correspondence (templateAtoms only because the
+        # emit subject qtSrc differs from the anchor) — declare its EDOAL target
+        gmeow:edoalTarget schema:text ; gmeow:edoalTargetKind "property" ;
         gmeow:lossyDrop "the inline quoted text lands on the Quotation node (the reused source); its position/offset within the quoting work is not modelled" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "qtSrc" ; gmeow:tPred schema:text ; gmeow:tObj "qtText" ] ) ] .
