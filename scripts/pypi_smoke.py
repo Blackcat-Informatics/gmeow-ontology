@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
-
 """Post-publish smoke test for the ``gmeow`` PyPI package.
 
 Creates a fresh virtual environment, installs a pinned ``gmeow==<version>``
-from PyPI (with bounded retry to absorb propagation delay), runs the README
-quickstart using a ``.gts`` file and the ``gts`` CLI binary, and asserts the
-whole sequence completes within five minutes (Principle 13).
+from PyPI (with bounded retry to absorb propagation delay), runs the agent-memory
+example using a ``.gts`` file, and exercises both the ``gmeow`` and ``gts`` CLI
+binaries.  The whole sequence is asserted to complete within five minutes
+(Principle 13).
 """
 
 from __future__ import annotations
@@ -20,7 +20,8 @@ import time
 from pathlib import Path
 
 MAX_ELAPSED_SECONDS = 300
-INSTALL_POLL_SECONDS = 300
+POST_INSTALL_BUDGET_SECONDS = 60
+INSTALL_POLL_SECONDS = MAX_ELAPSED_SECONDS - POST_INSTALL_BUDGET_SECONDS
 INSTALL_INTERVAL_SECONDS = 10
 
 
@@ -97,7 +98,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--version",
         default=os.environ.get("GMEOW_VERSION"),
-        help="Exact gmeow version to install from PyPI (e.g. 1.0.1).",
+        help="Exact gmeow version to install from PyPI (e.g. 1.0.2).",
     )
     args = parser.parse_args(argv)
     if not args.version:
@@ -122,13 +123,27 @@ def main(argv: list[str] | None = None) -> int:
         # 1. Create a clean virtual environment.
         _run([sys.executable, "-m", "venv", str(venv)])
 
-        # 2. Install the pinned published ``gmeow`` client from PyPI.
-        _install_pinned(python, "gmeow", args.version)
+        # 2. Install the pinned published ``gmeow`` client from PyPI,
+        #    reserving budget for the quickstart and CLI probes.
+        remaining_install_budget = max(
+            1,
+            int(
+                MAX_ELAPSED_SECONDS
+                - (time.monotonic() - start)
+                - POST_INSTALL_BUDGET_SECONDS
+            ),
+        )
+        _install_pinned(
+            python,
+            "gmeow",
+            args.version,
+            timeout=remaining_install_budget,
+        )
 
-        # 3. Run the README quickstart using a ``.gts`` file.
+        # 3. Run the agent-memory example using a ``.gts`` file.
         assistant_literal = repr(str(assistant))
         quickstart = f"""
-from gmeow import Memory
+from gts.examples.agent_memory import Memory
 
 mem = Memory({assistant_literal})
 claim = mem.store(
@@ -151,10 +166,10 @@ print("quickstart-ok")
 """
         _run([str(python), "-c", quickstart])
 
-        # 4. Verify the engine CLI binary is still named ``gts``.
-        env = os.environ.copy()
-        env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
-        _run(["gts", "info", str(assistant)], env=env)
+        # 4. Verify the bundled ontology CLI and the engine CLI binaries.
+        _run([str(bin_dir / "gmeow"), "--help"])
+        _run([str(bin_dir / "gmeow"), "info"])
+        _run([str(bin_dir / "gts"), "info", str(assistant)])
 
     elapsed = time.monotonic() - start
     print(f"smoke-completed in {elapsed:.1f}s")

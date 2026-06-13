@@ -165,11 +165,36 @@ STATEMENTS_DIR = GENERATED_DIR / "statements"
 #: The RDF 1.2 / RDF* lead serialization (canonical statement-metadata form).
 STATEMENT_RDF12_FILE = STATEMENTS_DIR / "gmeow.rdf12.ttl"
 
+
+def _find_bundled_file(relative: str) -> Path:
+    """Locate a data file bundled with the installed package.
+
+    In a source checkout the file is at ``PROJECT_ROOT / relative``. In an
+    installed wheel it lives beside the ``gmeow_tools`` package in the same
+    site-packages directory.
+    """
+    source = PROJECT_ROOT / relative
+    if source.exists():
+        return source
+    try:
+        import gmeow_tools
+
+        package_dir = Path(gmeow_tools.__file__).parent
+        bundled = package_dir.parent / relative
+        if bundled.exists():
+            return bundled
+    except (OSError, ValueError):  # pragma: no cover
+        pass
+    return source
+
+
 # The committed, drift-gated GTS dist snapshot — the narrow waist (#267, #12):
 # every data-graph exporter consumes this fold instead of re-reading sources.
 # Own directory: the generator framework gives each generator exclusive
 # ownership of its output directories (orphans there are DELETED).
 GTS_SNAPSHOT_FILE = GENERATED_DIR / "dist" / "gmeow.gts"
+#: The reasoned import-closure snapshot, bundled for offline use.
+GTS_FULL_SNAPSHOT_FILE = _find_bundled_file("generated/dist/gmeow-full.gts")
 # Named graphs partitioning the snapshot's sources (the fold keeps them apart
 # so consumers can scope to exactly the layer they need):
 GTS_GRAPH_STATEMENTS = NAMESPACE + "graph/statements"

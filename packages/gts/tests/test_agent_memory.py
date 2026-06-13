@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
-"""End-to-end tests of the gmeow client (#296, D1, Principle 13).
+"""End-to-end tests of the gts.examples.agent_memory example.
 
-The quickstart IS the product: these tests run the README flow verbatim,
-then verify the claims the pitch makes — reified-claim semantics, P10
+The quickstart IS the example: these tests run the README flow verbatim,
+then verify the claims the pitch makes — reified-claim semantics,
 supersession with an audit trail, and a transport-verifiable package.
 """
 
@@ -12,8 +12,8 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from gmeow import Claim, Memory
 from gts import read
+from gts.examples.agent_memory import Claim, Memory
 
 
 def test_quickstart_flow_verbatim(tmp_path: Path) -> None:
@@ -47,7 +47,7 @@ def test_quickstart_flow_verbatim(tmp_path: Path) -> None:
     # the superseded claim no longer surfaces...
     texts = [c.text for c in mem.recall("error handling")]
     assert all("prefers explicit" not in t for t in texts)
-    # ...but is never deleted (P10): the audit trail is one flag away
+    # ...but is never deleted: the audit trail is one flag away
     history = mem.recall("error handling", include_suppressed=True)
     assert any(c.suppressed and "prefers explicit" in c.text for c in history)
 
@@ -75,6 +75,7 @@ def test_each_write_is_one_appended_segment(tmp_path: Path) -> None:
 
 
 def test_recall_ranks_by_overlap_and_filters_confidence(tmp_path: Path) -> None:
+    """Recall ranks by token overlap and can filter by confidence."""
     mem = Memory(tmp_path / "m.gts")
     mem.store("cats are mammals", confidence=0.9)
     mem.store("cats chase red laser dots", confidence=0.4)
@@ -91,6 +92,7 @@ def test_recall_ranks_by_overlap_and_filters_confidence(tmp_path: Path) -> None:
 
 
 def test_revision_audit_trail_links_successor(tmp_path: Path) -> None:
+    """Revision records a wasDerivedFrom link and a suppression reason."""
     mem = Memory(tmp_path / "m.gts")
     old = mem.store("pluto is a planet", confidence=0.9)
     new = mem.store("pluto is a dwarf planet", confidence=0.99)
@@ -110,7 +112,7 @@ def test_revision_audit_trail_links_successor(tmp_path: Path) -> None:
 
 
 def test_contradicting_standpoints_coexist(tmp_path: Path) -> None:
-    """Principle 9: standpoint-indexed contradiction, no overwrite."""
+    """Standpoint-indexed contradiction, no overwrite."""
     mem = Memory(tmp_path / "m.gts")
     mem.store("the dress is blue", according_to="team-blue", confidence=0.8)
     mem.store("the dress is gold", according_to="team-gold", confidence=0.8)
@@ -119,6 +121,7 @@ def test_contradicting_standpoints_coexist(tmp_path: Path) -> None:
 
 
 def test_empty_and_missing_package(tmp_path: Path) -> None:
+    """An unwritten package returns empty results without error."""
     mem = Memory(tmp_path / "never-written.gts")
     assert mem.recall("anything") == []
     assert mem.claims() == []
@@ -126,9 +129,7 @@ def test_empty_and_missing_package(tmp_path: Path) -> None:
 
 
 def test_five_minute_gate_locally(tmp_path: Path) -> None:
-    """The P13 gate's in-repo half: the full flow needs no setup steps and
-    completes in seconds (the CI clean-venv install half lives in the
-    release workflow)."""
+    """The example flow needs no setup steps and completes in seconds."""
     start = time.monotonic()
     mem = Memory(tmp_path / "m.gts")
     c = mem.store("fast", confidence=1.0)
@@ -138,6 +139,7 @@ def test_five_minute_gate_locally(tmp_path: Path) -> None:
 
 
 def test_confidence_is_validated(tmp_path: Path) -> None:
+    """Confidence must be a finite number in [0, 1]."""
     mem = Memory(tmp_path / "m.gts")
     for bad in (1.5, -0.1, float("nan"), float("inf")):
         try:
@@ -159,7 +161,7 @@ def test_projection_keeps_claims_mentioning_quoted_triple_syntax(
 
 
 def test_rdflib_interop(tmp_path: Path) -> None:
-    """gmeow[rdf]: the folded package parses into an rdflib Dataset."""
+    """gmeow-gts[rdf]: the folded package parses into an rdflib Dataset."""
     mem = Memory(tmp_path / "m.gts")
     mem.store("water is wet", confidence=1.0)
     ds = mem.to_rdflib()

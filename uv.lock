@@ -17,7 +17,6 @@ resolution-markers = [
 members = [
     "gmeow",
     "gmeow-gts",
-    "gmeow-ontology",
 ]
 
 [[package]]
@@ -824,57 +823,18 @@ wheels = [
 
 [[package]]
 name = "gmeow"
-version = "1.0.1"
-source = { editable = "packages/gmeow" }
-dependencies = [
-    { name = "gmeow-gts" },
-]
-
-[package.optional-dependencies]
-rdf = [
-    { name = "rdflib" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "gmeow-gts", editable = "packages/gts" },
-    { name = "rdflib", marker = "extra == 'rdf'", specifier = ">=7.6" },
-]
-provides-extras = ["rdf"]
-
-[[package]]
-name = "gmeow-gts"
-version = "0.1.0"
-source = { editable = "packages/gts" }
-dependencies = [
-    { name = "blake3" },
-    { name = "cbor2" },
-    { name = "cryptography" },
-    { name = "zstandard" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "blake3", specifier = ">=1.0.8" },
-    { name = "cbor2", specifier = ">=6.1.2" },
-    { name = "cryptography", specifier = ">=44" },
-    { name = "zstandard", specifier = ">=0.25.0" },
-]
-
-[[package]]
-name = "gmeow-ontology"
-version = "0.1.0"
+version = "1.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "blake3" },
     { name = "duckdb" },
     { name = "fastmcp" },
-    { name = "gmeow" },
     { name = "gmeow-gts" },
     { name = "httpx" },
     { name = "jsonschema" },
     { name = "linkml" },
     { name = "pylode" },
+    { name = "pyoxigraph" },
     { name = "pyshacl" },
     { name = "pyyaml" },
     { name = "rdflib" },
@@ -901,12 +861,12 @@ requires-dist = [
     { name = "blake3", specifier = ">=0.4" },
     { name = "duckdb", specifier = ">=1.5.3" },
     { name = "fastmcp", specifier = ">=3.4" },
-    { name = "gmeow", editable = "packages/gmeow" },
     { name = "gmeow-gts", editable = "packages/gts" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "jsonschema", specifier = ">=4.23" },
     { name = "linkml", specifier = ">=1.11" },
     { name = "pylode", specifier = ">=3.4" },
+    { name = "pyoxigraph", specifier = ">=0.5.8" },
     { name = "pyshacl", specifier = ">=0.31" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rdflib", specifier = ">=7.6" },
@@ -927,6 +887,32 @@ dev = [
     { name = "ruff", specifier = ">=0.9" },
     { name = "types-jsonschema", specifier = ">=4.23" },
 ]
+
+[[package]]
+name = "gmeow-gts"
+version = "0.1.1"
+source = { editable = "packages/gts" }
+dependencies = [
+    { name = "blake3" },
+    { name = "cbor2" },
+    { name = "cryptography" },
+    { name = "zstandard" },
+]
+
+[package.optional-dependencies]
+rdf = [
+    { name = "rdflib" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "blake3", specifier = ">=1.0.8" },
+    { name = "cbor2", specifier = ">=6.1.2" },
+    { name = "cryptography", specifier = ">=44" },
+    { name = "rdflib", marker = "extra == 'rdf'", specifier = ">=7.6" },
+    { name = "zstandard", specifier = ">=0.25.0" },
+]
+provides-extras = ["rdf"]
 
 [[package]]
 name = "graphviz"

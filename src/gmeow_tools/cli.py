@@ -14,6 +14,7 @@ import httpx
 import typer
 from rich.console import Console
 
+import gts
 from gmeow_tools import __version__
 from gmeow_tools.projections import PROFILES as _PROFILES
 
@@ -33,6 +34,16 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     return typer.Exit(code=code)
 
 
+def _read_gts_or_fail(path: Path) -> gts.Graph:
+    """Read a GTS file, converting I/O and parse errors into a CLI failure."""
+    try:
+        return gts.read(path.read_bytes())
+    except OSError as exc:
+        raise _fail(f"cannot read {path}: {exc}") from exc
+    except Exception as exc:
+        raise _fail(f"cannot parse GTS file {path}: {exc}") from exc
+
+
 @app.callback()
 def main() -> None:
     """GMEOW ontology toolchain (see subcommands)."""
@@ -42,6 +53,23 @@ def main() -> None:
 def version() -> None:
     """Print the gmeow_tools package version."""
     console.print(__version__)
+
+
+@app.command()
+def info() -> None:
+    """Show a summary of the bundled GMEOW ontology snapshot."""
+    from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE
+
+    path = GTS_FULL_SNAPSHOT_FILE
+    graph = _read_gts_or_fail(path)
+    console.print(
+        f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
+        f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
+        f"{len(graph.annotations)} annotations, {len(graph.blobs)} docs blobs, "
+        f"{len(graph.opaque)} opaque"
+    )
+    for diag in graph.diagnostics:
+        err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
 
 
 @app.command()
@@ -63,6 +91,7 @@ def regenerate(
         evals,
         export,
         frame_shapes_gen,
+        gts_full_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -116,6 +145,7 @@ def check_generated(
         evals,
         export,
         frame_shapes_gen,
+        gts_full_gen,
         gts_gen,
         gts_vectors_gen,
         lpg,
@@ -1005,18 +1035,25 @@ gts_app = typer.Typer(
 app.add_typer(gts_app, name="gts")
 
 
-@gts_app.command("info")
-def gts_info(file: Path) -> None:
-    """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
-    import gts
+def _default_gts_file() -> Path:
+    """The bundled full ontology snapshot (offline wheel default)."""
+    from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE
 
-    try:
-        data = file.read_bytes()
-    except OSError as exc:
-        raise _fail(f"cannot read {file}: {exc}") from exc
-    graph = gts.read(data)
+    return GTS_FULL_SNAPSHOT_FILE
+
+
+@gts_app.command("info")
+def gts_info(
+    file: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="GTS file to summarise (default: bundled gmeow-full.gts).",
+    ),
+) -> None:
+    """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
+    path = file or _default_gts_file()
+    graph = _read_gts_or_fail(path)
     console.print(
-        f"[bold]{file.name}[/bold]: {len(graph.terms)} terms, "
+        f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
         f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
         f"{len(graph.annotations)} annotations, {len(graph.blobs)} blobs, "
         f"{len(graph.opaque)} opaque"
@@ -1031,14 +1068,16 @@ _GTS_OUT_OPTION = typer.Option(
 
 
 @gts_app.command("to-nq")
-def gts_to_nq(file: Path, out: Path | None = _GTS_OUT_OPTION) -> None:
+def gts_to_nq(
+    file: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="GTS file to project (default: bundled gmeow-full.gts).",
+    ),
+    out: Path | None = _GTS_OUT_OPTION,
+) -> None:
     """Transform a GTS file to N-Quads (§14 of GTS-SPEC.md)."""
-    import gts
-
-    try:
-        graph = gts.read(file.read_bytes())
-    except OSError as exc:
-        raise _fail(f"cannot read {file}: {exc}") from exc
+    path = file or _default_gts_file()
+    graph = _read_gts_or_fail(path)
     text = gts.to_nquads(graph)
     if out is None:
         console.print(text, end="")
@@ -1081,13 +1120,9 @@ def gts_from_rdf(file: Path, out: Path | None = _GTS_GTS_OUT) -> None:
 
 def _gts_to_db(file: Path, out: Path | None, suffix: str, kind: str) -> None:
     """Shared body for the gts → {sqlite,duckdb} transforms."""
-    import gts
     from gmeow_tools.gts_db import to_duckdb, to_sqlite
 
-    try:
-        graph = gts.read(file.read_bytes())
-    except OSError as exc:
-        raise _fail(f"cannot read {file}: {exc}") from exc
+    graph = _read_gts_or_fail(file)
     target = out or file.with_suffix(suffix)
     writer = to_sqlite if kind == "sqlite" else to_duckdb
     try:
@@ -1186,11 +1221,18 @@ def describe(
 
     Composes definition, stereotype, slice + tier, alignments, scope notes,
     examples, and the flat-first/reify-on-demand pairing. Works offline
-    against any .gts file.
+    against any .gts file. Defaults to the repo graph when run inside the
+    checkout; otherwise falls back to the bundled gmeow-full.gts.
     """
     from gmeow_tools.describe import describe as _describe
 
-    text, code = _describe(term, gts)
+    gts_path = gts
+    if gts_path is None:
+        from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, ONTOLOGY_FILE
+
+        if not ONTOLOGY_FILE.exists():
+            gts_path = GTS_FULL_SNAPSHOT_FILE
+    text, code = _describe(term, gts_path)
     console.print(text)
     if code:
         raise typer.Exit(code=code)
