@@ -79,7 +79,9 @@ func main() {
 	}
 }
 
+// load reads path and returns (data, 0) or (nil, 2) on IO error.
 func load(path string) ([]byte, int) {
+	//nolint:gosec // CLI explicitly reads the user-supplied input path.
 	data, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "gts: cannot read %s: %v\n", path, err)
@@ -88,6 +90,7 @@ func load(path string) ([]byte, int) {
 	return data, 0
 }
 
+// printLedger prints a human-readable per-segment summary.
 func printLedger(path string, fs *reader.FileSegments) {
 	tornSuffix := ""
 	if fs.Torn >= 0 {
@@ -146,6 +149,7 @@ func printLedger(path string, fs *reader.FileSegments) {
 	}
 }
 
+// hasProblems reports whether the file segments contain any fatal/torn/diagnostic issues.
 func hasProblems(fs *reader.FileSegments) bool {
 	if fs.Fatal != nil || fs.Torn >= 0 {
 		return true
@@ -216,6 +220,7 @@ var profileVocabs = map[string]string{
 	"files": "https://w3id.org/gts/files#",
 }
 
+// namespaceOf returns the IRI namespace up to and including the last '#' or '/'.
 func namespaceOf(iri string) string {
 	if i := strings.LastIndex(iri, "#"); i >= 0 {
 		return iri[:i+1]
@@ -344,6 +349,7 @@ func cmdVerify(paths []string) int {
 	return 0
 }
 
+// blobMT returns the declared media type for an inline blob, if any.
 func blobMT(g *model.Graph, digest string) string {
 	for _, bm := range g.BlobMeta {
 		if bm.Digest != digest {
@@ -388,6 +394,7 @@ func cmdLs(paths []string) int {
 	return 0
 }
 
+// normalizeDigest ensures digest is prefixed with "blake3:".
 func normalizeDigest(digest string) string {
 	if strings.HasPrefix(digest, "blake3:") {
 		return digest
@@ -395,6 +402,7 @@ func normalizeDigest(digest string) string {
 	return "blake3:" + digest
 }
 
+// suppressedBlobDigests returns the set of blob digests targeted by suppressions.
 func suppressedBlobDigests(g *model.Graph) map[string]struct{} {
 	out := make(map[string]struct{})
 	for _, sup := range g.Suppressions {
@@ -407,12 +415,14 @@ func suppressedBlobDigests(g *model.Graph) map[string]struct{} {
 			var digest string
 			haveDigest := false
 			for k, v := range m {
-				key := wire.TextOr(k, "")
-				if key == "kind" {
+				switch wire.TextOr(k, "") {
+				case "kind":
 					kind = wire.TextOr(v, "")
-				} else if key == "digest" {
-					digest = digestFromValue(v)
-					haveDigest = true
+				case "digest":
+					if d := digestFromValue(v); d != "" {
+						digest = d
+						haveDigest = true
+					}
 				}
 			}
 			if kind == "blob" && haveDigest {
@@ -423,6 +433,7 @@ func suppressedBlobDigests(g *model.Graph) map[string]struct{} {
 	return out
 }
 
+// digestFromValue coerces a decoded CBOR value to a normalised blake3 digest.
 func digestFromValue(v interface{}) string {
 	if s, ok := v.(string); ok {
 		return normalizeDigest(s)
@@ -508,6 +519,7 @@ func cmdExtract(args []string) int {
 		return 1
 	}
 	if outPath != "" {
+		//nolint:gosec // CLI writes the user-requested output file.
 		if err := os.WriteFile(outPath, blobData, 0o644); err != nil {
 			fmt.Fprintf(os.Stderr, "gts: cannot write %s: %v\n", outPath, err)
 			return 2
@@ -572,6 +584,7 @@ func cmdCat(args []string) int {
 	}
 
 	if outPath != "" {
+		//nolint:gosec // CLI writes the user-requested output file.
 		if err := os.WriteFile(outPath, combined, 0o644); err != nil {
 			fmt.Fprintf(os.Stderr, "gts: cannot write %s: %v\n", outPath, err)
 			return 2
@@ -638,6 +651,7 @@ func cmdCompact(args []string) int {
 		fmt.Fprintf(os.Stderr, "gts: refusing compact: %v\n", err)
 		return 1
 	}
+	//nolint:gosec // CLI writes the user-requested output file.
 	if err := os.WriteFile(outPath, out, 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "gts: cannot write %s: %v\n", outPath, err)
 		return 2
@@ -676,6 +690,7 @@ func cmdPack(args []string) int {
 		fmt.Fprintf(os.Stderr, "gts: refusing pack: %v\n", err)
 		return 1
 	}
+	//nolint:gosec // CLI writes the user-requested output file.
 	if err := os.WriteFile(outPath, data, 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "gts: cannot write %s: %v\n", outPath, err)
 		return 2
@@ -765,6 +780,7 @@ func cmdDiff(args []string) int {
 	return 0
 }
 
+// targetKind returns the "kind" field of a suppression target map.
 func targetKind(target interface{}) string {
 	m, ok := target.(map[interface{}]interface{})
 	if !ok {
@@ -776,6 +792,7 @@ func targetKind(target interface{}) string {
 	return ""
 }
 
+// targetIdx returns the "id" field of a suppression target map as an int.
 func targetIdx(target interface{}) (int, bool) {
 	m, ok := target.(map[interface{}]interface{})
 	if !ok {
@@ -787,6 +804,7 @@ func targetIdx(target interface{}) (int, bool) {
 	return 0, false
 }
 
+// allQuadsSuppressed reports whether every quad is hidden by a suppression.
 func allQuadsSuppressed(g *model.Graph) bool {
 	if len(g.Quads) == 0 || len(g.Suppressions) == 0 {
 		return false
@@ -820,6 +838,7 @@ func allQuadsSuppressed(g *model.Graph) bool {
 	return true
 }
 
+// quadKey returns a stable string key for a quad (including graph if present).
 func quadKey(q model.Quad) string {
 	if q.G != nil {
 		return fmt.Sprintf("%d,%d,%d,%d", q.S, q.P, q.O, *q.G)
@@ -827,6 +846,7 @@ func quadKey(q model.Quad) string {
 	return fmt.Sprintf("%d,%d,%d", q.S, q.P, q.O)
 }
 
+// collectSuppressed expands a suppression into term and quad key sets.
 func collectSuppressed(sup model.Suppression, termSup map[int]struct{}, quadSup map[string]struct{}) {
 	for _, target := range sup.Targets {
 		switch targetKind(target) {

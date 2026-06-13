@@ -9,6 +9,7 @@
 ## Validation
 
 - [ ] `make lint` (ruff + mypy)
+- [ ] `cd go/gts && golangci-lint run ./...` (if go/gts changed)
 - [ ] `make validate`
 - [ ] `make reason` (if the ontology changed)
 - [ ] `make mappings` / `make wikidata` (if mappings changed)

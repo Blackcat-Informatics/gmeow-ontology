@@ -27,6 +27,7 @@ func TestMain(m *testing.M) {
 	}
 
 	binPath = filepath.Join(dir, "gts")
+	//nolint:gosec // subprocess is intentional test scaffolding for the CLI binary.
 	cmd := exec.Command("go", "build", "-o", binPath, "go.blackcatinformatics.ca/gts/cmd/gts")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		_ = os.RemoveAll(dir)
@@ -41,6 +42,7 @@ func TestMain(m *testing.M) {
 
 func run(t *testing.T, args ...string) (*exec.Cmd, *bytes.Buffer, *bytes.Buffer) {
 	t.Helper()
+	//nolint:gosec // subprocess is intentional test scaffolding for the compiled CLI.
 	cmd := exec.Command(binPath, args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -101,10 +103,12 @@ func TestCatComposesCleanInputs(t *testing.T) {
 	if cmd.ProcessState.ExitCode() != 0 {
 		t.Fatalf("expected exit 0, got %d", cmd.ProcessState.ExitCode())
 	}
+	//nolint:gosec // test reads frozen conformance vectors by name.
 	adata, err := os.ReadFile(a)
 	if err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test reads frozen conformance vectors by name.
 	bdata, err := os.ReadFile(b)
 	if err != nil {
 		t.Fatal(err)
@@ -159,12 +163,15 @@ func TestLsListsDigestSizeAndMediaType(t *testing.T) {
 func TestPackUnpackRoundTrip(t *testing.T) {
 	tmp := t.TempDir()
 	src := filepath.Join(tmp, "src")
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.MkdirAll(filepath.Join(src, "subdir"), 0o755); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.WriteFile(filepath.Join(src, "a.txt"), []byte("hello"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test fixtures need world-readable permissions.
 	if err := os.WriteFile(filepath.Join(src, "subdir", "b.txt"), []byte("world"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -192,10 +199,12 @@ func TestPackUnpackRoundTrip(t *testing.T) {
 	if cmd.ProcessState.ExitCode() != 0 {
 		t.Fatalf("re-pack exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
 	}
+	//nolint:gosec // test reads back the archive it just wrote to a temp path.
 	orig, err := os.ReadFile(archive)
 	if err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test reads back the archive it just wrote to a temp path.
 	repack, err := os.ReadFile(archive2)
 	if err != nil {
 		t.Fatal(err)
@@ -207,6 +216,7 @@ func TestPackUnpackRoundTrip(t *testing.T) {
 
 func readFile(t *testing.T, path string) string {
 	t.Helper()
+	//nolint:gosec // test helper reads files from temp directories.
 	b, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
@@ -229,6 +239,7 @@ func accretiveFile(t *testing.T, dir string) string {
 	})
 	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
 	path := filepath.Join(dir, "accretive.gts")
+	//nolint:gosec // test fixture written to a temp path.
 	if err := os.WriteFile(path, w.ToBytes(), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -278,10 +289,12 @@ func TestCompactReproducesFrozenVectorViaCLI(t *testing.T) {
 	if cmd.ProcessState.ExitCode() != 0 {
 		t.Fatalf("compact exit %d: %s", cmd.ProcessState.ExitCode(), stderr.String())
 	}
+	//nolint:gosec // test reads back the CLI output and a frozen vector.
 	got, err := os.ReadFile(out)
 	if err != nil {
 		t.Fatal(err)
 	}
+	//nolint:gosec // test reads a frozen conformance vector by name.
 	expected, err := os.ReadFile(vector(t, "25b-streamable-compacted.gts"))
 	if err != nil {
 		t.Fatal(err)
@@ -326,6 +339,7 @@ func TestVerifyWarnsOnStreamVocabWithoutClaim(t *testing.T) {
 	})
 	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
 	path := filepath.Join(tmp, "unclaimed-stream.gts")
+	//nolint:gosec // test fixture written to a temp path.
 	if err := os.WriteFile(path, w.ToBytes(), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -348,6 +362,7 @@ func TestCompactRefusalExitsOne(t *testing.T) {
 	})
 	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
 	path := filepath.Join(tmp, "evidence.gts")
+	//nolint:gosec // test fixture written to a temp path.
 	if err := os.WriteFile(path, w.ToBytes(), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -376,6 +391,7 @@ func TestVerifyEnforcesDeclaredVsComputedProfiles(t *testing.T) {
 	})
 	w.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
 	undeclared := filepath.Join(tmp, "undeclared.gts")
+	//nolint:gosec // test fixture written to a temp path.
 	if err := os.WriteFile(undeclared, w.ToBytes(), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -396,6 +412,7 @@ func TestVerifyEnforcesDeclaredVsComputedProfiles(t *testing.T) {
 	})
 	w2.AddQuads([]model.Quad{{S: 0, P: 1, O: 2}})
 	unused := filepath.Join(tmp, "unused.gts")
+	//nolint:gosec // test fixture written to a temp path.
 	if err := os.WriteFile(unused, w2.ToBytes(), 0o644); err != nil {
 		t.Fatal(err)
 	}

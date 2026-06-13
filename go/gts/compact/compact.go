@@ -48,10 +48,12 @@ func (e *RefusedError) Error() string {
 	return e.msg
 }
 
+// refuse builds a RefusedError with a formatted message.
 func refuse(format string, args ...interface{}) *RefusedError {
 	return &RefusedError{msg: fmt.Sprintf(format, args...)}
 }
 
+// targetKind returns the "kind" field of a suppression target map.
 func targetKind(target interface{}) string {
 	m, ok := target.(map[interface{}]interface{})
 	if !ok {
@@ -124,19 +126,23 @@ type graphBuilder struct {
 	quads []model.Quad
 }
 
+// add appends a term and returns its stable id in the builder.
 func (b *graphBuilder) add(t model.Term) int {
 	b.terms = append(b.terms, t)
 	return len(b.terms) - 1
 }
 
+// literal adds a literal term and returns its stable id.
 func (b *graphBuilder) literal(value string, datatype *int) int {
 	return b.add(model.Term{Kind: model.Literal, Value: value, Datatype: datatype})
 }
 
+// quad appends a triple to the builder.
 func (b *graphBuilder) quad(s, p, o int) {
 	b.quads = append(b.quads, model.Quad{S: s, P: p, O: o})
 }
 
+// blobBytes returns the inline blob data for digest, or nil if absent.
 func blobBytes(g *model.Graph, digest string) []byte {
 	for _, b := range g.Blobs {
 		if b.Digest == digest {
@@ -146,6 +152,7 @@ func blobBytes(g *model.Graph, digest string) []byte {
 	return nil
 }
 
+// blobMetaString returns a string value from a blob's declared metadata.
 func blobMetaString(g *model.Graph, digest, key string) (string, bool) {
 	for _, bm := range g.BlobMeta {
 		if bm.Digest != digest {
@@ -353,13 +360,14 @@ func Streamable(data []byte, timestamp string, sealOriginal bool) ([]byte, error
 	sealedDigest := ""
 	if sealOriginal {
 		sealedDigest = wire.DigestStr(data)
-		kept := blobOrder[:0]
+		kept := make([]string, 0, len(blobOrder))
 		for _, d := range blobOrder {
 			if d != sealedDigest {
 				kept = append(kept, d)
 			}
 		}
-		blobOrder = append(kept, sealedDigest)
+		blobOrder = kept
+		blobOrder = append(blobOrder, sealedDigest)
 	}
 
 	index := streamingIndex(g, blobOrder, timestamp, sealedDigest, len(data))
