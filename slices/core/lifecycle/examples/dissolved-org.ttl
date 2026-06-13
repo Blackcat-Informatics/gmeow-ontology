@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: existence over time, where deletion does not exist (#443). A
+# company is founded, then dissolved — but it STAYS in the graph, marked no
+# longer extant, because the past is data (Principle 10: destruction is an ontic
+# fact, suppression is a display contract, deletion does not exist). The creation
+# and destruction events are ordinary gmeow:Events carrying value-typed
+# eventTypes (a single occurrence can be both eventTypeDissolution AND
+# eventTypeDestruction — co-equal values, never a subclass tower, P9). The
+# existence interval bounds the lifespan, and supersededBy points at the
+# successor that carried on the work.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lifecycle/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The dissolved company: still here, with its full lifecycle attached.
+#     Superseded AND no longer extant, so gmeow:displayable false suppresses it
+#     from default display — the record is retained, never deleted (P10).
+ex:meridian a gmeow:Organization ;
+    gmeow:name "Meridian Systems Ltd." ;
+    gmeow:hasCreationEvent ex:founding ;
+    gmeow:hasDestructionEvent ex:dissolution ;
+    gmeow:existenceInterval ex:meridianLife ;
+    gmeow:supersededBy ex:apex ;
+    gmeow:displayable false .
+
+# --- Creation: a founding event, value-typed both Founding-as-Creation.
+ex:founding a gmeow:Event ;
+    rdfs:label "incorporation of Meridian Systems"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTime "2010-04-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- Destruction: ONE occurrence carrying two co-equal eventType values.
+ex:dissolution a gmeow:Event ;
+    rdfs:label "dissolution of Meridian Systems"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeDissolution , gmeow:eventTypeDestruction ;
+    gmeow:eventTime "2024-11-30T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- The existence interval (the lifespan), bounded by framed instants.
+ex:meridianLife a gmeow:TimeInterval ;
+    gmeow:hasStartInstant ex:lifeBegin ;
+    gmeow:hasEndInstant ex:lifeEnd ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:lifeBegin a gmeow:Instant ;
+    gmeow:instantValue "2010-04-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:lifeEnd a gmeow:Instant ;
+    gmeow:instantValue "2024-11-30T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- The successor, still extant, that superseded Meridian.
+ex:apex a gmeow:Organization ;
+    gmeow:name "Apex Systems Inc." ;
+    gmeow:hasCreationEvent ex:apexFounding .
+
+ex:apexFounding a gmeow:Event ;
+    rdfs:label "incorporation of Apex Systems"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTime "2024-12-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
