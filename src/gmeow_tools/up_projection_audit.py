@@ -123,7 +123,7 @@ def _read_sssom(path: Path) -> list[dict[str, str]]:
             header = cells
             continue
         row = dict(zip(header, cells, strict=False))
-        if row.get("subject_id") and row.get("object_id"):
+        if row.get("subject_id") and row.get("predicate_id") and row.get("object_id"):
             rows.append(row)
     return rows
 
@@ -177,15 +177,18 @@ def sssom_best_buckets() -> dict[str, str]:
 
 def _qname(uri: URIRef, graph: Graph) -> str:
     s = str(uri)
-    for pfx, ns in graph.namespaces():
+    # most-specific prefix first: a longer namespace can be a prefix of none
+    for pfx, ns in sorted(graph.namespaces(), key=lambda kv: -len(str(kv[1]))):
         if s.startswith(str(ns)):
             return f"{pfx}:{s[len(str(ns)) :]}"
     return s
 
 
 def _rdf_list(graph: Graph, node: Node | None) -> list[Node]:
-    out = []
-    while node is not None and node != RDF.nil:
+    out: list[Node] = []
+    seen: set[Node] = set()
+    while node is not None and node != RDF.nil and node not in seen:
+        seen.add(node)
         first = graph.value(node, RDF.first)
         if first is not None:
             out.append(first)
@@ -240,13 +243,17 @@ def _emitted_targets(graph: Graph, binding: Node) -> set[str]:
     targets: set[str] = set()
     for pred in (GM.toClass, GM.toPredicate, GM.edoalTarget):
         for obj in graph.objects(binding, pred):
-            q = _qname(obj, graph)  # type: ignore[arg-type]
+            if not isinstance(obj, URIRef):
+                continue
+            q = _qname(obj, graph)
             if _prefix(q) in PROJECTION_PREFIXES:
                 targets.add(q)
     for atom in _template_atoms(graph, binding):
         for pred in (GM.tPred, GM.tObjValue):
             for obj in graph.objects(atom, pred):
-                q = _qname(obj, graph)  # type: ignore[arg-type]
+                if not isinstance(obj, URIRef):
+                    continue
+                q = _qname(obj, graph)
                 if _prefix(q) in PROJECTION_PREFIXES:
                     targets.add(q)
     return targets

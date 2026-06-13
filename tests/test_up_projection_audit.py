@@ -59,13 +59,17 @@ def test_real_data_baseline_is_sane() -> None:
     """The audit runs on the vendored real snapshots and is internally consistent."""
     report = run_audit()
     assert {f.name for f in report.files} == {"bii", "paudley"}
-    # real coverage, not trivial, not total — both files contribute
-    assert report.total > 400
-    assert 0 < report.liftable < report.total
-    assert all(f.total > 0 and f.liftable > 0 for f in report.files)
-    # gaps are real and de-duplicated across the corpus
+    # The vendored snapshots make this a REPRODUCIBLE baseline contract — pin
+    # the exact numbers so any regression in invertibility coverage is caught.
+    # Update deliberately (with the docs/up-projection-audit.md regen) when
+    # cells or GMEOW coverage genuinely change.
+    by_name = {f.name: f for f in report.files}
+    assert (by_name["bii"].liftable, by_name["bii"].total) == (198, 269)
+    assert (by_name["paudley"].liftable, by_name["paudley"].total) == (251, 332)
+    assert (report.liftable, report.total) == (449, 601)
+    assert len(report.gaps) == 100
+    # gaps are de-duplicated and sorted across the corpus
     assert report.gaps == sorted(set(report.gaps))
-    assert len(report.gaps) > 0
     # the markdown renders with the headline + a gap section
     md = render_markdown(report)
     assert "Headline:" in md and "Coverage gaps" in md
