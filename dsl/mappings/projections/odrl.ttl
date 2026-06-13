@@ -231,3 +231,36 @@ gmeow:mapOdrlProfile a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:profile ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "the conformance claim is carried exactly as declared by the policy author — the transpiler never verifies it" ] .
+
+# --------------------------------------------------------------------------- #
+# Permission-scoped duties (#414, #34 audit verdict 7): ODRL's odrl:duty is a
+# duty bound to ONE permission — the CC-attribution pattern ("you may
+# reproduce, PROVIDED you attribute"). gmeow:hasDuty's domain is the union of
+# RightsStatement and Permission, so the rule-level binding is already
+# representable; this cell gives it its ODRL leg. Statement-scoped duties keep
+# projecting as odrl:obligation (mapOdrlDuty above) — the two scopes coexist.
+# odrl:target rides the duty when the statement names an asset: ODRL 2.2 does
+# not inherit the permission's target onto its duties (target is 0..1 per
+# rule), so the duty's asset must be stated explicitly to be present.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapOdrlPermissionDuty a gmeow:ProjectionMapping ;
+    rdfs:label "Permission duty rule → odrl:duty on the permission node"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pdRs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pdRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "pdRs" ; gmeow:predicate gmeow:hasPermission ; gmeow:objectVar "pdPerm" ]
+            [ gmeow:subjectVar "pdPerm" ; gmeow:predicate gmeow:hasDuty ; gmeow:objectVar "pdDuty" ]
+            [ gmeow:subjectVar "pdDuty" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectVar "pdAction" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "pdRs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "pdAsset" ] ) ]
+            [ gmeow:subjectVar "pdDuty" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "pdAssignee" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:hasDuty ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "pdPerm" ; gmeow:tPred odrl:duty ; gmeow:tObj "pdDuty" ]
+            [ gmeow:tSubj "pdDuty" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Duty ]
+            [ gmeow:tSubj "pdDuty" ; gmeow:tPred odrl:action ; gmeow:tObj "pdAction" ]
+            [ gmeow:tSubj "pdDuty" ; gmeow:tPred odrl:target ; gmeow:tObj "pdAsset" ]
+            [ gmeow:tSubj "pdDuty" ; gmeow:tPred odrl:assignee ; gmeow:tObj "pdAssignee" ] ) ] .

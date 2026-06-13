@@ -1,0 +1,47 @@
+# Coverage + projection fixture for movement events (#412, #34 phase 3).
+# Two relocation events in the paudley-profile shape: a multi-generational
+# family migration with both endpoints, and an emigration knowing only its
+# destination — pinning that one known endpoint still derives the MoveAction
+# shape. Drives the schema:MoveAction / fromLocation / toLocation cells.
+
+@prefix ex:    <https://example.org/migrations/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Places ------------------------------------------------------------------ #
+
+ex:sniatyn a gmeow:Place ;
+    rdfs:label "Sniatyn, Pokuttia (Galicia)"@en .
+
+ex:mundare a gmeow:Place ;
+    rdfs:label "Mundare, Alberta"@en .
+
+ex:wallsend a gmeow:Place ;
+    rdfs:label "Wallsend, New South Wales"@en .
+
+# --- The Galician family migration: both endpoints known --------------------- #
+
+ex:flow-galician a gmeow:Event ;
+    rdfs:label "Sniatyn, Pokuttia (Galicia) → Mundare, Alberta"@en ;
+    gmeow:eventType gmeow:eventTypeMigration ;
+    gmeow:eventFromLocation ex:sniatyn ;
+    gmeow:eventToLocation ex:mundare ;
+    gmeow:earliestStart "1890-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:latestEnd "1909-12-31T23:59:59Z"^^xsd:dateTime .
+
+# --- An emigration with only the destination recorded ------------------------ #
+
+ex:flow-lanarkshire a gmeow:Event ;
+    rdfs:label "→ Wallsend, New South Wales"@en ;
+    gmeow:eventType gmeow:eventTypeEmigration ;
+    gmeow:eventToLocation ex:wallsend .
+
+# --- An emigration with only the ORIGIN recorded (the mirror single-endpoint
+# case): the departure is known, the destination lost to record. Still derives
+# the MoveAction shape — both single-endpoint branches are structural. ------- #
+
+ex:flow-galician-departure a gmeow:Event ;
+    rdfs:label "Sniatyn, Pokuttia (Galicia) →"@en ;
+    gmeow:eventType gmeow:eventTypeEmigration ;
+    gmeow:eventFromLocation ex:sniatyn .

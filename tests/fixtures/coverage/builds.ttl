@@ -1,0 +1,49 @@
+# Coverage + projection fixture for build provenance (#415, #34 verdict 8).
+# The minimal verifiable-build shape from the #47 model: a Builder runs a
+# BuildActivity from a source commit to an output distribution, under a
+# declared build-config URI. Drives the PROV qualification profile —
+# prov:Activity / used / generated / endedAtTime / generatedAtTime and the
+# minted prov:Association whose prov:hadPlan IS the config URI.
+
+@prefix ex:    <https://example.org/builds/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ciRunner a gmeow:Builder ;
+    rdfs:label "GitHub Actions"@en .
+
+ex:releaseCommit a gmeow:Commit ;
+    rdfs:label "Release commit for v1.0.0"@en ;
+    gmeow:contentDigest "swh:1:rev:0123456789abcdef0123456789abcdef01234567" .
+
+ex:distTarball a gmeow:Distribution ;
+    rdfs:label "meowgraph-1.0.0.tar.gz"@en ;
+    gmeow:distributionFormat "tar.gz" ;
+    gmeow:contentDigest "sha256:deadbeef" .
+
+ex:buildV1 a gmeow:BuildActivity ;
+    rdfs:label "Build MeowGraph v1.0.0"@en ;
+    gmeow:eventType gmeow:eventTypeBuild ;
+    gmeow:buildSource ex:releaseCommit ;
+    gmeow:buildOutput ex:distTarball ;
+    gmeow:buildConfigUri "https://github.com/example/meowgraph/blob/v1.0.0/.github/workflows/release.yml" ;
+    gmeow:hasParticipant ex:ciRunner ;
+    gmeow:eventTime "2026-03-15T10:00:00Z"^^xsd:dateTime .
+
+# A build WITHOUT a declared config URI — a hand-run `make` with no committed
+# workflow. The qualified Association still binds the agent (the participant),
+# but there is no Plan to name (buildConfigUri optional): no prov:hadPlan, no
+# prov:Plan node. Pins the optional-Plan branch of the qualification cell.
+ex:distTarball2 a gmeow:Distribution ;
+    rdfs:label "meowgraph-2.0.0.tar.gz"@en ;
+    gmeow:distributionFormat "tar.gz" ;
+    gmeow:contentDigest "sha256:cafef00d" .
+
+ex:buildV2 a gmeow:BuildActivity ;
+    rdfs:label "Build MeowGraph v2.0.0 (no committed workflow)"@en ;
+    gmeow:eventType gmeow:eventTypeBuild ;
+    gmeow:buildSource ex:releaseCommit ;
+    gmeow:buildOutput ex:distTarball2 ;
+    gmeow:hasParticipant ex:ciRunner ;
+    gmeow:eventTime "2026-03-15T11:00:00Z"^^xsd:dateTime .

@@ -59,6 +59,8 @@ PROFILES: dict[str, Profile] = {
     "sioc": Profile("sioc", ("sioc",)),
     "doap": Profile("doap", ("doap",)),
     "codemeta": Profile("codemeta", ("codemeta",)),
+    # Build provenance — the PROV qualification pattern (#415, #34 verdict 8)
+    "prov": Profile("prov", ("prov",)),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +
@@ -84,6 +86,10 @@ _EXAMPLE_FIXTURES = (
     "email.ttl",
     "organizations.ttl",
     "software-project.ttl",
+    # #34 phase 3-4 work-down: migration endpoints (#412) + the build
+    # provenance chain that drives the PROV qualification profile (#415).
+    "migrations.ttl",
+    "builds.ttl",
 )
 
 

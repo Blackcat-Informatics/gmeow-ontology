@@ -747,3 +747,104 @@ def test_claim_review_per_review_translation() -> None:
     anon_rating = next(g.objects(anons[0], URIRef(schema + "reviewRating")))
     assert str(next(g.objects(anon_rating, URIRef(schema + "ratingValue")))) == "0.49"
     _assert_no_gmeow_leakage(g)
+
+
+def test_prov_projection_qualification_pattern() -> None:
+    """#415 (#34 verdict 8): the PROV qualification pattern over BuildActivity.
+
+    The minted prov:Association binds the Builder participant to the Plan, and
+    the Plan node's IRI IS the declared buildConfigUri — the URI the build
+    system itself names, never a synthetic id. The output's generatedAtTime is
+    the build's end instant.
+    """
+    g = project_graph("prov", _fixture_store("builds.ttl"))
+    prov = "http://www.w3.org/ns/prov#"
+    ex = "https://example.org/builds/"
+    build = URIRef(ex + "buildV1")
+    assoc = URIRef(ex + "buildV1-association")
+    plan = URIRef(
+        "https://github.com/example/meowgraph/blob/v1.0.0/.github/workflows/release.yml"
+    )
+    assert (build, RDF.type, URIRef(prov + "Activity")) in g
+    assert (build, URIRef(prov + "used"), URIRef(ex + "releaseCommit")) in g
+    assert (build, URIRef(prov + "generated"), URIRef(ex + "distTarball")) in g
+    assert (build, URIRef(prov + "qualifiedAssociation"), assoc) in g
+    assert (assoc, RDF.type, URIRef(prov + "Association")) in g
+    assert (assoc, URIRef(prov + "agent"), URIRef(ex + "ciRunner")) in g
+    assert (assoc, URIRef(prov + "hadPlan"), plan) in g
+    assert (plan, RDF.type, URIRef(prov + "Plan")) in g
+    ended = list(g.objects(build, URIRef(prov + "endedAtTime")))
+    generated_at = list(
+        g.objects(URIRef(ex + "distTarball"), URIRef(prov + "generatedAtTime"))
+    )
+    assert len(ended) == 1 and ended == generated_at
+    # A build WITHOUT a buildConfigUri still binds its agent in the qualified
+    # Association, but mints NO Plan: the optional-Plan branch (#415).
+    build2 = URIRef(ex + "buildV2")
+    assoc2 = URIRef(ex + "buildV2-association")
+    assert (build2, URIRef(prov + "qualifiedAssociation"), assoc2) in g
+    assert (assoc2, URIRef(prov + "agent"), URIRef(ex + "ciRunner")) in g
+    assert not list(g.objects(assoc2, URIRef(prov + "hadPlan")))
+
+
+def test_schema_org_move_action_endpoints() -> None:
+    """#412: endpoint-bearing events derive schema:MoveAction structurally.
+
+    The typing is structural (any event with a from/to endpoint), so a
+    single-endpoint emigration still derives the action shape — and the open
+    eventType value never becomes a class (P9).
+    """
+    g = project_graph("schema-org", _fixture_store("migrations.ttl"))
+    ex = "https://example.org/migrations/"
+    move = URIRef(SCHEMA + "MoveAction")
+    galician = URIRef(ex + "flow-galician")
+    lanark = URIRef(ex + "flow-lanarkshire")
+    assert (galician, RDF.type, move) in g
+    assert (galician, URIRef(SCHEMA + "fromLocation"), URIRef(ex + "sniatyn")) in g
+    assert (galician, URIRef(SCHEMA + "toLocation"), URIRef(ex + "mundare")) in g
+    # one known endpoint still derives the action shape — both single-endpoint
+    # branches: to-only (lanark) and from-only (departure).
+    assert (lanark, RDF.type, move) in g
+    assert (lanark, URIRef(SCHEMA + "toLocation"), URIRef(ex + "wallsend")) in g
+    assert not list(g.objects(lanark, URIRef(SCHEMA + "fromLocation")))
+    departure = URIRef(ex + "flow-galician-departure")
+    assert (departure, RDF.type, move) in g
+    assert (departure, URIRef(SCHEMA + "fromLocation"), URIRef(ex + "sniatyn")) in g
+    assert not list(g.objects(departure, URIRef(SCHEMA + "toLocation")))
+
+
+def test_odrl_permission_scoped_duty() -> None:
+    """#414 (#34 verdict 7): a permission's own duty rides odrl:duty on the
+    permission node, while the statement-scoped duty stays odrl:obligation —
+    the two scopes coexist (the CC-attribution pattern)."""
+    g = project_graph("odrl", _fixture_store("rights.ttl"))
+    odrl = "http://www.w3.org/ns/odrl/2/"
+    ex = "https://example.org/rights/"
+    perm = URIRef(ex + "perm-reproduce")
+    # The permission's own duty rides odrl:duty on the permission node; it is a
+    # DISTINCT instance from the statement-scoped duty (a node cannot be both an
+    # unconditional obligation and a permission-conditional duty).
+    perm_duty = URIRef(ex + "duty-attribute-perm")
+    stmt_duty = URIRef(ex + "duty-attribute")
+    assert (perm, URIRef(odrl + "duty"), perm_duty) in g
+    assert (perm_duty, RDF.type, URIRef(odrl + "Duty")) in g
+    assert (perm_duty, URIRef(odrl + "action"), URIRef(GMEOW + "actionAttribute")) in g
+    # ODRL 2.2 does not inherit the permission's target onto its duty — the cell
+    # states it explicitly from the statement's asset.
+    assert (perm_duty, URIRef(odrl + "target"), URIRef(ex + "photo")) in g
+    # the statement-scoped duty stays an unconditional obligation, NOT a duty.
+    assert (URIRef(ex + "photo-rights"), URIRef(odrl + "obligation"), stmt_duty) in g
+    assert not list(g.subjects(URIRef(odrl + "duty"), stmt_duty))
+
+
+def test_cc_requires_attribution_from_permission_duty() -> None:
+    """#414 follow-through: the permission-scoped attribution duty coarsens to
+    CC REL's class-level requirement on the governed work."""
+    g = project_graph("cc", _fixture_store("rights.ttl"))
+    cc = "http://creativecommons.org/ns#"
+    ex = "https://example.org/rights/"
+    assert (
+        URIRef(ex + "photo"),
+        URIRef(cc + "requires"),
+        URIRef(cc + "Attribution"),
+    ) in g
