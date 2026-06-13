@@ -808,6 +808,7 @@ def test_prov_projection_qualification_pattern() -> None:
     assert (build2, URIRef(prov + "qualifiedAssociation"), assoc2) in g
     assert (assoc2, URIRef(prov + "agent"), URIRef(ex + "ciRunner")) in g
     assert not list(g.objects(assoc2, URIRef(prov + "hadPlan")))
+    _assert_no_gmeow_leakage(g)
 
 
 def test_schema_org_move_action_endpoints() -> None:
@@ -834,6 +835,7 @@ def test_schema_org_move_action_endpoints() -> None:
     assert (departure, RDF.type, move) in g
     assert (departure, URIRef(SCHEMA + "fromLocation"), URIRef(ex + "sniatyn")) in g
     assert not list(g.objects(departure, URIRef(SCHEMA + "toLocation")))
+    _assert_no_gmeow_leakage(g)
 
 
 def test_odrl_permission_scoped_duty() -> None:
@@ -858,6 +860,9 @@ def test_odrl_permission_scoped_duty() -> None:
     # the statement-scoped duty stays an unconditional obligation, NOT a duty.
     assert (URIRef(ex + "photo-rights"), URIRef(odrl + "obligation"), stmt_duty) in g
     assert not list(g.subjects(URIRef(odrl + "duty"), stmt_duty))
+    # gmeow:actionAttribute rides as an odrl:action OBJECT value by design (the
+    # consumer maps it); the guard still pins no predicate/type leakage.
+    _assert_no_gmeow_leakage(g)
 
 
 def test_cc_requires_attribution_from_permission_duty() -> None:
@@ -871,6 +876,7 @@ def test_cc_requires_attribution_from_permission_duty() -> None:
         URIRef(cc + "requires"),
         URIRef(cc + "Attribution"),
     ) in g
+    _assert_no_gmeow_leakage(g)
 
 
 def test_schema_org_identifier_property_value() -> None:
@@ -998,6 +1004,12 @@ def test_schema_org_syndication() -> None:
     # quotation: the quoted article is typed Quotation and linked by citation
     assert (toot, URIRef(SCHEMA + "citation"), URIRef(ex + "article")) in g
     assert (URIRef(ex + "article"), RDF.type, URIRef(SCHEMA + "Quotation")) in g
+    # the inline quoted text rides as schema:text on the Quotation (no drop)
+    assert (
+        URIRef(ex + "article"),
+        URIRef(SCHEMA + "text"),
+        Literal("the agent's actions are auditable provenance", lang="en"),
+    ) in g
     # share/repost
     assert (toot, URIRef(SCHEMA + "sharedContent"), URIRef(ex + "diagram")) in g
     # feed + items
@@ -1121,14 +1133,23 @@ def test_schema_org_affordances_and_exif() -> None:
     """
     g = project_graph("schema-org", _fixture_store("people-org-presence.ttl"))
     ex = "https://example.org/po/"
-    # communicate affordances (structure only; no fabricated names)
+    # communicate affordances (structure only; no fabricated names). Two emails
+    # + one phone → THREE distinct action nodes (value-unique minting), each
+    # with an IRI target, never one merged node carrying every target.
     comm = set(g.objects(URIRef(ex + "bii"), URIRef(SCHEMA + "potentialAction")))
-    assert comm, "expected potentialAction CommunicateActions"
-    targets = {str(o) for a in comm for o in g.objects(a, URIRef(SCHEMA + "target"))}
-    assert "mailto:work.with.us@blackcatinformatics.ca" in targets
-    assert "tel:+16042452120" in targets
+    assert len(comm) == 3, "each email/phone must mint a DISTINCT CommunicateAction"
+    target_objs = [o for a in comm for o in g.objects(a, URIRef(SCHEMA + "target"))]
+    assert all(isinstance(o, URIRef) for o in target_objs), "target must be an IRI"
+    targets = {str(o) for o in target_objs}
+    assert targets == {
+        "mailto:work.with.us@blackcatinformatics.ca",
+        "mailto:hello@blackcatinformatics.ca",
+        "tel:+16042452120",
+    }
     for a in comm:
         assert (a, RDF.type, URIRef(SCHEMA + "CommunicateAction")) in g
+        # exactly one target per action — no collapse
+        assert len(list(g.objects(a, URIRef(SCHEMA + "target")))) == 1
         # the editorial name is NOT fabricated
         assert not list(g.objects(a, URIRef(SCHEMA + "name")))
     # EXIF tags → schema:exifData PropertyValues

@@ -300,7 +300,7 @@
                     edoal:uri schema:familyName ] ;
             align:relation "<=" ],
         [ a align:Cell ;
-            rdfs:label "foundedBy → schema:founder"@en ;
+            rdfs:label "foundedBy / founderOf → schema:founder"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:foundedBy ] ;
             align:entity2 [ a edoal:Property ;
@@ -880,6 +880,14 @@
                     edoal:uri schema:publisher ] ;
             align:relation "<=" ;
             edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "quotedText → schema:text on the Quotation"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:quotedText ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:text ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "stepOutput → schema:result"@en ;
             align:entity1 [ a edoal:Relation ;
