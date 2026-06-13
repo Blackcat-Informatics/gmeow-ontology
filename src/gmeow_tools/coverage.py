@@ -85,9 +85,15 @@ def _is_covered(iri: str, aligned: set[str]) -> bool:
 
 
 def load_fixtures(fixtures_dir: Path = FIXTURES_DIR) -> Graph:
-    """Parse and merge all vendored coverage fixtures into one graph."""
+    """Parse and merge all vendored coverage fixtures into one graph.
+
+    Recurses into ``external/`` so the real-world site snapshots (the bii/paudley
+    parity targets) are part of the measurement — coverage is *about* them. The
+    snapshots are exempt from GMEOW's authoring policies, but they are still the
+    target the harness scores against.
+    """
     graph = Graph()
-    for path in sorted(fixtures_dir.glob("*.ttl")):
+    for path in sorted(fixtures_dir.rglob("*.ttl")):
         graph.parse(path, format="turtle")
     return graph
 

@@ -121,7 +121,7 @@ markers = [
 # Spell-check prose and identifiers; skip generated/binary/lock artifacts, the
 # vendored gUFO import, and the vendored public-data fixtures (upstream content,
 # not ours to correct). Patterns are fnmatch'd against repo-relative paths.
-skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/bii.ttl,tests/fixtures/coverage/paudley.ttl"
+skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*"
 # False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
 # opNe (the not-equal expression operator in the mapping DSL algebra),
 # ser (Rust serde/ciborium module path `ciborium::ser`).

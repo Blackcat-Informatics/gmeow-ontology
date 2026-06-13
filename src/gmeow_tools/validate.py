@@ -17,6 +17,7 @@ from rdflib.term import Node
 
 from gmeow_tools.config import (
     _SAMEAS_ALLOWLIST,
+    EXTERNAL_FIXTURES_DIR,
     FIXTURES_DIR,
     GENERATED_SHAPES_DIR,
     MAPPING_DSL_DIR,
@@ -120,6 +121,18 @@ def check_syntax() -> ValidationResult:
     return result
 
 
+def _authored_fixtures() -> list[Path]:
+    """Coverage fixtures that GMEOW authors — everything except external snapshots.
+
+    The ``external/`` subtree holds verbatim real-world site dumps (parity
+    targets); Principle 5 is a policy on our own RDF, not a rule we can impose on
+    the outside world, so those snapshots are excluded from the authoring gates.
+    """
+    return sorted(
+        p for p in FIXTURES_DIR.rglob("*.ttl") if EXTERNAL_FIXTURES_DIR not in p.parents
+    )
+
+
 def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
     """Enforce Principle 5: no ``owl:sameAs`` merge with external entities.
 
@@ -129,7 +142,8 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
 
     Args:
         paths: Files to audit. Defaults to canonical ontology sources plus the
-            fixture corpus under ``tests/fixtures``.
+            GMEOW-authored fixtures (the ``external/`` snapshot subtree is
+            exempt — see :func:`_authored_fixtures`).
 
     Returns:
         Validation result with one error per banned triple.
@@ -137,8 +151,10 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
     if paths is None:
         paths = [
             *iter_source_files(),
-            *sorted(FIXTURES_DIR.rglob("*.ttl")),
+            *_authored_fixtures(),
         ]
+    if not paths:
+        raise ValueError("check_sameas_ban: paths to audit must not be empty")
     result = ValidationResult()
     for source in paths:
         graph, exc = _parse_file(source)

@@ -18,14 +18,14 @@ import pyoxigraph
 import pytest
 from rdflib import Graph, URIRef
 
-from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
+from gmeow_tools.config import EXTERNAL_FIXTURES_DIR, FIXTURES_DIR, NAMESPACE
 from gmeow_tools.transform import TransformAbortedError, transform, vocab_coverage
 
 pytestmark = pytest.mark.ci_only
 
 _RIGHTS = FIXTURES_DIR / "rights.ttl"
 _CANARY = FIXTURES_DIR / "suppression-canary.ttl"
-_PAUDLEY = FIXTURES_DIR / "paudley.ttl"
+_PAUDLEY = EXTERNAL_FIXTURES_DIR / "paudley.ttl"
 _REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 _MAPPED_FROM = NAMESPACE + "mappedFrom"
 

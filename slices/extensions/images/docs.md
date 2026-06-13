@@ -109,3 +109,16 @@ each tag is a reified `gmeow:ExifTag` in the `schema:PropertyValue` shape:
 property per tag (P9). The meaningful facts (capture device/time, GPS, colourspace) also
 ride their typed properties; the ExifTag set is the complete, faithful carrier, projected
 to `schema:exifData`.
+
+## Logo (#410 follow-through)
+
+### gmeow:hasLogo
+
+`gmeow:hasLogo` links an entity to the **media object that serves as its logo** — its
+emblematic, identity-bearing image. An organization, software project, dataset, place, or
+product may carry one (domain `gmeow:Entity`, range `gmeow:MediaObject`). It is
+**deliberately distinct from `gmeow:depicts`**: a logo *represents* the entity rather than
+*picturing* it (the gmeow-logo.svg does not depict the ontology), so `hasLogo` is **not** a
+subproperty of `gmeow:isAbout` — mirroring why `schema:logo` is separate from `schema:image`
+upstream. Non-functional: light/dark, wordmark/glyph, and seasonal variants coexist (P9).
+Projects to `schema:logo` and `foaf:logo`.

@@ -37,10 +37,18 @@ def _rel(path: Path) -> str:
     return str(path.relative_to(PROJECT_ROOT))
 
 
-def _robot(args: list[str]) -> str:
+#: HermiT sound+complete consistency over the full merged ontology runs ~15 min
+#: and grows with the ontology; the default 900s container ceiling sits right at
+#: that cliff (a trivial property addition has tipped main's 879s over). HermiT
+#: gets a wider ceiling; every other (fast) ROBOT op keeps the default. Speeding
+#: HermiT up is tracked for the gate-health pass (#433).
+_HERMIT_TIMEOUT: float = 1800.0
+
+
+def _robot(args: list[str], *, timeout: float = 900.0) -> str:
     """Run a ROBOT command and return combined stdout+stderr."""
     DIST_DIR.mkdir(parents=True, exist_ok=True)
-    result = run_container(ROBOT_IMAGE, ["robot", *args])
+    result = run_container(ROBOT_IMAGE, ["robot", *args], timeout=timeout)
     return result.stdout + result.stderr
 
 
@@ -117,6 +125,7 @@ def reason(reasoner: str = "ELK", *, merged: Path = MERGED_FILE) -> Path:
     if not merged.exists():
         merge_release(merged)
     output = DIST_DIR / f"gmeow-reasoned-{reasoner.lower()}.ttl"
+    timeout = _HERMIT_TIMEOUT if reasoner.lower() == "hermit" else 900.0
     _robot(
         [
             "reason",
@@ -126,7 +135,8 @@ def reason(reasoner: str = "ELK", *, merged: Path = MERGED_FILE) -> Path:
             _rel(merged),
             "--output",
             _rel(output),
-        ]
+        ],
+        timeout=timeout,
     )
     return output
 
@@ -245,6 +255,7 @@ def verify(
     if not query_files:
         raise FileNotFoundError(f"no verify queries found in {queries}")
     output_dir.mkdir(parents=True, exist_ok=True)
+    timeout = _HERMIT_TIMEOUT if reasoner.lower() == "hermit" else 900.0
     return _robot(
         [
             "reason",
@@ -259,7 +270,8 @@ def verify(
             *[_rel(q) for q in query_files],
             "--output-dir",
             _rel(output_dir),
-        ]
+        ],
+        timeout=timeout,
     )
 
 
@@ -294,6 +306,7 @@ def build_full(*, merged: Path = MERGED_FILE, output: Path = FULL_FILE) -> Path:
             "https://blackcatinformatics.ca/gmeow",
             "--output",
             _rel(output),
-        ]
+        ],
+        timeout=_HERMIT_TIMEOUT,
     )
     return output

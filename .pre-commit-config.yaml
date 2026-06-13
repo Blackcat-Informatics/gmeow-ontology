@@ -16,7 +16,7 @@ repos:
       # byte-faithful — stripping a trailing space inside a vendored string
       # literal or a TSV column tab would corrupt content.
       - id: trailing-whitespace
-        exclude: &keep-verbatim '^(imports/.*|generated/metadata/.*|generated/schemas/.*|LICENSE.*|tests/fixtures/coverage/(bii|paudley)\.ttl|.*\.(tsv|svg))$'
+        exclude: &keep-verbatim '^(imports/.*|generated/metadata/.*|generated/schemas/.*|LICENSE.*|tests/fixtures/coverage/external/.*|.*\.(tsv|svg))$'
       - id: end-of-file-fixer
         exclude: *keep-verbatim
       - id: check-yaml

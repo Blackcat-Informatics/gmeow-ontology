@@ -42,6 +42,18 @@ gmeow:mapFoafName a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnSelectDisplayName ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
 
+gmeow:mapFoafLogo a gmeow:ProjectionMapping ;
+    rdfs:label "hasLogo → foaf:logo"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "logo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasLogo ; gmeow:objectVar "logo" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "logo" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasLogo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:logo ; gmeow:relation "<=" ;
+        gmeow:confidence 0.95 ] .
+
 gmeow:mapFoafGender a gmeow:ProjectionMapping ;
     rdfs:label "displayable GenderIdentity value → foaf:gender (lossy; suppressed labels dropped)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
