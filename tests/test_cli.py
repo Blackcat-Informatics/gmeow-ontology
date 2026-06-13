@@ -83,3 +83,14 @@ def test_quality_foops_best_effort_skips_when_foops_raises(
         )
     assert result.exit_code == 0
     assert "FOOPS! skipped" in result.output
+
+
+def test_create_docs_from_bundled_snapshot(runner: CliRunner, tmp_path: Path) -> None:
+    out = tmp_path / "docs-tree"
+    result = runner.invoke(app, ["create-docs", "--directory", str(out)])
+    assert result.exit_code == 0, result.output
+    assert (out / "index.md").exists()
+    assert (out / "terms" / "classes").is_dir()
+    assert (out / "terms" / "properties").is_dir()
+    assert (out / "alignments.md").exists()
+    assert (out / "statements.md").exists()
