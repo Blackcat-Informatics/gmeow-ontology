@@ -13,7 +13,12 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 GUFO = Namespace("http://purl.org/nemo/gufo#")
-SHACL = Namespace("http://www.w3.org/ns/shacl#")
+from rdflib import OWL, RDF, RDFS, SH, Graph, Literal, Namespace, URIRef
+
+from gmeow_tools.graph import load_merged_graph
+
+GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
+GUFO = Namespace("http://purl.org/nemo/gufo#")
 
 
 def _graph() -> Graph:
