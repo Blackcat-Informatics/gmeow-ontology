@@ -119,6 +119,10 @@ and files-profile writer. It gates against the same frozen conformance corpus
 `gts` CLI surface.
 
 ```bash
+# Install the gts CLI from the latest release
+go install go.blackcatinformatics.ca/gts/cmd/gts@latest
+
+# Local development
 cd go/gts
 go build ./...       # Build the engine and CLI
 go vet ./...         # Static analysis

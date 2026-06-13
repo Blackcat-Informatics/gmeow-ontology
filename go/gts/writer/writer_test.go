@@ -6,8 +6,8 @@ package writer
 import (
 	"testing"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/reader"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/reader"
 )
 
 func TestRoundTripTermsAndQuads(t *testing.T) {

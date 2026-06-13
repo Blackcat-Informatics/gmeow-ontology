@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/reader"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/writer"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/reader"
+	"go.blackcatinformatics.ca/gts/writer"
 )
 
 func makeTree(t *testing.T, root string) {

@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/reader"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/writer"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/reader"
+	"go.blackcatinformatics.ca/gts/wire"
+	"go.blackcatinformatics.ca/gts/writer"
 )
 
 func vector(t *testing.T, name string) []byte {

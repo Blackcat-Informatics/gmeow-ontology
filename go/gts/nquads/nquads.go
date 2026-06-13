@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
+	"go.blackcatinformatics.ca/gts/model"
 )
 
 const rdfReifies = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"

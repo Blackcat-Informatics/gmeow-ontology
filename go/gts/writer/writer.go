@@ -7,8 +7,8 @@ package writer
 import (
 	"fmt"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/wire"
 	"github.com/fxamacker/cbor/v2"
 )
 

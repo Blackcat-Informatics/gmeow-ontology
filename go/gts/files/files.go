@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/writer"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/wire"
+	"go.blackcatinformatics.ca/gts/writer"
 )
 
 const (
