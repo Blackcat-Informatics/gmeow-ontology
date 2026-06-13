@@ -4132,3 +4132,46 @@ gmeow:MotifShape
         sh:severity sh:Violation ;
         sh:message "A motif occurrence rides the narration seam into a ContentSegment (#360)." ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Web-presence model (#410): a page names at most one principal subject.
+# --------------------------------------------------------------------------- #
+
+gmeow:WebPageMainEntityShape
+    a sh:NodeShape ;
+    rdfs:label "WebPage principal-subject shape" ;
+    sh:targetClass gmeow:WebPage ;
+    sh:property [
+        sh:path gmeow:pagePrincipalSubject ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:WebPage names at most one principal subject (gmeow:pagePrincipalSubject); it may still mention many via gmeow:isAbout." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Closed-world twins for the new functional properties (#410, #412): the
+# owl:FunctionalProperty contract enforced in the raw-graph lane by SHACL.
+# --------------------------------------------------------------------------- #
+
+gmeow:FeedPostingKindShape
+    a sh:NodeShape ;
+    rdfs:label "FeedPosting kind cardinality shape" ;
+    sh:targetClass gmeow:FeedPosting ;
+    sh:property [
+        sh:path gmeow:feedPostingKind ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FeedPosting has at most one gmeow:feedPostingKind value (the functional contract)." ;
+    ] .
+
+gmeow:MediaTypeShape
+    a sh:NodeShape ;
+    rdfs:label "Media-type cardinality shape" ;
+    sh:targetSubjectsOf gmeow:mediaType ;
+    sh:property [
+        sh:path gmeow:mediaType ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A subject carries at most one gmeow:mediaType (the functional contract)." ;
+    ] .

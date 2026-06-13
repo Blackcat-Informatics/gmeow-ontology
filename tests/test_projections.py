@@ -848,3 +848,153 @@ def test_cc_requires_attribution_from_permission_duty() -> None:
         URIRef(cc + "requires"),
         URIRef(cc + "Attribution"),
     ) in g
+
+
+def test_schema_org_identifier_property_value() -> None:
+    """#409: external-identifier records project to schema:PropertyValue.
+
+    The reified gmeow:Identifier node IS reused as the PropertyValue bundle
+    (propertyID ← scheme, value, url, name); a bare scheme+value record still
+    projects its propertyID+value; persons and organizations share the one
+    universal record class.
+    """
+    g = project_graph("schema-org", _fixture_store("identifier-records.ttl"))
+    ex = "https://example.org/ids/"
+    pv = URIRef(SCHEMA + "PropertyValue")
+    geni = URIRef(ex + "id-geni")
+    assert (URIRef(ex + "patrick"), URIRef(SCHEMA + "identifier"), geni) in g
+    assert (geni, RDF.type, pv) in g
+    assert (geni, URIRef(SCHEMA + "propertyID"), Literal("geni")) in g
+    assert (geni, URIRef(SCHEMA + "value"), Literal("6000000001001221435")) in g
+    assert (
+        geni,
+        URIRef(SCHEMA + "url"),
+        URIRef("https://www.geni.com/profile/index/6000000001001221435"),
+    ) in g
+    # the record's display caption is its rdfs:label (NOT a bespoke *Name —
+    # a Name is a reified Appellation), projected to schema:name (#409)
+    assert (geni, URIRef(SCHEMA + "name"), Literal("Geni profile", lang="en")) in g
+    # the bare scheme+value record still projects propertyID + value, no url/name
+    nip = URIRef(ex + "id-nip05")
+    assert (nip, RDF.type, pv) in g
+    assert (nip, URIRef(SCHEMA + "propertyID"), Literal("nip05")) in g
+    assert (
+        nip,
+        URIRef(SCHEMA + "value"),
+        Literal("patrick@blackcatinformatics.ca"),
+    ) in g
+    assert not list(g.objects(nip, URIRef(SCHEMA + "url")))
+    assert not list(g.objects(nip, URIRef(SCHEMA + "name")))
+    # the org case reuses the SAME class
+    ror = URIRef(ex + "id-ror")
+    assert (URIRef(ex + "blackcat"), URIRef(SCHEMA + "identifier"), ror) in g
+    assert (ror, RDF.type, pv) in g
+    assert (ror, URIRef(SCHEMA + "propertyID"), Literal("ror")) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_schema_org_web_presence() -> None:
+    """#410: the web-presence + media surface.
+
+    WebSite typing; the page→site hierarchy as schema:isPartOf; a page's
+    principal subject as schema:mainEntity (+ inverse mainEntityOfPage);
+    ProfilePage derived structurally for pages about an Agent (but NOT for a
+    page about a plain Document); inLanguage from the content language; image
+    from a depiction; DataDownload distributions with contentUrl + format.
+    """
+    g = project_graph("schema-org", _fixture_store("web-presence.ttl"))
+    ex = "https://example.org/web/"
+    assert (URIRef(ex + "site"), RDF.type, URIRef(SCHEMA + "WebSite")) in g
+    # ProfilePage IS derived for pages about an Agent (person, org)...
+    assert (URIRef(ex + "profile-page"), RDF.type, URIRef(SCHEMA + "ProfilePage")) in g
+    assert (URIRef(ex + "about-page"), RDF.type, URIRef(SCHEMA + "ProfilePage")) in g
+    # ...but NOT for a page about a plain Document.
+    assert (URIRef(ex + "doc-page"), RDF.type, URIRef(SCHEMA + "ProfilePage")) not in g
+    # the page→site hierarchy (the breadcrumb trail)
+    assert (
+        URIRef(ex + "profile-page"),
+        URIRef(SCHEMA + "isPartOf"),
+        URIRef(ex + "site"),
+    ) in g
+    # principal subject ↔ mainEntity / mainEntityOfPage
+    assert (
+        URIRef(ex + "profile-page"),
+        URIRef(SCHEMA + "mainEntity"),
+        URIRef(ex + "patrick"),
+    ) in g
+    assert (
+        URIRef(ex + "patrick"),
+        URIRef(SCHEMA + "mainEntityOfPage"),
+        URIRef(ex + "profile-page"),
+    ) in g
+    # image from depiction; encodingFormat from media type
+    assert (
+        URIRef(ex + "patrick"),
+        URIRef(SCHEMA + "image"),
+        URIRef(ex + "headshot"),
+    ) in g
+    assert (
+        URIRef(ex + "headshot"),
+        URIRef(SCHEMA + "encodingFormat"),
+        Literal("image/avif"),
+    ) in g
+    # both content languages
+    langs = set(g.objects(URIRef(ex + "article"), URIRef(SCHEMA + "inLanguage")))
+    assert Literal("en") in langs and Literal("fr") in langs
+    # dataset distributions: DataDownload + contentUrl + encodingFormat
+    assert (
+        URIRef(ex + "dataset"),
+        URIRef(SCHEMA + "distribution"),
+        URIRef(ex + "dump-ttl"),
+    ) in g
+    assert (URIRef(ex + "dump-ttl"), RDF.type, URIRef(SCHEMA + "DataDownload")) in g
+    assert (
+        URIRef(ex + "dump-ttl"),
+        URIRef(SCHEMA + "encodingFormat"),
+        Literal("text/turtle"),
+    ) in g
+    cu = list(g.objects(URIRef(ex + "dump-ttl"), URIRef(SCHEMA + "contentUrl")))
+    assert any(str(o) == "https://blackcatinformatics.ca/gmeow-full.ttl" for o in cu)
+    _assert_no_gmeow_leakage(g)
+
+
+def test_schema_org_syndication() -> None:
+    """#412: postings, quotations, shares, and feeds.
+
+    A social/microblog posting → schema:SocialMediaPosting, a blog posting →
+    schema:BlogPosting (by the open kind value); quoted content → Quotation +
+    citation; shared content → sharedContent; a DataFeed + members →
+    DataFeed/dataFeedElement/DataFeedItem.
+    """
+    g = project_graph("schema-org", _fixture_store("syndication.ttl"))
+    ex = "https://example.org/synd/"
+    toot, blog, note = (URIRef(ex + n) for n in ("tootThreatModel", "blogPost", "note"))
+    assert (toot, RDF.type, URIRef(SCHEMA + "SocialMediaPosting")) in g
+    assert (note, RDF.type, URIRef(SCHEMA + "SocialMediaPosting")) in g
+    assert (blog, RDF.type, URIRef(SCHEMA + "BlogPosting")) in g
+    # quotation: the quoted article is typed Quotation and linked by citation
+    assert (toot, URIRef(SCHEMA + "citation"), URIRef(ex + "article")) in g
+    assert (URIRef(ex + "article"), RDF.type, URIRef(SCHEMA + "Quotation")) in g
+    # share/repost
+    assert (toot, URIRef(SCHEMA + "sharedContent"), URIRef(ex + "diagram")) in g
+    # feed + items
+    assert (URIRef(ex + "feed"), RDF.type, URIRef(SCHEMA + "DataFeed")) in g
+    assert (URIRef(ex + "feed"), URIRef(SCHEMA + "dataFeedElement"), blog) in g
+    assert (blog, RDF.type, URIRef(SCHEMA + "DataFeedItem")) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_sioc_feed_posting_resolves_partial() -> None:
+    """#412: FeedPostings resolve the email slice's declared SIOC partiality —
+    a posting IS a sioc:Post, a share is sioc:links_to."""
+    g = project_graph("sioc", _fixture_store("syndication.ttl"))
+    sioc = "http://rdfs.org/sioc/ns#"
+    ex = "https://example.org/synd/"
+    assert (URIRef(ex + "tootThreatModel"), RDF.type, URIRef(sioc + "Post")) in g
+    assert (URIRef(ex + "blogPost"), RDF.type, URIRef(sioc + "Post")) in g
+    assert (
+        URIRef(ex + "tootThreatModel"),
+        URIRef(sioc + "links_to"),
+        URIRef(ex + "diagram"),
+    ) in g
+    _assert_no_gmeow_leakage(g)

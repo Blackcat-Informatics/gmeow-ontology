@@ -120,5 +120,14 @@ gmeow:IdentifierMustHaveSchemeShape
         sh:path gmeow:identifierScheme ;
         sh:minCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A gmeow:Identifier must declare a gmeow:identifierScheme (e.g. 'lei', 'ror', 'naics', 'isicV4')." ;
+        sh:message "A gmeow:Identifier must declare a gmeow:identifierScheme (e.g. 'lei', 'ror', 'naics', 'isicV4', 'orcid', 'geni', 'nip05')." ;
+    ] ;
+    # Functional twin (#409): an identifier record resolves to at most one URL.
+    # (The human caption is rdfs:label, not a bespoke property — see the module.)
+    sh:property [
+        sh:path gmeow:identifierUrl ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:Identifier has at most one gmeow:identifierUrl, an IRI." ;
     ] .

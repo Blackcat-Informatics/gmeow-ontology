@@ -1,0 +1,44 @@
+# Coverage + projection fixture for external-identifier records (#409, the
+# largest #34 backlog cluster). A person carries three reified identifier
+# records — a geni profile (with url + rdfs:label display name), an ORCID, and a Nostr
+# nip05 — plus an organization with a ROR. Drives the schema:PropertyValue
+# projection (propertyID/value/url/name) over the universal gmeow:Identifier.
+
+@prefix ex:    <https://example.org/ids/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:patrick a gmeow:Person ;
+    rdfs:label "Patrick"@en ;
+    gmeow:hasIdentifier ex:id-geni , ex:id-orcid , ex:id-nip05 .
+
+# A full record: scheme + value + resolvable url + human label.
+ex:id-geni a gmeow:Identifier ;
+    gmeow:identifierScheme "geni" ;
+    gmeow:identifierValue "6000000001001221435" ;
+    gmeow:identifierUrl <https://www.geni.com/profile/index/6000000001001221435> ;
+    rdfs:label "Geni profile"@en .
+
+# A record with a url but riding the scheme as its own name.
+ex:id-orcid a gmeow:Identifier ;
+    gmeow:identifierScheme "orcid" ;
+    gmeow:identifierValue "0000-0002-1825-0097" ;
+    gmeow:identifierUrl <https://orcid.org/0000-0002-1825-0097> ;
+    rdfs:label "ORCID iD"@en .
+
+# A bare scheme + value record (no url, no name): the minimal shape still
+# projects propertyID + value.
+ex:id-nip05 a gmeow:Identifier ;
+    gmeow:identifierScheme "nip05" ;
+    gmeow:identifierValue "patrick@blackcatinformatics.ca" .
+
+# The org case reuses the SAME universal record class.
+ex:blackcat a gmeow:Organization ;
+    rdfs:label "Blackcat Informatics"@en ;
+    gmeow:hasIdentifier ex:id-ror .
+
+ex:id-ror a gmeow:Identifier ;
+    gmeow:identifierScheme "ror" ;
+    gmeow:identifierValue "05dxps055" ;
+    gmeow:identifierUrl <https://ror.org/05dxps055> ;
+    rdfs:label "ROR"@en .

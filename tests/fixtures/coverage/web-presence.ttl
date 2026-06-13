@@ -1,0 +1,63 @@
+# Coverage + projection fixture for the web-presence + media surface (#410).
+# A web site with a profile page (principal subject a person) and an about
+# page (principal subject an org); a dataset with two download distributions;
+# an image depicting the person; a multilingual article. Drives schema:WebSite
+# / ProfilePage / mainEntityOfPage / inLanguage / image / DataDownload.
+
+@prefix ex:    <https://example.org/web/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:patrick a gmeow:Person ; rdfs:label "Patrick"@en .
+ex:blackcat a gmeow:Organization ; rdfs:label "Blackcat"@en .
+
+ex:site a gmeow:WebSite ;
+    rdfs:label "patrickaudley.com"@en .
+
+# A profile page: its principal subject is a person → ProfilePage (defined).
+ex:profile-page a gmeow:WebPage ;
+    rdfs:label "Patrick — profile"@en ;
+    gmeow:pageOfSite ex:site ;
+    gmeow:pagePrincipalSubject ex:patrick .
+
+# An about page about an organization → also a ProfilePage (Agent subject).
+ex:about-page a gmeow:WebPage ;
+    rdfs:label "About Blackcat"@en ;
+    gmeow:pageOfSite ex:site ;
+    gmeow:pagePrincipalSubject ex:blackcat .
+
+# A plain content page (principal subject a non-agent) → NOT a ProfilePage.
+ex:doc-page a gmeow:WebPage ;
+    rdfs:label "The GMEOW spec"@en ;
+    gmeow:pageOfSite ex:site ;
+    gmeow:pagePrincipalSubject ex:gmeow-spec .
+
+ex:gmeow-spec a gmeow:Document ; rdfs:label "GMEOW spec"@en .
+
+# An image depicting the person → schema:image on the person.
+ex:headshot a gmeow:MediaObject ;
+    rdfs:label "Patrick headshot"@en ;
+    gmeow:mediaType "image/avif" ;
+    gmeow:depicts ex:patrick .
+
+# A multilingual article: content language English + French.
+ex:article a gmeow:Article ;
+    rdfs:label "Bilingual post"@en ;
+    gmeow:contentLanguage ex:english , ex:french .
+
+ex:english a gmeow:Language ; gmeow:bcp47Tag "en" .
+ex:french  a gmeow:Language ; gmeow:bcp47Tag "fr" .
+
+# A dataset with two download distributions (members), each with a url + type.
+ex:dataset a gmeow:Dataset ;
+    rdfs:label "GMEOW dump"@en ;
+    gmeow:corpusMember ex:dump-ttl , ex:dump-jsonld .
+
+ex:dump-ttl a gmeow:Document ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow-full.ttl"^^xsd:anyURI ;
+    gmeow:mediaType "text/turtle" .
+
+ex:dump-jsonld a gmeow:Document ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow.jsonld"^^xsd:anyURI ;
+    gmeow:mediaType "application/ld+json" .

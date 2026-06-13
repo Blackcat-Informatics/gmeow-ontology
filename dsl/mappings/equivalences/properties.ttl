@@ -684,3 +684,48 @@ gmeow:eqProperties077 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "both reify a work's title as a first-class node carrying its text and metadata (#34 phase 3)" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties078 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:identifierScheme ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:propertyID ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the identifier's scheme code IS schema:PropertyValue's propertyID (#409)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties079 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sourceLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:contentUrl ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a source/distribution's resolvable location IS schema:contentUrl on the DataDownload (#410)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties080 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:corpusMember ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:distribution ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a dataset's corpus members are its schema:distribution DataDownloads (#410)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties081 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:depictedIn ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:image ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "the inverse of depicts: an entity's image is the MediaObject depicting it → schema:image (#410)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties082 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:pagePrincipalSubject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:mainEntity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage (#410)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
