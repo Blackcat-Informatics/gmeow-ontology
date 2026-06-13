@@ -161,3 +161,9 @@ def test_check_sameas_ban_respects_allowlist(
     )
     result = check_sameas_ban([path])
     assert result.ok
+
+
+def test_check_sameas_ban_rejects_empty_paths() -> None:
+    """An explicitly empty paths list is a caller bug — fail fast, not silently."""
+    with pytest.raises(ValueError, match="must not be empty"):
+        check_sameas_ban([])

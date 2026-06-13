@@ -153,6 +153,8 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
             *iter_source_files(),
             *_authored_fixtures(),
         ]
+    if not paths:
+        raise ValueError("check_sameas_ban: paths to audit must not be empty")
     result = ValidationResult()
     for source in paths:
         graph, exc = _parse_file(source)

@@ -70,7 +70,9 @@ def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Skip network tests unless opted in; swap docker skipifs for a hard-fail."""
-    run_network = bool(os.environ.get(_RUN_NETWORK_ENV))
+    # Explicit truthy check: GMEOW_RUN_NETWORK=0 / =false must NOT opt in (a bare
+    # `bool(os.environ.get(...))` treats "0" and "false" as True).
+    run_network = os.environ.get(_RUN_NETWORK_ENV, "").lower() in ("1", "true", "yes")
     skip_network = pytest.mark.skip(
         reason=(
             "network test — never run in automated gates/CI; "

@@ -572,14 +572,17 @@ def test_logo_projection_schema_and_foaf() -> None:
     ex = "https://example.org/logo/"
     ent = URIRef(ex + "gmeow")
     img = URIRef(ex + "logoImg")
+    old = URIRef(ex + "oldLogo")  # displayable false → must be suppressed (P10)
     gs = project_graph("schema-org", _fixture_store("logo.ttl"))
     assert (ent, URIRef(SCHEMA + "logo"), img) in gs
+    assert (ent, URIRef(SCHEMA + "logo"), old) not in gs
     # a logo represents, it does not depict: no spurious aboutness edge.
     assert (ent, URIRef(SCHEMA + "about"), img) not in gs
     assert (img, URIRef(SCHEMA + "about"), ent) not in gs
     _assert_no_gmeow_leakage(gs)
     gf = project_graph("foaf", _fixture_store("logo.ttl"))
     assert (ent, URIRef(FOAF + "logo"), img) in gf
+    assert (ent, URIRef(FOAF + "logo"), old) not in gf
     _assert_no_gmeow_leakage(gf)
 
 

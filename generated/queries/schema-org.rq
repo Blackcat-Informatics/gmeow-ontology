@@ -259,6 +259,7 @@ WHERE {
     }
     UNION {
         ?ent gmeow:hasLogo ?logo .
+        FILTER NOT EXISTS { ?logo gmeow:displayable false . }
         FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {

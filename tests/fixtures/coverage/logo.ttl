@@ -11,6 +11,11 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
 ex:gmeow a gmeow:SoftwareProject ; rdfs:label "GMEOW"@en ;
-    gmeow:hasLogo ex:logoImg .
+    gmeow:hasLogo ex:logoImg , ex:oldLogo .
 
 ex:logoImg a gmeow:MediaObject ; rdfs:label "GMEOW logo"@en .
+
+# A superseded logo, retained but flagged non-displayable (P10: suppress, never
+# delete). It must NOT project to public schema:logo / foaf:logo.
+ex:oldLogo a gmeow:MediaObject ; rdfs:label "GMEOW logo (2024)"@en ;
+    gmeow:displayable false .
