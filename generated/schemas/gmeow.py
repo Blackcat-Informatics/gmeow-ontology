@@ -691,6 +691,7 @@ class EventTypeEnum(str, Enum):
     marriage = "eventTypeMarriage"
     merge = "eventTypeMerge"
     merger = "eventTypeMerger"
+    migration = "eventTypeMigration"
     military_service = "eventTypeMilitaryService"
     name_change = "eventTypeNameChange"
     naturalization = "eventTypeNaturalization"
@@ -4193,6 +4194,9 @@ class Event(ConfiguredBaseModel):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -4217,6 +4221,9 @@ class Event(ConfiguredBaseModel):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -4335,6 +4342,9 @@ class Activity(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -4359,6 +4369,9 @@ class Activity(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -4486,6 +4499,9 @@ class BuildActivity(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -4510,6 +4526,9 @@ class BuildActivity(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -4631,6 +4650,9 @@ class CodeReview(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -4655,6 +4677,9 @@ class CodeReview(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -4806,6 +4831,9 @@ class Commit(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -4830,6 +4858,9 @@ class Commit(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -5193,6 +5224,9 @@ class Execution(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -5217,6 +5251,9 @@ class Execution(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -5453,6 +5490,9 @@ class FinancialTransaction(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -5477,6 +5517,9 @@ class FinancialTransaction(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -5762,6 +5805,9 @@ class GTSCompaction(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -5786,6 +5832,9 @@ class GTSCompaction(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -6919,6 +6968,9 @@ class ImportActivity(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -6943,6 +6995,9 @@ class ImportActivity(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -14392,6 +14447,9 @@ class JournalEntry(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -14416,6 +14474,9 @@ class JournalEntry(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -14953,6 +15014,9 @@ class LanguageChangeEvent(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -14977,6 +15041,9 @@ class LanguageChangeEvent(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -15103,6 +15170,9 @@ class LanguageCreation(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -15127,6 +15197,9 @@ class LanguageCreation(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -15878,6 +15951,9 @@ class LedgerEvent(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -15902,6 +15978,9 @@ class LedgerEvent(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -16587,6 +16666,9 @@ class LifeEvent(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -16611,6 +16693,9 @@ class LifeEvent(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -19645,6 +19730,9 @@ class Merge(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -19669,6 +19757,9 @@ class Merge(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -20929,6 +21020,9 @@ class ModelInvocation(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -20953,6 +21047,9 @@ class ModelInvocation(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -23502,6 +23599,9 @@ class ObservationalActivity(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -23526,6 +23626,9 @@ class ObservationalActivity(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -24972,6 +25075,9 @@ class Payment(FinancialTransaction):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -24996,6 +25102,9 @@ class Payment(FinancialTransaction):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -27665,6 +27774,9 @@ class Push(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -27689,6 +27801,9 @@ class Push(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -29278,6 +29393,9 @@ class Release(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -29302,6 +29420,9 @@ class Release(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -29780,6 +29901,9 @@ class RetrievalEvent(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -29804,6 +29928,9 @@ class RetrievalEvent(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -38877,6 +39004,9 @@ class Task(Event):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -38901,6 +39031,9 @@ class Task(Event):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -40052,6 +40185,9 @@ class ToolCall(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -40076,6 +40212,9 @@ class ToolCall(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
@@ -41036,6 +41175,9 @@ class VerificationActivity(Activity):
     eventDescribedBy: Optional[list[EmailMessage]] = Field(default=None, title="event described by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventDescribedBy'} })
+    eventFromLocation: Optional[list[Location]] = Field(default=None, title="event from-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventFromLocation'} })
     eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
@@ -41060,6 +41202,9 @@ class VerificationActivity(Activity):
     eventTimeZone: Optional[TimeZone] = Field(default=None, title="event time zone", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTimeZone'} })
+    eventToLocation: Optional[list[Location]] = Field(default=None, title="event to-location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventToLocation'} })
     eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })

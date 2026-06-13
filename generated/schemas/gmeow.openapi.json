@@ -257,6 +257,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -330,6 +339,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -10128,6 +10146,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -10201,6 +10228,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -13839,6 +13875,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -13912,6 +13957,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -15688,6 +15742,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -15761,6 +15824,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -31991,6 +32063,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -32064,6 +32145,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -32961,6 +33051,7 @@
               "eventTypeMarriage",
               "eventTypeMerge",
               "eventTypeMerger",
+              "eventTypeMigration",
               "eventTypeMilitaryService",
               "eventTypeNameChange",
               "eventTypeNaturalization",
@@ -33628,6 +33719,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -33701,6 +33801,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -37076,6 +37185,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -37149,6 +37267,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -38599,6 +38726,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -38672,6 +38808,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -43986,6 +44131,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -44059,6 +44213,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -48659,6 +48822,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -48732,6 +48904,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -49807,6 +49988,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -49880,6 +50070,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -50251,6 +50450,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -50324,6 +50532,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -52515,6 +52732,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -52588,6 +52814,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -54600,6 +54835,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -54673,6 +54917,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -61432,6 +61685,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -61505,6 +61767,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -64198,6 +64469,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -64271,6 +64551,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -72634,6 +72923,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -72707,6 +73005,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -77502,6 +77809,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -77575,6 +77891,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -86520,6 +86845,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -86593,6 +86927,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -90675,6 +91018,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -90748,6 +91100,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -92152,6 +92513,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -92225,6 +92595,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -114841,6 +115220,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -114914,6 +115302,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -118439,6 +118836,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -118512,6 +118918,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {
@@ -121293,6 +121708,15 @@
                   "null"
                 ]
               },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "eventInterval": {
                 "items": {
                   "$ref": "#/$defs/TimeInterval"
@@ -121366,6 +121790,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "eventTrajectory": {

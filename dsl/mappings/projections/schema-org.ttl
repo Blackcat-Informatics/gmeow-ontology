@@ -1086,3 +1086,39 @@ gmeow:mapSchemaMaintainer a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:maintainer ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "contribution period, provenance, confidence, degree drop" ] .
+
+# --------------------------------------------------------------------------- #
+# Movement events → schema:MoveAction (#412). The endpoint pair IS the movement
+# signal: any event carrying a from- or to-location is movement-shaped, so the
+# MoveAction typing is structural — migration / immigration / emigration /
+# household moves all derive without enumerating event-type values (P9: the
+# kind stays an open value; schema's action class is a projection artifact).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaMoveActionFrom a gmeow:ProjectionMapping ;
+    rdfs:label "eventFromLocation → schema:MoveAction + fromLocation"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mvEv" ; gmeow:value "mvFrom" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "mvEv" ; gmeow:predicate gmeow:eventFromLocation ; gmeow:objectVar "mvFrom" ] ) ;
+        gmeow:edoalSource gmeow:eventFromLocation ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the event's open kind value, temporal fuzziness and participation detail drop; only the action shape with its origin survives" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "mvEv" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:MoveAction ]
+            [ gmeow:tSubj "mvEv" ; gmeow:tPred schema:fromLocation ; gmeow:tObj "mvFrom" ] ) ] .
+
+gmeow:mapSchemaMoveActionTo a gmeow:ProjectionMapping ;
+    rdfs:label "eventToLocation → schema:MoveAction + toLocation"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mvtEv" ; gmeow:value "mvTo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "mvtEv" ; gmeow:predicate gmeow:eventToLocation ; gmeow:objectVar "mvTo" ] ) ;
+        gmeow:edoalSource gmeow:eventToLocation ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the event's open kind value, temporal fuzziness and participation detail drop; only the action shape with its destination survives" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "mvtEv" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:MoveAction ]
+            [ gmeow:tSubj "mvtEv" ; gmeow:tPred schema:toLocation ; gmeow:tObj "mvTo" ] ) ] .

@@ -1336,3 +1336,30 @@ gmeow:eqEvents138 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "an event's agent participants are PROV's associated agents; gmeow scopes to any Event where PROV scopes to Activities — exactMatch on the shared activity use (#34 phase 2)" ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents139 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventFromLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:fromLocation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema scopes fromLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (#412)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents140 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventToLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:toLocation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema scopes toLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (#412)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents141 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeMigration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:MoveAction ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a migration-typed event is schema's MoveAction shape; the projection types ANY endpoint-bearing event as MoveAction structurally (value-to-class convention, #412)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .

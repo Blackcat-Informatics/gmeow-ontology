@@ -91,6 +91,17 @@ property chain lifts an event to every containing location); a `gmeow:Trajectory
 moving events; and `gmeow:LocationState` spacetime slices carrying pose and velocity
 relative to an explicit frame (Principle 11).
 
+### gmeow:eventFromLocation · gmeow:eventToLocation
+
+The endpoint pair for movement events — migrations, moves, journeys, relocations.
+Both are specialisations of `gmeow:eventLocation` (an origin or destination IS a
+location of the event, so plain location consumers keep working), and together they
+are the discrete sibling of the continuous `gmeow:eventTrajectory`. A movement event
+with one known endpoint carries just that endpoint. With `gmeow:eventTypeMigration`
+(or immigration/emigration) this is the canonical home of relocation history; the
+schema.org projection derives `schema:MoveAction` + `fromLocation`/`toLocation` from
+exactly this shape.
+
 ### gmeow:subEventOf · gmeow:hasSubEvent
 
 Event mereology — conference → session → talk — transitive specializations of the

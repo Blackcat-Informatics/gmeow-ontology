@@ -17,7 +17,7 @@
   "gmeow-dublin-core.sssom.tsv": 43,
   "gmeow-email.sssom.tsv": 34,
   "gmeow-employment.sssom.tsv": 8,
-  "gmeow-events.sssom.tsv": 137,
+  "gmeow-events.sssom.tsv": 140,
   "gmeow-evidence.sssom.tsv": 7,
   "gmeow-fibo.sssom.tsv": 9,
   "gmeow-foundational.sssom.tsv": 7,
@@ -55,8 +55,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1595,
+ "equivalences": 1598,
  "functions": 38,
  "mapping_sets": 54,
- "projections": 434
+ "projections": 444
 }
