@@ -804,6 +804,15 @@ gmeow:frameRealmBiological a gmeow:FrameRealm ; rdfs:label "biological / genomic
     skos:definition "A biological sequence domain (DNA, RNA, protein) in which positions and features are expressed relative to a reference assembly or sequence."@x-gmeow-english .
 # Seeds for Frame Kind
 gmeow:frameRealmBiological rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:frameRealmMusicalPitch a gmeow:FrameRealm ; rdfs:label "musical pitch"@x-gmeow-english ;
+    skos:definition "A frame realm for musical pitch values — frequencies, frequency ratios, scale degrees, and note-name projections expressed relative to an explicit tuning system."@x-gmeow-english .
+gmeow:frameRealmMusicalPitch rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:frameRealmMusicalTime a gmeow:FrameRealm ; rdfs:label "musical time"@x-gmeow-english ;
+    skos:definition "A frame realm for musical time values — beats, durations, meter assignments, tempo maps, and time mappings expressed relative to an explicit musical-time frame."@x-gmeow-english .
+gmeow:frameRealmMusicalTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
 gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@x-gmeow-english .
 gmeow:frameKindGeodetic skos:definition "The geodetic frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .

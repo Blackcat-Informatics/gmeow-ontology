@@ -1,0 +1,39 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/music>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Music Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Music Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:comment """Frame-relative musical content; every notation is a lossy projection.
+
+This module is intentionally scaffold-only for the structural-foundation issue (#307).
+The five planned layers are reserved as sections below; term declarations land in
+their respective child issues (#308–#312, #314–#317)."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# PITCH FRAMES — reserved for issue #308 (TuningSystem, PitchValue, ...)
+# =========================================================================== #
+
+# =========================================================================== #
+# TIME FRAMES — reserved for issue #310 (MusicalTimeFrame, TimeMapping, ...)
+# =========================================================================== #
+
+# =========================================================================== #
+# STRUCTURE GRAPH — reserved for issue #311 (MusicalSegment, ToneEvent, ...)
+# =========================================================================== #
+
+# =========================================================================== #
+# PERFORMANCE — reserved for issue #313 / #312 (DegreeOfFreedom, ...)
+# =========================================================================== #
+
+# =========================================================================== #
+# ANALYSIS STANDPOINTS — reserved for issue #315 (MusicAnalysisClaim, ...)
+# =========================================================================== #
