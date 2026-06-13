@@ -70,7 +70,9 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     # Transpiler coverage profiles (#34 phases 2-3)
     "org": ("org",),
     "bibo": ("bibo",),
-    "bibframe": ("bibframe",),
+    # bibframe's minted identifier nodes carry their value via rdf:value, so
+    # the rdf: prefix is scanned too — keeping that emission under the gate.
+    "bibframe": ("bibframe", "rdf"),
     "gedcom": ("gedcom",),
     "sioc": ("sioc",),
 }
@@ -92,6 +94,8 @@ _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
         "https://schema.org/reviewRating",
         "http://id.loc.gov/ontologies/bibframe/Doi",
         "http://id.loc.gov/ontologies/bibframe/Identifier",
+        # the minted identifier node's literal carrier (bibframe scans rdf:)
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",
         "http://rdfs.org/sioc/ns#container_of",
         # the minted gedcom:Marriage node's symmetric spouse rows
         "http://www.w3.org/2000/10/swap/pim/gedcom#spouseIn",

@@ -54,11 +54,15 @@ gmeow:mapBfDoi a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "bfdw" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "bfdoiVal" ] ) ;
         gmeow:filter [ gmeow:exprOp gmeow:opStrStarts ; gmeow:exprArgs (
             [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfdoiVal" ] ) ] "10." ) ] ;
+        # the identifier VALUE rides in the minted IRI (encoded) so multiple
+        # identifiers on one work mint DISTINCT nodes, never a merged one
         gmeow:mint [ gmeow:bindVar "bfdoiNode" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfdw" ] ) ]
-                    "-doi" ) ] ) ] ] ;
+                    "-doi-"
+                    [ gmeow:exprOp gmeow:opEncodeForUri ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfdoiVal" ] ) ] ) ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:identifier ] ;
     gmeow:hasBinding [
         gmeow:profile "bibframe" ; gmeow:toPredicate bf:identifiedBy ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
@@ -80,7 +84,9 @@ gmeow:mapBfIdentifier a gmeow:ProjectionMapping ;
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfiw" ] ) ]
-                    "-identifier" ) ] ) ] ] ;
+                    "-identifier-"
+                    [ gmeow:exprOp gmeow:opEncodeForUri ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bfidVal" ] ) ] ) ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:identifier ] ;
     gmeow:hasBinding [
         gmeow:profile "bibframe" ; gmeow:toPredicate bf:identifiedBy ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;

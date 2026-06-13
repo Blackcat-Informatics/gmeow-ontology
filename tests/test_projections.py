@@ -631,11 +631,13 @@ def test_bibframe_projection_minted_identifiers() -> None:
     g = project_graph("bibframe", _fixture_store("publications.ttl"))
     bf = "http://id.loc.gov/ontologies/bibframe/"
     ex = "https://example.org/publications/"
-    doi_node = URIRef(ex + "graphrag-paper-doi")
+    # the minted node IRI carries the ENCODE_FOR_URI'd identifier value so
+    # multiple identifiers on one work mint distinct nodes
+    doi_node = URIRef(ex + "graphrag-paper-doi-10.5072%2Fzenodo.999901")
     assert (URIRef(ex + "graphrag-paper"), URIRef(bf + "identifiedBy"), doi_node) in g
     assert (doi_node, RDF.type, URIRef(bf + "Doi")) in g
     assert (doi_node, RDF.value, Literal("10.5072/zenodo.999901")) in g
-    id_node = URIRef(ex + "retrieval-patent-identifier")
+    id_node = URIRef(ex + "retrieval-patent-identifier-US-2026-0123456-A1")
     assert (id_node, RDF.type, URIRef(bf + "Identifier")) in g
     # the reified title relator survives as a bf:Title node (reused IRI)
     assert (URIRef(ex + "paper-title"), RDF.type, URIRef(bf + "Title")) in g
@@ -651,14 +653,22 @@ def test_org_projection_membership_relator() -> None:
     m = memberships[0]
     assert next(g.objects(m, URIRef(org + "member")), None) is not None
     assert next(g.objects(m, URIRef(org + "organization")), None) is not None
+    assert next(g.objects(m, URIRef(org + "role")), None) is not None
     _assert_no_gmeow_leakage(g)
 
 
 def test_sioc_projection_email_partial() -> None:
     """EmailMessage→Post, threading + authorship flatten to SIOC edges."""
     g = project_graph("sioc", _fixture_store("contact-fields.ttl"))
-    # the contacts fixture may carry no messages; build a minimal in-memory one
-    if len(g) == 0:
+    sioc = "http://rdfs.org/sioc/ns#"
+    # the contacts fixture may carry no messages (account triples alone don't
+    # exercise threading); build a minimal in-memory one when ANY of the
+    # asserted post/thread edges is missing — not merely when g is empty
+    if not (
+        any(g.subjects(RDF.type, URIRef(sioc + "Post")))
+        and any(g.subject_objects(URIRef(sioc + "reply_of")))
+        and any(g.subject_objects(URIRef(sioc + "has_container")))
+    ):
         gm = GMEOW
         data = Graph()
         ex = "https://example.org/sioc/"
@@ -671,7 +681,6 @@ def test_sioc_projection_email_partial() -> None:
         g = project_graph(
             "sioc", sparql.store_with(include_imports=False, extra_triples=data)
         )
-    sioc = "http://rdfs.org/sioc/ns#"
     assert list(g.subjects(RDF.type, URIRef(sioc + "Post")))
     assert list(g.subject_objects(URIRef(sioc + "reply_of")))
     assert list(g.subject_objects(URIRef(sioc + "has_container")))
@@ -725,4 +734,16 @@ def test_claim_review_per_review_translation() -> None:
         if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-single")) in g
     ]
     assert len(singles) == 1
+    # the ANONYMOUS assessment passes through author-less: the review and its
+    # rating emit, schema:author does not — anonymous stays anonymous, and
+    # attribution is never an admission gate (the vantage atom is optional)
+    anons = [
+        r
+        for r in g.subjects(RDF.type, URIRef(schema + "ClaimReview"))
+        if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-anon")) in g
+    ]
+    assert len(anons) == 1
+    assert not list(g.objects(anons[0], URIRef(schema + "author")))
+    anon_rating = next(g.objects(anons[0], URIRef(schema + "reviewRating")))
+    assert str(next(g.objects(anon_rating, URIRef(schema + "ratingValue")))) == "0.49"
     _assert_no_gmeow_leakage(g)

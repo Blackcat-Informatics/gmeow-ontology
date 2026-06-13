@@ -153,7 +153,7 @@ WHERE {
         ?crAssess a gmeow:Assessment .
         ?crAssess gmeow:assessmentTarget ?crClaim .
         ?crClaim a gmeow:StandpointClaim .
-        ?crAssess gmeow:vantage ?crJudge .
+        OPTIONAL { ?crAssess gmeow:vantage ?crJudge . }
         OPTIONAL {
             ?crAssess gmeow:assessmentScoreValue ?crScore .
         }
