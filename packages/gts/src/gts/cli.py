@@ -106,8 +106,11 @@ def _namespace(iri: str) -> str:
 def _used_vocabs(seg: Graph) -> set[str]:
     out: set[str] = set()
     vocabs = set(PROFILE_VOCABS.values())
+    n = len(seg.terms)
     for s, p, o, g in seg.quads:
         for tid in (s, p, o) if g is None else (s, p, o, g):
+            if not (0 <= tid < n):
+                continue  # never crash a report over a malformed reference
             term = seg.term(tid)
             if term.kind is TermKind.IRI and term.value:
                 ns = _namespace(term.value)
