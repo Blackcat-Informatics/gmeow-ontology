@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { Read, ReadFileSegments } from "../reader.js";
 import { toNQuads } from "../nquads.js";
 import { pack, unpack, diff, suppressedBlobDigests } from "../files.js";
+import { compactStreamable, CompactRefusedError } from "../compact.js";
+import { STREAM_NS } from "../stream.js";
 import {
     hex,
     mapGet,
@@ -15,7 +17,7 @@ import {
     normalizeDigest,
 } from "../wire.js";
 import type { Graph, FileSegments } from "../reader.js";
-import type { Quad, Suppression } from "../model.js";
+import { TermKind, type Quad, type Suppression } from "../model.js";
 
 const usage = `usage: gts <command> [args]
 
@@ -27,6 +29,8 @@ commands:
   extract <file> <digest> [-o out] [--mt TYPE] [--include-suppressed]
                             extract one blob by content digest
   cat -o <out> <file>...    validating composer: refuse degenerate inputs, then concatenate
+  compact <file> -o <out> --streamable [--seal-original] [--timestamp ISO]
+                            rewrite into the streamable layout state (§10.1)
   pack <dir|file>... -o out.gts
                             pack files/directories into a files-profile archive
   unpack <archive> [-C dir] [--include-suppressed]
@@ -54,6 +58,17 @@ function printLedger(path: string, fs: FileSegments): void {
         console.log(
             `  segment ${idx}: head ${head} profile ${profile} terms ${seg.terms.length} quads ${seg.quads.length} reifies ${seg.reifiers.length} annot ${seg.annotations.length} blobs ${seg.blobs.length} suppress ${seg.suppressions.length} opaque ${seg.opaque.length} sigs ${signers}`,
         );
+        const layout = seg.segmentStreamable[0];
+        if (layout !== undefined && layout.claimed) {
+            const headHex =
+                layout.head !== undefined ? hex(layout.head) : "<none>";
+            const tail = layout.tail
+                ? `, accretive tail ${layout.tail} frame(s)`
+                : "";
+            console.log(
+                `    layout: streamable through frame ${layout.covered} (head ${headHex})${tail}`,
+            );
+        }
         for (const o of seg.opaque) {
             console.log(`    opaque: ${o.frameType} (${o.reason})`);
         }
@@ -182,6 +197,113 @@ function cmdFold(paths: string[]): number {
     return 0;
 }
 
+/** Warn on `stream#` vocabulary in an unclaimed segment (§13.3).
+ *
+ * A warning, never an error: compaction-provenance quads legitimately
+ * survive nq → gts round trips and re-accretion — the error class is
+ * reserved for a claimed layout the bytes contradict (the reader's
+ * StreamableLayoutError).
+ */
+/** Write to a path or stdout; IO failure is exit 2, never a traceback. */
+function writeOut(outPath: string, data: Uint8Array): number {
+    try {
+        if (outPath) {
+            writeFileSync(outPath, data);
+        } else {
+            process.stdout.write(data);
+        }
+    } catch (e) {
+        console.error(
+            `gts: cannot write ${outPath || "stdout"}: ${(e as Error).message}`,
+        );
+        return 2;
+    }
+    return 0;
+}
+
+/** Declared-vs-computed profile requirement checks (§14.1).
+ *
+ * Returns [message, isError] pairs: vocabulary used without its profile
+ * declared is an error; a declared-but-unused profile is a warning.
+ */
+const PROFILE_VOCABS: Record<string, string> = {
+    files: "https://w3id.org/gts/files#",
+};
+
+function namespaceOf(iri: string): string {
+    const h = iri.lastIndexOf("#");
+    if (h >= 0) return iri.slice(0, h + 1);
+    const sl = iri.lastIndexOf("/");
+    if (sl >= 0) return iri.slice(0, sl + 1);
+    return iri;
+}
+
+/** Every term position of a quad, including the graph slot (§14.1): a
+ * vocabulary IRI used only as a graph name still rots a declaration. */
+function quadTermIds(q: Quad): number[] {
+    return q.g !== undefined ? [q.s, q.p, q.o, q.g] : [q.s, q.p, q.o];
+}
+
+function profileCheck(seg: Graph): Array<[string, boolean]> {
+    const declared = new Set(seg.segmentProfiles);
+    const vocabs = new Set(Object.values(PROFILE_VOCABS));
+    const used = new Set<string>();
+    const n = seg.terms.length;
+    for (const q of seg.quads) {
+        for (const tid of quadTermIds(q)) {
+            if (tid < 0 || tid >= n) continue;
+            const term = seg.terms[tid];
+            if (term.kind !== TermKind.Iri || term.value === "") continue;
+            const ns = namespaceOf(term.value);
+            if (vocabs.has(ns)) used.add(ns);
+        }
+    }
+    const out: Array<[string, boolean]> = [];
+    for (const [prof, vocab] of Object.entries(PROFILE_VOCABS)) {
+        const declares = declared.has(prof);
+        const uses = used.has(vocab);
+        if (uses && !declares) {
+            out.push([
+                `profile error: segment uses ${vocab} vocabulary ` +
+                    `but does not declare '${prof}'`,
+                true,
+            ]);
+        }
+        if (declares && !uses) {
+            out.push([
+                `profile warning: segment declares '${prof}' ` +
+                    `but uses no ${vocab} vocabulary`,
+                false,
+            ]);
+        }
+    }
+    return out;
+}
+
+function streamVocabCheck(seg: Graph): string[] {
+    const claimed =
+        seg.segmentStreamable.length > 0 && seg.segmentStreamable[0].claimed;
+    if (claimed) return [];
+    const n = seg.terms.length;
+    for (const q of seg.quads) {
+        for (const tid of quadTermIds(q)) {
+            // Never crash a report over a malformed reference.
+            if (tid < 0 || tid >= n) continue;
+            const term = seg.terms[tid];
+            if (
+                term.kind === TermKind.Iri &&
+                term.value.startsWith(STREAM_NS)
+            ) {
+                return [
+                    `layout warning: segment uses ${STREAM_NS} vocabulary but does ` +
+                        "not claim layout 'streamable' (§13.3)",
+                ];
+            }
+        }
+    }
+    return [];
+}
+
 function cmdVerify(paths: string[]): number {
     if (paths.length === 0) {
         console.error(usage);
@@ -192,8 +314,84 @@ function cmdVerify(paths: string[]): number {
         const fs = ReadFileSegments(load(path));
         printLedger(path, fs);
         if (hasProblems(fs)) problems = true;
+        // §14.1: declared-vs-computed profile requirements + layout warnings.
+        for (let idx = 0; idx < fs.segments.length; idx++) {
+            for (const [msg, isErr] of profileCheck(fs.segments[idx])) {
+                const prefix = isErr ? "error" : "warning";
+                console.error(`  segment ${idx}: ${prefix}: ${msg}`);
+                if (isErr) problems = true;
+            }
+            for (const msg of streamVocabCheck(fs.segments[idx])) {
+                console.error(`  segment ${idx}: warning: ${msg}`);
+            }
+        }
     }
     return problems ? 1 : 0;
+}
+
+/** Rewrite a GTS file into the streamable layout state (§10.1, §14.1). */
+function cmdCompact(args: string[]): number {
+    let outPath = "";
+    let streamable = false;
+    let sealOriginal = false;
+    let timestamp = "";
+    const positional: string[] = [];
+    for (let i = 0; i < args.length; i++) {
+        const a = args[i];
+        switch (a) {
+            case "-o":
+            case "--out":
+                if (i + 1 >= args.length) {
+                    console.error(`gts: -o requires a path\n${usage}`);
+                    return 2;
+                }
+                outPath = args[++i];
+                break;
+            case "--streamable":
+                streamable = true;
+                break;
+            case "--seal-original":
+                sealOriginal = true;
+                break;
+            case "--timestamp":
+                if (i + 1 >= args.length) {
+                    console.error(
+                        `gts: --timestamp requires a value\n${usage}`,
+                    );
+                    return 2;
+                }
+                timestamp = args[++i];
+                break;
+            default:
+                positional.push(a);
+        }
+    }
+    if (positional.length !== 1 || !outPath) {
+        console.error(usage);
+        return 2;
+    }
+    if (!streamable) {
+        // The verb is reserved for layout rewrites; a future --snapshot mode
+        // (§10) would land here. Without a mode the request is ambiguous.
+        console.error("gts: compact requires --streamable");
+        return 2;
+    }
+    // Default to now-UTC at whole-second precision (ISO 8601, trailing Z).
+    const ts = timestamp || new Date().toISOString().slice(0, 19) + "Z";
+    let data: Uint8Array;
+    try {
+        data = compactStreamable(load(positional[0]), {
+            timestamp: ts,
+            sealOriginal,
+        });
+    } catch (e) {
+        if (e instanceof CompactRefusedError) {
+            console.error(`gts: refusing compact: ${e.message}`);
+            return 1;
+        }
+        throw e;
+    }
+    return writeOut(outPath, data);
 }
 
 function cmdLs(paths: string[]): number {
@@ -286,12 +484,7 @@ function cmdExtract(args: string[]): number {
             return 1;
         }
     }
-    if (outPath) {
-        writeFileSync(outPath, blobData);
-    } else {
-        process.stdout.write(blobData);
-    }
-    return 0;
+    return writeOut(outPath, blobData);
 }
 
 function cmdCat(args: string[]): number {
@@ -352,12 +545,7 @@ function cmdCat(args: string[]): number {
         );
         return 1;
     }
-    if (outPath) {
-        writeFileSync(outPath, combined);
-    } else {
-        process.stdout.write(combined);
-    }
-    return 0;
+    return writeOut(outPath, combined);
 }
 
 function cmdPack(args: string[]): number {
@@ -386,14 +574,14 @@ function cmdPack(args: string[]): number {
         console.error(`gts: pack requires -o\n${usage}`);
         return 2;
     }
+    let data: Uint8Array;
     try {
-        const data = pack(sources);
-        writeFileSync(outPath, data);
+        data = pack(sources);
     } catch (e) {
         console.error(`gts: refusing pack: ${(e as Error).message}`);
         return 1;
     }
-    return 0;
+    return writeOut(outPath, data);
 }
 
 function cmdUnpack(args: string[]): number {
@@ -484,6 +672,8 @@ function main(argv: string[]): number {
             return cmdExtract(args);
         case "cat":
             return cmdCat(args);
+        case "compact":
+            return cmdCompact(args);
         case "pack":
             return cmdPack(args);
         case "unpack":

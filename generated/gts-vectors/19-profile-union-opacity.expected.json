@@ -21,6 +21,18 @@
   "53cab38818eac1be750f8735a040df5375214a88c3044d8299c67290619402b8"
  ],
  "segments": 2,
+ "streamable": [
+  {
+   "claimed": false,
+   "covered": 0,
+   "tail": 0
+  },
+  {
+   "claimed": false,
+   "covered": 0,
+   "tail": 0
+  }
+ ],
  "suppressions": 0,
  "terms": 4
 }

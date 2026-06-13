@@ -87,12 +87,31 @@ pub struct Diagnostic {
 }
 
 /// The verification outcome for a signed frame (§9.2).
+///
+/// `cose` retains the raw COSE_Sign1 bytes so streamable compaction (§10.1)
+/// can carry the signature *detached* — forever verifiable against
+/// `frame_id` even after the frame itself is re-authored into a new chain.
 #[derive(Clone, Debug)]
 pub struct Signature {
     pub frame_id: Vec<u8>,
     pub kid: Option<String>,
     /// `"valid"` | `"invalid"` | `"unverified"`.
     pub status: String,
+    pub cose: Option<Vec<u8>>,
+}
+
+/// One segment's layout state (§3.3).
+///
+/// `covered`/`head` come from the segment's last intact `index` frame;
+/// `tail` counts the legal unpresaged frames after it ("streamable through
+/// frame *covered*, accretive tail of *tail* frame(s)"). For an unclaimed
+/// (accretive) segment all fields are their zero values.
+#[derive(Clone, Debug, Default)]
+pub struct StreamableInfo {
+    pub claimed: bool,
+    pub covered: usize,
+    pub tail: usize,
+    pub head: Option<Vec<u8>>,
 }
 
 /// The folded result of a GTS log.
@@ -122,6 +141,10 @@ pub struct Graph {
     pub segment_profiles: Vec<String>,
     /// Per-segment folded meta, preserved alongside the file-level merge.
     pub segment_meta: Vec<Vec<(String, Value)>>,
+    /// Per-segment layout state (§3.3), in file order — the
+    /// declared-vs-computed streamable claim, its covered boundary, and the
+    /// accretive tail.
+    pub segment_streamable: Vec<StreamableInfo>,
 }
 
 impl Graph {

@@ -47,8 +47,8 @@ func TestBlobDedupInWriter(t *testing.T) {
 	w.AddTerms(terms)
 	w.AddQuads([]model.Quad{{S: 2, P: 1, O: 0}})
 	payload := []byte("shared")
-	w.AddBlob(payload, "text/plain")
-	w.AddBlob(payload, "text/plain")
+	w.AddBlob(payload, "text/plain", "")
+	w.AddBlob(payload, "text/plain", "")
 
 	data := w.ToBytes()
 	g := reader.Read(data, true, nil)

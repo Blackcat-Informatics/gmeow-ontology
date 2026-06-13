@@ -44,11 +44,28 @@ pub struct Writer {
     name_to_id: HashMap<String, i64>,
     prev: Vec<u8>,
     buf: Vec<u8>,
+    // Per-frame byte offsets and types, in append order — the raw material
+    // of an `index` footer (§6.2): offsets enable random access/parallel
+    // verify, types the "ti" locator map.
+    offsets: Vec<usize>,
+    types: Vec<String>,
 }
 
 impl Writer {
     /// Create a writer and emit the Header (the chain genesis).
     pub fn new(profile: &str) -> Self {
+        Self::with_layout(profile, None)
+    }
+
+    /// Create a writer with a header layout-state claim (§3.3;
+    /// `"streamable"` is the only value this revision defines).
+    pub fn with_layout(profile: &str, layout: Option<&str>) -> Self {
+        // §5: "streamable" is the only layout this revision defines; a typo'd
+        // claim would persist into the tamper-evident header.
+        assert!(
+            layout.is_none() || layout == Some("streamable"),
+            "unsupported layout claim {layout:?} (§3.3)"
+        );
         let catalog: HashMap<i64, Codec> = [
             (
                 0i64,
@@ -104,6 +121,11 @@ impl Writer {
             ("prof".into(), profile.into()),
             ("cat".into(), Value::Map(cat_entries)),
         ];
+        if let Some(layout) = layout {
+            // The layout-state claim is part of the header content, so it is
+            // covered by the genesis self-hash (§3.3, §5).
+            header.push(("layout".into(), layout.into()));
+        }
         header.sort_by_key(|a| canonical(&a.0));
         let id = header_id(&header);
         header.push(("id".into(), Value::Bytes(id.clone())));
@@ -116,6 +138,8 @@ impl Writer {
             name_to_id,
             prev: id,
             buf,
+            offsets: Vec::new(),
+            types: Vec::new(),
         }
     }
 
@@ -182,6 +206,8 @@ impl Writer {
         frame.push(("id".into(), Value::Bytes(id.clone())));
         frame.sort_by_key(|a| canonical(&a.0));
 
+        self.offsets.push(self.buf.len());
+        self.types.push(frame_type.to_string());
         self.buf.extend_from_slice(&canonical(&Value::Map(frame)));
         self.prev = id.clone();
         id
@@ -229,9 +255,16 @@ impl Writer {
         self.add_frame("annot", Some(Value::Array(rows)), None, None, None)
     }
 
-    /// Append an inline `blob` frame.
-    pub fn add_blob(&mut self, data: &[u8], mt: Option<&str>) -> Vec<u8> {
-        let pub_meta = mt.map(|m| Value::Map(vec![("mt".into(), m.into())]));
+    /// Append an inline `blob` frame; metadata goes in `pub` (§12).
+    pub fn add_blob(&mut self, data: &[u8], mt: Option<&str>, rep: Option<&str>) -> Vec<u8> {
+        let mut pub_entries: Vec<(Value, Value)> = Vec::new();
+        if let Some(m) = mt {
+            pub_entries.push(("mt".into(), m.into()));
+        }
+        if let Some(r) = rep {
+            pub_entries.push(("rep".into(), r.into()));
+        }
+        let pub_meta = (!pub_entries.is_empty()).then_some(Value::Map(pub_entries));
         self.add_frame("blob", None, Some(data.to_vec()), None, pub_meta)
     }
 
@@ -241,13 +274,52 @@ impl Writer {
     }
 
     /// Append a `suppress` frame.
-    pub fn add_suppress(&mut self, targets: Vec<Value>, reason: Option<&str>) -> Vec<u8> {
+    pub fn add_suppress(
+        &mut self,
+        targets: Vec<Value>,
+        reason: Option<&str>,
+        by: Option<usize>,
+    ) -> Vec<u8> {
         let mut payload: Vec<(Value, Value)> = vec![("targets".into(), Value::Array(targets))];
         if let Some(r) = reason {
             payload.push(("reason".into(), r.into()));
         }
+        if let Some(b) = by {
+            payload.push(("by".into(), Value::from(b as u64)));
+        }
         payload.sort_by_key(|a| canonical(&a.0));
         self.add_frame("suppress", Some(Value::Map(payload)), None, None, None)
+    }
+
+    /// Append an `index` footer covering every frame appended so far (§6.2).
+    ///
+    /// `count`/`head` delimit the covered region (the streamable boundary,
+    /// §3.3); `off` carries each covered frame's byte offset from the start
+    /// of this writer's output; `ti` locates frames by type (0-based frame
+    /// positions). A later `add_index` covers the earlier one too — the last
+    /// index wins (§6.2).
+    pub fn add_index(&mut self) -> Vec<u8> {
+        let mut payload: Vec<(Value, Value)> = vec![
+            ("count".into(), iv(self.types.len() as i64)),
+            ("head".into(), Value::Bytes(self.prev.clone())),
+        ];
+        if !self.offsets.is_empty() {
+            // "off"/"ti" are [+ uint]-shaped — omit when empty
+            let off: Vec<Value> = self.offsets.iter().map(|&o| iv(o as i64)).collect();
+            let mut ti: Vec<(Value, Value)> = Vec::new();
+            for (pos, ftype) in self.types.iter().enumerate() {
+                match ti
+                    .iter_mut()
+                    .find(|(k, _)| matches!(k, Value::Text(t) if t == ftype))
+                {
+                    Some((_, Value::Array(positions))) => positions.push(iv(pos as i64)),
+                    _ => ti.push((ftype.clone().into(), Value::Array(vec![iv(pos as i64)]))),
+                }
+            }
+            payload.push(("off".into(), Value::Array(off)));
+            payload.push(("ti".into(), Value::Map(ti)));
+        }
+        self.add_frame("index", Some(Value::Map(payload)), None, None, None)
     }
 
     /// Return the complete GTS file bytes.

@@ -15,9 +15,11 @@
 //! The Python side keeps the producer; this crate owns the format engine.
 
 pub mod codec;
+pub mod compact;
 pub mod files;
 pub mod model;
 pub mod nquads;
 pub mod reader;
+pub mod stream;
 pub mod wire;
 pub mod writer;

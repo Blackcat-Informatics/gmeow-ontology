@@ -1,13 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: Apache-2.0
 
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { Writer } from "../src/writer.js";
+import { TermKind } from "../src/model.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "../../../../");
@@ -18,22 +20,14 @@ function run(
     args: string[],
     opts?: { cwd?: string; input?: Uint8Array },
 ): { code: number; stdout: string; stderr: string } {
-    try {
-        const stdout = execFileSync("node", [cli, ...args], {
-            cwd: opts?.cwd,
-            input: opts?.input,
-            encoding: "utf8",
-            stdio: [opts?.input ? "pipe" : "ignore", "pipe", "pipe"],
-        });
-        return { code: 0, stdout, stderr: "" };
-    } catch (e) {
-        const err = e as { status?: number; stdout?: string; stderr?: string };
-        return {
-            code: err.status ?? 1,
-            stdout: err.stdout ?? "",
-            stderr: err.stderr ?? "",
-        };
-    }
+    // spawnSync (not execFileSync): stderr must be observable on success
+    // too — verify emits §14.1 warnings without failing.
+    const r = spawnSync("node", [cli, ...args], {
+        cwd: opts?.cwd,
+        input: opts?.input,
+        encoding: "utf8",
+    });
+    return { code: r.status ?? 1, stdout: r.stdout ?? "", stderr: r.stderr ?? "" };
 }
 
 test("CLI fold emits N-Quads for a clean vector", () => {
@@ -94,6 +88,84 @@ test("CLI diff reports no changes for identical tree", () => {
     assert.equal(diff.code, 0, diff.stdout);
 });
 
+test("CLI compact round-trips: verify exit 0 with a layout line", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    const out = join(tmp, "streamable.gts");
+    const r = run([
+        "compact",
+        join(vectorsDir, "25-streamable-source.gts"),
+        "-o",
+        out,
+        "--streamable",
+        "--timestamp",
+        "2026-01-01T00:00:00Z",
+    ]);
+    assert.equal(r.code, 0, r.stderr);
+    const v = run(["verify", out]);
+    assert.equal(v.code, 0, v.stdout + v.stderr);
+    assert.match(v.stdout, /layout: streamable through frame/);
+    assert.doesNotMatch(v.stdout, /accretive tail/);
+    assert.doesNotMatch(v.stderr, /warning/);
+});
+
+test("CLI verify refuses the streamable lie (vector 26)", () => {
+    const r = run(["verify", join(vectorsDir, "26-streamable-lie.gts")]);
+    assert.equal(r.code, 1);
+    assert.match(r.stdout, /StreamableLayoutError/);
+});
+
+test("CLI info reports the accretive tail (vector 27)", () => {
+    const r = run(["info", join(vectorsDir, "27-streamable-tail.gts")]);
+    assert.equal(r.code, 0, r.stderr);
+    assert.match(r.stdout, /layout: streamable through frame/);
+    assert.match(r.stdout, /accretive tail 2 frame\(s\)/);
+});
+
+test("CLI compact without --streamable exits 2", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    const r = run([
+        "compact",
+        join(vectorsDir, "25-streamable-source.gts"),
+        "-o",
+        join(tmp, "x.gts"),
+    ]);
+    assert.equal(r.code, 2);
+    assert.match(r.stderr, /compact requires --streamable/);
+});
+
+test("CLI compact refuses evidence input, then seals on request", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    const w = new Writer("evidence");
+    w.addTerms([
+        { kind: TermKind.Iri, value: "https://example.org/Cat" },
+        {
+            kind: TermKind.Iri,
+            value: "http://www.w3.org/2000/01/rdf-schema#label",
+        },
+        { kind: TermKind.Literal, value: "Cat", lang: "en" },
+    ]);
+    w.addQuads([{ s: 0, p: 1, o: 2 }]);
+    const path = join(tmp, "evidence.gts");
+    writeFileSync(path, w.toBytes());
+    const out = join(tmp, "out.gts");
+
+    const refused = run(["compact", path, "-o", out, "--streamable"]);
+    assert.equal(refused.code, 1);
+    assert.match(refused.stderr, /refusing compact: .*seal-original/);
+
+    const sealed = run([
+        "compact",
+        path,
+        "-o",
+        out,
+        "--streamable",
+        "--seal-original",
+    ]);
+    assert.equal(sealed.code, 0, sealed.stderr);
+    const v = run(["verify", out]);
+    assert.equal(v.code, 0, v.stdout + v.stderr);
+});
+
 test("CLI cat composes two clean segments", () => {
     const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
     const a = join(vectorsDir, "01-minimal.gts");
@@ -104,4 +176,52 @@ test("CLI cat composes two clean segments", () => {
     const folded = run(["fold", out]);
     assert.equal(folded.code, 0);
     assert.match(folded.stdout, /Cat/);
+});
+
+test("CLI verify enforces declared-vs-computed profiles (§14.1)", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    // files# vocabulary in a generic segment: an error, exit 1.
+    const w = new Writer("generic");
+    w.addTerms([
+        { kind: TermKind.Bnode, value: "f0" },
+        { kind: TermKind.Iri, value: "https://w3id.org/gts/files#path" },
+        { kind: TermKind.Literal, value: "a.txt" },
+    ]);
+    w.addQuads([{ s: 0, p: 1, o: 2 }]);
+    const undeclared = join(tmp, "undeclared.gts");
+    writeFileSync(undeclared, w.toBytes());
+    const err = run(["verify", undeclared]);
+    assert.equal(err.code, 1);
+    assert.match(err.stderr, /profile error: segment uses .*files#/);
+
+    // declared-but-unused profile: a warning, exit stays 0.
+    const w2 = new Writer("files");
+    w2.addTerms([
+        { kind: TermKind.Iri, value: "https://example.org/Cat" },
+        {
+            kind: TermKind.Iri,
+            value: "http://www.w3.org/2000/01/rdf-schema#label",
+        },
+        { kind: TermKind.Literal, value: "Cat", lang: "en" },
+    ]);
+    w2.addQuads([{ s: 0, p: 1, o: 2 }]);
+    const unused = join(tmp, "unused.gts");
+    writeFileSync(unused, w2.toBytes());
+    const warn = run(["verify", unused]);
+    assert.equal(warn.code, 0);
+    assert.match(warn.stderr, /profile warning: segment declares 'files'/);
+});
+
+test("CLI compact reports an unwritable output as exit 2", () => {
+    // A unique missing parent keeps the ENOENT assertion deterministic.
+    const tmp = mkdtempSync(join(tmpdir(), "gts-cli-"));
+    const r = run([
+        "compact",
+        join(vectorsDir, "25-streamable-source.gts"),
+        "-o",
+        join(tmp, "missing", "deep", "out.gts"),
+        "--streamable",
+    ]);
+    assert.equal(r.code, 2);
+    assert.match(r.stderr, /gts: cannot write/);
 });

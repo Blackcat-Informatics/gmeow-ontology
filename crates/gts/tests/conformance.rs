@@ -32,6 +32,11 @@ fn summarize(g: &Graph, mode: &str) -> Value {
         "opaque_reasons": opaque_reasons,
         "suppressions": g.suppressions.len(),
         "blobs": blob_summary(g),
+        "streamable": g.segment_streamable.iter().map(|info| json!({
+            "claimed": info.claimed,
+            "covered": info.covered,
+            "tail": info.tail,
+        })).collect::<Vec<_>>(),
         "nquads": nquads,
     })
 }
@@ -108,6 +113,24 @@ fn corpus_matches_frozen_expectations() {
             "vector {name}: Rust fold diverges from the frozen oracle expectation"
         );
     }
+}
+
+/// §10.1/§14.1: the frozen 25b bytes are the cross-engine determinism oracle —
+/// compacting the frozen 25 bytes with the frozen timestamp must reproduce
+/// them EXACTLY, byte for byte, in every engine.
+#[test]
+fn compact_reproduces_the_frozen_25b_bytes() {
+    use gts::compact::compact_streamable;
+
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/gts-vectors");
+    let source = fs::read(dir.join("25-streamable-source.gts")).expect("vector 25 bytes");
+    let frozen = fs::read(dir.join("25b-streamable-compacted.gts")).expect("vector 25b bytes");
+    let compacted =
+        compact_streamable(&source, "2026-01-01T00:00:00Z", false).expect("clean input compacts");
+    assert_eq!(
+        compacted, frozen,
+        "vector 25b: Rust compact diverges from the frozen determinism oracle"
+    );
 }
 
 /// §3.2/§18.23: every item-boundary prefix of every vector folds without

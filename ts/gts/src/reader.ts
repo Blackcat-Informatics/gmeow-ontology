@@ -7,11 +7,13 @@ import {
     Quad,
     TermKind,
     Triple,
+    type StreamableInfo,
     type Suppression,
     type Diagnostic,
 } from "./model.js";
 import * as wire from "./wire.js";
 import { decodeChain, isCodecError, type Codec } from "./codec.js";
+import { DIGEST as STREAM_DIGEST } from "./stream.js";
 
 interface PayloadError {
     unavailable: boolean;
@@ -41,9 +43,29 @@ function isPayloadError(x: Codec[] | PayloadError): x is PayloadError {
     return "unavailable" in x;
 }
 
+/** An intact `index` frame recorded for the layout check (§3.3). */
+interface IndexRecord {
+    pos: number;
+    count: number;
+    head: Uint8Array;
+}
+
+/** An inline blob's arrival: frame position, digest, described-at-arrival. */
+interface BlobEvent {
+    pos: number;
+    digest: string;
+    described: boolean;
+}
+
 class Folder {
     g: Graph;
     catalog: Map<number, Codec>;
+    // Layout-state bookkeeping (§3.3): intact index frames seen, digests the
+    // graph has described via stream:digest so far, and each inline blob's
+    // arrival (frame index, digest, was-it-described-at-arrival).
+    indexRecords: IndexRecord[] = [];
+    described = new Set<string>();
+    blobEvents: BlobEvent[] = [];
 
     constructor(g: Graph, catalog: Map<number, Codec>) {
         this.g = g;
@@ -178,7 +200,7 @@ class Folder {
                 this.hAnnot(payload, index);
                 break;
             case "blob":
-                this.hBlob(payload as Uint8Array | null, frame);
+                this.hBlob(payload as Uint8Array | null, frame, index);
                 break;
             case "meta":
                 this.hMeta(payload);
@@ -188,6 +210,9 @@ class Folder {
                 break;
             case "snapshot":
                 this.hSnapshot(payload, index);
+                break;
+            case "index":
+                this.hIndex(payload, index);
                 break;
             case "opaque":
                 this.hOpaque(payload);
@@ -285,6 +310,12 @@ class Folder {
             }
             if (!this.checkPositions(s, p, o, gslot, index)) continue;
             this.g.quads.push({ s, p, o, g: gslot });
+            // Layout bookkeeping (§3.3): a stream:digest quad describes an
+            // upcoming manifestation — record the IOU for the blob check.
+            if (this.g.terms[p].value === STREAM_DIGEST) {
+                const obj = this.g.terms[o];
+                if (obj.value !== "") this.described.add(obj.value);
+            }
         }
     }
 
@@ -368,7 +399,11 @@ class Folder {
         }
     }
 
-    hBlob(payload: Uint8Array | null, frame: Map<unknown, unknown>): void {
+    hBlob(
+        payload: Uint8Array | null,
+        frame: Map<unknown, unknown>,
+        index: number,
+    ): void {
         if (!payload) return;
         const digest = wire.digestStr(payload);
         const pub = wire.mapGet(frame, "pub");
@@ -376,6 +411,13 @@ class Folder {
             this.g.setBlobMeta(digest, pub);
         }
         this.g.setBlob(digest, payload);
+        // Layout bookkeeping (§3.3): was this delivery presaged by a
+        // stream:digest description in an earlier frame?
+        this.blobEvents.push({
+            pos: index,
+            digest,
+            described: this.described.has(digest),
+        });
     }
 
     hMeta(payload: unknown): void {
@@ -475,6 +517,22 @@ class Folder {
                 if (s !== undefined) key = s;
                 this.g.setMeta(key, v);
             }
+        }
+    }
+
+    /** Record an intact `index` frame (§6.2) for the layout check (§3.3).
+     *
+     * The index stays an accelerator for the fold itself; only `count` and
+     * `head` are consumed here, as the covered-region boundary. A payload
+     * without a valid count/head pair is simply not an intact index.
+     */
+    hIndex(payload: unknown, index: number): void {
+        const entries = payload instanceof Map ? payload : undefined;
+        if (!entries) return;
+        const count = wire.asInt(wire.mapGet(entries, "count"));
+        const head = wire.asBytes(wire.mapGet(entries, "head"));
+        if (count !== undefined && head) {
+            this.indexRecords.push({ pos: index, count, head });
         }
     }
 
@@ -642,12 +700,15 @@ function readSegment(items: wire.CborItem[], indexOffset: number): Graph {
 
     const catalog = catalogFrom(header);
     const fld = new Folder(g, catalog);
+    // Per-frame chain ids, by 0-based frame position (§3.3 layout check).
+    const frameIds: Uint8Array[] = [];
     for (let idx = 1; idx < items.length; idx++) {
         const it = items[idx];
         const absIndex = idx + indexOffset;
         const frame = it.item instanceof Map ? it.item : undefined;
         if (!frame) {
             fld.diag("DamagedFrame", "frame is not a map", absIndex);
+            frameIds.push(new Uint8Array());
             continue;
         }
         const storedId = wire.asBytes(frame.get("id"));
@@ -657,6 +718,7 @@ function readSegment(items: wire.CborItem[], indexOffset: number): Graph {
             const ftype = wire.textOr(frame.get("t"), "");
             fld.opaque(frame, ftype, "damaged");
             expectedPrev = storedId ?? computed;
+            frameIds.push(expectedPrev);
             continue;
         }
         let prevOk = false;
@@ -664,18 +726,99 @@ function readSegment(items: wire.CborItem[], indexOffset: number): Graph {
         if (prev) prevOk = bytesEqual(prev, expectedPrev);
         if (!prevOk) fld.diag("BrokenChain", "prev does not match", absIndex);
         expectedPrev = computed;
+        frameIds.push(expectedPrev);
         const sig = frame.get("sig");
         if (sig !== undefined) {
-            let status = "unverified";
-            if (!(sig instanceof Uint8Array)) status = "invalid";
-            g.signatures.push({ frameId: computed, kid: "", status });
+            const sigBytes = wire.asBytes(sig);
+            if (sigBytes) {
+                g.signatures.push({
+                    frameId: computed,
+                    kid: "",
+                    status: "unverified",
+                    cose: sigBytes,
+                });
+            } else {
+                g.signatures.push({
+                    frameId: computed,
+                    kid: "",
+                    status: "invalid",
+                });
+            }
         }
         fld.foldFrame(frame, absIndex);
     }
     g.segmentHeads.push(expectedPrev);
     g.segmentMeta.push([...g.meta]);
     g.segmentProfiles.push(wire.textOr(header.get("prof"), "generic"));
+    g.segmentStreamable.push(
+        layoutCheck(g, header, fld, frameIds, indexOffset),
+    );
     return g;
+}
+
+/** Compute one segment's layout state and check its claim (§3.3).
+ *
+ * For a segment claiming `"layout": "streamable"`: (a) it must carry an
+ * intact `index` footer, (b) the last index's `head` must be the id of
+ * frame `count`, and (c) every covered inline blob must arrive after the
+ * `stream:digest` quad describing it. Frames after the last index are the
+ * legal accretive tail — boundary info, never a diagnostic. Unknown layout
+ * values impose no check (§5).
+ */
+function layoutCheck(
+    g: Graph,
+    header: Map<unknown, unknown>,
+    fld: Folder,
+    frameIds: Uint8Array[],
+    indexOffset: number,
+): StreamableInfo {
+    const claimed = wire.mapGet(header, "layout") === "streamable";
+    const total = frameIds.length;
+    if (!claimed) {
+        return { claimed: false, covered: 0, tail: 0 };
+    }
+    if (fld.indexRecords.length === 0) {
+        g.diagnostics.push({
+            code: "StreamableLayoutError",
+            detail:
+                "segment claims layout 'streamable' but carries no intact " +
+                "index footer (§3.3)",
+        });
+        return { claimed: true, covered: 0, tail: total };
+    }
+    const last = fld.indexRecords[fld.indexRecords.length - 1];
+    const relPos = last.pos - indexOffset; // 1-based frame position of the index
+    const tail = total - relPos;
+    // The footer must IMMEDIATELY follow the frames it covers (§3.3): a
+    // permissive `count <= relPos - 1` would let frames sit between the
+    // covered prefix and the footer, counted neither as covered nor as tail.
+    if (
+        last.count !== relPos - 1 ||
+        last.count < 1 ||
+        !bytesEqual(frameIds[last.count - 1], last.head)
+    ) {
+        g.diagnostics.push({
+            code: "StreamableLayoutError",
+            detail:
+                `index footer contradicts the frames it covers: count ${last.count} ` +
+                "must name the frame immediately before the footer and head " +
+                "must be that frame's id (§3.3)",
+            frameIndex: last.pos,
+        });
+    }
+    for (const ev of fld.blobEvents) {
+        const blobRel = ev.pos - indexOffset;
+        if (blobRel <= last.count && !ev.described) {
+            g.diagnostics.push({
+                code: "StreamableLayoutError",
+                detail:
+                    `covered blob ${ev.digest} delivered before its stream:digest ` +
+                    "description (catalog-before-payload, §3.3)",
+                frameIndex: ev.pos,
+            });
+        }
+    }
+    return { claimed: true, covered: last.count, tail, head: last.head };
 }
 
 /** Fold a GTS file into a Graph. */
@@ -985,6 +1128,7 @@ function unionSegments(segments: Graph[]): Graph {
         u.out.diagnostics.push(...seg.diagnostics);
         u.out.segmentHeads.push(...seg.segmentHeads);
         u.out.segmentProfiles.push(...seg.segmentProfiles);
+        u.out.segmentStreamable.push(...seg.segmentStreamable);
     }
     return u.out;
 }

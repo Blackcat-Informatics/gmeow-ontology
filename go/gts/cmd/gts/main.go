@@ -10,11 +10,14 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/compact"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/files"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/nquads"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/reader"
+	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/stream"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
 )
 
@@ -29,6 +32,10 @@ commands:
                             extract one blob by content digest
   cat -o <out> <file>...    validating composer: refuse degenerate inputs,
                             then byte-concatenate
+  compact <file> -o <out> --streamable [--seal-original] [--timestamp ISO]
+                            rewrite into the streamable layout state: leading
+                            streaming index, blobs most-significant-first,
+                            trailing index footer
   pack <dir|file>... -o out.gts
                             pack files/directories into a files-profile archive
   unpack <archive> [-C dir] [--include-suppressed]
@@ -55,6 +62,8 @@ func main() {
 		os.Exit(cmdExtract(args[1:]))
 	case "cat":
 		os.Exit(cmdCat(args[1:]))
+	case "compact":
+		os.Exit(cmdCompact(args[1:]))
 	case "pack":
 		os.Exit(cmdPack(args[1:]))
 	case "unpack":
@@ -110,6 +119,20 @@ func printLedger(path string, fs *reader.FileSegments) {
 			len(seg.Terms), len(seg.Quads), len(seg.Reifiers), len(seg.Annotations),
 			len(seg.Blobs), len(seg.Suppressions), len(seg.Opaque), signers,
 		)
+		// Layout-state line (§3.3): declared streamable claims report their
+		// covered boundary and any accretive tail.
+		if len(seg.SegmentStreamable) > 0 && seg.SegmentStreamable[0].Claimed {
+			layout := seg.SegmentStreamable[0]
+			headHex := "<none>"
+			if layout.Head != nil {
+				headHex = wire.Hex(layout.Head)
+			}
+			tail := ""
+			if layout.Tail > 0 {
+				tail = fmt.Sprintf(", accretive tail %d frame(s)", layout.Tail)
+			}
+			fmt.Printf("    layout: streamable through frame %d (head %s)%s\n", layout.Covered, headHex, tail)
+		}
 		for _, o := range seg.Opaque {
 			fmt.Printf("    opaque: %s (%s)\n", o.FrameType, o.Reason)
 		}
@@ -178,6 +201,112 @@ func cmdFold(paths []string) int {
 	return 0
 }
 
+// quadTermIDs returns every term position of a quad, including the graph
+// slot when present (§14.1): a vocabulary IRI used only as a graph name still
+// rots a declaration.
+func quadTermIDs(q model.Quad) []int {
+	if q.G != nil {
+		return []int{q.S, q.P, q.O, *q.G}
+	}
+	return []int{q.S, q.P, q.O}
+}
+
+// profileVocabs maps profile names to the spec-owned vocabulary they imply.
+var profileVocabs = map[string]string{
+	"files": "https://w3id.org/gts/files#",
+}
+
+func namespaceOf(iri string) string {
+	if i := strings.LastIndex(iri, "#"); i >= 0 {
+		return iri[:i+1]
+	}
+	if i := strings.LastIndex(iri, "/"); i >= 0 {
+		return iri[:i+1]
+	}
+	return iri
+}
+
+// profileCheck implements the §14.1 declared-vs-computed profile checks:
+// vocabulary used without its profile declared is an error; a declared-but-
+// unused profile is a warning. Returns (message, isError) pairs.
+func profileCheck(seg *model.Graph) []struct {
+	Msg   string
+	IsErr bool
+} {
+	declared := make(map[string]struct{}, len(seg.SegmentProfiles))
+	for _, p := range seg.SegmentProfiles {
+		declared[p] = struct{}{}
+	}
+	used := make(map[string]struct{})
+	for _, q := range seg.Quads {
+		for _, tid := range quadTermIDs(q) {
+			if tid < 0 || tid >= len(seg.Terms) {
+				continue // never crash a report over a malformed reference
+			}
+			term := &seg.Terms[tid]
+			if term.Kind != model.Iri || term.Value == "" {
+				continue
+			}
+			ns := namespaceOf(term.Value)
+			for _, vocab := range profileVocabs {
+				if ns == vocab {
+					used[ns] = struct{}{}
+				}
+			}
+		}
+	}
+	var out []struct {
+		Msg   string
+		IsErr bool
+	}
+	for prof, vocab := range profileVocabs {
+		_, declares := declared[prof]
+		_, uses := used[vocab]
+		if uses && !declares {
+			out = append(out, struct {
+				Msg   string
+				IsErr bool
+			}{fmt.Sprintf("profile error: segment uses %s vocabulary "+
+				"but does not declare '%s'", vocab, prof), true})
+		}
+		if declares && !uses {
+			out = append(out, struct {
+				Msg   string
+				IsErr bool
+			}{fmt.Sprintf("profile warning: segment declares '%s' "+
+				"but uses no %s vocabulary", prof, vocab), false})
+		}
+	}
+	return out
+}
+
+// streamVocabCheck warns on stream# vocabulary in an unclaimed segment (§13.3).
+//
+// A warning, never an error: compaction-provenance quads legitimately survive
+// nq → gts round trips and re-accretion — the error class is reserved for a
+// claimed layout the bytes contradict (the reader's StreamableLayoutError).
+func streamVocabCheck(seg *model.Graph) []string {
+	claimed := len(seg.SegmentStreamable) > 0 && seg.SegmentStreamable[0].Claimed
+	if claimed {
+		return nil
+	}
+	for _, q := range seg.Quads {
+		for _, tid := range quadTermIDs(q) {
+			if tid < 0 || tid >= len(seg.Terms) {
+				continue // never crash a report over a malformed reference
+			}
+			term := &seg.Terms[tid]
+			if term.Kind == model.Iri && strings.HasPrefix(term.Value, stream.NS) {
+				return []string{
+					fmt.Sprintf("layout warning: segment uses %s vocabulary but does "+
+						"not claim layout 'streamable' (§13.3)", stream.NS),
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func cmdVerify(paths []string) int {
 	if len(paths) == 0 {
 		fmt.Fprintln(os.Stderr, usage)
@@ -193,6 +322,20 @@ func cmdVerify(paths []string) int {
 		printLedger(path, fs)
 		if hasProblems(fs) {
 			problems = true
+		}
+		// §14.1: declared-vs-computed profile requirements + layout warnings.
+		for idx, seg := range fs.Segments {
+			for _, check := range profileCheck(seg) {
+				prefix := "warning"
+				if check.IsErr {
+					prefix = "error"
+					problems = true
+				}
+				fmt.Fprintf(os.Stderr, "  segment %d: %s: %s\n", idx, prefix, check.Msg)
+			}
+			for _, msg := range streamVocabCheck(seg) {
+				fmt.Fprintf(os.Stderr, "  segment %d: warning: %s\n", idx, msg)
+			}
 		}
 	}
 	if problems {
@@ -438,6 +581,66 @@ func cmdCat(args []string) int {
 			fmt.Fprintf(os.Stderr, "gts: cannot write stdout: %v\n", err)
 			return 2
 		}
+	}
+	return 0
+}
+
+// cmdCompact rewrites a GTS file into the streamable layout state (§10.1, §14.1).
+func cmdCompact(args []string) int {
+	var outPath, timestamp string
+	streamable := false
+	sealOriginal := false
+	var positional []string
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		switch a {
+		case "-o", "--out":
+			if i+1 >= len(args) {
+				fmt.Fprintf(os.Stderr, "gts: -o requires a path\n%s\n", usage)
+				return 2
+			}
+			outPath = args[i+1]
+			i++
+		case "--streamable":
+			streamable = true
+		case "--seal-original":
+			sealOriginal = true
+		case "--timestamp":
+			if i+1 >= len(args) {
+				fmt.Fprintf(os.Stderr, "gts: --timestamp requires a value\n%s\n", usage)
+				return 2
+			}
+			timestamp = args[i+1]
+			i++
+		default:
+			positional = append(positional, a)
+		}
+	}
+	if len(positional) != 1 || outPath == "" {
+		fmt.Fprintln(os.Stderr, usage)
+		return 2
+	}
+	if !streamable {
+		// The verb is reserved for layout rewrites; a future --snapshot mode
+		// (§10) would land here. Without a mode the request is ambiguous.
+		fmt.Fprintln(os.Stderr, "gts: compact requires --streamable")
+		return 2
+	}
+	data, code := load(positional[0])
+	if code != 0 {
+		return code
+	}
+	if timestamp == "" {
+		timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
+	}
+	out, err := compact.Streamable(data, timestamp, sealOriginal)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "gts: refusing compact: %v\n", err)
+		return 1
+	}
+	if err := os.WriteFile(outPath, out, 0o644); err != nil {
+		fmt.Fprintf(os.Stderr, "gts: cannot write %s: %v\n", outPath, err)
+		return 2
 	}
 	return 0
 }

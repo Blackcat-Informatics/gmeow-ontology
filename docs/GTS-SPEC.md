@@ -9,6 +9,9 @@
 > segment-scoped term-ids (§7.2); per-segment fold + value-union semantics (§7.5);
 > cross-segment suppression (§11); profile union and per-section language-tag
 > discipline (§13); composition-tool requirements (§14.1); vectors 15–21 (§19).
+> **Changes in v0.3 (#342):** layout states and the streamable claim (§3.3, §5);
+> streamable compaction with detached frame signatures (§10.1); the `stream`
+> vocabulary (§13.3); the `compact` verb (§14.1); vectors 24–26 (§19).
 >
 > GTS is a single-file, language-independent transport for an **RDF 1.2** graph
 > (statements *and* statement-level metadata) together with any **content-addressed
@@ -115,6 +118,7 @@ MAY map them to error returns or structured warnings):
 | `MissingKey` | an `encrypt` codec the reader cannot decrypt; opaque `reason:"missing-key"` |
 | `ConflictingReifier` | a reifier rebound to a different triple (§7.8) |
 | `RecursionLimit` | nested-GTS depth or decoded-size budget exceeded (§12.1, §18) |
+| `StreamableLayoutError` | a segment claims `"layout": "streamable"` but its covered region violates delivery ordering, or its index footer is missing or contradicts the frames it covers (§3.3) |
 
 ## 3. File structure
 
@@ -242,6 +246,62 @@ occurred while writing an `index` frame (§6.2) the trailing index is torn: a re
 it and fall back to an earlier intact `index` or to a plain **sequential scan**, so every
 surviving frame remains recoverable. The optional index is an accelerator, never a dependency.
 
+Every property above holds for any frame order; what a producer *chooses* as the order is a
+separate, named concern: a segment is in one of two **layout states** — **accretive**
+(append-ordered) or **streamable** (delivery-ordered) — defined next (§3.3).
+
+### 3.3 Layout states: accretive and streamable
+
+A GTS segment is always valid and always prefix-foldable (§3.2), but it lives in one of two
+layout states:
+
+- **Accretive** — append-optimized. Frames land in arrival order (live capture, agent memory
+  accrual, evidence accrual). Writes are cheap forever and the stream is consumable as it
+  lands, but significance is not front-loaded and the catalog may trail the bytes it
+  describes. This is the default state; it is never declared.
+- **Streamable** — delivery-ordered. The catalog *presages* the payload: a **leading streaming
+  index** (ordinary `terms`/`quads` frames in the `stream` vocabulary, §13.3 — one
+  `stream:Manifestation` per promised blob, carrying digest, media type, size, role, and
+  intended order) precedes every `blob` frame, blobs follow most-significant-first, and a
+  trailing offset `index` (§6.2) closes the covered region as the random-access footer.
+
+Append-friendly and stream-optimal are different *layouts of the same content* (precedent:
+mp4 `faststart`, zip central-directory rewrites, LSM compaction). A one-pass writer cannot
+produce the second state, so conversion is an explicit rewrite — **streamable compaction**
+(§10.1), exposed as `gts compact --streamable` (§14.1).
+
+**The claim (normative).** A segment declares the streamable state with the optional header
+key `"layout": "streamable"` (§5). The claim is per-segment (each segment has its own header,
+§3.1) and tamper-evident (the header self-hash covers it). Streamability is a
+**declared-vs-computed claim** in the sense of §14.1 — refuse-don't-trust:
+
+- The **covered region** of a claimed segment is the prefix delimited by the segment's **last
+  intact `index` frame**: `"count"` frames, ending at the frame whose `"id"` equals the
+  index's `"head"`. The footer MUST immediately follow the frames it covers (`"count"` =
+  the index's own frame position − 1) — otherwise frames could sit between the covered
+  prefix and the footer, counted neither as covered nor as accretive tail. A claimed
+  segment with no intact `index` frame, whose last index is not immediately adjacent to
+  its covered prefix, or whose `"head"` does not equal the id of frame `"count"`, is in
+  violation.
+- Within the covered region, every inline `blob` frame MUST be preceded by a `quads` frame
+  that describes its digest via `stream:digest` (§13.3) — catalog-before-payload. A covered
+  blob delivered before its description is in violation.
+- A reader encountering a violation MUST surface a **`StreamableLayoutError`** diagnostic
+  (§2.3); a verifying tool treats it as an error (§14.1). The claim can never rot against
+  the bytes.
+
+**Appends after compaction are legal and foldable.** Frames after the last `index` are simply
+*unpresaged*: they are the segment's **accretive tail**, carry no ordering obligation, and
+trigger no diagnostic. The segment is then "streamable through frame *N*, accretive after" —
+tooling SHOULD report the boundary (§14.1). Re-compact to re-streamline. Likewise, a segment
+appended by `cat` makes no claim unless its own header claims.
+
+**In-flight prefixes.** A prefix of a streamable segment cut before the trailing `index` has,
+by construction, a claim and no footer yet; a streaming consumer MUST NOT treat the missing
+footer as a lie while input may still be arriving — the missing-footer violation applies to a
+*complete* file. The catalog-before-payload rule, by contrast, is prefix-stable: a violation
+observed in any prefix is a violation of the whole file.
+
 ## 4. CBOR conventions
 
 - Maps use **short text-string keys** (e.g. `"t"`, `"d"`) for self-description and eyeball
@@ -273,6 +333,7 @@ header = {
   "v"    : uint,                      ; spec major version (1)
   "prof" : tstr,                      ; profile (§13); "generic" if unspecified
   "cat"  : { * codec-id => codec },   ; the transform catalog (§8)
+  ? "layout": tstr,                   ; layout-state claim (§3.3); absent = accretive
   ? "dct": { * tstr => bstr },        ; named, UNCOMPRESSED dictionaries for dict-codecs
   ? "meta": any,                      ; free-form, non-normative metadata
   "id"   : content-id,                ; self-hash of the header content (the chain genesis)
@@ -291,7 +352,10 @@ declares) but **open across the ecosystem** (new codecs may be registered by nam
 Header carries its own `"id"` (self-hash of its content) and no `"prev"` — it is the genesis,
 and the first frame's `"prev"` is the Header's `"id"`. The Header `"id"` MUST equal the
 BLAKE3-256 of the deterministic CBOR of the Header map **excluding the `"id"` key**; all other
-keys (including `"meta"`) participate. Dictionaries are stored **uncompressed
+keys (including `"meta"`) participate. The optional `"layout"` key claims a layout state
+(§3.3): the only value defined by this revision is `"streamable"`, which a verifying reader
+MUST check against the segment's actual layout; readers MUST ignore unknown `"layout"` values
+(forward compatibility — an unknown state imposes no check). Dictionaries are stored **uncompressed
 and in-band** — there is no external-dictionary dependency. A codec's `"dct"` value MUST match
 a key in the header `"dct"` map, and the codec MUST use the corresponding byte string as its
 compression/encoding dictionary.
@@ -685,6 +749,48 @@ Two artifact classes follow: an **evidentiary log** (append-only, signed, never 
 a **distribution snapshot** (compacted, dense, lossy — ideal for shipping). A reader can tell
 which it holds from the profile and the presence of a `snapshot` frame.
 
+### 10.1 Streamable compaction (ordering-only)
+
+Streamable compaction converts an accretive segment (or multi-segment file) into one
+delivery-ordered segment in the streamable layout state (§3.3). Unlike snapshot compaction
+above, it is **a re-authoring of the ORDERING, and only the ordering**: the folded graph,
+the inline blobs, and every content-addressed fact are preserved. Three signature subjects
+behave differently under the rewrite, and a compactor MUST honour all three:
+
+- **Content signatures** (subject = a content digest: a blob's BLAKE3, a statement or claim
+  hash — "this is true, signed by Bob") are ordinary quads/annotations about digests. They
+  are **compaction-invariant** and survive fully intact: nothing they attest to has changed.
+- **Frame signatures** (a COSE_Sign1 over a frame `"id"`, which commits to `"prev"`, §9.2)
+  become **detached, not broken**: they verify against the original frame id forever. A
+  compactor MUST carry every source frame signature in **compaction provenance** — one
+  `stream:DetachedSignature` node per signature, recording the original frame id
+  (`stream:sourceFrame`) and the original COSE bytes (`stream:cose`), plus one
+  `stream:sourceHead` per source segment head (§13.3) — so each remains a *checkable claim
+  about the original log*.
+- **Ordering commitments** (a signed head, an index `"mmr"` root) are the only layout-bound
+  attestations. They cannot survive a reordering; the compactor re-issues the ordering
+  commitment (the new trailing `index` with its `"head"`, §6.2) and thereby becomes the
+  **sole attester of the new ordering**. A compactor MAY additionally COSE-sign the new head.
+
+A compactor MUST record the rewrite itself as provenance quads in the output — a
+`stream:Compaction` node carrying the acting tool (`stream:agent`), the time
+(`stream:timestamp`), and the source segment heads (`stream:sourceHead`) — the §10
+provenance MUST, given concrete vocabulary by §13.3.
+
+**Profiles demanding pristine third-party chain attestation.** For an `evidence` segment the
+original signed chain *is* the artifact; a compactor MUST refuse it — unless it **seals the
+original log verbatim** as a nested GTS blob (§12.1) inside the streamable rewrite (role
+`"source"`, referenced from the provenance node via `stream:sealedSource`). The original
+bytes, chain, and signatures stay byte-intact and independently verifiable inside; the outer
+layout is delivery-ordered; one content digest binds them.
+
+**Refusals (publish-class posture, §14.1).** A compactor MUST refuse: input that does not
+verify cleanly (any diagnostic); and input whose fold carries a frame-addressed suppression
+(`kind: "frame"`, §11) — the rewrite assigns new frame ids, so a frame-digest target would
+silently dangle. Digest-addressed `blob` suppressions are carried forward verbatim
+(content-addressing is layout-independent); id-addressed suppressions are carried forward
+value-wise (§11).
+
 ## 11. Suppression (additive "deletion")
 
 GTS never physically deletes. To retract or hide prior content, a writer appends a `suppress`
@@ -847,6 +953,65 @@ terms align by reference to common surface vocabularies: `files:size` ↔ schema
 `fileLastModified`, `files:path` ↔ NFO `fileName`. These alignments live in GMEOW's mapping
 DSL; the files profile itself does not depend on them.
 
+### 13.3 The `stream` vocabulary (normative)
+
+The streamable layout state (§3.3) and streamable compaction (§10.1) use a small,
+spec-defined vocabulary at `https://w3id.org/gts/stream#` (prefix `stream`) — the same
+independence decision as the `files` profile (§13.2): no GMEOW or external ontology is
+required to stream a photo archive; the terms are authored here and carried as literal IRIs
+in the graph. The vocabulary is deliberately distinct from `files#` (the two compose: a
+`files` archive that is also streamable describes each file once as a `files:FileEntry` and
+once as a `stream:Manifestation` — the profile check (§14.1) and the layout check (§3.3)
+stay independent).
+
+**Streaming-index terms** — one `stream:Manifestation` per promised blob, emitted in the
+leading streaming index before any `blob` frame (§3.3):
+
+| term | IRI | shape |
+|---|---|---|
+| `Manifestation` | `https://w3id.org/gts/stream#Manifestation` | Class. One blob this segment promises to deliver. |
+| `digest` | `https://w3id.org/gts/stream#digest` | `blake3:<hex>` content digest — the IOU the blob redeems. |
+| `mediaType` | `https://w3id.org/gts/stream#mediaType` | Declared IANA media type (mirrors the blob's `pub.mt`). |
+| `size` | `https://w3id.org/gts/stream#size` | Byte size of the decoded blob as `xsd:integer`. |
+| `role` | `https://w3id.org/gts/stream#role` | Delivery role string: `"preview"` / `"primary"` / `"source"`; open set. |
+| `order` | `https://w3id.org/gts/stream#order` | Intended delivery position among the segment's blobs, `xsd:integer`, 0-based. |
+
+**Compaction-provenance terms** — the concrete vocabulary for §10/§10.1's provenance MUST:
+
+| term | IRI | shape |
+|---|---|---|
+| `Compaction` | `https://w3id.org/gts/stream#Compaction` | Class. One rewrite event (a blank node). |
+| `agent` | `https://w3id.org/gts/stream#agent` | The acting tool, a string (e.g. `"gts-compact"`). |
+| `timestamp` | `https://w3id.org/gts/stream#timestamp` | Rewrite time as `xsd:dateTime` in UTC. |
+| `sourceHead` | `https://w3id.org/gts/stream#sourceHead` | `blake3:<hex>` head id of one source segment; repeated per segment. |
+| `sealedSource` | `https://w3id.org/gts/stream#sealedSource` | `blake3:<hex>` digest of the nested-GTS blob holding the verbatim original (§10.1). |
+| `DetachedSignature` | `https://w3id.org/gts/stream#DetachedSignature` | Class. One carried-over frame signature (a blank node). |
+| `sourceFrame` | `https://w3id.org/gts/stream#sourceFrame` | `blake3:<hex>` original frame `"id"` the COSE signature verifies against, forever. |
+| `cose` | `https://w3id.org/gts/stream#cose` | The original COSE_Sign1 bytes, base64url (unpadded) literal. |
+
+**Quad shape** (a compacted segment's streaming index, then provenance):
+
+```text
+_:m0 a stream:Manifestation ;
+    stream:digest "blake3:<hex>" ;
+    stream:mediaType "image/webp" ;
+    stream:size 20480 ;
+    stream:role "primary" ;
+    stream:order 0 .
+_:c a stream:Compaction ;
+    stream:agent "gts-compact" ;
+    stream:timestamp "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    stream:sourceHead "blake3:<hex>" .
+_:s0 a stream:DetachedSignature ;
+    stream:sourceFrame "blake3:<hex>" ;
+    stream:cose "<base64url>" .
+```
+
+**Claim coupling (normative).** Use of `stream#` terms in a segment that does NOT claim
+`"layout": "streamable"` is a **warning**, not an error (§14.1): provenance quads
+legitimately survive `gts → nq → gts` round trips and re-accretion after appends. The error
+class is reserved for the opposite rot — a claimed layout the bytes contradict (§3.3).
+
 ## 14. Transforms out
 
 Transforms convert GTS to operating substrates. Each is a thin shim over the folded tables —
@@ -880,6 +1045,19 @@ Raw `cat` always works (§3.1); a conformant **validating composer** (`gts cat`)
   able to rot against the content they describe.
 - **`gts verify` SHOULD report per-segment**: head id, signer set, profile, term/quad counts,
   opaque-node count with reasons — the composition ledger of the file.
+- **`gts verify` MUST check the layout claim** (§3.3): a segment claiming
+  `"layout": "streamable"` whose covered region violates delivery ordering, or whose index
+  footer is missing or contradicts the frames it covers, is an **error**
+  (`StreamableLayoutError`, §2.3); `stream#` vocabulary in an unclaimed segment is a
+  **warning** (§13.3). `gts info` and `gts verify` SHOULD report the streamable boundary of
+  a claimed segment — "streamable through frame *N*, accretive tail of *M* frame(s)".
+- **`gts compact --streamable <in> -o <out>` is the layout rewrite** (§10.1). It MUST refuse
+  input that does not verify cleanly, input carrying frame-addressed suppressions, and
+  `evidence` input without the seal-the-original option (`--seal-original`, §10.1); it MUST
+  emit a single claimed segment in the normative streamable shape (§3.3) with compaction
+  provenance and detached signatures (§13.3), and its output MUST be byte-deterministic for
+  the same input and parameters (blobs ordered by ascending decoded size, ties broken by
+  ascending digest; the rewrite timestamp is a parameter, not ambient time).
 - **Blob extraction is verification, never conversion** (`gts ls`, `gts extract`): blobs are
   addressed by content digest (frame indices are physical accidents that shift under `cat`);
   extraction re-hashes the bytes against the requested digest; a blob suppressed by digest
@@ -1097,7 +1275,11 @@ is noted as a possible future extension, not required for v0.2 conformance.
   of the claims (consistent with attestation semantics — vouching ≠ correctness).
 - Opaque frames are unreadable but **not** invisible; do not place secrets in `"pub"`,
   `"to"`, or `"meta"`.
-- Compaction destroys original signatures; an `evidence` artifact MUST NOT be compacted.
+- Snapshot compaction (§10) destroys original signatures; an `evidence` artifact MUST NOT be
+  snapshot-compacted. Streamable compaction (§10.1) detaches frame signatures rather than
+  destroying them, but the re-ordered chain is attested only by the compactor; an `evidence`
+  artifact MUST NOT be streamable-compacted except by sealing the original verbatim (§10.1),
+  and a consumer's trust in the *ordering* of a compacted file is trust in the compactor.
 - Decompression of attacker-supplied frames MUST be bounded (zip-bomb resistance); readers
   SHOULD cap decoded sizes.
 - Nested GTS (§12.1) MUST be bounded: readers MUST enforce a maximum recursion depth and a
@@ -1166,6 +1348,19 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
     growing prefixes the folded tables only ever extend (terms/quads are list-prefixes while
     the segment count is unchanged; ground (blank-node-free) N-Quads lines are monotone
     across the single→multi-segment representation switch).
+24. **Streamable compaction (§3.3, §10.1, §13.3)**: an accretive source (blobs interleaved
+    before their catalog, one COSE-signed frame, no claim) and its compacted rewrite — the
+    rewrite claims `"layout": "streamable"`, leads with the streaming index, orders blobs
+    most-significant-first, closes with the offset `index` footer, and carries compaction
+    provenance including the detached source signature; both files fold to the same content
+    graph; the compacted bytes are **frozen** and double as the cross-engine determinism
+    oracle (same input + same timestamp parameter ⇒ byte-identical output in every engine).
+25. **Streamable claim that lies (§3.3, negative)**: a segment claiming
+    `"layout": "streamable"` that delivers a covered blob before the quads describing its
+    digest → `StreamableLayoutError`; a verifying tool MUST refuse (exit non-zero).
+26. **Appended-after-compaction boundary (§3.3)**: a compacted segment with frames appended
+    after its `index` footer folds cleanly with no diagnostic, and tooling reports
+    "streamable through frame *N*, accretive tail" — the unpresaged tail is legal.
 
 ## 20. References
 
