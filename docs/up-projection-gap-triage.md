@@ -14,7 +14,7 @@ list). Categorization is judgment + verification against the merged vocabulary �
 
 ## C — genuine gaps (verified absent) → slice work
 
-### Organization business facet (FIRST — full schema:Org coverage)
+### Organization business facet (✅ landed — full schema:Org coverage)
 
 `schema:slogan`, `schema:taxID`, `schema:priceRange`, `schema:currenciesAccepted`
 all confirmed absent; `schema:paymentAccepted` is half-present (`gmeow:Payment`/

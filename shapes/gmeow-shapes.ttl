@@ -3815,6 +3815,28 @@ gmeow:StyleGuideShape
         sh:message "Every gmeow:exemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
     ] .
 
+gmeow:OrganizationCurrencyShape
+    a sh:NodeShape ;
+    rdfs:label "Organization Currency Shape" ;
+    sh:targetClass gmeow:Organization ;
+    sh:property [
+        # open-vocabulary contract: the value is an IRI whose frameRealm IS the
+        # currency realm — NO sh:class, which would force data graphs to restate
+        # the frame's TBox typing in the raw-graph lane.
+        sh:path gmeow:acceptsCurrency ;
+        sh:nodeKind sh:IRI ;
+        sh:node [
+            sh:property [
+                sh:path gmeow:frameRealm ;
+                sh:hasValue gmeow:frameRealmCurrency ;
+                sh:severity sh:Violation ;
+                sh:message "A gmeow:acceptsCurrency value must be in the currency realm (gmeow:frameRealm gmeow:frameRealmCurrency)." ;
+            ] ;
+        ] ;
+        sh:severity sh:Violation ;
+        sh:message "Each gmeow:acceptsCurrency value must be a currency reference frame in gmeow:frameRealmCurrency (e.g. gmeow:referenceFrameUSD), not an arbitrary reference frame." ;
+    ] .
+
 # --------------------------------------------------------------------------- #
 # Risk shapes (#354, EPIC #348) — types never tokens; reify with a reason.
 # --------------------------------------------------------------------------- #

@@ -1212,3 +1212,25 @@ def test_exif_round_trip_is_lossless() -> None:
         label_o = next(proj.objects(pv, URIRef(SCHEMA + "name")), None)
         back[(pid, val, label_o)] += 1
     assert orig == back, f"EXIF round-trip lost data: {orig - back}"
+
+
+def test_schema_org_business_facet() -> None:
+    """#449 commercial facet: slogan, priceRange, accepted currencies/payment, taxID."""
+    g = project_graph("schema-org", _fixture_store("org-business.ttl"))
+    ex = "https://example.org/orgbiz/"
+    acme = URIRef(ex + "acme")
+    assert (
+        acme,
+        URIRef(SCHEMA + "slogan"),
+        Literal("We make everything", lang="en"),
+    ) in g
+    assert (acme, URIRef(SCHEMA + "priceRange"), Literal("$$$")) in g
+    currencies = {
+        str(o) for o in g.objects(acme, URIRef(SCHEMA + "currenciesAccepted"))
+    }
+    assert currencies == {"USD", "CAD"}
+    # the accepted PaymentMethod collapses to its label text
+    assert (acme, URIRef(SCHEMA + "paymentAccepted"), Literal("cash", lang="en")) in g
+    # taxID rides the Identifier facet (scheme "tax"), not a bespoke term
+    assert (acme, URIRef(SCHEMA + "taxID"), Literal("12-3456789")) in g
+    _assert_no_gmeow_leakage(g)
