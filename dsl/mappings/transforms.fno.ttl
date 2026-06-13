@@ -273,3 +273,134 @@ gmeow:fnOutputPitchCollection  a owl:AnnotationProperty ;
     skos:definition "FnO argument role: a pitch collection output of a music solver function."@x-gmeow-english ;
     rdfs:range gmeow:PitchCollection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --- Music / time solver (issue #310) -------------------------------------- #
+# Declarative function catalogue for the musical-time layer. These are specs;
+# executable implementations (Python/Rust/Go solvers) are issue #319.
+
+gmeow:fnComposeTimeMappings
+    a fno:Function ;
+    rdfs:label "compose time mappings"@x-gmeow-english ;
+    dcterms:description "Composes two TimeMappings, returning a new TimeMapping that represents their sequential application. Tuplet nesting and tempo-canon layering are evaluated by this solver (Principle 12)."@x-gmeow-english ;
+    skos:definition "Composes two TimeMappings, returning a new TimeMapping that represents their sequential application."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pTimeMappingA gmeow:pTimeMappingB ) ;
+    fno:returns ( gmeow:oComposedTimeMapping ) ;
+    rdfs:seeAlso gmeow:TimeMapping .
+
+gmeow:fnMusicalToClockTime
+    a fno:Function ;
+    rdfs:label "musical time span + tempo map → clock time span"@x-gmeow-english ;
+    dcterms:description "Evaluates a MusicalTimeSpan against a TempoMap and a target TemporalFrame, returning a clock-time TimeInterval. Tempo is a frame mapping, never a single number (Principle 11)."@x-gmeow-english ;
+    skos:definition "Evaluates a MusicalTimeSpan against a TempoMap and a target TemporalFrame, returning a clock-time TimeInterval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pMusicalTimeSpan gmeow:pTempoMap gmeow:pClockFrame ) ;
+    fno:returns ( gmeow:oClockTimeSpan ) ;
+    rdfs:seeAlso gmeow:TempoMap .
+
+gmeow:fnApplyGroove
+    a fno:Function ;
+    rdfs:label "apply groove profile"@x-gmeow-english ;
+    dcterms:description "Applies a GrooveProfile to a MusicalTimeSpan, returning a deviation-offset span. Groove is content, not error (Principle 9/12)."@x-gmeow-english ;
+    skos:definition "Applies a GrooveProfile to a MusicalTimeSpan, returning a deviation-offset span."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pGrooveProfile gmeow:pGrooveInputSpan ) ;
+    fno:returns ( gmeow:oGroovedSpan ) ;
+    rdfs:seeAlso gmeow:GrooveProfile .
+
+# Parameters / outputs (declarative; no bound executor)
+
+gmeow:pTimeMappingA      a fno:Parameter ; fno:predicate gmeow:fnInputTimeMappingA ; fno:type gmeow:TimeMapping ;      fno:required true ;
+    rdfs:label "first time mapping input"@x-gmeow-english ;
+    skos:definition "The first TimeMapping to compose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pTimeMappingB      a fno:Parameter ; fno:predicate gmeow:fnInputTimeMappingB ; fno:type gmeow:TimeMapping ;      fno:required true ;
+    rdfs:label "second time mapping input"@x-gmeow-english ;
+    skos:definition "The second TimeMapping to compose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pMusicalTimeSpan   a fno:Parameter ; fno:predicate gmeow:fnInputMusicalTimeSpan ; fno:type gmeow:MusicalTimeSpan ; fno:required true ;
+    rdfs:label "musical time span input"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan to evaluate against a TempoMap."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pTempoMap          a fno:Parameter ; fno:predicate gmeow:fnInputTempoMap ;        fno:type gmeow:TempoMap ;        fno:required true ;
+    rdfs:label "tempo map input"@x-gmeow-english ;
+    skos:definition "The TempoMap used to convert musical time to clock time."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pClockFrame        a fno:Parameter ; fno:predicate gmeow:fnInputClockFrame ;        fno:type gmeow:TemporalFrame ;    fno:required true ;
+    rdfs:label "clock frame input"@x-gmeow-english ;
+    skos:definition "The target TemporalFrame for clock-time output."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pGrooveProfile     a fno:Parameter ; fno:predicate gmeow:fnInputGrooveProfile ;     fno:type gmeow:GrooveProfile ;    fno:required true ;
+    rdfs:label "groove profile input"@x-gmeow-english ;
+    skos:definition "The GrooveProfile to apply."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pGrooveInputSpan   a fno:Parameter ; fno:predicate gmeow:fnInputGrooveSpan ;        fno:type gmeow:MusicalTimeSpan ;  fno:required true ;
+    rdfs:label "groove input span"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan to which the groove profile is applied."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:oComposedTimeMapping a fno:Output ; fno:predicate gmeow:fnOutputComposedTimeMapping ; fno:type gmeow:TimeMapping ;
+    rdfs:label "composed time mapping output"@x-gmeow-english ;
+    skos:definition "The TimeMapping resulting from fnComposeTimeMappings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oClockTimeSpan     a fno:Output ; fno:predicate gmeow:fnOutputClockTimeSpan ;     fno:type gmeow:TimeInterval ;
+    rdfs:label "clock time span output"@x-gmeow-english ;
+    skos:definition "The clock-time TimeInterval produced by fnMusicalToClockTime."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oGroovedSpan       a fno:Output ; fno:predicate gmeow:fnOutputGroovedSpan ;        fno:type gmeow:MusicalTimeSpan ;
+    rdfs:label "grooved span output"@x-gmeow-english ;
+    skos:definition "The deviation-offset MusicalTimeSpan produced by fnApplyGroove."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# Declarative argument-role properties for the music time functions.
+
+gmeow:fnInputTimeMappingA      a owl:AnnotationProperty ;
+    rdfs:label "input time mapping A"@x-gmeow-english ;
+    skos:definition "FnO argument role: the first TimeMapping input to fnComposeTimeMappings."@x-gmeow-english ;
+    rdfs:range gmeow:TimeMapping ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputTimeMappingB      a owl:AnnotationProperty ;
+    rdfs:label "input time mapping B"@x-gmeow-english ;
+    skos:definition "FnO argument role: the second TimeMapping input to fnComposeTimeMappings."@x-gmeow-english ;
+    rdfs:range gmeow:TimeMapping ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputMusicalTimeSpan   a owl:AnnotationProperty ;
+    rdfs:label "input musical time span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan input to a music time solver function."@x-gmeow-english ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputTempoMap          a owl:AnnotationProperty ;
+    rdfs:label "input tempo map"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TempoMap input to fnMusicalToClockTime."@x-gmeow-english ;
+    rdfs:range gmeow:TempoMap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputClockFrame        a owl:AnnotationProperty ;
+    rdfs:label "input clock frame"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TemporalFrame input to fnMusicalToClockTime."@x-gmeow-english ;
+    rdfs:range gmeow:TemporalFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputGrooveProfile     a owl:AnnotationProperty ;
+    rdfs:label "input groove profile"@x-gmeow-english ;
+    skos:definition "FnO argument role: a GrooveProfile input to fnApplyGroove."@x-gmeow-english ;
+    rdfs:range gmeow:GrooveProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputGrooveSpan        a owl:AnnotationProperty ;
+    rdfs:label "input groove span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan input to fnApplyGroove."@x-gmeow-english ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputComposedTimeMapping a owl:AnnotationProperty ;
+    rdfs:label "output composed time mapping"@x-gmeow-english ;
+    skos:definition "FnO argument role: a composed TimeMapping output of fnComposeTimeMappings."@x-gmeow-english ;
+    rdfs:range gmeow:TimeMapping ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputClockTimeSpan    a owl:AnnotationProperty ;
+    rdfs:label "output clock time span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TimeInterval output of fnMusicalToClockTime."@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputGroovedSpan      a owl:AnnotationProperty ;
+    rdfs:label "output grooved span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan output of fnApplyGroove."@x-gmeow-english ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .

@@ -978,6 +978,9 @@ gmeow:axisGalacticLatitude skos:definition "The galactic latitude axis of a refe
 gmeow:axisScalar           a gmeow:Axis ; rdfs:label "scalar axis"@x-gmeow-english .
 gmeow:axisScalar skos:definition "The scalar axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+gmeow:axisTime             a gmeow:Axis ; rdfs:label "musical time axis"@x-gmeow-english .
+gmeow:axisTime skos:definition "The musical time axis of a reference frame — a one-dimensional rational-position axis used by musical-time reference frames."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 gmeow:axisYear             a gmeow:Axis ; rdfs:label "year"@x-gmeow-english .
 gmeow:axisYear skos:definition "The year axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
@@ -3391,7 +3394,7 @@ gmeow:referenceFrameMusicalTime
     a gmeow:ReferenceFrame ;
     rdfs:label "Musical-Time Reference Frame (metrical beats)"@x-gmeow-english ;
     gmeow:frameRealm gmeow:frameRealmMusicalTime ;
-    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:hasAxis gmeow:axisTime ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
