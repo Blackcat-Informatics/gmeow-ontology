@@ -29,6 +29,16 @@ able to answer the question every institution must answer: *how do you know, and
 | **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, atop the live retrieval tools (`object_search`, `graph_explore`, …) | retrieval live; memory triad in development ([#297](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/297)) |
 | **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](./docs/GTS-SPEC.md)) | format specified; Python reader/writer shipped; signing in progress ([#272](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/272)) |
 
+**Verifiable PyPI builds.** Wheels and sdists for `gmeow` and `gmeow-gts` are built in
+GitHub Actions and signed with GitHub artifact attestations. After downloading a package
+from PyPI, verify it with:
+
+```bash
+gh attestation verify <path-to-wheel-or-sdist> --repo Blackcat-Informatics/gmeow-ontology
+```
+
+SPDX SBOMs are also generated for each release and attached as workflow artifacts.
+
 **The engine** underneath is a reasoning-centric, OWL 2 DL, upper-ontology-grounded
 super-vocabulary for modelling *digital existence* — people, organizations, documents,
 agreements, contacts, observations, measurements, locations, rights, identity, and
