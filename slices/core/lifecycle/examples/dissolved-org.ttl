@@ -42,7 +42,7 @@ ex:dissolution a gmeow:Event ;
 
 # --- The existence interval (the lifespan), bounded by framed instants.
 ex:meridianLife a gmeow:TimeInterval ;
-    gmeow:hasBeginInstant ex:lifeBegin ;
+    gmeow:hasStartInstant ex:lifeBegin ;
     gmeow:hasEndInstant ex:lifeEnd ;
     gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
 

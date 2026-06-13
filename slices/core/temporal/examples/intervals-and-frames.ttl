@@ -22,7 +22,7 @@ ex:talkEnd a gmeow:Instant ;
     gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:talkInterval a gmeow:TimeInterval ;
-    gmeow:hasBeginInstant ex:talkStart ;
+    gmeow:hasStartInstant ex:talkStart ;
     gmeow:hasEndInstant ex:talkEnd ;
     gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
 
@@ -36,7 +36,7 @@ ex:qaEnd a gmeow:Instant ;
     gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:qaInterval a gmeow:TimeInterval ;
-    gmeow:hasBeginInstant ex:qaStart ;
+    gmeow:hasStartInstant ex:qaStart ;
     gmeow:hasEndInstant ex:qaEnd ;
     gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
 
