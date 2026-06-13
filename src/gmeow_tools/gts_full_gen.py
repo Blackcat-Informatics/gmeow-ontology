@@ -12,6 +12,8 @@ checkout.
 
 from __future__ import annotations
 
+import io
+import tarfile
 from typing import TYPE_CHECKING
 
 from blake3 import blake3
@@ -35,6 +37,45 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+#: Default documentation archive language until a configurable resolver lands.
+_DEFAULT_DOC_LANG = "x-gmeow-english"
+
+#: Paths/files to skip when bundling project docs.
+_PROJECT_DOC_SKIP = frozenset({"_generated", ".gitignore", ".DS_Store"})
+
+
+def _is_project_doc_path(path: Path) -> bool:
+    """True when *path* should be bundled into the project-docs archive."""
+    if path.name.startswith("."):
+        return False
+    return all(part not in _PROJECT_DOC_SKIP for part in path.parts)
+
+
+def _tar_directory(root: Path, lang: str = _DEFAULT_DOC_LANG) -> bytes:
+    """Return a deterministic, uncompressed tar of *root* under *lang/*.
+
+    All regular files are placed at ``<lang>/<relative-path>``. Metadata is
+    normalized so the bytes are a pure function of the file contents and names.
+    """
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w") as tar:
+        files = sorted(
+            p for p in root.rglob("*") if p.is_file() and _is_project_doc_path(p)
+        )
+        for source in files:
+            arcname = f"{lang}/{source.relative_to(root).as_posix()}"
+            info = tarfile.TarInfo(name=arcname)
+            data = source.read_bytes()
+            info.size = len(data)
+            info.mtime = 0
+            info.uid = 0
+            info.gid = 0
+            info.uname = ""
+            info.gname = ""
+            info.mode = 0o644
+            tar.addfile(info, io.BytesIO(data))
+    return buffer.getvalue()
+
 
 def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
     """Content-addressed slice guides, linked via ``gmeow:guideBlob``."""
@@ -47,8 +88,24 @@ def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
         payload = guide.read_bytes()
         digest = "blake3:" + blake3(payload).hexdigest()
         graph.add((URIRef(slice_iri), guide_blob, Literal(digest)))
-        blobs.append((payload, "text/markdown", f"docs:{entry.name}"))
+        blobs.append((payload, "text/markdown", f"docs:{entry.group}/{entry.name}"))
     return blobs
+
+
+def _project_doc_blobs() -> list[tuple[bytes, str, str]]:
+    """A single deterministic tar archive of the project docs tree."""
+    docs_dir = PROJECT_ROOT / "docs"
+    if not docs_dir.is_dir():
+        return []
+    return [(_tar_directory(docs_dir), "application/x-tar", "project-docs")]
+
+
+def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
+    """A single deterministic tar archive of the ontology docs tree (#440)."""
+    docs_dir = PROJECT_ROOT / "ontology-docs"
+    if not docs_dir.is_dir():
+        return []
+    return [(_tar_directory(docs_dir), "application/x-tar", "ontology-docs")]
 
 
 def compile_full_snapshot(
@@ -66,7 +123,7 @@ def compile_full_snapshot(
     from gmeow_tools.graph import load_merged_graph
 
     graph = load_merged_graph(include_imports=True)
-    doc_blobs = _doc_blobs(graph)
+    doc_blobs = _doc_blobs(graph) + _project_doc_blobs() + _ontology_doc_blobs()
     alignments = build_alignment_graph(load_mappings())
     return compile_gts(
         graph,
@@ -88,9 +145,19 @@ class GtsFullSnapshotGenerator(Generator):
     def inputs(self) -> Sequence[Path]:
         """Everything the snapshot folds.
 
-        Ontology, imports, statements, alignments, and guides.
+        Ontology, imports, statements, alignments, guides, project docs, and
+        ontology docs (#440).
         """
         from gmeow_tools.config import ONTOLOGY_FILE, SLICES_DIR
+
+        doc_files = [
+            p
+            for p in (PROJECT_ROOT / "docs").rglob("*")
+            if p.is_file() and _is_project_doc_path(p)
+        ]
+        ontology_files = [
+            p for p in (PROJECT_ROOT / "ontology-docs").rglob("*") if p.is_file()
+        ]
 
         return [
             ONTOLOGY_FILE,
@@ -99,6 +166,8 @@ class GtsFullSnapshotGenerator(Generator):
             STATEMENT_RDF12_FILE,
             *sorted(MAPPINGS_DIR.glob("*.sssom.tsv")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
+            *sorted(doc_files),
+            *sorted(ontology_files),
         ]
 
     @property
