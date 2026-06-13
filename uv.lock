@@ -16,8 +16,8 @@ resolution-markers = [
 [manifest]
 members = [
     "gmeow",
+    "gmeow-gts",
     "gmeow-ontology",
-    "gts",
 ]
 
 [[package]]
@@ -827,7 +827,7 @@ name = "gmeow"
 version = "1.0.1"
 source = { editable = "packages/gmeow" }
 dependencies = [
-    { name = "gts" },
+    { name = "gmeow-gts" },
 ]
 
 [package.optional-dependencies]
@@ -837,10 +837,29 @@ rdf = [
 
 [package.metadata]
 requires-dist = [
-    { name = "gts", editable = "packages/gts" },
+    { name = "gmeow-gts", editable = "packages/gts" },
     { name = "rdflib", marker = "extra == 'rdf'", specifier = ">=7.6" },
 ]
 provides-extras = ["rdf"]
+
+[[package]]
+name = "gmeow-gts"
+version = "0.1.0"
+source = { editable = "packages/gts" }
+dependencies = [
+    { name = "blake3" },
+    { name = "cbor2" },
+    { name = "cryptography" },
+    { name = "zstandard" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "blake3", specifier = ">=1.0.8" },
+    { name = "cbor2", specifier = ">=6.1.2" },
+    { name = "cryptography", specifier = ">=44" },
+    { name = "zstandard", specifier = ">=0.25.0" },
+]
 
 [[package]]
 name = "gmeow-ontology"
@@ -851,7 +870,7 @@ dependencies = [
     { name = "duckdb" },
     { name = "fastmcp" },
     { name = "gmeow" },
-    { name = "gts" },
+    { name = "gmeow-gts" },
     { name = "httpx" },
     { name = "jsonschema" },
     { name = "linkml" },
@@ -883,7 +902,7 @@ requires-dist = [
     { name = "duckdb", specifier = ">=1.5.3" },
     { name = "fastmcp", specifier = ">=3.4" },
     { name = "gmeow", editable = "packages/gmeow" },
-    { name = "gts", editable = "packages/gts" },
+    { name = "gmeow-gts", editable = "packages/gts" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "jsonschema", specifier = ">=4.23" },
     { name = "linkml", specifier = ">=1.11" },
@@ -972,25 +991,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/9d/82/74f4a3310cdabfbb10da554c3a672847f1ed33c6f61dd472681ce7f1fe67/griffelib-2.0.2.tar.gz", hash = "sha256:3cf20b3bc470e83763ffbf236e0076b1211bac1bc67de13daf494640f2de707e", size = 166461, upload-time = "2026-03-27T11:34:51.091Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/11/8c/c9138d881c79aa0ea9ed83cbd58d5ca75624378b38cee225dcf5c42cc91f/griffelib-2.0.2-py3-none-any.whl", hash = "sha256:925c857658fb1ba40c0772c37acbc2ab650bd794d9c1b9726922e36ea4117ea1", size = 142357, upload-time = "2026-03-27T11:34:46.275Z" },
-]
-
-[[package]]
-name = "gts"
-version = "0.1.0"
-source = { editable = "packages/gts" }
-dependencies = [
-    { name = "blake3" },
-    { name = "cbor2" },
-    { name = "cryptography" },
-    { name = "zstandard" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "blake3", specifier = ">=1.0.8" },
-    { name = "cbor2", specifier = ">=6.1.2" },
-    { name = "cryptography", specifier = ">=44" },
-    { name = "zstandard", specifier = ">=0.25.0" },
 ]
 
 [[package]]
