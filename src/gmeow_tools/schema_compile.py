@@ -416,7 +416,12 @@ _TS_BASE_TYPE_MAP = {
     "NCName": "string",
     "NodeIdentifier": "string",
     "ElementIdentifier": "string",
-    "string": "string",  # types with base=None but typeof='string' (e.g. duration)
+    # The generator resolves a type via t.base, else falls back to t.typeof.
+    # `duration` has base=None and typeof="string" (the LinkML *type name*, not
+    # the "str" *base* already in the upstream map), so its name "string" reaches
+    # the lookup unmatched. Map that LinkML type-name → TS `string`. Key = LinkML
+    # type name, value = TS type — same word here, different namespaces.
+    "string": "string",
 }
 
 
