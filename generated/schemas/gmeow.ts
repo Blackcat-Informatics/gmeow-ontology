@@ -1286,6 +1286,7 @@ export enum MetricKindEnum {
     Euclidean = "metricEuclidean",
     geodesic = "metricGeodesic",
     graph_hops = "metricGraphHops",
+    logarithmic_LEFT_PARENTHESIScentsRIGHT_PARENTHESIS = "metricLogarithmic",
     positional_distance = "metricPositionalDistance",
     phase_space_Euclidean = "metricSymplectic",
 };
@@ -1586,6 +1587,30 @@ export enum PhysicalCarrierTypeEnum {
     tablet = "carrierTablet",
     wall_inscription = "carrierWallInscription",
     wood = "carrierWood",
+};
+
+export enum PitchAnchorEnum {
+
+    A415_Baroque_anchor = "pitchAnchorA415",
+    A440_anchor = "pitchAnchorA440",
+};
+
+export enum PitchCollectionEnum {
+
+    example_pitch_collection = "pitchCollectionExample",
+};
+
+export enum PitchIntervalEnum {
+
+    perfect_fifth = "pitchIntervalPerfectFifth",
+    septimal_comma = "pitchIntervalSeptimalComma",
+    syntonic_comma = "pitchIntervalSyntonicComma",
+};
+
+export enum PitchValueEnum {
+
+    number_12_EDO_fifth_LEFT_PARENTHESISGRIGHT_PARENTHESIS = "pitchValue12EDOFifth",
+    number_12_EDO_origin_LEFT_PARENTHESISCRIGHT_PARENTHESIS = "pitchValue12EDOOrigin",
 };
 
 export enum PlaceTypeEnum {
@@ -2126,6 +2151,11 @@ export enum SourceTierEnum {
     tertiary = "sourceTierTertiary",
 };
 
+export enum SpectrumEnum {
+
+    example_spectrum = "spectrumExample",
+};
+
 export enum StandpointEnum {
 
     universal_standpoint_LEFT_PARENTHESISASTERISKRIGHT_PARENTHESIS = "universalStandpoint",
@@ -2302,6 +2332,33 @@ export enum TransliterationSchemeEnum {
     Hanyu_Pinyin_LEFT_PARENTHESISMandarin_RIGHTWARDS_ARROW_LatinRIGHT_PARENTHESIS = "schemePinyin",
     Revised_Romanization_LEFT_PARENTHESISKorean_RIGHTWARDS_ARROW_LatinRIGHT_PARENTHESIS = "schemeRevisedRomanization",
     Wade_Giles_LEFT_PARENTHESISMandarin_RIGHTWARDS_ARROW_LatinRIGHT_PARENTHESIS = "schemeWadeGiles",
+};
+
+export enum TuningSystemEnum {
+
+    number_12_tone_equal_temperament = "tuningSystem12EDO",
+    number_19_tone_equal_temperament = "tuningSystem19EDO",
+    number_24_tone_equal_temperament = "tuningSystem24EDO",
+    number_31_tone_equal_temperament = "tuningSystem31EDO",
+    Bohlen_Pierce = "tuningSystemBohlenPierce",
+    just_intonation_lattice = "tuningSystemJustIntonation",
+    Partch_43_tone_just_intonation = "tuningSystemPartch43",
+    pelog = "tuningSystemPelog",
+    Pythagorean_tuning = "tuningSystemPythagorean",
+    quarter_comma_meantone = "tuningSystemQuarterCommaMeantone",
+    slendro = "tuningSystemSlendro",
+};
+
+export enum TuningSystemKindEnum {
+
+    adaptive = "tuningSystemKindAdaptive",
+    equal_division = "tuningSystemKindEqualDivision",
+    instrument_relative = "tuningSystemKindInstrumentRelative",
+    just_intonation = "tuningSystemKindJustIntonation",
+    spectral_derived = "tuningSystemKindSpectralDerived",
+    tablature_relative = "tuningSystemKindTablatureRelative",
+    unpitched = "tuningSystemKindUnpitched",
+    well_temperament = "tuningSystemKindWellTemperament",
 };
 
 export enum VerificationStatusEnum {
@@ -5031,6 +5088,40 @@ export interface PhysicalObject extends Entity {
 
 
 
+export interface PitchAnchor extends Entity {
+    anchorDegree?: number,
+    anchorFrequency?: string,
+    pitchAnchorOf?: TuningSystem,
+}
+
+
+
+export interface PitchCollection extends InformationObject {
+    derivedFromSpectrum?: Spectrum[],
+}
+
+
+
+export interface PitchExpression extends Entity {
+    centsFromOrigin?: string,
+    hasTuningFrame?: TuningSystem[],
+    ratioDenominator?: number,
+    ratioNumerator?: number,
+}
+
+
+
+export interface PitchInterval extends PitchExpression {
+}
+
+
+
+export interface PitchValue extends PitchExpression {
+    pitchDegree?: number,
+}
+
+
+
 export interface Place extends Location {
     containedInPlace?: Place[],
     containsPlace?: Place[],
@@ -5830,6 +5921,11 @@ export interface SpatialMeasurement extends Measurement {
 
 
 
+export interface Spectrum extends InformationObject {
+}
+
+
+
 export interface Standpoint extends Entity {
     sharpens?: Standpoint[],
 }
@@ -6118,6 +6214,23 @@ export interface TrustAssertion {
     trustLevel?: string,
     trustee?: Agent,
     trustor?: Agent,
+}
+
+
+
+export interface TuningSystem extends ReferenceFrame {
+    degreeCount?: number,
+    dividedIntervalDenominator?: number,
+    dividedIntervalNumerator?: number,
+    divisionCount?: number,
+    primeLimit?: number,
+    tuningAnchor?: PitchAnchor[],
+    tuningKind?: TuningSystemKind,
+}
+
+
+
+export interface TuningSystemKind {
 }
 
 

@@ -157,6 +157,45 @@ gmeow:NetworkAddressFrameRequirementShape
         sh:message "A NetworkAddress must carry exactly one reference frame (gmeow:networkAddressFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)." ;
     ] .
 
+gmeow:PitchExpressionFrameRequirementShape
+    a sh:NodeShape ;
+    rdfs:label "PitchExpression frame-relativity shape (generated)" ;
+    sh:targetClass gmeow:PitchExpression ;
+    sh:property [
+        sh:path gmeow:hasTuningFrame ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchExpression must carry exactly one reference frame (gmeow:hasTuningFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)." ;
+    ] .
+
+gmeow:PitchIntervalFrameRequirementShape
+    a sh:NodeShape ;
+    rdfs:label "PitchInterval frame-relativity shape (generated)" ;
+    sh:targetClass gmeow:PitchInterval ;
+    sh:property [
+        sh:path gmeow:hasTuningFrame ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchInterval must carry exactly one reference frame (gmeow:hasTuningFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)." ;
+    ] .
+
+gmeow:PitchValueFrameRequirementShape
+    a sh:NodeShape ;
+    rdfs:label "PitchValue frame-relativity shape (generated)" ;
+    sh:targetClass gmeow:PitchValue ;
+    sh:property [
+        sh:path gmeow:hasTuningFrame ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchValue must carry exactly one reference frame (gmeow:hasTuningFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)." ;
+    ] .
+
 gmeow:PoseFrameRequirementShape
     a sh:NodeShape ;
     rdfs:label "Pose frame-relativity shape (generated)" ;
