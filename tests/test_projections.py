@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pyoxigraph
 from rdflib import RDF, XSD, Graph, Literal, URIRef
+from rdflib.term import Node
 
 from gmeow_tools import sparql
 from gmeow_tools.config import (
@@ -998,3 +999,173 @@ def test_sioc_feed_posting_resolves_partial() -> None:
         URIRef(ex + "diagram"),
     ) in g
     _assert_no_gmeow_leakage(g)
+
+
+def test_schema_org_people_org_presence() -> None:
+    """#411/#417/#413: contact types, founder/owns, service dissolution,
+    publisher/inventor contributions, and the offerings surface.
+
+    Notably the language and day-of-week projections point at the first-class
+    targets (schema:ComputerLanguage entity, schema:Monday enumeration member),
+    NOT flattened label strings.
+    """
+    g = project_graph("schema-org", _fixture_store("people-org-presence.ttl"))
+    ex = "https://example.org/po/"
+    # contact type, founder, owns, service dissolution
+    assert (
+        URIRef(ex + "workEmail"),
+        URIRef(SCHEMA + "contactType"),
+        Literal("work", lang="en"),
+    ) in g
+    assert (URIRef(ex + "bii"), URIRef(SCHEMA + "founder"), URIRef(ex + "patrick")) in g
+    assert (URIRef(ex + "patrick"), URIRef(SCHEMA + "owns"), URIRef(ex + "bii")) in g
+    assert list(g.objects(URIRef(ex + "yahoo360"), URIRef(SCHEMA + "dissolutionDate")))
+    # publisher + inventor via the Contribution pattern
+    assert (
+        URIRef(ex + "book"),
+        URIRef(SCHEMA + "publisher"),
+        URIRef(ex + "press"),
+    ) in g
+    assert (
+        URIRef(ex + "patent"),
+        URIRef(SCHEMA + "inventor"),
+        URIRef(ex + "patrick"),
+    ) in g
+    # offerings
+    assert (
+        URIRef(ex + "bii"),
+        URIRef(SCHEMA + "makesOffer"),
+        URIRef(ex + "consultOffer"),
+    ) in g
+    assert (URIRef(ex + "consultOffer"), RDF.type, URIRef(SCHEMA + "Offer")) in g
+    assert (URIRef(ex + "consulting"), RDF.type, URIRef(SCHEMA + "Service")) in g
+    assert (
+        URIRef(ex + "consulting"),
+        URIRef(SCHEMA + "areaServed"),
+        URIRef(ex + "canada"),
+    ) in g
+    # programmingLanguage points at the ENTITY, which is a ComputerLanguage —
+    # NOT a flattened label string
+    assert (
+        URIRef(ex + "gmeowProj"),
+        URIRef(SCHEMA + "programmingLanguage"),
+        URIRef(ex + "python"),
+    ) in g
+    assert (URIRef(ex + "python"), RDF.type, URIRef(SCHEMA + "ComputerLanguage")) in g
+    # dayOfWeek is the schema enumeration MEMBER (only the actual day), not a string
+    days = set(g.objects(URIRef(ex + "hours"), URIRef(SCHEMA + "dayOfWeek")))
+    assert days == {URIRef(SCHEMA + "Monday")}
+    assert (
+        URIRef(ex + "hours"),
+        URIRef(SCHEMA + "opens"),
+        Literal("09:00:00", datatype=XSD.time),
+    ) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_foaf_account_and_gedcom_marriage() -> None:
+    """#411/#417 FOAF account idiom + #413 gedcom marriage date/place."""
+    gf = project_graph("foaf", _fixture_store("people-org-presence.ttl"))
+    ex = "https://example.org/po/"
+    assert (URIRef(ex + "patrick"), URIRef(FOAF + "account"), URIRef(ex + "gh")) in gf
+    assert (
+        URIRef(ex + "gh"),
+        URIRef(FOAF + "accountServiceHomepage"),
+        URIRef("https://github.com"),
+    ) in gf
+    assert (URIRef(ex + "gh"), URIRef(FOAF + "accountName"), Literal("paudley")) in gf
+    _assert_no_gmeow_leakage(gf)
+    gg = project_graph("gedcom", _fixture_store("people-org-presence.ttl"))
+    ged = "http://www.w3.org/2000/10/swap/pim/gedcom#"
+    marriage = URIRef(ex + "couple-marriage")
+    assert (
+        marriage,
+        URIRef(ged + "date"),
+        Literal("1952-06-14T00:00:00Z", datatype=XSD.dateTime),
+    ) in gg
+    assert (
+        marriage,
+        URIRef(ged + "place"),
+        Literal("Mundare, Alberta", lang="en"),
+    ) in gg
+
+
+def test_schema_org_affordances_and_exif() -> None:
+    """#412 contact affordances + #413 EXIF tags.
+
+    A contact point yields a structural schema:CommunicateAction with a
+    mailto:/tel: target (the editorial action name is site copy, NOT
+    fabricated). EXIF tags project to schema:exifData PropertyValues.
+    """
+    g = project_graph("schema-org", _fixture_store("people-org-presence.ttl"))
+    ex = "https://example.org/po/"
+    # communicate affordances (structure only; no fabricated names)
+    comm = set(g.objects(URIRef(ex + "bii"), URIRef(SCHEMA + "potentialAction")))
+    assert comm, "expected potentialAction CommunicateActions"
+    targets = {str(o) for a in comm for o in g.objects(a, URIRef(SCHEMA + "target"))}
+    assert "mailto:work.with.us@blackcatinformatics.ca" in targets
+    assert "tel:+16042452120" in targets
+    for a in comm:
+        assert (a, RDF.type, URIRef(SCHEMA + "CommunicateAction")) in g
+        # the editorial name is NOT fabricated
+        assert not list(g.objects(a, URIRef(SCHEMA + "name")))
+    # EXIF tags → schema:exifData PropertyValues
+    tags = set(g.objects(URIRef(ex + "photo"), URIRef(SCHEMA + "exifData")))
+    assert URIRef(ex + "exAperture") in tags
+    ap = URIRef(ex + "exAperture")
+    assert (ap, RDF.type, URIRef(SCHEMA + "PropertyValue")) in g
+    assert (ap, URIRef(SCHEMA + "propertyID"), Literal("FNumber")) in g
+    assert (ap, URIRef(SCHEMA + "value"), Literal("f/2.0")) in g
+    assert (ap, URIRef(SCHEMA + "name"), Literal("Aperture", lang="en")) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_exif_round_trip_is_lossless() -> None:
+    """#413: the real site index.ttl's schema:exifData round-trips through
+    GMEOW's gmeow:ExifTag model with ZERO loss — every propertyID/value/name
+    (including language tags) is reproduced. The condition for modelling EXIF
+    as reified key-value records rather than dropping the raw tags.
+
+    The source is the committed fixture exif-round-trip-source.ttl: the 12 real
+    PropertyValues from the paudley site index.ttl, captured verbatim so this
+    guard runs in every environment. Counter (multiset) semantics ensure a
+    repeated tag cannot be silently collapsed and slip through unnoticed."""
+    from collections import Counter
+
+    src = Graph()
+    src.parse(FIXTURES_DIR / "exif-round-trip-source.ttl", format="turtle")
+    exif = URIRef(SCHEMA + "exifData")
+    orig: Counter[tuple[Node | None, Node | None, Node | None]] = Counter()
+    for _img, _p, pv in src.triples((None, exif, None)):
+        pid = next(src.objects(pv, URIRef(SCHEMA + "propertyID")), None)
+        val = next(src.objects(pv, URIRef(SCHEMA + "value")), None)
+        label_o = next(src.objects(pv, URIRef(SCHEMA + "name")), None)
+        orig[(pid, val, label_o)] += 1
+    assert orig, "expected exifData in the parity fixture"
+    # express each occurrence (multiset) in GMEOW and project back
+    gm = Graph()
+    rdfs_label = URIRef("http://www.w3.org/2000/01/rdf-schema#label")
+    i = 0
+    for (pid, val, label_o), count in orig.items():
+        for _ in range(count):
+            img = URIRef(f"https://example.org/rt/img{i}")
+            tag = URIRef(f"https://example.org/rt/tag{i}")
+            i += 1
+            gm.add((img, RDF.type, URIRef(GMEOW + "MediaObject")))
+            gm.add((img, URIRef(GMEOW + "hasExifTag"), tag))
+            gm.add((tag, RDF.type, URIRef(GMEOW + "ExifTag")))
+            if pid is not None:
+                gm.add((tag, URIRef(GMEOW + "exifTagId"), pid))
+            if val is not None:
+                gm.add((tag, URIRef(GMEOW + "exifTagValue"), val))
+            if label_o is not None:
+                gm.add((tag, rdfs_label, label_o))
+    store = sparql.store_with(include_imports=False, extra_triples=gm)
+    proj = project_graph("schema-org", store)
+    back: Counter[tuple[Node | None, Node | None, Node | None]] = Counter()
+    for _s, _p, pv in proj.triples((None, exif, None)):
+        pid = next(proj.objects(pv, URIRef(SCHEMA + "propertyID")), None)
+        val = next(proj.objects(pv, URIRef(SCHEMA + "value")), None)
+        label_o = next(proj.objects(pv, URIRef(SCHEMA + "name")), None)
+        back[(pid, val, label_o)] += 1
+    assert orig == back, f"EXIF round-trip lost data: {orig - back}"

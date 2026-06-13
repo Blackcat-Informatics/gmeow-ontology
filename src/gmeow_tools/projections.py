@@ -96,6 +96,8 @@ _EXAMPLE_FIXTURES = (
     "web-presence.ttl",
     # syndicated content: postings, quotations, feeds (#412).
     "syndication.ttl",
+    # people/org/accounts/presence + long tail (#411, #417, #413).
+    "people-org-presence.ttl",
 )
 
 

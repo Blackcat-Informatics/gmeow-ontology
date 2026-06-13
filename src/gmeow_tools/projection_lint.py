@@ -101,6 +101,11 @@ _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
         "https://schema.org/Quotation",
         "https://schema.org/DataFeedItem",
         "https://schema.org/dataFeedElement",
+        # contact affordances (#412): the minted CommunicateAction node and its
+        # potentialAction/target structure (the mailto:/tel: affordance).
+        "https://schema.org/CommunicateAction",
+        "https://schema.org/potentialAction",
+        "https://schema.org/target",
         "http://id.loc.gov/ontologies/bibframe/Doi",
         "http://id.loc.gov/ontologies/bibframe/Identifier",
         # the minted identifier node's literal carrier (bibframe scans rdf:)

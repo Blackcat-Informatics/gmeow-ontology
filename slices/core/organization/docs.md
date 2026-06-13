@@ -138,3 +138,25 @@ The mapping layer extends the existing shared alignment files:
 
 All alignments are by reference (SSSOM / EDOAL / SPARQL projection) — never
 axiom copying (Principle 5).
+
+## Founding, ownership, and offerings (#411, #413)
+
+### gmeow:foundedBy · gmeow:ownerOf
+
+Flat founding and ownership edges (P4 reify-on-demand): `gmeow:foundedBy` /
+`gmeow:founderOf` and `gmeow:ownerOf` / `gmeow:ownedBy`. Non-functional and
+standpoint-indexable (contested founding/ownership coexist, P9); promote to an Event /
+ownership relator when date, share, or jurisdiction matter. Project to `schema:founder`
+/ `schema:owns`.
+
+### gmeow:Offering · gmeow:ServiceOffering · gmeow:OpeningHoursSpecification
+
+The minimal commercial-offerings surface (#413, P15 consumer: the bii profile). An
+agent `gmeow:makesOffer` an `gmeow:Offering` of some `gmeow:itemOffered` (a
+`gmeow:ServiceOffering` or any entity), provided by `gmeow:offeringProvider`. A service
+carries an open `gmeow:serviceType` and a `gmeow:areaServed`; opening hours are a
+reified `gmeow:OpeningHoursSpecification` (`gmeow:openingDay` from the open
+`gmeow:DayOfWeek` vocab, `gmeow:opensAt` / `gmeow:closesAt`). `gmeow:ServiceOffering` is
+distinct from the documents-slice `gmeow:Service` (a creative work). Projects to
+`schema:Offer` / `Service` / `makesOffer` / `itemOffered` / `provider` / `serviceType` /
+`areaServed` / `OpeningHoursSpecification` / `dayOfWeek` / `opens` / `closes`.

@@ -50,7 +50,9 @@ gmeow:MediaObject	owl:equivalentClass	schema:MediaObject	semapv:ManualMappingCur
 gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
 gmeow:Occupation	owl:equivalentClass	esco:Occupation	semapv:ManualMappingCuration	0.9	ESCO occupation is ISCO-grounded; GMEOW Occupation is the superset
 gmeow:Occupation	owl:equivalentClass	schema:Occupation	semapv:ManualMappingCuration	1.0	
+gmeow:Offering	skos:closeMatch	schema:Offer	semapv:ManualMappingCuration	0.85	a commercial offering IS schema:Offer (#413)
 gmeow:OnlineAccount	owl:equivalentClass	foaf:OnlineAccount	semapv:ManualMappingCuration	1.0	
+gmeow:OpeningHoursSpecification	skos:closeMatch	schema:OpeningHoursSpecification	semapv:ManualMappingCuration	0.9	an opening-hours window IS schema:OpeningHoursSpecification (#413)
 gmeow:Organization	owl:equivalentClass	foaf:Organization	semapv:ManualMappingCuration	1.0	
 gmeow:Organization	owl:equivalentClass	schema:Organization	semapv:ManualMappingCuration	1.0	
 gmeow:Patent	owl:equivalentClass	bibo:Patent	semapv:ManualMappingCuration	1.0	
@@ -62,9 +64,17 @@ gmeow:Post	owl:equivalentClass	org:Post	semapv:ManualMappingCuration	1.0	post (s
 gmeow:PostalAddress	owl:equivalentClass	schema:PostalAddress	semapv:ManualMappingCuration	1.0	
 gmeow:Profile	skos:relatedMatch	prof:Profile	semapv:ManualMappingCuration	0.8	GMEOW Profile is a narrower closed-descriptor-schema construct; PROF is a broader specification-profile vocabulary.
 gmeow:Role	owl:equivalentClass	org:Role	semapv:ManualMappingCuration	1.0	
+gmeow:ServiceOffering	skos:closeMatch	schema:Service	semapv:ManualMappingCuration	0.85	a commercial service offering IS schema:Service (#413)
 gmeow:Skill	skos:closeMatch	esco:Skill	semapv:ManualMappingCuration	0.9	ESCO skill — the European skills/competences framework
 gmeow:SoftwareProject	skos:closeMatch	doap:Project	semapv:ManualMappingCuration	0.7	
 gmeow:WebPage	owl:equivalentClass	schema:WebPage	semapv:ManualMappingCuration	1.0	
+gmeow:dayFriday	skos:exactMatch	schema:Friday	semapv:ManualMappingCuration	1.0	
+gmeow:dayMonday	skos:exactMatch	schema:Monday	semapv:ManualMappingCuration	1.0	
+gmeow:daySaturday	skos:exactMatch	schema:Saturday	semapv:ManualMappingCuration	1.0	
+gmeow:daySunday	skos:exactMatch	schema:Sunday	semapv:ManualMappingCuration	1.0	
+gmeow:dayThursday	skos:exactMatch	schema:Thursday	semapv:ManualMappingCuration	1.0	
+gmeow:dayTuesday	skos:exactMatch	schema:Tuesday	semapv:ManualMappingCuration	1.0	
+gmeow:dayWednesday	skos:exactMatch	schema:Wednesday	semapv:ManualMappingCuration	1.0	
 gmeow:organizationTypeCollaboration	skos:closeMatch	org:OrganizationalCollaboration	semapv:ManualMappingCuration	0.9	collaboration type value ≈ organizational collaboration
 gmeow:organizationTypeCompany	skos:closeMatch	org:FormalOrganization	semapv:ManualMappingCuration	0.8	company type value ≈ formal organization (lossy: not every formal org is a company)
 org:ChangeEvent	rdfs:subClassOf	gmeow:Event	semapv:ManualMappingCuration	0.9	ORG ChangeEvent is an event (merger, split, rename, etc.)

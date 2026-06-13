@@ -316,3 +316,23 @@ gmeow:mapDoapCreated a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "dcrProj" ; gmeow:predicate gmeow:dateCreated ; gmeow:objectVar "dcrDate" ] ) ;
         gmeow:edoalSource gmeow:dateCreated ] ;
     gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:created ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDoapHomepage a gmeow:ProjectionMapping ;
+    rdfs:label "projectHomepage → doap:homepage"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dhProj" ; gmeow:value "dhUrl" ;
+        gmeow:atom ( [ gmeow:subjectVar "dhProj" ; gmeow:predicate gmeow:projectHomepage ; gmeow:objectVar "dhUrl" ] ) ;
+        gmeow:edoalSource gmeow:projectHomepage ] ;
+    gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:homepage ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapDoapProgrammingLanguage a gmeow:ProjectionMapping ;
+    rdfs:label "programmingLanguage → doap:programming-language (label)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dplProj" ; gmeow:value "dplLabel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dplProj" ; gmeow:predicate gmeow:programmingLanguage ; gmeow:objectVar "dplLang" ]
+            [ gmeow:subjectVar "dplLang" ; gmeow:predicate rdfs:label ; gmeow:objectVar "dplLabel" ] ) ;
+        gmeow:edoalSource gmeow:programmingLanguage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:programming-language ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the first-class gmeow:Language collapses to its label string" ] .

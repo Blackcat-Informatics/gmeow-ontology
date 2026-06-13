@@ -332,6 +332,10 @@ gmeow:roleCoverArtist         a gmeow:ContributionRole ; rdfs:label "cover artis
 gmeow:roleCoverArtist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:roleLetterer            a gmeow:ContributionRole ; rdfs:label "letterer"@x-gmeow-english ;            skos:definition "An agent who lettered or calligraphed text in a visual work."@x-gmeow-english .
 gmeow:roleLetterer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:rolePublisher           a gmeow:ContributionRole ; rdfs:label "publisher"@x-gmeow-english ;           skos:definition "An agent who published a work — issued and disseminated a manifestation (#411). Projects to schema:publisher via the Contribution pattern."@x-gmeow-english .
+gmeow:rolePublisher rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
+gmeow:roleInventor            a gmeow:ContributionRole ; rdfs:label "inventor"@x-gmeow-english ;            skos:definition "An agent who invented the subject of a patent (#413). Projects to schema:inventor via the Contribution pattern."@x-gmeow-english .
+gmeow:roleInventor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:roleLLMAssistedEditor   a gmeow:ContributionRole ; rdfs:label "LLM-assisted editor"@x-gmeow-english ; skos:definition "An agent who edited with substantial assistance from a large language model."@x-gmeow-english .
 
 # CRediT roles (NISO Z39.104-2022) — bridged by reference, not imported

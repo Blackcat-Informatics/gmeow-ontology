@@ -2,6 +2,7 @@
 @prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
@@ -82,6 +83,45 @@ gmeow:subOrganizationOf
 # Organizational membership propagates through the organizational part/whole
 # hierarchy: a member of a department is a member of the containing organization.
 gmeow:memberOf owl:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) .
+
+# --------------------------------------------------------------------------- #
+# Founding and ownership (#411). Flat edges (P4 reify-on-demand): promote to a
+# founding Event / an ownership relator when date, share, or standpoint matters.
+# --------------------------------------------------------------------------- #
+
+gmeow:foundedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "founded by"@x-gmeow-english ;
+    skos:definition "Relates an organization to an agent who founded it. Non-functional: several co-founders coexist, and competing standpoint-indexed founding claims coexist (P9). The flat shortcut; promote to a founding gmeow:Event (eventTypeFounding) when the date or circumstances matter. Projects to schema:founder."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:founderOf
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:foundedBy ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "founder of"@x-gmeow-english ;
+    skos:definition "Relates an agent to an organization it founded. Inverse of gmeow:foundedBy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:ownerOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "owner of"@x-gmeow-english ;
+    skos:definition "Relates an agent to something it owns — an organization, an asset, a work. Non-functional and standpoint-indexable (contested ownership coexists, P9). The flat shortcut; promote to an ownership relator (with share, period, jurisdiction) when those matter. Projects to schema:owns."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:ownedBy
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:ownerOf ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "owned by"@x-gmeow-english ;
+    skos:definition "Relates something to an agent that owns it. Inverse of gmeow:ownerOf."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 # =========================================================================== #
 # Organization type — an OPEN value vocabulary (Principle 9). Mirrors ORG's
@@ -316,3 +356,133 @@ gmeow:Occupation
     rdfs:label "Occupation"@x-gmeow-english ;
     skos:definition "A kind of work or profession, such as those classified by ESCO, SOC, or O*NET. Classifications are carried as open code values (gmeow:occupationClassification), never as OWL subclasses (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+# =========================================================================== #
+# Commercial offerings (#413). A minimal offerings surface: an agent makesOffer
+# an gmeow:Offering of some itemOffered (a gmeow:ServiceOffering or any entity);
+# services carry an open serviceType and an areaServed; opening hours are a
+# small specification. P15 consumer: the bii organization profile. Open value
+# vocabularies throughout (P9 — no schema-shaped enums).
+# =========================================================================== #
+
+gmeow:Offering
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Offering"@x-gmeow-english ;
+    skos:definition "A commercial offer to provide some item — a product, a service, an engagement — by an agent. Projects to schema:Offer. The item is named by gmeow:itemOffered; the provider by gmeow:offeringProvider."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:ServiceOffering
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Service Offering"@x-gmeow-english ;
+    skos:definition "A service an agent provides — consulting, support, hosting (#413). Distinct from gmeow:Service (the documents-slice creative-work sense); this is the commercial service. Its kind is an open gmeow:ServiceType value; projects to schema:Service."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:makesOffer
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Offering ;
+    rdfs:label "makes offer"@x-gmeow-english ;
+    skos:definition "Relates an agent to an offering it makes. Non-functional. Projects to schema:makesOffer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:itemOffered
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Offering ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "item offered"@x-gmeow-english ;
+    skos:definition "The item an offering provides — a gmeow:ServiceOffering, a product, or any entity. Projects to schema:itemOffered."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:offeringProvider
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Offering ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "offering provider"@x-gmeow-english ;
+    skos:definition "The agent that provides an offering or service. Projects to schema:provider."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:ServiceType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Service Type"@x-gmeow-english ;
+    skos:definition "The kind of a service offering — a VALUE vocabulary (individuals, never subclasses); open set (consulting, hosting, support, …)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:serviceType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ServiceOffering ;
+    rdfs:range gmeow:ServiceType ;
+    rdfs:label "service type"@x-gmeow-english ;
+    skos:definition "The kind(s) of a service offering — open gmeow:ServiceType values. Non-functional. Projects to schema:serviceType."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:areaServed
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Offering ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "area served"@x-gmeow-english ;
+    skos:definition "The geographic area an offering or service serves — a gmeow:Location. Non-functional. Projects to schema:areaServed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:OpeningHoursSpecification
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Opening Hours Specification"@x-gmeow-english ;
+    skos:definition "A reified opening-hours window — a day (or set of days), an opening time and a closing time. Projects to schema:OpeningHoursSpecification. Reification keeps each window's day/open/close paired correctly when several coexist."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:hasOpeningHours
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Offering ;
+    rdfs:range gmeow:OpeningHoursSpecification ;
+    rdfs:label "has opening hours"@x-gmeow-english ;
+    skos:definition "Relates an offering (or the org/place behind it) to an opening-hours window. Non-functional: several windows coexist."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:DayOfWeek
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Day Of Week"@x-gmeow-english ;
+    skos:definition "A day of the week — a VALUE vocabulary (the seven ISO-8601 days as individuals); projects to schema:dayOfWeek."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:openingDay
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:OpeningHoursSpecification ;
+    rdfs:range gmeow:DayOfWeek ;
+    rdfs:label "opening day"@x-gmeow-english ;
+    skos:definition "A day this opening-hours window applies to — a gmeow:DayOfWeek value. Non-functional (a window may span several days). Projects to schema:dayOfWeek."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:opensAt
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:OpeningHoursSpecification ;
+    rdfs:range xsd:time ;
+    rdfs:label "opens at"@x-gmeow-english ;
+    skos:definition "The opening time of an opening-hours window. Projects to schema:opens."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:closesAt
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:OpeningHoursSpecification ;
+    rdfs:range xsd:time ;
+    rdfs:label "closes at"@x-gmeow-english ;
+    skos:definition "The closing time of an opening-hours window. Projects to schema:closes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:dayMonday    a gmeow:DayOfWeek ; rdfs:label "Monday"@x-gmeow-english ;    skos:definition "Monday."@x-gmeow-english .
+gmeow:dayMonday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:dayTuesday   a gmeow:DayOfWeek ; rdfs:label "Tuesday"@x-gmeow-english ;   skos:definition "Tuesday."@x-gmeow-english .
+gmeow:dayTuesday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:dayWednesday a gmeow:DayOfWeek ; rdfs:label "Wednesday"@x-gmeow-english ; skos:definition "Wednesday."@x-gmeow-english .
+gmeow:dayWednesday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:dayThursday  a gmeow:DayOfWeek ; rdfs:label "Thursday"@x-gmeow-english ;  skos:definition "Thursday."@x-gmeow-english .
+gmeow:dayThursday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:dayFriday    a gmeow:DayOfWeek ; rdfs:label "Friday"@x-gmeow-english ;    skos:definition "Friday."@x-gmeow-english .
+gmeow:dayFriday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:daySaturday  a gmeow:DayOfWeek ; rdfs:label "Saturday"@x-gmeow-english ;  skos:definition "Saturday."@x-gmeow-english .
+gmeow:daySaturday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:daySunday    a gmeow:DayOfWeek ; rdfs:label "Sunday"@x-gmeow-english ;    skos:definition "Sunday."@x-gmeow-english .
+gmeow:daySunday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .

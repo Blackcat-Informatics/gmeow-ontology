@@ -1357,3 +1357,292 @@ gmeow:mapSchemaDataFeed a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "dfFeed" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:DataFeed ]
             [ gmeow:tSubj "dfFeed" ; gmeow:tPred schema:dataFeedElement ; gmeow:tObj "dfItem" ]
             [ gmeow:tSubj "dfItem" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:DataFeedItem ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# People / org surface (#411), presence history (#417), long tail (#413).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaContactType a gmeow:ProjectionMapping ;
+    rdfs:label "contactPointType value → schema:contactType (label)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ctPoint" ; gmeow:value "ctLabel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ctPoint" ; gmeow:predicate gmeow:contactPointType ; gmeow:objectVar "ctVal" ]
+            [ gmeow:subjectVar "ctVal" ; gmeow:predicate rdfs:label ; gmeow:objectVar "ctLabel" ] ) ;
+        gmeow:edoalSource gmeow:contactPointType ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:contactType ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the first-class ContactPointType value collapses to its label string" ] .
+
+gmeow:mapSchemaPublisher a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=publisher) → schema:publisher"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pubWork" ; gmeow:value "pubAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pubC" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "pubC" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "pubWork" ]
+            [ gmeow:subjectVar "pubC" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "pubAgent" ]
+            [ gmeow:subjectVar "pubC" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:rolePublisher ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pubAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:contributionRole ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:publisher ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "contribution period, provenance, confidence drop" ] .
+
+gmeow:mapSchemaInventor a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=inventor) → schema:inventor"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "invWork" ; gmeow:value "invAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "invC" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "invC" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "invWork" ]
+            [ gmeow:subjectVar "invC" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "invAgent" ]
+            [ gmeow:subjectVar "invC" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleInventor ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "invAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:contributionRole ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:inventor ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "contribution period, provenance, confidence drop" ] .
+
+gmeow:mapSchemaFounder a gmeow:ProjectionMapping ;
+    rdfs:label "foundedBy → schema:founder"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fOrg" ; gmeow:value "fAgent" ;
+        gmeow:atom ( [ gmeow:subjectVar "fOrg" ; gmeow:predicate gmeow:foundedBy ; gmeow:objectVar "fAgent" ] ) ;
+        gmeow:edoalSource gmeow:foundedBy ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:founder ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaOwns a gmeow:ProjectionMapping ;
+    rdfs:label "ownerOf → schema:owns"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "oAgent" ; gmeow:value "oItem" ;
+        gmeow:atom ( [ gmeow:subjectVar "oAgent" ; gmeow:predicate gmeow:ownerOf ; gmeow:objectVar "oItem" ] ) ;
+        gmeow:edoalSource gmeow:ownerOf ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:owns ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapSchemaServiceDissolution a gmeow:ProjectionMapping ;
+    rdfs:label "serviceShutdownDate → schema:dissolutionDate"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dsSvc" ; gmeow:value "dsDate" ;
+        gmeow:atom ( [ gmeow:subjectVar "dsSvc" ; gmeow:predicate gmeow:serviceShutdownDate ; gmeow:objectVar "dsDate" ] ) ;
+        gmeow:edoalSource gmeow:serviceShutdownDate ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:dissolutionDate ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+# Commercial offerings (#413): the full Offer/Service surface.
+gmeow:mapSchemaOffer a gmeow:ProjectionMapping ;
+    rdfs:label "makesOffer + Offering → schema:makesOffer / Offer / itemOffered"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ofAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ofAgent" ; gmeow:predicate gmeow:makesOffer ; gmeow:objectVar "ofOffer" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ofOffer" ; gmeow:predicate gmeow:itemOffered ; gmeow:objectVar "ofItem" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ofOffer" ; gmeow:predicate gmeow:offeringProvider ; gmeow:objectVar "ofProv" ] ) ] ) ;
+        gmeow:edoalSource gmeow:Offering ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the offering is REUSED as the schema:Offer node; price/availability detail is not modelled" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ofAgent" ; gmeow:tPred schema:makesOffer ; gmeow:tObj "ofOffer" ]
+            [ gmeow:tSubj "ofOffer" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Offer ]
+            [ gmeow:tSubj "ofOffer" ; gmeow:tPred schema:itemOffered ; gmeow:tObj "ofItem" ]
+            [ gmeow:tSubj "ofOffer" ; gmeow:tPred schema:provider ; gmeow:tObj "ofProv" ] ) ] .
+
+gmeow:mapSchemaServiceOffering a gmeow:ProjectionMapping ;
+    rdfs:label "ServiceOffering + serviceType + areaServed → schema:Service"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "svc" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "svc" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ServiceOffering ]
+            [ gmeow:optionalGroup (
+                [ gmeow:subjectVar "svc" ; gmeow:predicate gmeow:serviceType ; gmeow:objectVar "svcTypeVal" ]
+                [ gmeow:subjectVar "svcTypeVal" ; gmeow:predicate rdfs:label ; gmeow:objectVar "svcType" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "svc" ; gmeow:predicate gmeow:areaServed ; gmeow:objectVar "svcArea" ] ) ] ) ;
+        gmeow:edoalSource gmeow:ServiceOffering ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the service offering is typed schema:Service; the serviceType value collapses to its label" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "svc" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Service ]
+            [ gmeow:tSubj "svc" ; gmeow:tPred schema:serviceType ; gmeow:tObj "svcType" ]
+            [ gmeow:tSubj "svc" ; gmeow:tPred schema:areaServed ; gmeow:tObj "svcArea" ] ) ] .
+
+# The spec node, its opens/closes. The day rides a separate per-value cell
+# (below) so each gmeow:DayOfWeek maps to the correct schema:DayOfWeek
+# enumeration MEMBER (schema:Monday …), never a day-name string — schema's
+# dayOfWeek is an enumeration, not Text.
+gmeow:mapSchemaOpeningHours a gmeow:ProjectionMapping ;
+    rdfs:label "OpeningHoursSpecification → schema:OpeningHoursSpecification + opens/closes"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ohOffer" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ohOffer" ; gmeow:predicate gmeow:hasOpeningHours ; gmeow:objectVar "ohSpec" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ohSpec" ; gmeow:predicate gmeow:opensAt ; gmeow:objectVar "ohOpens" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ohSpec" ; gmeow:predicate gmeow:closesAt ; gmeow:objectVar "ohCloses" ] ) ] ) ;
+        gmeow:edoalSource gmeow:OpeningHoursSpecification ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the spec is REUSED as schema:OpeningHoursSpecification; price/validity detail is not modelled" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ohOffer" ; gmeow:tPred schema:openingHoursSpecification ; gmeow:tObj "ohSpec" ]
+            [ gmeow:tSubj "ohSpec" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:OpeningHoursSpecification ]
+            [ gmeow:tSubj "ohSpec" ; gmeow:tPred schema:opens ; gmeow:tObj "ohOpens" ]
+            [ gmeow:tSubj "ohSpec" ; gmeow:tPred schema:closes ; gmeow:tObj "ohCloses" ] ) ] .
+
+# Each gmeow:DayOfWeek value maps to its schema:DayOfWeek enumeration MEMBER
+# (the canonical form; the string day-name is NOT schema:dayOfWeek's type). One
+# cell per day — the same explicit per-value discipline mapSchemaPlaceType uses
+# for classes, since the DSL maps values to target IRIs only by enumeration.
+gmeow:mapSchemaDayMonday a gmeow:ProjectionMapping ;
+    rdfs:label "openingDay Monday → schema:dayOfWeek schema:Monday"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dwMonSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "dwMonSpec" ; gmeow:predicate gmeow:openingDay ; gmeow:objectValue gmeow:dayMonday ] ) ;
+        gmeow:edoalSource gmeow:openingDay ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dwMonSpec" ; gmeow:tPred schema:dayOfWeek ; gmeow:tObjValue schema:Monday ] ) ] .
+
+gmeow:mapSchemaDayTuesday a gmeow:ProjectionMapping ;
+    rdfs:label "openingDay Tuesday → schema:dayOfWeek schema:Tuesday"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dwTueSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "dwTueSpec" ; gmeow:predicate gmeow:openingDay ; gmeow:objectValue gmeow:dayTuesday ] ) ;
+        gmeow:edoalSource gmeow:openingDay ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dwTueSpec" ; gmeow:tPred schema:dayOfWeek ; gmeow:tObjValue schema:Tuesday ] ) ] .
+
+gmeow:mapSchemaDayWednesday a gmeow:ProjectionMapping ;
+    rdfs:label "openingDay Wednesday → schema:dayOfWeek schema:Wednesday"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dwWedSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "dwWedSpec" ; gmeow:predicate gmeow:openingDay ; gmeow:objectValue gmeow:dayWednesday ] ) ;
+        gmeow:edoalSource gmeow:openingDay ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dwWedSpec" ; gmeow:tPred schema:dayOfWeek ; gmeow:tObjValue schema:Wednesday ] ) ] .
+
+gmeow:mapSchemaDayThursday a gmeow:ProjectionMapping ;
+    rdfs:label "openingDay Thursday → schema:dayOfWeek schema:Thursday"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dwThuSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "dwThuSpec" ; gmeow:predicate gmeow:openingDay ; gmeow:objectValue gmeow:dayThursday ] ) ;
+        gmeow:edoalSource gmeow:openingDay ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dwThuSpec" ; gmeow:tPred schema:dayOfWeek ; gmeow:tObjValue schema:Thursday ] ) ] .
+
+gmeow:mapSchemaDayFriday a gmeow:ProjectionMapping ;
+    rdfs:label "openingDay Friday → schema:dayOfWeek schema:Friday"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dwFriSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "dwFriSpec" ; gmeow:predicate gmeow:openingDay ; gmeow:objectValue gmeow:dayFriday ] ) ;
+        gmeow:edoalSource gmeow:openingDay ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dwFriSpec" ; gmeow:tPred schema:dayOfWeek ; gmeow:tObjValue schema:Friday ] ) ] .
+
+gmeow:mapSchemaDaySaturday a gmeow:ProjectionMapping ;
+    rdfs:label "openingDay Saturday → schema:dayOfWeek schema:Saturday"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dwSatSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "dwSatSpec" ; gmeow:predicate gmeow:openingDay ; gmeow:objectValue gmeow:daySaturday ] ) ;
+        gmeow:edoalSource gmeow:openingDay ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dwSatSpec" ; gmeow:tPred schema:dayOfWeek ; gmeow:tObjValue schema:Saturday ] ) ] .
+
+gmeow:mapSchemaDaySunday a gmeow:ProjectionMapping ;
+    rdfs:label "openingDay Sunday → schema:dayOfWeek schema:Sunday"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dwSunSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "dwSunSpec" ; gmeow:predicate gmeow:openingDay ; gmeow:objectValue gmeow:daySunday ] ) ;
+        gmeow:edoalSource gmeow:openingDay ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "dwSunSpec" ; gmeow:tPred schema:dayOfWeek ; gmeow:tObjValue schema:Sunday ] ) ] .
+
+gmeow:mapSchemaProjectLanguage a gmeow:ProjectionMapping ;
+    rdfs:label "project programmingLanguage → schema:programmingLanguage (the language entity)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "splProj" ; gmeow:value "splLang" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "splProj" ; gmeow:predicate gmeow:programmingLanguage ; gmeow:objectVar "splLang" ] ) ;
+        gmeow:edoalSource gmeow:programmingLanguage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:programmingLanguage ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "schema:programmingLanguage points at the first-class language (itself projected to schema:ComputerLanguage by mapSchemaProgrammingLanguage); only the project→language edge is carried, not the language's sociolinguistic detail" ] .
+
+gmeow:mapSchemaContactPoint a gmeow:ProjectionMapping ;
+    rdfs:label "ContactPoint → schema:ContactPoint"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cpNode" ;
+        gmeow:atom ( [ gmeow:subjectVar "cpNode" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ContactPoint ] ) ;
+        gmeow:edoalSource gmeow:ContactPoint ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:ContactPoint ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+# EXIF tags → schema:exifData (#413, LOSSLESS). The reified gmeow:ExifTag node
+# IS the schema:PropertyValue bundle, so it is REUSED (no mint): propertyID ←
+# exifTagId, value ← exifTagValue, name ← rdfs:label. Every tag round-trips.
+gmeow:mapSchemaExifData a gmeow:ProjectionMapping ;
+    rdfs:label "ExifTag → schema:exifData schema:PropertyValue"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "exImg" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "exImg" ; gmeow:predicate gmeow:hasExifTag ; gmeow:objectVar "exTag" ]
+            [ gmeow:subjectVar "exTag" ; gmeow:predicate gmeow:exifTagId ; gmeow:objectVar "exId" ]
+            [ gmeow:subjectVar "exTag" ; gmeow:predicate gmeow:exifTagValue ; gmeow:objectVar "exVal" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "exTag" ; gmeow:predicate rdfs:label ; gmeow:objectVar "exName" ] ) ] ) ;
+        gmeow:edoalSource gmeow:hasExifTag ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "none for the tag triple — propertyID/value/name carry the full EXIF tag; the gmeow:ExifTag node is reused as the PropertyValue" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "exImg" ; gmeow:tPred schema:exifData ; gmeow:tObj "exTag" ]
+            [ gmeow:tSubj "exTag" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:PropertyValue ]
+            [ gmeow:tSubj "exTag" ; gmeow:tPred schema:propertyID ; gmeow:tObj "exId" ]
+            [ gmeow:tSubj "exTag" ; gmeow:tPred schema:value ; gmeow:tObj "exVal" ]
+            [ gmeow:tSubj "exTag" ; gmeow:tPred schema:name ; gmeow:tObj "exName" ] ) ] .
+
+# Contact affordances (#412): that an agent CAN be reached via a contact point
+# is a fact derivable from the point itself — a schema:CommunicateAction whose
+# target is the mailto:/tel: URI built from the contact value. The action's
+# editorial NAME ("Email general inquiries") is site UI copy, not derived
+# (translators emit what is there, never fabricate). A minted action node per
+# (agent, channel) keeps them distinct.
+gmeow:mapSchemaCommunicateEmail a gmeow:ProjectionMapping ;
+    rdfs:label "agent email → schema:CommunicateAction (mailto: target)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ceAgent" ; gmeow:value "ceEmail" ;
+        gmeow:atom ( [ gmeow:subjectVar "ceAgent" ; gmeow:predicate gmeow:email ; gmeow:objectVar "ceEmail" ] ) ;
+        gmeow:mint [ gmeow:bindVar "ceAction" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ceAgent" ] ) ]
+                    "-communicate-email" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "ceTarget" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                "mailto:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ceEmail" ] ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:email ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the affordance's editorial name/label is site UI copy and is NOT fabricated; only the structural CommunicateAction + mailto: target derive" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ceAgent" ; gmeow:tPred schema:potentialAction ; gmeow:tObj "ceAction" ]
+            [ gmeow:tSubj "ceAction" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:CommunicateAction ]
+            [ gmeow:tSubj "ceAction" ; gmeow:tPred schema:target ; gmeow:tObj "ceTarget" ] ) ] .
+
+gmeow:mapSchemaCommunicatePhone a gmeow:ProjectionMapping ;
+    rdfs:label "agent telephone → schema:CommunicateAction (tel: target)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cpAgent" ; gmeow:value "cpPhone" ;
+        gmeow:atom ( [ gmeow:subjectVar "cpAgent" ; gmeow:predicate gmeow:telephone ; gmeow:objectVar "cpPhone" ] ) ;
+        gmeow:mint [ gmeow:bindVar "cpAction" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "cpAgent" ] ) ]
+                    "-communicate-phone" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "cpTarget" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                "tel:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "cpPhone" ] ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:telephone ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the affordance's editorial name is site UI copy and is NOT fabricated; only the structural CommunicateAction + tel: target derive" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "cpAgent" ; gmeow:tPred schema:potentialAction ; gmeow:tObj "cpAction" ]
+            [ gmeow:tSubj "cpAction" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:CommunicateAction ]
+            [ gmeow:tSubj "cpAction" ; gmeow:tPred schema:target ; gmeow:tObj "cpTarget" ] ) ] .

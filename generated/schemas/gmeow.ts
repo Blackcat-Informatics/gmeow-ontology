@@ -23,6 +23,13 @@ export enum AccessibilityPolarityEnum {
     limited = "polarityLimited",
 };
 
+export enum AccountStatusEnum {
+
+    active = "accountStatusActive",
+    dormant = "accountStatusDormant",
+    historical = "accountStatusHistorical",
+};
+
 export enum AestheticQualityEnum {
 
     elegance = "qualityElegance",
@@ -354,6 +361,14 @@ export enum ConstraintOperatorEnum {
     not_equal_to = "operatorNeq",
 };
 
+export enum ContactPointTypeEnum {
+
+    personal = "contactPointTypePersonal",
+    personal_domain = "contactPointTypePersonalDomain",
+    support = "contactPointTypeSupport",
+    work = "contactPointTypeWork",
+};
+
 export enum ContentDispositionEnum {
 
     attachment = "contentDispositionAttachment",
@@ -411,6 +426,7 @@ export enum ContributionRoleEnum {
     formal_analysis = "roleFormalAnalysis",
     funding_acquisition = "roleFundingAcquisition",
     illustrator = "roleIllustrator",
+    inventor = "roleInventor",
     investigation = "roleInvestigation",
     LLM_assisted_editor = "roleLLMAssistedEditor",
     letterer = "roleLetterer",
@@ -425,6 +441,7 @@ export enum ContributionRoleEnum {
     photographer = "rolePhotographer",
     producer = "roleProducer",
     project_administration = "roleProjectAdministration",
+    publisher = "rolePublisher",
     recording_engineer = "roleRecordingEngineer",
     releaser = "roleReleaser",
     remixer = "roleRemixer",
@@ -514,6 +531,17 @@ export enum DatingMethodEnum {
     stratigraphic_correlation = "datingMethodStratigraphicCorrelation",
     thermoluminescence = "datingMethodThermoluminescence",
     uranium_lead_LEFT_PARENTHESISU_PbRIGHT_PARENTHESIS = "datingMethodUraniumLead",
+};
+
+export enum DayOfWeekEnum {
+
+    Friday = "dayFriday",
+    Monday = "dayMonday",
+    Saturday = "daySaturday",
+    Sunday = "daySunday",
+    Thursday = "dayThursday",
+    Tuesday = "dayTuesday",
+    Wednesday = "dayWednesday",
 };
 
 export enum DeonticModalityEnum {
@@ -2035,6 +2063,12 @@ export enum SequenceFeatureTypeEnum {
     single_nucleotide_polymorphism_LEFT_PARENTHESISSNPRIGHT_PARENTHESIS = "sequenceFeatureTypeSNP",
 };
 
+export enum ServiceStatusEnum {
+
+    live = "serviceStatusLive",
+    shut_down = "serviceStatusShutDown",
+};
+
 export enum SeverityLevelEnum {
 
     catastrophic = "severityCatastrophic",
@@ -2363,6 +2397,11 @@ export interface AccessibilityPolarity {
 
 
 
+export interface AccountStatus {
+}
+
+
+
 export interface AcquaintanceRelationship extends InterpersonalRelationship {
 }
 
@@ -2394,6 +2433,7 @@ export interface AestheticQuality {
 export interface Agent {
     email?: string[],
     endorses?: Agent[],
+    founderOf?: Organization[],
     hasAgreement?: Agreement[],
     hasContactPoint?: ContactPoint[],
     hasGoal?: Goal[],
@@ -2406,8 +2446,10 @@ export interface Agent {
     holdsKey?: CryptographicKey[],
     knowsLanguage?: Language[],
     mailmapEntry?: string[],
+    makesOffer?: Offering[],
     memberOf?: Organization[],
     nativeLanguage?: Language[],
+    ownerOf?: Entity[],
     telephone?: string[],
 }
 
@@ -2961,6 +3003,13 @@ export interface ConstraintOperator {
 
 
 export interface ContactPoint {
+    contactPointProvider?: Agent[],
+    contactPointType?: ContactPointType[],
+}
+
+
+
+export interface ContactPointType {
 }
 
 
@@ -3080,6 +3129,7 @@ export interface Corpus extends InformationObject {
 
 
 export interface CoupleRelationship extends KinRelationship {
+    hasCoupleEvent?: Event[],
     hasPartner?: Person[],
 }
 
@@ -3237,6 +3287,11 @@ export interface Dataset extends Work {
 
 
 export interface DatingMethod {
+}
+
+
+
+export interface DayOfWeek {
 }
 
 
@@ -3453,6 +3508,7 @@ export interface Entity {
     mediaType?: string,
     mentionedIn?: Note[],
     name?: string[],
+    ownedBy?: Agent[],
     provenance?: string[],
     proximity?: ProximityMeasurement[],
     references?: Entity[],
@@ -3616,6 +3672,13 @@ export interface Exemplar extends CitationAct {
 
 
 export interface ExemplarPolarity {
+}
+
+
+
+export interface ExifTag {
+    exifTagId?: string,
+    exifTagValue?: string,
 }
 
 
@@ -4347,6 +4410,7 @@ export interface MediaObject extends Manifestation {
     captureTime?: string[],
     colourspace?: ReferenceFrame[],
     depicts?: Entity[],
+    hasExifTag?: ExifTag[],
     hasRegion?: ImageRegion[],
     imageOrientation?: string,
     pixelHeight?: number,
@@ -4756,12 +4820,31 @@ export interface Occupation extends Entity {
 
 
 
+export interface Offering extends Entity {
+    areaServed?: Location[],
+    hasOpeningHours?: OpeningHoursSpecification[],
+    itemOffered?: Entity[],
+    offeringProvider?: Agent[],
+}
+
+
+
 export interface OnlineAccount extends InformationObject {
     accountKey?: CryptographicKey[],
     accountName?: string[],
+    accountService?: OnlineService,
+    accountServiceHomepage?: string,
+    accountStatus?: AccountStatus[],
     activityPubActor?: string[],
     nip05?: string[],
     nostrPubkey?: string[],
+}
+
+
+
+export interface OnlineService extends InformationObject {
+    serviceShutdownDate?: string,
+    serviceStatus?: ServiceStatus[],
 }
 
 
@@ -4775,6 +4858,14 @@ export interface OpaqueFrame extends InformationObject {
     opacityReason?: OpacityReason,
     opaqueFrameIn?: GTSSegment,
     sealedRecipient?: Agent[],
+}
+
+
+
+export interface OpeningHoursSpecification extends Entity {
+    closesAt?: string,
+    openingDay?: DayOfWeek[],
+    opensAt?: string,
 }
 
 
@@ -4794,6 +4885,7 @@ export interface OrderStatus {
 
 
 export interface Organization extends Agent {
+    foundedBy?: Agent[],
     hasMember?: Agent[],
     hasOrganizationName?: OrganizationName[],
     hasSite?: Location[],
@@ -5106,6 +5198,8 @@ export interface Project extends Entity {
     hasRelease?: Release[],
     hasRepository?: Repository[],
     maintenanceStatus?: MaintenanceStatus[],
+    programmingLanguage?: Language[],
+    projectHomepage?: string,
     projectIdentifier?: string[],
     projectLicense?: License[],
 }
@@ -5578,6 +5672,22 @@ export interface SerialWork extends Work {
 
 
 export interface Service extends Work {
+}
+
+
+
+export interface ServiceOffering extends Entity {
+    serviceType?: ServiceType[],
+}
+
+
+
+export interface ServiceStatus {
+}
+
+
+
+export interface ServiceType {
 }
 
 
