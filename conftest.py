@@ -11,6 +11,8 @@ a CI failure, not a skip.
 
 from __future__ import annotations
 
+import os
+
 import pyoxigraph
 import pytest
 from rdflib import Graph
@@ -53,11 +55,31 @@ def _docker_images(request: pytest.FixtureRequest) -> None:
             pytest.fail(f"Hard fail: {reason}", pytrace=False)
 
 
+#: Opt-in environment variable for the ``network``-marked tests. They reach LIVE
+#: external endpoints (Wikidata, BFO, OOPS!/FOOPS!), so they MUST NOT run in any
+#: automated gate or CI — a third-party endpoint being slow or down would hang or
+#: fail the build for reasons unrelated to our code. They stay available for
+#: manual runs: ``GMEOW_RUN_NETWORK=1 uv run pytest -m network`` (or ``make
+#: test-network``). This is the deliberate inverse of the docker policy above:
+#: docker infra is REQUIRED (hard-fail if absent); network is FORBIDDEN in
+#: automation (skip unless explicitly opted in).
+_RUN_NETWORK_ENV = "GMEOW_RUN_NETWORK"
+
+
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    """Replace docker-related skipif markers with a hard-fail fixture."""
+    """Skip network tests unless opted in; swap docker skipifs for a hard-fail."""
+    run_network = bool(os.environ.get(_RUN_NETWORK_ENV))
+    skip_network = pytest.mark.skip(
+        reason=(
+            "network test — never run in automated gates/CI; "
+            f"opt in manually with {_RUN_NETWORK_ENV}=1"
+        )
+    )
     for item in items:
+        if not run_network and "network" in item.keywords:
+            item.add_marker(skip_network)
         reasons: list[str] = []
         for marker in list(item.iter_markers("skipif")):
             reason = marker.kwargs.get("reason", "")
