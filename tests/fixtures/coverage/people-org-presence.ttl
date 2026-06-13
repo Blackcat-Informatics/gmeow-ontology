@@ -43,8 +43,9 @@ ex:yahoo360 a gmeow:OnlineService ; rdfs:label "Yahoo 360"@en ;
 
 # --- organization: founding, ownership, offerings (#411, #413) -------------- #
 
+# Founding asserted ONLY in the founderOf (agent→org) direction, so the
+# schema:founder projection must traverse the inverse arm (^founderOf).
 ex:bii a gmeow:Organization ; rdfs:label "Blackcat Informatics"@en ;
-    gmeow:foundedBy ex:patrick ;
     gmeow:makesOffer ex:consultOffer .
 
 ex:consultOffer a gmeow:Offering ;
@@ -103,7 +104,9 @@ ex:mundare a gmeow:Place ; rdfs:label "Mundare, Alberta"@en .
 
 # --- contact affordances (#412) + EXIF tags (#413) ------------------------- #
 
-ex:bii gmeow:email "work.with.us@blackcatinformatics.ca" ;
+# Two emails on one agent: each must mint a DISTINCT CommunicateAction
+# (value-unique minting), never one merged node carrying both targets.
+ex:bii gmeow:email "work.with.us@blackcatinformatics.ca" , "hello@blackcatinformatics.ca" ;
     gmeow:telephone "+16042452120" .
 
 ex:photo a gmeow:MediaObject ; rdfs:label "a photo"@en ;

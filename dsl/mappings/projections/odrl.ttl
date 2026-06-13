@@ -258,6 +258,7 @@ gmeow:mapOdrlPermissionDuty a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:hasDuty ] ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the permission's own odrl:constraint (e.g. temporal validity) does not propagate to the duty — ODRL 2.2 does not inherit a permission's constraints onto its duties, so the duty's constraint scope must be stated separately on the duty rule" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "pdPerm" ; gmeow:tPred odrl:duty ; gmeow:tObj "pdDuty" ]
             [ gmeow:tSubj "pdDuty" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Duty ]

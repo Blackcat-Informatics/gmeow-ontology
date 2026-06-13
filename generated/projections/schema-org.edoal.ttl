@@ -300,7 +300,7 @@
                     edoal:uri schema:familyName ] ;
             align:relation "<=" ],
         [ a align:Cell ;
-            rdfs:label "foundedBy → schema:founder"@en ;
+            rdfs:label "foundedBy / founderOf → schema:founder"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:foundedBy ] ;
             align:entity2 [ a edoal:Property ;
