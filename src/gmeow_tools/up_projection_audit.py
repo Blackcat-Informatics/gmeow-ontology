@@ -266,11 +266,15 @@ def _emitted_targets(graph: Graph, binding: Node) -> set[str]:
 
 def _used_target_terms(path: Path) -> set[str]:
     graph = Graph().parse(path, format="turtle")
-    ns2pfx = {str(ns): pfx for pfx, ns in graph.namespaces()}
+    # most-specific (longest) namespace first, so overlapping namespaces don't
+    # contract to the wrong prefix and skew the baseline
+    ns2pfx = sorted(
+        ((str(ns), pfx) for pfx, ns in graph.namespaces()), key=lambda kv: -len(kv[0])
+    )
 
     def q(uri: object) -> str:
         s = str(uri)
-        for ns, pfx in ns2pfx.items():
+        for ns, pfx in ns2pfx:
             if s.startswith(ns):
                 return f"{pfx}:{s[len(ns) :]}"
         return s

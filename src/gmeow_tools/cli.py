@@ -732,7 +732,9 @@ def dc_coverage(
 @app.command(name="up-projection-audit")
 def up_projection_audit(
     report_path: Path | None = typer.Option(  # noqa: B008
-        None, "--report", help="Write the Markdown audit here (else stdout)."
+        None,
+        "--report",
+        help="Write the full Markdown audit to this path (the summary still prints).",
     ),
     show_gaps: bool = typer.Option(
         False, "--gaps", help="List the coverage-gap terms."
