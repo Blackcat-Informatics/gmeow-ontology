@@ -41,3 +41,27 @@ gmeow:mapCcAttributionUrl a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionUrl ; gmeow:objectVar "au" ] ) ;
         gmeow:edoalSource gmeow:attributionUrl ] ;
     gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toPredicate cc:attributionURL ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+# --------------------------------------------------------------------------- #
+# The CC REL attribution requirement (#414 follow-through): a permission whose
+# duty regulates gmeow:actionAttribute reads back out as cc:requires
+# cc:Attribution on the governed work — the same permission-scoped source the
+# odrl:duty leg projects, coarsened to CC REL's class-level requirement.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCcRequiresAttribution a gmeow:ProjectionMapping ;
+    rdfs:label "permission-scoped attribution duty → cc:requires cc:Attribution"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ccrWork" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ccrRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "ccrRs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "ccrWork" ]
+            [ gmeow:subjectVar "ccrRs" ; gmeow:predicate gmeow:hasPermission ; gmeow:objectVar "ccrPerm" ]
+            [ gmeow:subjectVar "ccrPerm" ; gmeow:predicate gmeow:hasDuty ; gmeow:objectVar "ccrDuty" ]
+            [ gmeow:subjectVar "ccrDuty" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionAttribute ] ) ;
+        gmeow:edoalSource gmeow:hasDuty ] ;
+    gmeow:hasBinding [
+        gmeow:profile "cc" ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the duty's assignee, constraints and rule identity drop; CC REL carries only the class-level requirement" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ccrWork" ; gmeow:tPred cc:requires ; gmeow:tObjValue cc:Attribution ] ) ] .

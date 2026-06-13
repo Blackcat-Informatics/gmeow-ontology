@@ -39,6 +39,11 @@ CONSTRUCT {
     ?optRs a odrl:Policy .
     ?ouRs odrl:uid ?ouRs .
     ?opfRs odrl:profile ?opfProfile .
+    ?pdPerm odrl:duty ?pdDuty .
+    ?pdDuty a odrl:Duty .
+    ?pdDuty odrl:action ?pdAction .
+    ?pdDuty odrl:target ?pdAsset .
+    ?pdDuty odrl:assignee ?pdAssignee .
 }
 WHERE {
     {
@@ -130,5 +135,18 @@ WHERE {
         ?opfRs a gmeow:RightsStatement .
         ?opfRs gmeow:conformsTo ?opfProfile .
         FILTER NOT EXISTS { ?opfRs gmeow:displayable false . }
+    }
+    UNION {
+        ?pdRs a gmeow:RightsStatement .
+        ?pdRs gmeow:hasPermission ?pdPerm .
+        ?pdPerm gmeow:hasDuty ?pdDuty .
+        ?pdDuty gmeow:ruleAction ?pdAction .
+        OPTIONAL {
+            ?pdRs gmeow:statementAbout ?pdAsset .
+        }
+        OPTIONAL { ?pdDuty gmeow:ruleAssignee ?pdAssignee . }
+        FILTER NOT EXISTS { ?pdRs gmeow:displayable false . }
+        FILTER NOT EXISTS { ?pdPerm gmeow:displayable false . }
+        FILTER NOT EXISTS { ?pdDuty gmeow:displayable false . }
     }
 }

@@ -53,17 +53,29 @@ ex:cc-by-4 a gmeow:License ;
 ex:photo-rights a gmeow:RightsStatement ;
     gmeow:statementAbout ex:photo ;
     gmeow:rightsType     gmeow:rightsTypeCopyright ;
+    gmeow:conformsTo     <http://www.w3.org/ns/odrl/2/core> ;
     gmeow:conflictStrategy gmeow:conflictProhibit ;
     gmeow:hasPermission  ex:perm-reproduce ;
     gmeow:hasProhibition ex:proh-commercial ;
     gmeow:hasDuty        ex:duty-attribute .
 
 # A permission conditioned by a temporal constraint (valid until 2036) — the ODRL
-# constraint algebra; the licence's temporal bound expressed deontically.
+# constraint algebra; the licence's temporal bound expressed deontically. The
+# permission also carries its OWN DISTINCT duty (#414): "you may reproduce,
+# PROVIDED you attribute" — the CC-attribution pattern, permission-scoped via
+# gmeow:hasDuty's union domain. It is a SEPARATE duty instance from the
+# statement-scoped ex:duty-attribute above (a single duty node cannot be both an
+# unconditional odrl:obligation and a permission-conditional odrl:duty): this
+# one rides odrl:duty on the permission node and cc:requires cc:Attribution.
 ex:perm-reproduce a gmeow:Permission ;
     gmeow:ruleAction gmeow:actionReproduce ;
     gmeow:ruleAssignee ex:acme ;
-    gmeow:ruleConstraint ex:until-2036 .
+    gmeow:ruleConstraint ex:until-2036 ;
+    gmeow:hasDuty ex:duty-attribute-perm .
+
+ex:duty-attribute-perm a gmeow:Duty ;
+    gmeow:ruleAction gmeow:actionAttribute ;
+    gmeow:ruleAssignee ex:acme .
 
 ex:until-2036 a gmeow:AtomicConstraint ;
     gmeow:leftOperand gmeow:leftOpDateTime ;

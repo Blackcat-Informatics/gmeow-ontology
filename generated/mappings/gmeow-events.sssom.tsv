@@ -54,6 +54,7 @@ gmeow:during	skos:closeMatch	teo:during		semapv:ManualMappingCuration	0.85	Time 
 gmeow:during	skos:relatedMatch	time:intervalDuring		semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:earliestStart	skos:relatedMatch	crm:P82a_begin_of_the_begin		semapv:ManualMappingCuration	0.6	fuzzy lower bound ≈ CIDOC E52 begin-of-the-begin
 gmeow:earliestStart	skos:relatedMatch	ical:dtstart		semapv:ManualMappingCuration	0.5	the fuzzy lower bound becomes the VEVENT DTSTART
+gmeow:eventFromLocation	skos:closeMatch	schema:fromLocation		semapv:ManualMappingCuration	0.85	schema scopes fromLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (#412)
 gmeow:eventInterval	skos:relatedMatch	crm:P4_has_time-span		semapv:ManualMappingCuration	0.55	the crisp interval of an event ≈ CIDOC P4 has time-span (E52)
 gmeow:eventInterval	skos:relatedMatch	ical:dtend		semapv:ManualMappingCuration	0.55	the crisp interval's end becomes the VEVENT DTEND
 gmeow:eventInterval	skos:relatedMatch	ical:dtstart		semapv:ManualMappingCuration	0.55	the crisp interval's endpoints become DTSTART/DTEND (a reshape, not a rename)
@@ -73,6 +74,7 @@ gmeow:eventTime	skos:closeMatch	gedcom:date		semapv:ManualMappingCuration	0.7	le
 gmeow:eventTime	skos:closeMatch	ical:dtstart		semapv:ManualMappingCuration	0.8	a point event's instant ↔ iCalendar DTSTART
 gmeow:eventTime	skos:closeMatch	schema:startDate		semapv:ManualMappingCuration	0.85	point-in-time placement → schema startDate (projection collapses an interval too)
 gmeow:eventTime	skos:closeMatch	wdt:P585		semapv:ManualMappingCuration	0.85	Wikidata 'point in time' (P585)
+gmeow:eventToLocation	skos:closeMatch	schema:toLocation		semapv:ManualMappingCuration	0.85	schema scopes toLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (#412)
 gmeow:eventTrajectory	skos:relatedMatch	crm:E92_Spacetime_Volume	Spacetime Volume	semapv:ManualMappingCuration	0.6	a trajectory is a continuous spacetime volume (relatedMatch — it is a path, not any arbitrary volume)
 gmeow:eventType	skos:closeMatch	sem:eventType		semapv:ManualMappingCuration	0.8	SEM eventType — the event→kind property
 gmeow:eventType	skos:relatedMatch	ical:summary		semapv:ManualMappingCuration	0.4	the event-type label is downcast to a human-readable iCalendar SUMMARY
@@ -110,6 +112,7 @@ gmeow:eventTypeImmigration	skos:closeMatch	gx:Immigration		semapv:ManualMappingC
 gmeow:eventTypeMarriage	skos:closeMatch	bio:Marriage		semapv:ManualMappingCuration	0.95	
 gmeow:eventTypeMarriage	skos:closeMatch	gedcom:Marriage		semapv:ManualMappingCuration	0.85	legacy W3C gedcom marriage
 gmeow:eventTypeMarriage	skos:closeMatch	gx:Marriage		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
+gmeow:eventTypeMigration	skos:closeMatch	schema:MoveAction		semapv:ManualMappingCuration	0.8	a migration-typed event is schema's MoveAction shape; the projection types ANY endpoint-bearing event as MoveAction structurally (value-to-class convention, #412)
 gmeow:eventTypeMilitaryService	skos:closeMatch	gx:MilitaryService		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:eventTypeNameChange	skos:closeMatch	bio:NameChange		semapv:ManualMappingCuration	0.95	
 gmeow:eventTypeNaturalization	skos:closeMatch	bio:Naturalization		semapv:ManualMappingCuration	0.95	

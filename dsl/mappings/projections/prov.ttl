@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix prov:  <http://www.w3.org/ns/prov#> .
+
+# Projection mappings: GMEOW build provenance → the PROV-O qualification
+# pattern (#415, #34 audit verdict 8). Compiled to projections/prov.edoal.ttl +
+# queries/projections/prov.rq by `gmeow compile-mappings`.
+#
+# The #47 model already carries everything PROV's qualification idiom needs:
+# gmeow:buildConfigUri IS the prov:Plan (the Plan node's IRI is the config URI
+# itself — no synthetic identity), gmeow:hasParticipant gives the qualified
+# Association, buildSource/buildOutput are used/generated, and the build's
+# eventTime is both prov:endedAtTime on the activity and prov:generatedAtTime
+# on its outputs (the generation instant of a build output IS the build end).
+# The flat prov:wasAssociatedWith leg is NOT re-emitted here: it derives via
+# saturation from the strong hasParticipant ≡ prov:wasAssociatedWith
+# equivalence (events mapping set).
+
+gmeow:mapProvBuildActivity a gmeow:ProjectionMapping ;
+    rdfs:label "BuildActivity → prov:Activity"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pvAct" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pvAct" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:BuildActivity ] ) ;
+        gmeow:edoalSource gmeow:BuildActivity ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "prov" ; gmeow:toClass prov:Activity ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapProvUsed a gmeow:ProjectionMapping ;
+    rdfs:label "buildSource → prov:used"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pvuAct" ; gmeow:value "pvuSrc" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pvuAct" ; gmeow:predicate gmeow:buildSource ; gmeow:objectVar "pvuSrc" ] ) ;
+        gmeow:edoalSource gmeow:buildSource ] ;
+    gmeow:hasBinding [
+        gmeow:profile "prov" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "pvuAct" ; gmeow:tPred prov:used ; gmeow:tObj "pvuSrc" ]
+            [ gmeow:tSubj "pvuSrc" ; gmeow:tPred rdf:type ; gmeow:tObjValue prov:Entity ] ) ] .
+
+gmeow:mapProvGenerated a gmeow:ProjectionMapping ;
+    rdfs:label "buildOutput → prov:generated"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pvgAct" ; gmeow:value "pvgOut" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pvgAct" ; gmeow:predicate gmeow:buildOutput ; gmeow:objectVar "pvgOut" ] ) ;
+        gmeow:edoalSource gmeow:buildOutput ] ;
+    gmeow:hasBinding [
+        gmeow:profile "prov" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "pvgAct" ; gmeow:tPred prov:generated ; gmeow:tObj "pvgOut" ]
+            [ gmeow:tSubj "pvgOut" ; gmeow:tPred rdf:type ; gmeow:tObjValue prov:Entity ] ) ] .
+
+gmeow:mapProvEndedAtTime a gmeow:ProjectionMapping ;
+    rdfs:label "BuildActivity eventTime → prov:endedAtTime"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pveAct" ; gmeow:value "pveTime" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pveAct" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:BuildActivity ]
+            [ gmeow:subjectVar "pveAct" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "pveTime" ] ) ;
+        gmeow:edoalSource gmeow:eventTime ] ;
+    gmeow:hasBinding [
+        gmeow:profile "prov" ; gmeow:toPredicate prov:endedAtTime ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "a point eventTime stands in for the activity end; build start/duration are not modelled" ] .
+
+gmeow:mapProvGeneratedAtTime a gmeow:ProjectionMapping ;
+    rdfs:label "buildOutput × build eventTime → prov:generatedAtTime on the output"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pvtOut" ; gmeow:value "pvtTime" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pvtAct" ; gmeow:predicate gmeow:buildOutput ; gmeow:objectVar "pvtOut" ]
+            [ gmeow:subjectVar "pvtAct" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "pvtTime" ] ) ;
+        gmeow:edoalSource gmeow:buildOutput ] ;
+    gmeow:hasBinding [
+        gmeow:profile "prov" ; gmeow:toPredicate prov:generatedAtTime ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the generation instant of a build output IS its build's end time; sub-second generation ordering within one build drops" ] .
+
+# The qualification pattern proper: a minted prov:Association node binds the
+# Builder participant to the Plan, and the Plan node's IRI IS the declared
+# buildConfigUri — the URI the build system itself names, not a synthetic id.
+gmeow:mapProvQualifiedAssociation a gmeow:ProjectionMapping ;
+    rdfs:label "BuildActivity participant × buildConfigUri → qualified prov:Association + prov:Plan"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pvqAct" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pvqAct" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:BuildActivity ]
+            [ gmeow:subjectVar "pvqAct" ; gmeow:predicate gmeow:hasParticipant ; gmeow:objectVar "pvqAgent" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "pvqAct" ; gmeow:predicate gmeow:buildConfigUri ; gmeow:objectVar "pvqCfg" ] ) ] ) ;
+        gmeow:mint [ gmeow:bindVar "pvqAssoc" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "pvqAct" ] ) ]
+                    "-association" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "pvqPlan" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs ( [ gmeow:exprVar "pvqCfg" ] ) ] ] ;
+        gmeow:edoalSource gmeow:hasParticipant ] ;
+    gmeow:hasBinding [
+        gmeow:profile "prov" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the participant's GMEOW role detail drops; PROV carries the bare agent-plan binding" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "pvqAct" ; gmeow:tPred prov:qualifiedAssociation ; gmeow:tObj "pvqAssoc" ]
+            [ gmeow:tSubj "pvqAssoc" ; gmeow:tPred rdf:type ; gmeow:tObjValue prov:Association ]
+            [ gmeow:tSubj "pvqAssoc" ; gmeow:tPred prov:agent ; gmeow:tObj "pvqAgent" ]
+            [ gmeow:tSubj "pvqAssoc" ; gmeow:tPred prov:hadPlan ; gmeow:tObj "pvqPlan" ]
+            [ gmeow:tSubj "pvqPlan" ; gmeow:tPred rdf:type ; gmeow:tObjValue prov:Plan ] ) ] .

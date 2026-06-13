@@ -116,6 +116,8 @@ gmeow:eventTypeImmigration    a gmeow:EventType ; rdfs:label "immigration"@x-gme
 gmeow:eventTypeImmigration rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:eventTypeEmigration     a gmeow:EventType ; rdfs:label "emigration"@x-gmeow-english ;     skos:definition "A person's emigration from a country."@x-gmeow-english .
 gmeow:eventTypeEmigration rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeMigration      a gmeow:EventType ; rdfs:label "migration"@x-gmeow-english ;      skos:definition "A relocation of people from one place to another — a family's move, an internal migration, or a multi-generational flow. The general movement event (schema:MoveAction's shape); immigration/emigration are its border-crossing specialisations."@x-gmeow-english .
+gmeow:eventTypeMigration rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:eventTypeNaturalization a gmeow:EventType ; rdfs:label "naturalization"@x-gmeow-english ; skos:definition "The grant of citizenship by naturalization."@x-gmeow-english .
 gmeow:eventTypeNaturalization rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:eventTypeResidence      a gmeow:EventType ; rdfs:label "residence"@x-gmeow-english ;      skos:definition "A person's residence at a place over a period."@x-gmeow-english .
@@ -425,6 +427,24 @@ gmeow:eventLocation
     rdfs:range gmeow:Location ;
     rdfs:label "event location"@x-gmeow-english ;
     skos:definition "A location at which an event occurred — a geographic gmeow:Place, a gmeow:VirtualLocation, or any other gmeow:Location (the full superset). Non-functional: an event may span several locations, and competing standpoint-indexed locations coexist."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+
+gmeow:eventFromLocation
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:eventLocation ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "event from-location"@x-gmeow-english ;
+    skos:definition "The origin of a movement event — where a migration, move, journey, or relocation departed from. A specialisation of gmeow:eventLocation (the origin IS a location of the event), so plain location consumers still see it. Pairs with gmeow:eventToLocation; the endpoint pair is the discrete sibling of the continuous gmeow:eventTrajectory (schema:MoveAction's fromLocation)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+
+gmeow:eventToLocation
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:eventLocation ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "event to-location"@x-gmeow-english ;
+    skos:definition "The destination of a movement event — where a migration, move, journey, or relocation arrived. A specialisation of gmeow:eventLocation, pairing with gmeow:eventFromLocation (schema:MoveAction's toLocation)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventTrajectory

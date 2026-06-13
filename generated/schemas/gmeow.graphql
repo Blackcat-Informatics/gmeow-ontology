@@ -656,6 +656,7 @@ enum EventTypeEnum
     eventTypeMarriage
     eventTypeMerge
     eventTypeMerger
+    eventTypeMigration
     eventTypeMilitaryService
     eventTypeNameChange
     eventTypeNaturalization
@@ -2318,6 +2319,7 @@ type Activity
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -2326,6 +2328,7 @@ type Activity
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -3520,6 +3523,7 @@ type BuildActivity
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -3528,6 +3532,7 @@ type BuildActivity
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -3993,6 +3998,7 @@ type CodeReview
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -4001,6 +4007,7 @@ type CodeReview
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -4193,6 +4200,7 @@ type Commit
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -4201,6 +4209,7 @@ type Commit
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -6200,6 +6209,7 @@ type Event
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -6208,6 +6218,7 @@ type Event
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -6393,6 +6404,7 @@ type Execution
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -6401,6 +6413,7 @@ type Execution
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -6805,6 +6818,7 @@ type FinancialTransaction
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -6813,6 +6827,7 @@ type FinancialTransaction
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -7309,6 +7324,7 @@ type GTSCompaction
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -7317,6 +7333,7 @@ type GTSCompaction
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -7654,6 +7671,7 @@ type ImportActivity
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -7662,6 +7680,7 @@ type ImportActivity
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -8224,6 +8243,7 @@ type JournalEntry
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -8232,6 +8252,7 @@ type JournalEntry
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -8368,6 +8389,7 @@ type LanguageChangeEvent
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -8376,6 +8398,7 @@ type LanguageChangeEvent
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -8423,6 +8446,7 @@ type LanguageCreation
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -8431,6 +8455,7 @@ type LanguageCreation
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -8698,6 +8723,7 @@ type LedgerEvent
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -8706,6 +8732,7 @@ type LedgerEvent
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -8949,6 +8976,7 @@ type LifeEvent
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -8957,6 +8985,7 @@ type LifeEvent
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -9757,6 +9786,7 @@ type Merge
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -9765,6 +9795,7 @@ type Merge
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -10093,6 +10124,7 @@ type ModelInvocation
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -10101,6 +10133,7 @@ type ModelInvocation
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -11100,6 +11133,7 @@ type ObservationalActivity
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -11108,6 +11142,7 @@ type ObservationalActivity
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -11633,6 +11668,7 @@ type Payment
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -11641,6 +11677,7 @@ type Payment
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -12781,6 +12818,7 @@ type Push
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -12789,6 +12827,7 @@ type Push
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -13272,6 +13311,7 @@ type Release
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -13280,6 +13320,7 @@ type Release
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -13447,6 +13488,7 @@ type RetrievalEvent
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -13455,6 +13497,7 @@ type RetrievalEvent
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -16177,6 +16220,7 @@ type Task
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -16185,6 +16229,7 @@ type Task
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -16607,6 +16652,7 @@ type ToolCall
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -16615,6 +16661,7 @@ type ToolCall
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -16961,6 +17008,7 @@ type VerificationActivity
     earliestStart: [String]
     eventAspect: [GrammaticalAspect]
     eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
     eventObservation: [Observation]
@@ -16969,6 +17017,7 @@ type VerificationActivity
     eventTense: [GrammaticalTense]
     eventTime: [String]
     eventTimeZone: TimeZone
+    eventToLocation: [Location]
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]

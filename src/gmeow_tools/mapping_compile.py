@@ -121,6 +121,8 @@ _PROFILES = (
     "bibframe",
     "gedcom",
     "sioc",
+    # Build provenance — the PROV qualification pattern (#415, #34 verdict 8)
+    "prov",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.
