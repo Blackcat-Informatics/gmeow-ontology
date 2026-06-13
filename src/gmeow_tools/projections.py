@@ -90,6 +90,12 @@ _EXAMPLE_FIXTURES = (
     # provenance chain that drives the PROV qualification profile (#415).
     "migrations.ttl",
     "builds.ttl",
+    # external-identifier records → schema:PropertyValue (#409).
+    "identifier-records.ttl",
+    # web-presence + media surface (#410).
+    "web-presence.ttl",
+    # syndicated content: postings, quotations, feeds (#412).
+    "syndication.ttl",
 )
 
 

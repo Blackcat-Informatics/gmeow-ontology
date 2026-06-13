@@ -63,6 +63,76 @@ gmeow:SerialWork
     skos:definition "An ongoing authored work released over installments — a web serial, comic series, or magazine. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
+# --------------------------------------------------------------------------- #
+# Syndicated content (#412): a FeedPosting is a short-form work published to a feed
+# or platform — a social-media post, a blog entry, a microblog. Its kind is an
+# OPEN value (postingKind: social / blog / microblog / …), never a subclass
+# (P9). Postings quote other content (gmeow:quotesContent) and share/repost it
+# (gmeow:sharesContent). This is the consumer the email slice's partial SIOC
+# projection was waiting on; postings project to schema:SocialMediaPosting /
+# BlogPosting and sioc:Post.
+# --------------------------------------------------------------------------- #
+
+gmeow:FeedPosting
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Work ;
+    rdfs:label "Feed Posting"@x-gmeow-english ;
+    skos:definition "A short-form work published to a feed, timeline, or platform — a social-media post, a blog entry, a microblog note. A specialisation of gmeow:Work; its kind (social / blog / microblog) is an open gmeow:FeedPostingKind value, never a subclass. Carries the work metadata (title, author, datePublished) and may quote (gmeow:quotesContent) or share (gmeow:sharesContent) other content."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:FeedPostingKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Feed Posting Kind"@x-gmeow-english ;
+    skos:definition "The kind of a syndicated posting — a VALUE vocabulary (individuals, never subclasses). Social, blog, microblog, forum, and status are examples; the set is open."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:feedPostingKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:FeedPosting ;
+    rdfs:range gmeow:FeedPostingKind ;
+    rdfs:label "posting kind"@x-gmeow-english ;
+    skos:definition "The kind of a posting — a value from the open gmeow:FeedPostingKind vocabulary (social, blog, microblog, …). Drives the schema projection (a social posting → schema:SocialMediaPosting, a blog posting → schema:BlogPosting)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:feedPostingKindSocial    a gmeow:FeedPostingKind ; rdfs:label "social"@x-gmeow-english ;    skos:definition "A social-media post (a timeline/feed status)."@x-gmeow-english .
+gmeow:feedPostingKindSocial rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+gmeow:feedPostingKindBlog      a gmeow:FeedPostingKind ; rdfs:label "blog"@x-gmeow-english ;      skos:definition "A blog entry or article post."@x-gmeow-english .
+gmeow:feedPostingKindBlog rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+gmeow:feedPostingKindMicroblog a gmeow:FeedPostingKind ; rdfs:label "microblog"@x-gmeow-english ; skos:definition "A short microblog note (a tweet-like status)."@x-gmeow-english .
+gmeow:feedPostingKindMicroblog rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:quotesContent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Work ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "quotes content"@x-gmeow-english ;
+    skos:definition "Relates a work (a posting, an article) to content it quotes — another posting, a passage, an external resource. Non-functional: a work may quote several sources. Projects to schema:Quotation / schema:citation. The quoted passage's text rides gmeow:quotedText when inline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:quotedText
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Work ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "quoted text"@x-gmeow-english ;
+    skos:definition "The inline text a work quotes when the quoted content is a passage rather than a linkable resource. Non-functional: several quoted passages may appear."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:sharesContent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:FeedPosting ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "shares content"@x-gmeow-english ;
+    skos:definition "Relates a posting to content it shares or reposts — another posting, an article, a media object. The repost/share/boost edge. Non-functional. Projects to schema:sharedContent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:DataFeed
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Collection ;
+    rdfs:label "Data Feed"@x-gmeow-english ;
+    skos:definition "A published, ordered stream of items — a syndication feed (RSS/Atom/JSON Feed), a timeline, an activity feed. A specialisation of gmeow:Collection; its items ride the universal gmeow:hasPart spine and project to schema:DataFeed / dataFeedElement / DataFeedItem."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
 gmeow:MediaObject
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -77,6 +147,71 @@ gmeow:WebPage
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Web Page"@x-gmeow-english ;
     skos:definition "A page on the web identified by a URL — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+# --------------------------------------------------------------------------- #
+# Web-presence model (#410): a WebSite is the published collection; WebPages
+# belong to it (gmeow:pageOfSite ⊑ partOf) and a page may name its principal
+# subject (gmeow:pagePrincipalSubject ⊑ isAbout). A ProfilePage is a DEFINED class —
+# any WebPage whose principal subject is an Agent — so schema:ProfilePage,
+# schema:WebSite and schema:mainEntityOfPage all derive structurally. Site
+# navigation (breadcrumbs, item lists) is the page hierarchy walked by the
+# projection, not a stored vocabulary.
+# --------------------------------------------------------------------------- #
+
+gmeow:WebSite
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Manifestation ;
+    rdfs:label "Web Site"@x-gmeow-english ;
+    skos:definition "A web site — the published collection of web pages served under one identity (a domain, a project site, a personal homepage). A specialization of gmeow:Manifestation; its pages belong to it via gmeow:pageOfSite."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:pageOfSite
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:partOf ;
+    rdfs:domain gmeow:WebPage ;
+    rdfs:range gmeow:WebSite ;
+    rdfs:label "page of site"@x-gmeow-english ;
+    skos:definition "Relates a web page to the web site it belongs to — a specialisation of gmeow:partOf, so site membership rides the universal mereology spine. The discrete page→site→… hierarchy a breadcrumb trail walks."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:pagePrincipalSubject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:isAbout ;
+    rdfs:domain gmeow:WebPage ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "page main entity"@x-gmeow-english ;
+    skos:definition "The principal subject a web page is primarily about — the one entity it represents (a person's profile page, an organization's about page). A functional specialisation of gmeow:isAbout (a page has at most one principal subject, though it may mention many). When the principal subject is an Agent the page is inferred a gmeow:ProfilePage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:ProfilePage
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:WebPage ;
+    rdfs:label "Profile Page"@x-gmeow-english ;
+    skos:definition "A web page whose principal subject is an agent — a person's or organization's profile/about page. A DEFINED class: any gmeow:WebPage whose gmeow:pagePrincipalSubject is a gmeow:Agent IS a ProfilePage (≡ gmeow:WebPage ⊓ ∃gmeow:pagePrincipalSubject.gmeow:Agent), so no manual typing is needed. Projects to schema:ProfilePage."@x-gmeow-english ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:intersectionOf (
+            gmeow:WebPage
+            [ a owl:Restriction ;
+              owl:onProperty gmeow:pagePrincipalSubject ;
+              owl:someValuesFrom gmeow:Agent ] ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:mediaType
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "media type"@x-gmeow-english ;
+    skos:definition "The IANA media (MIME) type of an artifact — 'text/plain', 'application/pdf', 'image/avif'. Universal: an email body part, a Manifestation, a Distribution all carry one. Projects to schema:encodingFormat. (Generalised from the email slice, #410.)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:contentLanguage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Work ;
+    rdfs:range gmeow:Language ;
+    rdfs:label "content language"@x-gmeow-english ;
+    skos:definition "The natural language of a work's content — the language a document, article, or page is written in. Distinct from the names slice's per-appellation language tag: this is the language of the BODY, not of a name. Non-functional: a multilingual work has several. Projects to schema:inLanguage / schema:iso6391Code (the BCP-47 / ISO 639-1 code reconstructed from the gmeow:Language)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:BookRelease

@@ -68,6 +68,44 @@ segments of a work — publication order, internal chronology, author-recommende
 fandom. Claims are annotated `gmeow:accordingTo` a ReadingOrder; no order is ever
 ontology truth.
 
+## Syndicated content
+
+### gmeow:FeedPosting · gmeow:feedPostingKind · gmeow:quotesContent · gmeow:sharesContent · gmeow:DataFeed
+
+The syndication surface (#412). A `gmeow:FeedPosting` is a short-form work published
+to a feed or platform — its kind (`gmeow:feedPostingKind`: social / blog / microblog)
+is an **open value**, never a subclass (P9), and drives the schema split
+(`schema:SocialMediaPosting` vs `schema:BlogPosting`). `gmeow:quotesContent` (with the
+inline `gmeow:quotedText`) becomes `schema:Quotation` + `schema:citation`;
+`gmeow:sharesContent` is the repost/boost edge → `schema:sharedContent` /
+`sioc:links_to`. A `gmeow:DataFeed` is a published ordered item stream (RSS/Atom/JSON
+Feed, a timeline) whose members ride the `hasPart` spine → `schema:DataFeed` /
+`dataFeedElement` / `DataFeedItem`. FeedPostings **resolve the email slice's declared
+SIOC partiality**: a posting IS a `sioc:Post`, so email is no longer SIOC's only
+consumer. (`gmeow:Posting` in the finance slice is an unrelated ledger term — the feed
+posting is deliberately `FeedPosting`.)
+
+## Web presence
+
+### gmeow:WebSite · gmeow:pageOfSite · gmeow:pagePrincipalSubject · gmeow:ProfilePage
+
+The web-presence model (#410). A `gmeow:WebSite` is the published collection; a
+`gmeow:WebPage` belongs to it via `gmeow:pageOfSite` (a subproperty of `partOf`, so
+site membership rides the universal mereology — the discrete hierarchy a breadcrumb
+trail walks). `gmeow:pagePrincipalSubject` (functional, a subproperty of `isAbout`) names
+the one entity a page principally represents. `gmeow:ProfilePage` is a **defined**
+class — any WebPage whose `pagePrincipalSubject` is a `gmeow:Agent` — so
+`schema:ProfilePage` / `schema:WebSite` / `schema:mainEntityOfPage` and the
+`BreadcrumbList`/`ListItem` walk all derive structurally, never from stored
+navigation config.
+
+### gmeow:contentLanguage
+
+The natural language of a **work's body** — distinct from the names slice's
+per-appellation language tag, which is the language of a *name*. Non-functional (a
+multilingual work has several); projects to `schema:inLanguage` / `schema:iso6391Code`
+by reconstructing the BCP-47 / ISO 639-1 code from the `gmeow:Language`.
+
 ## Manifestations and the image-depiction spine
 
 ### gmeow:MediaObject

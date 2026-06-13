@@ -400,13 +400,9 @@ gmeow:headerValue
     skos:definition "The field value of a message header."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
-gmeow:mediaType
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:BodyPart ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "media type"@x-gmeow-english ;
-    skos:definition "The MIME media type of a body part (e.g. text/plain, application/pdf)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+# gmeow:mediaType is the UNIVERSAL artifact media type, defined in the core
+# documents slice (an email BodyPart, a Manifestation, a Distribution all carry
+# one). Used here on BodyPart; not redefined (Principle 5 — one term, one home).
 
 gmeow:filename
     a owl:DatatypeProperty, owl:FunctionalProperty ;

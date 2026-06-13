@@ -95,6 +95,23 @@ codes (e.g. LEI + ROR + NAICS). Each Identifier node bundles `gmeow:identifierVa
 Reification ensures SPARQL projections pair the correct value with its scheme.
 Optional `gmeow:jurisdiction` links to a `gmeow:Location`.
 
+### gmeow:Identifier as the universal external-identifier record
+
+`gmeow:Identifier` is **not** organization-only — it is the universal reified
+external-identifier record (#409). `gmeow:hasIdentifier` has domain `gmeow:Entity`,
+so a person carries an ORCID, a geni profile id, and a Nostr `nip05` the same way
+an organization carries a LEI. It is the **structured sibling** of
+`gmeow:authorityLink` (coreference): a flat `authorityLink` points at an external
+record by IRI, while an Identifier decomposes the scheme, the scheme-local value,
+and the resolvable `gmeow:identifierUrl` — exactly the parts `schema:PropertyValue`
+(`propertyID`/`value`/`url`) and DataCite `relatedIdentifier` carry. The human
+display caption ("Geni profile", "ORCID iD") is the record's own **`rdfs:label`**,
+not a bespoke `*Name` property: a *Name* in GMEOW is a reified `gmeow:Appellation`
+borne by an entity (the names slice), whereas this is a plain display label, so the
+projection reads `rdfs:label` → `schema:name`. `gmeow:legalIdentifier` /
+`gmeow:industryClassification` / `gmeow:jurisdiction` specialise it for the
+organization case; the generic record serves every entity.
+
 ## Purpose
 
 `gmeow:organizationPurpose` is free text. Hierarchical resolution and cross-scheme

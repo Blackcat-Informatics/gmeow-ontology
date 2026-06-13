@@ -468,3 +468,21 @@ gmeow:eqClasses054 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "Credential Engine CTDL Credential — superset by reference" ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Identifier ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:PropertyValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the reified external-identifier record IS schema's PropertyValue bundle (propertyID/value/url/name); closeMatch — schema's PropertyValue is broader (any keyed value), the projection narrows to identifier records (#409)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses056 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:DataFeed ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:DataFeed ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a published ordered item stream IS schema:DataFeed (#412)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .

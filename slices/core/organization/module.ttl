@@ -207,26 +207,47 @@ gmeow:successorOrganization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 # =========================================================================== #
-# Identifier — reified to avoid conflation when an organization carries
-# multiple codes (e.g. LEI + ROR + NAICS). The scheme binds to the Identifier
-# node, not the Organization, so SPARQL projections pair the correct value with
-# its scheme (Principle 4, review feedback).
+# Identifier — the UNIVERSAL reified external-identifier record (#409). Reified
+# to avoid conflation when an entity carries multiple codes (an organization's
+# LEI + ROR + NAICS; a person's ORCID + geni + nip05). The scheme binds to the
+# Identifier node, not the bearer, so SPARQL projections pair the correct value
+# with its scheme (Principle 4). It is the STRUCTURED sibling of
+# gmeow:authorityLink (coreference): authorityLink is the flat see-also IRI;
+# an Identifier decomposes scheme × scheme-local value × authority URL × human
+# label, which is what schema:PropertyValue / DataCite relatedIdentifiers need.
+# The org-specific legalIdentifier / industryClassification / jurisdiction below
+# specialise it; it lives here (the organization slice already defines it) and
+# is generalised in place rather than duplicated.
 # =========================================================================== #
 
 gmeow:Identifier
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:FunctionalComplex ;
     rdfs:label "Identifier"@x-gmeow-english ;
-    skos:definition "A reified identifier bundling a value with its scheme — a LEI, ROR ID, NAICS code, ISIC code, company-registration number, etc. Reification ensures that when an organization carries multiple identifiers, each value is paired with its correct scheme in SPARQL projections."@x-gmeow-english ;
+    skos:definition "A reified external-identifier record bundling a scheme-local value with its scheme, and optionally the authority URL that resolves it and a human-readable name — an ORCID, a geni profile id, a Nostr nip05, a LEI, a ROR ID, a NAICS code. Reification ensures that when an entity carries multiple identifiers, each value is paired with its correct scheme (and url/name) in projections. The structured sibling of gmeow:authorityLink: a flat authorityLink points at an external record by IRI; an Identifier decomposes the scheme/value/url/name a schema:PropertyValue or DataCite relatedIdentifier carries."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 gmeow:hasIdentifier
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Organization ;
+    rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:Identifier ;
     rdfs:label "has identifier"@x-gmeow-english ;
-    skos:definition "Relates an organization to a formal identifier (legal ID, industry code, etc.). Non-functional: an organization may have several identifiers, and competing standpoint-indexed identifiers coexist."@x-gmeow-english ;
+    skos:definition "Relates an entity to a reified external-identifier record (an ORCID, geni id, nip05, LEI, industry code, …). Domain is gmeow:Entity: persons, organizations, works and places all carry external identifiers. Non-functional: an entity may have several identifiers, and competing standpoint-indexed identifiers coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:identifierUrl
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Identifier ;
+    rdfs:label "identifier url"@x-gmeow-english ;
+    skos:definition "The authority URL that resolves an identifier record — e.g. the geni profile page, the ORCID record URL, the ROR landing page. The resolvable counterpart of the scheme-local gmeow:identifierValue; projects to schema:PropertyValue/url. Range is intentionally open (an IRI)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+# A human-readable caption for an identifier record ('Geni profile', 'ORCID
+# iD', 'ROR') is a display LABEL, not an entity's Name (a Name is a reified
+# gmeow:Appellation borne by an entity — the names slice). So it rides the
+# universal rdfs:label on the gmeow:Identifier node rather than a bespoke
+# *Name property; the schema:PropertyValue projection reads rdfs:label →
+# schema:name (#409).
 
 gmeow:legalIdentifier
     a owl:ObjectProperty ;

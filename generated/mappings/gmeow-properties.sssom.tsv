@@ -31,12 +31,14 @@ gmeow:accountName	owl:equivalentProperty	foaf:accountName		semapv:ManualMappingC
 gmeow:coarsenTo	skos:closeMatch	dpv:Generalisation		semapv:ManualMappingCuration	0.8	DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN (#73)
 gmeow:coarserThan	skos:closeMatch	skos:broader		semapv:ManualMappingCuration	0.8	SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan
 gmeow:containedInPlace	owl:equivalentProperty	schema:containedInPlace		semapv:ManualMappingCuration	1.0	
+gmeow:corpusMember	skos:closeMatch	schema:distribution		semapv:ManualMappingCuration	0.8	a dataset's corpus members are its schema:distribution DataDownloads (#410)
 gmeow:credentialFor	skos:closeMatch	schema:competencyRequired		semapv:ManualMappingCuration	0.8	schema.org competencyRequired — the credential-to-skill/occupation link downcasts lossily
 gmeow:credentialIssuer	skos:closeMatch	ceterms:ownedBy		semapv:ManualMappingCuration	0.8	CTDL ownedBy — the organization that owns/issued the credential
 gmeow:credentialIssuer	skos:closeMatch	schema:recognizedBy		semapv:ManualMappingCuration	0.8	schema.org recognizedBy — the credential issuer
 gmeow:credentialIssuer	skos:closeMatch	schema:sourceOrganization		semapv:ManualMappingCuration	0.8	schema.org sourceOrganization — the organization that issued the credential
 gmeow:datePublished	owl:equivalentProperty	schema:datePublished		semapv:ManualMappingCuration	1.0	
 gmeow:datePublished	skos:closeMatch	dcterms:issued		semapv:ManualMappingCuration	0.9	DCTerms issued — the publication date is the issue/release date in DCMI Terms
+gmeow:depictedIn	skos:closeMatch	schema:image		semapv:ManualMappingCuration	0.8	the inverse of depicts: an entity's image is the MediaObject depicting it → schema:image (#410)
 gmeow:description	owl:equivalentProperty	schema:description		semapv:ManualMappingCuration	1.0	
 gmeow:description	skos:closeMatch	dcterms:description		semapv:ManualMappingCuration	0.9	
 gmeow:description	skos:closeMatch	vcard:note		semapv:ManualMappingCuration	0.8	
@@ -75,6 +77,7 @@ gmeow:holdsAccount	owl:equivalentProperty	foaf:account		semapv:ManualMappingCura
 gmeow:holdsCredential	owl:equivalentProperty	schema:hasCredential		semapv:ManualMappingCuration	1.0	
 gmeow:identifier	skos:closeMatch	bibo:doi		semapv:ManualMappingCuration	0.8	
 gmeow:identifier	skos:closeMatch	dcterms:identifier		semapv:ManualMappingCuration	0.9	DCTerms identifier — a formal identifier such as a DOI or patent number
+gmeow:identifierScheme	skos:closeMatch	schema:propertyID		semapv:ManualMappingCuration	0.85	the identifier's scheme code IS schema:PropertyValue's propertyID (#409)
 gmeow:industryClassification	skos:closeMatch	org:classification		semapv:ManualMappingCuration	0.8	industryClassification carries open codes (NAICS/ISIC); org:classification is broader
 gmeow:latitude	owl:equivalentProperty	schema:latitude		semapv:ManualMappingCuration	1.0	
 gmeow:longitude	owl:equivalentProperty	schema:longitude		semapv:ManualMappingCuration	1.0	
@@ -85,6 +88,7 @@ gmeow:name	owl:equivalentProperty	foaf:name		semapv:ManualMappingCuration	1.0
 gmeow:name	owl:equivalentProperty	schema:name		semapv:ManualMappingCuration	1.0	
 gmeow:name	skos:closeMatch	vcard:fn		semapv:ManualMappingCuration	0.9	
 gmeow:organizationPurpose	owl:equivalentProperty	org:purpose		semapv:ManualMappingCuration	0.9	
+gmeow:pagePrincipalSubject	skos:closeMatch	schema:mainEntity		semapv:ManualMappingCuration	0.85	a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage (#410)
 gmeow:partOf	skos:closeMatch	bfo:BFO_0000050	part of	semapv:ManualMappingCuration	0.85	BFO continuant/occurrent parthood is the OBO hub; GMEOW partOf is a broader universal spine across modules
 gmeow:partOf	skos:closeMatch	crm:P46i_forms_part_of		semapv:ManualMappingCuration	0.75	CIDOC CRM P46 inverse forms part of — physical/conceptual object parthood; narrower than GMEOW universal partOf
 gmeow:partOf	skos:closeMatch	dcterms:isPartOf		semapv:ManualMappingCuration	0.75	
@@ -95,6 +99,7 @@ gmeow:partOf	skos:closeMatch	gufo:isSubCollectionOf		semapv:ManualMappingCuratio
 gmeow:partOf	skos:closeMatch	schema:isPartOf		semapv:ManualMappingCuration	0.8	
 gmeow:postIn	owl:equivalentProperty	org:postIn		semapv:ManualMappingCuration	0.9	
 gmeow:predecessorOrganization	skos:closeMatch	org:originalOrganization		semapv:ManualMappingCuration	0.9	predecessorOrganization on Event ≈ originalOrganization on ChangeEvent
+gmeow:sourceLocation	skos:closeMatch	schema:contentUrl		semapv:ManualMappingCuration	0.85	a source/distribution's resolvable location IS schema:contentUrl on the DataDownload (#410)
 gmeow:subOrganizationOf	owl:equivalentProperty	org:subOrganizationOf		semapv:ManualMappingCuration	0.9	
 gmeow:subOrganizationOf	owl:equivalentProperty	schema:parentOrganization		semapv:ManualMappingCuration	0.9	
 gmeow:successorOrganization	skos:closeMatch	org:resultingOrganization		semapv:ManualMappingCuration	0.9	successorOrganization on Event ≈ resultingOrganization on ChangeEvent

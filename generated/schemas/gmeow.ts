@@ -767,6 +767,13 @@ export enum ExpressionLanguageEnum {
     XACML = "exprLangXacml",
 };
 
+export enum FeedPostingKindEnum {
+
+    blog = "feedPostingKindBlog",
+    microblog = "feedPostingKindMicroblog",
+    social = "feedPostingKindSocial",
+};
+
 export enum FinancialAccountTypeEnum {
 
     bank_account = "accountTypeBank",
@@ -2640,7 +2647,6 @@ export interface BodyPart extends InformationObject {
     contentId?: string[],
     hasContentDisposition?: ContentDisposition,
     hasContentTransferEncoding?: ContentTransferEncoding,
-    mediaType?: string,
     partId?: string[],
 }
 
@@ -3212,6 +3218,11 @@ export interface DKIMSignature extends CryptographicSignature {
 
 
 
+export interface DataFeed extends Collection {
+}
+
+
+
 export interface DataFlow {
     dataFlowEntity?: Entity[],
     dataFlowSource?: ProcedureStep[],
@@ -3421,6 +3432,7 @@ export interface Entity {
     hasCreationEvent?: Event[],
     hasDestructionEvent?: Event[],
     hasDirectReply?: Comment[],
+    hasIdentifier?: Identifier[],
     hasLicense?: License[],
     hasPose?: Pose[],
     hasReply?: Comment[],
@@ -3438,6 +3450,7 @@ export interface Entity {
     isReferencedBy?: Entity[],
     isResultOf?: Observation[],
     locatedAt?: Location[],
+    mediaType?: string,
     mentionedIn?: Note[],
     name?: string[],
     provenance?: string[],
@@ -3633,6 +3646,18 @@ export interface ExtractedRelationship extends InformationObject {
 
 
 export interface Family extends Group {
+}
+
+
+
+export interface FeedPosting extends Work {
+    feedPostingKind?: FeedPostingKind,
+    sharesContent?: Entity[],
+}
+
+
+
+export interface FeedPostingKind {
 }
 
 
@@ -3861,6 +3886,7 @@ export interface HonorificPosition {
 
 export interface Identifier {
     identifierScheme?: string[],
+    identifierUrl?: string,
     identifierValue?: string[],
     jurisdiction?: Location[],
 }
@@ -4768,7 +4794,6 @@ export interface OrderStatus {
 
 
 export interface Organization extends Agent {
-    hasIdentifier?: Identifier[],
     hasMember?: Agent[],
     hasOrganizationName?: OrganizationName[],
     hasSite?: Location[],
@@ -5057,6 +5082,11 @@ export interface Profile extends InformationObject {
     profileAppliesTo?: string[],
     profileDescriptor?: string,
     profileOpenValue?: string[],
+}
+
+
+
+export interface ProfilePage extends WebPage {
 }
 
 
@@ -6070,11 +6100,21 @@ export interface WalletScheme {
 
 
 export interface WebPage extends Manifestation {
+    pageOfSite?: WebSite[],
+    pagePrincipalSubject?: Entity,
+}
+
+
+
+export interface WebSite extends Manifestation {
 }
 
 
 
 export interface Work extends CreativeWork {
+    contentLanguage?: Language[],
+    quotedText?: string[],
+    quotesContent?: Entity[],
     realizedThrough?: Expression[],
 }
 

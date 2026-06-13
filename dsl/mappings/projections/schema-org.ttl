@@ -1122,3 +1122,238 @@ gmeow:mapSchemaMoveActionTo a gmeow:ProjectionMapping ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "mvtEv" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:MoveAction ]
             [ gmeow:tSubj "mvtEv" ; gmeow:tPred schema:toLocation ; gmeow:tObj "mvTo" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# External-identifier records → schema:PropertyValue (#409). The reified
+# gmeow:Identifier node IS the property-value bundle, so it is REUSED as the
+# schema:PropertyValue (no mint): propertyID ← the scheme code, value ← the
+# scheme-local value, url ← the resolvable authority URL, name ← the human
+# label. Hung off the bearing entity by schema:identifier. This is the largest
+# #34 backlog cluster (the geni / ORCID / nip05 profile rows).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaIdentifierRecord a gmeow:ProjectionMapping ;
+    rdfs:label "Identifier record → schema:PropertyValue"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "idrEnt" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "idrEnt" ; gmeow:predicate gmeow:hasIdentifier ; gmeow:objectVar "idrRec" ]
+            [ gmeow:subjectVar "idrRec" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectVar "idrScheme" ]
+            [ gmeow:subjectVar "idrRec" ; gmeow:predicate gmeow:identifierValue ; gmeow:objectVar "idrValue" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "idrRec" ; gmeow:predicate gmeow:identifierUrl ; gmeow:objectVar "idrUrl" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "idrRec" ; gmeow:predicate rdfs:label ; gmeow:objectVar "idrName" ] ) ] ) ;
+        gmeow:edoalSource gmeow:Identifier ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "jurisdiction and any standpoint/validity detail on the record drop; schema's PropertyValue carries only the scheme/value/url/name quad; the record's rdfs:label is its display name" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "idrEnt" ; gmeow:tPred schema:identifier ; gmeow:tObj "idrRec" ]
+            [ gmeow:tSubj "idrRec" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:PropertyValue ]
+            [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:propertyID ; gmeow:tObj "idrScheme" ]
+            [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:value ; gmeow:tObj "idrValue" ]
+            [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:url ; gmeow:tObj "idrUrl" ]
+            [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:name ; gmeow:tObj "idrName" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# Web presence (#410). WebSite typing; the page→site hierarchy as isPartOf (the
+# breadcrumb trail); a page's principal subject as schema:mainEntity (and its
+# inverse schema:mainEntityOfPage); ProfilePage derived STRUCTURALLY from a page
+# whose principal subject is an Agent (the defined-class logic, matched directly
+# so no reasoner materialization is needed).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaWebSite a gmeow:ProjectionMapping ;
+    rdfs:label "WebSite → schema:WebSite"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "wsite" ;
+        gmeow:atom ( [ gmeow:subjectVar "wsite" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:WebSite ] ) ;
+        gmeow:edoalSource gmeow:WebSite ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:WebSite ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaPageOfSite a gmeow:ProjectionMapping ;
+    rdfs:label "pageOfSite → schema:isPartOf (the breadcrumb trail)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "posPage" ; gmeow:value "posSite" ;
+        gmeow:atom ( [ gmeow:subjectVar "posPage" ; gmeow:predicate gmeow:pageOfSite ; gmeow:objectVar "posSite" ] ) ;
+        gmeow:edoalSource gmeow:pageOfSite ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:isPartOf ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the page→site mereology is the breadcrumb hierarchy; schema:BreadcrumbList's ordered ListItem wrapper is a presentation concern over this isPartOf chain (P12)" ] .
+
+gmeow:mapSchemaPageMainEntity a gmeow:ProjectionMapping ;
+    rdfs:label "pagePrincipalSubject → schema:mainEntity (+ inverse mainEntityOfPage)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pmePage" ; gmeow:value "pmeEnt" ;
+        gmeow:atom ( [ gmeow:subjectVar "pmePage" ; gmeow:predicate gmeow:pagePrincipalSubject ; gmeow:objectVar "pmeEnt" ] ) ;
+        gmeow:edoalSource gmeow:pagePrincipalSubject ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the page's other isAbout mentions drop; only the principal subject becomes mainEntity, with its inverse mainEntityOfPage on the subject" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "pmePage" ; gmeow:tPred schema:mainEntity ; gmeow:tObj "pmeEnt" ]
+            [ gmeow:tSubj "pmeEnt" ; gmeow:tPred schema:mainEntityOfPage ; gmeow:tObj "pmePage" ] ) ] .
+
+gmeow:mapSchemaProfilePage a gmeow:ProjectionMapping ;
+    rdfs:label "WebPage about an Agent → schema:ProfilePage (defined-class logic)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ppPage" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ppPage" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:WebPage ]
+            [ gmeow:subjectVar "ppPage" ; gmeow:predicate gmeow:pagePrincipalSubject ; gmeow:objectVar "ppAgent" ]
+            [ gmeow:subjectVar "ppAgent" ;
+              gmeow:path [ a gmeow:SeqPath ; gmeow:pathSteps
+                  ( rdf:type [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subClassOf ] ) ] ;
+              gmeow:objectValue gmeow:Agent ] ) ;
+        gmeow:edoalSource gmeow:ProfilePage ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toClass schema:ProfilePage ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the WebPage→ProfilePage refinement is the defined-class inference (page principally about an Agent); schema gets the bare ProfilePage typing" ] .
+
+gmeow:mapSchemaInLanguage a gmeow:ProjectionMapping ;
+    rdfs:label "contentLanguage → schema:inLanguage / iso6391Code"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ilWork" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ilWork" ; gmeow:predicate gmeow:contentLanguage ; gmeow:objectVar "ilLang" ]
+            [ gmeow:subjectVar "ilLang" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "ilTag" ] ) ;
+        gmeow:edoalSource gmeow:contentLanguage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the first-class gmeow:Language collapses to its BCP-47 / ISO 639-1 tag string; script and variety detail drop" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ilWork" ; gmeow:tPred schema:inLanguage ; gmeow:tObj "ilTag" ] ) ] .
+
+gmeow:mapSchemaEncodingFormat a gmeow:ProjectionMapping ;
+    rdfs:label "mediaType → schema:encodingFormat"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "efObj" ; gmeow:value "efType" ;
+        gmeow:atom ( [ gmeow:subjectVar "efObj" ; gmeow:predicate gmeow:mediaType ; gmeow:objectVar "efType" ] ) ;
+        gmeow:edoalSource gmeow:mediaType ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:encodingFormat ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaImage a gmeow:ProjectionMapping ;
+    rdfs:label "depicted entity → schema:image (the depicting MediaObject)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "imgObj" ; gmeow:value "imgEnt" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "imgObj" ; gmeow:predicate gmeow:depicts ; gmeow:objectVar "imgEnt" ]
+            [ gmeow:subjectVar "imgObj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "imgEnt" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:depicts ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the depiction's context/period/audience drop; the entity gains schema:image pointing at the depicting MediaObject" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "imgEnt" ; gmeow:tPred schema:image ; gmeow:tObj "imgObj" ] ) ] .
+
+gmeow:mapSchemaVersionLineage a gmeow:ProjectionMapping ;
+    rdfs:label "hasVersion → schema:hasPart (the version entity)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "verLineage" ; gmeow:value "verEntity" ;
+        gmeow:atom ( [ gmeow:subjectVar "verLineage" ; gmeow:predicate gmeow:hasVersion ; gmeow:objectVar "verEntity" ] ) ;
+        gmeow:edoalSource gmeow:hasVersion ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:hasPart ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the version-lineage edge coarsens to schema:hasPart (the version is part of the lineage's release set); the lineage semantics drop" ] .
+
+# Dataset distribution → schema:DataDownload (mirrors the dcat leg). A corpus
+# member document is REUSED as the DataDownload node: contentUrl ← sourceLocation,
+# encodingFormat ← mediaType.
+gmeow:mapSchemaDataDownload a gmeow:ProjectionMapping ;
+    rdfs:label "corpusMember → schema:distribution + DataDownload"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ddCorpus" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ddCorpus" ; gmeow:predicate gmeow:corpusMember ; gmeow:objectVar "ddDoc" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ddDoc" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "ddUrl" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ddDoc" ; gmeow:predicate gmeow:mediaType ; gmeow:objectVar "ddFmt" ] ) ] ) ;
+        gmeow:edoalSource gmeow:corpusMember ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the member document is REUSED as the schema:DataDownload node; its GMEOW typing drops" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ddCorpus" ; gmeow:tPred schema:distribution ; gmeow:tObj "ddDoc" ]
+            [ gmeow:tSubj "ddDoc" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:DataDownload ]
+            [ gmeow:tSubj "ddDoc" ; gmeow:tPred schema:contentUrl ; gmeow:tObj "ddUrl" ]
+            [ gmeow:tSubj "ddDoc" ; gmeow:tPred schema:encodingFormat ; gmeow:tObj "ddFmt" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# Syndicated content (#412): postings, quotations, shares, feeds. A FeedPosting
+# projects to schema:SocialMediaPosting or schema:BlogPosting by its kind value;
+# quoted content becomes a schema:Quotation; shared content rides
+# schema:sharedContent; a DataFeed and its members become schema:DataFeed +
+# dataFeedElement + DataFeedItem. The paudley profile's social presence is the
+# P15 consumer (the sioc partial's awaited consumer, resolved alongside).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaSocialPosting a gmeow:ProjectionMapping ;
+    rdfs:label "FeedPosting(social) → schema:SocialMediaPosting"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "spPost" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "spPost" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:FeedPosting ]
+            [ gmeow:subjectVar "spPost" ; gmeow:predicate gmeow:feedPostingKind ; gmeow:objectValue gmeow:feedPostingKindSocial ] ) ;
+        gmeow:edoalSource gmeow:FeedPosting ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toClass schema:SocialMediaPosting ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the open posting-kind value collapses to schema's fixed SocialMediaPosting class" ] .
+
+gmeow:mapSchemaMicroblogPosting a gmeow:ProjectionMapping ;
+    rdfs:label "FeedPosting(microblog) → schema:SocialMediaPosting"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mpPost" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "mpPost" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:FeedPosting ]
+            [ gmeow:subjectVar "mpPost" ; gmeow:predicate gmeow:feedPostingKind ; gmeow:objectValue gmeow:feedPostingKindMicroblog ] ) ;
+        gmeow:edoalSource gmeow:FeedPosting ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toClass schema:SocialMediaPosting ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "microblog narrows to schema's SocialMediaPosting (no microblog subclass)" ] .
+
+gmeow:mapSchemaBlogPosting a gmeow:ProjectionMapping ;
+    rdfs:label "FeedPosting(blog) → schema:BlogPosting"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bpPost" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "bpPost" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:FeedPosting ]
+            [ gmeow:subjectVar "bpPost" ; gmeow:predicate gmeow:feedPostingKind ; gmeow:objectValue gmeow:feedPostingKindBlog ] ) ;
+        gmeow:edoalSource gmeow:FeedPosting ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toClass schema:BlogPosting ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the open posting-kind value collapses to schema's fixed BlogPosting class" ] .
+
+gmeow:mapSchemaQuotation a gmeow:ProjectionMapping ;
+    rdfs:label "quotesContent → schema:Quotation + citation"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "qWork" ; gmeow:value "qSrc" ;
+        gmeow:atom ( [ gmeow:subjectVar "qWork" ; gmeow:predicate gmeow:quotesContent ; gmeow:objectVar "qSrc" ] ) ;
+        gmeow:edoalSource gmeow:quotesContent ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the quoted source is typed schema:Quotation and linked by schema:citation; inline quotedText (if any) is carried separately" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "qWork" ; gmeow:tPred schema:citation ; gmeow:tObj "qSrc" ]
+            [ gmeow:tSubj "qSrc" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Quotation ] ) ] .
+
+gmeow:mapSchemaSharedContent a gmeow:ProjectionMapping ;
+    rdfs:label "sharesContent → schema:sharedContent"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "scPost" ; gmeow:value "scShared" ;
+        gmeow:atom ( [ gmeow:subjectVar "scPost" ; gmeow:predicate gmeow:sharesContent ; gmeow:objectVar "scShared" ] ) ;
+        gmeow:edoalSource gmeow:sharesContent ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:sharedContent ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaDataFeed a gmeow:ProjectionMapping ;
+    rdfs:label "DataFeed + members → schema:DataFeed / dataFeedElement / DataFeedItem"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dfFeed" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dfFeed" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:DataFeed ]
+            [ gmeow:subjectVar "dfFeed" ; gmeow:predicate gmeow:hasPart ; gmeow:objectVar "dfItem" ] ) ;
+        gmeow:edoalSource gmeow:DataFeed ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the feed's ordered membership flattens to schema:dataFeedElement; each member is REUSED as a schema:DataFeedItem (no item-wrapper mint)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "dfFeed" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:DataFeed ]
+            [ gmeow:tSubj "dfFeed" ; gmeow:tPred schema:dataFeedElement ; gmeow:tObj "dfItem" ]
+            [ gmeow:tSubj "dfItem" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:DataFeedItem ] ) ] .

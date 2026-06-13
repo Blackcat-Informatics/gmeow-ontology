@@ -92,6 +92,15 @@ _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
         "http://www.w3.org/2006/time#inXSDDateTime",
         # the per-review ClaimReview's minted Rating node link (#34)
         "https://schema.org/reviewRating",
+        # the reused-node DataDownload typing + the inverse mainEntityOfPage
+        # leg of the web-presence projection (#410, structural outputs).
+        "https://schema.org/DataDownload",
+        "https://schema.org/mainEntityOfPage",
+        # syndication (#412): the quoted source typed Quotation, and the
+        # feed-member reused as a DataFeedItem with its dataFeedElement link.
+        "https://schema.org/Quotation",
+        "https://schema.org/DataFeedItem",
+        "https://schema.org/dataFeedElement",
         "http://id.loc.gov/ontologies/bibframe/Doi",
         "http://id.loc.gov/ontologies/bibframe/Identifier",
         # the minted identifier node's literal carrier (bibframe scans rdf:)

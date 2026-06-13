@@ -97,6 +97,14 @@
             align:relation "<=" ;
             edoal:measure 9.5e-01 ],
         [ a align:Cell ;
+            rdfs:label "FeedPosting(blog) → schema:BlogPosting"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:FeedPosting ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:BlogPosting ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "Mark → schema:Brand"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:Mark ] ;
@@ -252,6 +260,14 @@
                     edoal:uri schema:dissolutionDate ] ;
             align:relation "<=" ;
             edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "mediaType → schema:encodingFormat"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:mediaType ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:encodingFormat ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "exact authority coreference → schema:sameAs"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -498,6 +514,14 @@
             align:relation "<=" ;
             edoal:measure 7e-01 ],
         [ a align:Cell ;
+            rdfs:label "FeedPosting(microblog) → schema:SocialMediaPosting"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:FeedPosting ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:SocialMediaPosting ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "ModelCard → schema:SoftwareApplication on the described model agent"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:ModelCard ] ;
@@ -641,6 +665,14 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
         [ a align:Cell ;
+            rdfs:label "pageOfSite → schema:isPartOf (the breadcrumb trail)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:pageOfSite ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:isPartOf ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "generic partOf → schema:isPartOf"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:partOf ] ;
@@ -770,6 +802,14 @@
             edoal:measure 7e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnPostToOrganizationRole ] ],
         [ a align:Cell ;
+            rdfs:label "WebPage about an Agent → schema:ProfilePage (defined-class logic)"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:ProfilePage ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:ProfilePage ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:ProgrammingLanguage ] ;
@@ -784,6 +824,14 @@
                     edoal:uri schema:result ] ;
             align:relation "<=" ;
             edoal:measure 7.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "sharesContent → schema:sharedContent"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sharesContent ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:sharedContent ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "SkillProficiency relator → schema:knowsAbout / schema:skills (flatten)"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -800,6 +848,14 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:skills ] ;
             align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "FeedPosting(social) → schema:SocialMediaPosting"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:FeedPosting ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:SocialMediaPosting ] ;
+            align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "Repository → schema:SoftwareSourceCode + codeRepository"@en ;
@@ -866,6 +922,22 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:usageInfo ] ;
             align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasVersion → schema:hasPart (the version entity)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasVersion ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:hasPart ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "WebSite → schema:WebSite"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:WebSite ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:WebSite ] ;
+            align:relation "<=" ;
             edoal:measure 9e-01 ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
