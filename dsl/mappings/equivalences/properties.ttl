@@ -729,3 +729,39 @@ gmeow:eqProperties082 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage (#410)" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties083 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:makesOffer ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:makesOffer ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties084 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:itemOffered ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:itemOffered ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties085 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:offeringProvider ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:provider ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties086 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:serviceType ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:serviceType ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties087 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:areaServed ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:areaServed ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties088 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasOpeningHours ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:openingHoursSpecification ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties089 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:openingDay ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:dayOfWeek ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties090 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:opensAt ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:opens ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties091 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:closesAt ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:closes ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties092 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:accountServiceHomepage ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject foaf:accountServiceHomepage ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "FOAF's OnlineAccount service-homepage idiom (#411/#417)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties093 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasExifTag ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:exifData ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "reified EXIF tags → schema:exifData PropertyValues (#413, lossless)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .

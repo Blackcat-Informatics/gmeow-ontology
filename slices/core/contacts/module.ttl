@@ -129,6 +129,46 @@ gmeow:hasContactPoint
     skos:definition "Relates an agent to a means of contacting it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
+# --------------------------------------------------------------------------- #
+# Contact-point usage (#411, #417): the role a contact point plays (personal,
+# work, a personal domain, support, …) is an OPEN value vocabulary (P9), never
+# a subclass; the issuing/scoping organization is a context edge. A retired
+# contact point is carried with validUntil in the past (the domain-free
+# temporal properties), never deleted (P10).
+# --------------------------------------------------------------------------- #
+
+gmeow:ContactPointType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Contact Point Type"@x-gmeow-english ;
+    skos:definition "The usage role of a contact point — a VALUE vocabulary (individuals, never subclasses). Personal, work, personal-domain, support, billing, and emergency are examples; the set is open. Projects to schema:contactType and the vCard TYPE parameter."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+
+gmeow:contactPointType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ContactPoint ;
+    rdfs:range gmeow:ContactPointType ;
+    rdfs:label "contact point type"@x-gmeow-english ;
+    skos:definition "The usage role(s) of a contact point — one or more gmeow:ContactPointType values (personal, work, …). Non-functional: a contact point may serve several roles, and competing standpoint-indexed classifications coexist (P9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+
+gmeow:contactPointTypePersonal       a gmeow:ContactPointType ; rdfs:label "personal"@x-gmeow-english ;        skos:definition "A personal contact point."@x-gmeow-english .
+gmeow:contactPointTypePersonal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+gmeow:contactPointTypeWork           a gmeow:ContactPointType ; rdfs:label "work"@x-gmeow-english ;            skos:definition "A work or professional contact point."@x-gmeow-english .
+gmeow:contactPointTypeWork rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+gmeow:contactPointTypePersonalDomain a gmeow:ContactPointType ; rdfs:label "personal domain"@x-gmeow-english ; skos:definition "A contact point on a person's own domain (e.g. an email at one's personal domain)."@x-gmeow-english .
+gmeow:contactPointTypePersonalDomain rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+gmeow:contactPointTypeSupport        a gmeow:ContactPointType ; rdfs:label "support"@x-gmeow-english ;         skos:definition "A customer-support or help contact point."@x-gmeow-english .
+gmeow:contactPointTypeSupport rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+
+gmeow:contactPointProvider
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ContactPoint ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "contact point provider"@x-gmeow-english ;
+    skos:definition "The agent (typically an organization) that issues or scopes a contact point — the employer behind a work address, the provider behind an email's domain. Range is gmeow:Agent to avoid a contacts→organization dependency while admitting organizations. Non-functional. The context that distinguishes 'my work email at ACME' from a personal one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+
 gmeow:email
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Agent ;

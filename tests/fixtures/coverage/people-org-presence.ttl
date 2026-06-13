@@ -1,0 +1,115 @@
+# Coverage + projection fixture for the people/org/accounts/presence + long-tail
+# surface (#411, #417, #413). A person with a typed work contact point and an
+# online account on a live service plus a retired account on a shut-down
+# service; an org they founded and own, making a service offer with opening
+# hours; a software project; a couple with a marriage event; a patent inventor.
+
+@prefix ex:    <https://example.org/po/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- person, contact points, accounts (#411, #417) ------------------------- #
+
+ex:patrick a gmeow:Person ; rdfs:label "Patrick"@en ;
+    gmeow:hasContactPoint ex:workEmail ;
+    gmeow:holdsAccount ex:gh , ex:y360acct ;
+    gmeow:founderOf ex:bii ;
+    gmeow:ownerOf ex:bii .
+
+ex:workEmail a gmeow:EmailAddress ;
+    gmeow:contactPointType gmeow:contactPointTypeWork ;
+    gmeow:contactPointProvider ex:bii .
+
+ex:gh a gmeow:OnlineAccount ;
+    gmeow:accountName "paudley" ;
+    gmeow:accountService ex:github ;
+    gmeow:accountServiceHomepage <https://github.com> ;
+    gmeow:accountStatus gmeow:accountStatusActive .
+
+ex:github a gmeow:OnlineService ; rdfs:label "GitHub"@en ;
+    gmeow:serviceStatus gmeow:serviceStatusLive .
+
+# A retired account on a shut-down service — retained, never deleted (#417, P10).
+ex:y360acct a gmeow:OnlineAccount ;
+    gmeow:accountName "patrick360" ;
+    gmeow:accountService ex:yahoo360 ;
+    gmeow:accountStatus gmeow:accountStatusHistorical ;
+    gmeow:validUntil "2009-07-13T00:00:00Z"^^xsd:dateTime .
+
+ex:yahoo360 a gmeow:OnlineService ; rdfs:label "Yahoo 360"@en ;
+    gmeow:serviceStatus gmeow:serviceStatusShutDown ;
+    gmeow:serviceShutdownDate "2009-07-13T00:00:00Z"^^xsd:dateTime .
+
+# --- organization: founding, ownership, offerings (#411, #413) -------------- #
+
+ex:bii a gmeow:Organization ; rdfs:label "Blackcat Informatics"@en ;
+    gmeow:foundedBy ex:patrick ;
+    gmeow:makesOffer ex:consultOffer .
+
+ex:consultOffer a gmeow:Offering ;
+    gmeow:itemOffered ex:consulting ;
+    gmeow:offeringProvider ex:bii ;
+    gmeow:hasOpeningHours ex:hours .
+
+ex:consulting a gmeow:ServiceOffering ;
+    gmeow:serviceType ex:typeConsult ;
+    gmeow:areaServed ex:canada .
+
+ex:typeConsult a gmeow:ServiceType ; rdfs:label "consulting"@en .
+ex:canada a gmeow:Place ; rdfs:label "Canada"@en .
+
+ex:hours a gmeow:OpeningHoursSpecification ;
+    gmeow:openingDay gmeow:dayMonday ;
+    gmeow:opensAt "09:00:00"^^xsd:time ;
+    gmeow:closesAt "17:00:00"^^xsd:time .
+
+# --- publisher contribution (#411) ----------------------------------------- #
+
+ex:book a gmeow:Document ; rdfs:label "A Book"@en .
+ex:pubContrib a gmeow:Contribution ;
+    gmeow:contributionTarget ex:book ;
+    gmeow:contributor ex:press ;
+    gmeow:contributionRole gmeow:rolePublisher .
+ex:press a gmeow:Organization ; rdfs:label "Penguin"@en .
+
+# --- patent inventor (#413) ------------------------------------------------ #
+
+ex:patent a gmeow:Patent ; rdfs:label "A Patent"@en .
+ex:invContrib a gmeow:Contribution ;
+    gmeow:contributionTarget ex:patent ;
+    gmeow:contributor ex:patrick ;
+    gmeow:contributionRole gmeow:roleInventor .
+
+# --- software project: homepage + language (#413) -------------------------- #
+
+ex:gmeowProj a gmeow:SoftwareProject ; rdfs:label "GMEOW"@en ;
+    gmeow:projectHomepage <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:programmingLanguage ex:python .
+ex:python a gmeow:ProgrammingLanguage ; rdfs:label "Python"@en .
+
+# --- genealogy: couple + marriage event (#413) ----------------------------- #
+
+ex:couple a gmeow:CoupleRelationship ;
+    gmeow:hasPartner ex:alice , ex:bob ;
+    gmeow:hasCoupleEvent ex:marriageEv .
+ex:alice a gmeow:Person ; rdfs:label "Alice"@en .
+ex:bob a gmeow:Person ; rdfs:label "Bob"@en .
+ex:marriageEv a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:eventTime "1952-06-14T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventLocation ex:mundare .
+ex:mundare a gmeow:Place ; rdfs:label "Mundare, Alberta"@en .
+
+# --- contact affordances (#412) + EXIF tags (#413) ------------------------- #
+
+ex:bii gmeow:email "work.with.us@blackcatinformatics.ca" ;
+    gmeow:telephone "+16042452120" .
+
+ex:photo a gmeow:MediaObject ; rdfs:label "a photo"@en ;
+    gmeow:mediaType "image/avif" ;
+    gmeow:hasExifTag ex:exAperture , ex:exColorSpace .
+ex:exAperture a gmeow:ExifTag ;
+    gmeow:exifTagId "FNumber" ; gmeow:exifTagValue "f/2.0" ; rdfs:label "Aperture"@en .
+ex:exColorSpace a gmeow:ExifTag ;
+    gmeow:exifTagId "ColorSpace" ; gmeow:exifTagValue "sRGB" ; rdfs:label "Color space"@en .

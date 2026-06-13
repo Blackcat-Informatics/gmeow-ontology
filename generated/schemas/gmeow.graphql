@@ -23,6 +23,13 @@ enum AccessibilityPolarityEnum
     polarityLimited
   }
 
+enum AccountStatusEnum
+  {
+    accountStatusActive
+    accountStatusDormant
+    accountStatusHistorical
+  }
+
 enum AestheticQualityEnum
   {
     qualityElegance
@@ -354,6 +361,14 @@ enum ConstraintOperatorEnum
     operatorNeq
   }
 
+enum ContactPointTypeEnum
+  {
+    contactPointTypePersonal
+    contactPointTypePersonalDomain
+    contactPointTypeSupport
+    contactPointTypeWork
+  }
+
 enum ContentDispositionEnum
   {
     contentDispositionAttachment
@@ -411,6 +426,7 @@ enum ContributionRoleEnum
     roleFormalAnalysis
     roleFundingAcquisition
     roleIllustrator
+    roleInventor
     roleInvestigation
     roleLLMAssistedEditor
     roleLetterer
@@ -425,6 +441,7 @@ enum ContributionRoleEnum
     rolePhotographer
     roleProducer
     roleProjectAdministration
+    rolePublisher
     roleRecordingEngineer
     roleReleaser
     roleRemixer
@@ -514,6 +531,17 @@ enum DatingMethodEnum
     datingMethodStratigraphicCorrelation
     datingMethodThermoluminescence
     datingMethodUraniumLead
+  }
+
+enum DayOfWeekEnum
+  {
+    dayFriday
+    dayMonday
+    daySaturday
+    daySunday
+    dayThursday
+    dayTuesday
+    dayWednesday
   }
 
 enum DeonticModalityEnum
@@ -2027,6 +2055,12 @@ enum SequenceFeatureTypeEnum
     sequenceFeatureTypeSNP
   }
 
+enum ServiceStatusEnum
+  {
+    serviceStatusLive
+    serviceStatusShutDown
+  }
+
 enum SeverityLevelEnum
   {
     severityCatastrophic
@@ -2357,6 +2391,10 @@ type AccessibilityPolarity
   {
   }
 
+type AccountStatus
+  {
+  }
+
 type AcquaintanceRelationship
   {
     relationshipInterval: [TimeInterval]
@@ -2436,6 +2474,7 @@ type Agent
   {
     email: [String]
     endorses: [Agent]
+    founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
@@ -2448,8 +2487,10 @@ type Agent
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: [String]
+    makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
+    ownerOf: [Entity]
     telephone: [String]
   }
 
@@ -2593,6 +2634,7 @@ type Article
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -2716,6 +2758,7 @@ type Asset
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -2784,6 +2827,7 @@ type Attachment
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -2862,6 +2906,7 @@ type AttestationArtifact
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -2928,6 +2973,7 @@ type AuthenticationResult
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -2988,6 +3034,7 @@ type AuthorIdentity
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3074,6 +3121,7 @@ type BiologicalSequenceLocation
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3147,6 +3195,7 @@ type Blob
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3204,6 +3253,7 @@ type Block
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3263,6 +3313,7 @@ type BlockchainAccount
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3317,6 +3368,7 @@ type BlockchainNetwork
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3372,6 +3424,7 @@ type BodyPart
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3434,6 +3487,7 @@ type BodyValue
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3499,6 +3553,7 @@ type BookRelease
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3603,6 +3658,7 @@ type Branch
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3682,6 +3738,7 @@ type Builder
   {
     email: [String]
     endorses: [Agent]
+    founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
@@ -3694,8 +3751,10 @@ type Builder
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: [String]
+    makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
+    ownerOf: [Entity]
     telephone: [String]
   }
 
@@ -3739,6 +3798,7 @@ type CadastralReference
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3837,6 +3897,7 @@ type Cascade
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -3914,6 +3975,7 @@ type CelestialLocation
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4004,6 +4066,7 @@ type CharacterArc
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4066,6 +4129,7 @@ type Chunk
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4201,6 +4265,7 @@ type Collection
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4306,6 +4371,7 @@ type Comment
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4439,6 +4505,7 @@ type Community
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4498,6 +4565,7 @@ type CommunitySummary
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4573,6 +4641,7 @@ type Condition
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4649,6 +4718,7 @@ type ConditionExpression
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4708,6 +4778,7 @@ type ConditionGroup
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4770,6 +4841,7 @@ type ConditionParameter
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -4813,6 +4885,12 @@ type ConstraintOperator
   }
 
 type ContactPoint
+  {
+    contactPointProvider: [Agent]
+    contactPointType: [ContactPointType]
+  }
+
+type ContactPointType
   {
   }
 
@@ -4867,6 +4945,7 @@ type ContentSegment
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5015,6 +5094,7 @@ type Corpus
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5036,6 +5116,7 @@ type Corpus
 type CoupleRelationship
   {
     withinFamily: [Family]
+    hasCoupleEvent: [Event]
     hasPartner: [Person]
   }
 
@@ -5090,6 +5171,7 @@ type CreativeWork
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5207,6 +5289,7 @@ type Credential
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5263,6 +5346,7 @@ type Criterion
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5328,6 +5412,7 @@ type CriterionPole
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5385,6 +5470,7 @@ type CryptographicKey
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5448,6 +5534,7 @@ type CryptographicSignature
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5511,6 +5598,7 @@ type CryptoWallet
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5578,6 +5666,7 @@ type DataFeed
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5690,6 +5779,7 @@ type Dataset
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5756,6 +5846,10 @@ type Dataset
   }
 
 type DatingMethod
+  {
+  }
+
+type DayOfWeek
   {
   }
 
@@ -5834,6 +5928,7 @@ type Diff
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5901,6 +5996,7 @@ type Distribution
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -5959,6 +6055,7 @@ type DKIMSignature
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6022,6 +6119,7 @@ type Document
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6127,6 +6225,7 @@ type Duration
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6182,6 +6281,7 @@ type Duty
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6209,6 +6309,8 @@ type Duty
 
 type EmailAddress
   {
+    contactPointProvider: [Agent]
+    contactPointType: [ContactPointType]
     addressValue: String
     deliversToAccount: [OnlineAccount]
     domainPart: String
@@ -6255,6 +6357,7 @@ type EmailMessage
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6367,6 +6470,7 @@ type EmailPatchDiff
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6429,6 +6533,7 @@ type Embedding
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6518,6 +6623,7 @@ type Entity
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6659,6 +6765,7 @@ type EventSeries
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6727,6 +6834,7 @@ type EvidenceSpan
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6829,6 +6937,12 @@ type ExemplarPolarity
   {
   }
 
+type ExifTag
+  {
+    exifTagId: String
+    exifTagValue: String
+  }
+
 type Expression
   {
     acquireLicensePage: [String]
@@ -6869,6 +6983,7 @@ type Expression
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -6977,6 +7092,7 @@ type ExtractedEntity
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7034,6 +7150,7 @@ type ExtractedRelationship
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7093,6 +7210,7 @@ type Family
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7147,6 +7265,7 @@ type FeedPosting
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7271,6 +7390,7 @@ type FinancialAccount
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7392,6 +7512,7 @@ type ForgePlatform
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7446,6 +7567,7 @@ type FormalLanguage
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7547,6 +7669,7 @@ type Genre
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7604,6 +7727,7 @@ type Geocode
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7666,6 +7790,7 @@ type GeoCoordinates
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7723,6 +7848,7 @@ type Geometry
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7785,6 +7911,7 @@ type Goal
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7858,6 +7985,7 @@ type Group
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -7967,6 +8095,7 @@ type GTSDocument
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8076,6 +8205,7 @@ type GTSSegment
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8236,6 +8366,7 @@ type ImageRegion
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8352,6 +8483,7 @@ type InformationObject
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8409,6 +8541,7 @@ type InlinePart
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8471,6 +8604,7 @@ type Inscription
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8563,6 +8697,7 @@ type IntentionalMoment
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8636,6 +8771,7 @@ type Invoice
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8750,6 +8886,7 @@ type Issue
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8807,6 +8944,7 @@ type Item
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -8992,6 +9130,7 @@ type Language
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9196,6 +9335,7 @@ type LanguageVariety
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9268,6 +9408,7 @@ type LanguageVersion
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9334,6 +9475,7 @@ type LedgerAccount
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9453,6 +9595,7 @@ type LedgerTransaction
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9515,6 +9658,7 @@ type LexicalForm
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9580,6 +9724,7 @@ type LexicalItem
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9707,6 +9852,7 @@ type LiteraryWork
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9812,6 +9958,7 @@ type Location
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9884,6 +10031,7 @@ type LocationState
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -9950,6 +10098,7 @@ type Mailbox
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10023,6 +10172,7 @@ type MailingList
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10084,6 +10234,7 @@ type Manifestation
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10192,6 +10343,7 @@ type Mark
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10254,6 +10406,7 @@ type MeasuredValue
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10322,6 +10475,7 @@ type MediaObject
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10388,6 +10542,7 @@ type MediaObject
     captureTime: [String]
     colourspace: [ReferenceFrame]
     depicts: [Entity]
+    hasExifTag: [ExifTag]
     hasRegion: [ImageRegion]
     imageOrientation: Float
     pixelHeight: Int
@@ -10462,6 +10617,7 @@ type MentalReferenceFrame
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10583,6 +10739,7 @@ type MergeRequest
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10640,6 +10797,7 @@ type Message
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10715,6 +10873,7 @@ type MessageHeader
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10813,6 +10972,7 @@ type ModelCard
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10931,6 +11091,7 @@ type MonetaryAmount
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -10987,6 +11148,7 @@ type Motif
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11047,6 +11209,7 @@ type MultipartBodyPart
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11114,6 +11277,7 @@ type MusicalWork
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11219,6 +11383,7 @@ type Myth
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11277,6 +11442,7 @@ type NamedPeriod
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11336,6 +11502,7 @@ type NamePart
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11443,6 +11610,7 @@ type NarrativePosition
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11500,6 +11668,7 @@ type NarrativeReferenceFrame
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11560,6 +11729,7 @@ type NarrativeScope
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11618,6 +11788,7 @@ type NarrativeTimeFrame
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11688,6 +11859,7 @@ type NetworkAddress
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11749,6 +11921,7 @@ type Norm
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11809,6 +11982,7 @@ type NormativeSystem
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11864,6 +12038,7 @@ type NotationSystem
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -11936,6 +12111,7 @@ type Note
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12093,6 +12269,7 @@ type Occupation
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12106,6 +12283,65 @@ type Occupation
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     occupationClassification: [String]
+  }
+
+type Offering
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    areaServed: [Location]
+    hasOpeningHours: [OpeningHoursSpecification]
+    itemOffered: [Entity]
+    offeringProvider: [Agent]
   }
 
 type OnlineAccount
@@ -12148,6 +12384,7 @@ type OnlineAccount
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12165,9 +12402,72 @@ type OnlineAccount
     writtenInLanguage: [Language]
     accountKey: [CryptographicKey]
     accountName: [String]
+    accountService: OnlineService
+    accountServiceHomepage: String
+    accountStatus: [AccountStatus]
     activityPubActor: [String]
     nip05: [String]
     nostrPubkey: [String]
+  }
+
+type OnlineService
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    serviceShutdownDate: String
+    serviceStatus: [ServiceStatus]
   }
 
 type OpacityReason
@@ -12214,6 +12514,7 @@ type OpaqueFrame
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12234,6 +12535,64 @@ type OpaqueFrame
     sealedRecipient: [Agent]
   }
 
+type OpeningHoursSpecification
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    closesAt: String
+    openingDay: [DayOfWeek]
+    opensAt: String
+  }
+
 type Order
   {
     hasAgreementName: [AgreementName]
@@ -12252,6 +12611,7 @@ type Organization
   {
     email: [String]
     endorses: [Agent]
+    founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
@@ -12264,9 +12624,12 @@ type Organization
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: [String]
+    makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
+    ownerOf: [Entity]
     telephone: [String]
+    foundedBy: [Agent]
     hasMember: [Agent]
     hasOrganizationName: [OrganizationName]
     hasSite: [Location]
@@ -12333,6 +12696,7 @@ type Orientation
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12397,6 +12761,7 @@ type Package
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12475,6 +12840,7 @@ type Patent
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12642,6 +13008,7 @@ type Permission
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12671,6 +13038,7 @@ type Person
   {
     email: [String]
     endorses: [Agent]
+    founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
@@ -12683,8 +13051,10 @@ type Person
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: [String]
+    makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
+    ownerOf: [Entity]
     telephone: [String]
     hasAncestor: [Person]
     hasChild: [Person]
@@ -12766,6 +13136,7 @@ type PGPSignature
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12833,6 +13204,7 @@ type PhysicalObject
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -12889,6 +13261,7 @@ type Place
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13002,6 +13375,7 @@ type Pose
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13026,6 +13400,8 @@ type Post
 
 type PostalAddress
   {
+    contactPointProvider: [Agent]
+    contactPointType: [ContactPointType]
     addressLocality: [String]
     addressPlace: [Place]
     addressRegion: [String]
@@ -13097,6 +13473,7 @@ type PrivacyNotice
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13154,6 +13531,7 @@ type Procedure
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13220,6 +13598,7 @@ type ProcedureStep
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13306,6 +13685,7 @@ type Profile
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13366,6 +13746,7 @@ type ProfilePage
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13472,6 +13853,7 @@ type ProgrammingLanguage
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13538,6 +13920,7 @@ type Prohibition
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13603,6 +13986,7 @@ type Project
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13619,6 +14003,8 @@ type Project
     hasRelease: [Release]
     hasRepository: [Repository]
     maintenanceStatus: [MaintenanceStatus]
+    programmingLanguage: [Language]
+    projectHomepage: String
     projectIdentifier: [String]
     projectLicense: [License]
   }
@@ -13667,6 +14053,7 @@ type Prompt
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13730,6 +14117,7 @@ type PromptTemplate
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13789,6 +14177,7 @@ type PronounSet
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13938,6 +14327,7 @@ type Quantity
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -13992,6 +14382,7 @@ type ReadingOrder
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14051,6 +14442,7 @@ type Recording
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14155,6 +14547,7 @@ type RecurrenceRule
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14213,6 +14606,7 @@ type Ref
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14271,6 +14665,7 @@ type ReferenceFrame
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14338,6 +14733,7 @@ type ReferencePosition
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14392,6 +14788,7 @@ type RegionSelector
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14535,6 +14932,7 @@ type Reminder
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14596,6 +14994,7 @@ type Repository
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14716,6 +15115,7 @@ type Review
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14802,6 +15202,7 @@ type RiskFactor
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14877,6 +15278,7 @@ type Route
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -14944,6 +15346,7 @@ type Rubric
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15005,6 +15408,7 @@ type Rule
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15070,6 +15474,7 @@ type ScalarQuantity
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15146,6 +15551,7 @@ type ScoreAnchor
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15207,6 +15613,7 @@ type ScoreEdition
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15311,6 +15718,7 @@ type ScoreScale
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15393,6 +15801,7 @@ type Selector
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15432,6 +15841,7 @@ type Sensor
   {
     email: [String]
     endorses: [Agent]
+    founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
@@ -15444,8 +15854,10 @@ type Sensor
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: [String]
+    makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
+    ownerOf: [Entity]
     telephone: [String]
   }
 
@@ -15489,6 +15901,7 @@ type SensorPlatform
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15544,6 +15957,7 @@ type SensoryEnvironment
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15643,6 +16057,7 @@ type SensoryQuantity
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15697,6 +16112,7 @@ type SequenceCoordinates
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15755,6 +16171,7 @@ type SequenceFeature
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15815,6 +16232,7 @@ type SerialInstallment
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -15919,6 +16337,7 @@ type SerialWork
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16024,6 +16443,7 @@ type Service
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16087,6 +16507,70 @@ type Service
     quotedText: [String]
     quotesContent: [Entity]
     realizedThrough: [Expression]
+  }
+
+type ServiceOffering
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    serviceType: [ServiceType]
+  }
+
+type ServiceStatus
+  {
+  }
+
+type ServiceType
+  {
   }
 
 type SeverityLevel
@@ -16156,6 +16640,7 @@ type Skill
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16223,6 +16708,7 @@ type SmartContract
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16278,6 +16764,7 @@ type SMIMESignature
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16341,6 +16828,7 @@ type SocialObject
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16359,6 +16847,7 @@ type SoftwareAgent
   {
     email: [String]
     endorses: [Agent]
+    founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
@@ -16371,8 +16860,10 @@ type SoftwareAgent
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: [String]
+    makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
+    ownerOf: [Entity]
     telephone: [String]
   }
 
@@ -16428,6 +16919,7 @@ type SoftwareProduct
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16533,6 +17025,7 @@ type SoftwareProject
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16549,6 +17042,8 @@ type SoftwareProject
     hasRelease: [Release]
     hasRepository: [Repository]
     maintenanceStatus: [MaintenanceStatus]
+    programmingLanguage: [Language]
+    projectHomepage: String
     projectIdentifier: [String]
     projectLicense: [License]
   }
@@ -16593,6 +17088,7 @@ type SourceDirectory
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16650,6 +17146,7 @@ type SourceFile
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16711,6 +17208,7 @@ type SourceNode
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16768,6 +17266,7 @@ type SourceRole
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16873,6 +17372,7 @@ type SourceTree
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -16947,6 +17447,7 @@ type SpatialBin
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17032,6 +17533,7 @@ type SpatialCoordinates
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17102,6 +17604,7 @@ type Standpoint
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17197,6 +17700,7 @@ type StorageLocation
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17281,6 +17785,7 @@ type Stream
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17340,6 +17845,7 @@ type StyleGuide
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17398,6 +17904,7 @@ type Summary
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17459,6 +17966,7 @@ type SymbolicSystem
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17521,6 +18029,7 @@ type Tag
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17591,6 +18100,7 @@ type TagScheme
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17668,6 +18178,8 @@ type TaskStatus
 
 type TelephoneNumber
   {
+    contactPointProvider: [Agent]
+    contactPointType: [ContactPointType]
   }
 
 type TemporalFrame
@@ -17710,6 +18222,7 @@ type TemporalFrame
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17807,6 +18320,7 @@ type TextExtraction
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17912,6 +18426,7 @@ type Thread
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -17992,6 +18507,7 @@ type TimeScale
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18051,6 +18567,7 @@ type TimeZone
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18173,6 +18690,7 @@ type Trajectory
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18247,6 +18765,7 @@ type TransparencyLogEntry
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18306,6 +18825,7 @@ type TreeEntry
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18410,6 +18930,7 @@ type VectorIndex
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18521,6 +19042,7 @@ type VerificationResult
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18612,6 +19134,7 @@ type VersionSet
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18669,6 +19192,7 @@ type VirtualLocation
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18753,6 +19277,7 @@ type WebPage
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18859,6 +19384,7 @@ type WebSite
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -18963,6 +19489,7 @@ type Work
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]
@@ -19068,6 +19595,7 @@ type WritingSystem
     mediaType: String
     mentionedIn: [Note]
     name: [String]
+    ownedBy: [Agent]
     provenance: [String]
     proximity: [ProximityMeasurement]
     references: [Entity]

@@ -486,3 +486,27 @@ gmeow:eqClasses056 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "a published ordered item stream IS schema:DataFeed (#412)" ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Offering ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:Offer ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:comment "a commercial offering IS schema:Offer (#413)" ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ServiceOffering ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:Service ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:comment "a commercial service offering IS schema:Service (#413)" ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:OpeningHoursSpecification ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:OpeningHoursSpecification ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:comment "an opening-hours window IS schema:OpeningHoursSpecification (#413)" ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+# Day-of-week values ARE the schema:DayOfWeek enumeration members (#413).
+gmeow:eqClasses060 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayMonday ;    gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Monday ;    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses061 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayTuesday ;   gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Tuesday ;   gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses062 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayWednesday ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Wednesday ; gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses063 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayThursday ;  gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Thursday ;  gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses064 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayFriday ;    gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Friday ;    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses065 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:daySaturday ;  gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Saturday ;  gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses066 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:daySunday ;    gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Sunday ;    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .

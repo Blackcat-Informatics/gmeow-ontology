@@ -28,6 +28,9 @@
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
 gmeow:CreativeWorkTitle	owl:equivalentClass	bibframe:Title		semapv:ManualMappingCuration	0.9	both reify a work's title as a first-class node carrying its text and metadata (#34 phase 3)
 gmeow:accountName	owl:equivalentProperty	foaf:accountName		semapv:ManualMappingCuration	1.0	
+gmeow:accountServiceHomepage	skos:closeMatch	foaf:accountServiceHomepage		semapv:ManualMappingCuration	0.95	FOAF's OnlineAccount service-homepage idiom (#411/#417)
+gmeow:areaServed	skos:closeMatch	schema:areaServed		semapv:ManualMappingCuration	0.9	#413 offerings
+gmeow:closesAt	skos:closeMatch	schema:closes		semapv:ManualMappingCuration	0.9	#413 offerings
 gmeow:coarsenTo	skos:closeMatch	dpv:Generalisation		semapv:ManualMappingCuration	0.8	DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN (#73)
 gmeow:coarserThan	skos:closeMatch	skos:broader		semapv:ManualMappingCuration	0.8	SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan
 gmeow:containedInPlace	owl:equivalentProperty	schema:containedInPlace		semapv:ManualMappingCuration	1.0	
@@ -54,8 +57,10 @@ gmeow:hasChild	owl:equivalentProperty	schema:children		semapv:ManualMappingCurat
 gmeow:hasContactPoint	owl:equivalentProperty	schema:contactPoint		semapv:ManualMappingCuration	0.9	
 gmeow:hasContributor	skos:closeMatch	dcterms:contributor		semapv:ManualMappingCuration	0.85	DCTerms contributor — GMEOW's flat hasContributor shortcut downcasts to dcterms:contributor by projection
 gmeow:hasContributor	skos:closeMatch	doap:developer		semapv:ManualMappingCuration	0.7	
+gmeow:hasExifTag	skos:closeMatch	schema:exifData		semapv:ManualMappingCuration	0.9	reified EXIF tags → schema:exifData PropertyValues (#413, lossless)
 gmeow:hasMember	skos:closeMatch	org:member		semapv:ManualMappingCuration	0.8	
 gmeow:hasOccupation	owl:equivalentProperty	schema:hasOccupation		semapv:ManualMappingCuration	1.0	
+gmeow:hasOpeningHours	skos:closeMatch	schema:openingHoursSpecification		semapv:ManualMappingCuration	0.9	#413 offerings
 gmeow:hasParent	owl:equivalentProperty	rel:childOf		semapv:ManualMappingCuration	0.95	childOf points child->parent = hasParent
 gmeow:hasParent	owl:equivalentProperty	schema:parent		semapv:ManualMappingCuration	1.0	
 gmeow:hasPart	skos:closeMatch	bfo:BFO_0000051	has part	semapv:ManualMappingCuration	0.85	BFO has-part is the OBO hub; GMEOW hasPart is broader and keeps specialized subproperties for precise semantics
@@ -79,14 +84,19 @@ gmeow:identifier	skos:closeMatch	bibo:doi		semapv:ManualMappingCuration	0.8
 gmeow:identifier	skos:closeMatch	dcterms:identifier		semapv:ManualMappingCuration	0.9	DCTerms identifier — a formal identifier such as a DOI or patent number
 gmeow:identifierScheme	skos:closeMatch	schema:propertyID		semapv:ManualMappingCuration	0.85	the identifier's scheme code IS schema:PropertyValue's propertyID (#409)
 gmeow:industryClassification	skos:closeMatch	org:classification		semapv:ManualMappingCuration	0.8	industryClassification carries open codes (NAICS/ISIC); org:classification is broader
+gmeow:itemOffered	skos:closeMatch	schema:itemOffered		semapv:ManualMappingCuration	0.9	#413 offerings
 gmeow:latitude	owl:equivalentProperty	schema:latitude		semapv:ManualMappingCuration	1.0	
 gmeow:longitude	owl:equivalentProperty	schema:longitude		semapv:ManualMappingCuration	1.0	
+gmeow:makesOffer	skos:closeMatch	schema:makesOffer		semapv:ManualMappingCuration	0.9	#413 offerings
 gmeow:memberOf	owl:equivalentProperty	schema:memberOf		semapv:ManualMappingCuration	1.0	
 gmeow:memberOf	skos:closeMatch	org:memberOf		semapv:ManualMappingCuration	0.9	
 gmeow:membershipOrganization	owl:equivalentProperty	org:organization		semapv:ManualMappingCuration	0.95	the membership relator's organization leg (#34 phase 3)
 gmeow:name	owl:equivalentProperty	foaf:name		semapv:ManualMappingCuration	1.0	
 gmeow:name	owl:equivalentProperty	schema:name		semapv:ManualMappingCuration	1.0	
 gmeow:name	skos:closeMatch	vcard:fn		semapv:ManualMappingCuration	0.9	
+gmeow:offeringProvider	skos:closeMatch	schema:provider		semapv:ManualMappingCuration	0.9	#413 offerings
+gmeow:openingDay	skos:closeMatch	schema:dayOfWeek		semapv:ManualMappingCuration	0.9	#413 offerings
+gmeow:opensAt	skos:closeMatch	schema:opens		semapv:ManualMappingCuration	0.9	#413 offerings
 gmeow:organizationPurpose	owl:equivalentProperty	org:purpose		semapv:ManualMappingCuration	0.9	
 gmeow:pagePrincipalSubject	skos:closeMatch	schema:mainEntity		semapv:ManualMappingCuration	0.85	a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage (#410)
 gmeow:partOf	skos:closeMatch	bfo:BFO_0000050	part of	semapv:ManualMappingCuration	0.85	BFO continuant/occurrent parthood is the OBO hub; GMEOW partOf is a broader universal spine across modules
@@ -99,6 +109,7 @@ gmeow:partOf	skos:closeMatch	gufo:isSubCollectionOf		semapv:ManualMappingCuratio
 gmeow:partOf	skos:closeMatch	schema:isPartOf		semapv:ManualMappingCuration	0.8	
 gmeow:postIn	owl:equivalentProperty	org:postIn		semapv:ManualMappingCuration	0.9	
 gmeow:predecessorOrganization	skos:closeMatch	org:originalOrganization		semapv:ManualMappingCuration	0.9	predecessorOrganization on Event ≈ originalOrganization on ChangeEvent
+gmeow:serviceType	skos:closeMatch	schema:serviceType		semapv:ManualMappingCuration	0.9	#413 offerings
 gmeow:sourceLocation	skos:closeMatch	schema:contentUrl		semapv:ManualMappingCuration	0.85	a source/distribution's resolvable location IS schema:contentUrl on the DataDownload (#410)
 gmeow:subOrganizationOf	owl:equivalentProperty	org:subOrganizationOf		semapv:ManualMappingCuration	0.9	
 gmeow:subOrganizationOf	owl:equivalentProperty	schema:parentOrganization		semapv:ManualMappingCuration	0.9	

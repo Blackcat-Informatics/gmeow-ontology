@@ -106,4 +106,13 @@ diff derivation, Merkle re-hashing — belong to the solver layer (Principle 12)
 records the objects and their digests. Alignments are all by reference (Principle 5):
 git object model, Software Heritage (Content/Directory/Revision/Origin), ForgeFed, SLSA,
 PROV-O, and the DOAP downcast. Depends on `attestation`, `kernel`, `creative-works`,
-`entities`, `events`, `names`, `provenance`, `rights`, and `tags`.
+`entities`, `events`, `language`, `names`, `provenance`, `rights`, and `tags`.
+
+## Project homepage and language (#413)
+
+### gmeow:projectHomepage · gmeow:programmingLanguage
+
+`gmeow:projectHomepage` (functional) is the project's homepage →
+`doap:homepage` / `schema:url`. `gmeow:programmingLanguage` points at a first-class
+`gmeow:Language` (the language slice's ProgrammingLanguage), non-functional →
+`doap:programming-language` / `schema:programmingLanguage`.

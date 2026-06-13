@@ -63,6 +63,21 @@ gmeow:projectIdentifier
     skos:definition "An identifier for a project as an activity — typically a RAiD (ISO 23527). Distinct from product/release identifiers (DOI, ISO 26324). Non-functional: a project may carry multiple PIDs."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
 
+gmeow:projectHomepage
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:label "project homepage"@x-gmeow-english ;
+    skos:definition "The homepage of a project (#413) — the doap:homepage / schema:url of a software project. Functional; range open (an IRI)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
+
+gmeow:programmingLanguage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:range gmeow:Language ;
+    rdfs:label "programming language"@x-gmeow-english ;
+    skos:definition "A programming language a software project is implemented in — a gmeow:Language (the language slice's ProgrammingLanguage). Non-functional: a project uses several. Projects to doap:programming-language / schema:programmingLanguage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
+
 gmeow:hasRepository
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Project ;

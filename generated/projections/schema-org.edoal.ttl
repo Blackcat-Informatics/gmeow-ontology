@@ -137,6 +137,22 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "ContactPoint → schema:ContactPoint"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:ContactPoint ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:ContactPoint ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "contactPointType value → schema:contactType (label)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:contactPointType ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:contactType ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Copyright relator holder → schema:copyrightHolder (flatten)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:copyrightHolder ] ;
@@ -283,6 +299,14 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:familyName ] ;
             align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "foundedBy → schema:founder"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:foundedBy ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:founder ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "Organization creation event → schema:foundingDate"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -431,6 +455,14 @@
                     edoal:uri schema:naics ] ;
             align:relation "<=" ;
             edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Contribution(role=inventor) → schema:inventor"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:contributionRole ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:inventor ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "isAccessibleForFree → schema:isAccessibleForFree"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -665,6 +697,14 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
         [ a align:Cell ;
+            rdfs:label "ownerOf → schema:owns"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:ownerOf ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:owns ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "pageOfSite → schema:isPartOf (the breadcrumb trail)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:pageOfSite ] ;
@@ -817,6 +857,22 @@
                     edoal:uri schema:ComputerLanguage ] ;
             align:relation "=" ],
         [ a align:Cell ;
+            rdfs:label "project programmingLanguage → schema:programmingLanguage (the language entity)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:programmingLanguage ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:programmingLanguage ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Contribution(role=publisher) → schema:publisher"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:contributionRole ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:publisher ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "stepOutput → schema:result"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:stepOutput ] ;
@@ -824,6 +880,14 @@
                     edoal:uri schema:result ] ;
             align:relation "<=" ;
             edoal:measure 7.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "serviceShutdownDate → schema:dissolutionDate"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:serviceShutdownDate ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:dissolutionDate ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "sharesContent → schema:sharedContent"@en ;
             align:entity1 [ a edoal:Relation ;
