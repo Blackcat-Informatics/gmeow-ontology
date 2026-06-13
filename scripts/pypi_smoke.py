@@ -3,13 +3,15 @@
 
 """Post-publish smoke test for the ``gmeow`` PyPI package.
 
-Creates a fresh virtual environment, installs ``gmeow`` from PyPI, runs the
-README quickstart using a ``.gts`` file and the ``gts`` CLI binary, and asserts
-the whole sequence completes within five minutes (Principle 13).
+Creates a fresh virtual environment, installs a pinned ``gmeow==<version>``
+from PyPI (with bounded retry to absorb propagation delay), runs the README
+quickstart using a ``.gts`` file and the ``gts`` CLI binary, and asserts the
+whole sequence completes within five minutes (Principle 13).
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
@@ -18,6 +20,8 @@ import time
 from pathlib import Path
 
 MAX_ELAPSED_SECONDS = 300
+INSTALL_POLL_SECONDS = 300
+INSTALL_INTERVAL_SECONDS = 10
 
 
 def _venv_python(venv: Path) -> Path:
@@ -39,13 +43,71 @@ def _run(
     *,
     env: dict[str, str] | None = None,
     timeout: int = 120,
-) -> None:
+    check: bool = True,
+) -> subprocess.CompletedProcess[str]:
     """Run a command with the inherited environment plus optional overrides."""
-    subprocess.run(args, check=True, env=env, timeout=timeout)
+    return subprocess.run(
+        args,
+        check=check,
+        env=env,
+        timeout=timeout,
+        capture_output=True,
+        text=True,
+    )
 
 
-def main() -> int:
-    """Install ``gmeow`` from PyPI and run the five-minute quickstart."""
+def _install_pinned(
+    python: Path,
+    package: str,
+    version: str,
+    timeout: int = INSTALL_POLL_SECONDS,
+) -> None:
+    """Install an exact version from PyPI, retrying until it propagates."""
+    deadline = time.monotonic() + timeout
+    specifier = f"{package}=={version}"
+    attempt = 0
+    while True:
+        attempt += 1
+        result = _run(
+            [str(python), "-m", "pip", "install", "--upgrade", "pip", specifier],
+            timeout=120,
+            check=False,
+        )
+        if result.returncode == 0:
+            print(f"installed {specifier} on attempt {attempt}")
+            return
+        if time.monotonic() >= deadline:
+            print(
+                f"FAIL: could not install {specifier} within {timeout}s "
+                f"({attempt} attempts); last error:\n{result.stderr}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        print(
+            f"install attempt {attempt} failed; retrying in {INSTALL_INTERVAL_SECONDS}s"
+        )
+        time.sleep(INSTALL_INTERVAL_SECONDS)
+
+
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments and ``GMEOW_VERSION`` fallback."""
+    parser = argparse.ArgumentParser(
+        description="Post-publish smoke test for the gmeow PyPI package.",
+    )
+    parser.add_argument(
+        "--version",
+        default=os.environ.get("GMEOW_VERSION"),
+        help="Exact gmeow version to install from PyPI (e.g. 1.0.1).",
+    )
+    args = parser.parse_args(argv)
+    if not args.version:
+        parser.error("--version or GMEOW_VERSION environment variable is required")
+    return args
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Install ``gmeow==<version>`` from PyPI and run the five-minute quickstart."""
+    args = _parse_args(argv)
     start = time.monotonic()
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -60,17 +122,15 @@ def main() -> int:
         # 1. Create a clean virtual environment.
         _run([sys.executable, "-m", "venv", str(venv)])
 
-        # 2. Install the published ``gmeow`` client from PyPI.
-        _run(
-            [str(python), "-m", "pip", "install", "--upgrade", "pip", "gmeow"],
-            timeout=180,
-        )
+        # 2. Install the pinned published ``gmeow`` client from PyPI.
+        _install_pinned(python, "gmeow", args.version)
 
         # 3. Run the README quickstart using a ``.gts`` file.
-        quickstart = f'''
+        assistant_literal = repr(str(assistant))
+        quickstart = f"""
 from gmeow import Memory
 
-mem = Memory("{assistant}")
+mem = Memory({assistant_literal})
 claim = mem.store(
     "Patrick prefers explicit error handling over exceptions-as-flow",
     source="pypi smoke test",
@@ -88,13 +148,13 @@ mem.revise(
     ),
 )
 print("quickstart-ok")
-'''
+"""
         _run([str(python), "-c", quickstart])
 
         # 4. Verify the engine CLI binary is still named ``gts``.
         env = os.environ.copy()
         env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
-        _run([str(bin_dir / "gts"), "info", str(assistant)], env=env)
+        _run(["gts", "info", str(assistant)], env=env)
 
     elapsed = time.monotonic() - start
     print(f"smoke-completed in {elapsed:.1f}s")
