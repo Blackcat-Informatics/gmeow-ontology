@@ -18,6 +18,14 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "FeedPosting → sioc:Post"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:FeedPosting ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri sioc:Post ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "partOfThread → sioc:has_container"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:partOfThread ] ;
@@ -39,6 +47,14 @@
                     edoal:uri gmeow:sourceLocation ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri sioc:link ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "sharesContent → sioc:links_to"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sharesContent ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri sioc:links_to ] ;
             align:relation "<=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;

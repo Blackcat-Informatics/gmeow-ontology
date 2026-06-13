@@ -39,11 +39,13 @@ gmeow:ContactPoint	owl:equivalentClass	schema:ContactPoint	semapv:ManualMappingC
 gmeow:CreativeWork	owl:equivalentClass	schema:CreativeWork	semapv:ManualMappingCuration	1.0	
 gmeow:Credential	owl:equivalentClass	ceterms:Credential	semapv:ManualMappingCuration	0.9	Credential Engine CTDL Credential — superset by reference
 gmeow:Credential	owl:equivalentClass	schema:EducationalOccupationalCredential	semapv:ManualMappingCuration	1.0	
+gmeow:DataFeed	skos:closeMatch	schema:DataFeed	semapv:ManualMappingCuration	0.85	a published ordered item stream IS schema:DataFeed (#412)
 gmeow:Dataset	owl:equivalentClass	schema:Dataset	semapv:ManualMappingCuration	1.0	
 gmeow:Document	owl:equivalentClass	schema:DigitalDocument	semapv:ManualMappingCuration	0.9	
 gmeow:Family	owl:equivalentClass	gedcom:Family	semapv:ManualMappingCuration	1.0	
 gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMappingCuration	1.0	
 gmeow:Group	owl:equivalentClass	foaf:Group	semapv:ManualMappingCuration	0.95	
+gmeow:Identifier	skos:closeMatch	schema:PropertyValue	semapv:ManualMappingCuration	0.85	the reified external-identifier record IS schema's PropertyValue bundle (propertyID/value/url/name); closeMatch — schema's PropertyValue is broader (any keyed value), the projection narrows to identifier records (#409)
 gmeow:MediaObject	owl:equivalentClass	schema:MediaObject	semapv:ManualMappingCuration	1.0	
 gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
 gmeow:Occupation	owl:equivalentClass	esco:Occupation	semapv:ManualMappingCuration	0.9	ESCO occupation is ISCO-grounded; GMEOW Occupation is the superset

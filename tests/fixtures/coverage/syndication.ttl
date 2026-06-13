@@ -1,0 +1,30 @@
+# Coverage + projection fixture for syndicated content (#412). A social post
+# that quotes an article and shares a media object; a blog post; a microblog
+# note; a data feed with two items. Drives schema:SocialMediaPosting /
+# BlogPosting / Quotation / sharedContent / DataFeed and the sioc:Post legs.
+
+@prefix ex:    <https://example.org/synd/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:tootThreatModel a gmeow:FeedPosting ;
+    rdfs:label "Threat modeling autonomous dev agents"@en ;
+    gmeow:feedPostingKind gmeow:feedPostingKindSocial ;
+    gmeow:quotesContent ex:article ;
+    gmeow:quotedText "the agent's actions are auditable provenance"@en ;
+    gmeow:sharesContent ex:diagram .
+
+ex:blogPost a gmeow:FeedPosting ;
+    rdfs:label "On streamable compaction"@en ;
+    gmeow:feedPostingKind gmeow:feedPostingKindBlog .
+
+ex:note a gmeow:FeedPosting ;
+    rdfs:label "shipping it"@en ;
+    gmeow:feedPostingKind gmeow:feedPostingKindMicroblog .
+
+ex:article a gmeow:Article ; rdfs:label "Auditable agent provenance"@en .
+ex:diagram a gmeow:MediaObject ; rdfs:label "architecture diagram"@en .
+
+ex:feed a gmeow:DataFeed ;
+    rdfs:label "blackcat blog feed"@en ;
+    gmeow:hasPart ex:blogPost , ex:tootThreatModel .

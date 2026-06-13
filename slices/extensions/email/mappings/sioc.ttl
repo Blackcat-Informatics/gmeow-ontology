@@ -6,12 +6,13 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sioc:  <http://rdfs.org/sioc/ns#> .
 
-# Projection mappings: GMEOW email → SIOC (#34 phase 3). PARTIAL BY DESIGN
-# (P15): email is the online-community content GMEOW actually models — a
-# message is a sioc:Post, a thread is a sioc:Container, threading and
-# authorship flatten to SIOC's reply/creator edges. General forum/blog/
-# ActivityPub modeling is DEFERRED until a consumer names it (declared
-# partiality, not an oversight).
+# Projection mappings: GMEOW → SIOC (#34 phase 3). Email is the original
+# online-community content GMEOW models — a message is a sioc:Post, a thread is
+# a sioc:Container, threading and authorship flatten to SIOC's reply/creator
+# edges. The former forum/blog/ActivityPub partiality is now RESOLVED (#412):
+# gmeow:FeedPosting (documents) carries social/blog/microblog posts as
+# sioc:Post, with shares as sioc:links_to — see the syndicated-postings block
+# at the foot of this file.
 
 gmeow:mapSiocPost a gmeow:ProjectionMapping ;
     rdfs:label "EmailMessage → sioc:Post"@x-gmeow-english ;
@@ -117,3 +118,29 @@ gmeow:mapSiocLink a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "slMsg" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "slUrl" ] ) ;
         gmeow:edoalSource gmeow:sourceLocation ] ;
     gmeow:hasBinding [ gmeow:profile "sioc" ; gmeow:toPredicate sioc:link ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
+
+# --------------------------------------------------------------------------- #
+# Syndicated postings (#412) — the consumer the partial above was waiting on.
+# A gmeow:FeedPosting (documents slice) is online-community content too: a
+# social/blog/microblog post IS a sioc:Post, and a share/repost is sioc:links_to.
+# This RESOLVES the declared SIOC partiality (email is no longer the only
+# consumer).
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSiocFeedPost a gmeow:ProjectionMapping ;
+    rdfs:label "FeedPosting → sioc:Post"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "sfp" ;
+        gmeow:atom ( [ gmeow:subjectVar "sfp" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:FeedPosting ] ) ;
+        gmeow:edoalSource gmeow:FeedPosting ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toClass sioc:Post ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the open posting-kind value (social/blog/microblog) flattens to SIOC's single Post class" ] .
+
+gmeow:mapSiocLinksTo a gmeow:ProjectionMapping ;
+    rdfs:label "sharesContent → sioc:links_to"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "slt" ; gmeow:value "sltShared" ;
+        gmeow:atom ( [ gmeow:subjectVar "slt" ; gmeow:predicate gmeow:sharesContent ; gmeow:objectVar "sltShared" ] ) ;
+        gmeow:edoalSource gmeow:sharesContent ] ;
+    gmeow:hasBinding [ gmeow:profile "sioc" ; gmeow:toPredicate sioc:links_to ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .

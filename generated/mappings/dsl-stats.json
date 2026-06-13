@@ -8,7 +8,7 @@
   "gmeow-attestation.sssom.tsv": 14,
   "gmeow-calendar.sssom.tsv": 22,
   "gmeow-citations.sssom.tsv": 13,
-  "gmeow-classes.sssom.tsv": 53,
+  "gmeow-classes.sssom.tsv": 55,
   "gmeow-connectivity.sssom.tsv": 2,
   "gmeow-coreference.sssom.tsv": 6,
   "gmeow-creative-works.sssom.tsv": 58,
@@ -39,7 +39,7 @@
   "gmeow-places.sssom.tsv": 221,
   "gmeow-privacy.sssom.tsv": 24,
   "gmeow-procedures.sssom.tsv": 26,
-  "gmeow-properties.sssom.tsv": 77,
+  "gmeow-properties.sssom.tsv": 82,
   "gmeow-provenance.sssom.tsv": 13,
   "gmeow-quality.sssom.tsv": 10,
   "gmeow-qudt.sssom.tsv": 6,
@@ -55,8 +55,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1601,
+ "equivalences": 1608,
  "functions": 38,
  "mapping_sets": 55,
- "projections": 444
+ "projections": 462
 }
