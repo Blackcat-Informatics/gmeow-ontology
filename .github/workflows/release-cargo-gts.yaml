@@ -7,6 +7,10 @@ on:
     tags:
       - 'crates/gts/v*'
 
+concurrency:
+  group: release-cargo-gts-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 

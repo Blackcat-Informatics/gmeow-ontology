@@ -66,6 +66,10 @@
       tags:
         - 'crates/gts/v*'
 
+  concurrency:
+    group: release-cargo-gts-${{ github.ref }}
+    cancel-in-progress: false
+
   permissions:
     contents: read
 
@@ -148,6 +152,10 @@
       tags:
         - 'ts/gts/v*'
 
+  concurrency:
+    group: release-npm-gts-${{ github.ref }}
+    cancel-in-progress: false
+
   permissions:
     contents: read
 
@@ -159,6 +167,16 @@
           uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
           with:
             persist-credentials: false
+
+        - name: Validate tag matches package version
+          working-directory: ts/gts
+          run: |
+            TAG_VERSION="${GITHUB_REF_NAME#ts/gts/v}"
+            PKG_VERSION="$(node -p 'require("./package.json").version')"
+            if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+              echo "Tag version $TAG_VERSION does not match package.json version $PKG_VERSION"
+              exit 1
+            fi
 
         - name: Set up Node.js
           uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -174,9 +192,13 @@
           working-directory: ts/gts
           run: npm test
 
+        - name: Build package
+          working-directory: ts/gts
+          run: npm run build
+
         - name: Publish to npm
           working-directory: ts/gts
-          run: npm publish --access public
+          run: npm publish --access public --provenance
           env:
             NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   ```
