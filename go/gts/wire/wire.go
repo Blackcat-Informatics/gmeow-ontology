@@ -15,9 +15,10 @@ import (
 	"github.com/zeebo/blake3"
 )
 
-// CBOR self-describe tag (RFC 8949 §3.4.6); MAY prefix the Header item (§3).
+// SelfDescribeTag is the CBOR self-describe tag (RFC 8949 §3.4.6); MAY prefix the Header item (§3).
 const SelfDescribeTag uint64 = 55799
 
+// Magic and Version identify a GTS1 CBOR Sequence (§3).
 const (
 	Magic   = "GTS1"
 	Version = 1
@@ -130,6 +131,7 @@ func TextOr(v interface{}, def string) string {
 	return def
 }
 
+// cloneMap returns a shallow copy of m.
 func cloneMap(m map[interface{}]interface{}) map[interface{}]interface{} {
 	out := make(map[interface{}]interface{}, len(m))
 	for k, v := range m {
@@ -138,6 +140,7 @@ func cloneMap(m map[interface{}]interface{}) map[interface{}]interface{} {
 	return out
 }
 
+// hashExcluding computes the BLAKE3 digest of m after removing excluded keys.
 func hashExcluding(m map[interface{}]interface{}, excluded []string) []byte {
 	content := cloneMap(m)
 	for _, k := range excluded {
@@ -307,6 +310,7 @@ func cborItemLength(data []byte, offset int) (int, error) {
 	}
 }
 
+// readLength decodes the additional-info length for a CBOR head byte.
 func readLength(data []byte, offset int, info byte) (int64, int, error) {
 	switch info {
 	case 24:

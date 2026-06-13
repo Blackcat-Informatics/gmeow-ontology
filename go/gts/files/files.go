@@ -27,18 +27,22 @@ const (
 	xsdDateTime = "http://www.w3.org/2001/XMLSchema#dateTime"
 )
 
+// iriTerm builds an IRI term.
 func iriTerm(value string) model.Term {
 	return model.Term{Kind: model.Iri, Value: value}
 }
 
+// literalTerm builds a literal term with an optional datatype id.
 func literalTerm(value string, datatype *int) model.Term {
 	return model.Term{Kind: model.Literal, Value: value, Datatype: datatype}
 }
 
+// bnodeTerm builds a blank-node term.
 func bnodeTerm(label string) model.Term {
 	return model.Term{Kind: model.Bnode, Value: label}
 }
 
+// safeArchivePath rejects empty, absolute, or traversal archive paths.
 func safeArchivePath(name string) error {
 	if name == "" {
 		return fmt.Errorf("empty archive path")
@@ -54,6 +58,7 @@ func safeArchivePath(name string) error {
 	return nil
 }
 
+// walkDirSorted returns all regular files under dir, sorted, rejecting symlinks.
 func walkDirSorted(dir string) ([]string, error) {
 	var out []string
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
@@ -75,6 +80,7 @@ func walkDirSorted(dir string) ([]string, error) {
 	return out, nil
 }
 
+// resolveSources expands directories to (filesystem path, archive path) pairs.
 func resolveSources(sources []string) ([][2]string, error) {
 	var entries [][2]string
 	seen := make(map[string]struct{})
@@ -119,6 +125,7 @@ func resolveSources(sources []string) ([][2]string, error) {
 	return entries, nil
 }
 
+// guessMediaType returns a best-effort media type from the file extension.
 func guessMediaType(path string) string {
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".txt":
@@ -195,6 +202,7 @@ func Pack(sources []string) ([]byte, error) {
 
 	for idx, entry := range entries {
 		fpath, relpath := entry[0], entry[1]
+		//nolint:gosec // fpath comes from Pack's explicit caller-supplied sources.
 		data, err := os.ReadFile(fpath)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", fpath, err)
@@ -265,6 +273,7 @@ func Pack(sources []string) ([]byte, error) {
 	return w.ToBytes(), nil
 }
 
+// fileModTime returns the non-zero modification time of info.
 func fileModTime(info fs.FileInfo) (time.Time, error) {
 	t := info.ModTime()
 	if t.IsZero() {
@@ -273,11 +282,13 @@ func fileModTime(info fs.FileInfo) (time.Time, error) {
 	return t, nil
 }
 
+// formatDateTime returns an RFC3339 UTC timestamp with "Z" suffix.
 func formatDateTime(t time.Time) string {
 	s := t.UTC().Format(time.RFC3339)
 	return strings.Replace(s, "+00:00", "Z", 1)
 }
 
+// readFileEntries extracts files-profile FileEntry records from a folded graph.
 func readFileEntries(g *model.Graph) (map[string]map[string]string, error) {
 	var typeID, fileEntryID *int
 	fieldIDs := make(map[string]int)
@@ -343,6 +354,7 @@ func readFileEntries(g *model.Graph) (map[string]map[string]string, error) {
 	return byPath, nil
 }
 
+// destPath returns the safe filesystem target for an archive path under dest.
 func destPath(dest, archivePath string) (string, error) {
 	if strings.HasPrefix(archivePath, "/") {
 		return "", fmt.Errorf("absolute path in archive: %s", archivePath)
@@ -372,6 +384,7 @@ func destPath(dest, archivePath string) (string, error) {
 	return target, nil
 }
 
+// suppressedBlobDigests returns the set of blob digests targeted by suppressions.
 func suppressedBlobDigests(g *model.Graph) map[string]struct{} {
 	out := make(map[string]struct{})
 	for _, sup := range g.Suppressions {
@@ -383,12 +396,13 @@ func suppressedBlobDigests(g *model.Graph) map[string]struct{} {
 			kind := ""
 			var digest *string
 			for k, v := range m {
-				key := wire.TextOr(k, "")
-				if key == "kind" {
+				switch wire.TextOr(k, "") {
+				case "kind":
 					kind = wire.TextOr(v, "")
-				} else if key == "digest" {
-					s := digestFromValue(v)
-					digest = &s
+				case "digest":
+					if s := digestFromValue(v); s != "" {
+						digest = &s
+					}
 				}
 			}
 			if kind == "blob" && digest != nil {
@@ -399,6 +413,7 @@ func suppressedBlobDigests(g *model.Graph) map[string]struct{} {
 	return out
 }
 
+// digestFromValue coerces a decoded CBOR value to a normalised blake3 digest.
 func digestFromValue(v interface{}) string {
 	if s, ok := v.(string); ok {
 		return normalizeDigest(s)
@@ -409,6 +424,7 @@ func digestFromValue(v interface{}) string {
 	return ""
 }
 
+// normalizeDigest ensures digest is prefixed with "blake3:".
 func normalizeDigest(digest string) string {
 	if strings.HasPrefix(digest, "blake3:") {
 		return digest
@@ -430,6 +446,7 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 	if !includeSuppressed {
 		suppressed = suppressedBlobDigests(g)
 	}
+	//nolint:gosec // files-profile unpack creates user-requested world-readable dirs.
 	if err := os.MkdirAll(dest, 0o755); err != nil {
 		return fmt.Errorf("create %s: %w", dest, err)
 	}
@@ -464,6 +481,7 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 		}
 
 		if parent := filepath.Dir(target); parent != "" {
+			//nolint:gosec // files-profile unpack creates user-requested world-readable dirs.
 			if err := os.MkdirAll(parent, 0o755); err != nil {
 				return fmt.Errorf("create dir %s: %w", parent, err)
 			}
@@ -475,6 +493,7 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 				return fmt.Errorf("path escapes destination: %s", path)
 			}
 		}
+		//nolint:gosec // files-profile unpack writes user-requested world-readable files.
 		if err := os.WriteFile(target, data, 0o644); err != nil {
 			return fmt.Errorf("write %s: %w", target, err)
 		}
@@ -495,6 +514,7 @@ func Unpack(g *model.Graph, dest string, includeSuppressed bool) error {
 	return nil
 }
 
+// parseDateTime parses an RFC3339 timestamp, returning Unix seconds.
 func parseDateTime(text string) (int64, error) {
 	t, err := time.Parse(time.RFC3339, text)
 	if err == nil {
@@ -533,6 +553,7 @@ func Diff(g *model.Graph, directory string) ([]string, error) {
 			return nil, fmt.Errorf("path outside directory: %s", fpath)
 		}
 		relpath := filepath.ToSlash(rel)
+		//nolint:gosec // fpath comes from walking the caller-supplied diff directory.
 		data, err := os.ReadFile(fpath)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", fpath, err)
