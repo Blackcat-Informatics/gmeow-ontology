@@ -1847,6 +1847,7 @@ class ReferenceFrameEnum(str, Enum):
     CMYK_Colourspace_Reference_Frame = "referenceFrameCMYK"
     Chinese_Yuan_Currency_Reference_Frame = "referenceFrameCNY"
     Celestial_Equatorial_Reference_Frame = "referenceFrameCelestialEquatorial"
+    Robot_Configuration_Space_Reference_Frame = "referenceFrameConfigurationSpace"
     DNS_Name_Space_Reference_Frame = "referenceFrameDNS"
     Depth_Below_Chart_Datum_Reference_Frame = "referenceFrameDepthBelowChartDatum"
     Depth_Below_Mean_Sea_Level_Reference_Frame = "referenceFrameDepthBelowSeaLevel"
@@ -1871,7 +1872,12 @@ class ReferenceFrameEnum(str, Enum):
     MAC_Address_Space_Reference_Frame = "referenceFrameMAC"
     MGRS_Reference_Frame = "referenceFrameMGRS"
     Linear_Referencing_LEFT_PARENTHESISMile_MarkerRIGHT_PARENTHESIS_Reference_Frame = "referenceFrameMileMarker"
+    Musical_Time_Reference_Frame_LEFT_PARENTHESISmetrical_beatsRIGHT_PARENTHESIS = "referenceFrameMusicalTime"
+    Narrative_SOLIDUS_Fictional_Reference_Frame = "referenceFrameNarrativeSpace"
+    Cylindrical_Navigation_Reference_Frame = "referenceFrameNavigationCylindrical"
     Network_Graph_Reference_Frame = "referenceFrameNetworkGraph"
+    Unit_Quaternion_Orientation_Reference_Frame = "referenceFrameOrientationQuaternion"
+    Hamiltonian_Phase_Space_Reference_Frame_LEFT_PARENTHESIS3_DOFRIGHT_PARENTHESIS = "referenceFramePhaseSpace"
     Abstract_Phase_Space_Reference_Frame_LEFT_PARENTHESISqp_axesRIGHT_PARENTHESIS = "referenceFramePhaseSpace3DOF"
     Plus_Code_LEFT_PARENTHESISOpen_Location_CodeRIGHT_PARENTHESIS_Reference_Frame = "referenceFramePlusCode"
     Port_Number_Space_Reference_Frame = "referenceFramePort"
@@ -1884,6 +1890,7 @@ class ReferenceFrameEnum(str, Enum):
     Robot_Velocity_Reference_Frame = "referenceFrameRobotVelocity"
     SI_Measurement_Reference_Frame = "referenceFrameSI"
     sRGB_Colourspace_Reference_Frame = "referenceFrameSRGB"
+    String_Edit_Distance_Reference_Frame = "referenceFrameStringEditSpace"
     UNSOLIDUSLOCODE_Reference_Frame = "referenceFrameUNLocode"
     URL_Space_Reference_Frame = "referenceFrameURL"
     US_Dollar_Currency_Reference_Frame = "referenceFrameUSD"
@@ -2248,10 +2255,20 @@ class TaskStatusEnum(str, Enum):
 
 
 class TemporalFrameEnum(str, Enum):
+    GPS_Gregorian_LEFT_PARENTHESISsatellite_timeRIGHT_PARENTHESIS = "temporalFrameGPSGregorian"
     TAI_LEFT_PARENTHESISatomic_no_calendarRIGHT_PARENTHESIS = "temporalFrameTAI"
     TDB_Gregorian_LEFT_PARENTHESISbarycentricRIGHT_PARENTHESIS = "temporalFrameTDBGregorian"
     TT_Gregorian_LEFT_PARENTHESISdynamicalRIGHT_PARENTHESIS = "temporalFrameTTGregorian"
+    UT1_Gregorian_LEFT_PARENTHESISEarth_rotation_timeRIGHT_PARENTHESIS = "temporalFrameUT1Gregorian"
+    UTC_Chinese_LEFT_PARENTHESIScivil_time_Chinese_calendarRIGHT_PARENTHESIS = "temporalFrameUTCChinese"
+    UTC_Coptic_LEFT_PARENTHESIScivil_time_Coptic_calendarRIGHT_PARENTHESIS = "temporalFrameUTCCoptic"
+    UTC_Ethiopian_LEFT_PARENTHESIScivil_time_Ethiopian_calendarRIGHT_PARENTHESIS = "temporalFrameUTCEthiopian"
     UTC_Gregorian_LEFT_PARENTHESIScivil_timeRIGHT_PARENTHESIS = "temporalFrameUTCGregorian"
+    UTC_Hebrew_LEFT_PARENTHESIScivil_time_Hebrew_calendarRIGHT_PARENTHESIS = "temporalFrameUTCHebrew"
+    UTC_ISO_week_date_LEFT_PARENTHESIScivil_time_ISO_8601_week_numberingRIGHT_PARENTHESIS = "temporalFrameUTCISOWeek"
+    UTC_Islamic_LEFT_PARENTHESIScivil_time_Hijri_calendarRIGHT_PARENTHESIS = "temporalFrameUTCIslamic"
+    UTC_Julian_LEFT_PARENTHESIScivil_time_Julian_calendarRIGHT_PARENTHESIS = "temporalFrameUTCJulian"
+    UTC_Persian_LEFT_PARENTHESIScivil_time_Solar_Hijri_calendarRIGHT_PARENTHESIS = "temporalFrameUTCPersian"
 
 
 class TemporalMeasurementEnum(str, Enum):

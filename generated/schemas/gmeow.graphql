@@ -1910,6 +1910,7 @@ enum ReferenceFrameEnum
     referenceFrameCMYK
     referenceFrameCNY
     referenceFrameCelestialEquatorial
+    referenceFrameConfigurationSpace
     referenceFrameDNS
     referenceFrameDepthBelowChartDatum
     referenceFrameDepthBelowSeaLevel
@@ -1934,7 +1935,12 @@ enum ReferenceFrameEnum
     referenceFrameMAC
     referenceFrameMGRS
     referenceFrameMileMarker
+    referenceFrameMusicalTime
+    referenceFrameNarrativeSpace
+    referenceFrameNavigationCylindrical
     referenceFrameNetworkGraph
+    referenceFrameOrientationQuaternion
+    referenceFramePhaseSpace
     referenceFramePhaseSpace3DOF
     referenceFramePlusCode
     referenceFramePort
@@ -1947,6 +1953,7 @@ enum ReferenceFrameEnum
     referenceFrameRobotVelocity
     referenceFrameSI
     referenceFrameSRGB
+    referenceFrameStringEditSpace
     referenceFrameUNLocode
     referenceFrameURL
     referenceFrameUSD
@@ -2347,10 +2354,20 @@ enum TaskStatusEnum
 
 enum TemporalFrameEnum
   {
+    temporalFrameGPSGregorian
     temporalFrameTAI
     temporalFrameTDBGregorian
     temporalFrameTTGregorian
+    temporalFrameUT1Gregorian
+    temporalFrameUTCChinese
+    temporalFrameUTCCoptic
+    temporalFrameUTCEthiopian
     temporalFrameUTCGregorian
+    temporalFrameUTCHebrew
+    temporalFrameUTCISOWeek
+    temporalFrameUTCIslamic
+    temporalFrameUTCJulian
+    temporalFrameUTCPersian
   }
 
 enum TemporalMeasurementEnum
