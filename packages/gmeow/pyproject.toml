@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-    "gts>=0.1.0,<0.2",
+    "gmeow-gts>=0.1.0,<0.2",
 ]
 
 [project.optional-dependencies]

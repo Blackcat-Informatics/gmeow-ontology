@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [project]
-name = "gts"
+name = "gmeow-gts"
 version = "0.1.0"
 description = "GTS (Graph Transport Substrate): a single-file CBOR transport for RDF 1.2 graphs — append-only log, BLAKE3 chain verification, deterministic fold, multi-segment cat-append composition."
 readme = "README.md"
