@@ -2732,6 +2732,7 @@ export interface Agent {
     memberOf?: Organization[],
     nativeLanguage?: Language[],
     ownerOf?: Entity[],
+    slogan?: string[],
     telephone?: string[],
 }
 
@@ -5235,6 +5236,8 @@ export interface OrderStatus {
 
 
 export interface Organization extends Agent {
+    acceptsCurrency?: ReferenceFrame[],
+    acceptsPaymentMethod?: PaymentMethod[],
     foundedBy?: Agent[],
     hasMember?: Agent[],
     hasOrganizationName?: OrganizationName[],
@@ -5243,6 +5246,7 @@ export interface Organization extends Agent {
     legalIdentifier?: Identifier[],
     organizationPurpose?: string[],
     organizationType?: OrganizationType[],
+    priceRange?: string[],
     subOrganizationOf?: Organization[],
 }
 
@@ -5709,6 +5713,7 @@ export interface Ref extends InformationObject {
 
 
 export interface ReferenceFrame extends Entity {
+    currencyCode?: string,
     determinacyModel?: Determinacy,
     dimensionCount?: number,
     frameKind?: FrameKind,

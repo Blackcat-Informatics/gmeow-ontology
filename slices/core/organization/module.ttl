@@ -332,6 +332,45 @@ gmeow:jurisdiction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 # =========================================================================== #
+# Commercial / business facet (full schema:Organization coverage, #449).
+# A tax ID is NOT a new term — it is a gmeow:Identifier whose
+# gmeow:identifierScheme is "tax" (the LEI/NAICS idiom), projected to
+# schema:taxID by a scheme-guarded cell.
+# =========================================================================== #
+
+gmeow:slogan
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "slogan"@x-gmeow-english ;
+    skos:definition "A promotional tagline or motto an agent presents itself by — the short marketing phrase of an organization (or person/brand). A flat, displayable literal (language-tagged where relevant); NOT a gmeow:Appellation/name. Non-functional in practice but unconstrained. Projects to schema:slogan."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:priceRange
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "price range"@x-gmeow-english ;
+    skos:definition "A coarse, human-readable indication of a business's price level — e.g. '$$', '$$$', or '$10–$50'. A presentational summary, deliberately NOT a structured price or currency amount (those are finance-slice measurements). Projects to schema:priceRange."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:acceptsPaymentMethod
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:PaymentMethod ;
+    rdfs:label "accepts payment method"@x-gmeow-english ;
+    skos:definition "Relates an organization to a payment method it accepts — reusing the finance-slice gmeow:PaymentMethod individuals (cash, credit card, bank transfer, cryptocurrency, …). Non-functional: a business may accept several. Projects to schema:paymentAccepted (the method's label)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+gmeow:acceptsCurrency
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "accepts currency"@x-gmeow-english ;
+    skos:definition "Relates an organization to a currency it accepts for payment — a currency reference frame (a member of gmeow:frameRealmCurrency, e.g. gmeow:referenceFrameUSD), reusing the same first-class currency model as gmeow:accountCurrency rather than a flat code string. Non-functional: a business may accept several. Projects to schema:currenciesAccepted via the frame's gmeow:currencyCode."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+# =========================================================================== #
 # Purpose — free text (solver-side, Principle 12).
 # =========================================================================== #
 

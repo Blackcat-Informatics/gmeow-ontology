@@ -1210,7 +1210,7 @@ def _branch(cell: ProjectionCell, b: ProfileBinding, vocab: SuppressionVocab) ->
                 f"IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), "
                 f"?{val})"
             )
-    elif p.edoal_source in (GM.description, GM.designGoal, GM.title):
+    elif p.edoal_source in (GM.description, GM.designGoal, GM.title, GM.slogan):
         retag_lines.extend(
             [
                 "OPTIONAL {",
@@ -1261,6 +1261,7 @@ def _templates(cell: ProjectionCell, b: ProfileBinding) -> list[str]:
             GM.description,
             GM.designGoal,
             GM.title,
+            GM.slogan,
         )
         and p.value is not None
     ):
