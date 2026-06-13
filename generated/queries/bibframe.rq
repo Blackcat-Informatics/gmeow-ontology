@@ -37,13 +37,13 @@ WHERE {
     }
     UNION {
         ?bfdw gmeow:identifier ?bfdoiVal .
-        BIND ( IRI(CONCAT(STR(?bfdw), "-doi")) AS ?bfdoiNode )
+        BIND ( IRI(CONCAT(STR(?bfdw), "-doi-", ENCODE_FOR_URI(STR(?bfdoiVal)))) AS ?bfdoiNode )
         FILTER NOT EXISTS { ?bfdw gmeow:displayable false . }
         FILTER( STRSTARTS(STR(?bfdoiVal), "10.") )
     }
     UNION {
         ?bfiw gmeow:identifier ?bfidVal .
-        BIND ( IRI(CONCAT(STR(?bfiw), "-identifier")) AS ?bfidNode )
+        BIND ( IRI(CONCAT(STR(?bfiw), "-identifier-", ENCODE_FOR_URI(STR(?bfidVal)))) AS ?bfidNode )
         FILTER NOT EXISTS { ?bfiw gmeow:displayable false . }
         FILTER( (!STRSTARTS(STR(?bfidVal), "10.")) )
     }

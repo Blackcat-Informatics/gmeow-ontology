@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # The corrected ClaimReview translation (#34): a claim with TWO competing
-# assessments and a claim with one. BOTH cases emit — one ClaimReview per
-# Assessment, each authored by its vantage, each with its own Rating.
+# assessments, a claim with one, and a claim with an ANONYMOUS assessment
+# (no vantage). All three emit — one ClaimReview per Assessment, authored
+# by its vantage WHEN one exists; the anonymous one passes through
+# author-less (anonymous stays anonymous — attribution is never demanded).
 # What never appears: a single aggregated rating on the claim itself (P9).
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/reviews/> .
@@ -31,3 +33,11 @@ ex:assessment-s1 a gmeow:Assessment ;
     gmeow:assessmentTarget ex:claim-single ;
     gmeow:vantage ex:auditor-b ;
     gmeow:assessmentScoreValue 0.75 .
+
+# --- The anonymous aggregate: a score in the review set with no author.
+ex:claim-anon a gmeow:StandpointClaim ;
+    gmeow:vantage ex:auditor-a .
+
+ex:assessment-anon a gmeow:Assessment ;
+    gmeow:assessmentTarget ex:claim-anon ;
+    gmeow:assessmentScoreValue 0.49 .

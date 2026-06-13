@@ -25,7 +25,7 @@ WHERE {
         ?mship gmeow:membershipMember ?agent .
         ?mship gmeow:membershipOrganization ?mbOrg .
         OPTIONAL {
-            ?mship gmeow:hasRole ?mrole .
+            ?mship gmeow:hasRole|gmeow:employmentRole ?mrole .
         }
         FILTER NOT EXISTS { ?mship gmeow:displayable false . }
     }
