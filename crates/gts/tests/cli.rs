@@ -217,7 +217,7 @@ fn pack_deduplicates_identical_content() {
     ]);
     assert!(out.status.success());
 
-    use gts::reader::read;
+    use gmeow_gts::reader::read;
     let data = std::fs::read(&archive).unwrap();
     let g = read(&data, true, None);
     assert_eq!(
@@ -229,7 +229,7 @@ fn pack_deduplicates_identical_content() {
 
 #[test]
 fn unpack_refuses_traversal() {
-    use gts::writer::{digest_string, Writer};
+    use gmeow_gts::writer::{digest_string, Writer};
 
     let tmp = tmpdir();
     let _ = std::fs::remove_dir_all(&tmp);
@@ -241,50 +241,50 @@ fn unpack_refuses_traversal() {
 
     let mut w = Writer::new("files");
     w.add_terms(&[
-        gts::model::Term {
-            kind: gts::model::TermKind::Iri,
+        gmeow_gts::model::Term {
+            kind: gmeow_gts::model::TermKind::Iri,
             value: Some("https://w3id.org/gts/files#FileEntry".to_string()),
             datatype: None,
             lang: None,
             reifier: None,
         },
-        gts::model::Term {
-            kind: gts::model::TermKind::Iri,
+        gmeow_gts::model::Term {
+            kind: gmeow_gts::model::TermKind::Iri,
             value: Some("https://w3id.org/gts/files#path".to_string()),
             datatype: None,
             lang: None,
             reifier: None,
         },
-        gts::model::Term {
-            kind: gts::model::TermKind::Iri,
+        gmeow_gts::model::Term {
+            kind: gmeow_gts::model::TermKind::Iri,
             value: Some("https://w3id.org/gts/files#digest".to_string()),
             datatype: None,
             lang: None,
             reifier: None,
         },
-        gts::model::Term {
-            kind: gts::model::TermKind::Iri,
+        gmeow_gts::model::Term {
+            kind: gmeow_gts::model::TermKind::Iri,
             value: Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string()),
             datatype: None,
             lang: None,
             reifier: None,
         },
-        gts::model::Term {
-            kind: gts::model::TermKind::Bnode,
+        gmeow_gts::model::Term {
+            kind: gmeow_gts::model::TermKind::Bnode,
             value: Some("e0".to_string()),
             datatype: None,
             lang: None,
             reifier: None,
         },
-        gts::model::Term {
-            kind: gts::model::TermKind::Literal,
+        gmeow_gts::model::Term {
+            kind: gmeow_gts::model::TermKind::Literal,
             value: Some("../escape.txt".to_string()),
             datatype: None,
             lang: None,
             reifier: None,
         },
-        gts::model::Term {
-            kind: gts::model::TermKind::Literal,
+        gmeow_gts::model::Term {
+            kind: gmeow_gts::model::TermKind::Literal,
             value: Some(digest.clone()),
             datatype: None,
             lang: None,
@@ -361,8 +361,8 @@ fn cat_refuses_suppress_everything_composition() {
 /// An accretive source: a blob delivered before any description, then graph
 /// content — mirrors the Python CLI test fixture.
 fn accretive_file(path: &Path) {
-    use gts::model::{Term, TermKind};
-    use gts::writer::Writer;
+    use gmeow_gts::model::{Term, TermKind};
+    use gmeow_gts::writer::Writer;
 
     let mut w = Writer::new("generic");
     w.add_blob(&[b'Z'; 64], Some("application/octet-stream"), None);
@@ -501,8 +501,8 @@ fn info_reports_accretive_tail() {
 fn verify_warns_on_stream_vocab_without_claim() {
     // §13.3: stream# provenance in an unclaimed segment is a warning, never
     // an error — it legitimately survives nq → gts round trips.
-    use gts::model::{Term, TermKind};
-    use gts::writer::Writer;
+    use gmeow_gts::model::{Term, TermKind};
+    use gmeow_gts::writer::Writer;
 
     let tmp = tmpdir();
     let _ = std::fs::remove_dir_all(&tmp);
@@ -519,14 +519,14 @@ fn verify_warns_on_stream_vocab_without_claim() {
         },
         Term {
             kind: TermKind::Iri,
-            value: Some(gts::stream::COMPACTION.to_string()),
+            value: Some(gmeow_gts::stream::COMPACTION.to_string()),
             datatype: None,
             lang: None,
             reifier: None,
         },
         Term {
             kind: TermKind::Literal,
-            value: Some(gts::stream::COMPACT_AGENT.to_string()),
+            value: Some(gmeow_gts::stream::COMPACT_AGENT.to_string()),
             datatype: None,
             lang: None,
             reifier: None,
@@ -543,8 +543,8 @@ fn verify_warns_on_stream_vocab_without_claim() {
 
 #[test]
 fn compact_refuses_evidence_without_seal_then_seals() {
-    use gts::model::{Term, TermKind};
-    use gts::writer::Writer;
+    use gmeow_gts::model::{Term, TermKind};
+    use gmeow_gts::writer::Writer;
 
     let tmp = tmpdir();
     let _ = std::fs::remove_dir_all(&tmp);
@@ -604,8 +604,8 @@ fn compact_refuses_evidence_without_seal_then_seals() {
 
 #[test]
 fn verify_flags_undeclared_files_profile() {
-    use gts::model::{Term, TermKind};
-    use gts::writer::Writer;
+    use gmeow_gts::model::{Term, TermKind};
+    use gmeow_gts::writer::Writer;
 
     let tmp = std::env::temp_dir().join("gts-verify-profile-test.gts");
     let _ = std::fs::remove_file(&tmp);
@@ -646,8 +646,8 @@ fn verify_flags_undeclared_files_profile() {
 fn verify_flags_undeclared_files_profile_object_only() {
     // Regression: profile vocabulary in ordinary object position must be
     // detected, not only rdf:type objects (§14.1).
-    use gts::model::{Term, TermKind};
-    use gts::writer::Writer;
+    use gmeow_gts::model::{Term, TermKind};
+    use gmeow_gts::writer::Writer;
 
     let tmp = std::env::temp_dir().join("gts-verify-profile-obj-test.gts");
     let _ = std::fs::remove_file(&tmp);
@@ -688,8 +688,8 @@ fn verify_flags_undeclared_files_profile_object_only() {
 fn verify_declared_files_profile_object_only_is_not_unused() {
     // A declared profile whose term appears only as an object IRI must not
     // trigger the "declared but unused" warning.
-    use gts::model::{Term, TermKind};
-    use gts::writer::Writer;
+    use gmeow_gts::model::{Term, TermKind};
+    use gmeow_gts::writer::Writer;
 
     let tmp = std::env::temp_dir().join("gts-verify-profile-declared-obj-test.gts");
     let _ = std::fs::remove_file(&tmp);

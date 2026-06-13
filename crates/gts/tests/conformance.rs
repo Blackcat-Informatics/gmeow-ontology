@@ -9,10 +9,10 @@
 use std::fs;
 use std::path::Path;
 
-use gts::model::Graph;
-use gts::nquads::to_nquads;
-use gts::reader::read;
-use gts::wire::hex;
+use gmeow_gts::model::Graph;
+use gmeow_gts::nquads::to_nquads;
+use gmeow_gts::reader::read;
+use gmeow_gts::wire::hex;
 use serde_json::{json, Map, Value};
 
 /// Rebuild the `.expected.json` summary shape from a folded graph.
@@ -120,7 +120,7 @@ fn corpus_matches_frozen_expectations() {
 /// them EXACTLY, byte for byte, in every engine.
 #[test]
 fn compact_reproduces_the_frozen_25b_bytes() {
-    use gts::compact::compact_streamable;
+    use gmeow_gts::compact::compact_streamable;
 
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/gts-vectors");
     let source = fs::read(dir.join("25-streamable-source.gts")).expect("vector 25 bytes");
@@ -140,7 +140,7 @@ fn compact_reproduces_the_frozen_25b_bytes() {
 fn prefix_fold_streaming_property() {
     use std::collections::HashSet;
 
-    use gts::wire::iter_items;
+    use gmeow_gts::wire::iter_items;
 
     fn ground(g: &Graph) -> HashSet<String> {
         to_nquads(g)
