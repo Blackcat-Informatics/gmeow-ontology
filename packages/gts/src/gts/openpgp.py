@@ -104,6 +104,8 @@ def _next_packet(data: bytes, offset: int) -> tuple[int, bytes, int]:
         # New format packet.
         tag = header & 0x3F
         offset += 1
+        if offset >= len(data):
+            raise OpenPGPError("truncated new-format length octet")
         length_octet = data[offset]
         if length_octet < 192:
             length = length_octet
@@ -126,6 +128,8 @@ def _next_packet(data: bytes, offset: int) -> tuple[int, bytes, int]:
         length_type = header & 0x03
         offset += 1
         if length_type == 0:
+            if offset >= len(data):
+                raise OpenPGPError("truncated old-format length octet")
             length = data[offset]
             offset += 1
         elif length_type == 1:
@@ -267,7 +271,9 @@ def public_key_fingerprint(armored: str) -> str:
             pub_key_body = body[:end]
         else:
             continue
-        # v4 fingerprint = SHA-1(0x99 || 2-octet body length || body)
+        # v4 fingerprint = SHA-1(0x99 || 2-octet body length || body).
+        # SHA-1 is required by RFC 4880 for OpenPGP v4 fingerprints; it is not
+        # used here as a general-purpose integrity mechanism.
         digest = hashlib.sha1(
             b"\x99" + len(pub_key_body).to_bytes(2, "big") + pub_key_body
         ).hexdigest()

@@ -40,8 +40,8 @@ gmeow gts verify dist/gmeow-full.gts
 # Pin to the repository's public release key
 gmeow gts verify dist/gmeow-full.gts --trusted-key keys/gmeow-release-key.asc
 
-# Inspect signature status without failing
-gmeow gts info dist/gmeow-full.gts
+# Inspect file metadata without running signature verification
+gmeow gts info --no-verify dist/gmeow-full.gts
 
 # Extract the embedded public key for manual WoT checks
 gmeow gts extract-key dist/gmeow-full.gts -o /tmp/embedded.asc

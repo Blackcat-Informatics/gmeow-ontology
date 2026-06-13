@@ -1116,9 +1116,12 @@ def gts_verify(
         data = path.read_bytes()
     except OSError as exc:
         raise _fail(f"cannot read {path}: {exc}") from exc
-    armored = (
-        trusted_key.read_text(encoding="utf-8") if trusted_key is not None else None
-    )
+    armored: str | None = None
+    if trusted_key is not None:
+        try:
+            armored = trusted_key.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
     try:
         result = verify_file(data, armored_key=armored, require_signatures=True)
     except Exception as exc:

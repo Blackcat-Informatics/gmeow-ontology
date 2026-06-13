@@ -330,10 +330,8 @@ class _Builder:
         carrying the file's transport key is emitted first and signed along
         with every subsequent frame.
         """
-        if signer is not None and public_key_armor is None:
-            raise ValueError(
-                "signer requires public_key_armor to embed the transport key"
-            )
+        if (signer is None) != (public_key_armor is None):
+            raise ValueError("signer and public_key_armor must be supplied together")
         chain = ["zstd"] if transform is None else transform
         terms, quads, reifies, annot = self._canonical_tables()
         writer = Writer(profile=profile, signer=signer)
