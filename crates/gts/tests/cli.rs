@@ -292,7 +292,7 @@ fn unpack_refuses_traversal() {
         },
     ]);
     w.add_quads(&[(4, 3, 0, None), (4, 1, 5, None), (4, 2, 6, None)]);
-    w.add_blob(payload, None);
+    w.add_blob(payload, None, None);
     std::fs::write(&archive, w.to_bytes()).unwrap();
 
     let dst = tmp.join("dst");
@@ -352,6 +352,254 @@ fn cat_refuses_suppress_everything_composition() {
     assert_eq!(out.status.code(), Some(1));
     let err = String::from_utf8_lossy(&out.stderr);
     assert!(err.contains("hide every quad"), "stderr: {err}");
+}
+
+// ------------------------------------------------------------------------- //
+// gts compact --streamable (§10.1, §14.1) + layout reporting (§3.3)
+// ------------------------------------------------------------------------- //
+
+/// An accretive source: a blob delivered before any description, then graph
+/// content — mirrors the Python CLI test fixture.
+fn accretive_file(path: &Path) {
+    use gts::model::{Term, TermKind};
+    use gts::writer::Writer;
+
+    let mut w = Writer::new("generic");
+    w.add_blob(&[b'Z'; 64], Some("application/octet-stream"), None);
+    w.add_terms(&[
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/Cat".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some("http://www.w3.org/2000/01/rdf-schema#label".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Literal,
+            value: Some("Cat".to_string()),
+            datatype: None,
+            lang: Some("en".to_string()),
+            reifier: None,
+        },
+    ]);
+    w.add_quads(&[(0, 1, 2, None)]);
+    std::fs::write(path, w.to_bytes()).unwrap();
+}
+
+#[test]
+fn compact_requires_streamable_flag() {
+    let tmp = tmpdir();
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(&tmp).unwrap();
+    let src = tmp.join("accretive.gts");
+    accretive_file(&src);
+    let out = gts(&[
+        "compact",
+        src.to_str().unwrap(),
+        "-o",
+        tmp.join("x.gts").to_str().unwrap(),
+    ]);
+    assert_eq!(out.status.code(), Some(2));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("compact requires --streamable"),
+        "stderr: {err}"
+    );
+}
+
+#[test]
+fn compact_verify_info_round_trip() {
+    let tmp = tmpdir();
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(&tmp).unwrap();
+    let src = tmp.join("accretive.gts");
+    accretive_file(&src);
+    let dst = tmp.join("streamable.gts");
+    let out = gts(&[
+        "compact",
+        src.to_str().unwrap(),
+        "-o",
+        dst.to_str().unwrap(),
+        "--streamable",
+        "--timestamp",
+        "2026-01-01T00:00:00Z",
+    ]);
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+
+    let out = gts(&["verify", dst.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(0));
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("layout: streamable through frame"), "{text}");
+    assert!(!text.contains("accretive tail"), "{text}");
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(!err.contains("warning"), "stderr: {err}");
+
+    let out = gts(&["info", dst.to_str().unwrap()]);
+    assert!(out.status.success());
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("layout: streamable through frame"), "{text}");
+}
+
+#[test]
+fn compact_is_reproducible_with_fixed_timestamp() {
+    let tmp = tmpdir();
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(&tmp).unwrap();
+    let src = tmp.join("accretive.gts");
+    accretive_file(&src);
+    let (a, b) = (tmp.join("a.gts"), tmp.join("b.gts"));
+    for out_path in [&a, &b] {
+        let out = gts(&[
+            "compact",
+            src.to_str().unwrap(),
+            "--streamable",
+            "--timestamp",
+            "2026-01-01T00:00:00Z",
+            "-o",
+            out_path.to_str().unwrap(),
+        ]);
+        assert!(out.status.success());
+    }
+    assert_eq!(std::fs::read(&a).unwrap(), std::fs::read(&b).unwrap());
+}
+
+#[test]
+fn verify_refuses_streamable_lie() {
+    // Frozen vector 26: a covered blob delivered before its stream:digest
+    // description — the claimed layout the bytes contradict (§3.3).
+    let v = vectors().join("26-streamable-lie.gts");
+    let out = gts(&["verify", v.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(1));
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("StreamableLayoutError"), "{text}");
+}
+
+#[test]
+fn info_reports_accretive_tail() {
+    // Frozen vector 27: frames appended after the index footer are the legal
+    // accretive tail — boundary info, never a diagnostic (§3.3).
+    let v = vectors().join("27-streamable-tail.gts");
+    let out = gts(&["info", v.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(0));
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("layout: streamable through frame"), "{text}");
+    assert!(text.contains("accretive tail 2 frame(s)"), "{text}");
+}
+
+#[test]
+fn verify_warns_on_stream_vocab_without_claim() {
+    // §13.3: stream# provenance in an unclaimed segment is a warning, never
+    // an error — it legitimately survives nq → gts round trips.
+    use gts::model::{Term, TermKind};
+    use gts::writer::Writer;
+
+    let tmp = tmpdir();
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(&tmp).unwrap();
+    let path = tmp.join("unclaimed-stream.gts");
+    let mut w = Writer::new("generic");
+    w.add_terms(&[
+        Term {
+            kind: TermKind::Bnode,
+            value: Some("c".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some(gts::stream::COMPACTION.to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Literal,
+            value: Some(gts::stream::COMPACT_AGENT.to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+    ]);
+    w.add_quads(&[(0, 1, 2, None)]);
+    std::fs::write(&path, w.to_bytes()).unwrap();
+
+    let out = gts(&["verify", path.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(0), "warning, exit stays 0");
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("layout warning"), "stderr: {err}");
+}
+
+#[test]
+fn compact_refuses_evidence_without_seal_then_seals() {
+    use gts::model::{Term, TermKind};
+    use gts::writer::Writer;
+
+    let tmp = tmpdir();
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(&tmp).unwrap();
+    let path = tmp.join("evidence.gts");
+    let mut w = Writer::new("evidence");
+    w.add_terms(&[
+        Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/Cat".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Iri,
+            value: Some("http://www.w3.org/2000/01/rdf-schema#label".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        },
+        Term {
+            kind: TermKind::Literal,
+            value: Some("Cat".to_string()),
+            datatype: None,
+            lang: Some("en".to_string()),
+            reifier: None,
+        },
+    ]);
+    w.add_quads(&[(0, 1, 2, None)]);
+    std::fs::write(&path, w.to_bytes()).unwrap();
+    let dst = tmp.join("out.gts");
+
+    let out = gts(&[
+        "compact",
+        path.to_str().unwrap(),
+        "-o",
+        dst.to_str().unwrap(),
+        "--streamable",
+    ]);
+    assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("seal-original"), "stderr: {err}");
+
+    let out = gts(&[
+        "compact",
+        path.to_str().unwrap(),
+        "-o",
+        dst.to_str().unwrap(),
+        "--streamable",
+        "--seal-original",
+    ]);
+    assert_eq!(out.status.code(), Some(0));
+    let out = gts(&["verify", dst.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(0));
 }
 
 #[test]

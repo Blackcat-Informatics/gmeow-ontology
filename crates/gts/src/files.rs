@@ -248,7 +248,7 @@ pub fn pack(sources: &[&Path]) -> Result<Vec<u8>, String> {
         if !seen.insert(digest_string(&data)) {
             continue;
         }
-        w.add_blob(&data, Some(&mt));
+        w.add_blob(&data, Some(&mt), None);
     }
 
     Ok(w.to_bytes())

@@ -5,6 +5,8 @@
 package writer
 
 import (
+	"fmt"
+
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
 	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
 	"github.com/fxamacker/cbor/v2"
@@ -33,10 +35,27 @@ type Writer struct {
 	nameToID map[string]int64
 	prev     []byte
 	buf      []byte
+	// Per-frame byte offsets and types, in append order — the raw material
+	// of an `index` footer (§6.2): offsets enable random access/parallel
+	// verify, types the "ti" locator map.
+	offsets []int
+	types   []string
 }
 
 // New creates a writer and emits the Header (the chain genesis).
 func New(profile string) *Writer {
+	return NewWithLayout(profile, "")
+}
+
+// NewWithLayout creates a writer whose header carries a layout-state claim
+// (§3.3; "streamable" is the only value this revision defines). The layout
+// key participates in the header self-hash. An empty layout writes no claim.
+func NewWithLayout(profile, layout string) *Writer {
+	if layout != "" && layout != "streamable" {
+		// §5: "streamable" is the only layout this revision defines; a
+		// typo'd claim would persist into the tamper-evident header.
+		panic(fmt.Sprintf("unsupported layout claim %q (§3.3)", layout))
+	}
 	catalog := map[int64]struct {
 		name string
 		cls  string
@@ -63,6 +82,9 @@ func New(profile string) *Writer {
 		"v":    int64(wire.Version),
 		"prof": profile,
 		"cat":  catEntries,
+	}
+	if layout != "" {
+		header["layout"] = layout
 	}
 	id := wire.HeaderID(header)
 	header["id"] = id
@@ -145,6 +167,8 @@ func (w *Writer) AddFrame(
 	id := wire.ContentID(frame)
 	frame["id"] = id
 
+	w.offsets = append(w.offsets, len(w.buf))
+	w.types = append(w.types, frameType)
 	w.buf = append(w.buf, wire.MustEncode(frame)...)
 	w.prev = id
 	return id
@@ -192,11 +216,17 @@ func (w *Writer) AddAnnot(rows []model.Triple3) []byte {
 	return w.AddFrame("annot", arr, nil, nil, nil)
 }
 
-// AddBlob appends an inline blob frame.
-func (w *Writer) AddBlob(data []byte, mt string) []byte {
-	var pub interface{}
+// AddBlob appends an inline blob frame; metadata goes in "pub" (§12).
+func (w *Writer) AddBlob(data []byte, mt, rep string) []byte {
+	pub := map[interface{}]interface{}{}
 	if mt != "" {
-		pub = map[interface{}]interface{}{"mt": mt}
+		pub["mt"] = mt
+	}
+	if rep != "" {
+		pub["rep"] = rep
+	}
+	if len(pub) == 0 {
+		return w.AddFrame("blob", nil, data, nil, nil)
 	}
 	return w.AddFrame("blob", nil, data, nil, pub)
 }
@@ -207,12 +237,47 @@ func (w *Writer) AddMeta(meta map[interface{}]interface{}) []byte {
 }
 
 // AddSuppress appends a suppress frame.
-func (w *Writer) AddSuppress(targets []interface{}, reason string) []byte {
+func (w *Writer) AddSuppress(targets []interface{}, reason string, by *int) []byte {
 	payload := map[interface{}]interface{}{"targets": targets}
 	if reason != "" {
 		payload["reason"] = reason
 	}
+	if by != nil {
+		if *by < 0 {
+			// Mirrors Rust's usize contract: a negative suppress.by is a
+			// caller bug, never valid wire content.
+			panic("suppress.by must be >= 0")
+		}
+		payload["by"] = int64(*by)
+	}
 	return w.AddFrame("suppress", payload, nil, nil, nil)
+}
+
+// AddIndex appends an index footer covering every frame appended so far (§6.2).
+//
+// "count"/"head" delimit the covered region (the streamable boundary, §3.3);
+// "off" carries each covered frame's byte offset from the start of this
+// writer's output; "ti" locates frames by type (0-based frame positions). A
+// later AddIndex covers the earlier one too — the last index wins (§6.2).
+func (w *Writer) AddIndex() []byte {
+	ti := map[interface{}]interface{}{}
+	for pos, ftype := range w.types {
+		existing, _ := ti[ftype].([]interface{})
+		ti[ftype] = append(existing, int64(pos))
+	}
+	payload := map[interface{}]interface{}{
+		"count": int64(len(w.types)),
+		"head":  w.prev,
+	}
+	if len(w.offsets) > 0 { // "off"/"ti" are [+ uint]-shaped — omit when empty
+		off := make([]interface{}, len(w.offsets))
+		for i, o := range w.offsets {
+			off[i] = int64(o)
+		}
+		payload["off"] = off
+		payload["ti"] = ti
+	}
+	return w.AddFrame("index", payload, nil, nil, nil)
 }
 
 // ToBytes returns the complete GTS file bytes.

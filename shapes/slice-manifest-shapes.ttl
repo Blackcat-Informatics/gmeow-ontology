@@ -58,6 +58,12 @@ gmeow:SliceManifestShape
         sh:message "Profile membership is multi-valued (#330): a slice may serve several named profiles; each value names both the OWL composition IRI and the GTS sub-profile tag."@x-gmeow-english ;
     ] ;
     sh:property [
+        sh:path gmeow:providesSubcommand ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
+        sh:message "A provided subcommand is a lowercase token the gmeow roll-up can dispatch on (docs/cli-extensions.md, #326)."@x-gmeow-english ;
+    ] ;
+    sh:property [
         sh:path gmeow:builtAgainstCore ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;

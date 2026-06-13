@@ -10,9 +10,29 @@ export const SelfDescribeTag = 55799;
 export const Magic = "GTS1";
 export const Version = 1;
 
+/** Deep-convert Uint8Array values to Buffer so node-cbor emits plain CBOR
+ * byte strings (major type 2) rather than RFC 8746 tag-64 typed arrays —
+ * the deterministic encoding the spec mandates (§14.1). */
+function toEncodable(value: unknown): unknown {
+    if (value instanceof Tagged) {
+        return new Tagged(value.tag, toEncodable(value.value));
+    }
+    if (Buffer.isBuffer(value)) return value;
+    if (value instanceof Uint8Array) {
+        return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+    }
+    if (Array.isArray(value)) return value.map((v) => toEncodable(v));
+    if (value instanceof Map) {
+        const out = new Map<unknown, unknown>();
+        for (const [k, v] of value) out.set(toEncodable(k), toEncodable(v));
+        return out;
+    }
+    return value;
+}
+
 /** Encode a value to canonical CBOR bytes (RFC 8949 §4.2). */
 export function encode(value: unknown): Uint8Array {
-    const buf = cbor.encodeCanonical(value) as Buffer;
+    const buf = cbor.encodeCanonical(toEncodable(value)) as Buffer;
     return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
 }
 

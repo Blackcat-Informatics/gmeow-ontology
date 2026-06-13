@@ -259,7 +259,7 @@ func Pack(sources []string) ([]byte, error) {
 
 	for _, digest := range blobOrder {
 		b := blobs[digest]
-		w.AddBlob(b.data, b.mt)
+		w.AddBlob(b.data, b.mt, "")
 	}
 
 	return w.ToBytes(), nil

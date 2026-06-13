@@ -101,7 +101,7 @@ func TestUnpackRefusesTraversal(t *testing.T) {
 		{Kind: model.Literal, Value: digest},
 	})
 	w.AddQuads([]model.Quad{{S: 4, P: 3, O: 0}, {S: 4, P: 1, O: 5}, {S: 4, P: 2, O: 6}})
-	w.AddBlob(payload, "")
+	w.AddBlob(payload, "", "")
 	if err := os.WriteFile(archive, w.ToBytes(), 0o644); err != nil {
 		t.Fatal(err)
 	}

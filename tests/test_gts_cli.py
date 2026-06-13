@@ -338,3 +338,191 @@ def test_verify_declared_files_profile_object_only_is_not_unused(
     assert main(["verify", str(path)]) == 0
     err = capsys.readouterr().err
     assert "profile warning" not in err
+
+
+# --------------------------------------------------------------------------- #
+# gts compact --streamable (§10.1, §14.1) + layout reporting (§3.3)
+# --------------------------------------------------------------------------- #
+
+
+def _accretive_file(tmp_path: Path) -> Path:
+    w = Writer()
+    w.add_blob(b"Z" * 64, mt="application/octet-stream")  # blob before catalog
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Cat"),
+            Term(TermKind.IRI, "http://www.w3.org/2000/01/rdf-schema#label"),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    path = tmp_path / "accretive.gts"
+    path.write_bytes(w.to_bytes())
+    return path
+
+
+def test_compact_requires_streamable_flag(tmp_path: Path) -> None:
+    path = _accretive_file(tmp_path)
+    assert main(["compact", str(path), "-o", str(tmp_path / "x.gts")]) == 2
+
+
+def test_compact_verify_info_round_trip(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    path = _accretive_file(tmp_path)
+    out = tmp_path / "streamable.gts"
+    assert (
+        main(
+            [
+                "compact",
+                str(path),
+                "-o",
+                str(out),
+                "--streamable",
+                "--timestamp",
+                "2026-01-01T00:00:00Z",
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()  # isolate the verify assertions from compact output
+    assert main(["verify", str(out)]) == 0
+    captured = capsys.readouterr()
+    assert "layout: streamable through frame" in captured.out
+    assert "accretive tail" not in captured.out
+    assert "warning" not in captured.err
+
+
+def test_compact_is_reproducible_with_fixed_timestamp(tmp_path: Path) -> None:
+    path = _accretive_file(tmp_path)
+    a, b = tmp_path / "a.gts", tmp_path / "b.gts"
+    args = ["compact", str(path), "--streamable", "--timestamp", "2026-01-01T00:00:00Z"]
+    assert main([*args, "-o", str(a)]) == 0
+    assert main([*args, "-o", str(b)]) == 0
+    assert a.read_bytes() == b.read_bytes()
+
+
+def test_verify_refuses_streamable_lie(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from gts.vectors import _streamable_lie
+
+    path = tmp_path / "lie.gts"
+    path.write_bytes(_streamable_lie())
+    assert main(["verify", str(path)]) == 1
+    assert "StreamableLayoutError" in capsys.readouterr().out
+
+
+def test_info_reports_accretive_tail(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from gts.vectors import _streamable_tail
+
+    path = tmp_path / "tailed.gts"
+    path.write_bytes(_streamable_tail())
+    assert main(["info", str(path)]) == 0
+    out = capsys.readouterr().out
+    assert "layout: streamable through frame" in out
+    assert "accretive tail 2 frame(s)" in out
+
+
+def test_verify_warns_on_stream_vocab_without_claim(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """§13.3: stream# provenance in an unclaimed segment is a warning, never
+    an error — it legitimately survives nq → gts round trips."""
+    from gts.stream import COMPACT_AGENT, COMPACTION
+
+    w = Writer()
+    w.add_terms(
+        [
+            Term(TermKind.BNODE, "c"),
+            Term(TermKind.IRI, COMPACTION),
+            Term(TermKind.LITERAL, COMPACT_AGENT),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    path = tmp_path / "unclaimed-stream.gts"
+    path.write_bytes(w.to_bytes())
+    assert main(["verify", str(path)]) == 0  # warning, exit stays 0
+    err = capsys.readouterr().err
+    assert "layout warning" in err
+
+
+def test_compact_refusal_exits_one(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    w = Writer(profile="evidence")
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Cat"),
+            Term(TermKind.IRI, "http://www.w3.org/2000/01/rdf-schema#label"),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    path = tmp_path / "evidence.gts"
+    path.write_bytes(w.to_bytes())
+    out = tmp_path / "out.gts"
+    assert main(["compact", str(path), "-o", str(out), "--streamable"]) == 1
+    assert "seal-original" in capsys.readouterr().err
+    assert (
+        main(["compact", str(path), "-o", str(out), "--streamable", "--seal-original"])
+        == 0
+    )
+    assert main(["verify", str(out)]) == 0
+
+
+def test_compact_seal_original_extracts_verbatim(tmp_path: Path) -> None:
+    """§10.1: the sealed original extracts by digest and re-reads byte-intact."""
+    path = _accretive_file(tmp_path)
+    src = path.read_bytes()
+    out = tmp_path / "sealed.gts"
+    assert (
+        main(["compact", str(path), "-o", str(out), "--streamable", "--seal-original"])
+        == 0
+    )
+    extracted = tmp_path / "original.gts"
+    assert (
+        main(
+            [
+                "extract",
+                str(out),
+                digest_str(src),
+                "-o",
+                str(extracted),
+                "--mt",
+                "application/gts",
+            ]
+        )
+        == 0
+    )
+    assert extracted.read_bytes() == src
+
+
+def test_verify_scans_the_graph_slot_for_vocab(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """§14.1: a vocabulary IRI used only as a quad's GRAPH NAME still rots a
+    declaration — the scans cover all four term positions."""
+    w = Writer()
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://example.org/Cat"),
+            Term(TermKind.IRI, "http://www.w3.org/2000/01/rdf-schema#label"),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+            Term(TermKind.IRI, "https://w3id.org/gts/files#graph"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, 3)])  # files# vocabulary in the graph slot ONLY
+    path = tmp_path / "graph-slot.gts"
+    path.write_bytes(w.to_bytes())
+    assert main(["verify", str(path)]) == 1
+    assert "profile error" in capsys.readouterr().err
+
+
+def test_writer_rejects_unsupported_layout_claim() -> None:
+    """§5: 'streamable' is the only layout this revision defines; a typo'd
+    claim must fail at construction, not persist into the header."""
+    with pytest.raises(ValueError, match="unsupported layout claim"):
+        Writer(layout="streamabel")

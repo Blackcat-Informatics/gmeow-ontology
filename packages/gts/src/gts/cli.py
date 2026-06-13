@@ -45,6 +45,14 @@ def _print_ledger(path: str, segments: list[Graph], torn: int | None) -> None:
             f"blobs {len(seg.blobs)} suppress {len(seg.suppressions)} "
             f"opaque {len(seg.opaque)} sigs {signers}"
         )
+        layout = seg.segment_streamable[0] if seg.segment_streamable else None
+        if layout is not None and layout.claimed:
+            head_hex = layout.head.hex() if layout.head is not None else "<none>"
+            tail = f", accretive tail {layout.tail} frame(s)" if layout.tail else ""
+            print(
+                f"    layout: streamable through frame {layout.covered} "
+                f"(head {head_hex}){tail}"
+            )
         for o in seg.opaque:
             print(f"    opaque: {o.frame_type} ({o.reason})")
         for d in seg.diagnostics:
@@ -98,8 +106,11 @@ def _namespace(iri: str) -> str:
 def _used_vocabs(seg: Graph) -> set[str]:
     out: set[str] = set()
     vocabs = set(PROFILE_VOCABS.values())
-    for s, p, o, _g in seg.quads:
-        for tid in (s, p, o):
+    n = len(seg.terms)
+    for s, p, o, g in seg.quads:
+        for tid in (s, p, o) if g is None else (s, p, o, g):
+            if not (0 <= tid < n):
+                continue  # never crash a report over a malformed reference
             term = seg.term(tid)
             if term.kind is TermKind.IRI and term.value:
                 ns = _namespace(term.value)
@@ -138,6 +149,37 @@ def _profile_check(seg: Graph) -> list[tuple[str, bool]]:
     return out
 
 
+def _stream_vocab_check(seg: Graph) -> list[str]:
+    """Warn on ``stream#`` vocabulary in an unclaimed segment (§13.3).
+
+    A warning, never an error: compaction-provenance quads legitimately
+    survive ``nq → gts`` round trips and re-accretion — the error class is
+    reserved for a claimed layout the bytes contradict (the reader's
+    ``StreamableLayoutError``).
+    """
+    from gts.stream import STREAM_NS
+
+    claimed = bool(seg.segment_streamable and seg.segment_streamable[0].claimed)
+    if claimed:
+        return []
+    n = len(seg.terms)
+    uses = any(
+        term.kind is TermKind.IRI
+        and term.value is not None
+        and term.value.startswith(STREAM_NS)
+        for s, p, o, g in seg.quads
+        for tid in ((s, p, o) if g is None else (s, p, o, g))
+        if 0 <= tid < n  # never crash a report over a malformed reference
+        for term in (seg.term(tid),)
+    )
+    if uses:
+        return [
+            f"layout warning: segment uses {STREAM_NS} vocabulary but does "
+            "not claim layout 'streamable' (§13.3)"
+        ]
+    return []
+
+
 def _cmd_verify(paths: list[str]) -> int:
     problems = False
     for path in paths:
@@ -149,13 +191,15 @@ def _cmd_verify(paths: list[str]) -> int:
             continue
         _print_ledger(path, segments, torn)
         problems = problems or _has_problems(segments, torn, fatal)
-        # §14.1: declared-vs-computed profile requirements.
+        # §14.1: declared-vs-computed profile requirements + layout warnings.
         for idx, seg in enumerate(segments):
             for msg, is_err in _profile_check(seg):
                 prefix = "error" if is_err else "warning"
                 print(f"  segment {idx}: {prefix}: {msg}", file=sys.stderr)
                 if is_err:
                     problems = True
+            for msg in _stream_vocab_check(seg):
+                print(f"  segment {idx}: warning: {msg}", file=sys.stderr)
     return 1 if problems else 0
 
 
@@ -326,6 +370,35 @@ def _cmd_cat(paths: list[str], out: str | None) -> int:
     return _write_out(out, bytes(combined))
 
 
+def _cmd_compact(
+    path: str,
+    out: str,
+    *,
+    streamable: bool,
+    seal_original: bool,
+    timestamp: str | None,
+) -> int:
+    """Rewrite a GTS file into the streamable layout state (§10.1, §14.1)."""
+    if not streamable:
+        # The verb is reserved for layout rewrites; a future --snapshot mode
+        # (§10) would land here. Without a mode the request is ambiguous.
+        print("gts: compact requires --streamable", file=sys.stderr)
+        return 2
+    from datetime import UTC, datetime
+
+    from gts.compact import CompactRefusedError, compact_streamable
+
+    ts = timestamp or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        data = compact_streamable(
+            _load(path), timestamp=ts, seal_original=seal_original
+        )
+    except CompactRefusedError as exc:
+        print(f"gts: refusing compact: {exc}", file=sys.stderr)
+        return 1
+    return _write_out(out, data)
+
+
 def _cmd_pack(sources: list[str], out: str) -> int:
     """Pack files/directories into a files-profile GTS archive (tar's ``c``)."""
     from gts.files import pack
@@ -419,6 +492,31 @@ def main(argv: list[str] | None = None) -> int:
     p_cat.add_argument("files", nargs="+")
     p_cat.add_argument("-o", "--out", default=None)
 
+    p_compact = sub.add_parser(
+        "compact",
+        help="rewrite into the streamable layout state: leading streaming "
+        "index, blobs most-significant-first, trailing index footer (§10.1)",
+    )
+    p_compact.add_argument("file")
+    p_compact.add_argument("-o", "--out", required=True)
+    p_compact.add_argument(
+        "--streamable",
+        action="store_true",
+        help="produce the delivery-ordered streamable layout (§3.3)",
+    )
+    p_compact.add_argument(
+        "--seal-original",
+        action="store_true",
+        help="carry the verbatim source as a nested GTS blob, role 'source' "
+        "(REQUIRED for evidence input)",
+    )
+    p_compact.add_argument(
+        "--timestamp",
+        default=None,
+        help="rewrite time recorded as stream:timestamp (ISO 8601 UTC); "
+        "defaults to now — pass a fixed value for reproducible output",
+    )
+
     p_pack = sub.add_parser(
         "pack", help="pack files/directories into a files-profile GTS archive"
     )
@@ -453,6 +551,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "extract":
         return _cmd_extract(
             args.file, args.digest, args.out, args.mt, args.include_suppressed
+        )
+    if args.command == "compact":
+        return _cmd_compact(
+            args.file,
+            args.out,
+            streamable=args.streamable,
+            seal_original=args.seal_original,
+            timestamp=args.timestamp,
         )
     if args.command == "pack":
         return _cmd_pack(args.sources, args.out)

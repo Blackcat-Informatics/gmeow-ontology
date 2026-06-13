@@ -30,6 +30,10 @@ commands:
                             the declared media type (never converts)
   cat -o <out> <file>...    validating composer: refuse degenerate inputs,
                             then byte-concatenate (§3.1, §14.1)
+  compact <file> -o <out> --streamable [--seal-original] [--timestamp ISO]
+                            rewrite into the streamable layout state: leading
+                            streaming index, blobs most-significant-first,
+                            trailing index footer (§10.1)
   pack <dir|file>... -o out.gts
                             pack files/directories into a files-profile archive
   unpack <archive> [-C dir] [--include-suppressed]
@@ -49,6 +53,7 @@ fn main() -> ExitCode {
         "ls" => cmd_ls(&args[1..]),
         "extract" => cmd_extract(&args[1..]),
         "cat" => cmd_cat(&args[1..]),
+        "compact" => cmd_compact(&args[1..]),
         "pack" => cmd_pack(&args[1..]),
         "unpack" => cmd_unpack(&args[1..]),
         "diff" => cmd_diff(&args[1..]),
@@ -111,6 +116,24 @@ fn print_ledger(path: &str, fs: &FileSegments) {
             seg.suppressions.len(),
             seg.opaque.len(),
         );
+        if let Some(layout) = seg.segment_streamable.first() {
+            if layout.claimed {
+                let head_hex = layout
+                    .head
+                    .as_deref()
+                    .map(hex)
+                    .unwrap_or_else(|| "<none>".to_string());
+                let tail = if layout.tail > 0 {
+                    format!(", accretive tail {} frame(s)", layout.tail)
+                } else {
+                    String::new()
+                };
+                println!(
+                    "    layout: streamable through frame {} (head {head_hex}){tail}",
+                    layout.covered
+                );
+            }
+        }
         for o in &seg.opaque {
             println!("    opaque: {} ({})", o.frame_type, o.reason);
         }
@@ -158,23 +181,16 @@ fn term_iri_value(seg: &Graph, tid: usize) -> Option<&str> {
 /// Vocabulary namespaces actually used by IRIs in a segment's quads.
 fn used_vocabs(seg: &Graph) -> HashSet<&'static str> {
     let mut out = HashSet::new();
-    for &(s, p, o, _g) in &seg.quads {
-        let p_iri = term_iri_value(seg, p);
-        let s_iri = term_iri_value(seg, s);
-        let o_iri = term_iri_value(seg, o);
-
-        for &(_prof, vocab) in PROFILE_VOCABS {
-            if let Some(iri) = p_iri {
-                if namespace(iri) == vocab {
-                    out.insert(vocab);
-                }
-            }
-            if let Some(iri) = o_iri {
-                if namespace(iri) == vocab {
-                    out.insert(vocab);
-                }
-            }
-            if let Some(iri) = s_iri {
+    for &(s, p, o, g) in &seg.quads {
+        // The graph slot is a term position like any other (§14.1): a
+        // vocabulary IRI used only as a graph name still rots a declaration.
+        let ids = [Some(s), Some(p), Some(o), g];
+        for iri in ids
+            .into_iter()
+            .flatten()
+            .filter_map(|tid| term_iri_value(seg, tid))
+        {
+            for &(_prof, vocab) in PROFILE_VOCABS {
                 if namespace(iri) == vocab {
                     out.insert(vocab);
                 }
@@ -211,6 +227,39 @@ fn profile_check(seg: &Graph) -> Vec<(String, bool)> {
         }
     }
     out
+}
+
+/// Warn on `stream#` vocabulary in an unclaimed segment (§13.3).
+///
+/// A warning, never an error: compaction-provenance quads legitimately
+/// survive `nq → gts` round trips and re-accretion — the error class is
+/// reserved for a claimed layout the bytes contradict (the reader's
+/// `StreamableLayoutError`).
+fn stream_vocab_check(seg: &Graph) -> Vec<String> {
+    let claimed = seg
+        .segment_streamable
+        .first()
+        .is_some_and(|info| info.claimed);
+    if claimed {
+        return Vec::new();
+    }
+    let uses = seg.quads.iter().any(|&(s, p, o, g)| {
+        [Some(s), Some(p), Some(o), g]
+            .into_iter()
+            .flatten()
+            .any(|tid| {
+                term_iri_value(seg, tid).is_some_and(|iri| iri.starts_with(gts::stream::STREAM_NS))
+            })
+    });
+    if uses {
+        vec![format!(
+            "layout warning: segment uses {} vocabulary but does \
+             not claim layout 'streamable' (§13.3)",
+            gts::stream::STREAM_NS
+        )]
+    } else {
+        Vec::new()
+    }
 }
 
 fn cmd_info(paths: &[String]) -> ExitCode {
@@ -267,7 +316,7 @@ fn cmd_verify(paths: &[String]) -> ExitCode {
         if has_problems(&fs) {
             problems = true;
         }
-        // §14.1: declared-vs-computed profile requirements.
+        // §14.1: declared-vs-computed profile requirements + layout warnings.
         for (idx, seg) in fs.segments.iter().enumerate() {
             for (msg, is_err) in profile_check(seg) {
                 let prefix = if is_err { "error" } else { "warning" };
@@ -275,6 +324,9 @@ fn cmd_verify(paths: &[String]) -> ExitCode {
                 if is_err {
                     problems = true;
                 }
+            }
+            for msg in stream_vocab_check(seg) {
+                eprintln!("  segment {idx}: warning: {msg}");
             }
         }
     }
@@ -523,6 +575,82 @@ fn cmd_cat(args: &[String]) -> ExitCode {
         }
     }
     ExitCode::SUCCESS
+}
+
+/// The current UTC time as `YYYY-MM-DDTHH:MM:SSZ` — the default `--timestamp`.
+fn now_utc_iso() -> String {
+    let fmt = time::format_description::parse_borrowed::<2>(
+        "[year]-[month]-[day]T[hour]:[minute]:[second]Z",
+    )
+    .expect("static format string parses");
+    time::OffsetDateTime::now_utc()
+        .format(&fmt)
+        .expect("UTC time formats")
+}
+
+/// Rewrite a GTS file into the streamable layout state (§10.1, §14.1).
+fn cmd_compact(args: &[String]) -> ExitCode {
+    let mut out_path: Option<&str> = None;
+    let mut streamable = false;
+    let mut seal_original = false;
+    let mut timestamp: Option<&str> = None;
+    let mut positional: Vec<&str> = Vec::new();
+    let mut it = args.iter();
+    while let Some(a) = it.next() {
+        match a.as_str() {
+            "-o" | "--out" => match it.next() {
+                Some(p) => out_path = Some(p),
+                None => {
+                    eprintln!("gts: -o requires a path\n{USAGE}");
+                    return ExitCode::from(2);
+                }
+            },
+            "--streamable" => streamable = true,
+            "--seal-original" => seal_original = true,
+            "--timestamp" => match it.next() {
+                Some(t) => timestamp = Some(t),
+                None => {
+                    eprintln!("gts: --timestamp requires a value\n{USAGE}");
+                    return ExitCode::from(2);
+                }
+            },
+            other => positional.push(other),
+        }
+    }
+    let [path] = positional[..] else {
+        eprintln!("{USAGE}");
+        return ExitCode::from(2);
+    };
+    let Some(out_path) = out_path else {
+        eprintln!("gts: compact requires -o\n{USAGE}");
+        return ExitCode::from(2);
+    };
+    if !streamable {
+        // The verb is reserved for layout rewrites; a future --snapshot mode
+        // (§10) would land here. Without a mode the request is ambiguous.
+        eprintln!("gts: compact requires --streamable");
+        return ExitCode::from(2);
+    }
+    let data = match load(path) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    // The timestamp defaults to now — pass a fixed value for reproducible
+    // output (§14.1 determinism).
+    let ts = timestamp.map_or_else(now_utc_iso, str::to_string);
+    match gts::compact::compact_streamable(&data, &ts, seal_original) {
+        Ok(bytes) => {
+            if let Err(e) = std::fs::write(out_path, &bytes) {
+                eprintln!("gts: cannot write {out_path}: {e}");
+                return ExitCode::from(2);
+            }
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            eprintln!("gts: refusing compact: {e}");
+            ExitCode::from(1)
+        }
+    }
 }
 
 /// Pack files/directories into a files-profile GTS archive (tar's `c`).

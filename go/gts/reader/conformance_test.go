@@ -58,6 +58,17 @@ func summarize(g *model.Graph, mode string) map[string]interface{} {
 		heads = append(heads, wire.Hex(h))
 	}
 
+	// Per-segment layout state (§3.3) — pins the streamable claim, its
+	// covered boundary, and the accretive tail across implementations.
+	streamable := []map[string]interface{}{}
+	for _, s := range g.SegmentStreamable {
+		streamable = append(streamable, map[string]interface{}{
+			"claimed": s.Claimed,
+			"covered": s.Covered,
+			"tail":    s.Tail,
+		})
+	}
+
 	diags := []string{}
 	for _, d := range g.Diagnostics {
 		diags = append(diags, d.Code)
@@ -71,6 +82,7 @@ func summarize(g *model.Graph, mode string) map[string]interface{} {
 		"segments":       len(g.SegmentHeads),
 		"segment_heads":  heads,
 		"profiles":       g.SegmentProfiles,
+		"streamable":     streamable,
 		"opaque_reasons": opaqueReasons,
 		"suppressions":   len(g.Suppressions),
 		"blobs":          blobs,
