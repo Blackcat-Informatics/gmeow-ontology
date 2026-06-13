@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/stream"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/writer"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/stream"
+	"go.blackcatinformatics.ca/gts/writer"
 )
 
 var binPath string
@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	}
 
 	binPath = filepath.Join(dir, "gts")
-	cmd := exec.Command("go", "build", "-o", binPath, "github.com/Blackcat-Informatics/gmeow-ontology/go/gts/cmd/gts")
+	cmd := exec.Command("go", "build", "-o", binPath, "go.blackcatinformatics.ca/gts/cmd/gts")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		_ = os.RemoveAll(dir)
 		fmt.Fprintf(os.Stderr, "cannot build gts binary: %v\n%s\n", err, out)

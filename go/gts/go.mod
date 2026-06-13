@@ -1,4 +1,4 @@
-module github.com/Blackcat-Informatics/gmeow-ontology/go/gts
+module go.blackcatinformatics.ca/gts
 
 go 1.26.4
 

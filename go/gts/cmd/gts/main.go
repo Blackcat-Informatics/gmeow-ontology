@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/compact"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/files"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/nquads"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/reader"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/stream"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
+	"go.blackcatinformatics.ca/gts/compact"
+	"go.blackcatinformatics.ca/gts/files"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/nquads"
+	"go.blackcatinformatics.ca/gts/reader"
+	"go.blackcatinformatics.ca/gts/stream"
+	"go.blackcatinformatics.ca/gts/wire"
 )
 
 const usage = `usage: gts <command> [args]

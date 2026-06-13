@@ -8,10 +8,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/codec"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/model"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/stream"
-	"github.com/Blackcat-Informatics/gmeow-ontology/go/gts/wire"
+	"go.blackcatinformatics.ca/gts/codec"
+	"go.blackcatinformatics.ca/gts/model"
+	"go.blackcatinformatics.ca/gts/stream"
+	"go.blackcatinformatics.ca/gts/wire"
 	"github.com/fxamacker/cbor/v2"
 )
 

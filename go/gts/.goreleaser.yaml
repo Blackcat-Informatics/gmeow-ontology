@@ -1,0 +1,37 @@
+version: 2
+project_name: gts-go
+
+monorepo:
+  tag_prefix: go/gts/
+  dir: go/gts
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: gts
+    main: ./cmd/gts
+    binary: gts
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: github
