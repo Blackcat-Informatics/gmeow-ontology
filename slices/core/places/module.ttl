@@ -987,6 +987,14 @@ gmeow:axisMonth skos:definition "The month axis of a reference frame — a coord
 gmeow:axisDay              a gmeow:Axis ; rdfs:label "day"@x-gmeow-english .
 gmeow:axisDay skos:definition "The day axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:axisWeek             a gmeow:Axis ; rdfs:label "week"@x-gmeow-english .
+gmeow:axisWeek skos:definition "The week-number axis (ISO 8601 week 1–53) of a week-date reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:axisDayOfWeek        a gmeow:Axis ; rdfs:label "day of week"@x-gmeow-english .
+gmeow:axisDayOfWeek skos:definition "The day-of-week axis (ISO 8601 weekday 1=Monday–7=Sunday) of a week-date reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 gmeow:axisHour             a gmeow:Axis ; rdfs:label "hour"@x-gmeow-english .
 gmeow:axisHour skos:definition "The hour axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
@@ -3298,6 +3306,97 @@ gmeow:referenceFrameMileMarker
 # (a gmeow:ObservationMethod, never a subclass) per Principle 9.
 # --------------------------------------------------------------------------- #
 gmeow:referenceFrameMileMarker skos:definition "The mile marker reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+# Canonical reference frames wiring the remaining open-vocab members — momentum
+# and quaternion axes, the cylindrical / narrative frame kinds, the musical-time
+# and narrative realms, the edit-distance metric, and the disputed / fuzzy
+# determinacy models — each into a profile descriptor (#443).
+gmeow:referenceFramePhaseSpace
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Hamiltonian Phase-Space Reference Frame (3-DOF)"@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ, gmeow:axisMomentumX, gmeow:axisMomentumY, gmeow:axisMomentumZ ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindPhaseSpace ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricSymplectic ;
+    skos:definition "A 3-DOF Hamiltonian phase space: paired position (x, y, z) and conjugate-momentum (p_x, p_y, p_z) axes under the symplectic metric."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:referenceFrameOrientationQuaternion
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Unit-Quaternion Orientation Reference Frame"@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmRobotic ;
+    gmeow:hasAxis gmeow:axisQuaternionW, gmeow:axisQuaternionX, gmeow:axisQuaternionY, gmeow:axisQuaternionZ ;
+    gmeow:dimensionCount "4"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindManifold ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "Rigid-body orientation as a unit quaternion (w, x, y, z) — points on the S³ manifold of unit quaternions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:referenceFrameNavigationCylindrical
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Cylindrical Navigation Reference Frame"@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisHeading, gmeow:axisBearing, gmeow:axisElevation ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCylindrical ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean ;
+    skos:definition "A cylindrical navigation frame: heading and bearing angles about a vertical elevation axis."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:referenceFrameConfigurationSpace
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Robot Configuration-Space Reference Frame"@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmRobotic ;
+    gmeow:hasAxis gmeow:axisConfigurationVector ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindManifold ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    skos:definition "A robot configuration space (C-space): a single configuration-vector axis whose dimensionality (the DOF) is carried by the coordinate-matrix shape, not by N axis individuals (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:referenceFrameStringEditSpace
+    a gmeow:ReferenceFrame ;
+    rdfs:label "String Edit-Distance Reference Frame"@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmLinguistic ;
+    gmeow:hasAxis gmeow:axisSequencePosition ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindManifold ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEditDistance ;
+    skos:definition "A discrete string space whose distance is the Levenshtein edit distance over sequence positions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:referenceFrameNarrativeSpace
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Narrative / Fictional Reference Frame"@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:hasAxis gmeow:axisSequencePosition ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed ;
+    skos:definition "A narrative / fictional frame positioned along story sequence; placements are interpretively DISPUTED rather than crisp."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+
+gmeow:referenceFrameMusicalTime
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Musical-Time Reference Frame (metrical beats)"@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyFuzzy ;
+    skos:definition "Metrical musical time measured in beats; placement is FUZZY (rubato, expressive timing) rather than crisp clock time."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
 
 gmeow:methodGPS a gmeow:ObservationMethod ; rdfs:label "GPS survey"@x-gmeow-english ;
