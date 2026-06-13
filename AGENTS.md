@@ -193,6 +193,8 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 **The one rule (#287):** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
+**Exception (#440):** `ontology-docs/` at the repository root is a committed generated artifact owned by the `ontology-docs` registered generator. It lives outside `generated/` so it can be hosted directly (e.g. GitHub Pages). The same generator code rebuilds the site independently inside the `gts-full` generator and embeds it in `generated/dist/gmeow-full.gts`, so the offline snapshot does not depend on the committed `ontology-docs/` directory.
+
 ```text
 slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment
                          #   (core/, extensions/) is human organization only —

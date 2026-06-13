@@ -1,0 +1,681 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="Global Metadata and Entity Ontology for the Web
+">
+
+
+        <meta name="author" content="Blackcat Informatics Inc.">
+
+
+        <link rel="canonical" href="https://blackcatinformatics.ca/gmeow/docs/reference/individuals/gmeow-slices/places/">
+
+
+
+
+
+
+
+      <link rel="icon" href="https://blackcatinformatics.ca/gmeow/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+
+
+
+        <title>Places - GMEOW Ontology Documentation</title>
+
+
+
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+
+
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+
+
+
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
+
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#gmeow-locations-module" class="md-skip">
+          Skip to content
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+
+
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="GMEOW Ontology Documentation" class="md-header__button md-logo" aria-label="GMEOW Ontology Documentation" data-md-component="logo">
+
+  <img src="https://blackcatinformatics.ca/gmeow/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GMEOW Ontology Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+
+              Places
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+        <form class="md-header__option" data-md-component="palette">
+
+
+
+
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+
+
+</form>
+
+
+
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+
+
+
+
+
+        <label class="md-header__button md-icon" for="__search">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  </nav>
+
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="GMEOW Ontology Documentation" class="md-nav__button md-logo" aria-label="GMEOW Ontology Documentation" data-md-component="logo">
+
+  <img src="https://blackcatinformatics.ca/gmeow/logo.svg" alt="logo">
+
+    </a>
+    GMEOW Ontology Documentation
+  </label>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Home
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+
+
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Reference
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Reference
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../classes/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Index
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../properties/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Index
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Index
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../datatypes/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Index
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../../slices/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Slices
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../../profiles/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Profiles
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../../visualization/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Visualization
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../../quality/oops-report/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Quality
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../../about/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    About
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../../../changelog/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Changelog
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+            <div class="md-content" data-md-component="content">
+
+              <article class="md-content__inner md-typeset">
+
+
+
+
+
+<!-- GENERATED by gmeow ontology-docs -- DO NOT EDIT. -->
+<!-- Source hash: eb4bda0e1a124bdc -->
+<!-- https://github.com/Blackcat-Informatics/gmeow-ontology -->
+
+<h1 id="gmeow-locations-module">GMEOW Locations Module<a class="headerlink" href="#gmeow-locations-module" title="Permanent link">&para;</a></h1>
+<p>The GMEOW Locations Module — classes, properties, and individuals of the GMEOW super-vocabulary.</p>
+<p><strong>IRI:</strong> <a href="https://blackcatinformatics.ca/gmeow/slices/places">https://blackcatinformatics.ca/gmeow/slices/places</a><br />
+<strong>CURIE:</strong> <code>gmeow:slices/places</code>  </p>
+<p><strong>Type:</strong> <code>owl:Ontology</code>  </p>
+<p>Locations — geographic places, online (virtual) locations, digital storage locations, celestial / astronomical locations, and biological-sequence loci — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET / FALDO / Sequence Ontology superset layer). Place kinds, celestial object kinds, and sequence feature kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType, gmeow:sequenceFeatureType), so any granularity from country to room, from star to galaxy cluster, or from chromosome to SNP, can be a first-class, QID-bearing entity chained by containedInPlace or locatedAt.</p>
+<p>STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).</p>
+<p>REGULATORY OVERLAYS (#103 + #93). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (#21) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).</p>
+<p>VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (#84). Virtual locations (video conferences, chat spaces, websites, social media pages) are typed by an open value vocabulary (gmeow:VirtualLocationType). Their network addresses — IP, IPv6, MAC, DNS, URL, port, BGP-AS — are modelled as frame-relative coordinates (gmeow:NetworkAddress) in topology-only reference frames (gmeow:frameKindTopological) nested under the Internet root frame via gmeow:parentFrame. CIDR containment, DNS resolution, and path-length are solver-layer computations (Principle 12), never asserted as triples in the OWL core.</p>
+<p>MATHEMATICAL / n-D REFERENCE FRAMES (#86). Hilbert spaces, smooth manifolds, phase spaces, and latent vector spaces are first-class gmeow:ReferenceFrame instances under gmeow:frameRealmMathematical. A finite-dimensional vector space (ℝⁿ, ℂⁿ, latent embedding) uses one gmeow:Axis with gmeow:hasCoordinateMatrix encoding the full column/row matrix via gmeow:CoordinateMatrix.matrixShape, not n separate axis individuals (Principle 12 — the ontology carries structure, solver carries cardinality). A configuration space (C-space, e.g. 6-DOF robot arm joint angles) uses one axis per joint. A phase space uses paired generalized-coordinate and generalized-momentum axes (qᵢ, pᵢ) and carries gmeow:hasMetricKind gmeow:metricSymplectic. A Hilbert space (∞-D) and latent vector spaces are modelled with gmeow:dimensionCount 1 and a single axis, leaving actual dimensionality to the matrix shape attribute, since the ontology does not assert infinite-dimensional structures as OWL individuals (Principle 12). OpenMath / Content-MathML encoding of coordinates is handled by the value-space layer (gmeow:coordinateValue typed by gmeow:CoordinateEncoding), not by per-expression ontology axioms.</p>
+<p>ROBOTIC REALM — C-SPACE / TF / SLAM (#88). Robot configuration spaces (C-space) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmRobotic realm, with joint-angle axes and geodesic metrics on a configuration-space manifold. Task-space and velocity frames are Cartesian seeds under the same realm. The TF transform tree is a hierarchy of nested frames linked via gmeow:parentFrame; static vs dynamic transforms are distinguished by statement-level temporal metadata (statement DSL), not by new ontology properties — the actual homogeneous-transform matrix math lives in the solver layer (Principle 12). SLAM occupancy maps are probabilistic occupancy-grid reference frames hosted by the robot, with gmeow:determinacyProbabilistic and gmeow:confidence carried on the observation results (CoordinateMatrix or SpatialCoordinates), not on the frame itself.</p>
+<p>BIOLOGICAL-SEQUENCE REALM — FALDO / SEQUENCE ONTOLOGY / GFF3 (#90). Biological sequences (DNA, RNA, protein) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmBiological realm. A reference assembly (e.g. GRCh38) is a versioned, linear 1-D reference frame with a single position axis; a sequence feature (gene, exon, SNP, CDS) is a gmeow:BiologicalSequenceLocation bearing gmeow:SequenceCoordinates with explicit start, end, and strand in that frame. Feature types are an open value vocabulary (gmeow:sequenceFeatureType) aligned by reference to Sequence Ontology (SO) terms. FALDO positions map to gmeow:SequenceCoordinates; liftover (coordinate conversion between assemblies) is declared via gmeow:transformsTo on the ReferenceFrame but executed by an external solver (Principle 12).</p>
+<p>CADASTRAL / LAND ADMINISTRATION REALM — LADM / INSPIRE (#92). Parcels, lots, and spatial units are Places typed by an open value vocabulary (gmeow:placeType). Their boundaries are Geometry / SpatialCoordinates in a terrestrial reference frame. Ownership and land rights (ownership, lease, easement, mortgage, usufruct) are modelled as reified gmeow:LandTenure instances (⊑ gmeow:TimeScopedRelation), each binding a place, a party (Agent), a rights statement (#21), and a tenure type (open value vocabulary). A structured cadastral identifier (folio, title, lot, parcel ID) is modelled as a reified gmeow:CadastralReference (⊑ gmeow:InformationObject) linked to the place. Boundary surveys carry determinacy (typically crisp for surveyed boundaries, disputed for contested claims). Contested titles coexist as multiple standpoint-indexed LandTenures, none privileged (Principle 9). Expired or lapsed tenures keep their record with gmeow:displayable false, never deletion (Principle 10). Area and intersection computations stay in the solver layer (Principle 12). Aligns ISO 19152 LADM and INSPIRE Cadastral Parcels by reference (SSSOM).</p>
+<p><strong>Defined by:</strong> <a href="https://blackcatinformatics.ca/gmeow/slices/places">https://blackcatinformatics.ca/gmeow/slices/places</a>  </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+              </article>
+            </div>
+
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+
+      </main>
+
+        <footer class="md-footer">
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+
+
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+
+</div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+
+
+
+
+
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": [], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+
+
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+
+
+  </body>
+</html>

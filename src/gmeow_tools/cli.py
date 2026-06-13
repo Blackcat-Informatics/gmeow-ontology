@@ -107,27 +107,11 @@ def regenerate(
     named generators in the order given.
     """
     # Import all generator modules to trigger @register side effects.
-    from gmeow_tools import (  # noqa: F401
-        apache,
-        catalog_gen,
-        evals,
-        export,
-        frame_shapes_gen,
-        gts_full_gen,
-        gts_gen,
-        gts_vectors_gen,
-        lpg,
-        mapping_compile,
-        matrix,
-        metadata,
-        parquet_gen,
-        profiles_gen,
-        research_objects,
-        schema_compile,
-        statement_compile,
-    )
     from gmeow_tools.config import PROJECT_ROOT
     from gmeow_tools.generator import regenerate as _regenerate
+    from gmeow_tools.load_generators import load_all
+
+    load_all()
 
     effective_skip = skip_unchanged if skip_unchanged is not None else (names is None)
     results = _regenerate(names or None, jobs=jobs, skip_unchanged=effective_skip)
@@ -179,26 +163,10 @@ def check_generated(
     and exits non-zero if any drift or orphans are found.
     """
     # Import all generator modules to trigger @register side effects.
-    from gmeow_tools import (  # noqa: F401
-        apache,
-        catalog_gen,
-        evals,
-        export,
-        frame_shapes_gen,
-        gts_full_gen,
-        gts_gen,
-        gts_vectors_gen,
-        lpg,
-        mapping_compile,
-        matrix,
-        metadata,
-        parquet_gen,
-        profiles_gen,
-        research_objects,
-        schema_compile,
-        statement_compile,
-    )
     from gmeow_tools.generator import check_all, registry
+    from gmeow_tools.load_generators import load_all
+
+    load_all()
 
     selected = names or None
     if skip:
