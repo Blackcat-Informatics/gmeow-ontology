@@ -1,0 +1,33 @@
+name: Release Cargo gmeow-gts
+
+# On a crates/gts/v* tag, verify and publish the gmeow-gts crate to crates.io.
+
+on:
+  push:
+    tags:
+      - 'crates/gts/v*'
+
+concurrency:
+  group: release-cargo-gts-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+
+      - name: Verify package builds and tests
+        run: cargo test -p gmeow-gts
+
+      - name: Publish to crates.io
+        run: cargo publish -p gmeow-gts --token ${{ secrets.CARGO_REGISTRY_TOKEN }}

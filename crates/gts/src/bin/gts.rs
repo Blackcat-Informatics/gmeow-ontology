@@ -13,10 +13,10 @@ use std::collections::HashSet;
 use std::process::ExitCode;
 
 use ciborium::value::Value;
-use gts::model::{Graph, Suppression, TermKind};
-use gts::nquads::to_nquads;
-use gts::reader::{read, read_file_segments, FileSegments};
-use gts::wire::{digest_str, hex};
+use gmeow_gts::model::{Graph, Suppression, TermKind};
+use gmeow_gts::nquads::to_nquads;
+use gmeow_gts::reader::{read, read_file_segments, FileSegments};
+use gmeow_gts::wire::{digest_str, hex};
 
 const USAGE: &str = "usage: gts <command> [args]
 
@@ -248,14 +248,15 @@ fn stream_vocab_check(seg: &Graph) -> Vec<String> {
             .into_iter()
             .flatten()
             .any(|tid| {
-                term_iri_value(seg, tid).is_some_and(|iri| iri.starts_with(gts::stream::STREAM_NS))
+                term_iri_value(seg, tid)
+                    .is_some_and(|iri| iri.starts_with(gmeow_gts::stream::STREAM_NS))
             })
     });
     if uses {
         vec![format!(
             "layout warning: segment uses {} vocabulary but does \
              not claim layout 'streamable' (§13.3)",
-            gts::stream::STREAM_NS
+            gmeow_gts::stream::STREAM_NS
         )]
     } else {
         Vec::new()
@@ -638,7 +639,7 @@ fn cmd_compact(args: &[String]) -> ExitCode {
     // The timestamp defaults to now — pass a fixed value for reproducible
     // output (§14.1 determinism).
     let ts = timestamp.map_or_else(now_utc_iso, str::to_string);
-    match gts::compact::compact_streamable(&data, &ts, seal_original) {
+    match gmeow_gts::compact::compact_streamable(&data, &ts, seal_original) {
         Ok(bytes) => {
             if let Err(e) = std::fs::write(out_path, &bytes) {
                 eprintln!("gts: cannot write {out_path}: {e}");
@@ -683,7 +684,7 @@ fn cmd_pack(args: &[String]) -> ExitCode {
     };
 
     let paths: Vec<&std::path::Path> = sources.iter().map(std::path::Path::new).collect();
-    match gts::files::pack(&paths) {
+    match gmeow_gts::files::pack(&paths) {
         Ok(data) => {
             if let Err(e) = std::fs::write(out_path, &data) {
                 eprintln!("gts: cannot write {out_path}: {e}");
@@ -734,7 +735,7 @@ fn cmd_unpack(args: &[String]) -> ExitCode {
         return ExitCode::from(1);
     }
     let dest_path = std::path::Path::new(dest.unwrap_or("."));
-    match gts::files::unpack(&g, dest_path, include_suppressed) {
+    match gmeow_gts::files::unpack(&g, dest_path, include_suppressed) {
         Ok(()) => ExitCode::SUCCESS,
         Err(msg) => {
             eprintln!("gts: refusing unpack: {msg}");
@@ -761,7 +762,7 @@ fn cmd_diff(args: &[String]) -> ExitCode {
         eprintln!("gts: refusing diff: archive did not read cleanly");
         return ExitCode::from(1);
     }
-    match gts::files::diff(&g, std::path::Path::new(directory)) {
+    match gmeow_gts::files::diff(&g, std::path::Path::new(directory)) {
         Ok(lines) => {
             let has_changes = !lines.is_empty();
             for line in &lines {
