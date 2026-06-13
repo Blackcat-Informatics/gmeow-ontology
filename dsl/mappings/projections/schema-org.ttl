@@ -1329,10 +1329,27 @@ gmeow:mapSchemaQuotation a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:quotesContent ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the quoted source is typed schema:Quotation and linked by schema:citation; inline quotedText (if any) is carried separately" ;
+        gmeow:lossyDrop "the quoted source is typed schema:Quotation and linked by schema:citation; the inline quoted text (gmeow:quotedText), when present, rides as schema:text on the Quotation via mapSchemaQuotedText" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "qWork" ; gmeow:tPred schema:citation ; gmeow:tObj "qSrc" ]
             [ gmeow:tSubj "qSrc" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Quotation ] ) ] .
+
+gmeow:mapSchemaQuotedText a gmeow:ProjectionMapping ;
+    rdfs:label "quotedText → schema:text on the Quotation"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "qtWork" ; gmeow:value "qtText" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "qtWork" ; gmeow:predicate gmeow:quotesContent ; gmeow:objectVar "qtSrc" ]
+            [ gmeow:subjectVar "qtWork" ; gmeow:predicate gmeow:quotedText ; gmeow:objectVar "qtText" ] ) ;
+        gmeow:edoalSource gmeow:quotedText ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        # a clean 1:1 property correspondence (templateAtoms only because the
+        # emit subject qtSrc differs from the anchor) — declare its EDOAL target
+        gmeow:edoalTarget schema:text ; gmeow:edoalTargetKind "property" ;
+        gmeow:lossyDrop "the inline quoted text lands on the Quotation node (the reused source); its position/offset within the quoting work is not modelled" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "qtSrc" ; gmeow:tPred schema:text ; gmeow:tObj "qtText" ] ) ] .
 
 gmeow:mapSchemaSharedContent a gmeow:ProjectionMapping ;
     rdfs:label "sharesContent → schema:sharedContent"@x-gmeow-english ;
@@ -1405,10 +1422,16 @@ gmeow:mapSchemaInventor a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "contribution period, provenance, confidence drop" ] .
 
 gmeow:mapSchemaFounder a gmeow:ProjectionMapping ;
-    rdfs:label "foundedBy → schema:founder"@x-gmeow-english ;
+    rdfs:label "foundedBy / founderOf → schema:founder"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "fOrg" ; gmeow:value "fAgent" ;
-        gmeow:atom ( [ gmeow:subjectVar "fOrg" ; gmeow:predicate gmeow:foundedBy ; gmeow:objectVar "fAgent" ] ) ;
+        # match the founding edge from EITHER direction (queries run without
+        # inverse inference): foundedBy (org→agent) or ^founderOf (agent→org)
+        gmeow:atom ( [ gmeow:subjectVar "fOrg" ;
+            gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts (
+                gmeow:foundedBy
+                [ a gmeow:InversePath ; gmeow:pathStep gmeow:founderOf ] ) ] ;
+            gmeow:objectVar "fAgent" ] ) ;
         gmeow:edoalSource gmeow:foundedBy ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:founder ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
 
@@ -1608,14 +1631,20 @@ gmeow:mapSchemaCommunicateEmail a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ceAgent" ; gmeow:value "ceEmail" ;
         gmeow:atom ( [ gmeow:subjectVar "ceAgent" ; gmeow:predicate gmeow:email ; gmeow:objectVar "ceEmail" ] ) ;
+        # the minted action IRI carries the ENCODE_FOR_URI'd address so an
+        # agent with several emails mints DISTINCT actions, never one merged
         gmeow:mint [ gmeow:bindVar "ceAction" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ceAgent" ] ) ]
-                    "-communicate-email" ) ] ) ] ] ;
+                    "-communicate-email-"
+                    [ gmeow:exprOp gmeow:opEncodeForUri ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ceEmail" ] ) ] ) ] ) ] ) ] ] ;
+        # the mailto: target is an IRI resource, not a string literal
         gmeow:mint [ gmeow:bindVar "ceTarget" ; gmeow:bindExpr
-            [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
-                "mailto:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ceEmail" ] ) ] ) ] ] ;
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    "mailto:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ceEmail" ] ) ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:email ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
@@ -1630,14 +1659,20 @@ gmeow:mapSchemaCommunicatePhone a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cpAgent" ; gmeow:value "cpPhone" ;
         gmeow:atom ( [ gmeow:subjectVar "cpAgent" ; gmeow:predicate gmeow:telephone ; gmeow:objectVar "cpPhone" ] ) ;
+        # the minted action IRI carries the ENCODE_FOR_URI'd number so an
+        # agent with several phones mints DISTINCT actions, never one merged
         gmeow:mint [ gmeow:bindVar "cpAction" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "cpAgent" ] ) ]
-                    "-communicate-phone" ) ] ) ] ] ;
+                    "-communicate-phone-"
+                    [ gmeow:exprOp gmeow:opEncodeForUri ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "cpPhone" ] ) ] ) ] ) ] ) ] ] ;
+        # the tel: target is an IRI resource, not a string literal
         gmeow:mint [ gmeow:bindVar "cpTarget" ; gmeow:bindExpr
-            [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
-                "tel:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "cpPhone" ] ) ] ) ] ] ;
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    "tel:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "cpPhone" ] ) ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:telephone ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
