@@ -4,21 +4,22 @@
   </a>
 </p>
 
-# `@blackcatinformatics/gmeow-gts` — TypeScript GTS Engine
+# `gmeow-gts` — Rust GTS Engine
 
-[![npm version](https://img.shields.io/npm/v/@blackcatinformatics/gmeow-gts.svg)](https://www.npmjs.com/package/@blackcatinformatics/gmeow-gts)
+[![crates.io](https://img.shields.io/crates/v/gmeow-gts.svg)](https://crates.io/crates/gmeow-gts)
+[![docs.rs](https://docs.rs/gmeow-gts/badge.svg)](https://docs.rs/gmeow-gts)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 [![Repository](https://img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg)](https://github.com/Blackcat-Informatics/gmeow-ontology)
 
 > **An LLM output is a claim, not a truth.**
 
-`@blackcatinformatics/gmeow-gts` is the TypeScript/npm implementation of the **Graph
-Transport Substrate (GTS)** — a single-file, language-independent transport for an
-**RDF 1.2** graph (statements *and* statement-level metadata) together with any
-content-addressed binary the graph references. It is one of four independent engines
-(Python, Rust, Go, TypeScript) that gate against the same frozen, language-neutral conformance corpus.
+`gmeow-gts` is the Rust implementation of the **Graph Transport Substrate (GTS)** — a
+single-file, language-independent transport for an **RDF 1.2** graph (statements *and*
+statement-level metadata) together with any content-addressed binary the graph references.
+It is one of four independent engines (Python, Rust, Go, TypeScript) that gate against the same frozen,
+language-neutral conformance corpus.
 
-This package provides a library and a command-line tool for reading, writing, verifying,
+This crate provides a library and a command-line tool for reading, writing, verifying,
 composing, compacting, and projecting GTS files. It is designed for agents and systems that
 need **portable, auditable, content-addressed memory** — belief revision as suppression
 frames rather than destructive edits.
@@ -28,7 +29,7 @@ frames rather than destructive edits.
 ## Table of Contents
 
 - [What is GTS?](#what-is-gts)
-- [What this package provides](#what-this-package-provides)
+- [What this crate provides](#what-this-crate-provides)
 - [Installation](#installation)
   - [As a command-line tool](#as-a-command-line-tool)
   - [As a library](#as-a-library)
@@ -68,19 +69,19 @@ contested facts.
 
 ---
 
-## What this package provides
+## What this crate provides
 
-- **`reader`** — read a GTS byte buffer into a `Graph`, verify chains, detect torn appends,
-  and handle opaque/degraded frames.
-- **`writer`** — write segments and full GTS files.
-- **`compact`** — compact a streamable GTS segment into a self-contained one.
-- **`files`** — pack and unpack directory trees using the GTS files profile.
-- **`nquads`** — project a folded graph to N-Quads.
-- **`stream`** — stream-vocabulary constants and helpers.
+- **`gmeow_gts::reader`** — read a GTS byte slice into a `Graph`, verify chains, detect
+  torn appends, and handle opaque/degraded frames.
+- **`gmeow_gts::writer`** — write segments and full GTS files.
+- **`gmeow_gts::compact`** — compact a streamable GTS segment into a self-contained one.
+- **`gmeow_gts::files`** — pack and unpack directory trees using the GTS files profile.
+- **`gmeow_gts::nquads`** — project a folded graph to N-Quads.
+- **`gmeow_gts::stream`** — stream-vocabulary constants and helpers.
 - **`gts` binary** — a CLI for all of the above.
 
-The package gates against the identical frozen conformance corpus used by the Python and
-Rust engines; every engine must fold identical bytes to identical expectations.
+The crate gates against the identical frozen conformance corpus used by the Python and Go
+engines; every engine must fold identical bytes to identical expectations.
 
 ---
 
@@ -89,26 +90,19 @@ Rust engines; every engine must fold identical bytes to identical expectations.
 ### As a command-line tool
 
 ```bash
-npx @blackcatinformatics/gmeow-gts info example.gts
+cargo install gmeow-gts
 ```
 
-Or install globally:
-
-```bash
-npm install -g @blackcatinformatics/gmeow-gts
-gts info example.gts
-```
-
-The installed binary is named `gts` for ergonomics, even though the package is
-`@blackcatinformatics/gmeow-gts`.
+The installed binary is named `gts` for ergonomics, even though the crate is `gmeow-gts`.
 
 ### As a library
 
-```bash
-npm install @blackcatinformatics/gmeow-gts
-```
+Add to `Cargo.toml`:
 
-Requires Node.js ≥ 22.16.0.
+```toml
+[dependencies]
+gmeow-gts = "0.1.1"
+```
 
 ---
 
@@ -116,22 +110,22 @@ Requires Node.js ≥ 22.16.0.
 
 ```bash
 # Inspect a GTS file
-npx @blackcatinformatics/gmeow-gts info example.gts
+gts info example.gts
 
 # Fold it to N-Quads
-npx @blackcatinformatics/gmeow-gts fold example.gts > example.nq
+gts fold example.gts > example.nq
 
 # Verify chain integrity
-npx @blackcatinformatics/gmeow-gts verify example.gts
+gts verify example.gts
 
 # Compose two valid files
-npx @blackcatinformatics/gmeow-gts cat -o combined.gts a.gts b.gts
+gts cat -o combined.gts a.gts b.gts
 
 # Package a directory
-npx @blackcatinformatics/gmeow-gts pack ./my-dir -o archive.gts
+gts pack ./my-dir -o archive.gts
 
 # Extract it elsewhere
-npx @blackcatinformatics/gmeow-gts unpack archive.gts -C ./restore
+gts unpack archive.gts -C ./restore
 ```
 
 ---
@@ -140,35 +134,40 @@ npx @blackcatinformatics/gmeow-gts unpack archive.gts -C ./restore
 
 Read a GTS file and project it to N-Quads:
 
-```typescript
-import { read } from "@blackcatinformatics/gmeow-gts";
-import { readFileSync } from "node:fs";
+```rust
+use std::fs;
 
-const bytes = readFileSync("example.gts");
-const graph = read(bytes);
-console.log(graph.toNQuads());
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let bytes = fs::read("example.gts")?;
+    let graph = gmeow_gts::reader::read(&bytes)?;
+    println!("{}", gmeow_gts::nquads::to_nquads(&graph));
+    Ok(())
+}
 ```
 
 Write a minimal graph:
 
-```typescript
-import { Graph, Term, TermKind, Writer } from "@blackcatinformatics/gmeow-gts";
-import { writeFileSync } from "node:fs";
+```rust
+use gmeow_gts::model::{Graph, Term, TermKind};
+use gmeow_gts::writer::Writer;
 
-const graph = new Graph();
-graph.triples.push([
-  new Term(TermKind.Iri, "https://example.org/s"),
-  new Term(TermKind.Iri, "https://example.org/p"),
-  new Term(TermKind.Iri, "https://example.org/o"),
-]);
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut graph = Graph::default();
+    graph.triples.push((
+        Term { kind: TermKind::Iri, value: "https://example.org/s".into() },
+        Term { kind: TermKind::Iri, value: "https://example.org/p".into() },
+        Term { kind: TermKind::Iri, value: "https://example.org/o".into() },
+    ));
 
-const writer = new Writer();
-writer.writeSegment(graph);
-writeFileSync("example.gts", writer.finish());
+    let mut writer = Writer::new();
+    writer.write_segment(&graph, None)?;
+    let bytes = writer.finish()?;
+    std::fs::write("example.gts", bytes)?;
+    Ok(())
+}
 ```
 
-For the full API, explore the TypeScript declarations in `dist/index.d.ts` after building,
-or browse the source under [`src/`](https://github.com/Blackcat-Informatics/gmeow-ontology/tree/main/ts/gts/src).
+For the full API, see [docs.rs/gmeow-gts](https://docs.rs/gmeow-gts).
 
 ---
 
@@ -229,11 +228,10 @@ For full details, read [`docs/GTS-SPEC.md`](https://github.com/Blackcat-Informat
 ### Building and testing locally
 
 ```bash
-cd ts/gts
-npm ci
-npm run build
-npm run lint
-npm test
+cd crates/gts
+cargo test
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
 ```
 
 The conformance tests compare this engine's output against the frozen corpus in
@@ -243,15 +241,15 @@ The conformance tests compare this engine's output against the frozen corpus in
 
 ## Project and community
 
-`@blackcatinformatics/gmeow-gts` is developed by [Blackcat Informatics® Inc.](https://blackcatinformatics.ca)
+`gmeow-gts` is developed by [Blackcat Informatics® Inc.](https://blackcatinformatics.ca)
 as part of the [GMEOW ontology and tooling](https://github.com/Blackcat-Informatics/gmeow-ontology)
 suite.
 
 Related packages and engines:
 
 - Python: [`packages/gts`](https://github.com/Blackcat-Informatics/gmeow-ontology/tree/main/packages/gts) (PyPI: `gmeow-gts`)
-- Rust: [`crates/gts`](https://github.com/Blackcat-Informatics/gmeow-ontology/tree/main/crates/gts) (`gmeow-gts`)
 - Go: [`go/gts`](https://github.com/Blackcat-Informatics/gmeow-ontology/tree/main/go/gts)
+- TypeScript/npm: [`ts/gts`](https://github.com/Blackcat-Informatics/gmeow-ontology/tree/main/ts/gts) (`@blackcatinformatics/gmeow-gts`)
 
 ---
 
@@ -262,7 +260,7 @@ Contributions are welcome. Please read the repository
 for the development workflow, and [`CONSTITUTION.md`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md)
 for the design principles that guide every change.
 
-All changes must pass `npm run lint` and `npm test`.
+All changes must pass `cargo test`, `cargo fmt --check`, and `cargo clippy --all-targets -- -D warnings`.
 
 ---
 
@@ -277,7 +275,7 @@ All changes must pass `npm run lint` and `npm test`.
 
 Copyright © 2026 Blackcat Informatics® Inc.
 
-This package is licensed under the **Apache License, Version 2.0** — see the
+This crate is licensed under the **Apache License, Version 2.0** — see the
 [`LICENSE`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/LICENSE)
 file in the repository root.
 
