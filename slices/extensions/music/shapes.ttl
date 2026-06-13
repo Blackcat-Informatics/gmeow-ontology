@@ -1,13 +1,158 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
+#
+# Closed-world halves of the Music module's pitch-frame axioms (issue #308).
 
-@prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-# =========================================================================== #
-# Music slice data shapes — scaffold only for #307.
-# Shape declarations for pitch/time/structure/performance/analysis land in
-# their respective child issues.
-# =========================================================================== #
+gmeow:TuningSystemShape
+    a sh:NodeShape ;
+    rdfs:label "Tuning system shape"@x-gmeow-english ;
+    skos:definition "A TuningSystem must name exactly one kind, must live in the musical-pitch realm, and must declare its frame profile."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:TuningSystem ;
+    sh:property [
+        sh:path gmeow:tuningKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TuningSystem must have exactly one tuningKind (Principle 9)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:frameRealm ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:hasValue gmeow:frameRealmMusicalPitch ;
+        sh:severity sh:Violation ;
+        sh:message "A TuningSystem must be in the frameRealmMusicalPitch realm (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:frameKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TuningSystem must declare exactly one frameKind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:requiresHost ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A TuningSystem must declare whether it requires a host (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dividedIntervalDenominator ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minExclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "If provided, dividedIntervalDenominator must be a positive integer." ;
+    ] .
+
+gmeow:PitchValueShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch value shape"@x-gmeow-english ;
+    skos:definition "A PitchValue is expressed in exactly one TuningSystem and carries either an exact ratio pair or a cents measure, never both and never neither."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchValue ;
+    sh:property [
+        sh:path gmeow:hasTuningFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchValue must be relative to exactly one TuningSystem (Principle 11)." ;
+    ] ;
+    sh:xone (
+        [ sh:property
+            [ sh:path gmeow:ratioNumerator ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:ratioDenominator ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:centsFromOrigin ; sh:maxCount 0 ; sh:severity sh:Violation ]
+        ]
+        [ sh:property
+            [ sh:path gmeow:centsFromOrigin ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:ratioNumerator ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:ratioDenominator ; sh:maxCount 0 ; sh:severity sh:Violation ]
+        ]
+    ) ;
+    sh:message "A PitchValue must provide exactly one encoding: either (ratioNumerator + ratioDenominator) or centsFromOrigin." ;
+    sh:property [
+        sh:path gmeow:ratioDenominator ;
+        sh:minExclusive 0 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "The ratio denominator must be a positive integer." ;
+    ] .
+
+gmeow:PitchIntervalShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch interval shape"@x-gmeow-english ;
+    skos:definition "A PitchInterval is expressed in exactly one TuningSystem and carries either an exact ratio pair or a cents measure, never both and never neither."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchInterval ;
+    sh:property [
+        sh:path gmeow:hasTuningFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchInterval must be relative to exactly one TuningSystem (Principle 11)." ;
+    ] ;
+    sh:xone (
+        [ sh:property
+            [ sh:path gmeow:ratioNumerator ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:ratioDenominator ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:centsFromOrigin ; sh:maxCount 0 ; sh:severity sh:Violation ]
+        ]
+        [ sh:property
+            [ sh:path gmeow:centsFromOrigin ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:decimal ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:ratioNumerator ; sh:maxCount 0 ; sh:severity sh:Violation ] ;
+          sh:property
+            [ sh:path gmeow:ratioDenominator ; sh:maxCount 0 ; sh:severity sh:Violation ]
+        ]
+    ) ;
+    sh:message "A PitchInterval must provide exactly one encoding: either (ratioNumerator + ratioDenominator) or centsFromOrigin." ;
+    sh:property [
+        sh:path gmeow:ratioDenominator ;
+        sh:minExclusive 0 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "The ratio denominator must be a positive integer." ;
+    ] .
+
+gmeow:PitchAnchorShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch anchor shape"@x-gmeow-english ;
+    skos:definition "A PitchAnchor binds exactly one tuning-system degree to exactly one frequency and belongs to exactly one TuningSystem."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchAnchor ;
+    sh:property [
+        sh:path gmeow:pitchAnchorOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchAnchor must belong to exactly one TuningSystem." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:anchorDegree ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchAnchor must declare exactly one tuning-system degree." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:anchorFrequency ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minExclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchAnchor must declare exactly one positive frequency in Hz." ;
+    ] .

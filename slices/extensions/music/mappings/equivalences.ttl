@@ -4,6 +4,8 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 
+@prefix wd: <http://www.wikidata.org/entity/> .
+
 # Music slice alignments.
 # Compiled to mappings/gmeow-music.sssom.tsv by `gmeow compile-mappings`.
 
@@ -13,4 +15,78 @@ gmeow:mapsetMusic a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)." .
 
-# Alignments will be added in child issues (#318 and following).
+# --------------------------------------------------------------------------- #
+# Wikidata — pitch / tuning terms (issue #308)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMu001 a gmeow:TermEquivalence ;
+    rdfs:label "TuningSystem ↔ Wikidata Q723441"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW TuningSystem class to Wikidata 'musical tuning' (Q723441). The Wikidata sense is broader than the GMEOW reference-frame view."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:TuningSystem ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q723441 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu002 a gmeow:TermEquivalence ;
+    rdfs:label "12-EDO ↔ Wikidata Q752518"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW 12-tone equal temperament individual to Wikidata '12 equal temperament' (Q752518)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:tuningSystem12EDO ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q752518 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.98 ;
+    gmeow:comment "Wikidata '12 equal temperament' (Q752518)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu003 a gmeow:TermEquivalence ;
+    rdfs:label "Pythagorean tuning ↔ Wikidata Q1045756"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW Pythagorean tuning individual to Wikidata 'Pythagorean tuning' (Q1045756)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:tuningSystemPythagorean ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1045756 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'Pythagorean tuning' (Q1045756)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu004 a gmeow:TermEquivalence ;
+    rdfs:label "Bohlen–Pierce ↔ Wikidata Q11901664"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW Bohlen–Pierce tuning individual to Wikidata 'Bohlen–Pierce scale' (Q11901664)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:tuningSystemBohlenPierce ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q11901664 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'Bohlen–Pierce scale' (Q11901664)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu005 a gmeow:TermEquivalence ;
+    rdfs:label "slendro ↔ Wikidata Q431434"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW slendro tuning individual to Wikidata 'slendro' (Q431434)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:tuningSystemSlendro ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q431434 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'slendro' (Q431434)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu006 a gmeow:TermEquivalence ;
+    rdfs:label "pelog ↔ Wikidata Q1094781"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW pelog tuning individual to Wikidata 'pelog' (Q1094781)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:tuningSystemPelog ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1094781 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'pelog' (Q1094781)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .

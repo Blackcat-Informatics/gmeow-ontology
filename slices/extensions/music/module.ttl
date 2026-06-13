@@ -13,14 +13,567 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:comment """Frame-relative musical content; every notation is a lossy projection.
 
-This module is intentionally scaffold-only for the structural-foundation issue (#307).
-The five planned layers are reserved as sections below; term declarations land in
-their respective child issues (#308–#312, #314–#317)."""@x-gmeow-english ;
+This module implements the pitch layer (issue #308) on top of the structural
+foundation (issue #307): TuningSystem as ReferenceFrame, exact-rational
+PitchValue / PitchInterval, PitchAnchor, Spectrum-derived PitchCollection, and
+the TuningSystemKind value vocabulary."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# PITCH FRAMES — reserved for issue #308 (TuningSystem, PitchValue, ...)
+# PITCH FRAMES — issue #308 (TuningSystem, PitchValue, PitchInterval, ...)
 # =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:TuningSystem
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ReferenceFrame ;
+    rdfs:label "Tuning System"@x-gmeow-english ;
+    skos:definition "A reference frame for musical pitch values — a named system that defines how pitch degrees, frequency ratios, or cents are interpreted. 12-EDO is one TuningSystem individual among many (Principles 9, 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TuningSystemKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Tuning System Kind"@x-gmeow-english ;
+    skos:definition "The kind of a tuning system, drawn from an open value vocabulary of individuals (equal division, just intonation, well temperament, instrument-relative, etc.). Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchAnchor
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Pitch Anchor"@x-gmeow-english ;
+    skos:definition "A binding between one degree of a TuningSystem and a physical frequency in an explicit acoustic frame (e.g., A440 vs Baroque A415). Hz is never asserted directly on a PitchValue; it is reached only through fnPitchToFrequency(value, anchor) (Principles 11, 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchExpression
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Pitch Expression"@x-gmeow-english ;
+    skos:definition "A common superclass for pitch-related quantities that are expressed relative to a TuningSystem. PitchValue and PitchInterval are its subkinds; using a named class avoids anonymous union classes as property domains in generated schemas (Principle 4)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:hasTuningFrame ;
+    gmeow:frameCardinality "exactly-one" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchValue
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:PitchExpression ;
+    rdfs:label "Pitch Value"@x-gmeow-english ;
+    skos:definition "A frame-relative musical pitch — an exact rational ratio or a cents offset expressed relative to an explicit TuningSystem. Pitch letters (C4, F#) are projections, not canonical values (Principle 11)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:hasTuningFrame ;
+    gmeow:frameCardinality "exactly-one" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchInterval
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:PitchExpression ;
+    rdfs:label "Pitch Interval"@x-gmeow-english ;
+    skos:definition "A frame-relative directed interval between two pitch values, expressed as an exact ratio or in cents. Intervals are not subclasses of PitchValue; they are a distinct kind of frame-relative quantity (Principle 9)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:hasTuningFrame ;
+    gmeow:frameCardinality "exactly-one" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:Spectrum
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
+    rdfs:label "Spectrum"@x-gmeow-english ;
+    skos:definition "A first-class information object representing a partial list or recording-region spectrum. Spectra are the source material from which pitch collections may be derived by a solver (fnSpectrumToPitchCollection) — the canonical content of spectralism (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchCollection
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
+    rdfs:label "Pitch Collection"@x-gmeow-english ;
+    skos:definition "A set or multiset of PitchValues derived from a source (a spectrum, a tuning system, an analysis, or a projection). A projection of canonical frame-relative content, not the canonical object itself (Principle 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:tuningKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TuningSystem ;
+    rdfs:range gmeow:TuningSystemKind ;
+    rdfs:label "tuning kind"@x-gmeow-english ;
+    skos:definition "The kind of tuning system (equal division, just intonation, well temperament, etc.). Functional: a TuningSystem is of exactly one kind; hybrid systems are modelled as multiple coexisting standpoints (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningAnchor
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:pitchAnchorOf ;
+    rdfs:domain gmeow:TuningSystem ;
+    rdfs:range gmeow:PitchAnchor ;
+    rdfs:label "tuning anchor"@x-gmeow-english ;
+    skos:definition "Relates a TuningSystem to one of its PitchAnchors (e.g., A440 vs A415). Non-functional: a TuningSystem may be anchored differently in different performances or historical periods, and competing anchors may coexist as standpoint-indexed claims (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchAnchorOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchAnchor ;
+    rdfs:range gmeow:TuningSystem ;
+    rdfs:label "pitch anchor of"@x-gmeow-english ;
+    skos:definition "The TuningSystem that this PitchAnchor belongs to. Functional: an anchor is defined for exactly one TuningSystem."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:hasTuningFrame
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:PitchExpression ;
+    rdfs:range gmeow:TuningSystem ;
+    rdfs:label "has tuning frame"@x-gmeow-english ;
+    skos:definition "The tuning system relative to which this pitch value or interval is expressed. Non-functional globally so that higher-level musical entities may carry multiple coexisting tuning frames (e.g., a detuned guitar over a 12-EDO synth); each PitchValue/PitchInterval is constrained to exactly one frame by SHACL (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:derivedFromSpectrum
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PitchCollection ;
+    rdfs:range gmeow:Spectrum ;
+    rdfs:label "derived from spectrum"@x-gmeow-english ;
+    skos:definition "Relates a PitchCollection to the Spectrum it was derived from. The actual derivation is performed by fnSpectrumToPitchCollection (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# DATATYPE PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:divisionCount
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TuningSystem ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "division count"@x-gmeow-english ;
+    skos:definition "For equal-division tunings, the number of equal divisions of the period (e.g., 12 for 12-EDO, 19 for 19-EDO)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dividedIntervalNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TuningSystem ;
+    rdfs:range xsd:integer ;
+    rdfs:label "divided interval numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the interval that an equal-division tuning divides (e.g., 2 for the octave 2/1; 3 for the Bohlen-Pierce tritave 3/1)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dividedIntervalDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TuningSystem ;
+    rdfs:range xsd:integer ;
+    rdfs:label "divided interval denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the interval that an equal-division tuning divides (e.g., 1 for the octave 2/1)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:primeLimit
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TuningSystem ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "prime limit"@x-gmeow-english ;
+    skos:definition "For just-intonation tunings, the largest prime factor allowed in interval ratios (e.g., 5-limit, 7-limit, 11-limit)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:degreeCount
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TuningSystem ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "degree count"@x-gmeow-english ;
+    skos:definition "The number of pitch degrees available within one period of the tuning system (e.g., 12 for 12-EDO, 13 for Bohlen-Pierce)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:anchorDegree
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchAnchor ;
+    rdfs:range xsd:integer ;
+    rdfs:label "anchor degree"@x-gmeow-english ;
+    skos:definition "The tuning-system degree that this anchor binds to a frequency (e.g., MIDI note 69 for A440 in 12-EDO)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:anchorFrequency
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchAnchor ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "anchor frequency"@x-gmeow-english ;
+    skos:definition "The physical frequency in Hz assigned to the anchor degree by this PitchAnchor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ratioNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchExpression ;
+    rdfs:range xsd:integer ;
+    rdfs:label "ratio numerator"@x-gmeow-english ;
+    skos:definition "The numerator of an exact pitch or interval ratio. Never a float; paired with ratioDenominator for the canonical rational form."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ratioDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchExpression ;
+    rdfs:range xsd:integer ;
+    rdfs:label "ratio denominator"@x-gmeow-english ;
+    skos:definition "The denominator of an exact pitch or interval ratio. Always a positive integer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:centsFromOrigin
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchExpression ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "cents from origin"@x-gmeow-english ;
+    skos:definition "A convenience measure of a pitch or interval in cents, generated from the exact ratio by fnRatioToCents. Not canonical; the ratio pair is canonical (Principle 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchDegree
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchValue ;
+    rdfs:range xsd:integer ;
+    rdfs:label "pitch degree"@x-gmeow-english ;
+    skos:definition "An optional tuning-system degree index associated with this pitch value (e.g., degree 0 = origin, degree 7 = fifth in 12-EDO)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — frame relativity and host dependence
+# --------------------------------------------------------------------------- #
+
+gmeow:PitchAnchor rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:pitchAnchorOf ; owl:someValuesFrom gmeow:TuningSystem ] .
+
+gmeow:TuningSystem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:hasValue gmeow:frameRealmMusicalPitch ] .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — TuningSystemKind (individuals, never subclasses)
+# --------------------------------------------------------------------------- #
+
+gmeow:tuningSystemKindEqualDivision a gmeow:TuningSystemKind ;
+    rdfs:label "equal division"@x-gmeow-english ;
+    skos:definition "A tuning system that divides a fixed interval (usually the octave) into a number of equal parts (e.g., 12-EDO, 19-EDO, 31-EDO)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemKindJustIntonation a gmeow:TuningSystemKind ;
+    rdfs:label "just intonation"@x-gmeow-english ;
+    skos:definition "A tuning system built from integer ratios and a chosen prime limit (e.g., 5-limit, 7-limit, Partch-43)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemKindInstrumentRelative a gmeow:TuningSystemKind ;
+    rdfs:label "instrument-relative"@x-gmeow-english ;
+    skos:definition "A tuning system defined relative to a specific physical instrument or instrument set (e.g., gamelan slendro/pelog). Requires a host (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemKindSpectralDerived a gmeow:TuningSystemKind ;
+    rdfs:label "spectral-derived"@x-gmeow-english ;
+    skos:definition "A tuning system derived from the spectral analysis of a sound or recording (stress case 7)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemKindTablatureRelative a gmeow:TuningSystemKind ;
+    rdfs:label "tablature-relative"@x-gmeow-english ;
+    skos:definition "A tuning system defined relative to a tablature or string/fret configuration rather than to absolute pitch (e.g., alternate guitar tunings, drop-D)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemKindUnpitched a gmeow:TuningSystemKind ;
+    rdfs:label "unpitched"@x-gmeow-english ;
+    skos:definition "A pseudo-tuning for unpitched or indefinite-pitch sounds (e.g., percussion, noise)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemKindWellTemperament a gmeow:TuningSystemKind ;
+    rdfs:label "well temperament"@x-gmeow-english ;
+    skos:definition "A historical temperament in which all keys are usable but each has a distinct character (e.g., quarter-comma meantone, Werckmeister)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemKindAdaptive a gmeow:TuningSystemKind ;
+    rdfs:label "adaptive"@x-gmeow-english ;
+    skos:definition "A tuning system that changes in response to context, performance, or algorithmic process (e.g., dynamic just intonation, live retuning)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# METRIC SEED (for pitch reference frames)
+# --------------------------------------------------------------------------- #
+
+gmeow:metricLogarithmic a gmeow:MetricKind ;
+    rdfs:label "logarithmic (cents)"@x-gmeow-english ;
+    skos:definition "A logarithmic metric in which distances are measured in cents or similar log-frequency units; interval size is additive under composition."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# TUNING SYSTEM EXEMPLARS
+# --------------------------------------------------------------------------- #
+
+gmeow:tuningSystem12EDO
+    a gmeow:TuningSystem ;
+    rdfs:label "12-tone equal temperament"@x-gmeow-english ;
+    skos:definition "The Western common-practice equal division of the octave into 12 semitones. One TuningSystem among many (Principle 9)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindEqualDivision ;
+    gmeow:tuningAnchor gmeow:pitchAnchorA440, gmeow:pitchAnchorA415 ;
+    gmeow:divisionCount "12"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    gmeow:degreeCount "12"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystem19EDO
+    a gmeow:TuningSystem ;
+    rdfs:label "19-tone equal temperament"@x-gmeow-english ;
+    skos:definition "Equal division of the octave into 19 parts, a common microtonal equal temperament."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindEqualDivision ;
+    gmeow:divisionCount "19"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    gmeow:degreeCount "19"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystem24EDO
+    a gmeow:TuningSystem ;
+    rdfs:label "24-tone equal temperament"@x-gmeow-english ;
+    skos:definition "Quarter-tone equal division of the octave into 24 parts."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindEqualDivision ;
+    gmeow:divisionCount "24"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    gmeow:degreeCount "24"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystem31EDO
+    a gmeow:TuningSystem ;
+    rdfs:label "31-tone equal temperament"@x-gmeow-english ;
+    skos:definition "Equal division of the octave into 31 parts, a closer approximation to meantone and just intonation."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindEqualDivision ;
+    gmeow:divisionCount "31"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    gmeow:degreeCount "31"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemJustIntonation
+    a gmeow:TuningSystem ;
+    rdfs:label "just intonation lattice"@x-gmeow-english ;
+    skos:definition "A generic just-intonation reference frame: pitch values are integer ratios within a prime limit, relative to a chosen origin."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindJustIntonation ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemPythagorean
+    a gmeow:TuningSystem ;
+    rdfs:label "Pythagorean tuning"@x-gmeow-english ;
+    skos:definition "A just-intonation-based system built from pure 3/2 fifths (2,3-limit)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindJustIntonation ;
+    gmeow:primeLimit "3"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemQuarterCommaMeantone
+    a gmeow:TuningSystem ;
+    rdfs:label "quarter-comma meantone"@x-gmeow-english ;
+    skos:definition "A Renaissance/Baroque well temperament in which major thirds are pure and fifths are narrowed by a quarter of a syntonic comma."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindWellTemperament ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemPartch43
+    a gmeow:TuningSystem ;
+    rdfs:label "Partch 43-tone just intonation"@x-gmeow-english ;
+    skos:definition "Harry Partch's 43-tone monophonic just-intonation system, a stress case for large JI tunings (stress case 5)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindJustIntonation ;
+    gmeow:primeLimit "11"^^xsd:nonNegativeInteger ;
+    gmeow:degreeCount "43"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalNumerator "2"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemBohlenPierce
+    a gmeow:TuningSystem ;
+    rdfs:label "Bohlen-Pierce"@x-gmeow-english ;
+    skos:definition "An equal division of the tritave (3/1) into 13 steps, a non-octave tuning system."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindEqualDivision ;
+    gmeow:divisionCount "13"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalNumerator "3"^^xsd:integer ;
+    gmeow:dividedIntervalDenominator "1"^^xsd:integer ;
+    gmeow:degreeCount "13"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemSlendro
+    a gmeow:TuningSystem ;
+    rdfs:label "slendro"@x-gmeow-english ;
+    skos:definition "A Javanese gamelan pentatonic tuning system; its exact intervals vary by instrument set and are defined relative to the host gamelan (Principle 11)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindInstrumentRelative ;
+    gmeow:degreeCount "5"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:tuningSystemPelog
+    a gmeow:TuningSystem ;
+    rdfs:label "pelog"@x-gmeow-english ;
+    skos:definition "A Javanese gamelan heptatonic tuning system; like slendro, it is hosted by the instrument set that realises it (Principle 11)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindInstrumentRelative ;
+    gmeow:degreeCount "7"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# PITCH ANCHOR SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:pitchAnchorA440
+    a gmeow:PitchAnchor ;
+    rdfs:label "A440 anchor"@x-gmeow-english ;
+    skos:definition "The modern concert-pitch anchor: 12-EDO degree 69 = 440 Hz."@x-gmeow-english ;
+    gmeow:pitchAnchorOf gmeow:tuningSystem12EDO ;
+    gmeow:anchorDegree "69"^^xsd:integer ;
+    gmeow:anchorFrequency "440.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchAnchorA415
+    a gmeow:PitchAnchor ;
+    rdfs:label "A415 Baroque anchor"@x-gmeow-english ;
+    skos:definition "A historical Baroque pitch anchor: 12-EDO degree 69 = 415 Hz. The same lattice as A440, but a different anchor (Principle 11)."@x-gmeow-english ;
+    gmeow:pitchAnchorOf gmeow:tuningSystem12EDO ;
+    gmeow:anchorDegree "69"^^xsd:integer ;
+    gmeow:anchorFrequency "415.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# PITCH INTERVAL SEEDS (in the generic just-intonation frame)
+# --------------------------------------------------------------------------- #
+
+gmeow:pitchIntervalPerfectFifth
+    a gmeow:PitchInterval ;
+    rdfs:label "perfect fifth"@x-gmeow-english ;
+    skos:definition "The just-intonation perfect fifth, ratio 3/2."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "3"^^xsd:integer ;
+    gmeow:ratioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchIntervalSeptimalComma
+    a gmeow:PitchInterval ;
+    rdfs:label "septimal comma"@x-gmeow-english ;
+    skos:definition "The small interval 64/63 between a just-intonation dominant seventh and a harmonic seventh."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "64"^^xsd:integer ;
+    gmeow:ratioDenominator "63"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchIntervalSyntonicComma
+    a gmeow:PitchInterval ;
+    rdfs:label "syntonic comma"@x-gmeow-english ;
+    skos:definition "The interval 81/80 between a Pythagorean major third and a just-intonation major third."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "81"^^xsd:integer ;
+    gmeow:ratioDenominator "80"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# PITCH VALUE SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:pitchValue12EDOOrigin
+    a gmeow:PitchValue ;
+    rdfs:label "12-EDO origin (C)"@x-gmeow-english ;
+    skos:definition "The origin degree of 12-EDO, ratio 1/1."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:ratioNumerator "1"^^xsd:integer ;
+    gmeow:ratioDenominator "1"^^xsd:integer ;
+    gmeow:pitchDegree "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOFifth
+    a gmeow:PitchValue ;
+    rdfs:label "12-EDO fifth (G)"@x-gmeow-english ;
+    skos:definition "The tempered fifth in 12-EDO, approximating 3/2."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "700.0"^^xsd:decimal ;
+    gmeow:pitchDegree "7"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# SPECTRUM / PITCH COLLECTION SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:spectrumExample
+    a gmeow:Spectrum ;
+    rdfs:label "example spectrum"@x-gmeow-english ;
+    skos:definition "A placeholder spectrum individual for the spectral-derivation stress case (stress case 7). A concrete corpus will replace this with analysed partial lists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionExample
+    a gmeow:PitchCollection ;
+    rdfs:label "example pitch collection"@x-gmeow-english ;
+    skos:definition "A placeholder pitch collection derived from spectrumExample, to be replaced by corpus-derived collections."@x-gmeow-english ;
+    gmeow:derivedFromSpectrum gmeow:spectrumExample ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
 # TIME FRAMES — reserved for issue #310 (MusicalTimeFrame, TimeMapping, ...)
