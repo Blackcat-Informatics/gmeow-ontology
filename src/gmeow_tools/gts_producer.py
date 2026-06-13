@@ -366,7 +366,7 @@ def _iter_quads(graph: Graph) -> list[tuple[Node, Node, Node, Node | None]]:
     """Yield (s, p, o, graph-name) rows; the default graph has a ``None`` name."""
     if isinstance(graph, Dataset):
         rows: list[tuple[Node, Node, Node, Node | None]] = []
-        default_id = graph.default_context.identifier
+        default_id = graph.default_graph.identifier
         for s, p, o, ctx in graph.quads((None, None, None, None)):
             name = ctx.identifier if isinstance(ctx, Graph) else ctx
             if name == default_id:

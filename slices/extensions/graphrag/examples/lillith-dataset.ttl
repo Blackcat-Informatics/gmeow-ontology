@@ -35,7 +35,8 @@ ex:blackcat a gmeow:Organization ;
 # The ingest provenance the catalog projections flatten to PROV.
 ex:lillith-ingest a gmeow:ImportActivity ;
     rdfs:label "lillith corpus ingest"@en ;
-    gmeow:ingestedAt "2026-06-01T09:00:00Z"^^xsd:dateTime .
+    gmeow:ingestedAt "2026-06-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 # --- The pipeline run as a verifiable workflow (#47's model, the Workflow
 # Run Crate substrate): the extraction pipeline lives in a repository, its
@@ -56,7 +57,8 @@ ex:pipeline-run a gmeow:BuildActivity ;
     gmeow:buildOutput ex:lillith-crate ;
     gmeow:buildConfigUri "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml" ;
     gmeow:hasParticipant ex:pipeline-runner ;
-    gmeow:eventTime "2026-06-02T08:00:00Z"^^xsd:dateTime .
+    gmeow:eventTime "2026-06-02T08:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:lillith-crate a gmeow:Distribution ;
     rdfs:label "lillith.crate.zip"@en ;

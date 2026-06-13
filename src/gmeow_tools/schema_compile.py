@@ -401,9 +401,39 @@ def gen_pydantic(linkml_path: Path) -> str:
     return gen.serialize()  # type: ignore[no-any-return]
 
 
+#: LinkML's TypescriptGenerator ships a minimal type_map (str/int/Bool/float/
+#: XSDDate only), so every other standard base — datetime, decimal, uri, time,
+#: etc. — logs "Unknown type.base" and degrades. Map them to their natural TS
+#: representations (ISO-8601 strings for temporal/URI types, number for decimal).
+#: Upstream gap; tracked in #433.
+_TS_BASE_TYPE_MAP = {
+    "XSDDateTime": "string",
+    "XSDTime": "string",
+    "Decimal": "number",
+    "URI": "string",
+    "URIorCURIE": "string",
+    "Curie": "string",
+    "NCName": "string",
+    "NodeIdentifier": "string",
+    "ElementIdentifier": "string",
+    # The generator resolves a type via t.base, else falls back to t.typeof.
+    # `duration` has base=None and typeof="string" (the LinkML *type name*, not
+    # the "str" *base* already in the upstream map), so its name "string" reaches
+    # the lookup unmatched. Map that LinkML type-name → TS `string`. Key = LinkML
+    # type name, value = TS type — same word here, different namespaces.
+    "string": "string",
+}
+
+
 def gen_typescript(linkml_path: Path) -> str:
     """Run the LinkML TypeScript generator."""
+    from linkml.generators import typescriptgen
     from linkml.generators.typescriptgen import TypescriptGenerator
+
+    # Extend (never overwrite) the generator's incomplete base→TS type map so the
+    # standard XSD bases resolve instead of warning + degrading.
+    for base, ts in _TS_BASE_TYPE_MAP.items():
+        typescriptgen.type_map.setdefault(base, ts)
 
     gen = TypescriptGenerator(str(linkml_path), mergeimports=True)
     return gen.serialize()  # type: ignore[no-any-return]
