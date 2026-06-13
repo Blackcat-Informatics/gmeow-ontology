@@ -15,8 +15,8 @@
 `@blackcatinformatics/gmeow-gts` is the TypeScript/npm implementation of the **Graph
 Transport Substrate (GTS)** — a single-file, language-independent transport for an
 **RDF 1.2** graph (statements *and* statement-level metadata) together with any
-content-addressed binary the graph references. It is one of three independent engines
-(Python, Rust, Go) that gate against the same frozen, language-neutral conformance corpus.
+content-addressed binary the graph references. It is one of four independent engines
+(Python, Rust, Go, TypeScript) that gate against the same frozen, language-neutral conformance corpus.
 
 This package provides a library and a command-line tool for reading, writing, verifying,
 composing, compacting, and projecting GTS files. It is designed for agents and systems that
