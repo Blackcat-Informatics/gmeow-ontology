@@ -133,6 +133,7 @@ gmeow:hasParticipant	skos:closeMatch	crm:P11_had_participant		semapv:ManualMappi
 gmeow:hasParticipant	skos:closeMatch	ical:attendee		semapv:ManualMappingCuration	0.75	the flat participant shortcut ↔ iCalendar ATTENDEE
 gmeow:hasParticipant	skos:closeMatch	lode:involvedAgent		semapv:ManualMappingCuration	0.85	the flat event-participant shortcut
 gmeow:hasParticipant	skos:closeMatch	sem:hasActor		semapv:ManualMappingCuration	0.85	SEM actor of an event
+gmeow:hasParticipant	skos:exactMatch	prov:wasAssociatedWith		semapv:ManualMappingCuration	0.8	an event's agent participants are PROV's associated agents; gmeow scopes to any Event where PROV scopes to Activities — exactMatch on the shared activity use (#34 phase 2)
 gmeow:hasRecurrenceRule	skos:relatedMatch	schema:eventSchedule		semapv:ManualMappingCuration	0.6	schema:eventSchedule relates an event/series to its recurrence schedule
 gmeow:hasSubEvent	skos:closeMatch	crm:P9_consists_of		semapv:ManualMappingCuration	0.8	CIDOC P9 consists of — event mereology
 gmeow:hasSubEvent	skos:closeMatch	schema:subEvent		semapv:ManualMappingCuration	0.85	

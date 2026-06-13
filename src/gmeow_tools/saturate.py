@@ -102,13 +102,24 @@ class Cell:
 
 
 def load_cells(dsl_dir: Path | None = None) -> list[Cell]:
-    """Read every authored TermEquivalence cell from the mapping DSL."""
+    """Read every authored TermEquivalence cell from the mapping DSL.
+
+    Cells live in TWO authoring locations (the compiler reads both): the
+    shared ``dsl/mappings/equivalences/`` directory and the slice-owned
+    ``slices/*/*/mappings/*.ttl`` files (#287). Phase 1 read only the
+    former — slice-owned strong cells were invisible to saturation.
+    """
+    from gmeow_tools.slices import iter_slice_mapping_files
+
     directory = dsl_dir if dsl_dir is not None else MAPPING_DSL_DIR / "equivalences"
     if not directory.is_dir():
         msg = f"equivalence DSL directory not found: {directory}"
         raise FileNotFoundError(msg)
+    paths = sorted(directory.glob("*.ttl"))
+    if dsl_dir is None:
+        paths += iter_slice_mapping_files()
     g = Graph()
-    for path in sorted(directory.glob("*.ttl")):
+    for path in paths:
         g.parse(path, format="turtle")
     cells: list[Cell] = []
     for cell in sorted(g.subjects(RDF.type, URIRef(_GM + "TermEquivalence")), key=str):

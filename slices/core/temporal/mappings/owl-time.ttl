@@ -250,3 +250,64 @@ gmeow:mapIntervalCoincidesWith a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "owl-time" ; gmeow:relation "<=" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intCoincidesA" ; gmeow:tPred time:intervalEquals ; gmeow:tObj "intCoincidesB" ] ) ] .
+
+# --- Interval boundary flattening (#34 phase 3): the typed interval's
+# datetime boundaries emit as OWL-Time's structural idiom — a MINTED
+# time:Instant per boundary, carrying time:inXSDDateTime. The interval node
+# is REUSED (it is the gmeow:TimeInterval); only the boundary instants are
+# minted, content-addressed on the interval IRI for diffable reruns.
+
+gmeow:mapTimeHasBeginning a gmeow:ProjectionMapping ;
+    rdfs:label "startedAtTime → time:hasBeginning minted Instant"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "tbiv" ;
+        gmeow:atom ( [ gmeow:subjectVar "tbiv" ; gmeow:predicate gmeow:startedAtTime ; gmeow:objectVar "tbStart" ] ) ;
+        gmeow:mint [ gmeow:bindVar "tbInstant" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "tbiv" ] ) ]
+                    "-beginning" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:startedAtTime ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:toPredicate time:hasBeginning ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the temporal frame (time scale, calendar) drops; the boundary flattens to a bare xsd:dateTime instant" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "tbiv" ; gmeow:tPred time:hasBeginning ; gmeow:tObj "tbInstant" ]
+            [ gmeow:tSubj "tbInstant" ; gmeow:tPred rdf:type ; gmeow:tObjValue time:Instant ]
+            [ gmeow:tSubj "tbInstant" ; gmeow:tPred time:inXSDDateTime ; gmeow:tObj "tbStart" ] ) ] .
+
+gmeow:mapTimeHasEnd a gmeow:ProjectionMapping ;
+    rdfs:label "endedAtTime → time:hasEnd minted Instant"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "teiv" ;
+        gmeow:atom ( [ gmeow:subjectVar "teiv" ; gmeow:predicate gmeow:endedAtTime ; gmeow:objectVar "teEnd" ] ) ;
+        gmeow:mint [ gmeow:bindVar "teInstant" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "teiv" ] ) ]
+                    "-end" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:endedAtTime ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:toPredicate time:hasEnd ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "teiv" ; gmeow:tPred time:hasEnd ; gmeow:tObj "teInstant" ]
+            [ gmeow:tSubj "teInstant" ; gmeow:tPred rdf:type ; gmeow:tObjValue time:Instant ]
+            [ gmeow:tSubj "teInstant" ; gmeow:tPred time:inXSDDateTime ; gmeow:tObj "teEnd" ] ) ] .
+
+gmeow:mapTimeHasTime a gmeow:ProjectionMapping ;
+    rdfs:label "eventTime → time:hasTime minted Instant"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "tpEvent" ;
+        gmeow:atom ( [ gmeow:subjectVar "tpEvent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "tpWhen" ] ) ;
+        gmeow:mint [ gmeow:bindVar "tpInstant" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "tpEvent" ] ) ]
+                    "-instant" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:eventTime ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:toPredicate time:hasTime ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "tpEvent" ; gmeow:tPred time:hasTime ; gmeow:tObj "tpInstant" ]
+            [ gmeow:tSubj "tpInstant" ; gmeow:tPred rdf:type ; gmeow:tObjValue time:Instant ]
+            [ gmeow:tSubj "tpInstant" ; gmeow:tPred time:inXSDDateTime ; gmeow:tObj "tpWhen" ] ) ] .

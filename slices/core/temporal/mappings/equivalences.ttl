@@ -5,6 +5,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix time: <http://www.w3.org/2006/time#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 @prefix crmgeo: <http://www.ics.forth.gr/isl/CRMgeo/> .
 @prefix edtf: <http://id.loc.gov/datatypes/edtf/> .
@@ -639,4 +640,22 @@ gmeow:eqTemporal052 a gmeow:TermEquivalence ;
     gmeow:alignObject time:intervalEquals ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal053 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:startedAtTime ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject prov:startedAtTime ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (#34 phase 2)" ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal054 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:endedAtTime ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject prov:endedAtTime ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the end-boundary twin of eqTemporal053 (#34 phase 2)" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .

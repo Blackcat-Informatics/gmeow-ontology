@@ -1,0 +1,121 @@
+@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix edoal: <http://ns.inria.org/edoal/1.0/#> .
+@prefix gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/projections/gedcom> a align:Alignment ;
+    rdfs:label "GMEOW → gedcom (EDOAL)"@en ;
+    align:level "2EDOAL" ;
+    align:map [ a align:Cell ;
+            rdfs:label "family-anchored parent-child relationship → gedcom:childIn"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:withinFamily ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:childIn ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasChild → gedcom:child (standpoints drop; contested rows coexist)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasChild ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:child ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "family-anchored couple → gedcom:marriage on the family"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:withinFamily ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:marriage ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Family → gedcom:Family"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Family ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri gedcom:Family ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "clean documentary M+F couple → gedcom:husband / gedcom:wife"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasPartner ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:husband ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Person → gedcom:Individual"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Person ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri gedcom:Individual ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "CoupleRelationship → minted gedcom:Marriage + spouseIn"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:CoupleRelationship ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri gedcom:Marriage ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "uncontested saabFemale → gedcom:sex 'F'"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sexAssignedAtBirth ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:sex ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "uncontested saabMale → gedcom:sex 'M'"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sexAssignedAtBirth ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:sex ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "contested saab values → gedcom:sex 'U' (no winner is picked)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sexAssignedAtBirth ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:sex ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "saabIntersex → gedcom:sex 'U' (GEDCOM's binary cannot carry it)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sexAssignedAtBirth ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:sex ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "saabUnknown → gedcom:sex 'U'"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sexAssignedAtBirth ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:sex ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "intersexVariation note → gedcom:sex 'U'"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:intersexVariation ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri gedcom:sex ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ] ;
+    align:onto1 [ a align:Ontology ;
+            align:formalism [ align:name "GMEOW" ] ] ;
+    align:onto2 [ a align:Ontology ;
+            align:formalism [ align:name "gedcom" ] ] ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "GENERATED by `gmeow regenerate` (mappings) from mapping-dsl/ — DO NOT EDIT."@en .

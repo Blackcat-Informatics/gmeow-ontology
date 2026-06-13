@@ -116,3 +116,12 @@ gmeow:eqProvenance013 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "prov:generated links an activity to the entity it generated; gmeow:generatedObservation specialises the range to Observation. The ObservationalActivity→prov:Activity alignment is canonical in mapping-dsl/equivalences/events.ttl (eqEvents132)." ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+
+gmeow:eqProvenance014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:wasDerivedFrom ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject prov:wasDerivedFrom ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "the same derivation relation; gmeow's is deliberately domain-free so events and endurants may participate (#34 phase 2)" ;
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .

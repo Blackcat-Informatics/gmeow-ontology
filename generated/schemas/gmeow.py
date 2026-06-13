@@ -14506,7 +14506,9 @@ class KinRelationship(ConfiguredBaseModel):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Kin Relationship'})
 
-    pass
+    withinFamily: Optional[list[Family]] = Field(default=None, title="within family", json_schema_extra = { "linkml_meta": {'domain': 'KinRelationship',
+         'domain_of': ['KinRelationship'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/withinFamily'} })
 
 
 class CoupleRelationship(KinRelationship):
@@ -14517,6 +14519,9 @@ class CoupleRelationship(KinRelationship):
     hasPartner: Optional[list[Person]] = Field(default=None, title="has partner", json_schema_extra = { "linkml_meta": {'domain': 'CoupleRelationship',
          'domain_of': ['CoupleRelationship'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPartner'} })
+    withinFamily: Optional[list[Family]] = Field(default=None, title="within family", json_schema_extra = { "linkml_meta": {'domain': 'KinRelationship',
+         'domain_of': ['KinRelationship'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/withinFamily'} })
 
 
 class LandTenureType(ConfiguredBaseModel):
@@ -24837,6 +24842,9 @@ class ParentChildRelationship(KinRelationship):
     relationshipParent: Optional[Person] = Field(default=None, title="relationship parent", json_schema_extra = { "linkml_meta": {'domain': 'ParentChildRelationship',
          'domain_of': ['ParentChildRelationship'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/relationshipParent'} })
+    withinFamily: Optional[list[Family]] = Field(default=None, title="within family", json_schema_extra = { "linkml_meta": {'domain': 'KinRelationship',
+         'domain_of': ['KinRelationship'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/withinFamily'} })
 
 
 class AdoptiveParentChild(ParentChildRelationship):
@@ -24850,6 +24858,9 @@ class AdoptiveParentChild(ParentChildRelationship):
     relationshipParent: Optional[Person] = Field(default=None, title="relationship parent", json_schema_extra = { "linkml_meta": {'domain': 'ParentChildRelationship',
          'domain_of': ['ParentChildRelationship'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/relationshipParent'} })
+    withinFamily: Optional[list[Family]] = Field(default=None, title="within family", json_schema_extra = { "linkml_meta": {'domain': 'KinRelationship',
+         'domain_of': ['KinRelationship'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/withinFamily'} })
 
 
 class BiologicalParentChild(ParentChildRelationship):
@@ -24863,6 +24874,9 @@ class BiologicalParentChild(ParentChildRelationship):
     relationshipParent: Optional[Person] = Field(default=None, title="relationship parent", json_schema_extra = { "linkml_meta": {'domain': 'ParentChildRelationship',
          'domain_of': ['ParentChildRelationship'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/relationshipParent'} })
+    withinFamily: Optional[list[Family]] = Field(default=None, title="within family", json_schema_extra = { "linkml_meta": {'domain': 'KinRelationship',
+         'domain_of': ['KinRelationship'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/withinFamily'} })
 
 
 class FosterParentChild(ParentChildRelationship):
@@ -24876,6 +24890,9 @@ class FosterParentChild(ParentChildRelationship):
     relationshipParent: Optional[Person] = Field(default=None, title="relationship parent", json_schema_extra = { "linkml_meta": {'domain': 'ParentChildRelationship',
          'domain_of': ['ParentChildRelationship'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/relationshipParent'} })
+    withinFamily: Optional[list[Family]] = Field(default=None, title="within family", json_schema_extra = { "linkml_meta": {'domain': 'KinRelationship',
+         'domain_of': ['KinRelationship'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/withinFamily'} })
 
 
 class ParticipantRole(ConfiguredBaseModel):
@@ -37210,6 +37227,9 @@ class StepParentChild(ParentChildRelationship):
     relationshipParent: Optional[Person] = Field(default=None, title="relationship parent", json_schema_extra = { "linkml_meta": {'domain': 'ParentChildRelationship',
          'domain_of': ['ParentChildRelationship'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/relationshipParent'} })
+    withinFamily: Optional[list[Family]] = Field(default=None, title="within family", json_schema_extra = { "linkml_meta": {'domain': 'KinRelationship',
+         'domain_of': ['KinRelationship'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/withinFamily'} })
 
 
 class StepType(ConfiguredBaseModel):

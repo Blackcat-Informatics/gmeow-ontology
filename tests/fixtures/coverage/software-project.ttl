@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Neutral software-project coverage fixture (#34 phases 2-3): a project, its
+# repository (web URL → doap:browse), and a maintenance status — exercising
+# the doap/codemeta projections now that they run in MAXIMAL.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/software/> .
+
+ex:meowgraph a gmeow:SoftwareProject ;
+    gmeow:fullName "MeowGraph" ;
+    gmeow:hasRepository ex:meowgraph-repo ;
+    gmeow:maintenanceStatus gmeow:statusActive .
+
+ex:meowgraph-repo a gmeow:Repository ;
+    gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:cloneUrl "https://github.com/example/meowgraph.git" ;
+    gmeow:webUrl "https://github.com/example/meowgraph" .
+
+# --- License + a developer contribution (the doap credit surface).
+ex:meowgraph gmeow:projectLicense <https://spdx.org/licenses/Apache-2.0> .
+
+ex:dev-kim a gmeow:Person ;
+    gmeow:fullName "Kim Reyes" .
+
+ex:contribution-kim a gmeow:Contribution ;
+    gmeow:contributor ex:dev-kim ;
+    gmeow:contributionTarget ex:meowgraph ;
+    gmeow:contributionRole gmeow:roleSoftwareDeveloper .

@@ -551,3 +551,178 @@ def test_qb_projection_well_formed() -> None:
         URIRef(QB + "obsValue"),
         Literal("45000.50", datatype=XSD.decimal),
     ) in g
+
+
+# --------------------------------------------------------------------------- #
+# #34 phases 2-3 coverage profiles
+# --------------------------------------------------------------------------- #
+
+
+def _fixture_store(name: str) -> pyoxigraph.Store:
+    data = Graph().parse(FIXTURES_DIR / name, format="turtle")
+    return sparql.store_with(include_imports=False, extra_triples=data)
+
+
+def test_gedcom_projection() -> None:
+    """Minted Marriage + symmetric spouseIn; sex ONLY from the saab datum."""
+    g = project_graph("gedcom", _fixture_store("genealogy.ttl"))
+    ged = "http://www.w3.org/2000/10/swap/pim/gedcom#"
+    ex = "https://example.org/genealogy/"
+    marriage = URIRef(ex + "couple-mt-marriage")
+    assert (marriage, RDF.type, URIRef(ged + "Marriage")) in g
+    spouses = set(g.subjects(URIRef(ged + "spouseIn"), marriage))
+    assert spouses == {URIRef(ex + "mira"), URIRef(ex + "tomas")}
+    # husband/wife emit ONLY in the clean documentary configuration (the
+    # 1910 couple below); the modern couple's marriage carries neither.
+    # THE CLEAN-OR-UNKNOWN RULE: an unambiguous recorded datum maps cleanly;
+    # the partner WITHOUT one gets no row (never inferred from anything else);
+    # EVERY ambiguous configuration degrades to "U" — never a forced M/F.
+    sex = URIRef(ged + "sex")
+    assert (URIRef(ex + "mira"), sex, Literal("F")) in g
+    assert not list(g.objects(URIRef(ex + "tomas"), sex))
+    assert set(g.objects(URIRef(ex + "record-intersex"), sex)) == {Literal("U")}
+    assert set(g.objects(URIRef(ex + "record-contested"), sex)) == {Literal("U")}
+    assert set(g.objects(URIRef(ex + "record-variation"), sex)) == {Literal("U")}
+    # contested-free flat kinship flattens; the suppressed relative is absent.
+    assert (URIRef(ex + "mira"), URIRef(ged + "child"), URIRef(ex + "lena")) in g
+    assert URIRef(ex + "suppressed-relative") not in set(g.subjects()) | set(
+        g.objects()
+    )
+    # THE CLEAN-CONFIGURATION RULE for the traditional terms: the 1910 couple
+    # (both partners with clean documentary saab, one M one F) emits
+    # husband/wife on its marriage; the modern couple (one partner without a
+    # recorded datum) stays symmetric spouseIn-only.
+    m1910 = URIRef(ex + "couple-1910-marriage")
+    assert (m1910, URIRef(ged + "husband"), URIRef(ex + "ancestor-stefan")) in g
+    assert (m1910, URIRef(ged + "wife"), URIRef(ex + "ancestor-helena")) in g
+    assert not list(g.objects(marriage, URIRef(ged + "husband")))
+    assert not list(g.objects(marriage, URIRef(ged + "wife")))
+    # the withinFamily anchor yields childIn + the family's marriage edge
+    fam = URIRef(ex + "family-1910")
+    assert (URIRef(ex + "ancestor-jozef"), URIRef(ged + "childIn"), fam) in g
+    assert (fam, URIRef(ged + "marriage"), m1910) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_bibo_projection_doi_guard() -> None:
+    """The two-cell DOI guard: 10.-prefixed → bibo:doi, else bibo:identifier."""
+    g = project_graph("bibo", _fixture_store("publications.ttl"))
+    bibo = "http://purl.org/ontology/bibo/"
+    ex = "https://example.org/publications/"
+    assert (
+        URIRef(ex + "graphrag-paper"),
+        URIRef(bibo + "doi"),
+        Literal("10.5072/zenodo.999901"),
+    ) in g
+    assert not list(
+        g.objects(URIRef(ex + "graphrag-paper"), URIRef(bibo + "identifier"))
+    )
+    assert (
+        URIRef(ex + "retrieval-patent"),
+        URIRef(bibo + "identifier"),
+        Literal("US-2026-0123456-A1"),
+    ) in g
+    assert not list(g.objects(URIRef(ex + "retrieval-patent"), URIRef(bibo + "doi")))
+    _assert_no_gmeow_leakage(g)
+
+
+def test_bibframe_projection_minted_identifiers() -> None:
+    """identifiedBy rides minted nodes: bf:Doi under the guard, bf:Identifier else."""
+    g = project_graph("bibframe", _fixture_store("publications.ttl"))
+    bf = "http://id.loc.gov/ontologies/bibframe/"
+    ex = "https://example.org/publications/"
+    doi_node = URIRef(ex + "graphrag-paper-doi")
+    assert (URIRef(ex + "graphrag-paper"), URIRef(bf + "identifiedBy"), doi_node) in g
+    assert (doi_node, RDF.type, URIRef(bf + "Doi")) in g
+    assert (doi_node, RDF.value, Literal("10.5072/zenodo.999901")) in g
+    id_node = URIRef(ex + "retrieval-patent-identifier")
+    assert (id_node, RDF.type, URIRef(bf + "Identifier")) in g
+    # the reified title relator survives as a bf:Title node (reused IRI)
+    assert (URIRef(ex + "paper-title"), RDF.type, URIRef(bf + "Title")) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_org_projection_membership_relator() -> None:
+    """The Membership relator survives reified with member/organization/role."""
+    g = project_graph("org", _fixture_store("employment-contested.ttl"))
+    org = "http://www.w3.org/ns/org#"
+    memberships = list(g.subjects(RDF.type, URIRef(org + "Membership")))
+    assert memberships, "no org:Membership rows"
+    m = memberships[0]
+    assert next(g.objects(m, URIRef(org + "member")), None) is not None
+    assert next(g.objects(m, URIRef(org + "organization")), None) is not None
+    _assert_no_gmeow_leakage(g)
+
+
+def test_sioc_projection_email_partial() -> None:
+    """EmailMessage→Post, threading + authorship flatten to SIOC edges."""
+    g = project_graph("sioc", _fixture_store("contact-fields.ttl"))
+    # the contacts fixture may carry no messages; build a minimal in-memory one
+    if len(g) == 0:
+        gm = GMEOW
+        data = Graph()
+        ex = "https://example.org/sioc/"
+        for turtle in [
+            f"<{ex}m1> a <{gm}EmailMessage> ; <{gm}partOfThread> <{ex}t1> .",
+            f"<{ex}m2> a <{gm}EmailMessage> ; <{gm}inReplyTo> <{ex}m1> .",
+            f"<{ex}t1> a <{gm}Thread> .",
+        ]:
+            data.parse(data=turtle, format="turtle")
+        g = project_graph(
+            "sioc", sparql.store_with(include_imports=False, extra_triples=data)
+        )
+    sioc = "http://rdfs.org/sioc/ns#"
+    assert list(g.subjects(RDF.type, URIRef(sioc + "Post")))
+    assert list(g.subject_objects(URIRef(sioc + "reply_of")))
+    assert list(g.subject_objects(URIRef(sioc + "has_container")))
+    _assert_no_gmeow_leakage(g)
+
+
+def test_owl_time_boundary_instants() -> None:
+    """startedAtTime/endedAtTime emit minted time:Instant boundary nodes."""
+    g = project_graph("owl-time", _fixture_store("events.ttl"))
+    time_ns = "http://www.w3.org/2006/time#"
+    beginnings = list(g.subject_objects(URIRef(time_ns + "hasBeginning")))
+    assert beginnings, "no boundary instants emitted"
+    _interval, instant = beginnings[0]
+    assert (instant, RDF.type, URIRef(time_ns + "Instant")) in g
+    assert next(g.objects(instant, URIRef(time_ns + "inXSDDateTime")), None) is not None
+    _assert_no_gmeow_leakage(g)
+
+
+def test_claim_review_per_review_translation() -> None:
+    """N competing Assessments -> N coexisting ClaimReviews (#34 correction).
+
+    Each review is authored by its vantage and carries its OWN Rating; the
+    contested claim loses nothing and no winner is picked — what stays
+    refused is only an aggregated rating on the claim itself (P9).
+    """
+    g = project_graph("schema-org", _fixture_store("claim-reviews.ttl"))
+    schema = "https://schema.org/"
+    ex = "https://example.org/reviews/"
+    reviews_of = {
+        str(r): str(next(g.objects(r, URIRef(schema + "author"))))
+        for r in g.subjects(RDF.type, URIRef(schema + "ClaimReview"))
+        if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-disputed")) in g
+    }
+    assert len(reviews_of) == 2, "both competing verdicts must survive"
+    assert set(reviews_of.values()) == {ex + "auditor-a", ex + "auditor-b"}
+    # each review carries its own rating value — 0.9 and 0.2 both present
+    values = set()
+    for r in g.subjects(RDF.type, URIRef(schema + "ClaimReview")):
+        if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-disputed")) in g:
+            rating = next(g.objects(r, URIRef(schema + "reviewRating")))
+            values.add(str(next(g.objects(rating, URIRef(schema + "ratingValue")))))
+    assert values == {"0.9", "0.2"}
+    # the claim ITSELF carries no rating (the P9 line that remains)
+    assert not list(
+        g.objects(URIRef(ex + "claim-disputed"), URIRef(schema + "reviewRating"))
+    )
+    # the singular case emits exactly one review
+    singles = [
+        r
+        for r in g.subjects(RDF.type, URIRef(schema + "ClaimReview"))
+        if (r, URIRef(schema + "itemReviewed"), URIRef(ex + "claim-single")) in g
+    ]
+    assert len(singles) == 1
+    _assert_no_gmeow_leakage(g)

@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix org:   <http://www.w3.org/ns/org#> .
+
+# Projection mappings: GMEOW organizations → W3C ORG (#34 phase 3). Compiled
+# to projections/org.edoal.ttl + queries/org.rq by the mapping compiler.
+# The Membership relator survives REIFIED (org:Membership is itself a
+# relator — the rare lossless-shaped target); the flat memberOf edge and the
+# organization typing flatten alongside it.
+#
+# REFUSED (P5 — no source facet): org:Site / org:siteOf / org:siteAddress —
+# GMEOW models organizational premises as gmeow:Place facts about the
+# organization, not as a distinct "site of an organization" facet; minting
+# Site nodes from Places would assert a relationship GMEOW does not hold.
+# REFUSED (P5 — out of frame): org:Post as a projection of gmeow:Post is
+# carried by the existing equivalence cell (saturation), not re-projected.
+
+gmeow:mapOrgOrganization a gmeow:ProjectionMapping ;
+    rdfs:label "Organization → org:FormalOrganization"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "orgz" ;
+        gmeow:atom ( [ gmeow:subjectVar "orgz" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Organization ] ) ;
+        gmeow:edoalSource gmeow:Organization ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "org" ; gmeow:toClass org:FormalOrganization ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the formal/informal distinction is asserted, not derived — GMEOW organizations project as formal" ] .
+
+gmeow:mapOrgMembership a gmeow:ProjectionMapping ;
+    rdfs:label "Membership relator → org:Membership (member/organization/role)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mship" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "mship" ;
+              gmeow:path [ a gmeow:SeqPath ; gmeow:pathSteps
+                  ( rdf:type [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subClassOf ] ) ] ;
+              gmeow:objectValue gmeow:Membership ]
+            [ gmeow:subjectVar "mship" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "agent" ]
+            [ gmeow:subjectVar "mship" ; gmeow:predicate gmeow:membershipOrganization ; gmeow:objectVar "mbOrg" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "mship" ; gmeow:predicate gmeow:hasRole ; gmeow:objectVar "mrole" ] ) ] ) ;
+        gmeow:edoalSource gmeow:Membership ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "org" ; gmeow:toClass org:Membership ; gmeow:relation "=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "statement-level provenance (accordingTo, validity clocks) on the membership drops" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "mship" ; gmeow:tPred rdf:type ; gmeow:tObjValue org:Membership ]
+            [ gmeow:tSubj "mship" ; gmeow:tPred org:member ; gmeow:tObj "agent" ]
+            [ gmeow:tSubj "mship" ; gmeow:tPred org:organization ; gmeow:tObj "mbOrg" ]
+            [ gmeow:tSubj "mship" ; gmeow:tPred org:role ; gmeow:tObj "mrole" ] ) ] .
+
+gmeow:mapOrgMemberOf a gmeow:ProjectionMapping ;
+    rdfs:label "memberOf → org:memberOf"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "omember" ; gmeow:value "ozTarget" ;
+        gmeow:atom ( [ gmeow:subjectVar "omember" ; gmeow:predicate gmeow:memberOf ; gmeow:objectVar "ozTarget" ] ) ;
+        gmeow:edoalSource gmeow:memberOf ] ;
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:memberOf ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapOrgRole a gmeow:ProjectionMapping ;
+    rdfs:label "Role → org:Role"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "orole" ;
+        gmeow:atom ( [ gmeow:subjectVar "orole" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Role ] ) ;
+        gmeow:edoalSource gmeow:Role ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toClass org:Role ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapOrgSubOrganizationOf a gmeow:ProjectionMapping ;
+    rdfs:label "subOrganizationOf → org:subOrganizationOf"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "osub" ; gmeow:value "oparent" ;
+        gmeow:atom ( [ gmeow:subjectVar "osub" ; gmeow:predicate gmeow:subOrganizationOf ; gmeow:objectVar "oparent" ] ) ;
+        gmeow:edoalSource gmeow:subOrganizationOf ] ;
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:subOrganizationOf ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .

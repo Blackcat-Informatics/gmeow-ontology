@@ -934,3 +934,155 @@ gmeow:mapSchemaCredentialFor a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:competencyRequired ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "the Skill/Occupation distinction in credentialFor collapses to schema:competencyRequired" ] .
+
+# --- #34 phases 2-3 backlog work-down: the audited gap-fills. ------------- #
+
+gmeow:mapSchemaIdentifier a gmeow:ProjectionMapping ;
+    rdfs:label "identifier → schema:identifier"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "identEnt" ; gmeow:value "identVal" ;
+        gmeow:atom ( [ gmeow:subjectVar "identEnt" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "identVal" ] ) ;
+        gmeow:edoalSource gmeow:identifier ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:identifier ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaAbstract a gmeow:ProjectionMapping ;
+    rdfs:label "abstract → schema:abstract"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "absWork" ; gmeow:value "absText" ;
+        gmeow:atom ( [ gmeow:subjectVar "absWork" ; gmeow:predicate gmeow:abstract ; gmeow:objectVar "absText" ] ) ;
+        gmeow:edoalSource gmeow:abstract ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:abstract ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaDateModified a gmeow:ProjectionMapping ;
+    rdfs:label "dateModified → schema:dateModified"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "modWork" ; gmeow:value "modDate" ;
+        gmeow:atom ( [ gmeow:subjectVar "modWork" ; gmeow:predicate gmeow:dateModified ; gmeow:objectVar "modDate" ] ) ;
+        gmeow:edoalSource gmeow:dateModified ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:dateModified ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaHeadline a gmeow:ProjectionMapping ;
+    rdfs:label "Article title → schema:headline"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "hlArticle" ; gmeow:value "hlText" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "hlArticle" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Article ]
+            [ gmeow:subjectVar "hlArticle" ; gmeow:predicate gmeow:title ; gmeow:objectVar "hlText" ] ) ;
+        gmeow:edoalSource gmeow:title ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:headline ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the article's title doubles as its headline (schema.org's article idiom)" ] .
+
+gmeow:mapSchemaSubjectOf a gmeow:ProjectionMapping ;
+    rdfs:label "isAbout inverse → schema:subjectOf"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "subjWork" ; gmeow:value "subjTopic" ;
+        gmeow:atom ( [ gmeow:subjectVar "subjWork" ; gmeow:predicate gmeow:isAbout ; gmeow:objectVar "subjTopic" ] ) ;
+        gmeow:edoalSource gmeow:isAbout ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:subjectOf ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the inverse reading: the topic gains subjectOf pointing back at the work" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "subjTopic" ; gmeow:tPred schema:subjectOf ; gmeow:tObj "subjWork" ] ) ] .
+
+gmeow:mapSchemaAffiliation a gmeow:ProjectionMapping ;
+    rdfs:label "Person memberOf → schema:affiliation"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "affPerson" ; gmeow:value "affOrg" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "affPerson" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Person ]
+            [ gmeow:subjectVar "affPerson" ; gmeow:predicate gmeow:memberOf ; gmeow:objectVar "affOrg" ] ) ;
+        gmeow:edoalSource gmeow:memberOf ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:affiliation ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "membership period, role, and standpoint drop; the flat affiliation edge survives" ] .
+
+gmeow:mapSchemaSkills a gmeow:ProjectionMapping ;
+    rdfs:label "hasSkill → schema:skills"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "skillPerson" ; gmeow:value "skillVal" ;
+        gmeow:atom ( [ gmeow:subjectVar "skillPerson" ; gmeow:predicate gmeow:hasSkill ; gmeow:objectVar "skillVal" ] ) ;
+        gmeow:edoalSource gmeow:hasSkill ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:skills ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaDeathDate a gmeow:ProjectionMapping ;
+    rdfs:label "Death life-event date → schema:deathDate"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ddPerson" ; gmeow:value "ddWhen" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ddEvent" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeDeath ]
+            [ gmeow:subjectVar "ddPart" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "ddEvent" ]
+            [ gmeow:subjectVar "ddPart" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
+            [ gmeow:subjectVar "ddPart" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "ddPerson" ]
+            [ gmeow:subjectVar "ddEvent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "ddWhen" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:deathDate ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "the death Participation (role, period, confidence, standpoint) is dropped; only the principal's death instant survives" ] .
+
+gmeow:mapSchemaBirthPlace a gmeow:ProjectionMapping ;
+    rdfs:label "Birth life-event place → schema:birthPlace"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bpPerson" ; gmeow:value "bpWhere" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "bpEvent" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeBirth ]
+            [ gmeow:subjectVar "bpPart" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "bpEvent" ]
+            [ gmeow:subjectVar "bpPart" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
+            [ gmeow:subjectVar "bpPart" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "bpPerson" ]
+            [ gmeow:subjectVar "bpEvent" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "bpWhere" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:birthPlace ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "the birth Participation detail drops; only the principal's birthplace survives" ] .
+
+gmeow:mapSchemaDeathPlace a gmeow:ProjectionMapping ;
+    rdfs:label "Death life-event place → schema:deathPlace"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dpPerson" ; gmeow:value "dpWhere" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "dpEvent" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeDeath ]
+            [ gmeow:subjectVar "dpPart" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "dpEvent" ]
+            [ gmeow:subjectVar "dpPart" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
+            [ gmeow:subjectVar "dpPart" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "dpPerson" ]
+            [ gmeow:subjectVar "dpEvent" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "dpWhere" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:deathPlace ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "the death Participation detail drops; only the principal's deathplace survives" ] .
+
+gmeow:mapSchemaCreator a gmeow:ProjectionMapping ;
+    rdfs:label "hasAuthor → schema:creator"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "crWork" ; gmeow:value "crAgent" ;
+        gmeow:atom ( [ gmeow:subjectVar "crWork" ; gmeow:predicate gmeow:hasAuthor ; gmeow:objectVar "crAgent" ] ) ;
+        gmeow:edoalSource gmeow:hasAuthor ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:creator ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaSourceCode a gmeow:ProjectionMapping ;
+    rdfs:label "Repository → schema:SoftwareSourceCode + codeRepository"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ssrcRepo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ssrcRepo" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Repository ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ssrcRepo" ; gmeow:predicate gmeow:webUrl ; gmeow:objectVar "ssrcUrl" ] ) ] ) ;
+        gmeow:edoalSource gmeow:Repository ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toClass schema:SoftwareSourceCode ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the repository facet narrows to schema's source-code reading; clone protocol detail drops" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ssrcRepo" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:SoftwareSourceCode ]
+            [ gmeow:tSubj "ssrcRepo" ; gmeow:tPred schema:codeRepository ; gmeow:tObj "ssrcUrl" ] ) ] .
+
+gmeow:mapSchemaMaintainer a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=SoftwareMaintainer) → schema:maintainer"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "smtProj" ; gmeow:value "smtAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "smtC" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "smtC" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "smtProj" ]
+            [ gmeow:subjectVar "smtC" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "smtAgent" ]
+            [ gmeow:subjectVar "smtC" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleSoftwareMaintainer ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "smtAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:contributionRole ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:maintainer ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "contribution period, provenance, confidence, degree drop" ] .

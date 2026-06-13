@@ -92,13 +92,30 @@ JSON API" shape (no RDF knowledge required of consumers, P13):
 - **schema.org**: `schema:Claim` with `text`/`appearance`/`author` — and
   **structurally no `reviewRating`**.
 
-## Why we refuse `schema:ClaimReview`
+## `schema:ClaimReview` — the corrected translation (#34)
 
-`ClaimReview`'s single `reviewRating` adjudicates a winner. GMEOW
-contradictions **coexist** standpoint-indexed (P9): the auditor's verdict is
-itself a vantage-indexed claim (`claimModality gmeow:bullshit`,
-`claimVeridicality gmeow:veridicalityUntrue`) that another standpoint may
-contest. Declared fiction is `veridicalityLicensedFalsehood` — the
-licensed-falsehood safety property, applied to model output exactly as to
-human output. The refusal is recorded in the alignment trailer and enacted by
-the projection's shape.
+The original blanket refusal of `ClaimReview` was a **translation error**:
+`ClaimReview` is per-REVIEW, not per-claim — each review node carries its
+own `schema:author` and its own `reviewRating`. N competing assessments of
+a claim therefore translate faithfully as **N coexisting ClaimReview
+nodes, each authored by its vantage** (`mapSchemaClaimReview`): nothing is
+aggregated, no winner is picked, and no verdict is dropped — the
+standpoint structure expressed in schema.org's own idiom.
+
+There is no remaining ClaimReview-specific refusal. The complete rule:
+
+- N individual verdicts → N ClaimReviews, each authored by its vantage.
+- An **asserted aggregate** (some agent — a consortium, an algorithm, the
+  eval harness — performed the aggregation and asserted the result) is
+  itself just another vantage-indexed claim, with the aggregator as its
+  vantage: it coexists with the individual verdicts, contestable like any
+  of them, and translates as one more review authored by that agent.
+- No aggregate asserted → none emitted. That is the UNIVERSAL never-invent
+  rule (P4/P5 — the transpiler emits no fact absent from its input, for
+  any term), not a ClaimReview doctrine.
+
+The verdicts themselves remain vantage-indexed claims (`claimModality
+gmeow:bullshit`, `claimVeridicality gmeow:veridicalityUntrue`) that
+another standpoint may contest. Declared fiction is
+`veridicalityLicensedFalsehood` — the licensed-falsehood safety property,
+applied to model output exactly as to human output.

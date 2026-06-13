@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Publications coverage fixture (#34 phases 2-3): an academic article with a
+# DOI, a patent with a non-DOI identifier, the WEMI Work tier, a reified
+# title, and a Contribution author — exercising the bibo + bibframe
+# projections (incl. the two-cell DOI guard and the minted bf:Identifier
+# nodes) and the dcterms/schema saturation over publication metadata.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/publications/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The work and its DOI'd article expression-as-document.
+ex:graphrag-paper a gmeow:Article, gmeow:Work ;
+    gmeow:title "Grounded Retrieval over Content-Addressed Corpora"@x-gmeow-english ;
+    gmeow:description "A study of hallucination-resistant retrieval pipelines."@x-gmeow-english ;
+    gmeow:identifier "10.5072/zenodo.999901" ;
+    gmeow:datePublished "2026-03-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTitle ex:paper-title .
+
+ex:paper-title a gmeow:CreativeWorkTitle ;
+    gmeow:fullName "Grounded Retrieval over Content-Addressed Corpora" .
+
+# --- The author, via the universal credit relator (#211).
+ex:amara a gmeow:Person ;
+    gmeow:fullName "Dr. Amara Diallo" .
+
+ex:contribution-amara a gmeow:Contribution ;
+    gmeow:contributor ex:amara ;
+    gmeow:contributionTarget ex:graphrag-paper ;
+    gmeow:contributionRole gmeow:roleAuthor .
+
+# --- A patent with a non-DOI identifier (the fallback identifier cell).
+ex:retrieval-patent a gmeow:Patent ;
+    gmeow:title "Method for digest-pinned evidence spans"@x-gmeow-english ;
+    gmeow:identifier "US-2026-0123456-A1" ;
+    gmeow:datePublished "2026-01-15T00:00:00Z"^^xsd:dateTime .
+
+# --- Citation-facing metadata (the dcterms saturation surface).
+ex:graphrag-paper
+    gmeow:hasAuthor ex:amara ;
+    gmeow:bibliographicCitation "Diallo, A. (2026). Grounded Retrieval over Content-Addressed Corpora." ;
+    gmeow:conformsTo <https://example.org/standards/ais-1.0> .

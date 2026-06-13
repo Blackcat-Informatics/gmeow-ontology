@@ -22,6 +22,7 @@ gmeow:EmailMessage	skos:closeMatch	sioc:Post	semapv:ManualMappingCuration	0.7
 gmeow:Mailbox	skos:closeMatch	nmo:Mailbox	semapv:ManualMappingCuration	0.85	
 gmeow:Message	skos:closeMatch	nmo:Message	semapv:ManualMappingCuration	0.9	
 gmeow:Message	skos:closeMatch	schema:Message	semapv:ManualMappingCuration	0.9	
+gmeow:Thread	skos:closeMatch	sioc:Container	semapv:ManualMappingCuration	0.8	a thread is a SIOC container of its posts; closeMatch because Container is the broader contents-holder notion (#34 phase 3 — declares the sioc projection's Container typing row)
 gmeow:Thread	skos:closeMatch	sioc:Thread	semapv:ManualMappingCuration	0.8	
 gmeow:bcc	skos:closeMatch	nmo:bcc	semapv:ManualMappingCuration	0.95	
 gmeow:bcc	skos:closeMatch	schema:bccRecipient	semapv:ManualMappingCuration	0.95	

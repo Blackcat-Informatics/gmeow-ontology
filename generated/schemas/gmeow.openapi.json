@@ -631,6 +631,15 @@
                     "type": "null"
                   }
                 ]
+              },
+              "withinFamily": {
+                "items": {
+                  "$ref": "#/$defs/Family"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "AdoptiveParentChild",
@@ -5206,6 +5215,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "withinFamily": {
+                "items": {
+                  "$ref": "#/$defs/Family"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               }
             },
@@ -20874,6 +20892,15 @@
               "hasPartner": {
                 "items": {
                   "$ref": "#/$defs/Person"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "withinFamily": {
+                "items": {
+                  "$ref": "#/$defs/Family"
                 },
                 "type": [
                   "array",
@@ -38396,6 +38423,15 @@
                     "type": "null"
                   }
                 ]
+              },
+              "withinFamily": {
+                "items": {
+                  "$ref": "#/$defs/Family"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
               }
             },
             "title": "FosterParentChild",
@@ -49003,6 +49039,17 @@
           "KinRelationship": {
             "additionalProperties": false,
             "description": "",
+            "properties": {
+              "withinFamily": {
+                "items": {
+                  "$ref": "#/$defs/Family"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
             "title": "KinRelationship",
             "type": "object"
           },
@@ -76493,6 +76540,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "withinFamily": {
+                "items": {
+                  "$ref": "#/$defs/Family"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               }
             },
@@ -110971,6 +111027,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "withinFamily": {
+                "items": {
+                  "$ref": "#/$defs/Family"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               }
             },

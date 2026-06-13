@@ -3939,6 +3939,7 @@ export interface KeyScheme {
 
 
 export interface KinRelationship {
+    withinFamily?: Family[],
 }
 
 

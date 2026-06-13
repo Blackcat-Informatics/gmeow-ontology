@@ -314,3 +314,12 @@ gmeow:eqEmail033 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "GMEOW scopes displayName to the MessageParticipant occurrence; schema:name is broader (Thing/ContactPoint/Person)" ;
     gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Thread ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sioc:Container ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a thread is a SIOC container of its posts; closeMatch because Container is the broader contents-holder notion (#34 phase 3 — declares the sioc projection's Container typing row)" ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .

@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# The corrected ClaimReview translation (#34): a claim with TWO competing
+# assessments and a claim with one. BOTH cases emit — one ClaimReview per
+# Assessment, each authored by its vantage, each with its own Rating.
+# What never appears: a single aggregated rating on the claim itself (P9).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/reviews/> .
+
+ex:auditor-a a gmeow:SoftwareAgent ; gmeow:fullName "grounding auditor A" .
+ex:auditor-b a gmeow:SoftwareAgent ; gmeow:fullName "grounding auditor B" .
+
+ex:claim-disputed a gmeow:StandpointClaim ;
+    gmeow:vantage ex:auditor-a .
+
+ex:assessment-a1 a gmeow:Assessment ;
+    gmeow:assessmentTarget ex:claim-disputed ;
+    gmeow:vantage ex:auditor-a ;
+    gmeow:assessmentScoreValue 0.9 .
+
+ex:assessment-b1 a gmeow:Assessment ;
+    gmeow:assessmentTarget ex:claim-disputed ;
+    gmeow:vantage ex:auditor-b ;
+    gmeow:assessmentScoreValue 0.2 .
+
+ex:claim-single a gmeow:StandpointClaim ;
+    gmeow:vantage ex:auditor-a .
+
+ex:assessment-s1 a gmeow:Assessment ;
+    gmeow:assessmentTarget ex:claim-single ;
+    gmeow:vantage ex:auditor-b ;
+    gmeow:assessmentScoreValue 0.75 .

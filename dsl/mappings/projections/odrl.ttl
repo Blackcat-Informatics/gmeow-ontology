@@ -176,3 +176,58 @@ gmeow:mapOdrlAssignerParty a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:relation "<=" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "lp" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Party ] ) ] .
+
+# --- #34 phases 2-3 backlog work-down. ------------------------------------ #
+# odrl:uid (audit-overturned): ODRL's uid IS the policy's own IRI — the
+# projected RightsStatement node self-identifies truthfully (no document
+# identity is minted).
+# odrl:profile (audit-overturned, round 2): conformance is an ASSERTABLE
+# FACT like any other — when the policy author asserts gmeow:conformsTo on
+# the RightsStatement, the projection carries it as odrl:profile (asserted
+# + attributable, never invented; GMEOW verifies no other claim
+# independently either).
+# REFUSED (P5 — scope mismatch): odrl:duty (the PERMISSION-scoped duty,
+# e.g. attribution-on-use). GMEOW scopes duties to the RightsStatement
+# (already projected as odrl:obligation by mapOdrlDuty above); there is no
+# permission-level duty source, and re-homing the statement duty onto each
+# permission would assert a tighter binding than the data holds.
+
+gmeow:mapOdrlHasPolicy a gmeow:ProjectionMapping ;
+    rdfs:label "hasRightsStatement → odrl:hasPolicy"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ohpEnt" ; gmeow:value "ohpRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "ohpEnt" ; gmeow:predicate gmeow:hasRightsStatement ; gmeow:objectVar "ohpRs" ] ) ;
+        gmeow:edoalSource gmeow:hasRightsStatement ] ;
+    gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toPredicate odrl:hasPolicy ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapOdrlPolicyType a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement → odrl:Policy (the Set's superclass, alongside it)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "optRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "optRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ;
+        gmeow:edoalSource gmeow:RightsStatement ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toClass odrl:Policy ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+
+gmeow:mapOdrlUid a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement → odrl:uid (the policy's own IRI)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ouRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "ouRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ;
+        gmeow:edoalSource gmeow:RightsStatement ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:uid ; gmeow:relation "=" ; gmeow:confidence 0.95 ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "ouRs" ; gmeow:tPred odrl:uid ; gmeow:tObj "ouRs" ] ) ] .
+
+
+gmeow:mapOdrlProfile a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement conformsTo → odrl:profile"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "opfRs" ; gmeow:value "opfProfile" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "opfRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "opfRs" ; gmeow:predicate gmeow:conformsTo ; gmeow:objectVar "opfProfile" ] ) ;
+        gmeow:edoalSource gmeow:conformsTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:profile ; gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the conformance claim is carried as asserted by the policy author — never verified by the transpiler (declared)" ] .
