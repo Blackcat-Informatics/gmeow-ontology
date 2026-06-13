@@ -13,7 +13,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
 ex:robin a gmeow:Person ;
-    gmeow:hasName ex:nameChosen , ex:nameDead , ex:nameHan ;
+    gmeow:hasName ex:nameChosen , ex:nameDead , ex:nameHan , ex:nickRob ;
     gmeow:hasPronounSet gmeow:pronounTheyThem .
 
 # --- The chosen legal name, decomposed into ordered parts (displayable).

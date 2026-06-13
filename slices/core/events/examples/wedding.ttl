@@ -14,13 +14,15 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:wedding a gmeow:Event ;
-    rdfs:label "the marriage of Alex and Sam"@en ;
+    rdfs:label "the marriage of Alex and Sam"@x-gmeow-english ;
     gmeow:eventType gmeow:eventTypeMarriage ;
     gmeow:eventTime "2026-06-20T15:00:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:eventLocation ex:chapel ;
-    # Flat participation for the witnesses — no role/period/evidence needed here.
-    gmeow:hasParticipant ex:alex , ex:sam , ex:officiant , ex:witnessA , ex:witnessB .
+    # Flat participation for the witnesses ONLY — no role/period/evidence needed.
+    # The principals and the officiant are instead reified below (with roles), so
+    # they are deliberately NOT repeated here: flat and reified never overlap.
+    gmeow:hasParticipant ex:witnessA , ex:witnessB .
 
 ex:chapel a gmeow:Place ; gmeow:name "Rosewood Chapel" .
 
