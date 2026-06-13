@@ -1410,5 +1410,42 @@ def describe(
         raise typer.Exit(code=code)
 
 
+@app.command(name="create-docs")
+def create_docs_cmd(
+    gts_file: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="GTS file to project (default: bundled gmeow-full.gts).",
+    ),
+    directory: Path = typer.Option(  # noqa: B008
+        ...,
+        "--directory",
+        "-d",
+        help="Output directory for the docs tree.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Write into a non-empty output directory.",
+    ),
+) -> None:
+    """Emit a browsable Markdown docs tree from a GTS snapshot (#439).
+
+    The tree includes per-term reference pages, slice guides, project doctrine
+    docs, ontology web docs (#440), an alignment summary, and a statement-layer
+    summary. All content is extracted from the bundled offline snapshot or any
+    other ``.gts`` file.
+    """
+    from gmeow_tools.create_docs import create_docs
+
+    path = gts_file or _default_gts_file()
+    try:
+        create_docs(path, directory, force=force)
+    except FileExistsError as exc:
+        raise _fail(str(exc)) from exc
+    except (OSError, ValueError) as exc:
+        raise _fail(f"cannot create docs tree: {exc}") from exc
+    console.print(f"[green]✓[/green] docs tree → {directory}")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
