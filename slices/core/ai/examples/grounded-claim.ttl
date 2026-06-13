@@ -53,7 +53,9 @@ ex:template-extract-v1 a gmeow:PromptTemplate ;
 ex:invocation-19 a gmeow:ModelInvocation ;
     gmeow:usedModel ex:assistant ;
     gmeow:hasPrompt ex:prompt-extract ;
-    gmeow:samplingTemperature 0.0 .
+    gmeow:samplingTemperature 0.0 ;
+    gmeow:atTime "2026-05-15T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 # --- The claims: reified statements observed from the MODEL's vantage.
 # (The RDF 1.2 source authors these as statement annotations; the owl:Axiom

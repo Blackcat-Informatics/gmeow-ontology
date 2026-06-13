@@ -164,7 +164,10 @@ ex:sourceShangArchive a gmeow:CreativeWork ;
 ex:inscriptionAttestation a gmeow:UsageAttestation ;
     gmeow:attestedForm ex:oracleBoneInscription ;
     gmeow:attestedInSource ex:sourceShangArchive ;
-    gmeow:attestationInterval [ time:hasBeginning [ time:inXSDDateTime "-1200-01-01T00:00:00Z"^^xsd:dateTime ] ] .
+    # Era-level dating (Late Shang, ~1200 BCE) — an oracle bone is not dated to a
+    # precise instant; xsd:gYear is the honest model and avoids a BCE xsd:dateTime
+    # that rdflib cannot represent in a Python datetime.
+    gmeow:attestationInterval [ time:hasBeginning [ time:inXSDgYear "-1200"^^xsd:gYear ] ] .
 
 # Competing readings derived from the same attestation.
 ex:readingA a gmeow:LexicalForm ;

@@ -24,7 +24,9 @@ ex:storeClaim a gmeow:SoftwareAgent ;
 ex:invocation-7 a gmeow:ModelInvocation ;
     rdfs:label "turn 7 model invocation"@x-gmeow-english ;
     gmeow:usedModel ex:assistant ;
-    gmeow:samplingTemperature "0.2"^^xsd:decimal .
+    gmeow:samplingTemperature "0.2"^^xsd:decimal ;
+    gmeow:atTime "2026-06-12T17:03:10Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:call-7-1 a gmeow:ToolCall ;
     rdfs:label "turn 7, call 1: search"@x-gmeow-english ;
@@ -33,7 +35,8 @@ ex:call-7-1 a gmeow:ToolCall ;
     gmeow:toolArguments "{\"query\": \"GTS deterministic encoding spec\"}" ;
     # Large result: the digest IS the value (gmeow:contentDigest convention).
     gmeow:toolResult "blake3:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a" ;
-    gmeow:atTime "2026-06-12T17:03:11Z"^^xsd:dateTime .
+    gmeow:atTime "2026-06-12T17:03:11Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 ex:call-7-2 a gmeow:ToolCall ;
     rdfs:label "turn 7, call 2: store a memory note"@x-gmeow-english ;
@@ -41,7 +44,8 @@ ex:call-7-2 a gmeow:ToolCall ;
     gmeow:usedTool ex:storeClaim ;
     gmeow:toolArguments "{\"text\": \"the GTS spec mandates RFC 8949 deterministic encoding\"}" ;
     gmeow:toolResult "{\"ok\": true}" ;
-    gmeow:atTime "2026-06-12T17:03:14Z"^^xsd:dateTime .
+    gmeow:atTime "2026-06-12T17:03:14Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
 # The produced entity links BACK to the call that wrote it (P5).
 ex:note-2200 a gmeow:Document ;
