@@ -394,3 +394,22 @@ gmeow:exifTagValue
     rdfs:label "EXIF tag value"@x-gmeow-english ;
     skos:definition "The value of an EXIF tag — 'f/2.0', '1/1595', 'sRGB'. Projects to schema:PropertyValue/value. The human-readable tag name ('Aperture') rides rdfs:label → schema:name."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+
+# --------------------------------------------------------------------------- #
+# Logo — an entity's emblematic media object (#410 follow-through)
+# --------------------------------------------------------------------------- #
+# gmeow:hasLogo is DISTINCT from gmeow:depicts. A logo is an emblem CHOSEN to
+# represent an entity, not a depiction OF it (the gmeow-logo.svg does not picture
+# the ontology). So hasLogo is a standalone Entity → MediaObject edge, NOT a
+# subproperty of depicts/isAbout — mirroring why schema:logo is separate from
+# schema:image upstream. Non-functional: light/dark and seasonal variants coexist
+# (P9). Projects to schema:logo and foaf:logo.
+
+gmeow:hasLogo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:MediaObject ;
+    rdfs:label "has logo"@x-gmeow-english ;
+    skos:definition "The media object that serves as an entity's logo — its emblematic, identity-bearing image. An organization, software project, dataset, place, or product may carry one. Distinct from gmeow:depicts: a logo represents the entity rather than picturing it; it is therefore NOT a subproperty of gmeow:isAbout."@x-gmeow-english ;
+    skos:scopeNote "Non-functional: variant logos (light/dark, wordmark/glyph, seasonal) coexist (P9). Projects to schema:logo and foaf:logo."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .

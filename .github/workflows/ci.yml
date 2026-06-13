@@ -60,18 +60,12 @@ jobs:
       - name: Type-check (mypy)
         run: uv run mypy
 
-      - name: Pull pinned ROBOT image
-        run: |
-          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
-          docker pull "$ROBOT_IMAGE"
-
-      - name: Build the pinned Jena image (RDF 1.2 engine)
-        run: |
-          JENA_IMAGE=$(uv run python -c "from gmeow_tools.config import JENA_IMAGE; print(JENA_IMAGE)")
-          docker build -t "$JENA_IMAGE" docker/jena
-
-      - name: Unit tests
-        run: uv run pytest -q -n auto
+      # Pure-Python tests only. The Docker-backed tests (HermiT/ROBOT reasoning,
+      # Jena RDF 1.2, pyoxigraph cross-check) run in their own parallel jobs
+      # below — no image pulls and no redundant re-runs here. Network tests are
+      # auto-skipped (conftest) unless GMEOW_RUN_NETWORK=1.
+      - name: Unit tests (pure Python)
+        run: uv run pytest -q -n auto -m "not docker"
 
   # The Rust format engine (crates/gts, #277) gates against the SAME frozen
   # conformance corpus (generated/gts-vectors/) as the Python oracle — both
@@ -235,6 +229,36 @@ jobs:
       - name: Reason (HermiT) — sound + complete consistency
         run: uv run gmeow reason --reasoner hermit
 
+  # The Docker-backed reasoning tests (HermiT inconsistency cases + the ELK
+  # fixture-coherence check) as their own parallel job. `-m docker` keeps the
+  # owlrl positive-entailment tests in the pure-Python `python` job (no
+  # duplication). test_well_formed (HermiT consistency over the full ontology,
+  # ~15 min) is deselected: it is REDUNDANT with the reason-hermit job above,
+  # which already proves merged-ontology HermiT consistency. Keeping it here too
+  # would run HermiT consistency twice (#433).
+  reasoning-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --frozen
+
+      - name: Pull pinned ROBOT image
+        run: |
+          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
+          docker pull "$ROBOT_IMAGE"
+
+      - name: Reasoning entailment + consistency tests (Docker)
+        run: uv run pytest -q -m docker tests/test_reasoning_entailments.py -k "not test_well_formed_individual_stays_consistent"
+
   statements:
     runs-on: ubuntu-latest
     steps:
@@ -296,7 +320,7 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   quality:
-    needs: [lint, python, rust, go, ontology, reason, reason-hermit, statements, statements-pyoxigraph]
+    needs: [lint, python, rust, go, ontology, reason, reason-hermit, reasoning-tests, statements, statements-pyoxigraph]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -309,11 +333,12 @@ jobs:
           ONTOLOGY: ${{ needs.ontology.result }}
           REASON: ${{ needs.reason.result }}
           REASON_HERMIT: ${{ needs.reason-hermit.result }}
+          REASONING_TESTS: ${{ needs.reasoning-tests.result }}
           STATEMENTS: ${{ needs.statements.result }}
           STATEMENTS_PYOXIGRAPH: ${{ needs.statements-pyoxigraph.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON rust=$RUST go=$GO ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT statements=$STATEMENTS statements-pyoxigraph=$STATEMENTS_PYOXIGRAPH"
-          for r in "$LINT" "$PYTHON" "$RUST" "$GO" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$STATEMENTS" "$STATEMENTS_PYOXIGRAPH"; do
+          echo "results: lint=$LINT python=$PYTHON rust=$RUST go=$GO ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT reasoning-tests=$REASONING_TESTS statements=$STATEMENTS statements-pyoxigraph=$STATEMENTS_PYOXIGRAPH"
+          for r in "$LINT" "$PYTHON" "$RUST" "$GO" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$REASONING_TESTS" "$STATEMENTS" "$STATEMENTS_PYOXIGRAPH"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1

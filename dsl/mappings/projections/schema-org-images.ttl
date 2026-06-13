@@ -82,6 +82,24 @@ gmeow:mapSchemaImageHeight a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "img" ; gmeow:tPred schema:height ; gmeow:tObj "h" ] ) ] .
 
 # --------------------------------------------------------------------------- #
+# hasLogo → schema:logo (an entity's emblematic image)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaLogo a gmeow:ProjectionMapping ;
+    rdfs:label "hasLogo → schema:logo"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "logo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasLogo ; gmeow:objectVar "logo" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "logo" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasLogo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:logo ; gmeow:relation "<=" ;
+        gmeow:confidence 0.95 ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ent" ; gmeow:tPred schema:logo ; gmeow:tObj "logo" ] ) ] .
+
+# --------------------------------------------------------------------------- #
 # captureTime → schema:dateCreated
 # --------------------------------------------------------------------------- #
 

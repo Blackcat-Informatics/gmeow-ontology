@@ -26,7 +26,12 @@ import pytest
 from rdflib import RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
-from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, ROBOT_IMAGE
+from gmeow_tools.config import (
+    DIST_DIR,
+    EXTERNAL_FIXTURES_DIR,
+    FIXTURES_DIR,
+    ROBOT_IMAGE,
+)
 from gmeow_tools.reason import MERGED_FILE, merge_release, reason, verify
 from gmeow_tools.runner import ToolExecutionError, image_available
 from gmeow_tools.slices import module_path
@@ -207,7 +212,13 @@ def test_worked_fixtures_stay_coherent_under_disjointness() -> None:
     tool to confirm no individual lands in two disjoint classes here.
     """
     fixtures = Graph()
-    fixture_files = list(FIXTURES_DIR.rglob("*.ttl"))
+    # GMEOW-authored worked examples only. The external/ snapshots are verbatim
+    # real-world dumps (owl:sameAs merges and all); our disjointness axioms are a
+    # policy on our own RDF, so a third party's graph tripping them is not our
+    # inconsistency to answer for.
+    fixture_files = [
+        p for p in FIXTURES_DIR.rglob("*.ttl") if EXTERNAL_FIXTURES_DIR not in p.parents
+    ]
     assert fixture_files, f"no fixtures found in {FIXTURES_DIR}"  # never pass vacuously
     for ttl in sorted(fixture_files):
         fixtures.parse(ttl, format="turtle")

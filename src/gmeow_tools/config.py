@@ -215,6 +215,14 @@ FRAME_SHAPES_FILE = GENERATED_SHAPES_DIR / "frame-shapes.ttl"
 STATEMENT_OWL_FILE = STATEMENTS_DIR / "gmeow-statements.owl.ttl"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.
 FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "coverage"
+#: External-input snapshots: verbatim dumps of real-world public site graphs
+#: (e.g. the paudley/bii ``dist/index.ttl``) kept as parity targets. These are
+#: NOT GMEOW-authored, so the ontology's authoring policies — the Principle 5
+#: ``owl:sameAs`` ban, the declared-term surface, the disjointness-coherence
+#: reasoning — do NOT apply: a faithful snapshot carries whatever the outside
+#: world emits, ``owl:sameAs`` and all. Drop a new snapshot here to mark it
+#: external; the gates that police our own RDF skip this subtree.
+EXTERNAL_FIXTURES_DIR = FIXTURES_DIR / "external"
 #: Authored self-description stays in metadata/; the generated VoID/DCAT live
 #: under generated/metadata/ (#287).
 METADATA_DIR = GENERATED_DIR / "metadata"

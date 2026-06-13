@@ -26,6 +26,7 @@ CONSTRUCT {
     ?img schema:about ?subj .
     ?img schema:width ?w .
     ?img schema:height ?h .
+    ?ent schema:logo ?logo .
     ?img schema:dateCreated ?ct .
     ?proc a schema:HowTo .
     ?recipe a schema:Recipe .
@@ -255,6 +256,11 @@ WHERE {
         ?img a gmeow:MediaObject .
         ?img gmeow:pixelHeight ?h .
         FILTER NOT EXISTS { ?img gmeow:displayable false . }
+    }
+    UNION {
+        ?ent gmeow:hasLogo ?logo .
+        FILTER NOT EXISTS { ?logo gmeow:displayable false . }
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
     }
     UNION {
         ?img a gmeow:MediaObject .

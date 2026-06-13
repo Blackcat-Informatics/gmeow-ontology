@@ -59,6 +59,14 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
+            rdfs:label "hasLogo → foaf:logo"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasLogo ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:logo ] ;
+            align:relation "<=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "hasAuthor → foaf:maker (+ foaf:made inverse)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasAuthor ] ;

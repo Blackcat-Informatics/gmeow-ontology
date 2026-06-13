@@ -40,7 +40,7 @@
   "gmeow-places.sssom.tsv": 221,
   "gmeow-privacy.sssom.tsv": 24,
   "gmeow-procedures.sssom.tsv": 26,
-  "gmeow-properties.sssom.tsv": 93,
+  "gmeow-properties.sssom.tsv": 95,
   "gmeow-provenance.sssom.tsv": 13,
   "gmeow-quality.sssom.tsv": 10,
   "gmeow-qudt.sssom.tsv": 6,
@@ -56,8 +56,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1635,
+ "equivalences": 1637,
  "functions": 38,
  "mapping_sets": 55,
- "projections": 487
+ "projections": 489
 }

@@ -124,11 +124,17 @@ project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-
 test: ## Run the full test suite (incl. heavy ci_only export tests).
 	uv run pytest -n auto
 
-test-fast: ## Run the fast test suite (excludes ci_only heavy/secondary export tests).
-	uv run pytest -n auto -m "not ci_only"
+test-fast: ## Run the fast test suite (excludes ci_only AND docker; for the local `check` gate).
+	uv run pytest -n auto -m "not ci_only and not docker"
 
-check: ## Fast local gate: core ontology + transforms.
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage reason reason-hermit verify mappings-only lint-alignment
+test-docker: ## Run the Docker-backed tests (HermiT/ROBOT/Jena reasoning) — slow; CI runs these in dedicated jobs.
+	uv run pytest -n auto -m docker
+
+test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never in CI/check.
+	GMEOW_RUN_NETWORK=1 uv run pytest -m network
+
+check: ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in its own CI job).
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage reason verify mappings-only lint-alignment
 	$(MAKE) test-fast
 	$(MAKE) compliance-report
 	@echo "✓ all checks passed"
