@@ -366,7 +366,9 @@ gmeow:temporalFrameUTCISOWeek
     gmeow:frameTimeScale gmeow:timeScaleUTC ;
     gmeow:frameCalendarSystem gmeow:calendarISOWeek ;
     gmeow:frameRealm gmeow:frameRealmTemporal ;
-    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    # ISO 8601 week dates are (week-based year, week 1–53, weekday 1–7) — not
+    # month/day-of-month — so this frame uses the week axes, not axisMonth/axisDay.
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisWeek, gmeow:axisDayOfWeek, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
     gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindTemporal ;
     gmeow:requiresHost false ;

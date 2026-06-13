@@ -145,6 +145,7 @@ enum AxisEnum
     axisCyan
     axisDNSName
     axisDay
+    axisDayOfWeek
     axisDeclination
     axisDepth
     axisEgocentricForward
@@ -216,6 +217,7 @@ enum AxisEnum
     axisURL
     axisValence
     axisVirtualAddress
+    axisWeek
     axisWhat3Words
     axisX
     axisY
