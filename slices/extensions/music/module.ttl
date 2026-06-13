@@ -572,7 +572,903 @@ gmeow:pitchCollectionExample
     a gmeow:PitchCollection ;
     rdfs:label "example pitch collection"@x-gmeow-english ;
     skos:definition "A placeholder pitch collection derived from spectrumExample, to be replaced by corpus-derived collections."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindSpectrumCollection ;
     gmeow:derivedFromSpectrum gmeow:spectrumExample ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# =========================================================================== #
+# PITCH COLLECTIONS & SPELLING — issue #309
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:PitchCollectionKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Pitch Collection Kind"@x-gmeow-english ;
+    skos:definition "The kind of a pitch collection, drawn from an open value vocabulary of individuals (scale, mode, maqam, jins, raga, thaat, pathet, mode of limited transposition, pitch-class set, row/series, spectrum collection). Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:CollectionMemberRole
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Collection Member Role"@x-gmeow-english ;
+    skos:definition "The role of a pitch within a collection — tonic/finalis, vādī, samvādī, ghammāz, ascent-only, descent-only, ornamental, or generic member. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchSpellingSystem
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
+    rdfs:label "Pitch Spelling System"@x-gmeow-english ;
+    skos:definition "A named system for spelling frame-relative pitches as note names or symbols — e.g. Common Music Notation staff letters, sargam solfege, Johnston accidentals. A local vocabulary in the music slice; aligned to external notation standards by reference in mappings (Principles 4, 5, 16)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchCollectionMembership
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Pitch Collection Membership"@x-gmeow-english ;
+    skos:definition "A reified relator binding a pitch collection, a member pitch value, the role that pitch plays, and an optional context/standpoint. The canonical way to assert that a pitch belongs to a collection with a specific function; contested memberships are co-equal relators carrying distinct gmeow:accordingTo annotations (Principles 2, 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchSpelling
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Pitch Spelling"@x-gmeow-english ;
+    skos:definition "A reified relator binding a frame-relative pitch value, a pitch spelling system, and a spelled name string. Note names (C♯4, sargam Ga, Johnston +7) are projections, not canonical pitch values; enharmonic ambiguity is modelled as two co-equal spellings of the same pitch (Principles 4, 9, 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:collectionKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchCollection ;
+    rdfs:range gmeow:PitchCollectionKind ;
+    rdfs:label "collection kind"@x-gmeow-english ;
+    skos:definition "The kind of pitch collection (scale, mode, maqam, raga, pitch-class set, etc.). Functional: a PitchCollection is of exactly one kind; hybrid or contested categorisations are modelled as coexisting standpoints (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipCollection
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchCollectionMembership ;
+    rdfs:range gmeow:PitchCollection ;
+    rdfs:label "membership collection"@x-gmeow-english ;
+    skos:definition "The pitch collection that this membership relator belongs to. Functional per relator: one collection per membership."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipPitch
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchCollectionMembership ;
+    rdfs:range gmeow:PitchValue ;
+    rdfs:label "membership pitch"@x-gmeow-english ;
+    skos:definition "The pitch value that is a member of the collection in this membership. Functional per relator: one pitch per membership."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRole
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchCollectionMembership ;
+    rdfs:range gmeow:CollectionMemberRole ;
+    rdfs:label "membership role"@x-gmeow-english ;
+    skos:definition "The role the pitch plays in this collection (tonic/finalis, vādī, samvādī, ghammāz, ascent-only, descent-only, ornamental, or generic member). Functional per relator: one role per membership."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipContext
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PitchCollectionMembership ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "membership context"@x-gmeow-english ;
+    skos:definition "An optional context or standpoint that scopes this membership — e.g. an ascent/descent passage, a theoretical tradition, or an analytical framework. Non-functional: a membership may be asserted in multiple contexts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:spellingPitch
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchSpelling ;
+    rdfs:range gmeow:PitchValue ;
+    rdfs:label "spelling pitch"@x-gmeow-english ;
+    skos:definition "The frame-relative pitch value that this spelling names. Functional per relator: one pitch per spelling."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:spellingSystem
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchSpelling ;
+    rdfs:range gmeow:PitchSpellingSystem ;
+    rdfs:label "spelling system"@x-gmeow-english ;
+    skos:definition "The pitch spelling system in which the name is expressed (e.g. CMN staff, sargam, Johnston). Functional per relator: one system per spelling."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# DATATYPE PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:membershipDegreeIndex
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchCollectionMembership ;
+    rdfs:range xsd:integer ;
+    rdfs:label "membership degree index"@x-gmeow-english ;
+    skos:definition "The zero-based degree index of the member pitch within the collection, when the collection has a conventional ordering (e.g. scale degree 0 = tonic/finalis). Optional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionPartOrder
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchCollection ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "collection part order"@x-gmeow-english ;
+    skos:definition "The zero-based position of this pitch collection as a part of a larger collection (e.g. the order of a jins within a maqam). Scoped to the primary parent; if a part is reused in multiple parents with different orders, use per-parent part individuals."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:spelledName
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchSpelling ;
+    rdfs:range xsd:string ;
+    rdfs:label "spelled name"@x-gmeow-english ;
+    skos:definition "The note-name string produced by this spelling, e.g. \"C♯4\", \"Ga\", \"+7\". Functional per relator: one spelled name per spelling."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — relator EL patterns (the Contribution pattern)
+# --------------------------------------------------------------------------- #
+
+gmeow:PitchCollectionMembership rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:membershipCollection ; owl:someValuesFrom gmeow:PitchCollection ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:membershipPitch ;     owl:someValuesFrom gmeow:PitchValue ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:membershipRole ;      owl:someValuesFrom gmeow:CollectionMemberRole ] .
+
+gmeow:PitchSpelling rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:spellingPitch ;   owl:someValuesFrom gmeow:PitchValue ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spellingSystem ;  owl:someValuesFrom gmeow:PitchSpellingSystem ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spelledName ;     owl:someValuesFrom xsd:string ] .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — PitchCollectionKind
+# --------------------------------------------------------------------------- #
+
+gmeow:pitchCollectionKindScale a gmeow:PitchCollectionKind ;
+    rdfs:label "scale"@x-gmeow-english ;
+    skos:definition "A conventional ordered pitch collection, usually spanning one period of the tuning system (e.g. an octave)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindMode a gmeow:PitchCollectionKind ;
+    rdfs:label "mode"@x-gmeow-english ;
+    skos:definition "A pitch collection extracted from a scale by choosing a different finalis/tonic, without altering the interval sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindMaqam a gmeow:PitchCollectionKind ;
+    rdfs:label "maqam"@x-gmeow-english ;
+    skos:definition "An Arabic/Turkish pitch collection composed of ordered ajnas (sub-collections) and associated with melodic pathways."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindJins a gmeow:PitchCollectionKind ;
+    rdfs:label "jins"@x-gmeow-english ;
+    skos:definition "A small melodic unit (typically 4-5 notes) that functions as a building block of a maqam."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindRaga a gmeow:PitchCollectionKind ;
+    rdfs:label "raga"@x-gmeow-english ;
+    skos:definition "A South Asian pitch collection with characteristic member roles, ascending/descending conventions, and associated ornament profiles; explicitly more than a scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindThaat a gmeow:PitchCollectionKind ;
+    rdfs:label "thaat"@x-gmeow-english ;
+    skos:definition "A Hindustani parent scale classification from which ragas are derived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindPathet a gmeow:PitchCollectionKind ;
+    rdfs:label "pathet"@x-gmeow-english ;
+    skos:definition "A Javanese modal category associating a pitch collection with a melodic contour and a cadential pitch."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindModeOfLimitedTransposition a gmeow:PitchCollectionKind ;
+    rdfs:label "mode of limited transposition"@x-gmeow-english ;
+    skos:definition "A pitch collection with fewer than twelve distinct transpositions under octave equivalence, as defined by Olivier Messiaen (stress case 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindPCSet a gmeow:PitchCollectionKind ;
+    rdfs:label "pitch-class set"@x-gmeow-english ;
+    skos:definition "A set of pitch classes under octave equivalence, the basic object of pitch-class set theory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindRowSeries a gmeow:PitchCollectionKind ;
+    rdfs:label "row or series"@x-gmeow-english ;
+    skos:definition "An ordered series of pitch classes, as in twelve-tone technique."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionKindSpectrumCollection a gmeow:PitchCollectionKind ;
+    rdfs:label "spectrum collection"@x-gmeow-english ;
+    skos:definition "A pitch collection derived from a spectrum by a solver (fnSpectrumToPitchCollection), as in spectralism (stress case 7)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — CollectionMemberRole
+# --------------------------------------------------------------------------- #
+
+gmeow:collectionMemberRoleTonicFinalis a gmeow:CollectionMemberRole ;
+    rdfs:label "tonic / finalis"@x-gmeow-english ;
+    skos:definition "The central pitch of a collection — its tonic or finalis."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionMemberRoleVadi a gmeow:CollectionMemberRole ;
+    rdfs:label "vādī"@x-gmeow-english ;
+    skos:definition "The most prominent or sonant pitch in a raga, second only to the tonic in importance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionMemberRoleSamvadi a gmeow:CollectionMemberRole ;
+    rdfs:label "samvādī"@x-gmeow-english ;
+    skos:definition "The second-most important pitch in a raga, often in a consonant relationship with the vādī."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionMemberRoleGhammaz a gmeow:CollectionMemberRole ;
+    rdfs:label "ghammāz"@x-gmeow-english ;
+    skos:definition "The pivot or ghammāz pitch of a jins, often used to modulate to the next jins in a maqam."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionMemberRoleAscentOnly a gmeow:CollectionMemberRole ;
+    rdfs:label "ascent only"@x-gmeow-english ;
+    skos:definition "A pitch used only in the ascending form of a collection, as in many ragas."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionMemberRoleDescentOnly a gmeow:CollectionMemberRole ;
+    rdfs:label "descent only"@x-gmeow-english ;
+    skos:definition "A pitch used only in the descending form of a collection, as in many ragas."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionMemberRoleOrnamental a gmeow:CollectionMemberRole ;
+    rdfs:label "ornamental"@x-gmeow-english ;
+    skos:definition "A pitch used primarily as an ornament or grace tone around a structural pitch."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:collectionMemberRoleMember a gmeow:CollectionMemberRole ;
+    rdfs:label "member"@x-gmeow-english ;
+    skos:definition "A generic collection member with no further specialised role."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — PitchSpellingSystem
+# --------------------------------------------------------------------------- #
+
+gmeow:pitchSpellingSystemCMN a gmeow:PitchSpellingSystem ;
+    rdfs:label "Common Music Notation staff"@x-gmeow-english ;
+    skos:definition "The Western staff notation system of letter names, accidentals, and octave numbers (e.g. C♯4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchSpellingSystemSargam a gmeow:PitchSpellingSystem ;
+    rdfs:label "sargam"@x-gmeow-english ;
+    skos:definition "The South Asian solfege spelling system Sa-Re-Ga-Ma-Pa-Dha-Ni."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchSpellingSystemJohnston a gmeow:PitchSpellingSystem ;
+    rdfs:label "Ben Johnston accidentals"@x-gmeow-english ;
+    skos:definition "The just-intonation accidental notation developed by Ben Johnston (e.g. +7 for a 7-limit comma alteration)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchSpellingSystemHelmholtz a gmeow:PitchSpellingSystem ;
+    rdfs:label "Helmholtz pitch notation"@x-gmeow-english ;
+    skos:definition "The Helmholtz system of octave-distinguished letter names (e.g. c′)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchSpellingSystemFixedDo a gmeow:PitchSpellingSystem ;
+    rdfs:label "fixed-do solfège"@x-gmeow-english ;
+    skos:definition "A solfege system in which do, re, mi are fixed to absolute pitch classes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchSpellingSystemMovableDo a gmeow:PitchSpellingSystem ;
+    rdfs:label "movable-do solfège"@x-gmeow-english ;
+    skos:definition "A solfege system in which do is relative to the local tonic of a collection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# STANDPOINT SEEDS
+# --------------------------------------------------------------------------- #
+
+gmeow:standpointArabicTheory a gmeow:Standpoint ;
+    rdfs:label "Arabic maqam theory"@x-gmeow-english ;
+    skos:definition "A standpoint representing mainstream Arabic maqam theory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:standpointTurkishTheory a gmeow:Standpoint ;
+    rdfs:label "Turkish makam theory"@x-gmeow-english ;
+    skos:definition "A standpoint representing Turkish makam theory, which may disagree with Arabic theory about the exact size of the Rast third."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# PITCH VALUE SEEDS FOR COLLECTIONS
+# --------------------------------------------------------------------------- #
+
+# 12-EDO pitch values used by the raga, mode-of-limited-transposition,
+# pc-set, and enharmonic spelling seeds.
+
+gmeow:pitchValue12EDOCSharp4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO C♯4 / D♭4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch class one semitone above C4, enharmonically equivalent to D♭4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "100.0"^^xsd:decimal ;
+    gmeow:pitchDegree "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOD4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO D4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value D4, two semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "200.0"^^xsd:decimal ;
+    gmeow:pitchDegree "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOE4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO E4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value E4, four semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "400.0"^^xsd:decimal ;
+    gmeow:pitchDegree "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOF4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO F4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value F4, five semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "500.0"^^xsd:decimal ;
+    gmeow:pitchDegree "5"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOFSharp4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO F♯4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value F♯4, six semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "600.0"^^xsd:decimal ;
+    gmeow:pitchDegree "6"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOA4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO A4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value A4, nine semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "900.0"^^xsd:decimal ;
+    gmeow:pitchDegree "9"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOB4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO B4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value B4, eleven semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "1100.0"^^xsd:decimal ;
+    gmeow:pitchDegree "11"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOC5 a gmeow:PitchValue ;
+    rdfs:label "12-EDO C5"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value C5, one octave above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "1200.0"^^xsd:decimal ;
+    gmeow:pitchDegree "12"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOGSharp4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO G♯4 / A♭4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value G♯4, eight semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "800.0"^^xsd:decimal ;
+    gmeow:pitchDegree "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue12EDOASharp4 a gmeow:PitchValue ;
+    rdfs:label "12-EDO A♯4 / B♭4"@x-gmeow-english ;
+    skos:definition "The 12-EDO pitch value A♯4, ten semitones above C4."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "1000.0"^^xsd:decimal ;
+    gmeow:pitchDegree "10"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# 24-EDO pitch values used by the Rast maqam seed (quarter-tone E/B half-flat).
+
+gmeow:pitchValue24EDOC4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO C4"@x-gmeow-english ;
+    skos:definition "The origin C4 in 24-EDO (0 cents)."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "0.0"^^xsd:decimal ;
+    gmeow:pitchDegree "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOD4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO D4"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value D4 (200 cents)."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "200.0"^^xsd:decimal ;
+    gmeow:pitchDegree "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOEHalfFlat4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO E half-flat 4"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value E half-flat 4 (350 cents), the characteristic third of Rast."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "350.0"^^xsd:decimal ;
+    gmeow:pitchDegree "7"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOE4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO E4"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value E4 (400 cents), the Turkish-natural third sometimes contested with E half-flat in Rast."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "400.0"^^xsd:decimal ;
+    gmeow:pitchDegree "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOF4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO F4"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value F4 (500 cents)."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "500.0"^^xsd:decimal ;
+    gmeow:pitchDegree "10"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOG4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO G4"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value G4 (700 cents)."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "700.0"^^xsd:decimal ;
+    gmeow:pitchDegree "14"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOA4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO A4"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value A4 (900 cents)."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "900.0"^^xsd:decimal ;
+    gmeow:pitchDegree "18"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOBHalfFlat4 a gmeow:PitchValue ;
+    rdfs:label "24-EDO B half-flat 4"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value B half-flat 4 (1050 cents), the characteristic seventh of Rast."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "1050.0"^^xsd:decimal ;
+    gmeow:pitchDegree "21"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValue24EDOC5 a gmeow:PitchValue ;
+    rdfs:label "24-EDO C5"@x-gmeow-english ;
+    skos:definition "The 24-EDO pitch value C5 (1200 cents)."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "1200.0"^^xsd:decimal ;
+    gmeow:pitchDegree "24"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Just-intonation pitch value used by the Johnston spelling seed.
+
+gmeow:pitchValueJI7Over4 a gmeow:PitchValue ;
+    rdfs:label "just-intonation 7/4"@x-gmeow-english ;
+    skos:definition "The harmonic seventh, ratio 7/4, used as the canonical pitch for the Johnston +7 spelling example."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "7"^^xsd:integer ;
+    gmeow:ratioDenominator "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# PITCH COLLECTION SEEDS
+# --------------------------------------------------------------------------- #
+
+# Maqam Rast = ordered ajnas.
+
+gmeow:pitchCollectionRastMaqam a gmeow:PitchCollection ;
+    rdfs:label "Rast maqam on C"@x-gmeow-english ;
+    skos:definition "The Arabic Rast maqam on C, composed of ordered ajnas (Rast on C, Wusta on G, Rast on high C), as a maqam seed (stress case 12)."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindMaqam ;
+    gmeow:hasPart
+        gmeow:pitchCollectionRastJinsC ,
+        gmeow:pitchCollectionWustaJinsG ,
+        gmeow:pitchCollectionRastJinsHighC ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionRastJinsC a gmeow:PitchCollection ;
+    rdfs:label "Rast jins on C"@x-gmeow-english ;
+    skos:definition "The lower Rast jins (C-D-E half-flat-F) within Rast maqam."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindJins ;
+    gmeow:collectionPartOrder "0"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionWustaJinsG a gmeow:PitchCollection ;
+    rdfs:label "Wusta jins on G"@x-gmeow-english ;
+    skos:definition "The Wusta jins (G-A-B half-flat-C) within Rast maqam."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindJins ;
+    gmeow:collectionPartOrder "1"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchCollectionRastJinsHighC a gmeow:PitchCollection ;
+    rdfs:label "Rast jins on high C"@x-gmeow-english ;
+    skos:definition "The upper Rast jins (C-D-E half-flat-F) within Rast maqam."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindJins ;
+    gmeow:collectionPartOrder "2"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Raga Yaman (simplified) = collection + member roles in 12-EDO.
+
+gmeow:pitchCollectionYamanRaga a gmeow:PitchCollection ;
+    rdfs:label "Raga Yaman"@x-gmeow-english ;
+    skos:definition "A simplified Hindustani Raga Yaman (Kalyan) seed in 12-EDO, illustrating vādī, samvādī, and member roles."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindRaga ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Messiaen mode of limited transposition (whole-tone mode 1) in 12-EDO.
+
+gmeow:pitchCollectionMessiaenMode1 a gmeow:PitchCollection ;
+    rdfs:label "Messiaen mode of limited transposition 1"@x-gmeow-english ;
+    skos:definition "Messiaen's first mode of limited transposition: the whole-tone collection C-D-E-F♯-G♯-A♯ in 12-EDO (stress case 10)."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindModeOfLimitedTransposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Pitch-class set [0,2,7] in 12-EDO.
+
+gmeow:pitchCollectionPCSet027 a gmeow:PitchCollection ;
+    rdfs:label "pitch-class set [0,2,7]"@x-gmeow-english ;
+    skos:definition "A simple pitch-class set exemplar: {C,D,G} under octave equivalence in 12-EDO."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindPCSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# PITCH COLLECTION MEMBERSHIP SEEDS
+# --------------------------------------------------------------------------- #
+
+# Rast maqam direct memberships (the full octave). The same pitches are also
+# asserted as memberships of the constituent ajnas below.
+
+gmeow:membershipRastC a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast C membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOC4 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOC4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastD a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast D membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOD4 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOD4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastEHalfFlat a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast EHalf Flat membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOEHalfFlat4 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOEHalfFlat4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastF a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast F membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOF4 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOF4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleGhammaz ;
+    gmeow:membershipDegreeIndex "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastG a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast G membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOG4 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOG4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastA a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast A membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOA4 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOA4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "5"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastBHalfFlat a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast BHalf Flat membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOBHalfFlat4 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOBHalfFlat4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "6"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastHighC a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast High C membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOC5 in pitchCollectionRastMaqam."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOC5 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis ;
+    gmeow:membershipDegreeIndex "7"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Contested third of Rast: Arabic theory (E half-flat) vs Turkish theory (E natural).
+
+gmeow:membershipRastThirdArabic a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast third per Arabic theory"@x-gmeow-english ;
+    skos:definition "The third degree of Rast is E half-flat, according to Arabic maqam theory."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOEHalfFlat4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    gmeow:accordingTo gmeow:standpointArabicTheory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastThirdTurkish a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast third per Turkish theory"@x-gmeow-english ;
+    skos:definition "The third degree of Rast is E natural, according to Turkish makam theory."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastMaqam ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOE4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    gmeow:accordingTo gmeow:standpointTurkishTheory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Rast jins on C memberships.
+
+gmeow:membershipRastJinsCTonic a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast Jins CTonic membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOC4 in pitchCollectionRastJinsC."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastJinsC ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOC4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastJinsCD a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast Jins CD membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOD4 in pitchCollectionRastJinsC."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastJinsC ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOD4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastJinsCEHalfFlat a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast Jins CEHalf Flat membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOEHalfFlat4 in pitchCollectionRastJinsC."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastJinsC ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOEHalfFlat4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipRastJinsCF a gmeow:PitchCollectionMembership ;
+    rdfs:label "Rast Jins CF membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOF4 in pitchCollectionRastJinsC."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionRastJinsC ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOF4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleGhammaz ;
+    gmeow:membershipDegreeIndex "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Wusta jins on G memberships.
+
+gmeow:membershipWustaJinsGTonic a gmeow:PitchCollectionMembership ;
+    rdfs:label "Wusta Jins GTonic membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOG4 in pitchCollectionWustaJinsG."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionWustaJinsG ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOG4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipWustaJinsGA a gmeow:PitchCollectionMembership ;
+    rdfs:label "Wusta Jins GA membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOA4 in pitchCollectionWustaJinsG."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionWustaJinsG ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOA4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipWustaJinsGBHalfFlat a gmeow:PitchCollectionMembership ;
+    rdfs:label "Wusta Jins GBHalf Flat membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOBHalfFlat4 in pitchCollectionWustaJinsG."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionWustaJinsG ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOBHalfFlat4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipWustaJinsGC a gmeow:PitchCollectionMembership ;
+    rdfs:label "Wusta Jins GC membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue24EDOC5 in pitchCollectionWustaJinsG."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionWustaJinsG ;
+    gmeow:membershipPitch gmeow:pitchValue24EDOC5 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleGhammaz ;
+    gmeow:membershipDegreeIndex "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Raga Yaman memberships.
+
+gmeow:membershipYamanC a gmeow:PitchCollectionMembership ;
+    rdfs:label "Yaman C membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOOrigin in pitchCollectionYamanRaga."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOOrigin ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipYamanD a gmeow:PitchCollectionMembership ;
+    rdfs:label "Yaman D membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOD4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOD4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleSamvadi ;
+    gmeow:membershipDegreeIndex "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipYamanE a gmeow:PitchCollectionMembership ;
+    rdfs:label "Yaman E membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOE4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOE4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipYamanFSharp a gmeow:PitchCollectionMembership ;
+    rdfs:label "Yaman FSharp membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOFSharp4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOFSharp4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipYamanG a gmeow:PitchCollectionMembership ;
+    rdfs:label "Yaman G membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOFifth in pitchCollectionYamanRaga."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOFifth ;
+    gmeow:membershipRole gmeow:collectionMemberRoleVadi ;
+    gmeow:membershipDegreeIndex "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipYamanA a gmeow:PitchCollectionMembership ;
+    rdfs:label "Yaman A membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOA4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOA4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "5"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipYamanB a gmeow:PitchCollectionMembership ;
+    rdfs:label "Yaman B membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOB4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOB4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "6"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Messiaen whole-tone mode memberships.
+
+gmeow:membershipMessiaenC a gmeow:PitchCollectionMembership ;
+    rdfs:label "Messiaen C membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOOrigin in pitchCollectionMessiaenMode1."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionMessiaenMode1 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOOrigin ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipMessiaenD a gmeow:PitchCollectionMembership ;
+    rdfs:label "Messiaen D membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOD4 in pitchCollectionMessiaenMode1."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionMessiaenMode1 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOD4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipMessiaenE a gmeow:PitchCollectionMembership ;
+    rdfs:label "Messiaen E membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOE4 in pitchCollectionMessiaenMode1."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionMessiaenMode1 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOE4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipMessiaenFSharp a gmeow:PitchCollectionMembership ;
+    rdfs:label "Messiaen FSharp membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOFSharp4 in pitchCollectionMessiaenMode1."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionMessiaenMode1 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOFSharp4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipMessiaenGSharp a gmeow:PitchCollectionMembership ;
+    rdfs:label "Messiaen GSharp membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOGSharp4 in pitchCollectionMessiaenMode1."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionMessiaenMode1 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOGSharp4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipMessiaenASharp a gmeow:PitchCollectionMembership ;
+    rdfs:label "Messiaen ASharp membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOASharp4 in pitchCollectionMessiaenMode1."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionMessiaenMode1 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOASharp4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "5"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Pitch-class set [0,2,7] memberships.
+
+gmeow:membershipPCSet0 a gmeow:PitchCollectionMembership ;
+    rdfs:label "PCSet 0 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOOrigin in pitchCollectionPCSet027."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionPCSet027 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOOrigin ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipPCSet2 a gmeow:PitchCollectionMembership ;
+    rdfs:label "PCSet 2 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOD4 in pitchCollectionPCSet027."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionPCSet027 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOD4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:membershipPCSet7 a gmeow:PitchCollectionMembership ;
+    rdfs:label "PCSet 7 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValue12EDOFifth in pitchCollectionPCSet027."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:pitchCollectionPCSet027 ;
+    gmeow:membershipPitch gmeow:pitchValue12EDOFifth ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "7"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# PITCH SPELLING SEEDS
+# --------------------------------------------------------------------------- #
+
+# Enharmonic co-equal spellings of the same 12-EDO pitch value.
+
+gmeow:pitchSpellingCSharp4CMN a gmeow:PitchSpelling ;
+    rdfs:label "C♯4 in CMN"@x-gmeow-english ;
+    skos:definition "The CMN spelling \"C♯4\" for the 12-EDO pitch value at degree 1."@x-gmeow-english ;
+    gmeow:spellingPitch gmeow:pitchValue12EDOCSharp4 ;
+    gmeow:spellingSystem gmeow:pitchSpellingSystemCMN ;
+    gmeow:spelledName "C♯4"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchSpellingDFlat4CMN a gmeow:PitchSpelling ;
+    rdfs:label "D♭4 in CMN"@x-gmeow-english ;
+    skos:definition "The CMN spelling \"D♭4\" for the same 12-EDO pitch value as C♯4; an enharmonic peer (Principle 9)."@x-gmeow-english ;
+    gmeow:spellingPitch gmeow:pitchValue12EDOCSharp4 ;
+    gmeow:spellingSystem gmeow:pitchSpellingSystemCMN ;
+    gmeow:spelledName "D♭4"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Sargam and Johnston spelling examples.
+
+gmeow:pitchSpellingGaSargam a gmeow:PitchSpelling ;
+    rdfs:label "Ga in sargam"@x-gmeow-english ;
+    skos:definition "The sargam spelling \"Ga\" for the pitch E in Raga Yaman."@x-gmeow-english ;
+    gmeow:spellingPitch gmeow:pitchValue12EDOE4 ;
+    gmeow:spellingSystem gmeow:pitchSpellingSystemSargam ;
+    gmeow:spelledName "Ga"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchSpellingPlus7Johnston a gmeow:PitchSpelling ;
+    rdfs:label "+7 in Johnston accidentals"@x-gmeow-english ;
+    skos:definition "The Johnston accidental spelling \"+7\" for the harmonic seventh ratio 7/4."@x-gmeow-english ;
+    gmeow:spellingPitch gmeow:pitchValueJI7Over4 ;
+    gmeow:spellingSystem gmeow:pitchSpellingSystemJohnston ;
+    gmeow:spelledName "+7"^^xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #

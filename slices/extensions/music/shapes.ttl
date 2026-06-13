@@ -156,3 +156,100 @@ gmeow:PitchAnchorShape
         sh:severity sh:Violation ;
         sh:message "A PitchAnchor must declare exactly one positive frequency in Hz." ;
     ] .
+
+gmeow:PitchCollectionShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch collection shape"@x-gmeow-english ;
+    skos:definition "A PitchCollection must declare exactly one kind and may only be derived from one spectrum."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchCollection ;
+    sh:property [
+        sh:path gmeow:collectionKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchCollection must have exactly one collectionKind (Principle 9)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:derivedFromSpectrum ;
+        sh:minCount 0 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchCollection may be derived from at most one Spectrum." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:collectionPartOrder ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchCollection part may have at most one order within its parent." ;
+    ] .
+
+gmeow:PitchCollectionMembershipShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch collection membership shape"@x-gmeow-english ;
+    skos:definition "A PitchCollectionMembership relator must bind exactly one collection, one pitch, and one role; context and degree are optional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchCollectionMembership ;
+    sh:property [
+        sh:path gmeow:membershipCollection ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchCollectionMembership must belong to exactly one PitchCollection." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:membershipPitch ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchCollectionMembership must name exactly one PitchValue." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:membershipRole ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchCollectionMembership must declare exactly one CollectionMemberRole." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:membershipContext ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "If provided, membershipContext must be an IRI." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:membershipDegreeIndex ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchCollectionMembership may have at most one degree index." ;
+    ] .
+
+gmeow:PitchSpellingShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch spelling shape"@x-gmeow-english ;
+    skos:definition "A PitchSpelling relator must bind exactly one pitch value, one spelling system, and one spelled name."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchSpelling ;
+    sh:property [
+        sh:path gmeow:spellingPitch ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchSpelling must name exactly one PitchValue." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:spellingSystem ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchSpelling must use exactly one PitchSpellingSystem." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:spelledName ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchSpelling must provide exactly one spelled name string." ;
+    ] .

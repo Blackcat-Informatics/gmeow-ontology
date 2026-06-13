@@ -20,6 +20,31 @@ universal core touch-points (`MusicalWork`, `Recording`, `ScoreEdition`,
 `CreativeDerivation`, `Genre`, `RealizationMode`, and the role/format seeds) in
 `slices/core/creative-works/module.ttl`. Child issues fill the layers above.
 
+## Pitch collections and spelling (issue #309)
+
+Pitch collections (`gmeow:PitchCollection`) are categorised by a single
+`gmeow:PitchCollectionKind` value — scale, mode, maqam, jins, raga, thaat,
+pathet, mode of limited transposition, pitch-class set, row/series, or spectrum
+collection — rather than by subclassing (Principle 9).
+
+Membership is a reified relator (`gmeow:PitchCollectionMembership`) binding a
+collection, a `PitchValue`, a `CollectionMemberRole`, and an optional context.
+Contested memberships — e.g. the size of the Rast third — coexist as relators
+carrying distinct `gmeow:accordingTo` annotations.
+
+A maqam is composed of ordered ajnas via the universal `gmeow:hasPart` plus a
+local `gmeow:collectionPartOrder` property on each jins. A raga is a collection
+plus member roles such as `vādī` and `samvādī`.
+
+Pitch spellings (`gmeow:PitchSpelling`) are relators binding a `PitchValue`, a
+`PitchSpellingSystem`, and a spelled name string. Note names (C♯4, sargam Ga,
+Johnston +7) are projections of frame-relative pitch, not canonical values;
+enharmonic ambiguity is modelled as two co-equal spellings of the same pitch.
+
+Seed fixtures: Rast maqam (ordered ajnas in 24-EDO), Raga Yaman (member roles in
+12-EDO), Messiaen's whole-tone mode of limited transposition, the pitch-class
+set `[0,2,7]`, and co-equal C♯4 / D♭4 spellings.
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.

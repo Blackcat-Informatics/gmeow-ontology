@@ -90,3 +90,79 @@ gmeow:eqMu006 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "Wikidata 'pelog' (Q1094781)." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Wikidata — pitch collections & spelling (issue #309)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMu007 a gmeow:TermEquivalence ;
+    rdfs:label "PitchCollection ↔ Wikidata Q179651"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW PitchCollection class to Wikidata 'scale' (Q179651)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:PitchCollection ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q179651 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'scale' (Q179651) — broader than the GMEOW collection view." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu008 a gmeow:TermEquivalence ;
+    rdfs:label "mode kind ↔ Wikidata Q731978"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW mode PitchCollectionKind value to Wikidata 'mode (music)' (Q731978)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:pitchCollectionKindMode ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q731978 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'mode (music)' (Q731978)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu009 a gmeow:TermEquivalence ;
+    rdfs:label "PitchValue ↔ Wikidata Q1760309"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW PitchValue class to Wikidata 'pitch class' (Q1760309)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:PitchValue ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1760309 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'pitch class' (Q1760309) — a pitch value under octave equivalence." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu010 a gmeow:TermEquivalence ;
+    rdfs:label "maqam kind ↔ Wikidata Q12826678 (close match)"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW maqam PitchCollectionKind value to Wikidata 'Arabic maqam' (Q12826678); the Wikidata concept is Arabic-only, while the GMEOW value also covers Turkish maqam practice."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:pitchCollectionKindMaqam ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q12826678 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu011 a gmeow:TermEquivalence ;
+    rdfs:label "raga kind ↔ Wikidata Q216926"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW raga PitchCollectionKind value to Wikidata 'raga' (Q216926)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:pitchCollectionKindRaga ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q216926 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'raga' (Q216926)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu012 a gmeow:TermEquivalence ;
+    rdfs:label "PitchSpellingSystem ↔ Wikidata Q233861"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW PitchSpellingSystem class to Wikidata 'musical notation' (Q233861)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:PitchSpellingSystem ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q233861 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
