@@ -397,11 +397,13 @@ enum ContributionDegreeEnum
 enum ContributionRoleEnum
   {
     roleAIAssistant
+    roleArranger
     roleAuthor
     roleBotContributor
     roleCodeReviewer
     roleComposer
     roleConceptualization
+    roleConductor
     roleCoverArtist
     roleDataCuration
     roleDirector
@@ -412,16 +414,28 @@ enum ContributionRoleEnum
     roleInvestigation
     roleLLMAssistedEditor
     roleLetterer
+    roleLibrettist
+    roleLyricist
+    roleMasteringEngineer
     roleMethodology
+    roleMixingEngineer
     roleNarrator
+    roleOrchestrator
+    rolePerformer
     rolePhotographer
+    roleProducer
     roleProjectAdministration
+    roleRecordingEngineer
     roleReleaser
+    roleRemixer
     roleResources
+    roleSamplingArtist
     roleSecurityContact
     roleSoftware
     roleSoftwareDeveloper
     roleSoftwareMaintainer
+    roleSongwriter
+    roleSoundDesigner
     roleSupervision
     roleTranslator
     roleValidation
@@ -468,7 +482,6 @@ enum CreativeWorkTypeEnum
     workTypeAudiovisual
     workTypeCartographic
     workTypeChoreographic
-    workTypeComposedMusical
     workTypeDataset
     workTypeFilm
     workTypeLiterary
@@ -543,6 +556,22 @@ enum DerivationKindEnum
     derivationSoundChange
     derivationSpellingChange
     derivationUnknownOrigin
+  }
+
+enum DerivationTypeEnum
+  {
+    derivationTypeArrangement
+    derivationTypeContrafact
+    derivationTypeCover
+    derivationTypeInterpolation
+    derivationTypeMashup
+    derivationTypeOrchestration
+    derivationTypeParody
+    derivationTypeQuotation
+    derivationTypeRemix
+    derivationTypeSample
+    derivationTypeTranscription
+    derivationTypeVariation
   }
 
 enum DeterminacyEnum
@@ -777,6 +806,8 @@ enum FrameRealmEnum
     frameRealmLinguistic
     frameRealmMathematical
     frameRealmMeasurement
+    frameRealmMusicalPitch
+    frameRealmMusicalTime
     frameRealmNarrative
     frameRealmPerceptual
     frameRealmPsychological
@@ -1129,12 +1160,20 @@ enum MaintenanceStatusEnum
 enum ManifestationFormatEnum
   {
     formatAudiobook
+    formatCD
+    formatCassette
     formatComicIssue
     formatDigitalFile
     formatEPUB
     formatHardcover
+    formatLosslessDigitalAudio
+    formatMEI
+    formatMIDIFile
+    formatMusicXML
     formatPDF
     formatPaperback
+    formatPrintedScore
+    formatStreamingAudio
     formatVinyl
     formatWebPage
     formatWebSerial
@@ -1458,6 +1497,7 @@ enum ParticipantRoleEnum
     roleAttendee
     roleBeneficiary
     roleBeneficiaryOfDeception
+    roleConductor
     roleDeceived
     roleDeceiver
     roleDupe
@@ -1470,6 +1510,7 @@ enum ParticipantRoleEnum
     rolePayee
     rolePayer
     rolePerformer
+    roleProducer
     roleSpinDoctor
     roleVictim
     roleWitness
@@ -1673,6 +1714,15 @@ enum QualityDimensionEnum
     qualityDimensionTemporalAccuracy
     qualityDimensionThematicAccuracy
     qualityDimensionTopologicalConsistency
+  }
+
+enum RealizationModeEnum
+  {
+    realizationModeImprovised
+    realizationModeMachineGenerated
+    realizationModeNotated
+    realizationModeOral
+    realizationModePerformed
   }
 
 enum ReferenceFrameEnum
@@ -2550,9 +2600,11 @@ type Article
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -2561,18 +2613,28 @@ type Article
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -2580,6 +2642,7 @@ type Article
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -3416,9 +3479,11 @@ type BookRelease
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -3427,18 +3492,28 @@ type BookRelease
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -3446,6 +3521,7 @@ type BookRelease
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
@@ -4091,9 +4167,11 @@ type Collection
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -4102,18 +4180,28 @@ type Collection
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -4121,6 +4209,7 @@ type Collection
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -4883,6 +4972,13 @@ type CoverageDepth
   {
   }
 
+type CreativeDerivation
+  {
+    derivationProduct: CreativeWork
+    derivationSource: CreativeWork
+    derivationType: [DerivationType]
+  }
+
 type CreativeWork
   {
     acquireLicensePage: [String]
@@ -4937,9 +5033,11 @@ type CreativeWork
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -4948,18 +5046,28 @@ type CreativeWork
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -4967,6 +5075,7 @@ type CreativeWork
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
   }
 
 type CreativeWorkTitle
@@ -5405,9 +5514,11 @@ type Dataset
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -5416,18 +5527,28 @@ type Dataset
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -5435,6 +5556,7 @@ type Dataset
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -5461,6 +5583,10 @@ type DepictionUsage
   }
 
 type DerivationKind
+  {
+  }
+
+type DerivationType
   {
   }
 
@@ -5709,9 +5835,11 @@ type Document
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -5720,18 +5848,28 @@ type Document
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -5739,6 +5877,7 @@ type Document
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -6188,7 +6327,6 @@ type EtymologicalDerivation
   {
     derivationEvidence: [Entity]
     derivationKind: [DerivationKind]
-    derivationSource: InformationObject
     derivationTarget: InformationObject
   }
 
@@ -6524,9 +6662,11 @@ type Expression
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -6535,18 +6675,28 @@ type Expression
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -6554,7 +6704,9 @@ type Expression
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodiedIn: [Manifestation]
+    realizationMode: RealizationMode
     realizes: [Work]
   }
 
@@ -7009,6 +7161,61 @@ type GenderIdentity
     genderValue: Gender
   }
 
+type Genre
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+  }
+
 type Geocode
   {
     acquireLicensePage: [String]
@@ -7416,9 +7623,11 @@ type GTSDocument
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -7427,18 +7636,28 @@ type GTSDocument
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -7446,6 +7665,7 @@ type GTSDocument
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
@@ -7510,9 +7730,11 @@ type GTSSegment
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -7521,18 +7743,28 @@ type GTSSegment
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -7540,6 +7772,7 @@ type GTSSegment
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
@@ -8045,9 +8278,11 @@ type Invoice
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -8056,18 +8291,28 @@ type Invoice
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -8075,6 +8320,7 @@ type Invoice
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
     invoiceAmount: MonetaryAmount
     invoiceDueDate: [String]
@@ -8196,9 +8442,11 @@ type Item
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -8207,18 +8455,28 @@ type Item
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -8226,6 +8484,7 @@ type Item
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     exemplifies: [Manifestation]
     hasCarrier: [PhysicalObject]
   }
@@ -9067,9 +9326,11 @@ type LiteraryWork
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -9078,18 +9339,28 @@ type LiteraryWork
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -9097,6 +9368,7 @@ type LiteraryWork
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -9418,9 +9690,11 @@ type Manifestation
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -9429,18 +9703,28 @@ type Manifestation
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -9448,6 +9732,7 @@ type Manifestation
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
@@ -9637,9 +9922,11 @@ type MediaObject
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -9648,18 +9935,28 @@ type MediaObject
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -9667,6 +9964,7 @@ type MediaObject
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
@@ -10343,6 +10641,106 @@ type MultipartBodyPart
 
 type MultipartType
   {
+  }
+
+type MusicalWork
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    abstract: [String]
+    arrangementOf: [CreativeWork]
+    audience: [Agent]
+    bibliographicCitation: [String]
+    conformsTo: [Entity]
+    coverOf: [CreativeWork]
+    dateAccepted: [String]
+    dateAvailable: [String]
+    dateCreated: [String]
+    dateModified: [String]
+    datePublished: [String]
+    dateSubmitted: [String]
+    editionOf: CreativeWork
+    extent: [String]
+    hasArranger: [Agent]
+    hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasGenre: [Genre]
+    hasIllustrator: [Agent]
+    hasLyricist: [Agent]
+    hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: [String]
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
+    requires: [CreativeWork]
+    samples: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: [String]
+    sourceModifiedAt: [String]
+    spatialCoverage: [Place]
+    tableOfContents: [String]
+    temporalCoverage: [TimeInterval]
+    title: [String]
+    transcriptionOf: [CreativeWork]
+    realizedThrough: [Expression]
   }
 
 type Myth
@@ -11622,9 +12020,11 @@ type Patent
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -11633,18 +12033,28 @@ type Patent
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -11652,6 +12062,7 @@ type Patent
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -12982,6 +13393,112 @@ type ReadingOrder
     sharpens: [Standpoint]
   }
 
+type RealizationMode
+  {
+  }
+
+type Recording
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    abstract: [String]
+    arrangementOf: [CreativeWork]
+    audience: [Agent]
+    bibliographicCitation: [String]
+    conformsTo: [Entity]
+    coverOf: [CreativeWork]
+    dateAccepted: [String]
+    dateAvailable: [String]
+    dateCreated: [String]
+    dateModified: [String]
+    datePublished: [String]
+    dateSubmitted: [String]
+    editionOf: CreativeWork
+    extent: [String]
+    hasArranger: [Agent]
+    hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasGenre: [Genre]
+    hasIllustrator: [Agent]
+    hasLyricist: [Agent]
+    hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: [String]
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
+    requires: [CreativeWork]
+    samples: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: [String]
+    sourceModifiedAt: [String]
+    spatialCoverage: [Place]
+    tableOfContents: [String]
+    temporalCoverage: [TimeInterval]
+    title: [String]
+    transcriptionOf: [CreativeWork]
+    embodies: [Expression]
+    exemplifiedBy: [Document]
+    hasManifestationFormat: ManifestationFormat
+  }
+
 type RecurrenceRule
   {
     acquireLicensePage: [String]
@@ -14006,6 +14523,108 @@ type ScoreAnchor
     anchorRangeMin: Float
   }
 
+type ScoreEdition
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    abstract: [String]
+    arrangementOf: [CreativeWork]
+    audience: [Agent]
+    bibliographicCitation: [String]
+    conformsTo: [Entity]
+    coverOf: [CreativeWork]
+    dateAccepted: [String]
+    dateAvailable: [String]
+    dateCreated: [String]
+    dateModified: [String]
+    datePublished: [String]
+    dateSubmitted: [String]
+    editionOf: CreativeWork
+    extent: [String]
+    hasArranger: [Agent]
+    hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasGenre: [Genre]
+    hasIllustrator: [Agent]
+    hasLyricist: [Agent]
+    hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: [String]
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
+    requires: [CreativeWork]
+    samples: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: [String]
+    sourceModifiedAt: [String]
+    spatialCoverage: [Place]
+    tableOfContents: [String]
+    temporalCoverage: [TimeInterval]
+    title: [String]
+    transcriptionOf: [CreativeWork]
+    embodies: [Expression]
+    exemplifiedBy: [Document]
+    hasManifestationFormat: ManifestationFormat
+  }
+
 type ScoreScale
   {
     acquireLicensePage: [String]
@@ -14550,9 +15169,11 @@ type SerialInstallment
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -14561,18 +15182,28 @@ type SerialInstallment
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -14580,6 +15211,7 @@ type SerialInstallment
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
@@ -14639,9 +15271,11 @@ type SerialWork
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -14650,18 +15284,28 @@ type SerialWork
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -14669,6 +15313,7 @@ type SerialWork
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -14726,9 +15371,11 @@ type Service
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -14737,18 +15384,28 @@ type Service
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -14756,6 +15413,7 @@ type Service
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -15104,9 +15762,11 @@ type SoftwareProduct
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -15115,18 +15775,28 @@ type SoftwareProduct
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -15134,6 +15804,7 @@ type SoftwareProduct
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -15418,9 +16089,11 @@ type SourceRole
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -15429,18 +16102,28 @@ type SourceRole
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -15448,6 +16131,7 @@ type SourceRole
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
   }
 
 type SourceTier
@@ -16418,9 +17102,11 @@ type TextExtraction
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -16429,18 +17115,28 @@ type TextExtraction
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -16448,6 +17144,7 @@ type TextExtraction
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 
@@ -17326,9 +18023,11 @@ type WebPage
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -17337,18 +18036,28 @@ type WebPage
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -17356,6 +18065,7 @@ type WebPage
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
@@ -17415,9 +18125,11 @@ type Work
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     abstract: [String]
+    arrangementOf: [CreativeWork]
     audience: [Agent]
     bibliographicCitation: [String]
     conformsTo: [Entity]
+    coverOf: [CreativeWork]
     dateAccepted: [String]
     dateAvailable: [String]
     dateCreated: [String]
@@ -17426,18 +18138,28 @@ type Work
     dateSubmitted: [String]
     editionOf: CreativeWork
     extent: [String]
+    hasArranger: [Agent]
     hasAuthor: [Agent]
+    hasComposer: [Agent]
+    hasConductor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
+    hasGenre: [Genre]
     hasIllustrator: [Agent]
+    hasLyricist: [Agent]
     hasNarrator: [Agent]
+    hasPerformer: [Agent]
+    hasProducer: [Agent]
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: [String]
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
     propagatesFrom: [CreativeWork]
+    quotesWork: [CreativeWork]
+    remixOf: [CreativeWork]
     requires: [CreativeWork]
+    samples: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: [String]
     sourceModifiedAt: [String]
@@ -17445,6 +18167,7 @@ type Work
     tableOfContents: [String]
     temporalCoverage: [TimeInterval]
     title: [String]
+    transcriptionOf: [CreativeWork]
     realizedThrough: [Expression]
   }
 

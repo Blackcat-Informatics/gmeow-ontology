@@ -346,14 +346,7 @@ gmeow:eqCw033 a gmeow:TermEquivalence ;
     gmeow:comment "Wikidata 'musical work' (Q2188189)." ;
     gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
 
-gmeow:eqCw034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeComposedMusical ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q207628 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'composed musical work' (Q207628)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
 
 gmeow:eqCw035 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:workTypeVisual ;
@@ -526,6 +519,47 @@ gmeow:eqCw052 a gmeow:TermEquivalence ;
     gmeow:confidence 1.0 ;
     gmeow:comment "CRediT writing – review & editing role." ;
     gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Wikidata — music-specific universal terms added by #307
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:derivationTypeCover ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q155171 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'cover version' (Q155171)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:derivationTypeRemix ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q214272 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'remix' (Q214272)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:derivationTypeArrangement ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q379755 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'arrangement' (Q379755)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw060 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Genre ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q188451 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'music genre' (Q188451) — GMEOW Genre is a broader, cross-domain information object." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
 
 # --------------------------------------------------------------------------- #
 # PAV — Provenance, Authoring and Versioning

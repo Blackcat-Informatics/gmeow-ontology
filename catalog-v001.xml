@@ -46,6 +46,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/languages" uri="slices/extensions/languages/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lexicon" uri="slices/extensions/lexicon/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lifecycle" uri="slices/core/lifecycle/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/music" uri="slices/extensions/music/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/names" uri="slices/core/names/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/narrative" uri="slices/extensions/narrative/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/norms" uri="slices/extensions/norms/module.ttl"/>
@@ -75,5 +76,6 @@
     <!-- Named profiles (generated, #330) -->
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/claims" uri="generated/profiles/claims.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/memory" uri="generated/profiles/memory.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/profiles/music" uri="generated/profiles/music.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/narrative" uri="generated/profiles/narrative.ttl"/>
 </catalog>

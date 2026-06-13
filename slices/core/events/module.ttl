@@ -265,8 +265,12 @@ gmeow:roleOrganizer            a gmeow:ParticipantRole ; rdfs:label "organizer"@
 gmeow:roleOrganizer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:roleAttendee             a gmeow:ParticipantRole ; rdfs:label "attendee"@x-gmeow-english ;           skos:definition "An agent who attended the event."@x-gmeow-english .
 gmeow:roleAttendee rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
-gmeow:rolePerformer            a gmeow:ParticipantRole ; rdfs:label "performer"@x-gmeow-english ;          skos:definition "An agent who performed at the event."@x-gmeow-english .
+gmeow:rolePerformer            a gmeow:ParticipantRole ; rdfs:label "performer"@x-gmeow-english ;          skos:definition "An agent who performed at the event. Also a ContributionRole (declared in creative-works.ttl) — one concept, one IRI (Principle 5)."@x-gmeow-english .
 gmeow:rolePerformer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleConductor            a gmeow:ParticipantRole ; rdfs:label "conductor"@x-gmeow-english ;          skos:definition "An agent who conducted a musical performance. Also a ContributionRole (declared in creative-works.ttl) — one concept, one IRI (Principle 5)."@x-gmeow-english .
+gmeow:roleConductor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleProducer             a gmeow:ParticipantRole ; rdfs:label "producer"@x-gmeow-english ;           skos:definition "An agent who produced a performance or recording. Also a ContributionRole (declared in creative-works.ttl) — one concept, one IRI (Principle 5)."@x-gmeow-english .
+gmeow:roleProducer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:roleOfficiant            a gmeow:ParticipantRole ; rdfs:label "officiant"@x-gmeow-english ;          skos:definition "A person who officiated at the event. Generalizes the former gmeow:hasOfficiant."@x-gmeow-english .
 gmeow:roleOfficiant rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:roleWitness              a gmeow:ParticipantRole ; rdfs:label "witness"@x-gmeow-english ;            skos:definition "A person who witnessed the event. Generalizes the former gmeow:hasWitness."@x-gmeow-english .

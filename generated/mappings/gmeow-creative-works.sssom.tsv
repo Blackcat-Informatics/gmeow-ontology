@@ -27,6 +27,7 @@ gmeow:Document	skos:closeMatch	wd:Q571	semapv:ManualMappingCuration	0.85	Wikidat
 gmeow:Expression	owl:equivalentClass	frbr:Expression	semapv:ManualMappingCuration	1.0	FRBR Expression — realization in language/notation.
 gmeow:Expression	owl:equivalentClass	lrmoo:F2_Expression	semapv:ManualMappingCuration	0.95	LRMoo F2 Expression.
 gmeow:Expression	skos:closeMatch	fabio:Expression	semapv:ManualMappingCuration	0.95	FaBiO Expression is scholarly-scoped.
+gmeow:Genre	skos:closeMatch	wd:Q188451	semapv:ManualMappingCuration	0.9	Wikidata 'music genre' (Q188451) — GMEOW Genre is a broader, cross-domain information object.
 gmeow:Item	owl:equivalentClass	frbr:Item	semapv:ManualMappingCuration	1.0	FRBR Item — single exemplar.
 gmeow:Item	owl:equivalentClass	lrmoo:F5_Item	semapv:ManualMappingCuration	0.95	LRMoo F5 Item.
 gmeow:Item	skos:closeMatch	bibframe:Item	semapv:ManualMappingCuration	0.9	BIBFRAME Item ≈ FRBR Item.
@@ -46,6 +47,9 @@ gmeow:Work	skos:closeMatch	schema:CreativeWork	semapv:ManualMappingCuration	0.75
 gmeow:Work	skos:closeMatch	wd:Q386724	semapv:ManualMappingCuration	0.95	Wikidata 'work' (Q386724).
 gmeow:contributor	skos:closeMatch	pav:contributedBy	semapv:ManualMappingCuration	0.9	PAV contributedBy is a flat property; GMEOW contributor is the relator player.
 gmeow:datePublished	skos:closeMatch	pav:authoredOn	semapv:ManualMappingCuration	0.85	PAV authoredOn is content-authorship date; GMEOW datePublished is the manifestation release date.
+gmeow:derivationTypeArrangement	skos:exactMatch	wd:Q379755	semapv:ManualMappingCuration	0.95	Wikidata 'arrangement' (Q379755).
+gmeow:derivationTypeCover	skos:exactMatch	wd:Q155171	semapv:ManualMappingCuration	0.95	Wikidata 'cover version' (Q155171).
+gmeow:derivationTypeRemix	skos:exactMatch	wd:Q214272	semapv:ManualMappingCuration	0.95	Wikidata 'remix' (Q214272).
 gmeow:embodies	owl:equivalentProperty	frbr:embodiment	semapv:ManualMappingCuration	1.0	Manifestation embodies Expression.
 gmeow:eventTypeExpressionCreation	skos:closeMatch	lrmoo:F28_Expression_Creation	semapv:ManualMappingCuration	0.9	LRMoo F28 Expression Creation ≈ GMEOW event type value.
 gmeow:eventTypeWorkConception	skos:broadMatch	crm:E65_Creation	semapv:ManualMappingCuration	0.85	CIDOC E65 Creation is broader than work conception.
@@ -68,7 +72,6 @@ gmeow:roleVisualization	skos:exactMatch	credit:visualization	semapv:ManualMappin
 gmeow:roleWritingOriginalDraft	skos:exactMatch	credit:writing-original-draft	semapv:ManualMappingCuration	1.0	CRediT writing – original draft role.
 gmeow:roleWritingReviewEditing	skos:exactMatch	credit:writing-review-editing	semapv:ManualMappingCuration	1.0	CRediT writing – review & editing role.
 gmeow:workTypeAudiovisual	skos:broadMatch	wd:Q478798	semapv:ManualMappingCuration	0.85	Wikidata 'image' (Q478798) — broader than audiovisual.
-gmeow:workTypeComposedMusical	skos:exactMatch	wd:Q207628	semapv:ManualMappingCuration	0.9	Wikidata 'composed musical work' (Q207628).
 gmeow:workTypeFilm	skos:exactMatch	wd:Q11424	semapv:ManualMappingCuration	0.95	Wikidata 'film' (Q11424).
 gmeow:workTypeLiterary	skos:exactMatch	wd:Q7725634	semapv:ManualMappingCuration	0.9	Wikidata 'literary work' (Q7725634).
 gmeow:workTypeMusical	skos:exactMatch	wd:Q2188189	semapv:ManualMappingCuration	0.9	Wikidata 'musical work' (Q2188189).

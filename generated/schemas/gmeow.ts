@@ -397,11 +397,13 @@ export enum ContributionDegreeEnum {
 export enum ContributionRoleEnum {
 
     AI_assistant = "roleAIAssistant",
+    arranger = "roleArranger",
     author = "roleAuthor",
     bot_contributor = "roleBotContributor",
     code_reviewer = "roleCodeReviewer",
     composer = "roleComposer",
     conceptualization = "roleConceptualization",
+    conductor = "roleConductor",
     cover_artist = "roleCoverArtist",
     data_curation = "roleDataCuration",
     director = "roleDirector",
@@ -412,16 +414,28 @@ export enum ContributionRoleEnum {
     investigation = "roleInvestigation",
     LLM_assisted_editor = "roleLLMAssistedEditor",
     letterer = "roleLetterer",
+    librettist = "roleLibrettist",
+    lyricist = "roleLyricist",
+    mastering_engineer = "roleMasteringEngineer",
     methodology = "roleMethodology",
+    mixing_engineer = "roleMixingEngineer",
     narrator = "roleNarrator",
+    orchestrator = "roleOrchestrator",
+    performer = "rolePerformer",
     photographer = "rolePhotographer",
+    producer = "roleProducer",
     project_administration = "roleProjectAdministration",
+    recording_engineer = "roleRecordingEngineer",
     releaser = "roleReleaser",
+    remixer = "roleRemixer",
     resources = "roleResources",
+    sampling_artist = "roleSamplingArtist",
     security_contact = "roleSecurityContact",
     software = "roleSoftware",
     software_developer = "roleSoftwareDeveloper",
     software_maintainer = "roleSoftwareMaintainer",
+    songwriter = "roleSongwriter",
+    sound_designer = "roleSoundDesigner",
     supervision = "roleSupervision",
     translator = "roleTranslator",
     validation = "roleValidation",
@@ -468,7 +482,6 @@ export enum CreativeWorkTypeEnum {
     audiovisual = "workTypeAudiovisual",
     cartographic = "workTypeCartographic",
     choreographic = "workTypeChoreographic",
-    composed_musical = "workTypeComposedMusical",
     dataset = "workTypeDataset",
     film = "workTypeFilm",
     literary = "workTypeLiterary",
@@ -543,6 +556,22 @@ export enum DerivationKindEnum {
     sound_change = "derivationSoundChange",
     spelling_change = "derivationSpellingChange",
     unknown_origin = "derivationUnknownOrigin",
+};
+
+export enum DerivationTypeEnum {
+
+    arrangement = "derivationTypeArrangement",
+    contrafact = "derivationTypeContrafact",
+    cover = "derivationTypeCover",
+    interpolation = "derivationTypeInterpolation",
+    mashup = "derivationTypeMashup",
+    orchestration = "derivationTypeOrchestration",
+    parody = "derivationTypeParody",
+    quotation = "derivationTypeQuotation",
+    remix = "derivationTypeRemix",
+    sample = "derivationTypeSample",
+    transcription = "derivationTypeTranscription",
+    variation = "derivationTypeVariation",
 };
 
 export enum DeterminacyEnum {
@@ -777,6 +806,8 @@ export enum FrameRealmEnum {
     linguistic = "frameRealmLinguistic",
     mathematical_SOLIDUS_n_D = "frameRealmMathematical",
     measurement = "frameRealmMeasurement",
+    musical_pitch = "frameRealmMusicalPitch",
+    musical_time = "frameRealmMusicalTime",
     narrative_SOLIDUS_fictional = "frameRealmNarrative",
     perceptual = "frameRealmPerceptual",
     psychological_SOLIDUS_cognitive = "frameRealmPsychological",
@@ -1129,12 +1160,20 @@ export enum MaintenanceStatusEnum {
 export enum ManifestationFormatEnum {
 
     audiobook = "formatAudiobook",
+    CD = "formatCD",
+    cassette = "formatCassette",
     comic_issue = "formatComicIssue",
     digital_file = "formatDigitalFile",
     EPUB = "formatEPUB",
     hardcover = "formatHardcover",
+    lossless_digital_audio = "formatLosslessDigitalAudio",
+    MEI = "formatMEI",
+    MIDI_file = "formatMIDIFile",
+    MusicXML = "formatMusicXML",
     PDF = "formatPDF",
     paperback = "formatPaperback",
+    printed_score = "formatPrintedScore",
+    streaming_audio = "formatStreamingAudio",
     vinyl = "formatVinyl",
     web_page = "formatWebPage",
     web_serial = "formatWebSerial",
@@ -1458,6 +1497,7 @@ export enum ParticipantRoleEnum {
     attendee = "roleAttendee",
     beneficiary = "roleBeneficiary",
     beneficiary_of_deception = "roleBeneficiaryOfDeception",
+    conductor = "roleConductor",
     deceived = "roleDeceived",
     deceiver = "roleDeceiver",
     dupe = "roleDupe",
@@ -1470,6 +1510,7 @@ export enum ParticipantRoleEnum {
     payee = "rolePayee",
     payer = "rolePayer",
     performer = "rolePerformer",
+    producer = "roleProducer",
     spin_doctor = "roleSpinDoctor",
     victim = "roleVictim",
     witness = "roleWitness",
@@ -1673,6 +1714,15 @@ export enum QualityDimensionEnum {
     temporal_accuracy = "qualityDimensionTemporalAccuracy",
     thematic_accuracy = "qualityDimensionThematicAccuracy",
     topological_consistency = "qualityDimensionTopologicalConsistency",
+};
+
+export enum RealizationModeEnum {
+
+    improvised = "realizationModeImprovised",
+    machine_generated = "realizationModeMachineGenerated",
+    notated = "realizationModeNotated",
+    oral = "realizationModeOral",
+    performed = "realizationModePerformed",
 };
 
 export enum ReferenceFrameEnum {
@@ -3034,11 +3084,21 @@ export interface CoverageDepth {
 
 
 
+export interface CreativeDerivation {
+    derivationProduct?: CreativeWork,
+    derivationSource?: CreativeWork,
+    derivationType?: DerivationType[],
+}
+
+
+
 export interface CreativeWork extends InformationObject {
     abstract?: string[],
+    arrangementOf?: CreativeWork[],
     audience?: Agent[],
     bibliographicCitation?: string[],
     conformsTo?: Entity[],
+    coverOf?: CreativeWork[],
     dateAccepted?: string[],
     dateAvailable?: string[],
     dateCreated?: string[],
@@ -3047,18 +3107,28 @@ export interface CreativeWork extends InformationObject {
     dateSubmitted?: string[],
     editionOf?: CreativeWork,
     extent?: string[],
+    hasArranger?: Agent[],
     hasAuthor?: Agent[],
+    hasComposer?: Agent[],
+    hasConductor?: Agent[],
     hasContributor?: Agent[],
     hasEditor?: Agent[],
+    hasGenre?: Genre[],
     hasIllustrator?: Agent[],
+    hasLyricist?: Agent[],
     hasNarrator?: Agent[],
+    hasPerformer?: Agent[],
+    hasProducer?: Agent[],
     hasTitle?: CreativeWorkTitle[],
     hasTranslator?: Agent[],
     identifier?: string[],
     isRequiredBy?: CreativeWork[],
     medium?: CarrierMedium[],
     propagatesFrom?: CreativeWork[],
+    quotesWork?: CreativeWork[],
+    remixOf?: CreativeWork[],
     requires?: CreativeWork[],
+    samples?: CreativeWork[],
     sourceFor?: NarrativeReferenceFrame[],
     sourceLocation?: string[],
     sourceModifiedAt?: string[],
@@ -3066,6 +3136,7 @@ export interface CreativeWork extends InformationObject {
     tableOfContents?: string[],
     temporalCoverage?: TimeInterval[],
     title?: string[],
+    transcriptionOf?: CreativeWork[],
 }
 
 
@@ -3181,6 +3252,11 @@ export interface DepictionUsage {
 
 
 export interface DerivationKind {
+}
+
+
+
+export interface DerivationType {
 }
 
 
@@ -3391,7 +3467,6 @@ export interface EntityExistence extends TimeScopedRelation {
 export interface EtymologicalDerivation {
     derivationEvidence?: Entity[],
     derivationKind?: DerivationKind[],
-    derivationSource?: InformationObject,
     derivationTarget?: InformationObject,
 }
 
@@ -3534,6 +3609,7 @@ export interface ExemplarPolarity {
 
 export interface Expression extends CreativeWork {
     embodiedIn?: Manifestation[],
+    realizationMode?: RealizationMode,
     realizes?: Work[],
 }
 
@@ -3661,6 +3737,11 @@ export interface GenderExpressionStyle {
 
 export interface GenderIdentity extends IdentityFacet {
     genderValue?: Gender,
+}
+
+
+
+export interface Genre extends InformationObject {
 }
 
 
@@ -4413,6 +4494,11 @@ export interface MultipartType {
 
 
 
+export interface MusicalWork extends Work {
+}
+
+
+
 export interface Myth extends SocialObject {
     affectedConsumerSurface?: ProjectionContext[],
     hasMythTelling?: CreativeWork[],
@@ -5062,6 +5148,16 @@ export interface ReadingOrder extends Standpoint {
 
 
 
+export interface RealizationMode {
+}
+
+
+
+export interface Recording extends Manifestation {
+}
+
+
+
 export interface RecurrenceRule extends InformationObject {
     recurrenceRuleText?: string,
 }
@@ -5319,6 +5415,11 @@ export interface ScoreAnchor extends InformationObject {
     anchorMeaning?: string[],
     anchorRangeMax?: string,
     anchorRangeMin?: string,
+}
+
+
+
+export interface ScoreEdition extends Manifestation {
 }
 
 
