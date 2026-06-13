@@ -14,9 +14,13 @@ const (
 type TermKind int
 
 const (
+	// Iri is a fully qualified Internationalized Resource Identifier.
 	Iri TermKind = iota
+	// Literal is a lexical value, optionally with a datatype or language tag.
 	Literal
+	// Bnode is a file-local blank node label.
 	Bnode
+	// Triple is a quoted triple (RDF 1.2 triple term) carried by reifier id.
 	Triple
 )
 

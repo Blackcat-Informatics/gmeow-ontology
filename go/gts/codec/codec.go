@@ -8,10 +8,25 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"sync"
 
 	"github.com/klauspost/compress/gzip"
 	"github.com/klauspost/compress/zstd"
 )
+
+var (
+	zstdOnce    sync.Once
+	zstdDecoder *zstd.Decoder
+	zstdInitErr error
+)
+
+// getZstdDecoder returns the shared, concurrency-safe zstd decoder.
+func getZstdDecoder() (*zstd.Decoder, error) {
+	zstdOnce.Do(func() {
+		zstdDecoder, zstdInitErr = zstd.NewReader(nil)
+	})
+	return zstdDecoder, zstdInitErr
+}
 
 // Codec is a catalog entry (§5, §8.5).
 type Codec struct {
@@ -20,23 +35,25 @@ type Codec struct {
 	Cls string
 }
 
-// CodecError describes why a transform chain could not be reversed.
-type CodecError struct {
+// Error describes why a transform chain could not be reversed.
+type Error struct {
 	Reason string // "unknown-codec" | "missing-key"
 	Detail string
 	Failed bool // true if codec is known but data is corrupt
 }
 
-func (e *CodecError) Error() string {
+func (e *Error) Error() string {
 	return e.Detail
 }
 
+// decodeOne reverses a single codec entry on data (identity, gzip, or zstd).
+// Encrypt-class codecs cannot be reversed without a key.
 func decodeOne(codec *Codec, data []byte) ([]byte, error) {
 	if codec == nil {
-		return nil, &CodecError{Failed: true, Detail: "codec chain contains nil entry"}
+		return nil, &Error{Failed: true, Detail: "codec chain contains nil entry"}
 	}
 	if codec.Cls == "encrypt" {
-		return nil, &CodecError{
+		return nil, &Error{
 			Reason: "missing-key",
 			Detail: fmt.Sprintf("no key for encrypt codec '%s'", codec.Name),
 		}
@@ -47,27 +64,26 @@ func decodeOne(codec *Codec, data []byte) ([]byte, error) {
 	case "gzip":
 		r, err := gzip.NewReader(bytes.NewReader(data))
 		if err != nil {
-			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("gzip decode failed: %v", err)}
+			return nil, &Error{Failed: true, Detail: fmt.Sprintf("gzip decode failed: %v", err)}
 		}
 		out, err := io.ReadAll(r)
 		_ = r.Close()
 		if err != nil {
-			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("gzip decode failed: %v", err)}
+			return nil, &Error{Failed: true, Detail: fmt.Sprintf("gzip decode failed: %v", err)}
 		}
 		return out, nil
 	case "zstd":
-		r, err := zstd.NewReader(nil)
+		r, err := getZstdDecoder()
 		if err != nil {
-			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("zstd decoder init failed: %v", err)}
+			return nil, &Error{Failed: true, Detail: fmt.Sprintf("zstd decoder init failed: %v", err)}
 		}
-		defer r.Close()
 		out, err := r.DecodeAll(data, nil)
 		if err != nil {
-			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("zstd decode failed: %v", err)}
+			return nil, &Error{Failed: true, Detail: fmt.Sprintf("zstd decode failed: %v", err)}
 		}
 		return out, nil
 	default:
-		return nil, &CodecError{
+		return nil, &Error{
 			Reason: "unknown-codec",
 			Detail: fmt.Sprintf("unknown codec '%s'", codec.Name),
 		}
@@ -82,7 +98,7 @@ func DecodeChain(chain []*Codec, data []byte) ([]byte, error) {
 	current := data
 	for i := len(chain) - 1; i >= 0; i-- {
 		if chain[i] == nil {
-			return nil, &CodecError{Failed: true, Detail: fmt.Sprintf("codec chain contains nil entry at index %d", i)}
+			return nil, &Error{Failed: true, Detail: fmt.Sprintf("codec chain contains nil entry at index %d", i)}
 		}
 		var err error
 		current, err = decodeOne(chain[i], current)

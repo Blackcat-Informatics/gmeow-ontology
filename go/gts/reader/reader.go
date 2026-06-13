@@ -15,22 +15,27 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+// asInt64 coerces a decoded CBOR value to int64.
 func asInt64(v interface{}) (int64, bool) {
 	return wire.AsInt64(v)
 }
 
+// asIdx coerces a decoded CBOR value to a non-negative int (term index).
 func asIdx(v interface{}) (int, bool) {
 	return wire.AsInt(v)
 }
 
+// asText coerces a decoded CBOR value to a string.
 func asText(v interface{}) (string, bool) {
 	return wire.AsText(v)
 }
 
+// textOr returns a text value or a default.
 func textOr(v interface{}, def string) string {
 	return wire.TextOr(v, def)
 }
 
+// fmtOpt formats an optional graph slot for diagnostics.
 func fmtOpt(g *int) string {
 	if g == nil {
 		return "None"
@@ -38,6 +43,7 @@ func fmtOpt(g *int) string {
 	return fmt.Sprintf("%d", *g)
 }
 
+// diagCodeFor maps a codec failure reason to a diagnostic code.
 func diagCodeFor(reason string) string {
 	if reason == "missing-key" {
 		return "MissingKey"
@@ -52,8 +58,9 @@ type payloadError struct {
 	damaged     bool
 }
 
+// codecErrToPayload translates a codec.Error into a reader payloadError.
 func codecErrToPayload(e error) *payloadError {
-	if ce, ok := e.(*codec.CodecError); ok {
+	if ce, ok := e.(*codec.Error); ok {
 		return &payloadError{
 			unavailable: !ce.Failed,
 			reason:      ce.Reason,
@@ -91,6 +98,7 @@ type folder struct {
 	blobEvents   []blobEvent
 }
 
+// diag appends a diagnostic to the folded graph.
 func (f *folder) diag(code, detail string, index *int) {
 	f.g.Diagnostics = append(f.g.Diagnostics, model.Diagnostic{
 		Code:       code,
@@ -99,6 +107,7 @@ func (f *folder) diag(code, detail string, index *int) {
 	})
 }
 
+// resolveCodecs looks up codec ids in the header catalog.
 func (f *folder) resolveCodecs(ids []interface{}) ([]*codec.Codec, *payloadError) {
 	var chain []*codec.Codec
 	for _, cid := range ids {
