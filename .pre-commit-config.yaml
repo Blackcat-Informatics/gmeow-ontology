@@ -16,7 +16,16 @@ repos:
       # byte-faithful — stripping a trailing space inside a vendored string
       # literal or a TSV column tab would corrupt content.
       - id: trailing-whitespace
-        exclude: &keep-verbatim '^(imports/.*|generated/metadata/.*|generated/schemas/.*|LICENSE.*|tests/fixtures/coverage/external/.*|.*\.(tsv|svg))$'
+        exclude: &keep-verbatim >
+          (?x)^(
+            imports/.*|
+            generated/metadata/.*|
+            generated/schemas/.*|
+            ontology-docs/.*|
+            LICENSE.*|
+            tests/fixtures/coverage/external/.*|
+            .*\.(tsv|svg)
+          )$
       - id: end-of-file-fixer
         exclude: *keep-verbatim
       - id: check-yaml
@@ -26,7 +35,7 @@ repos:
       - id: check-case-conflict
       - id: check-added-large-files
         args: ["--maxkb=1024"]
-        exclude: '^generated/schemas/.*'
+        exclude: '^(generated/schemas/.*|ontology-docs/.*)$'
       - id: mixed-line-ending
         args: ["--fix=lf"]
         exclude: *keep-verbatim
@@ -58,6 +67,7 @@ repos:
     rev: v0.17.2
     hooks:
       - id: markdownlint-cli2
+        exclude: '^ontology-docs/'
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1

@@ -681,6 +681,17 @@ export enum DistanceMetricEnum {
     euclidean = "distanceMetricEuclidean",
 };
 
+export enum DocumentationConcernEnum {
+
+    disclosure_and_suppression = "concernDisclosure",
+    frames_and_units = "concernFrames",
+    GTS_packaging = "concernGTSPackaging",
+    identifiers_and_coreference = "concernIdentifiersCoreference",
+    provenance_and_evidence = "concernProvenanceEvidence",
+    standpoints = "concernStandpoints",
+    statement_metadata = "concernStatementMetadata",
+};
+
 export enum DynamicsValueEnum {
 
     forte = "dynamicsF",
@@ -3938,6 +3949,11 @@ export interface Distribution extends InformationObject {
 
 
 export interface Document extends Work {
+}
+
+
+
+export interface DocumentationConcern {
 }
 
 

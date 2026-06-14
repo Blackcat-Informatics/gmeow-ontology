@@ -32135,6 +32135,26 @@
             "title": "Document",
             "type": "object"
           },
+          "DocumentationConcern": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "DocumentationConcern",
+            "type": "object"
+          },
+          "DocumentationConcernEnum": {
+            "description": "",
+            "enum": [
+              "concernDisclosure",
+              "concernFrames",
+              "concernGTSPackaging",
+              "concernIdentifiersCoreference",
+              "concernProvenanceEvidence",
+              "concernStandpoints",
+              "concernStatementMetadata"
+            ],
+            "title": "DocumentationConcernEnum",
+            "type": "string"
+          },
           "Duration": {
             "additionalProperties": false,
             "description": "",

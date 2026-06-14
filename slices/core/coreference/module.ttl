@@ -27,6 +27,7 @@ gmeow:authorityLink
     rdfs:label "authority link"@x-gmeow-english ;
     skos:definition "Links a GMEOW entity to a record in an external authority, registry, database, gazetteer, or catalogue by IRI. It is a see-also authority pointer, not an OWL identity merge; assert the strength of the coreference separately with skos:exactMatch or skos:closeMatch. The range is intentionally open. Wikidata is the recommended hub because its cross-references reach many other authorities."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
+gmeow:authorityLink gmeow:docsConcern gmeow:concernIdentifiersCoreference .
 
 gmeow:counterpartOf
     a owl:ObjectProperty, owl:SymmetricProperty ;

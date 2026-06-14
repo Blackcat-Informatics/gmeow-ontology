@@ -305,6 +305,7 @@ gmeow:ScalarQuantity
     rdfs:label "Scalar Quantity"@x-gmeow-english ;
     skos:definition "A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
+gmeow:ScalarQuantity gmeow:docsConcern gmeow:concernFrames, gmeow:concernProvenanceEvidence .
 
 gmeow:Quantity
     a owl:Class, gufo:Kind ;
@@ -313,6 +314,7 @@ gmeow:Quantity
     rdfs:label "Quantity"@x-gmeow-english ;
     skos:definition "A universal scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS (#77). Equivalent to gmeow:ScalarQuantity; the domain-neutral name for the same construct. Used for temperatures, distances, counts, probabilities, masses, prices, and any other quantitative observation result. The value lives in gmeow:quantityValue; the unit/frame in gmeow:hasUnit / gmeow:hasReferenceFrame; the determinacy in gmeow:hasDeterminacy; the provenance in gmeow:isResultOf."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
+gmeow:Quantity gmeow:docsConcern gmeow:concernFrames, gmeow:concernProvenanceEvidence .
 
 gmeow:MeasuredValue
     a owl:Class, gufo:Kind ;
@@ -321,6 +323,7 @@ gmeow:MeasuredValue
     rdfs:label "Measured Value"@x-gmeow-english ;
     skos:definition "An alias for gmeow:Quantity — the measured-value perspective on the same value×unit/frame×determinacy×provenance bundle (#77). Equivalent to gmeow:Quantity and gmeow:ScalarQuantity. Provided for consumers who prefer the 'measured value' terminology common in metrology and sensor standards."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
+gmeow:MeasuredValue gmeow:docsConcern gmeow:concernFrames, gmeow:concernProvenanceEvidence .
 
 gmeow:quantityValue
     a owl:DatatypeProperty, owl:FunctionalProperty ;

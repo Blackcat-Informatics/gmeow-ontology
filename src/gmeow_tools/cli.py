@@ -107,27 +107,11 @@ def regenerate(
     named generators in the order given.
     """
     # Import all generator modules to trigger @register side effects.
-    from gmeow_tools import (  # noqa: F401
-        apache,
-        catalog_gen,
-        evals,
-        export,
-        frame_shapes_gen,
-        gts_full_gen,
-        gts_gen,
-        gts_vectors_gen,
-        lpg,
-        mapping_compile,
-        matrix,
-        metadata,
-        parquet_gen,
-        profiles_gen,
-        research_objects,
-        schema_compile,
-        statement_compile,
-    )
     from gmeow_tools.config import PROJECT_ROOT
     from gmeow_tools.generator import regenerate as _regenerate
+    from gmeow_tools.load_generators import load_all
+
+    load_all()
 
     effective_skip = skip_unchanged if skip_unchanged is not None else (names is None)
     results = _regenerate(names or None, jobs=jobs, skip_unchanged=effective_skip)
@@ -179,26 +163,10 @@ def check_generated(
     and exits non-zero if any drift or orphans are found.
     """
     # Import all generator modules to trigger @register side effects.
-    from gmeow_tools import (  # noqa: F401
-        apache,
-        catalog_gen,
-        evals,
-        export,
-        frame_shapes_gen,
-        gts_full_gen,
-        gts_gen,
-        gts_vectors_gen,
-        lpg,
-        mapping_compile,
-        matrix,
-        metadata,
-        parquet_gen,
-        profiles_gen,
-        research_objects,
-        schema_compile,
-        statement_compile,
-    )
     from gmeow_tools.generator import check_all, registry
+    from gmeow_tools.load_generators import load_all
+
+    load_all()
 
     selected = names or None
     if skip:
@@ -1112,27 +1080,14 @@ def export(
 
 
 @app.command()
-def docs(
-    widoco: bool = typer.Option(False, "--widoco", help="Also run WIDOCO (Docker)."),
-) -> None:
-    """Generate HTML documentation (pyLODE; optionally WIDOCO)."""
-    from gmeow_tools.docs import pylode_html, widoco_available, widoco_docs
+def docs() -> None:
+    """Generate the native static ontology documentation site (#440)."""
+    from gmeow_tools.config import PROJECT_ROOT
+    from gmeow_tools.ontology_docs import build_ontology_docs
 
-    out = pylode_html()
-    console.print(f"[green]✓ pyLODE → {out}[/green]")
-    if widoco:
-        from gmeow_tools import reason as reasoning
-        from gmeow_tools.runner import ToolUnavailableError
-
-        if not widoco_available():
-            err_console.print("[yellow]WIDOCO image absent; skipping[/yellow]")
-            return
-        try:
-            merged = reasoning.merge_release()
-            outdir = widoco_docs(merged)
-        except ToolUnavailableError as exc:
-            raise _fail(f"tool unavailable: {exc}", code=2) from exc
-        console.print(f"[green]✓ WIDOCO → {outdir}[/green]")
+    out = PROJECT_ROOT / "ontology-docs"
+    build_ontology_docs(out)
+    console.print(f"[green]✓[/green] ontology docs → {out}")
 
 
 @app.command()

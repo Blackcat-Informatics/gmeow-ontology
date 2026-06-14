@@ -32,6 +32,7 @@ gmeow:accordingTo
     rdfs:label "according to"@x-gmeow-english ;
     skos:definition "The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held according to gmeow:universalStandpoint (the uncontested global facts)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
+gmeow:accordingTo gmeow:docsConcern gmeow:concernStandpoints, gmeow:concernStatementMetadata .
 
 # --------------------------------------------------------------------------- #
 # Modality — the Standpoint-Logic box / diamond (□_S / ◊_S). Optional; an
@@ -45,6 +46,7 @@ gmeow:standpointModality
     rdfs:label "standpoint modality"@x-gmeow-english ;
     skos:definition "The belief value a standpoint assigns the annotated proposition — *how* the standpoint holds it, not merely *that* it holds it. This single axis is at least as expressive as BOTH the Standpoint-Logic modal operators (□_S / ◊_S) AND the CRMinf belief value (true / false / probable / possible): gmeow:unequivocal (□, settled true), gmeow:probable (likely true), gmeow:conceivable (◊, possible), gmeow:refuted (□¬, settled false — the standpoint DENIES the proposition), gmeow:bullshit (indifference to truth — Frankfurt). Optional; ABSENT is read as unequivocal. Orthogonal to gmeow:confidence (our certainty about the standpoint's stance) and gmeow:accordingTo (whose frame). Refutation is what lets GMEOW distinguish a standpoint's explicit denial from its silence — the neutral-stance ambiguity flat models cannot resolve."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
+gmeow:standpointModality gmeow:docsConcern gmeow:concernStandpoints, gmeow:concernStatementMetadata .
 
 gmeow:StandpointModality
     a owl:Class, gufo:AbstractIndividualType ;
@@ -93,6 +95,7 @@ gmeow:Standpoint
     rdfs:label "Standpoint"@x-gmeow-english ;
     skos:definition "A named perspective / frame within which claims are held true — a state's official position, a community's usage, an editorial or historiographic point of view. Minted only when the frame needs its own identity and labels; often a bare gmeow:Agent (a polity, an organization) suffices as the value of gmeow:accordingTo instead. Standpoints form a poset under gmeow:sharpens, topped by gmeow:universalStandpoint."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
+gmeow:Standpoint gmeow:docsConcern gmeow:concernStandpoints .
 
 gmeow:sharpens
     a owl:ObjectProperty, owl:TransitiveProperty ;
@@ -122,6 +125,7 @@ gmeow:StandpointTenure
     rdfs:label "Standpoint Tenure"@x-gmeow-english ;
     skos:definition "The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module). A StandpointTenure generates a gmeow:standpointClaim observation. The tenure is the time-scoped fact; the claim is the observation of that fact. The tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
+gmeow:StandpointTenure gmeow:docsConcern gmeow:concernStandpoints, gmeow:concernDisclosure .
 
 gmeow:tenureStandpoint
     a owl:ObjectProperty, owl:FunctionalProperty ;
