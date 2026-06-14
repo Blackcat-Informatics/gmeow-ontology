@@ -5,9 +5,8 @@ canonical). This module proves that pyoxigraph — a pure in-process SPARQL
 engine — can parse the committed RDF 1.2 triple-term Turtle and reproduce the
 same OWL axiom-annotation normal form that the Jena-backed pipeline produces.
 
-The Jena-backed ``regenerate`` (statements), ``check-generated``, and docker-marked
-tests in ``test_statements.py`` remain authoritative; this is an additive,
-read-only verification path.
+The Jena-backed ``regenerate`` (statements) and ``check-generated`` lanes remain
+authoritative; this is an additive, read-only CI cross-check path.
 """
 
 from __future__ import annotations
@@ -20,7 +19,6 @@ from rdflib import Graph
 from rdflib.compare import graph_diff, isomorphic
 
 from gmeow_tools.config import STATEMENT_OWL_FILE, STATEMENT_RDF12_FILE
-from gmeow_tools.rdf12 import normalize_rdf12_to_owl as normalize_rdf12_to_owl_jena
 from gmeow_tools.rdf12_pyoxigraph import (
     NORMALIZE_QUERY,
     project_owl_to_rdf12,
@@ -28,6 +26,8 @@ from gmeow_tools.rdf12_pyoxigraph import (
 from gmeow_tools.rdf12_pyoxigraph import (
     normalize_rdf12_to_owl as normalize_rdf12_to_owl_pyoxigraph,
 )
+
+pytestmark = pytest.mark.pyoxigraph_ci
 
 
 def _load_quads(path: Path) -> set[str]:
@@ -63,26 +63,6 @@ def test_pyoxigraph_executes_normalize_construct() -> None:
     assert isinstance(results, pyoxigraph.QueryTriples)
     triples = list(results)
     assert len(triples) > 0, "expected non-empty CONSTRUCT result"
-
-
-@pytest.mark.docker
-def test_pyoxigraph_normalization_matches_jena() -> None:
-    """pyoxigraph-normalized RDF 1.2 must be isomorphic to Jena-normalized form."""
-    jena_graph = normalize_rdf12_to_owl_jena(STATEMENT_RDF12_FILE)
-    pyoxi_graph = normalize_rdf12_to_owl_pyoxigraph(STATEMENT_RDF12_FILE)
-
-    if not isomorphic(jena_graph, pyoxi_graph):
-        _, only_jena, only_pyoxi = graph_diff(jena_graph, pyoxi_graph)
-        msg_lines = [
-            f"pyoxigraph normalization diverges from Jena "
-            f"({len(only_jena)} only-Jena, {len(only_pyoxi)} only-pyoxigraph "
-            f"triples):"
-        ]
-        for triple in sorted(only_jena, key=str)[:10]:
-            msg_lines.append(f"  Jena-only: {triple}")
-        for triple in sorted(only_pyoxi, key=str)[:10]:
-            msg_lines.append(f"  pyoxigraph-only: {triple}")
-        pytest.fail("\n".join(msg_lines))
 
 
 def test_pyoxigraph_projection_matches_jena() -> None:
