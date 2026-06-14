@@ -2655,6 +2655,19 @@
   },
   {
     "keywords": [
+      "bibliography",
+      "citation ledger",
+      "metadata/references.ttl",
+      "references.bib",
+      "references.csl.json"
+    ],
+    "kind": "references",
+    "path": "references/index.html",
+    "summary": "Generated bibliography from metadata/references.ttl.",
+    "title": "References"
+  },
+  {
+    "keywords": [
       "ai",
       "core",
       "gmeow:slices/entities",
