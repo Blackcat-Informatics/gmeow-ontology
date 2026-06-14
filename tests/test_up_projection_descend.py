@@ -107,7 +107,12 @@ def test_descent_never_regresses_facts_on_the_real_corpus() -> None:
 def test_descent_output_is_pure_gmeow() -> None:
     """The descent output, like the floor, is pure GMEOW — every predicate is a
     gmeow term or rdf:type, every rdf:type object a gmeow class."""
-    src = Graph().parse(FIXTURES_DIR / "external" / "paudley.ttl", format="turtle")
+    import pytest
+
+    path = FIXTURES_DIR / "external" / "paudley.ttl"
+    if not path.exists():
+        pytest.skip("corpus fixture absent")
+    src = Graph().parse(path, format="turtle")
     desc = up_project_descend(src)
     for _s, p, o in desc.graph:
         assert str(p).startswith(GM) or p == RDF.type, f"non-gmeow predicate {p}"
@@ -116,6 +121,7 @@ def test_descent_output_is_pure_gmeow() -> None:
 
 
 def test_descent_empty_graph_raises() -> None:
+    """up_project_descend rejects an empty source graph with ValueError."""
     import pytest
 
     with pytest.raises(ValueError, match="empty"):
