@@ -118,6 +118,19 @@ gmeow:MonetaryAmountFrameRequirementShape
         sh:message "A MonetaryAmount must carry exactly one reference frame (gmeow:currency) — a value asserted without its frame is ill-formed (CONSTITUTION P11)." ;
     ] .
 
+gmeow:MusicAnalysisClaimFrameRequirementShape
+    a sh:NodeShape ;
+    rdfs:label "MusicAnalysisClaim frame-relativity shape (generated)"@en ;
+    sh:targetClass gmeow:MusicAnalysisClaim ;
+    sh:property [
+        sh:path gmeow:analysisFrame ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicAnalysisClaim must carry exactly one reference frame (gmeow:analysisFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)." ;
+    ] .
+
 gmeow:MusicalTimeSpanFrameRequirementShape
     a sh:NodeShape ;
     rdfs:label "MusicalTimeSpan frame-relativity shape (generated)"@en ;

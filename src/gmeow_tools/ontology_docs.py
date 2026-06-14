@@ -258,6 +258,14 @@ _EXTERNAL_TARGET_DESCRIPTIONS: dict[str, str] = {
     "ma": "W3C Media Ontology for media resources, fragments, and metadata.",
     "mf": "OGC Moving Features vocabulary for trajectories and moving objects.",
     "mo": "Music Ontology for artists, recordings, performances, releases, and tracks.",
+    "mbz": (
+        "MusicBrainz open music encyclopedia; the genre namespace is bridged "
+        "by reference for music-genre alignment."
+    ),
+    "discogs": (
+        "Discogs music database; the style namespace is bridged by reference "
+        "for music-genre alignment."
+    ),
     "moat": "Meaning Of A Tag vocabulary for tag semantics and tag-to-concept links.",
     "nmo": "Nepomuk Message Ontology for email messages, folders, and recipients.",
     "obscore": "IVOA Observation Core model for astronomical observation datasets.",

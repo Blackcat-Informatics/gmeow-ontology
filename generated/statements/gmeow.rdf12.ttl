@@ -693,7 +693,7 @@ gmeow:fixtureRomanNumeralClaim
 <https://blackcatinformatics.ca/gmeow/examples/music/claim-not-math-rock-band>
         rdf:reifies               <<( gmeow:fixtureMathRockWork gmeow:hasGenre gmeow:genreMathRock )>>;
         gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-the-band>;
-        gmeow:confidence          1.0;
+        gmeow:confidence          1;
         gmeow:standpointModality  gmeow:refuted .
 
 gmeow:fixtureMathRockWork
@@ -752,7 +752,7 @@ gmeow:fixtureMathRockWork
 <https://blackcatinformatics.ca/gmeow/examples/music/claim-bar17-meter-4_4-plus-3_8>
         rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/music/bar17> gmeow:assignedMeter <https://blackcatinformatics.ca/gmeow/examples/music/metricStructure-4_4-plus-3_8> )>>;
         gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-transcriber-b>;
-        gmeow:confidence          0.80;
+        gmeow:confidence          0.8;
         gmeow:standpointModality  gmeow:unequivocal .
 
 <https://blackcatinformatics.ca/gmeow/examples/music/bar17>

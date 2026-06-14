@@ -801,7 +801,7 @@
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/music/bar17> ;
     owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/music/metricStructure-4_4-plus-3_8> ;
     gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-transcriber-b> ;
-    gmeow:confidence 0.80 ;
+    gmeow:confidence 0.8 ;
     gmeow:standpointModality gmeow:unequivocal .
 
 <https://blackcatinformatics.ca/gmeow/examples/music/claim-bar17-meter-7_8> a owl:Axiom ;
@@ -841,7 +841,7 @@
     owl:annotatedSource gmeow:fixtureMathRockWork ;
     owl:annotatedTarget gmeow:genreMathRock ;
     gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-the-band> ;
-    gmeow:confidence 1.0 ;
+    gmeow:confidence 1 ;
     gmeow:standpointModality gmeow:refuted .
 
 <https://blackcatinformatics.ca/gmeow/examples/music/claim-spectral-key-refuted> a owl:Axiom ;

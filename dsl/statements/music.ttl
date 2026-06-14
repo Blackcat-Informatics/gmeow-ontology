@@ -39,7 +39,7 @@ ex:claim-bar17-meter-4_4-plus-3_8 a gmeow:StatementMetadata ;
     gmeow:annotation
         [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-transcriber-b ] ,
         [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:unequivocal ] ,
-        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.80 ] .
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.8 ] .
 
 # --------------------------------------------------------------------------- #
 # (3). AI-inferred German-sixth chord label — machine-derived, never ground
@@ -140,4 +140,4 @@ ex:claim-not-math-rock-band a gmeow:StatementMetadata ;
     gmeow:annotation
         [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-the-band ] ,
         [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:refuted ] ,
-        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 1.0 ] .
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 1 ] .

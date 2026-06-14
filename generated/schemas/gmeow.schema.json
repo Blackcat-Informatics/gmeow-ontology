@@ -866,6 +866,7 @@
         "AgentEnum": {
             "description": "",
             "enum": [
+                "fixtureAnalystA",
                 "fixtureSessionBassist",
                 "fixtureSessionDrummer"
             ],
@@ -998,6 +999,28 @@
             },
             "title": "AgreementName",
             "type": "object"
+        },
+        "AnalysisProperty": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "AnalysisProperty",
+            "type": "object"
+        },
+        "AnalysisPropertyEnum": {
+            "description": "",
+            "enum": [
+                "analysisPropertyFormFunction",
+                "analysisPropertyGroove",
+                "analysisPropertyHarmonyLabel",
+                "analysisPropertyKey",
+                "analysisPropertyMeter",
+                "analysisPropertyMode",
+                "analysisPropertyMotifIdentity",
+                "analysisPropertySchema",
+                "analysisPropertyTuningIdentification"
+            ],
+            "title": "AnalysisPropertyEnum",
+            "type": "string"
         },
         "Annotation": {
             "additionalProperties": false,
@@ -5618,6 +5641,7 @@
                 "axisMomentumY",
                 "axisMomentumZ",
                 "axisMonth",
+                "axisMusicAnalysis",
                 "axisPitch",
                 "axisPlusCode",
                 "axisPortNumber",
@@ -43699,6 +43723,31 @@
             "title": "ForgePlatform",
             "type": "object"
         },
+        "FormFunction": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "FormFunction",
+            "type": "object"
+        },
+        "FormFunctionEnum": {
+            "description": "",
+            "enum": [
+                "formFunctionAlap",
+                "formFunctionBridge",
+                "formFunctionChorus",
+                "formFunctionDevelopment",
+                "formFunctionDrop",
+                "formFunctionExposition",
+                "formFunctionGat",
+                "formFunctionIntro",
+                "formFunctionOutro",
+                "formFunctionRecapitulation",
+                "formFunctionRiff",
+                "formFunctionVerse"
+            ],
+            "title": "FormFunctionEnum",
+            "type": "string"
+        },
         "FormalLanguage": {
             "additionalProperties": false,
             "description": "",
@@ -44335,6 +44384,7 @@
         "FrameKindEnum": {
             "description": "",
             "enum": [
+                "frameKindAnalytical",
                 "frameKindCartesian",
                 "frameKindConfigurationSpace",
                 "frameKindCylindrical",
@@ -44373,6 +44423,7 @@
                 "frameRealmLinguistic",
                 "frameRealmMathematical",
                 "frameRealmMeasurement",
+                "frameRealmMusicAnalysis",
                 "frameRealmMusicalPitch",
                 "frameRealmMusicalTime",
                 "frameRealmNarrative",
@@ -47938,6 +47989,26 @@
             "title": "Genre",
             "type": "object"
         },
+        "GenreEnum": {
+            "description": "",
+            "enum": [
+                "genreBlues",
+                "genreClassical",
+                "genreDisco",
+                "genreElectronic",
+                "genreFunk",
+                "genreFusion",
+                "genreHipHop",
+                "genreJazz",
+                "genreMathRock",
+                "genrePostRock",
+                "genreProgressiveRock",
+                "genreRock",
+                "genreSoul"
+            ],
+            "title": "GenreEnum",
+            "type": "string"
+        },
         "GeoCoordinates": {
             "additionalProperties": false,
             "description": "",
@@ -51158,6 +51229,27 @@
                 "operatorNone"
             ],
             "title": "GroupOperatorEnum",
+            "type": "string"
+        },
+        "HarmonicFunction": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "HarmonicFunction",
+            "type": "object"
+        },
+        "HarmonicFunctionEnum": {
+            "description": "",
+            "enum": [
+                "harmonicFunctionDominant",
+                "harmonicFunctionGermanSixth",
+                "harmonicFunctionLeadingTone",
+                "harmonicFunctionMediant",
+                "harmonicFunctionSubdominant",
+                "harmonicFunctionSubmediant",
+                "harmonicFunctionSupertonic",
+                "harmonicFunctionTonic"
+            ],
+            "title": "HarmonicFunctionEnum",
             "type": "string"
         },
         "Hazard": {
@@ -77590,6 +77682,146 @@
             "title": "MultipartTypeEnum",
             "type": "string"
         },
+        "MusicAnalysisClaim": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "analysisFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ReferenceFrame"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "analysisProperty": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/AnalysisProperty"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "analysisResult": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "analysisTarget": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "credibilityScore": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "facetSubject": {
+                    "items": {
+                        "$ref": "#/$defs/Person"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "facetVantage": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observationMethod": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ObservationMethod"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "observationResult": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observationType": {
+                    "items": {
+                        "$ref": "#/$defs/ObservationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observedFeature": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "perceptionEnvironment": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "vantage": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "MusicAnalysisClaim",
+            "type": "object"
+        },
+        "MusicAnalysisClaimEnum": {
+            "description": "",
+            "enum": [
+                "fixtureRomanNumeralClaim"
+            ],
+            "title": "MusicAnalysisClaimEnum",
+            "type": "string"
+        },
         "MusicalParameter": {
             "additionalProperties": false,
             "description": "",
@@ -80300,6 +80532,7 @@
                 "fixtureFourThirtyThreeWork",
                 "fixtureGraphicScoreWork",
                 "fixtureKlavierstuckXIWork",
+                "fixtureMathRockWork",
                 "fixtureReichPhasingWork",
                 "fixtureSessionWork",
                 "fixtureStructureWork"
@@ -84376,6 +84609,24 @@
             },
             "title": "NarrativeTimeFrame",
             "type": "object"
+        },
+        "NeoRiemannianOperation": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "NeoRiemannianOperation",
+            "type": "object"
+        },
+        "NeoRiemannianOperationEnum": {
+            "description": "",
+            "enum": [
+                "neoRiemannianL",
+                "neoRiemannianN",
+                "neoRiemannianP",
+                "neoRiemannianR",
+                "neoRiemannianS"
+            ],
+            "title": "NeoRiemannianOperationEnum",
+            "type": "string"
         },
         "NetworkAddress": {
             "additionalProperties": false,
@@ -114384,7 +114635,16 @@
                 "referenceFrameUnixEpoch",
                 "referenceFrameVirtualPlatform",
                 "referenceFrameWGS84",
-                "referenceFrameWhat3Words"
+                "referenceFrameWhat3Words",
+                "theoryFrameAIModel",
+                "theoryFrameCorpusStatistical",
+                "theoryFrameMaqamTheory",
+                "theoryFramePathet",
+                "theoryFramePitchClassSet",
+                "theoryFrameRagaGrammar",
+                "theoryFrameRomanNumeral",
+                "theoryFrameSchenkerian",
+                "theoryFrameTransformational"
             ],
             "title": "ReferenceFrameEnum",
             "type": "string"
@@ -121858,6 +122118,22 @@
             },
             "title": "ScheduleException",
             "type": "object"
+        },
+        "SchenkerLevel": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SchenkerLevel",
+            "type": "object"
+        },
+        "SchenkerLevelEnum": {
+            "description": "",
+            "enum": [
+                "schenkerLevelBackground",
+                "schenkerLevelForeground",
+                "schenkerLevelMiddleground"
+            ],
+            "title": "SchenkerLevelEnum",
+            "type": "string"
         },
         "ScoreAnchor": {
             "additionalProperties": false,
@@ -131151,6 +131427,12 @@
             "additionalProperties": false,
             "description": "",
             "title": "ServiceType",
+            "type": "object"
+        },
+        "SetClassLabel": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SetClassLabel",
             "type": "object"
         },
         "SeverityLevel": {
