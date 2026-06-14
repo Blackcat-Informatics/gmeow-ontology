@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: gender as reified, self-asserted, co-equal facets (#443, P9/P10).
+# Each axis is a reified gmeow:IdentityFacet (the NameUsage relator idiom), never a
+# flat enum column. Four tenets are visible here:
+#   • SELF-ASSERTION is the top authority — a self-asserted facet (selfAsserted
+#     true) outranks an external registry record (selfAsserted false), which is
+#     SUPPRESSED, never deleted (gmeow:displayable false, P10): kept for provenance,
+#     never leaked or displayed.
+#   • CO-EQUALITY — gender identity and gender expression are separate facets with
+#     no primary/preferred slot; expression is never inferred from identity.
+#   • SEX ≠ GENDER — gmeow:sexAssignedAtBirth is a RECORDED administrative datum,
+#     not an IdentityFacet, and implies nothing about identity or expression.
+#   • OPEN VOCABULARY — values are individuals (gmeow:genderNonBinary, …), never
+#     Person subclasses and never a forced enum.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/gender/> .
+
+ex:robin a gmeow:Person ;
+    gmeow:name "Robin"@x-gmeow-english ;
+    gmeow:hasGenderIdentity   ex:selfId , ex:registryId ;
+    gmeow:hasGenderExpression ex:expr ;
+    gmeow:sexAssignedAtBirth  gmeow:saabFemale .   # recorded datum — NOT identity
+
+# A facet is an Observation: it records its gmeow:facetSubject (whose facet) and
+# gmeow:facetVantage (who asserts it). When self-asserted, the vantage IS the
+# subject — that self-reference is exactly what makes it the top authority.
+ex:registry a gmeow:Organization ; gmeow:name "National Records Registry"@x-gmeow-english .
+
+# --- The self-asserted identity: subject is its own vantage; displayed.
+ex:selfId a gmeow:GenderIdentity ;
+    gmeow:facetSubject  ex:robin ;
+    gmeow:facetVantage  ex:robin ;
+    gmeow:genderValue   gmeow:genderNonBinary ;
+    gmeow:selfAsserted  true ;
+    gmeow:displayable   true .
+
+# --- An external registry's conflicting record: its vantage is the REGISTRY,
+#     not Robin — kept for provenance but SUPPRESSED (P10) and never self-
+#     asserted, because self-assertion outranks an imported datum.
+ex:registryId a gmeow:GenderIdentity ;
+    gmeow:facetSubject ex:robin ;
+    gmeow:facetVantage ex:registry ;
+    gmeow:genderValue  gmeow:genderWoman ;
+    gmeow:selfAsserted false ;
+    gmeow:displayable  false .
+
+# --- Gender expression: a separate axis, never inferred from identity.
+ex:expr a gmeow:GenderExpression ;
+    gmeow:facetSubject    ex:robin ;
+    gmeow:facetVantage    ex:robin ;
+    gmeow:expressionValue gmeow:expressionAndrogynous ;
+    gmeow:selfAsserted    true .
