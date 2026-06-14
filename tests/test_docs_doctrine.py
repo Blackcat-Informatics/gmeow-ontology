@@ -3,7 +3,7 @@
 """Docs ship WITH the ontology (#325) — the three-tier doctrine, gated.
 
 Tier 1: term docs canonical in the graph (markdown datatype, pairsWith,
-graded scopeNote/example depth). Tier 2: guides structurally bound (anchor
+graded advisory/example depth). Tier 2: guides structurally bound (anchor
 lint; stub = error). Tier 3 + packaging: guides ride the GTS snapshot as
 content-addressed blobs linked via guideBlob, and the build fails when a
 guide anchors a missing term (docs-in-sync as a build invariant, P7).
@@ -14,8 +14,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import RDF, RDFS, Graph, Namespace, URIRef
-from rdflib.namespace import OWL
+from rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.describe import build_card, render_card, resolve_term
 from gmeow_tools.graph import load_merged_graph
@@ -62,14 +62,95 @@ def test_pairs_with_is_an_annotation_property() -> None:
     assert expected <= actual
 
 
+def test_advisory_properties_are_annotation_only() -> None:
+    """WHEN/HOW/WHERE advice is machine-visible documentation, not logic."""
+    g = _graph()
+    for prop in (
+        GM.useWhen,
+        GM.avoidWhen,
+        GM.howToUse,
+        GM.useForConsumer,
+        GM.avoidForConsumer,
+    ):
+        assert (prop, RDF.type, OWL.AnnotationProperty) in g
+        assert (prop, RDFS.label, None) in g
+        assert (prop, SKOS.definition, None) in g
+        assert (prop, RDFS.isDefinedBy, None) in g
+    assert (GM.useWhen, RDFS.subPropertyOf, SKOS.scopeNote) in g
+    assert (GM.avoidWhen, RDFS.subPropertyOf, SKOS.scopeNote) in g
+    assert (GM.useForConsumer, RDFS.range, GM.ProjectionContext) in g
+    assert (GM.avoidForConsumer, RDFS.range, GM.ProjectionContext) in g
+
+
 def test_graded_gate_warns_not_errors_on_missing_depth() -> None:
-    """Missing scopeNote/example on core public-facing terms is a WARNING
+    """Missing advisory/example content on core public-facing terms is a WARNING
     (incremental coverage), never an error — and the base #221 trio stays
     an error."""
     result = structural_lint(_graph())
     depth = [w for w in result.warnings if "Tier-1 depth" in w]
     assert depth, "graded gate should be reporting coverage gaps"
     assert not any("Tier-1 depth" in e for e in result.errors)
+    assert any("gmeow:useWhen" in w for w in depth)
+    assert any("gmeow:howToUse" in w for w in depth)
+
+
+def _tier_1_probe_graph(*, how_to_use: bool = False) -> Graph:
+    graph = Graph()
+    term = GM.ReviewDepthProbe
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add((term, RDFS.label, Literal("review depth probe", lang="x-gmeow-english")))
+    graph.add(
+        (
+            term,
+            SKOS.definition,
+            Literal(
+                "Synthetic class used to exercise advisory warnings.",
+                lang="x-gmeow-english",
+            ),
+        )
+    )
+    graph.add((term, RDFS.isDefinedBy, URIRef(GMEOW + "slices/kernel")))
+    if how_to_use:
+        graph.add(
+            (
+                term,
+                GM.howToUse,
+                Literal(
+                    "Use as a focused validator regression fixture.",
+                    lang="x-gmeow-english",
+                ),
+            )
+        )
+    return graph
+
+
+def test_graded_gate_keeps_how_to_use_and_example_warnings_distinct() -> None:
+    missing_how = structural_lint(_tier_1_probe_graph()).warnings
+    assert any("missing gmeow:howToUse" in warning for warning in missing_how)
+    assert not any("skos:example" in warning for warning in missing_how)
+
+    missing_example = structural_lint(_tier_1_probe_graph(how_to_use=True)).warnings
+    assert any(
+        "has gmeow:howToUse but no skos:example" in warning
+        for warning in missing_example
+    )
+
+
+def test_advisory_consumer_values_must_resolve() -> None:
+    g = _graph()
+    g.add((GM.hasName, GM.useForConsumer, GM.NoSuchConsumer))
+    result = structural_lint(g)
+    assert any("non-ProjectionContext" in e for e in result.errors)
+
+
+def test_module_matrix_reports_advisory_coverage() -> None:
+    from gmeow_tools.matrix import render_matrix
+
+    text = render_matrix()
+    assert "advisory coverage:" in text
+    names_row = next(line for line in text.splitlines() if line.startswith("| names |"))
+    assert "core" in names_row
+    assert "/" in names_row.split("|")[-3]
 
 
 # --------------------------------------------------------------------------- #
@@ -132,15 +213,19 @@ def test_repo_guides_are_stub_free_and_bound() -> None:
 
 def test_describe_resolves_and_renders_the_target_shape() -> None:
     g = _graph()
-    term, candidates = resolve_term(g, "hasGoal")
-    assert term == GM.hasGoal and not candidates
+    term, candidates = resolve_term(g, "hasName")
+    assert term == GM.hasName and not candidates
     card = build_card(g, term)
-    assert card.slice_name == "teleology"
+    assert card.slice_name == "names"
     assert card.slice_tier == "core"
-    assert "gmeow:IntentionTenure" in card.pairs_with
+    assert "gmeow:NameUsage" in card.pairs_with
+    assert card.use_when and card.how_to_use
     text = render_card(card)
+    assert "Use when" in text
+    assert "How" in text
+    assert "Use for" in text
     assert "Pairs with" in text
-    assert "Guide: slices/core/teleology/docs.md" in text
+    assert "Guide: slices/core/names/docs.md" in text
 
 
 def test_describe_suggests_on_ambiguity() -> None:

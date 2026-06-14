@@ -72,6 +72,69 @@ def test_term_attributes_are_populated() -> None:
     assert signing_key.range == "gmeow:CryptographicKey"
     assert signing_key.functional is True
 
+    has_name = terms["gmeow:hasName"]
+    assert has_name.use_when
+    assert has_name.how_to_use
+    assert "gmeow:consumerPublicSite" in has_name.use_for_consumer
+
+
+def test_collect_terms_preserves_multi_valued_advisory_texts() -> None:
+    graph = Graph()
+    lang = URIRef(NAMESPACE + "langEnglish")
+    term = URIRef(NAMESPACE + "MultiAdviceConcept")
+
+    graph.add((lang, RDF.type, URIRef(NAMESPACE + "Language")))
+    graph.add((lang, URIRef(NAMESPACE + "languageTag"), Literal("x-gmeow-english")))
+    graph.add((lang, URIRef(NAMESPACE + "bcp47Tag"), Literal("en")))
+
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add(
+        (term, RDFS.label, Literal("Multi Advice Concept", lang="x-gmeow-english"))
+    )
+    graph.add(
+        (
+            term,
+            SKOS.definition,
+            Literal(
+                "A concept for testing multi-valued advisory export.",
+                lang="x-gmeow-english",
+            ),
+        )
+    )
+    graph.add(
+        (
+            term,
+            URIRef(NAMESPACE + "useWhen"),
+            Literal("Use when alpha applies.", lang="x-gmeow-english"),
+        )
+    )
+    graph.add(
+        (
+            term,
+            URIRef(NAMESPACE + "useWhen"),
+            Literal("Use when beta applies.", lang="x-gmeow-english"),
+        )
+    )
+    graph.add(
+        (
+            term,
+            SKOS.example,
+            Literal("Example alpha.", lang="x-gmeow-english"),
+        )
+    )
+    graph.add(
+        (
+            term,
+            SKOS.example,
+            Literal("Example beta.", lang="x-gmeow-english"),
+        )
+    )
+
+    terms = collect_terms(_view_of(graph))
+    concept = {t.curie: t for t in terms}["gmeow:MultiAdviceConcept"]
+    assert concept.use_when == ["Use when alpha applies.", "Use when beta applies."]
+    assert concept.examples == ["Example alpha.", "Example beta."]
+
 
 def _write_all_exports(dist_dir: Path) -> list[Path]:
     """Write all export views into *dist_dir* (test helper)."""
@@ -117,6 +180,8 @@ def test_properties_csv_records_functionality(tmp_path: Path) -> None:
         rows = {r["curie"]: r for r in csv.DictReader(handle)}
     assert rows["gmeow:signingKey"]["functional"] == "true"
     assert rows["gmeow:from"]["functional"] == "false"
+    assert "co-equal person-to-PersonName" in rows["gmeow:hasName"]["useWhen"]
+    assert "gmeow:consumerPublicSite" in rows["gmeow:hasName"]["useForConsumer"]
 
 
 def test_jsonl_catalog_parses(tmp_path: Path) -> None:
@@ -128,6 +193,9 @@ def test_jsonl_catalog_parses(tmp_path: Path) -> None:
         assert {"category", "curie", "iri", "label", "definition"} <= rec.keys()
     categories = {r["category"] for r in records}
     assert categories == {"class", "property", "individual"}
+    has_name = next(r for r in records if r["curie"] == "gmeow:hasName")
+    assert has_name["useWhen"]
+    assert "gmeow:consumerPublicSite" in has_name["useForConsumer"]
 
 
 def test_csvw_descriptor_is_valid(tmp_path: Path) -> None:
@@ -148,6 +216,7 @@ def test_markdown_reference_has_all_sections(tmp_path: Path) -> None:
     for section in ("## Classes", "## Properties", "## Individuals"):
         assert section in md
     assert "gmeow:keySchemePGP" in md
+    assert "*Use when:* Use for a direct, co-equal person-to-PersonName" in md
 
 
 def test_llms_txt_bundle(tmp_path: Path) -> None:

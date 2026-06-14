@@ -90,6 +90,15 @@ gmeow:NameUsage
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Name Usage"@x-gmeow-english ;
     skos:definition "A reified, context-dependent use of an appellation — an observation in the universal claim stack (#69): a named entity (observedFeature) is called by a given appellation (observationResult), by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement."@x-gmeow-english ;
+    skos:example "ex:usageFamily a gmeow:NameUsage ; gmeow:usageNamed ex:genny ; gmeow:usageAppellation ex:gennyAunt ; gmeow:usageAudience ex:family ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a name-bearing fact needs its own audience, register, authority, period, evidence, confidence, or standpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the 80 percent case where an entity simply bears a co-equal appellation; use gmeow:hasName or gmeow:hasAppellation and promote only when context must be first-class."@x-gmeow-english ;
+    gmeow:howToUse "Mint one NameUsage per appellation-and-context use, bind the players with usageNamed and usageAppellation, then add usageNamer, usageAudience, usageRegister, usageInterval, evidence, or statement metadata as needed; never use it to choose a primary name."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory,
+        gmeow:consumerResearchQueue ;
+    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageNamed
@@ -200,6 +209,14 @@ gmeow:hasName
     rdfs:range gmeow:PersonName ;
     rdfs:label "has name"@x-gmeow-english ;
     skos:definition "Relates a person to a structured, typed PersonName they bear; the person-scoped specialization of gmeow:hasAppellation. Non-functional — a person bears many co-equal names."@x-gmeow-english ;
+    skos:example "ex:patrick a gmeow:Person ; gmeow:hasName ex:patrickLatinName, ex:patrickHanName ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a direct, co-equal person-to-PersonName bearing where audience, register, evidence, and context do not need their own node."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this as a display winner, legal-name shortcut, or provenance-bearing assertion; use NameUsage or statement metadata when period, authority, audience, or suppression must be explicit."@x-gmeow-english ;
+    gmeow:howToUse "Assert one hasName triple per co-equal PersonName; carry validity, displayable false, source, or confidence on the statement layer, or promote to gmeow:NameUsage when the bearing itself must be a relator."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasPlaceName
