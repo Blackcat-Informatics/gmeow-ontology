@@ -10,7 +10,7 @@
 
 gmeow:EmbeddingProvenanceShape
     a sh:NodeShape ;
-    rdfs:label "Embedding provenance shape" ;
+    rdfs:label "Embedding provenance shape"@x-gmeow-english ;
     skos:definition "An embedding carries its full attribution — exactly one represented object, producing model, and distance metric; an unattributed vector is the blob this module exists to end (P9, P11's spirit at the vector boundary)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     sh:targetClass gmeow:Embedding ;
@@ -36,7 +36,7 @@ gmeow:EmbeddingProvenanceShape
 
 gmeow:RetrievalEventShape
     a sh:NodeShape ;
-    rdfs:label "Retrieval event shape" ;
+    rdfs:label "Retrieval event shape"@x-gmeow-english ;
     skos:definition "A retrieval queries exactly one index; federated retrieval is several events under one parent activity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     sh:targetClass gmeow:RetrievalEvent ;
@@ -49,7 +49,7 @@ gmeow:RetrievalEventShape
 
 gmeow:ExtractedRelationshipEndsShape
     a sh:NodeShape ;
-    rdfs:label "Extracted relationship ends shape" ;
+    rdfs:label "Extracted relationship ends shape"@x-gmeow-english ;
     skos:definition "Closed-world half of the ExtractedRelationship EL existentials: exactly one source and one target description per extracted edge."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     sh:targetClass gmeow:ExtractedRelationship ;

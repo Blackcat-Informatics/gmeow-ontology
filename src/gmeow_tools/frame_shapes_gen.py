@@ -96,7 +96,7 @@ def render_frame_shapes(graph: Graph | None = None) -> str:
         lines = [
             f"gmeow:{carrier}FrameRequirementShape",
             "    a sh:NodeShape ;",
-            f'    rdfs:label "{carrier} frame-relativity shape (generated)" ;',
+            f'    rdfs:label "{carrier} frame-relativity shape (generated)"@en ;',
             f"    sh:targetClass gmeow:{carrier} ;",
             "    sh:property [",
             f"        sh:path gmeow:{prop} ;",

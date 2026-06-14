@@ -19,7 +19,7 @@
 #     Superseded AND no longer extant, so gmeow:displayable false suppresses it
 #     from default display — the record is retained, never deleted (P10).
 ex:meridian a gmeow:Organization ;
-    gmeow:name "Meridian Systems Ltd." ;
+    gmeow:name "Meridian Systems Ltd."@x-gmeow-english ;
     gmeow:hasCreationEvent ex:founding ;
     gmeow:hasDestructionEvent ex:dissolution ;
     gmeow:existenceInterval ex:meridianLife ;
@@ -56,7 +56,7 @@ ex:lifeEnd a gmeow:Instant ;
 
 # --- The successor, still extant, that superseded Meridian.
 ex:apex a gmeow:Organization ;
-    gmeow:name "Apex Systems Inc." ;
+    gmeow:name "Apex Systems Inc."@x-gmeow-english ;
     gmeow:hasCreationEvent ex:apexFounding .
 
 ex:apexFounding a gmeow:Event ;

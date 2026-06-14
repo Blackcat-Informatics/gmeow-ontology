@@ -17,20 +17,20 @@
 # --- The containment spine: each place is a first-class Place, related by
 #     gmeow:containedInPlace, with gazetteer alignment by reference.
 ex:canada a gmeow:Place ;
-    gmeow:name "Canada" ;
+    gmeow:name "Canada"@x-gmeow-english ;
     gmeow:placeType gmeow:placeTypeCountry ;
     gmeow:authorityLink wd:Q16 ;
     skos:exactMatch wd:Q16 .
 
 ex:alberta a gmeow:Place ;
-    gmeow:name "Alberta" ;
+    gmeow:name "Alberta"@x-gmeow-english ;
     gmeow:placeType gmeow:placeTypeRegion ;
     gmeow:containedInPlace ex:canada ;
     gmeow:authorityLink wd:Q1951 ;
     skos:exactMatch wd:Q1951 .
 
 ex:edmonton a gmeow:Place ;
-    gmeow:name "Edmonton" ;
+    gmeow:name "Edmonton"@x-gmeow-english ;
     gmeow:placeType gmeow:placeTypeCity ;
     gmeow:containedInPlace ex:alberta ;
     gmeow:authorityLink wd:Q2096 ;
@@ -46,12 +46,12 @@ ex:edmontonCoords a gmeow:GeoCoordinates ;
 #     carry competing measurements (different vantage/method/confidence), each in
 #     its explicit reference frame; none is privileged (P9).
 ex:officeSite a gmeow:Place ;
-    gmeow:name "Blackcat office site" ;
+    gmeow:name "Blackcat office site"@x-gmeow-english ;
     gmeow:placeType gmeow:placeTypeSite ;
     gmeow:containedInPlace ex:edmonton .
 
 ex:surveyTeam a gmeow:Organization ;
-    gmeow:name "Precision Survey Co." .
+    gmeow:name "Precision Survey Co."@x-gmeow-english .
 
 ex:officeGpsFix a gmeow:CoordinateObservation ;
     gmeow:coordinateObservationOf ex:officeSite ;
