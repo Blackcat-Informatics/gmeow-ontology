@@ -109,7 +109,12 @@ def validate_profile(profile: str = "DL", *, merged: Path = MERGED_FILE) -> str:
     return _robot(["validate-profile", "--profile", profile, "--input", _rel(merged)])
 
 
-def reason(reasoner: str = "ELK", *, merged: Path = MERGED_FILE) -> Path:
+def reason(
+    reasoner: str = "ELK",
+    *,
+    merged: Path = MERGED_FILE,
+    exclude_tautologies: str | None = None,
+) -> Path:
     """Run a reasoner over the merged ontology to check coherence.
 
     ROBOT exits non-zero if the ontology is inconsistent or has unsatisfiable
@@ -118,6 +123,10 @@ def reason(reasoner: str = "ELK", *, merged: Path = MERGED_FILE) -> Path:
     Args:
         reasoner: ``ELK`` (fast, EL) or ``hermit`` (sound+complete DL).
         merged: The merged ontology (produced if absent).
+        exclude_tautologies: If given, pass ``--exclude-tautologies`` to the
+            reason step. ``"structural"`` is used by the verify pipeline so the
+            pre-reasoned graph matches what the chained ``reason ... verify``
+            command would have produced.
 
     Returns:
         Path to the reasoned output written under ``dist/``.
@@ -126,18 +135,17 @@ def reason(reasoner: str = "ELK", *, merged: Path = MERGED_FILE) -> Path:
         merge_release(merged)
     output = DIST_DIR / f"gmeow-reasoned-{reasoner.lower()}.ttl"
     timeout = _HERMIT_TIMEOUT if reasoner.lower() == "hermit" else 900.0
-    _robot(
-        [
-            "reason",
-            "--reasoner",
-            reasoner,
-            "--input",
-            _rel(merged),
-            "--output",
-            _rel(output),
-        ],
-        timeout=timeout,
-    )
+    args = [
+        "reason",
+        "--reasoner",
+        reasoner,
+        "--input",
+        _rel(merged),
+    ]
+    if exclude_tautologies:
+        args += ["--exclude-tautologies", exclude_tautologies]
+    args += ["--output", _rel(output)]
+    _robot(args, timeout=timeout)
     return output
 
 
@@ -221,6 +229,7 @@ def verify(
     queries: Path = VERIFY_DIR,
     reasoner: str = "ELK",
     output_dir: Path = DIST_DIR / "verify",
+    reasoned: Path | None = None,
 ) -> str:
     """Run the reasoned-graph negative tests (ROBOT ``verify``).
 
@@ -235,10 +244,16 @@ def verify(
     so catch violations that only appear after inference. See docs/reasoning.md.
 
     Args:
-        merged: The merged ontology (produced if absent).
+        merged: The merged ontology (produced if absent). Ignored when
+            *reasoned* is provided.
         queries: Directory of ``*.rq`` SELECT verify queries.
         reasoner: ``ELK`` (fast, EL) or ``hermit`` (sound+complete DL).
         output_dir: Directory ROBOT writes the per-query violation reports to.
+        reasoned: Pre-computed reasoned ontology. When given, ``verify`` runs
+            only the SPARQL queries against it, avoiding a second reasoning
+            pass. The caller is responsible for ensuring the reasoned file was
+            produced with the same reasoner and tautology settings expected by
+            the verify queries.
 
     Returns:
         The ROBOT report text (empty problem set if every query is clean).
@@ -246,8 +261,6 @@ def verify(
     Raises:
         ToolExecutionError: If any verify query returns offending rows.
     """
-    if not merged.exists():
-        merge_release(merged)
     query_files = sorted(queries.glob("*.rq"))
     if queries == VERIFY_DIR:
         # Slices carry their own verify queries (slices/*/*/queries/verify/).
@@ -256,6 +269,26 @@ def verify(
         raise FileNotFoundError(f"no verify queries found in {queries}")
     output_dir.mkdir(parents=True, exist_ok=True)
     timeout = _HERMIT_TIMEOUT if reasoner.lower() == "hermit" else 900.0
+
+    if reasoned is not None:
+        reasoned = reasoned.resolve()
+    if reasoned is not None and reasoned.exists():
+        # Fast path: use a previously materialized reasoned graph.
+        return _robot(
+            [
+                "verify",
+                "--input",
+                _rel(reasoned),
+                "--queries",
+                *[_rel(q) for q in query_files],
+                "--output-dir",
+                _rel(output_dir),
+            ],
+            timeout=timeout,
+        )
+
+    if not merged.exists():
+        merge_release(merged)
     return _robot(
         [
             "reason",

@@ -25,7 +25,9 @@ Value vocabularies (individuals of GMEOW classes) are emitted as LinkML enums.
 
 from __future__ import annotations
 
+import concurrent.futures
 import json
+import os
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -532,6 +534,25 @@ def _write_artifacts(
         path.write_text(_normalize_text(text), encoding="utf-8")
 
 
+#: Downstream LinkML generators that can run in parallel after LinkML YAML is written.
+def _gen_json_schema_worker(linkml_path: Path) -> tuple[str, str]:
+    return "json_schema", gen_json_schema(linkml_path)
+
+
+def _gen_pydantic_worker(linkml_path: Path, linkml_name: str) -> tuple[str, str]:
+    text = gen_pydantic(linkml_path)
+    text = text.replace(str(linkml_path), linkml_name)
+    return "pydantic", text
+
+
+def _gen_typescript_worker(linkml_path: Path) -> tuple[str, str]:
+    return "typescript", gen_typescript(linkml_path)
+
+
+def _gen_graphql_worker(linkml_path: Path) -> tuple[str, str]:
+    return "graphql", gen_graphql(linkml_path)
+
+
 # --------------------------------------------------------------------------- #
 # Registered generator
 # --------------------------------------------------------------------------- #
@@ -576,14 +597,37 @@ class SchemaGenerator(Generator):
             source_hash=getattr(self, "_source_hash", ""),
         )
 
-        json_schema_text = gen_json_schema(linkml_path)
-        pydantic_text = gen_pydantic(linkml_path)
-        # The Pydantic generator embeds the absolute source path, which breaks
-        # determinism because the LinkML file lives in a temp directory.
-        # Normalize it to a stable relative string.
-        pydantic_text = pydantic_text.replace(str(linkml_path), _LINKML_FILE)
-        typescript_text = gen_typescript(linkml_path)
-        graphql_text = gen_graphql(linkml_path)
+        # The four downstream LinkML generators are independent and CPU-heavy.
+        workers = max(1, min(os.cpu_count() or 1, 4))
+        if workers == 1:
+            json_schema_text = gen_json_schema(linkml_path)
+            pydantic_text = gen_pydantic(linkml_path)
+            pydantic_text = pydantic_text.replace(str(linkml_path), _LINKML_FILE)
+            typescript_text = gen_typescript(linkml_path)
+            graphql_text = gen_graphql(linkml_path)
+        else:
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=workers
+            ) as executor:
+                futures = {
+                    executor.submit(
+                        _gen_json_schema_worker, linkml_path
+                    ): "json_schema",
+                    executor.submit(
+                        _gen_pydantic_worker, linkml_path, _LINKML_FILE
+                    ): "pydantic",
+                    executor.submit(_gen_typescript_worker, linkml_path): "typescript",
+                    executor.submit(_gen_graphql_worker, linkml_path): "graphql",
+                }
+                outputs: dict[str, str] = {}
+                for future in concurrent.futures.as_completed(futures):
+                    kind, text = future.result()
+                    outputs[kind] = text
+                json_schema_text = outputs["json_schema"]
+                pydantic_text = outputs["pydantic"]
+                typescript_text = outputs["typescript"]
+                graphql_text = outputs["graphql"]
+
         openapi_text = gen_openapi(json_schema_text)
 
         _write_artifacts(

@@ -16,8 +16,14 @@ The framework provides, for free, for every registered generator:
 
 from __future__ import annotations
 
+import concurrent.futures
 import hashlib
+import importlib
+import inspect
+import json
 import logging
+import os
+import pkgutil
 import re
 import shutil
 from collections import deque
@@ -198,26 +204,39 @@ class RunReport:
     drifted: list[str] = field(default_factory=list)
     orphans: list[str] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)
+    skipped: bool = False
 
 
-def run(name: str, check: bool = False) -> RunReport:
+def run(name: str, check: bool = False, skip_unchanged: bool = False) -> RunReport:
     """Execute one registered generator.
 
     1. Sweeps stale temp dirs.
-    2. Creates a ``.gmeow-tmp-`` staging directory.
-    3. Computes the source hash and exposes it on the generator as
+    2. Optionally skips rendering if inputs and implementation are unchanged.
+    3. Creates a ``.gmeow-tmp-`` staging directory.
+    4. Computes the source hash and exposes it on the generator as
        ``_source_hash`` so that renderers can embed it in banners.
-    4. Calls ``gen.render(staging)``.
-    5. Compares each declared output (fresh vs committed).
-    6. Detects orphans in the output directories.
-    7. In ``check`` mode: returns a report without touching the tree.
-    8. In write mode: atomically copies from staging to committed paths.
+    5. Calls ``gen.render(staging)``.
+    6. Compares each declared output (fresh vs committed).
+    7. Detects orphans in the output directories.
+    8. In ``check`` mode: returns a report without touching the tree.
+    9. In write mode: atomically copies from staging to committed paths.
 
     Raises:
         KeyError: If *name* is not registered.
     """
     gen = _REGISTRY[name]
     sweep_stale_gmeow_temp_dirs()
+
+    if skip_unchanged:
+        stamp = _read_stamp(name)
+        if stamp is not None and _stamp_matches(gen, stamp):
+            # Inputs, implementation, and existing outputs are unchanged. Avoid
+            # the expensive render but still check for orphaned files that a
+            # human may have dropped into the generator's output directories.
+            return RunReport(
+                orphans=_find_orphans_from_outputs(gen),
+                skipped=True,
+            )
 
     # Expose source hash to the generator for banner injection.
     src_hash = source_hash(gen.inputs)
@@ -255,62 +274,267 @@ def run(name: str, check: bool = False) -> RunReport:
         orphans = _find_orphans(gen, staging)
 
         if check:
-            return RunReport(drifted=drifted, orphans=orphans)
+            report = RunReport(drifted=drifted, orphans=orphans)
+        else:
+            written = _atomic_publish(staging, gen.outputs)
+            for orphan in orphans:
+                orphan_path = PROJECT_ROOT / orphan
+                if orphan_path.exists():
+                    orphan_path.unlink()
+            report = RunReport(written=written, orphans=orphans)
 
-        written = _atomic_publish(staging, gen.outputs)
-        for orphan in orphans:
-            orphan_path = PROJECT_ROOT / orphan
-            if orphan_path.exists():
-                orphan_path.unlink()
-
-    return RunReport(written=written, orphans=orphans)
+    if skip_unchanged:
+        _write_stamp(name, _cache_hash(gen), _output_hash(gen))
+    return report
 
 
-def regenerate(names: Sequence[str] | None = None) -> dict[str, RunReport]:
+def regenerate(
+    names: Sequence[str] | None = None,
+    *,
+    jobs: int | None = None,
+    skip_unchanged: bool = True,
+) -> dict[str, RunReport]:
     """Run generators in dependency order (or the given order).
 
     Args:
         names: If ``None``, all registered generators are run in topologically
             sorted order.  If given, only those generators are run, in the
             order given.
+        jobs: Number of parallel workers. ``1`` forces sequential execution;
+            ``None`` uses a safe default based on CPU count.
+        skip_unchanged: Skip generators whose inputs and implementation have
+            not changed since the last successful run.
 
     Returns:
         Mapping of generator name to its :class:`RunReport`.
     """
-    if names is None:
-        names = regenerate_order()
-    else:
-        for name in names:
-            if name not in _REGISTRY:
-                raise ValueError(f"unknown generator: {name!r}")
-
-    results: dict[str, RunReport] = {}
-    for name in names:
-        results[name] = run(name)
-    return results
+    return _run_generators(names, check=False, jobs=jobs, skip_unchanged=skip_unchanged)
 
 
-def check_all(names: Sequence[str] | None = None) -> dict[str, RunReport]:
+def check_all(
+    names: Sequence[str] | None = None,
+    *,
+    jobs: int | None = None,
+    skip_unchanged: bool = True,
+) -> dict[str, RunReport]:
     """Run ``--check`` mode for generators.
 
     Args:
         names: If ``None``, all registered generators are checked.  Otherwise
             only the named generators are checked, in the order given.
+        jobs: Number of parallel workers. ``1`` forces sequential execution;
+            ``None`` uses a safe default based on CPU count.
+        skip_unchanged: Skip generators whose inputs and implementation have
+            not changed since the last successful run.
 
     Returns:
         Mapping of generator name to its :class:`RunReport`.
     """
-    if names is None:
-        names = regenerate_order()
-    else:
-        for name in names:
-            if name not in _REGISTRY:
-                raise ValueError(f"unknown generator: {name!r}")
+    return _run_generators(names, check=True, jobs=jobs, skip_unchanged=skip_unchanged)
 
+
+# --------------------------------------------------------------------------- #
+# Parallel + incremental orchestration
+# --------------------------------------------------------------------------- #
+
+
+def _run_generators(
+    names: Sequence[str] | None,
+    *,
+    check: bool,
+    jobs: int | None,
+    skip_unchanged: bool,
+) -> dict[str, RunReport]:
+    """Run the requested generators in topological levels.
+
+    When *jobs* is greater than one, independent generators at the same
+    topological level execute in parallel. Results are returned in a
+    deterministic name-sorted order.
+    """
+    if names is None:
+        name_list = regenerate_order()
+    else:
+        unknown = sorted(set(names) - set(_REGISTRY))
+        if unknown:
+            raise ValueError(f"unknown generator: {', '.join(unknown)}")
+        name_list = list(names)
+
+    levels = _regenerate_levels(name_list)
+    workers = _normalize_jobs(jobs)
     results: dict[str, RunReport] = {}
+
+    for level in levels:
+        level_names = sorted(level)
+        if workers == 1 or len(level_names) == 1:
+            for name in level_names:
+                results[name] = run(name, check=check, skip_unchanged=skip_unchanged)
+        else:
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=workers,
+                initializer=_init_worker,
+            ) as executor:
+                futures = {
+                    executor.submit(_worker_run, name, check, skip_unchanged): name
+                    for name in level_names
+                }
+                for future in concurrent.futures.as_completed(futures):
+                    name = futures[future]
+                    try:
+                        results[name] = future.result()
+                    except Exception:
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        raise
+
+    return dict(sorted(results.items()))
+
+
+def _regenerate_levels(names: list[str]) -> list[list[str]]:
+    """Group *names* into topological levels based on declared input/output deps."""
+    name_set = set(names)
+
+    # Map every declared output to the generator that produces it.
+    output_to_gen: dict[Path, str] = {}
+    for name, gen in _REGISTRY.items():
+        for out in gen.outputs:
+            output_to_gen[out.resolve()] = name
+
+    # Build adjacency restricted to the requested names.
+    deps: dict[str, set[str]] = {name: set() for name in names}
     for name in names:
-        results[name] = run(name, check=True)
-    return results
+        gen = _REGISTRY[name]
+        for inp in gen.inputs:
+            producer = output_to_gen.get(inp.resolve())
+            if producer is not None and producer in name_set and producer != name:
+                deps[name].add(producer)
+
+    # Assign level = 1 + max(level of dependency); roots are level 0.
+    level: dict[str, int] = {}
+    for name in names:
+        level[name] = 1 + max((level[d] for d in deps[name] if d in level), default=0)
+
+    groups: dict[int, list[str]] = {}
+    for name, lv in level.items():
+        groups.setdefault(lv, []).append(name)
+    return [sorted(groups[lv]) for lv in sorted(groups)]
+
+
+def _normalize_jobs(jobs: int | None) -> int:
+    """Return a positive worker count, capping the default to avoid memory cliffs."""
+    if jobs is not None:
+        return max(1, jobs)
+    cpus = os.cpu_count() or 1
+    # Cap the default: heavy generators parse large RDF graphs, and too many
+    # concurrent workers can exhaust RAM on a high-CPU host.
+    return max(1, min(cpus, 8))
+
+
+def _init_worker() -> None:
+    """Process-pool initializer: ensure every generator module is imported."""
+    _import_all_generator_modules()
+
+
+def _worker_run(name: str, check: bool, skip_unchanged: bool) -> RunReport:
+    """Pickle-friendly entry point used by the process pool."""
+    return run(name, check=check, skip_unchanged=skip_unchanged)
+
+
+def _import_all_generator_modules() -> None:
+    """Import every submodule of ``gmeow_tools`` so ``@register`` side effects run."""
+    import gmeow_tools
+
+    for _, modname, ispkg in pkgutil.iter_modules(gmeow_tools.__path__):
+        if ispkg or modname.startswith("_"):
+            continue
+        importlib.import_module(f"gmeow_tools.{modname}")
+
+
+# --------------------------------------------------------------------------- #
+# Source-hash stamp cache
+# --------------------------------------------------------------------------- #
+
+
+def _cache_hash(gen: Generator) -> str:
+    """Hash of inputs plus the generator implementation, for skip decisions."""
+    inputs_hash = source_hash(gen.inputs)
+    impl_hash = source_hash(_generator_source_files(gen))
+    h = hashlib.sha256()
+    h.update(inputs_hash.encode("utf-8"))
+    h.update(impl_hash.encode("utf-8"))
+    return h.hexdigest()[:16]
+
+
+def _generator_source_files(gen: Generator) -> list[Path]:
+    """Source files that implement *gen* and the generator framework itself."""
+    framework = Path(__file__).resolve()
+    try:
+        module = Path(inspect.getfile(gen.__class__)).resolve()
+    except (TypeError, OSError):
+        module = framework
+    return [framework, module]
+
+
+def _stamp_path(name: str) -> Path:
+    """Path to the cached source-hash stamp for a generator."""
+    return PROJECT_ROOT / ".stamps" / "generators" / f"{name}.hash"
+
+
+def _read_stamp(name: str) -> dict[str, str] | None:
+    """Return the cached stamp data, or ``None`` if no stamp exists."""
+    path = _stamp_path(name)
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return None
+        return {str(k): str(v) for k, v in data.items()}
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _write_stamp(name: str, input_hash: str, output_hash: str) -> None:
+    """Persist the source-hash and output-hash stamp for a generator."""
+    path = _stamp_path(name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps({"input_hash": input_hash, "output_hash": output_hash}),
+        encoding="utf-8",
+    )
+
+
+def _output_hash(gen: Generator) -> str:
+    """Hash of the generator's committed outputs (used to detect hand edits)."""
+    return source_hash(gen.outputs)
+
+
+def _stamp_matches(gen: Generator, stamp: dict[str, str]) -> bool:
+    """Return True when the stamp matches the current inputs, code, and outputs."""
+    return stamp.get("input_hash") == _cache_hash(gen) and stamp.get(
+        "output_hash"
+    ) == _output_hash(gen)
+
+
+def _find_orphans_from_outputs(gen: Generator) -> list[str]:
+    """Lightweight orphan check using declared outputs only.
+
+    Used when a generator is skipped because its inputs are unchanged. We cannot
+    compare against a staging tree (no render happened), but we can still flag
+    generated files in the output directories that are not declared outputs.
+    """
+    declared = {out.resolve() for out in gen.outputs}
+    output_dirs = {out.parent.resolve() for out in gen.outputs}
+    orphans: list[str] = []
+    for dir_path in output_dirs:
+        if not dir_path.exists():
+            continue
+        for committed_file in dir_path.iterdir():
+            if not committed_file.is_file():
+                continue
+            if committed_file.resolve() in declared:
+                continue
+            if _is_generated_file(committed_file):
+                orphans.append(_rel(committed_file))
+    return sorted(orphans)
 
 
 # --------------------------------------------------------------------------- #

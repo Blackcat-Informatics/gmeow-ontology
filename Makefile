@@ -43,7 +43,7 @@ crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (n
 	uv run gmeow crosscheck-queries
 
 reason: ## Merge, validate OWL 2 DL profile, and check ELK consistency (Docker).
-	uv run gmeow reason --reasoner ELK
+	uv run gmeow reason --reasoner ELK --exclude-tautologies structural
 
 reason-hermit: ## Sound + complete consistency check with HermiT (Docker).
 	uv run gmeow reason --reasoner hermit
@@ -51,8 +51,8 @@ reason-hermit: ## Sound + complete consistency check with HermiT (Docker).
 explain: ## Explain any unsatisfiable classes (HermiT, Docker).
 	uv run gmeow explain
 
-verify: ## Reasoned-graph negative tests (ROBOT verify over queries/verify/, Docker).
-	uv run gmeow verify --reasoner ELK
+verify: reason ## Reasoned-graph negative tests (ROBOT verify over queries/verify/, Docker).
+	uv run gmeow verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
 extract: ## Report import/extract policy for TARGET (refuses reference-only).
 	uv run gmeow extract --target $(TARGET)
@@ -101,7 +101,7 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 	uv run gmeow normalize
 
 check-generated: ## Drift + orphan check for all registered generators.
-	uv run gmeow check-generated
+	uv run gmeow check-generated -j $$(nproc 2>/dev/null || echo 4)
 
 constitution-check: ## Every constitutional principle must have live enforcement (#280).
 	uv run gmeow constitution-check
@@ -147,7 +147,7 @@ release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + regen
 	uv run gmeow crossref
 
 regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
-	uv run gmeow regenerate
+	uv run gmeow regenerate -j $$(nproc 2>/dev/null || echo 4)
 
 commit: regenerate ## Regenerate artifacts, stage them, and commit.
 	@REGENERATED_PATHS=$$(uv run python -c "from gmeow_tools.generator import all_regenerated_paths; print(' '.join(all_regenerated_paths()))"); \
