@@ -15,7 +15,7 @@ system is intentionally simple and offline-first:
 
 ## Trust model
 
-1. **Default verification** — `gmeow gts verify` trusts the transport key that
+1. **Default verification** — `gmeow verify` trusts the transport key that
    the file itself carries.  This proves the file has not been modified since
    it left the release signing process, but it does not bind the file to a
    real-world identity.
@@ -35,10 +35,10 @@ system is intentionally simple and offline-first:
 
 ```bash
 # Default: verify against the embedded transport key
-gmeow gts verify dist/gmeow-full.gts
+gmeow verify dist/gmeow-full.gts
 
 # Pin to the repository's public release key
-gmeow gts verify dist/gmeow-full.gts --trusted-key keys/gmeow-release-key.asc
+gmeow verify dist/gmeow-full.gts --trusted-key keys/gmeow-release-key.asc
 
 # Inspect file metadata without running signature verification
 gmeow gts info --no-verify dist/gmeow-full.gts
@@ -57,7 +57,7 @@ Algorithm: EDDSA (Ed25519)
 
 ## Human-friendly key identifiers
 
-To make key comparison easier for humans, `gmeow gts verify` prints:
+To make key comparison easier for humans, `gmeow verify` prints:
 
 * The OpenPGP fingerprint (40 hex characters).
 * An **emojihash** — a deterministic sequence of emojis derived from the raw
@@ -73,11 +73,11 @@ Both `.github/workflows/release.yml` and `.github/workflows/pypi-publish-gmeow.y
 sign the snapshot before uploading artifacts:
 
 ```yaml
-- run: uv run gmeow gts compile-full \
+- run: uv run --package gmeow-dev gmeow-dev gts compile-full \
          --sign-key /tmp/gpg/signing-key.asc \
          --public-key keys/gmeow-release-key.asc \
          -o generated/dist/gmeow-full.gts
-- run: uv run gmeow gts verify generated/dist/gmeow-full.gts
+- run: uv run gmeow verify generated/dist/gmeow-full.gts
 ```
 
 The committed `generated/dist/gmeow-full.gts` remains **unsigned**; only the

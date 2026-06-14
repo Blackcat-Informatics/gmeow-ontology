@@ -18,7 +18,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from gmeow_tools.config import DIST_DIR, ONTOLOGY_IRI
-from gmeow_tools.self_desc import load_self_description
+from gmeow_tools.self_desc import SelfDescription, load_self_description
 
 #: CrossRef deposit schema namespace (version 5.4.0).
 CR_NS = "http://www.crossref.org/schema/5.4.0"
@@ -38,6 +38,7 @@ def _child(
 
 def build_deposit_xml(
     *,
+    meta: SelfDescription | None = None,
     doi: str | None = None,
     timestamp: str | None = None,
     batch_id: str | None = None,
@@ -46,6 +47,7 @@ def build_deposit_xml(
     """Build the CrossRef deposit XML for the GMEOW DOI.
 
     Args:
+        meta: Preloaded self-description metadata. Defaults to the checkout file.
         doi: The DOI to register (defaults to the DOI from self-description).
         timestamp: CrossRef batch timestamp (``YYYYMMDDHHMMSS``); defaults to the
             current UTC time. CrossRef uses it to order competing submissions.
@@ -55,12 +57,12 @@ def build_deposit_xml(
     Returns:
         The deposit document as an XML string (with declaration).
     """
-    meta = load_self_description()
-    doi = doi or meta.doi
+    description = meta or load_self_description()
+    doi = doi or description.doi
     if timestamp is None:
         timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%d%H%M%S")
-    batch_id = batch_id or f"gmeow-{meta.version}-{timestamp}"
-    release_date = release_date or meta.release_date
+    batch_id = batch_id or f"gmeow-{description.version}-{timestamp}"
+    release_date = release_date or description.release_date
     year, month, day = release_date.split("-")
 
     ET.register_namespace("", CR_NS)
@@ -77,25 +79,29 @@ def build_deposit_xml(
     _child(head, "doi_batch_id", batch_id)
     _child(head, "timestamp", timestamp)
     depositor = _child(head, "depositor")
-    _child(depositor, "depositor_name", meta.depositor_name)
-    _child(depositor, "email_address", meta.depositor_email)
-    _child(head, "registrant", meta.registrant)
+    _child(depositor, "depositor_name", description.depositor_name)
+    _child(depositor, "email_address", description.depositor_email)
+    _child(head, "registrant", description.registrant)
 
     body = _child(root, "body")
     database = _child(body, "database")
     db_metadata = _child(database, "database_metadata", language="en")
-    _child(_child(db_metadata, "titles"), "title", meta.title)
+    _child(_child(db_metadata, "titles"), "title", description.title)
 
     dataset = _child(database, "dataset", dataset_type="record")
     contributors = _child(dataset, "contributors")
     _child(
         contributors,
         "organization",
-        meta.registrant,
+        description.registrant,
         sequence="first",
         contributor_role="author",
     )
-    _child(_child(dataset, "titles"), "title", f"{meta.title} (version {meta.version})")
+    _child(
+        _child(dataset, "titles"),
+        "title",
+        f"{description.title} (version {description.version})",
+    )
     publication_date = _child(
         _child(dataset, "database_date"), "publication_date", media_type="online"
     )
@@ -110,11 +116,17 @@ def build_deposit_xml(
     return ET.tostring(root, encoding="unicode", xml_declaration=True)
 
 
-def write_deposit(path: Path | None = None, **kwargs: str) -> Path:
+def write_deposit(
+    path: Path | None = None,
+    *,
+    meta: SelfDescription | None = None,
+    **kwargs: str,
+) -> Path:
     """Write the CrossRef deposit XML to ``dist/``.
 
     Args:
         path: Output path (defaults to ``dist/crossref-deposit.xml``).
+        meta: Preloaded self-description metadata.
         **kwargs: Forwarded to :func:`build_deposit_xml`.
 
     Returns:
@@ -122,5 +134,5 @@ def write_deposit(path: Path | None = None, **kwargs: str) -> Path:
     """
     out = path or (DIST_DIR / "crossref-deposit.xml")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(build_deposit_xml(**kwargs) + "\n", encoding="utf-8")
+    out.write_text(build_deposit_xml(meta=meta, **kwargs) + "\n", encoding="utf-8")
     return out

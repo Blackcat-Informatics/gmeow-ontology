@@ -3,8 +3,8 @@
 
 # Schema projections — OWL → LinkML developer schemas
 
-> **Status.** Implemented in issue #57.  CLI: `gmeow compile-schemas` / `make compile-schemas`.
-> CI gate: `make schemas-check` (runs in the `ontology` job).
+> **Status.** Implemented in issue #57.  CLI: `gmeow compile-schemas` / `uv run --package gmeow-dev gmeow-dev regenerate schemas`.
+> CI gate: `uv run --package gmeow-dev gmeow-dev check-generated schemas` (runs in the `ontology` job).
 
 GMEOW is an **OWL 2 DL** ontology.  OWL is a *logic* language — it supports intersection,
 cardinality, inverse properties, and open-world reasoning.  Developer schemas (JSON Schema,
@@ -119,13 +119,12 @@ consumers and contradict the open-world design.
 
 ```bash
 # Generate all artifacts into dist/schemas/
-make compile-schemas
+uv run --package gmeow-dev gmeow-dev regenerate schemas
 
 # Verify they match the current ontology (CI gate)
-make schemas-check
+uv run --package gmeow-dev gmeow-dev check-generated schemas
 
-# With reconciliation against the JSON-LD context
-uv run gmeow compile-schemas --reconcile
+# Regenerate after JSON-LD context changes before checking drift.
 ```
 
 Output files:
@@ -139,4 +138,4 @@ Output files:
 
 These are **build artifacts** (`dist/` is git-ignored).  Do not edit them by hand.
 If a term is wrong, fix the OWL source in `ontology/modules/` and re-run
-`make compile-schemas`.
+`uv run --package gmeow-dev gmeow-dev regenerate schemas`.

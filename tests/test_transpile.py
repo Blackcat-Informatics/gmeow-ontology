@@ -188,7 +188,7 @@ def test_transpile_cli_reads_stdin(tmp_path: Path) -> None:
     naming the draft from the 'stdin' stem."""
     from typer.testing import CliRunner
 
-    from gmeow_tools.cli import app
+    from gmeow_tools.cli_dev import app
 
     out = tmp_path / "out"
     result = CliRunner().invoke(
