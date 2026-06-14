@@ -14,7 +14,7 @@ generated, never duplicated). It carries the complete ``/gmeow`` contract:
   ``…/gmeow/profiles/<name>`` are generated aggregation ontologies.
 * A permanent ``modules/* -> slices/*`` redirect: pre-slice releases published
   module IRIs in ``isDefinedBy`` values, and released data keeps working.
-* Per-term dereferencing into the pyLODE reference anchors.
+* Per-term dereferencing into the native static reference pages.
 * RDF media types, CORS, and the conneg cache semantics (``Vary: Accept`` on
   the negotiated endpoint only).
 """
@@ -68,19 +68,17 @@ _TEMPLATE = """\
 
     # --- Slice IRIs (#329) --------------------------------------------------
     # Every term's rdfs:isDefinedBy points at its owning slice. RDF requests
-    # get the canonical serialization; HTML lands on the ontology page
-    # (upgrade target: per-slice guides when #325 publishes them).
+    # get the canonical serialization; HTML lands on the generated slice guide.
     RewriteCond %{{HTTP_ACCEPT}} text/turtle [OR]
     RewriteCond %{{HTTP_ACCEPT}} application/rdf\\+xml [OR]
     RewriteCond %{{HTTP_ACCEPT}} application/ld\\+json
     RewriteRule ^/?gmeow/slices/([a-z][a-z0-9-]*)$ /gmeow.ttl [R=303,L]
-    RewriteRule ^/?gmeow/slices/([a-z][a-z0-9-]*)$ /gmeow/ [R=303,L]
+    RewriteRule ^/?gmeow/slices/([a-z][a-z0-9-]*)$ /gmeow/slices/$1/ [R=303,L]
 
     # --- Profile IRIs (#330) ------------------------------------------------
     # The root IRI is the core profile; <…/gmeow/full> and
     # <…/gmeow/profiles/<name>> are generated owl:imports aggregations. RDF
-    # requests get the canonical serialization; HTML falls through to the
-    # human landing page (a profile-aware page is the subject of #325).
+    # requests get the canonical serialization; HTML lands on generated docs.
     RewriteCond %{{HTTP_ACCEPT}} !text/html
     RewriteCond %{{HTTP_ACCEPT}} text/turtle [OR]
     RewriteCond %{{HTTP_ACCEPT}} application/x-turtle
@@ -97,6 +95,9 @@ _TEMPLATE = """\
     RewriteCond %{{HTTP_ACCEPT}} !text/html
     RewriteCond %{{HTTP_ACCEPT}} application/ld\\+json
     RewriteRule ^/?gmeow/full$ /gmeow/full.jsonld [R=303,L]
+
+    RewriteCond %{{HTTP_ACCEPT}} text/html
+    RewriteRule ^/?gmeow/full$ /gmeow/profiles/full/ [R=303,L]
 
     RewriteCond %{{HTTP_ACCEPT}} !text/html
     RewriteCond %{{HTTP_ACCEPT}} text/turtle [OR]
@@ -115,6 +116,9 @@ _TEMPLATE = """\
     RewriteCond %{{HTTP_ACCEPT}} application/ld\\+json
     RewriteRule ^/?gmeow/profiles/([a-z][a-z0-9-]*)$ /gmeow/profiles/$1.jsonld [R=303,L]
 
+    RewriteCond %{{HTTP_ACCEPT}} text/html
+    RewriteRule ^/?gmeow/profiles/([a-z][a-z0-9-]*)$ /gmeow/profiles/$1/ [R=303,L]
+
     # --- Legacy module IRIs -------------------------------------------------
     # Pre-slice releases published .../gmeow/modules/<name> in isDefinedBy
     # values; released data is immutable (Principle 6), so those IRIs keep
@@ -122,10 +126,11 @@ _TEMPLATE = """\
     RewriteRule ^/?gmeow/modules/([a-z][a-z0-9-]*)$ /gmeow/slices/$1 [R=301,L]
 
     # --- Per-term dereferencing ---------------------------------------------
-    # A bare term IRI (slash namespace, no extension) resolves to its anchor
-    # in the pyLODE reference.
+    # A bare term IRI (slash namespace, no extension) resolves to its native
+    # static docs page. The docs generator emits /gmeow/terms/<local>/ aliases
+    # for every class, property, individual, and datatype.
     RewriteRule ^/?gmeow/([A-Za-z][A-Za-z0-9_]*)$ \\
-        /gmeow/reference.html#$1 [R=303,L,NE]
+        /gmeow/terms/$1/ [R=303,L,NE]
 </IfModule>
 
 # --- RDF media types ---------------------------------------------------------

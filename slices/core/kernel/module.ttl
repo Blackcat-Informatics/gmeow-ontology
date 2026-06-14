@@ -418,6 +418,68 @@ gmeow:guideBlob
     skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide as embedded in a GTS package (#325): the guide rides the same file as the ontology, sub-profiled per slice, and a consumer resolves guide ↔ slice from the graph itself. The value is the blob digest string; the docs-in-sync invariant (every guide anchor resolves to a live term) is enforced by the package build, so the linkage is trustworthy from the hash chain alone (Principle 7)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
+gmeow:DocumentationConcern
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "documentation concern"@x-gmeow-english ;
+    skos:definition "A cross-cutting documentation theme generated into its own guide page. Terms opt into a concern with gmeow:docsConcern so adoption-oriented docs are ontology-backed, not a private renderer taxonomy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:docsConcern
+    a owl:AnnotationProperty ;
+    rdfs:label "documentation concern link"@x-gmeow-english ;
+    skos:definition "Links a term, slice, or documentation-bearing resource to a gmeow:DocumentationConcern. Used only by documentation projections; it carries no logical semantics and does not affect the OWL 2 DL core."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:concernStatementMetadata
+    a gmeow:DocumentationConcern ;
+    rdfs:label "statement metadata"@x-gmeow-english ;
+    skos:definition "Native RDF 1.2 reifiers, statement annotations, confidence, provenance, and temporal scope."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:concernStandpoints
+    a gmeow:DocumentationConcern ;
+    rdfs:label "standpoints"@x-gmeow-english ;
+    skos:definition "Perspective-indexed claims without primary, preferred, or winner slots."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:concernDisclosure
+    a gmeow:DocumentationConcern ;
+    rdfs:label "disclosure and suppression"@x-gmeow-english ;
+    skos:definition "Projection-time withholding, coarsening, sensitivity, and display control."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:concernFrames
+    a gmeow:DocumentationConcern ;
+    rdfs:label "frames and units"@x-gmeow-english ;
+    skos:definition "Reference frames, units, determinacy, granularity, and frame-relative values."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:concernProvenanceEvidence
+    a gmeow:DocumentationConcern ;
+    rdfs:label "provenance and evidence"@x-gmeow-english ;
+    skos:definition "Attribution, derivation, confidence, evidence, and source lineage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:concernIdentifiersCoreference
+    a gmeow:DocumentationConcern ;
+    rdfs:label "identifiers and coreference"@x-gmeow-english ;
+    skos:definition "External authority links, identifier records, and reference-only bridging."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:concernGTSPackaging
+    a gmeow:DocumentationConcern ;
+    rdfs:label "GTS packaging"@x-gmeow-english ;
+    skos:definition "The single-file Graph Transport Substrate and bundled documentation distribution."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:coarsenTo gmeow:docsConcern gmeow:concernDisclosure .
+gmeow:hasDisclosurePolicy gmeow:docsConcern gmeow:concernDisclosure .
+gmeow:hasGranularity gmeow:docsConcern gmeow:concernFrames, gmeow:concernDisclosure .
+gmeow:hasDeterminacy gmeow:docsConcern gmeow:concernFrames .
+gmeow:hasSensitivity gmeow:docsConcern gmeow:concernDisclosure .
+gmeow:hasUnit gmeow:docsConcern gmeow:concernFrames .
+
 # --------------------------------------------------------------------------- #
 # Aboutness — the universal mention/use axis (#349, EPIC #348).
 #

@@ -1,4 +1,4 @@
-"""Subprocess helpers for the pinned Docker toolchain (ROBOT, WIDOCO, Jena).
+"""Subprocess helpers for the pinned Docker toolchain (ROBOT, Jena).
 
 The Java tools run as pinned Docker images rather than local installs. Every
 container mounts the repository at ``/work`` and runs as the invoking user
@@ -8,10 +8,10 @@ Two failure modes are distinguished:
 
 * A *required* tool that is missing raises :class:`ToolUnavailableError`
   (fail-fast — ETHOS: no silent degradation).
-* A *gated* tool (one a command may skip with a visible warning, e.g. WIDOCO for
-  the optional rich documentation) is checked with :func:`image_available` so the
-  caller can skip with a visible warning. (Jena is **not** gated — RDF 1.2 is a
-  required, verified output, so the RDF 1.2 codec hard-fails without it.)
+* A *gated* tool (one a command may skip with a visible warning) is checked with
+  :func:`image_available` so the caller can skip visibly. (Jena is **not** gated
+  — RDF 1.2 is a required, verified output, so the RDF 1.2 codec hard-fails
+  without it.)
 """
 
 from __future__ import annotations
@@ -113,6 +113,7 @@ def run_container(
     args: Sequence[str],
     *,
     workdir: Path = PROJECT_ROOT,
+    image_workdir: bool = False,
     network: bool = False,
     hostname: str | None = None,
     check: bool = True,
@@ -124,6 +125,10 @@ def run_container(
         image: The pinned image reference (see ``config``).
         args: The command and arguments to run inside the container.
         workdir: Host directory to mount at ``/work`` (defaults to the repo root).
+        image_workdir: If ``True``, keep the image's default working directory
+            instead of forcing ``/work``. Use this for images whose entrypoint
+            depends on its own working directory. When ``True``, pass absolute
+            ``/work/...`` paths in ``args``.
         network: If ``False`` (default), run with ``--network none`` for
             hermetic, deterministic builds. Set ``True`` only for steps that
             must reach the network.
@@ -160,9 +165,9 @@ def run_container(
         _user_spec(),
         "--volume",
         f"{workdir}:/work",
-        "--workdir",
-        "/work",
     ]
+    if not image_workdir:
+        docker_cmd += ["--workdir", "/work"]
     if hostname is not None:
         docker_cmd += ["--hostname", hostname]
     if not network:

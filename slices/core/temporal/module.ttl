@@ -74,6 +74,7 @@ gmeow:validFrom
     rdfs:label "valid from"@x-gmeow-english ;
     skos:definition "The instant from which the annotated statement is asserted to hold."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:validFrom gmeow:docsConcern gmeow:concernStatementMetadata, gmeow:concernStandpoints .
 
 gmeow:validUntil
     a owl:AnnotationProperty ;
@@ -81,6 +82,7 @@ gmeow:validUntil
     rdfs:label "valid until"@x-gmeow-english ;
     skos:definition "The instant until which the annotated statement is asserted to hold."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:validUntil gmeow:docsConcern gmeow:concernStatementMetadata, gmeow:concernStandpoints, gmeow:concernDisclosure .
 
 gmeow:assertedAt
     a owl:AnnotationProperty ;
@@ -88,6 +90,7 @@ gmeow:assertedAt
     rdfs:label "asserted at"@x-gmeow-english ;
     skos:definition "The instant an agent observed or asserted the annotated claim (e.g. an email Date header or a vCard REV) — a witness that the fact held at that instant. Distinct from validity (validFrom/validUntil) and from a source's carrier time."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:assertedAt gmeow:docsConcern gmeow:concernStatementMetadata, gmeow:concernProvenanceEvidence .
 
 gmeow:recordedNoLaterThan
     a owl:AnnotationProperty ;
@@ -95,6 +98,7 @@ gmeow:recordedNoLaterThan
     rdfs:label "recorded no later than"@x-gmeow-english ;
     skos:definition "A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:recordedNoLaterThan gmeow:docsConcern gmeow:concernStatementMetadata, gmeow:concernProvenanceEvidence .
 
 # =========================================================================== #
 # TEMPORAL FRAME PROFILE — mirrors the spatial ReferenceFrame (#65)

@@ -266,6 +266,7 @@ gmeow:Identifier
     rdfs:label "Identifier"@x-gmeow-english ;
     skos:definition "A reified external-identifier record bundling a scheme-local value with its scheme, and optionally the authority URL that resolves it and a human-readable name — an ORCID, a geni profile id, a Nostr nip05, a LEI, a ROR ID, a NAICS code. Reification ensures that when an entity carries multiple identifiers, each value is paired with its correct scheme (and url/name) in projections. The structured sibling of gmeow:authorityLink: a flat authorityLink points at an external record by IRI; an Identifier decomposes the scheme/value/url/name a schema:PropertyValue or DataCite relatedIdentifier carries."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:Identifier gmeow:docsConcern gmeow:concernIdentifiersCoreference .
 
 gmeow:hasIdentifier
     a owl:ObjectProperty ;
@@ -274,6 +275,7 @@ gmeow:hasIdentifier
     rdfs:label "has identifier"@x-gmeow-english ;
     skos:definition "Relates an entity to a reified external-identifier record (an ORCID, geni id, nip05, LEI, industry code, …). Domain is gmeow:Entity: persons, organizations, works and places all carry external identifiers. Non-functional: an entity may have several identifiers, and competing standpoint-indexed identifiers coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+gmeow:hasIdentifier gmeow:docsConcern gmeow:concernIdentifiersCoreference .
 
 gmeow:identifierUrl
     a owl:ObjectProperty, owl:FunctionalProperty ;

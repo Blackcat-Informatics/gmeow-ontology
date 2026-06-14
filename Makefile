@@ -13,8 +13,8 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
 
 .PHONY: help install fmt lint validate crosscheck reason reason-hermit explain verify reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
-        lint-alignment refresh-target-axioms docs docs-full quality \
-        normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean pull-images \
+        lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
+        normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage crossref constitution-check compliance-report audit evals-score
 
 help: ## Show this help.
@@ -94,11 +94,15 @@ coverage: ## Report how much of the vendored entity slice GMEOW covers.
 crossref: ## Generate the CrossRef DOI deposit XML.
 	uv run gmeow crossref
 
-docs: ## Generate pyLODE HTML documentation.
-	uv run gmeow docs
+docs: ontology-docs ## Alias for ontology-docs.
 
-docs-full: ## Generate pyLODE + WIDOCO documentation (Docker).
-	uv run gmeow docs --widoco
+ontology-docs: ## Generate the unified ontology-docs site.
+	uv run gmeow regenerate ontology-docs
+
+docs-full: ontology-docs-full ## Alias for ontology-docs-full.
+
+ontology-docs-full: ## Generate ontology-docs including optional Docker stages.
+	uv run python -c "from gmeow_tools.ontology_docs import build_ontology_docs; from pathlib import Path; build_ontology_docs(Path('ontology-docs'))"
 
 quality: ## Run OOPS! pitfall scan (network, best-effort).
 	uv run gmeow quality
@@ -163,7 +167,7 @@ regenerate: ## Rebuild all checked-in generated artifacts from canonical sources
 	uv run gmeow regenerate -j $$(nproc 2>/dev/null || echo 4)
 
 commit: regenerate ## Regenerate artifacts, stage them, and commit.
-	@REGENERATED_PATHS=$$(uv run python -c "from gmeow_tools.generator import all_regenerated_paths; print(' '.join(all_regenerated_paths()))"); \
+	@REGENERATED_PATHS=$$(uv run python -c "from gmeow_tools.load_generators import load_all; load_all(); from gmeow_tools.generator import all_regenerated_paths; print(' '.join(all_regenerated_paths()))"); \
 	git add $${REGENERATED_PATHS}; \
 	if git diff --cached --quiet; then \
 		echo "Nothing to commit."; exit 1; \
@@ -172,9 +176,13 @@ commit: regenerate ## Regenerate artifacts, stage them, and commit.
 	fi
 	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them with 'git add' and commit separately if needed."
 
-pull-images: ## Pre-pull the pinned Docker images (ROBOT, WIDOCO, Jena).
+pull-images: ## Pre-pull the pinned Docker images (ROBOT, Jena).
 	bash scripts/pull-images.sh
 
-clean: ## Remove generated artifacts.
+clean: ## Remove ephemeral build artifacts (preserves committed ontology-docs/).
 	rm -rf dist docs/_generated .stamps
 	@echo "✓ cleaned"
+
+clean-docs: ## Remove the committed ontology-docs/ tree (regenerate with make ontology-docs).
+	rm -rf ontology-docs
+	@echo "✓ cleaned ontology-docs/"

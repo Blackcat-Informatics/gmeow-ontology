@@ -50,6 +50,7 @@ gmeow:GTSDocument
     rdfs:label "GTS Document"@x-gmeow-english ;
     skos:definition "A single-file Graph Transport Substrate artifact (docs/GTS-SPEC.md): a CBOR Sequence of one or more append-only segments carrying an RDF 1.2 graph and any content-addressed binaries it references. A Manifestation in the WEMI sense — the packaged, shippable embodiment. Its composite identity is the ORDERED list of its segments' chain heads (spec §3.1); byte-concatenation of valid documents is a valid document, so a document's segment list grows by append, never by rewrite."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
+gmeow:GTSDocument gmeow:docsConcern gmeow:concernGTSPackaging .
 
 gmeow:GTSSegment
     a owl:Class, gufo:SubKind ;
@@ -57,6 +58,7 @@ gmeow:GTSSegment
     rdfs:label "GTS Segment"@x-gmeow-english ;
     skos:definition "One complete header-plus-frames log inside a GTS document — the unit of independent integrity (spec §3.1): a segment has its own genesis hash, its own id/prev chain, its own profile, its own transform catalog, and its own signers. Segments compose by concatenation and never vouch for one another; a third-party segment keeps its third-party attestation. Itself a Manifestation: a segment is a complete, independently shippable artifact."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
+gmeow:GTSSegment gmeow:docsConcern gmeow:concernGTSPackaging .
 
 gmeow:OpaqueFrame
     a owl:Class, gufo:Kind ;
@@ -170,6 +172,7 @@ gmeow:GTSProfile
     rdfs:label "GTS Profile"@x-gmeow-english ;
     skos:definition "A named GTS profile (spec §13) — a purpose and requirement set a segment declares. An OPEN value vocabulary (individuals, never subclasses): extensions add their own profiles (e.g. a music package) without touching this module (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
+gmeow:GTSProfile gmeow:docsConcern gmeow:concernGTSPackaging .
 
 gmeow:gtsProfileGeneric a gmeow:GTSProfile ; rdfs:label "generic profile"@x-gmeow-english ;
     skos:definition "The default GTS profile: no requirements beyond the baseline reader contract."@x-gmeow-english ;

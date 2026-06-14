@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import io
 import tarfile
+import tempfile
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from blake3 import blake3
@@ -35,7 +37,6 @@ from gts import Signer
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from pathlib import Path
 
 #: Default documentation archive language until a configurable resolver lands.
 _DEFAULT_DOC_LANG = "x-gmeow-english"
@@ -101,11 +102,18 @@ def _project_doc_blobs() -> list[tuple[bytes, str, str]]:
 
 
 def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
-    """A single deterministic tar archive of the ontology docs tree (#440)."""
-    docs_dir = PROJECT_ROOT / "ontology-docs"
-    if not docs_dir.is_dir():
-        return []
-    return [(_tar_directory(docs_dir), "application/x-tar", "ontology-docs")]
+    """A single deterministic tar archive of the ontology docs tree (#440).
+
+    The tar is built independently from canonical sources so that
+    ``gmeow-full.gts`` does not depend on the committed ``ontology-docs/``
+    directory.
+    """
+    from gmeow_tools.ontology_docs import build_ontology_docs
+
+    with tempfile.TemporaryDirectory(dir=PROJECT_ROOT, prefix=".gmeow-tmp-") as tmp:
+        docs_dir = Path(tmp) / "ontology-docs"
+        build_ontology_docs(docs_dir)
+        return [(_tar_directory(docs_dir), "application/x-tar", "ontology-docs")]
 
 
 def compile_full_snapshot(
@@ -145,8 +153,9 @@ class GtsFullSnapshotGenerator(Generator):
     def inputs(self) -> Sequence[Path]:
         """Everything the snapshot folds.
 
-        Ontology, imports, statements, alignments, guides, project docs, and
-        ontology docs (#440).
+        Ontology, imports, statements, alignments, guides, and project docs.
+        Ontology docs are rebuilt independently from these canonical sources
+        and embedded, so the committed ``ontology-docs/`` tree is not an input.
         """
         from gmeow_tools.config import ONTOLOGY_FILE, SLICES_DIR
 
@@ -154,9 +163,6 @@ class GtsFullSnapshotGenerator(Generator):
             p
             for p in (PROJECT_ROOT / "docs").rglob("*")
             if p.is_file() and _is_project_doc_path(p)
-        ]
-        ontology_files = [
-            p for p in (PROJECT_ROOT / "ontology-docs").rglob("*") if p.is_file()
         ]
 
         return [
@@ -167,7 +173,6 @@ class GtsFullSnapshotGenerator(Generator):
             *sorted(MAPPINGS_DIR.glob("*.sssom.tsv")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
             *sorted(doc_files),
-            *sorted(ontology_files),
         ]
 
     @property

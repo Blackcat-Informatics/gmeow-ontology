@@ -70,9 +70,10 @@ meta:gate-generator-registry a meta:Gate ;
     meta:symbol "regenerate_order" ;
     meta:cliCommand "regenerate", "check-generated" ;
     meta:makeTarget "check-generated", "regenerate" ;
-    meta:generator "statements", "mappings", "gts", "exports", "metadata",
-        "schemas", "lpg", "matrix", "apache", "gts-vectors", "catalog",
-        "profiles", "frame-shapes", "evals", "parquet", "research-objects" .
+    meta:generator "statements", "mappings", "gts", "gts-full", "exports",
+        "metadata", "schemas", "lpg", "matrix", "apache", "gts-vectors",
+        "catalog", "profiles", "frame-shapes", "evals", "parquet",
+        "research-objects", "ontology-docs" .
 
 meta:tests-narrow-waist a meta:TestSuite ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)" ;
