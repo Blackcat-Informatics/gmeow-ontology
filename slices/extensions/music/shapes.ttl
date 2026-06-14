@@ -7,6 +7,7 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 gmeow:TuningSystemShape
@@ -873,4 +874,276 @@ gmeow:TransformationTypeShape
         sh:maxCount 0 ;
         sh:severity sh:Violation ;
         sh:message "TransformationType must not be subclassed (Principle 9)." ;
+    ] .
+
+# =========================================================================== #
+# PERFORMANCE SHAPES — issue #312
+# =========================================================================== #
+
+gmeow:DegreeOfFreedomShape
+    a sh:NodeShape ;
+    rdfs:label "Degree of freedom shape"@x-gmeow-english ;
+    skos:definition "A DegreeOfFreedom relator must declare exactly one parameter and one status, and exactly one of dofWork or dofExpression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:DegreeOfFreedom ;
+    sh:property [
+        sh:path gmeow:dofParameter ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A DegreeOfFreedom must declare exactly one MusicalParameter." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dofStatus ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A DegreeOfFreedom must declare exactly one DeterminationStatus." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dofWork ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A DegreeOfFreedom may have at most one dofWork." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dofExpression ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A DegreeOfFreedom may have at most one dofExpression." ;
+    ] ;
+    sh:xone (
+        [ sh:property [ sh:path gmeow:dofWork ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
+        [ sh:property [ sh:path gmeow:dofExpression ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
+    ) ;
+    sh:message "A DegreeOfFreedom must target exactly one Work or exactly one Expression (not both, not neither)." ;
+    sh:property [
+        sh:path gmeow:dofConstraintText ;
+        sh:uniqueLang true ;
+        sh:datatype rdf:langString ;
+        sh:severity sh:Violation ;
+        sh:message "A DegreeOfFreedom may have at most one constraint text per language." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dofConstraintFunction ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A DegreeOfFreedom may have at most one constraint function." ;
+    ] .
+
+gmeow:TraversalConstraintShape
+    a sh:NodeShape ;
+    rdfs:label "Traversal constraint shape"@x-gmeow-english ;
+    skos:definition "A TraversalConstraint must declare the entity it applies to and a human-readable rule text; graph reachability is solver work, never a DL axiom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:TraversalConstraint ;
+    sh:property [
+        sh:path gmeow:constraintAppliesTo ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TraversalConstraint must apply to exactly one entity." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:constraintText ;
+        sh:minCount 1 ;
+        sh:uniqueLang true ;
+        sh:datatype rdf:langString ;
+        sh:severity sh:Violation ;
+        sh:message "A TraversalConstraint must provide at least one rule text, with at most one per language." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:constraintFunction ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A TraversalConstraint may have at most one constraint function." ;
+    ] .
+
+gmeow:PerformanceDecisionShape
+    a sh:NodeShape ;
+    rdfs:label "Performance decision shape"@x-gmeow-english ;
+    skos:definition "A PerformanceDecision records one documented traversal of a mobile form during a performance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PerformanceDecision ;
+    sh:property [
+        sh:path gmeow:decisionPerformance ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PerformanceDecision must reference exactly one performance Event." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:decisionConstraint ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PerformanceDecision must reference exactly one TraversalConstraint." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:decisionSequence ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A PerformanceDecision must document exactly one traversal sequence." ;
+    ] .
+
+gmeow:GenerativeProcessShape
+    a sh:NodeShape ;
+    rdfs:label "Generative process shape"@x-gmeow-english ;
+    skos:definition "A GenerativeProcess must declare a kind and a human-readable rule; realization is delegated to a solver function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:GenerativeProcess ;
+    sh:property [
+        sh:path gmeow:processKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A GenerativeProcess must declare exactly one GenerativeProcessKind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:processRuleText ;
+        sh:minCount 1 ;
+        sh:uniqueLang true ;
+        sh:datatype rdf:langString ;
+        sh:severity sh:Violation ;
+        sh:message "A GenerativeProcess must provide at least one rule text, with at most one per language." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:processFunction ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A GenerativeProcess may have at most one process function." ;
+    ] .
+
+gmeow:OrnamentProfileShape
+    a sh:NodeShape ;
+    rdfs:label "Ornament profile shape"@x-gmeow-english ;
+    skos:definition "An OrnamentProfile must declare a kind and apply to at least one segment or voice."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:OrnamentProfile ;
+    sh:property [
+        sh:path gmeow:ornamentProfileKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An OrnamentProfile must declare exactly one OrnamentProfileKind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appliesToSegment ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "If provided, appliesToSegment must be an IRI." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appliesToVoice ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "If provided, appliesToVoice must be an IRI." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:ornamentReferenceFrame ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An OrnamentProfile may have at most one ornamentReferenceFrame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:ornamentDescription ;
+        sh:uniqueLang true ;
+        sh:datatype rdf:langString ;
+        sh:severity sh:Violation ;
+        sh:message "An OrnamentProfile may have at most one description per language." ;
+    ] ;
+    sh:sparql [
+        sh:message "An OrnamentProfile must apply to at least one MusicalSegment or Voice." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS {
+                    $this gmeow:appliesToSegment|gmeow:appliesToVoice ?target .
+                }
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# VALUE-VOCABULARY NO-SUBCLASS SHAPES — issue #312
+# --------------------------------------------------------------------------- #
+
+gmeow:MusicalParameterShape
+    a sh:NodeShape ;
+    rdfs:label "Musical parameter shape"@x-gmeow-english ;
+    skos:definition "MusicalParameter is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:MusicalParameter ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "MusicalParameter must not be subclassed (Principle 9)." ;
+    ] .
+
+gmeow:DeterminationStatusShape
+    a sh:NodeShape ;
+    rdfs:label "Determination status shape"@x-gmeow-english ;
+    skos:definition "DeterminationStatus is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:DeterminationStatus ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "DeterminationStatus must not be subclassed (Principle 9)." ;
+    ] .
+
+gmeow:GenerativeProcessKindShape
+    a sh:NodeShape ;
+    rdfs:label "Generative process kind shape"@x-gmeow-english ;
+    skos:definition "GenerativeProcessKind is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:GenerativeProcessKind ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "GenerativeProcessKind must not be subclassed (Principle 9)." ;
+    ] .
+
+gmeow:OrnamentProfileKindShape
+    a sh:NodeShape ;
+    rdfs:label "Ornament profile kind shape"@x-gmeow-english ;
+    skos:definition "OrnamentProfileKind is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:OrnamentProfileKind ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "OrnamentProfileKind must not be subclassed (Principle 9)." ;
     ] .

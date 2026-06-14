@@ -570,6 +570,17 @@ enum DayOfWeekEnum
     dayWednesday
   }
 
+enum DegreeOfFreedomEnum
+  {
+    dofFourThirtyThreeDuration
+    dofFourThirtyThreeInstrumentation
+    dofFourThirtyThreeSoundContent
+    dofFourThirtyThreeTacet
+    dofGraphicScoreDuration
+    dofGraphicScoreOrder
+    dofGraphicScorePitch
+  }
+
 enum DeonticModalityEnum
   {
     deonticObligation
@@ -637,6 +648,16 @@ enum DeterminacyEnum
     determinacyVague
   }
 
+enum DeterminationStatusEnum
+  {
+    determinationConstrained
+    determinationDelegatedEnvironment
+    determinationDelegatedPerformer
+    determinationDelegatedProcess
+    determinationFixed
+    determinationFree
+  }
+
 enum DisclosurePolicyEnum
   {
     policyInternalOnly
@@ -700,6 +721,12 @@ enum EvaluationVerdictEnum
     verdictHeld
     verdictNotHeld
     verdictUndetermined
+  }
+
+enum EventEnum
+  {
+    fixtureKlavierstuckPerformanceOne
+    fixtureKlavierstuckPerformanceTwo
   }
 
 enum EventTypeEnum
@@ -823,6 +850,13 @@ enum ExemplarPolarityEnum
     polarityPositive
   }
 
+enum ExpressionEnum
+  {
+    fixtureGraphicScoreExpression
+    fixtureGraphicScoreTranscription
+    fixtureReichPhasingExpression
+  }
+
 enum ExpressionLanguageEnum
   {
     exprLangCedar
@@ -913,6 +947,21 @@ enum GenderExpressionStyleEnum
     expressionFluid
     expressionMasculine
     expressionNeutral
+  }
+
+enum GenerativeProcessEnum
+  {
+    fixtureReichPhasingProcess
+    fixtureXenakisStochasticProcess
+  }
+
+enum GenerativeProcessKindEnum
+  {
+    generativeProcessKindAlgorithmic
+    generativeProcessKindPhasing
+    generativeProcessKindRuleBased
+    generativeProcessKindStochastic
+    generativeProcessKindVerbalScore
   }
 
 enum GeometryTypeEnum
@@ -1401,8 +1450,27 @@ enum MultipartTypeEnum
     multipartTypeSigned
   }
 
+enum MusicalParameterEnum
+  {
+    musicalParameterDuration
+    musicalParameterDynamics
+    musicalParameterInstrumentation
+    musicalParameterLocation
+    musicalParameterOrder
+    musicalParameterPerformerCount
+    musicalParameterPitch
+    musicalParameterSoundContent
+    musicalParameterTacet
+    musicalParameterTempo
+    musicalParameterTimbre
+  }
+
 enum MusicalSegmentEnum
   {
+    fixtureKlavierstuckFragmentA
+    fixtureKlavierstuckFragmentB
+    fixtureKlavierstuckFragmentC
+    fixtureKlavierstuckFragmentD
     fixtureStructureRiffA
     fixtureStructureRiffAReaccented
     fixtureStructureRiffATransposed
@@ -1425,6 +1493,10 @@ enum MusicalTimeSpanEnum
 
 enum MusicalWorkEnum
   {
+    fixtureFourThirtyThreeWork
+    fixtureGraphicScoreWork
+    fixtureKlavierstuckXIWork
+    fixtureReichPhasingWork
     fixtureStructureWork
   }
 
@@ -1635,6 +1707,20 @@ enum OrganizationTypeEnum
     organizationTypeNonprofit
   }
 
+enum OrnamentProfileEnum
+  {
+    fixtureYamanOrnamentProfile
+  }
+
+enum OrnamentProfileKindEnum
+  {
+    ornamentProfileKindBaroqueAgrement
+    ornamentProfileKindGamaka
+    ornamentProfileKindGraceNote
+    ornamentProfileKindJazzTurn
+    ornamentProfileKindMordent
+  }
+
 enum ParticipantRoleEnum
   {
     roleAgent
@@ -1667,6 +1753,12 @@ enum PaymentMethodEnum
     paymentMethodCheque
     paymentMethodCreditCard
     paymentMethodCrypto
+  }
+
+enum PerformanceDecisionEnum
+  {
+    fixtureKlavierstuckDecisionOne
+    fixtureKlavierstuckDecisionTwo
   }
 
 enum PeriodTypeEnum
@@ -2249,6 +2341,11 @@ enum SceneRelationTypeEnum
     sceneRelationWearing
   }
 
+enum ScoreEditionEnum
+  {
+    fixtureGraphicScoreVisual
+  }
+
 enum ScriptRoleEnum
   {
     scriptRoleDecorative
@@ -2413,6 +2510,7 @@ enum SpectrumEnum
 enum StandpointEnum
   {
     standpointArabicTheory
+    standpointTranscriberA
     standpointTurkishTheory
     universalStandpoint
   }
@@ -2655,6 +2753,11 @@ enum TransliterationSchemeEnum
     schemeWadeGiles
   }
 
+enum TraversalConstraintEnum
+  {
+    fixtureKlavierstuckConstraint
+  }
+
 enum TuningSystemEnum
   {
     tuningSystem12EDO
@@ -2731,6 +2834,7 @@ enum VirtualLocationTypeEnum
 enum VoiceEnum
   {
     fixtureStructureVoiceBass
+    fixtureYamanVoice
     voiceDrumsPlaceholder
     voiceGuitarPlaceholder
   }
@@ -6326,6 +6430,16 @@ type DayOfWeek
   {
   }
 
+type DegreeOfFreedom
+  {
+    dofConstraintFunction: [String]
+    dofConstraintText: String
+    dofExpression: Expression
+    dofParameter: MusicalParameter
+    dofStatus: DeterminationStatus
+    dofWork: Work
+  }
+
 type DeonticModality
   {
   }
@@ -6358,6 +6472,10 @@ type Desire
   }
 
 type Determinacy
+  {
+  }
+
+type DeterminationStatus
   {
   }
 
@@ -8144,6 +8262,71 @@ type GenderIdentity
   {
     selfAsserted: Boolean
     genderValue: Gender
+  }
+
+type GenerativeProcess
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    processFunction: [String]
+    processKind: GenerativeProcessKind
+    processParameter: [Entity]
+    processRuleText: String
+  }
+
+type GenerativeProcessKind
+  {
   }
 
 type Genre
@@ -12037,6 +12220,10 @@ type MultipartType
   {
   }
 
+type MusicalParameter
+  {
+  }
+
 type MusicalSegment
   {
     acquireLicensePage: [String]
@@ -12099,6 +12286,7 @@ type MusicalSegment
     segmentIndex: Int
     segmentOf: [Entity]
     segmentType: ContentSegmentType
+    mayFollow: [MusicalSegment]
     segmentKind: SegmentKind
   }
 
@@ -13764,6 +13952,72 @@ type Orientation
     yaw: [Float]
   }
 
+type OrnamentProfile
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    appliesToSegment: [MusicalSegment]
+    appliesToVoice: [Voice]
+    ornamentDescription: String
+    ornamentProfileKind: OrnamentProfileKind
+    ornamentReferenceFrame: TuningSystem
+  }
+
+type OrnamentProfileKind
+  {
+  }
+
 type Package
   {
     acquireLicensePage: [String]
@@ -14009,6 +14263,13 @@ type Payment
 
 type PaymentMethod
   {
+  }
+
+type PerformanceDecision
+  {
+    decisionConstraint: TraversalConstraint
+    decisionPerformance: Event
+    decisionSequence: String
   }
 
 type PeriodType
@@ -20688,6 +20949,7 @@ type ToneEvent
     segmentIndex: Int
     segmentOf: [Entity]
     segmentType: ContentSegmentType
+    mayFollow: [MusicalSegment]
     segmentKind: SegmentKind
     toneEventArticulation: ArticulationKind
     toneEventDynamics: DynamicsValue
@@ -20905,6 +21167,69 @@ type TransparencyLogEntry
     writtenInLanguage: [Language]
     logEntryIndex: Int
     logEntryUrl: [String]
+  }
+
+type TraversalConstraint
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    constraintAppliesTo: Entity
+    constraintFunction: [String]
+    constraintText: String
   }
 
 type TreeEntry

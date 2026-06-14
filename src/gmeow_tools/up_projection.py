@@ -359,6 +359,10 @@ class UpProjection:
     ambiguous_terms: dict[str, int] = field(default_factory=dict)  # skipped → count
     claimed: int = 0  # source triples lifted as provenance-stamped claims
     claim_terms: dict[str, int] = field(default_factory=dict)  # claimed qname → count
+    # edges the context-aware descent resolved by position (subset of lifted +
+    # claimed); 0 for the flat up_project, set by up_project_descend
+    context_resolved: int = 0
+    context_terms: dict[str, int] = field(default_factory=dict)
 
 
 def _emit_claim(
@@ -388,6 +392,83 @@ def _emit_claim(
         out.add((ann, GM.annValue, value))
 
 
+@dataclass
+class _Acc:
+    """Mutable accumulator for a lift pass — the output graph plus tallies.
+
+    Shared by the flat per-term lift (``up_project``) and the context-aware
+    descent (``up_projection_descend``) so both write through the identical
+    bookkeeping and can never drift.
+    """
+
+    out: Graph
+    lifted: int = 0
+    claimed: int = 0
+    gaps: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    ambig: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    claims: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+
+    def fact(self, s: Node, p: URIRef, o: Node) -> None:
+        self.out.add((s, p, o))
+        self.lifted += 1
+
+    def claim(
+        self, s: Node, p: URIRef, o: Node, source_term: URIRef, conf: str
+    ) -> None:
+        _emit_claim(self.out, s, p, o, source_term, conf)
+        self.claimed += 1
+        self.claims[_canon_qname(str(source_term))] += 1
+
+
+def _account(acc: _Acc, lift: LiftMap, key: str) -> None:
+    if key in lift.ambiguous:
+        acc.ambig[_canon_qname(key)] += 1
+    elif _in_projection_ns(key):
+        acc.gaps[_canon_qname(key)] += 1
+
+
+def _lift_edge(acc: _Acc, s: Node, p: Node, o: Node, lift: LiftMap) -> None:
+    """Apply the flat per-term lift to one edge — the #480 floor.
+
+    Used directly by ``up_project`` and as the fallback by the descent for any
+    edge the context-aware layer leaves unresolved.
+    """
+    if p == RDF.type and isinstance(o, URIRef):
+        key = str(o)
+        if key in lift.rules:  # rdf:type is never inverted
+            acc.fact(s, RDF.type, URIRef(lift.rules[key]))
+        elif key in lift.claim_rules:
+            # a class closeMatch — claim membership, never assert it. A blank-node
+            # subject is unquotable (qSubject is IRI-only), so it is skipped — a
+            # rule exists, so it is NOT a gap.
+            if isinstance(s, URIRef):
+                gmeow, conf = lift.claim_rules[key]
+                acc.claim(s, RDF.type, URIRef(gmeow), URIRef(key), conf)
+        else:
+            _account(acc, lift, key)
+        return
+    if not isinstance(p, URIRef):
+        return
+    key = str(p)
+    if key in lift.rules:
+        acc.fact(s, URIRef(lift.rules[key]), o)
+    elif key in lift.inverse_rules:
+        # a rule exists — this is not a gap. A literal object is skipped (it
+        # cannot become a subject after the swap), not accounted.
+        if isinstance(o, URIRef | BNode):
+            acc.fact(o, URIRef(lift.inverse_rules[key]), s)
+    elif key in lift.claim_rules:
+        # closeMatch — lift with a claim, never as a bare fact. The quoted triple
+        # needs an IRI subject and an IRI/literal object (the SHACL
+        # StatementMetadata shape); a blank-node endpoint is unquotable, so it is
+        # skipped (a rule exists — not a gap).
+        if isinstance(s, URIRef) and isinstance(o, URIRef | Literal):
+            gmeow, conf = lift.claim_rules[key]
+            acc.claim(s, URIRef(gmeow), o, URIRef(key), conf)
+    else:
+        _account(acc, lift, key)
+
+
 def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     """Lift a consumer-vocabulary graph up to pure GMEOW via the derived rules.
 
@@ -401,67 +482,15 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
         raise ValueError("up_project: source graph is empty")
     if lift is None:
         lift = build_lift_map()
-    out = Graph()
-    out.bind("gmeow", GM)
-    lifted = 0
-    claimed = 0
-    gaps: dict[str, int] = defaultdict(int)
-    ambig: dict[str, int] = defaultdict(int)
-    claims: dict[str, int] = defaultdict(int)
-
-    def account(key: str) -> None:
-        if key in lift.ambiguous:
-            ambig[_canon_qname(key)] += 1
-        elif _in_projection_ns(key):
-            gaps[_canon_qname(key)] += 1
-
+    acc = _Acc(out=Graph())
+    acc.out.bind("gmeow", GM)
     for s, p, o in source:
-        if p == RDF.type and isinstance(o, URIRef):
-            key = str(o)
-            if key in lift.rules:  # rdf:type is never inverted
-                out.add((s, RDF.type, URIRef(lift.rules[key])))
-                lifted += 1
-            elif key in lift.claim_rules:
-                # a class closeMatch — claim membership, never assert it. A
-                # blank-node subject is unquotable (qSubject is IRI-only), so it
-                # is skipped — a rule exists, so it is NOT a gap.
-                if isinstance(s, URIRef):
-                    gmeow, conf = lift.claim_rules[key]
-                    _emit_claim(out, s, RDF.type, URIRef(gmeow), URIRef(key), conf)
-                    claimed += 1
-                    claims[_canon_qname(key)] += 1
-            else:
-                account(key)
-            continue
-        if not isinstance(p, URIRef):
-            continue
-        key = str(p)
-        if key in lift.rules:
-            out.add((s, URIRef(lift.rules[key]), o))
-            lifted += 1
-        elif key in lift.inverse_rules:
-            # a rule exists — this is not a gap. A literal object is skipped
-            # (it cannot become a subject after the swap), not accounted.
-            if isinstance(o, URIRef | BNode):
-                out.add((o, URIRef(lift.inverse_rules[key]), s))
-                lifted += 1
-        elif key in lift.claim_rules:
-            # closeMatch — lift with a claim, never as a bare fact. The quoted
-            # triple needs an IRI subject and an IRI/literal object (the SHACL
-            # StatementMetadata shape); a blank-node endpoint is unquotable, so
-            # it is skipped (a rule exists — not a gap).
-            if isinstance(s, URIRef) and isinstance(o, URIRef | Literal):
-                gmeow, conf = lift.claim_rules[key]
-                _emit_claim(out, s, URIRef(gmeow), o, URIRef(key), conf)
-                claimed += 1
-                claims[_canon_qname(key)] += 1
-        else:
-            account(key)
+        _lift_edge(acc, s, p, o, lift)
     return UpProjection(
-        graph=out,
-        lifted=lifted,
-        gap_terms=dict(gaps),
-        ambiguous_terms=dict(ambig),
-        claimed=claimed,
-        claim_terms=dict(claims),
+        graph=acc.out,
+        lifted=acc.lifted,
+        gap_terms=dict(acc.gaps),
+        ambiguous_terms=dict(acc.ambig),
+        claimed=acc.claimed,
+        claim_terms=dict(acc.claims),
     )

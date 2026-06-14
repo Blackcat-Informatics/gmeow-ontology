@@ -29721,6 +29721,83 @@
             "title": "DayOfWeekEnum",
             "type": "string"
         },
+        "DegreeOfFreedom": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "dofConstraintFunction": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dofConstraintText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "dofExpression": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Expression"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "dofParameter": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MusicalParameter"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "dofStatus": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DeterminationStatus"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "dofWork": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Work"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "DegreeOfFreedom",
+            "type": "object"
+        },
+        "DegreeOfFreedomEnum": {
+            "description": "",
+            "enum": [
+                "dofFourThirtyThreeDuration",
+                "dofFourThirtyThreeInstrumentation",
+                "dofFourThirtyThreeSoundContent",
+                "dofFourThirtyThreeTacet",
+                "dofGraphicScoreDuration",
+                "dofGraphicScoreOrder",
+                "dofGraphicScorePitch"
+            ],
+            "title": "DegreeOfFreedomEnum",
+            "type": "string"
+        },
         "DeonticModality": {
             "additionalProperties": false,
             "description": "",
@@ -29914,6 +29991,25 @@
                 "determinacyVague"
             ],
             "title": "DeterminacyEnum",
+            "type": "string"
+        },
+        "DeterminationStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "DeterminationStatus",
+            "type": "object"
+        },
+        "DeterminationStatusEnum": {
+            "description": "",
+            "enum": [
+                "determinationConstrained",
+                "determinationDelegatedEnvironment",
+                "determinationDelegatedPerformer",
+                "determinationDelegatedProcess",
+                "determinationFixed",
+                "determinationFree"
+            ],
+            "title": "DeterminationStatusEnum",
             "type": "string"
         },
         "Diff": {
@@ -36413,6 +36509,15 @@
             "title": "Event",
             "type": "object"
         },
+        "EventEnum": {
+            "description": "",
+            "enum": [
+                "fixtureKlavierstuckPerformanceOne",
+                "fixtureKlavierstuckPerformanceTwo"
+            ],
+            "title": "EventEnum",
+            "type": "string"
+        },
         "EventInvitation": {
             "additionalProperties": false,
             "description": "",
@@ -39316,6 +39421,16 @@
             },
             "title": "Expression",
             "type": "object"
+        },
+        "ExpressionEnum": {
+            "description": "",
+            "enum": [
+                "fixtureGraphicScoreExpression",
+                "fixtureGraphicScoreTranscription",
+                "fixtureReichPhasingExpression"
+            ],
+            "title": "ExpressionEnum",
+            "type": "string"
         },
         "ExpressionLanguage": {
             "additionalProperties": false,
@@ -46647,6 +46762,552 @@
             },
             "title": "GenderIdentity",
             "type": "object"
+        },
+        "GenerativeProcess": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDirectReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasIdentifier": {
+                    "items": {
+                        "$ref": "#/$defs/Identifier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVoice": {
+                    "items": {
+                        "$ref": "#/$defs/Voice"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "items": {
+                        "type": "boolean"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "mentionedIn": {
+                    "items": {
+                        "$ref": "#/$defs/Note"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "ownedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "processFunction": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "processKind": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/GenerativeProcessKind"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "processParameter": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "processRuleText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "GenerativeProcess",
+            "type": "object"
+        },
+        "GenerativeProcessEnum": {
+            "description": "",
+            "enum": [
+                "fixtureReichPhasingProcess",
+                "fixtureXenakisStochasticProcess"
+            ],
+            "title": "GenerativeProcessEnum",
+            "type": "string"
+        },
+        "GenerativeProcessKind": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "GenerativeProcessKind",
+            "type": "object"
+        },
+        "GenerativeProcessKindEnum": {
+            "description": "",
+            "enum": [
+                "generativeProcessKindAlgorithmic",
+                "generativeProcessKindPhasing",
+                "generativeProcessKindRuleBased",
+                "generativeProcessKindStochastic",
+                "generativeProcessKindVerbalScore"
+            ],
+            "title": "GenerativeProcessKindEnum",
+            "type": "string"
         },
         "Genre": {
             "additionalProperties": false,
@@ -76621,6 +77282,30 @@
             "title": "MultipartTypeEnum",
             "type": "string"
         },
+        "MusicalParameter": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "MusicalParameter",
+            "type": "object"
+        },
+        "MusicalParameterEnum": {
+            "description": "",
+            "enum": [
+                "musicalParameterDuration",
+                "musicalParameterDynamics",
+                "musicalParameterInstrumentation",
+                "musicalParameterLocation",
+                "musicalParameterOrder",
+                "musicalParameterPerformerCount",
+                "musicalParameterPitch",
+                "musicalParameterSoundContent",
+                "musicalParameterTacet",
+                "musicalParameterTempo",
+                "musicalParameterTimbre"
+            ],
+            "title": "MusicalParameterEnum",
+            "type": "string"
+        },
         "MusicalSegment": {
             "additionalProperties": false,
             "description": "",
@@ -76978,6 +77663,15 @@
                         "null"
                     ]
                 },
+                "mayFollow": {
+                    "items": {
+                        "$ref": "#/$defs/MusicalSegment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "mediaType": {
                     "type": [
                         "string",
@@ -77180,6 +77874,10 @@
         "MusicalSegmentEnum": {
             "description": "",
             "enum": [
+                "fixtureKlavierstuckFragmentA",
+                "fixtureKlavierstuckFragmentB",
+                "fixtureKlavierstuckFragmentC",
+                "fixtureKlavierstuckFragmentD",
                 "fixtureStructureRiffA",
                 "fixtureStructureRiffAReaccented",
                 "fixtureStructureRiffATransposed"
@@ -79291,6 +79989,10 @@
         "MusicalWorkEnum": {
             "description": "",
             "enum": [
+                "fixtureFourThirtyThreeWork",
+                "fixtureGraphicScoreWork",
+                "fixtureKlavierstuckXIWork",
+                "fixtureReichPhasingWork",
                 "fixtureStructureWork"
             ],
             "title": "MusicalWorkEnum",
@@ -91099,6 +91801,561 @@
             "title": "Orientation",
             "type": "object"
         },
+        "OrnamentProfile": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "appliesToSegment": {
+                    "items": {
+                        "$ref": "#/$defs/MusicalSegment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "appliesToVoice": {
+                    "items": {
+                        "$ref": "#/$defs/Voice"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDirectReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasIdentifier": {
+                    "items": {
+                        "$ref": "#/$defs/Identifier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVoice": {
+                    "items": {
+                        "$ref": "#/$defs/Voice"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "items": {
+                        "type": "boolean"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "mentionedIn": {
+                    "items": {
+                        "$ref": "#/$defs/Note"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "ornamentDescription": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "ornamentProfileKind": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/OrnamentProfileKind"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "ornamentReferenceFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TuningSystem"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "ownedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "OrnamentProfile",
+            "type": "object"
+        },
+        "OrnamentProfileEnum": {
+            "description": "",
+            "enum": [
+                "fixtureYamanOrnamentProfile"
+            ],
+            "title": "OrnamentProfileEnum",
+            "type": "string"
+        },
+        "OrnamentProfileKind": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "OrnamentProfileKind",
+            "type": "object"
+        },
+        "OrnamentProfileKindEnum": {
+            "description": "",
+            "enum": [
+                "ornamentProfileKindBaroqueAgrement",
+                "ornamentProfileKindGamaka",
+                "ornamentProfileKindGraceNote",
+                "ornamentProfileKindJazzTurn",
+                "ornamentProfileKindMordent"
+            ],
+            "title": "OrnamentProfileKindEnum",
+            "type": "string"
+        },
         "PGPSignature": {
             "additionalProperties": false,
             "description": "",
@@ -93735,6 +94992,49 @@
                 "paymentMethodCrypto"
             ],
             "title": "PaymentMethodEnum",
+            "type": "string"
+        },
+        "PerformanceDecision": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "decisionConstraint": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TraversalConstraint"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "decisionPerformance": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Event"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "decisionSequence": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "PerformanceDecision",
+            "type": "object"
+        },
+        "PerformanceDecisionEnum": {
+            "description": "",
+            "enum": [
+                "fixtureKlavierstuckDecisionOne",
+                "fixtureKlavierstuckDecisionTwo"
+            ],
+            "title": "PerformanceDecisionEnum",
             "type": "string"
         },
         "PeriodType": {
@@ -121540,6 +122840,14 @@
             "title": "ScoreEdition",
             "type": "object"
         },
+        "ScoreEditionEnum": {
+            "description": "",
+            "enum": [
+                "fixtureGraphicScoreVisual"
+            ],
+            "title": "ScoreEditionEnum",
+            "type": "string"
+        },
         "ScoreScale": {
             "additionalProperties": false,
             "description": "",
@@ -138419,6 +139727,7 @@
             "description": "",
             "enum": [
                 "standpointArabicTheory",
+                "standpointTranscriberA",
                 "standpointTurkishTheory",
                 "universalStandpoint"
             ],
@@ -149046,6 +150355,15 @@
                         "null"
                     ]
                 },
+                "mayFollow": {
+                    "items": {
+                        "$ref": "#/$defs/MusicalSegment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "mediaType": {
                     "type": [
                         "string",
@@ -150998,6 +152316,551 @@
             },
             "title": "TransparencyLogEntry",
             "type": "object"
+        },
+        "TraversalConstraint": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "constraintAppliesTo": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "constraintFunction": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "constraintText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDirectReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasIdentifier": {
+                    "items": {
+                        "$ref": "#/$defs/Identifier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVoice": {
+                    "items": {
+                        "$ref": "#/$defs/Voice"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "items": {
+                        "type": "boolean"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "mentionedIn": {
+                    "items": {
+                        "$ref": "#/$defs/Note"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "ownedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "writtenInLanguage": {
+                    "items": {
+                        "$ref": "#/$defs/Language"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "TraversalConstraint",
+            "type": "object"
+        },
+        "TraversalConstraintEnum": {
+            "description": "",
+            "enum": [
+                "fixtureKlavierstuckConstraint"
+            ],
+            "title": "TraversalConstraintEnum",
+            "type": "string"
         },
         "TreeEntry": {
             "additionalProperties": false,
@@ -156014,6 +157877,7 @@
             "description": "",
             "enum": [
                 "fixtureStructureVoiceBass",
+                "fixtureYamanVoice",
                 "voiceDrumsPlaceholder",
                 "voiceGuitarPlaceholder"
             ],
