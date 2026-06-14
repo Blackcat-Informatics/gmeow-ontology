@@ -19,6 +19,7 @@ from rdflib import Graph
 
 from gmeow_tools import sparql
 from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, PREFIXES, PROJECTION_QUERY_DIR
+from gmeow_tools.language_tags import retag_graph
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,6 +126,13 @@ def project_graph(profile: str, source: Graph | pyoxigraph.Store) -> Graph:
         else sparql.store_from_graph(source)
     )
     out = sparql.construct(store, query)
+    # Projection-boundary BCP-47 retag: the in-query retag only fires for
+    # literals reachable from a gmeow:nameLanguage link, so a bare @x-gmeow-*
+    # value (e.g. a name with no language link) would leak the internal tag.
+    # This catch-all pass retags every remaining x-gmeow-* literal to its public
+    # BCP-47 tag, so consumer parsers read the projected text as the real
+    # language. Idempotent for already-retagged literals.
+    retag_graph(out)
     for prefix in prof.prefixes:
         out.bind(prefix, PREFIXES[prefix])
     return out

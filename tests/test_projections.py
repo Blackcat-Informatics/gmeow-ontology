@@ -1270,3 +1270,19 @@ def test_foaf_phone_clean_win() -> None:
     ex = "https://example.org/clean/"
     assert (URIRef(ex + "org"), URIRef(FOAF + "phone"), URIRef("tel:+16045551234")) in g
     _assert_no_gmeow_leakage(g)
+
+
+def test_projection_bcp47_retag_no_internal_tags() -> None:
+    """Projected consumer literals carry public BCP-47 tags, never x-gmeow-* —
+    the projection-boundary retag catches names with no gmeow:nameLanguage link."""
+    for fixture in ("names.ttl", "organizations.ttl"):
+        for profile in ("schema-org", "foaf", "vcard"):
+            g = project_graph(profile, _fixture_store(fixture))
+            leaked = [
+                o
+                for _s, _p, o in g
+                if isinstance(o, Literal)
+                and o.language
+                and o.language.startswith("x-gmeow")
+            ]
+            assert not leaked, f"{profile}/{fixture} leaked internal tags: {leaked[:3]}"
