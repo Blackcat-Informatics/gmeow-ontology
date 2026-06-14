@@ -10,11 +10,11 @@ keywords = ["ontology", "owl", "rdf", "linked-data", "gmeow", "fair"]
 dependencies = [
     "rdflib>=7.6",
     "pyshacl>=0.31",
-    "pylode>=3.4",
     "sssom>=0.4.16",
     "httpx>=0.28",
     "typer>=0.15",
     "rich>=13.9",
+    "markdown>=3.10",
     "fastmcp>=3.4",
     "linkml>=1.11",
     "PyYAML>=6.0",
@@ -104,7 +104,7 @@ files = ["src", "tests", "packages/gts/src"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["pylode.*", "sssom.*", "pyshacl.*", "owlrl.*", "pyoxigraph.*", "linkml.*", "linkml_runtime.*", "yaml"]
+module = ["markdown.*", "sssom.*", "pyshacl.*", "owlrl.*", "pyoxigraph.*", "linkml.*", "linkml_runtime.*", "yaml"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -125,7 +125,7 @@ filterwarnings = [
 ]
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
-    "docker: tests that require Docker (ROBOT/WIDOCO/Jena)",
+    "docker: tests that require Docker (ROBOT/Jena)",
     "pyoxigraph_ci: pyoxigraph RDF 1.2 cross-checks run only in the dedicated CI job",
     "ci_only: heavy secondary/external-export transformation tests (LinkML & developer schemas, flattened exports); run in CI and 'make test', excluded from the fast 'make check' gate",
 ]
@@ -134,7 +134,7 @@ markers = [
 # Spell-check prose and identifiers; skip generated/binary/lock artifacts, the
 # vendored gUFO import, and the vendored public-data fixtures (upstream content,
 # not ours to correct). Patterns are fnmatch'd against repo-relative paths.
-skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*"
+skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*"
 # False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
 # opNe (the not-equal expression operator in the mapping DSL algebra),
 # ser (Rust serde/ciborium module path `ciborium::ser`),

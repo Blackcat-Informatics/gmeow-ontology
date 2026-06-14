@@ -681,6 +681,17 @@ enum DistanceMetricEnum
     distanceMetricEuclidean
   }
 
+enum DocumentationConcernEnum
+  {
+    concernDisclosure
+    concernFrames
+    concernGTSPackaging
+    concernIdentifiersCoreference
+    concernProvenanceEvidence
+    concernStandpoints
+    concernStatementMetadata
+  }
+
 enum DynamicsValueEnum
   {
     dynamicsF
@@ -6847,6 +6858,10 @@ type Document
     quotedText: [String]
     quotesContent: [Entity]
     realizedThrough: [Expression]
+  }
+
+type DocumentationConcern
+  {
   }
 
 type Duration

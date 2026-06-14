@@ -1931,6 +1931,7 @@ gmeow:hasReferenceFrame
     rdfs:label "has reference frame"@x-gmeow-english ;
     skos:definition "Relates an entity or value to the reference frame in which it is expressed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> .
+gmeow:hasReferenceFrame gmeow:docsConcern gmeow:concernFrames .
 
 gmeow:coordinateFrame
     a owl:ObjectProperty, owl:FunctionalProperty ;

@@ -712,6 +712,16 @@ class DistanceMetricEnum(str, Enum):
     euclidean = "distanceMetricEuclidean"
 
 
+class DocumentationConcernEnum(str, Enum):
+    disclosure_and_suppression = "concernDisclosure"
+    frames_and_units = "concernFrames"
+    GTS_packaging = "concernGTSPackaging"
+    identifiers_and_coreference = "concernIdentifiersCoreference"
+    provenance_and_evidence = "concernProvenanceEvidence"
+    standpoints = "concernStandpoints"
+    statement_metadata = "concernStatementMetadata"
+
+
 class DynamicsValueEnum(str, Enum):
     forte = "dynamicsF"
     fortissimo = "dynamicsFf"
@@ -3847,6 +3857,14 @@ class DistanceMetric(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DistanceMetric',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Distance Metric'})
+
+    pass
+
+
+class DocumentationConcern(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DocumentationConcern',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'documentation concern'})
 
     pass
 
@@ -58511,6 +58529,7 @@ Determinacy.model_rebuild()
 DeterminationStatus.model_rebuild()
 DisclosurePolicy.model_rebuild()
 DistanceMetric.model_rebuild()
+DocumentationConcern.model_rebuild()
 DynamicsValue.model_rebuild()
 EmailAddress.model_rebuild()
 Emotion.model_rebuild()

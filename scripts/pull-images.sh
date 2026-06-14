@@ -5,15 +5,13 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-read -r ROBOT_IMAGE WIDOCO_IMAGE JENA_IMAGE < <(
+read -r ROBOT_IMAGE JENA_IMAGE < <(
 	uv run python -c \
-		"from gmeow_tools.config import ROBOT_IMAGE, WIDOCO_IMAGE, JENA_IMAGE; print(ROBOT_IMAGE, WIDOCO_IMAGE, JENA_IMAGE)"
+		"from gmeow_tools.config import ROBOT_IMAGE, JENA_IMAGE; print(ROBOT_IMAGE, JENA_IMAGE)"
 )
 
-for image in "${ROBOT_IMAGE}" "${WIDOCO_IMAGE}"; do
-	echo "Pulling ${image} ..."
-	docker pull "${image}"
-done
+echo "Pulling ${ROBOT_IMAGE} ..."
+docker pull "${ROBOT_IMAGE}"
 
 # Apache Jena: no maintained public 5.4 CLI image exists, so pull if available
 # (e.g. a private mirror) and otherwise build the pinned tag from docker/jena/.

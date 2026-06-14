@@ -242,11 +242,10 @@ LPG_DIR = GENERATED_DIR / "lpg"
 SCHEMAS_DIR = GENERATED_DIR / "schemas"
 
 # --------------------------------------------------------------------------- #
-# Pinned Docker images (the Java toolchain — see plan)
+# Pinned Docker images (reasoning and RDF 1.2 support tools)
 # --------------------------------------------------------------------------- #
 
 ROBOT_IMAGE = "obolibrary/robot:v1.9.7"
-WIDOCO_IMAGE = "ghcr.io/dgarijo/widoco:v1.4.25"
 #: Apache Jena CLI (riot + sparql) — the required RDF 1.2 / triple-term engine.
 #: No maintained public Jena 5.4 CLI image exists, so this pinned tag is built
 #: from ``docker/jena/Dockerfile`` (``make pull-images`` / CI build it). A private

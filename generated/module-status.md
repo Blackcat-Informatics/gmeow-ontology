@@ -37,7 +37,7 @@ Tier-2 uplift backlog.
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 0/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 0 | - | full |
-| kernel | core | core | 0 | 11 | 26 | 0 | 0 | 1/37 | full |
+| kernel | core | core | 0 | 12 | 27 | 0 | 0 | 1/39 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 0 | 0/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 0 | - | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 0 | - | full |
@@ -69,4 +69,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 0 | 0/11 | full |
 
-**60 slices** · documentation: 60 full guides, 0 stubs remaining (#325); advisory coverage: 3/1051 core class/property terms (#471).
+**60 slices** · documentation: 60 full guides, 0 stubs remaining (#325); advisory coverage: 3/1053 core class/property terms (#471).

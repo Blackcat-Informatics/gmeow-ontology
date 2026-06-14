@@ -177,26 +177,10 @@ def _cli_command_names() -> frozenset[str]:
 
 def _registered_generators() -> frozenset[str]:
     """Every generator name in the live registry (same imports as the CLI)."""
-    from gmeow_tools import (  # noqa: F401  (@register side effects)
-        apache,
-        catalog_gen,
-        evals,
-        export,
-        frame_shapes_gen,
-        gts_gen,
-        gts_vectors_gen,
-        lpg,
-        mapping_compile,
-        matrix,
-        metadata,
-        parquet_gen,
-        profiles_gen,
-        research_objects,
-        schema_compile,
-        statement_compile,
-    )
     from gmeow_tools.generator import registry
+    from gmeow_tools.load_generators import load_all
 
+    load_all()
     return frozenset(registry())
 
 
