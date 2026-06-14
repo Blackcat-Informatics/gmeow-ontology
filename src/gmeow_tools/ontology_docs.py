@@ -6,7 +6,7 @@
 This generator deliberately avoids WIDOCO, WebVOWL, pyLODE, MkDocs, Docker,
 network calls, and client-side JavaScript. It reads the committed GTS fold
 (``generated/dist/gmeow.gts``) plus canonical slice guides, then emits a stable
-Markdown tree and a static HTML site under ``ontology-docs/``.
+Markdown tree and a static HTML site under ``dist/ontology-docs/``.
 
 The same :func:`build_ontology_docs` function is used by the ``gts-full``
 generator, so the official web site and the offline bundled docs are generated
@@ -43,7 +43,6 @@ from gmeow_tools.config import (
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.export import Term, collect_terms, curie, fold_meta
-from gmeow_tools.generator import Generator, register
 from gmeow_tools.gts_views import FoldView, load_fold
 from gmeow_tools.mapping_dsl import (
     Atom,
@@ -4185,7 +4184,7 @@ def build_ontology_docs(
     """Render the complete ontology documentation tree.
 
     Args:
-        outdir: Destination directory, normally ``ontology-docs/``.
+        outdir: Destination directory, normally ``dist/ontology-docs/``.
         source_hash: Source hash supplied by the generator framework. The docs
             writer intentionally does not embed it in each output file.
         gts_path: Optional GTS snapshot path for tests.
@@ -4214,64 +4213,16 @@ def build_ontology_docs(
     writer.write_favicon()
 
 
-@register
-class OntologyDocsGenerator(Generator):
-    """Emit the committed ontology-docs static documentation tree."""
-
-    name: str = "ontology-docs"
-    is_directory_output: bool = True
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """Canonical sources that drive the docs site."""
-        return [
-            PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
-            ONTOLOGY_DOCS_GRAPH_INPUT,
-            REFERENCES_MD_FILE,
-            STATEMENT_RDF12_FILE,
-            *sorted(MAPPING_DSL_DIR.rglob("*.ttl")),
-            *iter_slice_mapping_files(),
-            *sorted(SLICES_DIR.glob("*/*/manifest.ttl")),
-            *sorted(SLICES_DIR.glob("*/*/docs.md")),
-        ]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """The committed ontology docs tree."""
-        return [PROJECT_ROOT / "ontology-docs"]
-
-    def render(self, staging: Path) -> None:
-        """Render the site into the staging tree."""
-        build_ontology_docs(
-            staging / "ontology-docs",
-            source_hash=getattr(self, "_source_hash", ""),
-        )
-
-    def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Directory-aware byte comparison."""
-        rel_root = _repo_rel(committed)
-        if not committed.exists():
-            return [f"{rel_root} (missing committed directory)"]
-        if not fresh.exists():
-            return [f"{rel_root} (not produced in staging)"]
-        fresh_files = {p.relative_to(fresh) for p in fresh.rglob("*") if p.is_file()}
-        committed_files = {
-            p.relative_to(committed) for p in committed.rglob("*") if p.is_file()
-        }
-        problems: list[str] = []
-        for rel in sorted(committed_files - fresh_files):
-            problems.append(f"{_repo_rel(committed / rel)} (missing in fresh)")
-        for rel in sorted(fresh_files - committed_files):
-            problems.append(f"{_repo_rel(committed / rel)} (missing in committed)")
-        for rel in sorted(fresh_files & committed_files):
-            if (fresh / rel).read_bytes() != (committed / rel).read_bytes():
-                problems.append(_repo_rel(committed / rel))
-        return problems
-
-
-def _repo_rel(path: Path) -> str:
-    """Return a repo-relative path where possible."""
-    try:
-        return str(path.relative_to(PROJECT_ROOT))
-    except ValueError:
-        return str(path)
+def ontology_docs_inputs() -> Sequence[Path]:
+    """Canonical sources that drive the generated docs bundle."""
+    return [
+        PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
+        ONTOLOGY_DOCS_GRAPH_INPUT,
+        REFERENCES_MD_FILE,
+        STATEMENT_RDF12_FILE,
+        *sorted(MAPPING_DSL_DIR.rglob("*.ttl")),
+        *iter_slice_mapping_files(),
+        *sorted(SLICES_DIR.glob("*/*/manifest.ttl")),
+        *sorted(SLICES_DIR.glob("*/*/docs.md")),
+        *sorted(SLICES_DIR.glob("*/*/design/*.md")),
+    ]

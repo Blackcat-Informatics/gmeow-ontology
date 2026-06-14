@@ -106,8 +106,8 @@ def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
     """A single deterministic tar archive of the ontology docs tree (#440).
 
     The tar is built independently from canonical sources so that
-    ``gmeow-full.gts`` does not depend on the committed ``ontology-docs/``
-    directory.
+    ``gmeow-full.gts`` does not depend on ``dist/ontology-docs/`` or the legacy
+    committed ``ontology-docs/`` directory.
     """
     from gmeow_tools.ontology_docs import build_ontology_docs
 
@@ -156,10 +156,11 @@ class GtsFullSnapshotGenerator(Generator):
         """Everything the snapshot folds.
 
         Ontology, imports, statements, alignments, guides, and project docs.
-        Ontology docs are rebuilt independently from these canonical sources
-        and embedded, so the committed ``ontology-docs/`` tree is not an input.
+        Ontology docs are rebuilt independently from their canonical sources
+        and embedded, so ``dist/ontology-docs/`` is not an input.
         """
         from gmeow_tools.config import ONTOLOGY_FILE, SLICES_DIR
+        from gmeow_tools.ontology_docs import ontology_docs_inputs
 
         doc_files = [
             p
@@ -175,6 +176,7 @@ class GtsFullSnapshotGenerator(Generator):
             SELF_DESC_FILE,
             *sorted(MAPPINGS_DIR.glob("*.sssom.tsv")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
+            *ontology_docs_inputs(),
             *sorted(doc_files),
         ]
 
