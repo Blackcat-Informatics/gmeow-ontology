@@ -188,9 +188,19 @@ def _serialize_outputs(
     out_dir: Path,
     stem: str,
 ) -> list[Path]:
-    """Write .gts / index.nq / index.ttl / index.jsonld / index.nt, all verified."""
+    """Write .gts / index.nq / index.ttl / index.jsonld / index.nt, all verified.
+
+    Tier discipline (#452): the canonical ``.gts`` / ``.nq`` carry the full RDF
+    1.2 provenance AND the canonical internal ``x-gmeow-*`` language tags; the
+    consumer tiers (``.ttl`` / ``.jsonld`` / ``.nt``) are clean asserted triples
+    with public BCP-47 tags — a consumer parser (Google included) reads
+    ``x-gmeow-english`` as nothing, so the readable serializations must not leak
+    it. The ``.gts``/``.nq`` are written first (from the canonical bytes); then
+    ``base_plus_derived`` is retagged in place for the consumer tiers.
+    """
     import pyoxigraph
 
+    from gmeow_tools.language_tags import retag_graph
     from gts import read, to_nquads
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -206,6 +216,12 @@ def _serialize_outputs(
     # RDF 1.2 verification: the trusted parser must accept every line.
     list(pyoxigraph.parse(nq_text.encode(), format=pyoxigraph.RdfFormat.N_QUADS))
     written.append(nq_path)
+
+    # consumer-facing tiers only: retag x-gmeow-* → public BCP-47 across the whole
+    # graph (base + derived together; idempotent for the derived triples
+    # project_graph already retagged). The canonical .gts/.nq keep the internal
+    # tags for round-trip fidelity.
+    retag_graph(base_plus_derived)
 
     ttl_path = out_dir / "index.ttl"
     base_plus_derived.serialize(destination=ttl_path, format="turtle")
