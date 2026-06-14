@@ -28,13 +28,14 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from rdflib import RDF, Graph, Namespace, URIRef
+from rdflib import RDF, BNode, Graph, Namespace, URIRef
 
 from gmeow_tools.config import MAPPINGS_DIR
 from gmeow_tools.up_projection_audit import (
     _canon_qname,
     _in_projection_ns,
     _projection_files,
+    _rdf_list,
     _read_sssom,
     _template_atoms,
     _to_iri,
@@ -90,18 +91,73 @@ def _structural_pairs() -> dict[str, set[str]]:
     return pairs
 
 
+def _edoalpath_pairs() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    """``(direct, inverse)`` target IRI → gmeow IRIs from single-atom edoalPath cells.
+
+    An ``edoalPath`` cell traverses one atom whose *predicate* is the gmeow term.
+    When the pattern's anchor is the atom's OBJECT, the down-projection inverted
+    the edge (e.g. ``subOrganizationOf`` child→parent emitted ``schema:department``
+    parent→child), so the up-lift must swap subject and object. Multi-atom / minting
+    edoalPath cells are left to a later structural stage.
+    """
+    direct: dict[str, set[str]] = defaultdict(set)
+    inverse: dict[str, set[str]] = defaultdict(set)
+    for path in _projection_files():
+        graph = Graph().parse(path, format="turtle")
+        for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
+            pattern = graph.value(cell, GM.hasMappingPattern)
+            if pattern is None or not any(graph.objects(pattern, GM.edoalPath)):
+                continue
+            if any(graph.objects(pattern, GM.mint)):
+                continue
+            atoms = _rdf_list(graph, graph.value(pattern, GM.atom))
+            if len(atoms) != 1:
+                continue
+            apred = graph.value(atoms[0], GM.predicate)
+            if not isinstance(apred, URIRef):
+                continue
+            # classify by which endpoint the anchor binds: subject → direct
+            # (plain predicate rewrite), object → inverse (subject↔object swap).
+            # A missing anchor, or one matching NEITHER endpoint, is malformed —
+            # skip it rather than guess a direction (a wrong guess would shadow
+            # the correct rule for the same target and recover the edge reversed).
+            anchor = graph.value(pattern, GM.anchor)
+            subjvar = graph.value(atoms[0], GM.subjectVar)
+            objvar = graph.value(atoms[0], GM.objectVar)
+            if anchor is None:
+                continue
+            if subjvar is not None and anchor == subjvar:
+                bucket = direct
+            elif objvar is not None and anchor == objvar:
+                bucket = inverse
+            else:
+                continue
+            for binding in graph.objects(cell, GM.hasBinding):
+                tgt = graph.value(binding, GM.toPredicate)
+                if isinstance(tgt, URIRef) and _in_projection_ns(str(tgt)):
+                    bucket[str(tgt)].add(str(apred))
+    return direct, inverse
+
+
 @dataclass
 class LiftMap:
-    """The derived clean-reversal lift, plus the ambiguous targets it skips."""
+    """The derived lift.
+
+    Holds the direct rules, the direction-swapped inverse rules, and the
+    ambiguous targets held out of both.
+    """
 
     rules: dict[str, str]  # target IRI → the single gmeow IRI it lifts to
     ambiguous: dict[str, set[str]]  # target IRI → the rival gmeow IRIs (skipped)
+    # inverse-path targets: lift with a subject↔object swap
+    inverse_rules: dict[str, str] = field(default_factory=dict)
 
 
 def build_lift_map() -> LiftMap:
-    """Derive the unambiguous ``target → gmeow`` lift from both alignment layers."""
+    """Derive the unambiguous lift from the alignment layers (incl. inverse paths)."""
+    direct_edoalpath, inverse_edoalpath = _edoalpath_pairs()
     merged: dict[str, set[str]] = defaultdict(set)
-    for layer in (_sssom_clean_pairs(), _structural_pairs()):
+    for layer in (_sssom_clean_pairs(), _structural_pairs(), direct_edoalpath):
         for target, gmeows in layer.items():
             merged[target] |= gmeows
     rules: dict[str, str] = {}
@@ -111,7 +167,18 @@ def build_lift_map() -> LiftMap:
             rules[target] = next(iter(gmeows))
         else:
             ambiguous[target] = gmeows
-    return LiftMap(rules=rules, ambiguous=ambiguous)
+    # inverse rules: a direct (non-swap) rule, when one exists, always wins; a
+    # many-to-one inverse collision is ambiguous, never silently dropped (so
+    # up_project reports it honestly instead of miscounting it as a gap).
+    inverse_rules: dict[str, str] = {}
+    for target, gmeows in inverse_edoalpath.items():
+        if target in rules or target in ambiguous:
+            continue
+        if len(gmeows) == 1:
+            inverse_rules[target] = next(iter(gmeows))
+        else:
+            ambiguous[target] = gmeows
+    return LiftMap(rules=rules, ambiguous=ambiguous, inverse_rules=inverse_rules)
 
 
 @dataclass
@@ -125,12 +192,13 @@ class UpProjection:
 
 
 def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
-    """Lift a consumer-vocabulary graph up to pure GMEOW via the clean rules.
+    """Lift a consumer-vocabulary graph up to pure GMEOW via the derived rules.
 
     Each triple's predicate (and rdf:type object) is rewritten to its gmeow
-    counterpart when a clean rule exists; subjects/objects/literals are carried
-    verbatim. Terms with no clean rule are accounted in the gap (or, when the
-    reverse is ambiguous, in ``ambiguous_terms``) — never guessed.
+    counterpart: a direct rule keeps the edge, an inverse-path rule swaps subject
+    and object (undoing an inverted down-projection). Subjects/objects/literals
+    are carried verbatim. Terms with no rule are accounted in the gap (or, when
+    the reverse is ambiguous, in ``ambiguous_terms``) — never guessed.
     """
     if len(source) == 0:
         raise ValueError("up_project: source graph is empty")
@@ -142,28 +210,35 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     gaps: dict[str, int] = defaultdict(int)
     ambig: dict[str, int] = defaultdict(int)
 
-    def resolve(term: URIRef) -> URIRef | None:
-        key = str(term)
-        if key in lift.rules:
-            return URIRef(lift.rules[key])
+    def account(key: str) -> None:
         if key in lift.ambiguous:
             ambig[_canon_qname(key)] += 1
         elif _in_projection_ns(key):
             gaps[_canon_qname(key)] += 1
-        return None
 
     for s, p, o in source:
         if p == RDF.type and isinstance(o, URIRef):
-            lifted_o = resolve(o)
-            if lifted_o is not None:
-                out.add((s, RDF.type, lifted_o))
+            key = str(o)
+            if key in lift.rules:  # rdf:type is never inverted
+                out.add((s, RDF.type, URIRef(lift.rules[key])))
                 lifted += 1
+            else:
+                account(key)
             continue
-        if isinstance(p, URIRef):
-            lifted_p = resolve(p)
-            if lifted_p is not None:
-                out.add((s, lifted_p, o))
+        if not isinstance(p, URIRef):
+            continue
+        key = str(p)
+        if key in lift.rules:
+            out.add((s, URIRef(lift.rules[key]), o))
+            lifted += 1
+        elif key in lift.inverse_rules:
+            # a rule exists — this is not a gap. A literal object is skipped
+            # (it cannot become a subject after the swap), not accounted.
+            if isinstance(o, URIRef | BNode):
+                out.add((o, URIRef(lift.inverse_rules[key]), s))
                 lifted += 1
+        else:
+            account(key)
     return UpProjection(
         graph=out, lifted=lifted, gap_terms=dict(gaps), ambiguous_terms=dict(ambig)
     )
