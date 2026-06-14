@@ -999,6 +999,12 @@ def up_project_cmd(
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Write the GMEOW lift here (default: stdout Turtle)."
     ),
+    descend: bool = typer.Option(
+        False,
+        "--descend",
+        help="Use the context-aware graph-descent resolver (resolves a term by "
+        "the subject's type) over the per-term floor.",
+    ),
 ) -> None:
     """Lift a consumer-vocabulary RDF file UP into pure GMEOW (#451).
 
@@ -1007,17 +1013,23 @@ def up_project_cmd(
     stamped ``gmeow:StatementMetadata`` claim (confidence + mappedFrom) rather
     than a bare fact. Terms with no rule, or whose reverse is ambiguous (a
     many-to-one down-image), are reported and left out — never guessed.
+
+    With ``--descend``, an ambiguous or inferred term is resolved by the
+    subject's type — ``schema:about`` on a ``MediaObject`` becomes ``gmeow:depicts``
+    but on any other entity ``gmeow:isAbout`` — falling through to the per-term
+    floor when the type adds no signal.
     """
     from rdflib import Graph
 
     from gmeow_tools.up_projection import up_project
+    from gmeow_tools.up_projection_descend import up_project_descend
 
     try:
         src = Graph().parse(source, format="turtle")
     except (OSError, ValueError, SyntaxError) as exc:
         raise _fail(f"cannot read or parse {source}: {exc}") from exc
     try:
-        result = up_project(src)
+        result = up_project_descend(src) if descend else up_project(src)
     except ValueError as exc:
         raise _fail(str(exc)) from exc
     if out is not None:
@@ -1033,7 +1045,12 @@ def up_project_cmd(
     err_console.print(
         f"[green]lifted[/green] {result.lifted} facts · "
         f"[cyan]claimed[/cyan] {result.claimed} inferred · "
-        f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
+        + (
+            f"[magenta]context[/magenta] {result.context_resolved} by-type · "
+            if descend
+            else ""
+        )
+        + f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
         f"[yellow]ambiguous[/yellow] {len(result.ambiguous_terms)} terms",
     )
     for term, n in sorted(result.claim_terms.items()):
