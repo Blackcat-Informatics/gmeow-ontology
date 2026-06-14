@@ -17,7 +17,13 @@ from rdflib import RDF, Graph, URIRef
 from rdflib.namespace import OWL
 from rdflib.term import Node
 
-from gmeow_tools.config import GENERATED_DIR, NAMESPACE, PROJECT_ROOT, SLICES_DIR
+from gmeow_tools.config import (
+    GENERATED_DIR,
+    LOGIC_NAMESPACE,
+    NAMESPACE,
+    PROJECT_ROOT,
+    SLICES_DIR,
+)
 from gmeow_tools.generator import Generator, register
 from gmeow_tools.slices import Slice, discover_slices
 
@@ -51,8 +57,15 @@ def _term_counts(module: Path) -> tuple[int, int, int, int, int]:
     g.parse(module, format="turtle")
 
     def terms(kind: Node) -> set[Node]:
+        # The logic slice authors its vocabulary in the canonical ``logic:``
+        # namespace (Principle 17), not the ``gmeow:`` one, so its module-status
+        # row must count both surfaces.
         subjects = (s for s in g.subjects(RDF.type, kind))
-        return {s for s in subjects if str(s).startswith(NAMESPACE)}
+        return {
+            s
+            for s in subjects
+            if str(s).startswith(NAMESPACE) or str(s).startswith(LOGIC_NAMESPACE)
+        }
 
     classes = terms(OWL.Class)
     property_terms = (
