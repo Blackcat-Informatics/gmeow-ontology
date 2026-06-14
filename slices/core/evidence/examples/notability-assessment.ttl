@@ -17,10 +17,13 @@ ex:feature a gmeow:CreativeWork ; gmeow:title "Acme Robotics: the rise of a ware
 ex:pressRelease a gmeow:CreativeWork ; gmeow:title "Acme Robotics announces Series B"@x-gmeow-english .
 
 # --- Strong evidence: an independent trade-press feature with depth → supports.
+#     The subject (citingEntity, generic Entity) is supported by the cited work
+#     (citedEntity, a CreativeWork): gmeow:intentSupports reads "the cited work
+#     supports the citing entity", and the evidence dimensions grade that support.
 ex:goodCite a gmeow:CitationAct ;
-    gmeow:citingEntity       ex:feature ;
-    gmeow:citedEntity        ex:subject ;
-    gmeow:citationIntent     gmeow:intentDocuments ;
+    gmeow:citingEntity       ex:subject ;
+    gmeow:citedEntity        ex:feature ;
+    gmeow:citationIntent     gmeow:intentSupports ;
     gmeow:hasEvidenceClass   gmeow:evidenceIndependentTradePress ;
     gmeow:sourceTier         gmeow:sourceTierSecondary ;
     gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ;
@@ -30,9 +33,9 @@ ex:goodCite a gmeow:CitationAct ;
 # --- Weak evidence: the subject's own press release, a passing routine notice →
 #     same predicate, graded the other way: does NOT support notability.
 ex:weakCite a gmeow:CitationAct ;
-    gmeow:citingEntity       ex:pressRelease ;
-    gmeow:citedEntity        ex:subject ;
-    gmeow:citationIntent     gmeow:intentDocuments ;
+    gmeow:citingEntity       ex:subject ;
+    gmeow:citedEntity        ex:pressRelease ;
+    gmeow:citationIntent     gmeow:intentSupports ;
     gmeow:hasEvidenceClass   gmeow:evidenceSelfControlledSite ;
     gmeow:sourceTier         gmeow:sourceTierPrimary ;
     gmeow:sourceIndependence gmeow:sourceIndependenceSelfOrIssuerOriginated ;
