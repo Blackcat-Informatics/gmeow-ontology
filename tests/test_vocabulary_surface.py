@@ -401,8 +401,7 @@ def test_slice_source_localizable_literals_are_language_tagged() -> None:
             for _, p, obj in graph
             if p in LOCALIZABLE_PREDICATES
             and isinstance(obj, Literal)
-            and obj.language is None
-            and obj.datatype is None
+            and not obj.language
         )
         if bad:
             untagged[path.relative_to(PROJECT_ROOT).as_posix()] = bad
