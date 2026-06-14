@@ -47,6 +47,46 @@
 </ul>
 <h2>Local Map</h2>
 <p><img alt="agreements map" src="../../diagrams/slices/agreements.svg"></p>
+<h2>Examples</h2>
+<h3>Employment Contract</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl"><code>slices/core/agreements/examples/employment-contract.ttl</code></a></li>
+<li><strong>GMEOW terms:</strong> <a href="../../reference/classes/gmeow-Agreement/"><code>gmeow:Agreement</code></a>, <a href="../../reference/classes/gmeow-AgreementName/"><code>gmeow:AgreementName</code></a>, <a href="../../reference/classes/gmeow-Contract/"><code>gmeow:Contract</code></a>, <a href="../../reference/classes/gmeow-Membership/"><code>gmeow:Membership</code></a>, <a href="../../reference/classes/gmeow-Organization/"><code>gmeow:Organization</code></a>, <a href="../../reference/classes/gmeow-Person/"><code>gmeow:Person</code></a>, <a href="../../reference/properties/gmeow-foundedOn/"><code>gmeow:foundedOn</code></a>, <a href="../../reference/properties/gmeow-fullName/"><code>gmeow:fullName</code></a>, <a href="../../reference/properties/gmeow-hasAgreementName/"><code>gmeow:hasAgreementName</code></a>, <a href="../../reference/properties/gmeow-hasParty/"><code>gmeow:hasParty</code></a></li>
+<li><strong>External prefixes:</strong> <code>gufo</code>, <code>xsd</code></li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an agreement as a relator . A gmeow:Agreement (here a
+# gmeow:Contract, the legally-enforceable specialization) is a gufo:Relator that
+# binds its parties via gmeow:hasParty — the agreement IS the relationship, not a
+# property of either party. It bears a structured gmeow:AgreementName (an
+# Appellation, so multilingual co-equal titles are first-class). Other relators
+# can be gmeow:foundedOn it: the employment Membership below exists BECAUSE of the
+# contract, so its grounding is recorded rather than assumed.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/agreements/&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+ex:acme a gmeow:Organization ; gmeow:name &quot;Acme Robotics Inc.&quot;@en .
+ex:dana a gmeow:Person ; gmeow:name &quot;Dana Reyes&quot;@en .
+
+# --- The contract: a relator binding the two parties, bearing a formal name.
+ex:contract a gmeow:Contract ;
+    gmeow:hasParty         ex:acme , ex:dana ;
+    gmeow:hasAgreementName ex:contractName ;
+    gmeow:validFrom        &quot;2026-01-15T00:00:00Z&quot;^^xsd:dateTime .
+
+ex:contractName a gmeow:AgreementName ;
+    gmeow:fullName &quot;Acme Robotics — Reyes Employment Agreement (2026)&quot;@en .
+
+# --- The employment Membership is FOUNDED ON the contract: it exists because of
+#     it, so the grounding relator points at the agreement rather than assuming it.
+ex:employment a gmeow:Membership ;
+    gmeow:membershipMember       ex:dana ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:foundedOn              ex:contract .
+</code></pre>
 <h2>Terms</h2>
 <h3>Classes</h3>
 <table>

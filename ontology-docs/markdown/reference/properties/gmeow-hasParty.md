@@ -17,6 +17,37 @@ Relates an agreement to an agent that is bound by it.
 
 Use [`gmeow:hasParty`](gmeow-hasParty.md) from [`gmeow:Agreement`](../classes/gmeow-Agreement.md) to [`gmeow:Agent`](../classes/gmeow-Agent.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Employment Contract
+
+- **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-agreements-examples-employment-contract)#example-slices-core-agreements-examples-employment-contract
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an agreement as a relator . A gmeow:Agreement (here a
+# gmeow:Contract, the legally-enforceable specialization) is a gufo:Relator that
+# binds its parties via gmeow:hasParty — the agreement IS the relationship, not a
+# property of either party. It bears a structured gmeow:AgreementName (an
+# Appellation, so multilingual co-equal titles are first-class). Other relators
+# can be gmeow:foundedOn it: the employment Membership below exists BECAUSE of the
+# contract, so its grounding is recorded rather than assumed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agreements/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The contract: a relator binding the two parties, bearing a formal name.
+ex:contract a gmeow:Contract ;
+    gmeow:hasParty         ex:acme , ex:dana ;
+    gmeow:hasAgreementName ex:contractName ;
+    gmeow:validFrom        "2026-01-15T00:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Agreement`](../classes/gmeow-Agreement.md), [`gmeow:Agent`](../classes/gmeow-Agent.md)

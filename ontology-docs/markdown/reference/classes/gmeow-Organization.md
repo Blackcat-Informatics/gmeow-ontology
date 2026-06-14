@@ -35,13 +35,14 @@ ex:blackcat a gmeow:Organization ;
     gmeow:description "A small ontology and tooling consultancy."@en .
 ```
 
-### Contact Points
+### Employment Contract
 
-- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
-- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+- **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-agreements-examples-employment-contract)#example-slices-core-agreements-examples-employment-contract
 
 ```turtle
 ex:acme a gmeow:Organization ; gmeow:name "Acme Robotics Inc."@en .
+ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@en .
 ```
 
 ## Common Companion Terms

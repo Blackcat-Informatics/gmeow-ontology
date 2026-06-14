@@ -42,6 +42,16 @@ ex:nameDead a gmeow:PersonName ;
     gmeow:displayable false .
 ```
 
+### Employment Contract
+
+- **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-agreements-examples-employment-contract)#example-slices-core-agreements-examples-employment-contract
+
+```turtle
+ex:contractName a gmeow:AgreementName ;
+    gmeow:fullName "Acme Robotics — Reyes Employment Agreement (2026)"@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Appellation`](../classes/gmeow-Appellation.md)
