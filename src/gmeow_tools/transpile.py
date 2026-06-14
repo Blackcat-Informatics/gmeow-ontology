@@ -62,7 +62,7 @@ def transpile(
     profiles: Sequence[str] | None = None,
     descend: bool = True,
 ) -> TranspileReport:
-    """Transpile a consumer-vocabulary source file to MAXIMAL GMEOW.
+    """Transpile a consumer-vocabulary source *file* to MAXIMAL GMEOW.
 
     Args:
         source_path: A non-GMEOW source RDF file (Turtle) to ingest.
@@ -74,34 +74,59 @@ def transpile(
 
     Returns:
         The :class:`TranspileReport`.
+    """
+    source = Graph()
+    source.parse(source_path, format="turtle")
+    return transpile_graph(
+        source, source_path.stem, out_dir=out_dir, profiles=profiles, descend=descend
+    )
+
+
+def transpile_graph(
+    source: Graph,
+    stem: str,
+    *,
+    out_dir: Path | None = None,
+    profiles: Sequence[str] | None = None,
+    descend: bool = True,
+) -> TranspileReport:
+    """Transpile an in-memory consumer-vocabulary graph to MAXIMAL GMEOW.
+
+    The graph-core of :func:`transpile` — used by the CLI so a stdin-piped source
+    (``gmeow transpile -``) flows through without a temp file.
+
+    Args:
+        source: The non-GMEOW source RDF graph to ingest.
+        stem: The output basename (the draft, ``.gts`` file, default sub-dir).
+        out_dir: Output directory (default ``dist/transpile/<stem>/``).
+        profiles: Projection profiles for the maximal pass (default: all).
+        descend: Use the context-aware graph-descent up-projection (default).
+
+    Returns:
+        The :class:`TranspileReport`.
 
     Raises:
-        ValueError: If the source graph is empty, or nothing lifts to GMEOW (an
+        ValueError: If ``stem`` is empty/blank, or nothing lifts to GMEOW (an
             empty pure-GMEOW draft has nothing to project — surfaced, not a
             silent empty publication).
     """
-    target = (
-        out_dir if out_dir is not None else DIST_DIR / "transpile" / source_path.stem
-    )
-
-    source = Graph()
-    source.parse(source_path, format="turtle")
+    if not stem.strip():
+        raise ValueError("transpile_graph: stem must be a non-empty string")
+    target = out_dir if out_dir is not None else DIST_DIR / "transpile" / stem
 
     lift = up_project_descend(source) if descend else up_project(source)
     if len(lift.graph) == 0:
-        msg = f"transpile: nothing lifted to GMEOW from {source_path} — empty draft"
+        msg = f"transpile: nothing lifted to GMEOW from {stem} — empty draft"
         raise ValueError(msg)
 
     target.mkdir(parents=True, exist_ok=True)
     # serialize lift.graph directly (no O(N) copy); transform_graph skolemizes
     # into a fresh graph, so it never mutates this one.
     bind_prefixes(lift.graph)
-    draft_path = target / f"{source_path.stem}.gmeow.ttl"
+    draft_path = target / f"{stem}.gmeow.ttl"
     lift.graph.serialize(destination=draft_path, format="turtle")
 
-    report = transform_graph(
-        lift.graph, source_path.stem, out_dir=target, profiles=profiles
-    )
+    report = transform_graph(lift.graph, stem, out_dir=target, profiles=profiles)
 
     return TranspileReport(
         lifted=lift.lifted,

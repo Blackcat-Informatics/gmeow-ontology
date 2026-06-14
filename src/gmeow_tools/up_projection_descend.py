@@ -16,10 +16,16 @@ specifically satisfies (``eventLocation`` for an ``Event`` beats the catch-all
 type-compatible, or two remain tied — the edge falls through to the per-term
 floor (#480), so nothing is lost and nothing is guessed.
 
-This is **stage 1** of the descent (the node's *own* type, the most local
-context). Path context (the ancestor chain of resolved types) and sibling-shape
-recognition (multi-atom constellations) extend the same frame outward later; the
-two-pass scaffold (index types, then resolve) and the floor are shared.
+The descent resolves a node by its *own* type plus the multi-atom structural
+legs (:func:`_multiatom_pairs`). **Path context** — typing an *untyped* node from
+the ``rdfs:range`` of its incoming edge (the ancestor chain) — was prototyped and
+**measured to 0 extra resolved edges** on the real corpus (bii + paudley): 36/80
+untyped nodes do gain an inferred type, but none of their outgoing predicates
+become resolvable with it (those predicates are mostly gaps, or their candidate
+domains don't match the inferred type). It is therefore a **deliberate non-goal**
+here — real complexity (a propagation pass + fixpoint) for no measured benefit —
+not an oversight. Reopen only if a later mapping change makes the untyped nodes'
+outgoing predicates type-discriminable.
 
 Derived, not hand-authored: the candidate terms and their type-contexts are the
 alignment layers read backwards, exactly as the floor's rules are.
