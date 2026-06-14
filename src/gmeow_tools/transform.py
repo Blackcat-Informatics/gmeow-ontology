@@ -235,10 +235,37 @@ def transform(
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
 ) -> TransformReport:
-    """Run MAXIMAL(G) over an A-Box file.
+    """Run MAXIMAL(G) over an A-Box *file*.
 
     Args:
         abox_path: The canonical GMEOW instance Turtle file.
+        out_dir: Output directory (default ``dist/transform/<stem>/``).
+        profiles: Projection profiles for P(G) (default: all registered).
+
+    Returns:
+        The :class:`TransformReport` (counts, wall clock, written paths).
+    """
+    raw = Graph()
+    raw.parse(abox_path, format="turtle")
+    return transform_graph(raw, abox_path.stem, out_dir=out_dir, profiles=profiles)
+
+
+def transform_graph(
+    raw: Graph,
+    stem: str,
+    *,
+    out_dir: Path | None = None,
+    profiles: Sequence[str] | None = None,
+) -> TransformReport:
+    """Run MAXIMAL(G) over an in-memory A-Box graph.
+
+    The graph-core of :func:`transform` — used directly by the end-to-end
+    :func:`gmeow_tools.transpile.transpile` so an up-projected GMEOW graph flows
+    into the maximal projection without a temp file.
+
+    Args:
+        raw: The canonical GMEOW A-Box graph.
+        stem: The output basename (the ``.gts`` file and default sub-directory).
         out_dir: Output directory (default ``dist/transform/<stem>/``).
         profiles: Projection profiles for P(G) (default: all registered).
 
@@ -250,15 +277,13 @@ def transform(
     from gmeow_tools.projections import PROFILES
 
     start = time.perf_counter()
-    target = out_dir if out_dir is not None else DIST_DIR / "transform" / abox_path.stem
+    target = out_dir if out_dir is not None else DIST_DIR / "transform" / stem
     names = list(PROFILES) if profiles is None else list(profiles)
     unknown = sorted(set(names) - set(PROFILES))
     if unknown:
         msg = f"unknown projection profile(s): {', '.join(unknown)}"
         raise ValueError(msg)
 
-    raw = Graph()
-    raw.parse(abox_path, format="turtle")
     abox = _skolemized(raw)
 
     onto = load_merged_graph(include_imports=False)
@@ -292,7 +317,7 @@ def transform(
         base_plus_derived.add(row.triple)
 
     gts_bytes = gts_from_maximal(abox, derived)
-    written = _serialize_outputs(base_plus_derived, gts_bytes, target, abox_path.stem)
+    written = _serialize_outputs(base_plus_derived, gts_bytes, target, stem)
 
     return TransformReport(
         asserted=len(abox),
