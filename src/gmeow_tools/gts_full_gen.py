@@ -32,6 +32,7 @@ from gmeow_tools.generator import Generator, register
 from gmeow_tools.graph import iter_import_files, iter_module_files
 from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
+from gmeow_tools.self_desc import SELF_DESC_FILE
 from gmeow_tools.slices import discover_slices
 from gts import Signer
 
@@ -105,8 +106,8 @@ def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
     """A single deterministic tar archive of the ontology docs tree (#440).
 
     The tar is built independently from canonical sources so that
-    ``gmeow-full.gts`` does not depend on the committed ``ontology-docs/``
-    directory.
+    ``gmeow-full.gts`` does not depend on ``dist/ontology-docs/`` or the legacy
+    committed ``ontology-docs/`` directory.
     """
     from gmeow_tools.ontology_docs import build_ontology_docs
 
@@ -124,13 +125,14 @@ def compile_full_snapshot(
     """Compile the full offline GMEOW snapshot, optionally signed.
 
     This is the shared body used by the registered ``gts-full`` generator and
-    by the ``gmeow gts compile-full`` release command. The committed artifact
+    by the ``gmeow-dev gts compile-full`` release command. The committed artifact
     produced by the generator is always unsigned; the release command supplies
     a signer and the armored transport public key.
     """
     from gmeow_tools.graph import load_merged_graph
 
     graph = load_merged_graph(include_imports=True)
+    graph.parse(SELF_DESC_FILE, format="turtle")
     doc_blobs = _doc_blobs(graph) + _project_doc_blobs() + _ontology_doc_blobs()
     alignments = build_alignment_graph(load_mappings())
     return compile_gts(
@@ -154,10 +156,11 @@ class GtsFullSnapshotGenerator(Generator):
         """Everything the snapshot folds.
 
         Ontology, imports, statements, alignments, guides, and project docs.
-        Ontology docs are rebuilt independently from these canonical sources
-        and embedded, so the committed ``ontology-docs/`` tree is not an input.
+        Ontology docs are rebuilt independently from their canonical sources
+        and embedded, so ``dist/ontology-docs/`` is not an input.
         """
         from gmeow_tools.config import ONTOLOGY_FILE, SLICES_DIR
+        from gmeow_tools.ontology_docs import ontology_docs_inputs
 
         doc_files = [
             p
@@ -170,8 +173,10 @@ class GtsFullSnapshotGenerator(Generator):
             *iter_module_files(),
             *iter_import_files(),
             STATEMENT_RDF12_FILE,
+            SELF_DESC_FILE,
             *sorted(MAPPINGS_DIR.glob("*.sssom.tsv")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
+            *ontology_docs_inputs(),
             *sorted(doc_files),
         ]
 

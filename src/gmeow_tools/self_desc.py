@@ -54,7 +54,21 @@ def load_self_description(path: Path | None = None) -> SelfDescription:
     """
     g = Graph()
     g.parse(path or SELF_DESC_FILE, format="turtle")
+    return load_self_description_from_graph(g)
 
+
+def load_self_description_from_graph(g: Graph) -> SelfDescription:
+    """Extract structured self-description metadata from an RDF graph.
+
+    Args:
+        g: Graph containing the GMEOW self-description triples.
+
+    Returns:
+        A :class:`SelfDescription` dataclass with all metadata fields.
+
+    Raises:
+        ValueError: If required metadata is missing or malformed.
+    """
     work = URIRef("https://blackcatinformatics.ca/gmeow")
 
     # In FRBR terms the Work is the abstract entity; the Manifestation is a

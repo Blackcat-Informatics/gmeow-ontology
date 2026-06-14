@@ -23,6 +23,7 @@
     a gmeow:Work ;
     rdfs:label "GMEOW — Global Metadata and Entity Ontology for the Web"@x-gmeow-english ;
     skos:definition "A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     foaf:homepage <https://blackcatinformatics.ca/gmeow> ;
     gmeow:datePublished "2026-06-03"^^xsd:date .
@@ -33,6 +34,9 @@
 
 :expression
     a gmeow:Expression ;
+    rdfs:label "GMEOW 0.1.0 expression"@x-gmeow-english ;
+    skos:definition "The realized expression of the GMEOW ontology work for the 0.1.0 publication."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:realizes <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -41,6 +45,9 @@
 
 <https://blackcatinformatics.ca/gmeow/0.1.0>
     a gmeow:Manifestation ;
+    rdfs:label "GMEOW 0.1.0 manifestation"@x-gmeow-english ;
+    skos:definition "The concrete versioned publication manifestation of GMEOW 0.1.0."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:embodies :expression ;
     gmeow:versionFingerprint "0.1.0" ;
     gmeow:datePublished "2026-06-03"^^xsd:date ;
@@ -58,6 +65,9 @@
 
 :contribution-bii
     a gmeow:Contribution ;
+    rdfs:label "Blackcat Informatics GMEOW contribution"@x-gmeow-english ;
+    skos:definition "The lead author contribution by Blackcat Informatics Inc. to the GMEOW ontology work."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:contributor <https://blackcatinformatics.ca/#bii> ;
     gmeow:contributionTarget <https://blackcatinformatics.ca/gmeow> ;
     gmeow:contributionRole gmeow:roleAuthor ;
@@ -69,72 +79,108 @@
 
 :citation-schema-org
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of schema.org"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges schema.org by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <https://schema.org/> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-foaf
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of FOAF"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges FOAF by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://xmlns.com/foaf/0.1/> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-dcterms
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of Dublin Core Terms"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges Dublin Core Terms by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://purl.org/dc/terms/> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-time
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of OWL-Time"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges OWL-Time by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://www.w3.org/2006/time#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-geosparql
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of GeoSPARQL"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges GeoSPARQL by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://www.opengis.net/ont/geosparql#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-prov
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of PROV-O"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges PROV-O by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://www.w3.org/ns/prov#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-skos
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of SKOS"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges SKOS by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://www.w3.org/2004/02/skos/core#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-vcard
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of vCard"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges vCard by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://www.w3.org/2006/vcard/ns#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-bibo
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of BIBO"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges BIBO by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://purl.org/ontology/bibo/> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-frbr
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of FRBR"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges FRBR by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://purl.org/vocab/frbr/core#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-doap
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of DOAP"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges DOAP by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://usefulinc.com/ns/doap#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
 
 :citation-ical
     a gmeow:CitationAct ;
+    rdfs:label "GMEOW citation of iCalendar RDF"@x-gmeow-english ;
+    skos:definition "A citation act recording that GMEOW bridges the iCalendar RDF vocabulary by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://www.w3.org/2002/12/cal/icaltzd#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .

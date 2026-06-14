@@ -23,8 +23,8 @@ narrow-waist `RDF 1.2 → GTS → *` toolchain.
 - **`RDF → GTS` producer** — interns an rdflib `Graph`/`Dataset` (RDF 1.1 base graph)
   **and** an RDF 1.2 artifact read via pyoxigraph (the statement layer:
   `rdf:reifies` triple-terms → `reifies`, annotations → `annot`) into one dictionary.
-  `gmeow gts compile` builds a **statement-complete** `dist/gmeow.gts` from the merged
-  ontology + `statements/gmeow.rdf12.ttl` (#271).
+  `gmeow-dev gts compile` builds a **statement-complete** `dist/gmeow.gts` from the
+  merged ontology + `statements/gmeow.rdf12.ttl` (#271).
 - **Transforms out** — `gts → nquads` (§14) and `gts → {sqlite,duckdb}` (the
   integer-id, dictionary-encoded relational load; the engine resolves ids via join).
 - **COSE signing (§9.2)** — `Writer(signer=…)` COSE_Sign1-signs each frame over its
@@ -65,9 +65,9 @@ print(to_nquads(graph))                  # <…/Cat> <…/label> "Cat"@en .
 CLI:
 
 ```bash
-gmeow gts compile -o dist/gmeow.gts   # RDF 1.1 merged ontology -> GTS dist snapshot
-gmeow gts from-rdf data.ttl -o data.gts
-gmeow gts info     file.gts           # frame/term/quad/blob counts + diagnostics
+gmeow-dev gts compile -o dist/gmeow.gts # checkout merged ontology -> GTS snapshot
+gmeow gts from-rdf data.ttl -o data.gts # consumer-safe arbitrary RDF -> GTS
+gmeow gts info     file.gts             # frame/term/quad/blob counts + diagnostics
 gmeow gts to-nq    file.gts -o out.nq
 gmeow gts to-sqlite file.gts -o out.sqlite
 gmeow gts to-duckdb file.gts -o out.duckdb

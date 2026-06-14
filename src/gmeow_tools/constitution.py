@@ -163,8 +163,8 @@ def _symbol_defined(symbol: str, artifacts: tuple[str, ...], root: Path) -> bool
 
 
 def _cli_command_names() -> frozenset[str]:
-    """Every command registered on the gmeow Typer app."""
-    from gmeow_tools.cli import app
+    """Every command registered on the gmeow-dev Typer app."""
+    from gmeow_tools.cli_dev import app
 
     names: set[str] = set()
     for command in app.registered_commands:

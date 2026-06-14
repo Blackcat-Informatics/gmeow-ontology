@@ -10,16 +10,19 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from gmeow_tools.generator import registry
-from gmeow_tools.ontology_docs import build_ontology_docs
+from gmeow_tools.config import PROJECT_ROOT
+from gmeow_tools.ontology_docs import build_ontology_docs, ontology_docs_inputs
 
 _TICKET_REFERENCE_RE = re.compile(r"(?i)\b(?:issue|pr)\s+#\d+|#[0-9]+")
 
 
-def test_ontology_docs_generator_is_registered() -> None:
-    assert "ontology-docs" in registry()
-    gen = registry()["ontology-docs"]
-    assert gen.is_directory_output
+def test_ontology_docs_inputs_include_slice_design_docs() -> None:
+    rel_inputs = {
+        path.relative_to(PROJECT_ROOT).as_posix()
+        for path in ontology_docs_inputs()
+        if path.is_relative_to(PROJECT_ROOT)
+    }
+    assert "slices/core/logic/design/LOGIC.md" in rel_inputs
 
 
 @pytest.mark.ci_only

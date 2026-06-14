@@ -9,9 +9,9 @@
 <https://blackcatinformatics.ca/gmeow/slices/logic>
     a gmeow:Slice ;
     rdfs:label "logic"@x-gmeow-english ;
-    skos:definition "The logic slice (core tier): the home of GMEOW Logic — the maximally expressive, RDF 1.2-native reasoning layer (`logic:`) of which OWL, Datalog, SHACL, Prolog, N3, and the gUFO/BFO/DOLCE upper ontologies are generated lossy projections (Principle 17). The normative design is the five-document set in `design/`; the `logic:` vocabulary, rules, solver, and generators are minted with implementation. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The logic slice (core tier): the home of GMEOW Logic — the maximally expressive, RDF 1.2-native reasoning layer (`logic:`) of which OWL, Datalog, SHACL, Prolog, N3, and the gUFO/BFO/DOLCE upper ontologies are generated lossy projections (Principle 17). The normative design is the five-document set in `design/`; the foundation vocabulary (UFO+ sorts, foundation relations, semantic profiles, world/modal terms, quantitative axes, and preservation-polarity terms) is minted as bare standalone declarations. The rules, solver, and generators are deferred to later rungs of the Logic EPIC. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     dcterms:title "GMEOW Logic"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
-    gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction. Pre-implementation, its consumer is the design set in `design/`."@x-gmeow-english .
+    gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction. The foundation vocabulary is now minted; the solver and generators are deferred to later rungs of the Logic EPIC."@x-gmeow-english .
