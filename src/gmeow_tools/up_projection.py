@@ -116,15 +116,26 @@ def _edoalpath_pairs() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
             apred = graph.value(atoms[0], GM.predicate)
             if not isinstance(apred, URIRef):
                 continue
+            # classify by which endpoint the anchor binds: subject → direct
+            # (plain predicate rewrite), object → inverse (subject↔object swap).
+            # A missing anchor, or one matching NEITHER endpoint, is malformed —
+            # skip it rather than guess a direction (a wrong guess would shadow
+            # the correct rule for the same target and recover the edge reversed).
             anchor = graph.value(pattern, GM.anchor)
+            subjvar = graph.value(atoms[0], GM.subjectVar)
             objvar = graph.value(atoms[0], GM.objectVar)
-            # a missing anchor/objectVar must NOT read as inverse — guard the
-            # None==None trap before comparing the variable names
-            is_inverse = anchor is not None and objvar is not None and anchor == objvar
+            if anchor is None:
+                continue
+            if subjvar is not None and anchor == subjvar:
+                bucket = direct
+            elif objvar is not None and anchor == objvar:
+                bucket = inverse
+            else:
+                continue
             for binding in graph.objects(cell, GM.hasBinding):
                 tgt = graph.value(binding, GM.toPredicate)
                 if isinstance(tgt, URIRef) and _in_projection_ns(str(tgt)):
-                    (inverse if is_inverse else direct)[str(tgt)].add(str(apred))
+                    bucket[str(tgt)].add(str(apred))
     return direct, inverse
 
 
