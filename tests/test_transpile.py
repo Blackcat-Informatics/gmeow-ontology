@@ -7,7 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, URIRef
+from rdflib import Graph, Literal, URIRef
 
 from gmeow_tools.transpile import transpile
 
@@ -30,6 +30,73 @@ def source_file(tmp_path: Path) -> Path:
     path = tmp_path / "people.ttl"
     path.write_text(_SOURCE, encoding="utf-8")
     return path
+
+
+def test_gap_report_lists_held_terms_and_their_triples() -> None:
+    """A projection-vocab term with no lift rule, and its actual source triple,
+    appear in the gap report — never silently dropped."""
+    from gmeow_tools.transpile import _gap_report
+    from gmeow_tools.up_projection import UpProjection
+
+    src = Graph()
+    src.add((URIRef("https://ex.org/x"), URIRef(SCHEMA + "gap"), Literal("v")))
+    lift = UpProjection(graph=Graph(), lifted=1, claimed=0, gap_terms={"schema:gap": 1})
+    report = _gap_report(src, lift, "g")
+    assert "schema:gap" in report  # the gap term named
+    assert '"v"' in report  # the actual un-lifted triple listed
+    assert "1 triples / 1 terms" in report  # tallies match the accounting
+
+
+def test_transpile_writes_gap_report(source_file: Path, tmp_path: Path) -> None:
+    """Every transpile writes a `<stem>.gaps.md` whose tallies are consistent
+    with the report's gap/ambiguous accounting."""
+    rep = transpile(source_file, out_dir=tmp_path / "out", profiles=["schema-org"])
+    assert rep.gap_report_path.exists() and rep.gap_report_path.name == "people.gaps.md"
+    report = rep.gap_report_path.read_text(encoding="utf-8")
+    assert "# Transpile gap report" in report
+    assert "## Gap terms" in report and "## Ambiguous terms" in report
+
+
+def test_transpile_writes_index_nt(source_file: Path, tmp_path: Path) -> None:
+    """index.nt is part of the maximal family and is plain-RDF parseable."""
+    out = tmp_path / "out"
+    rep = transpile(source_file, out_dir=out, profiles=["schema-org"])
+    assert "index.nt" in {p.name for p in rep.transform.written}
+    nt = Graph().parse(out / "index.nt", format="nt")
+    ttl = Graph().parse(out / "index.ttl", format="turtle")
+    assert len(nt) == len(ttl)  # same asserted triples, different syntax
+
+
+def test_project_gts_single_vocab_view(source_file: Path, tmp_path: Path) -> None:
+    """`project --profile foaf <gts>` filters the maximal .gts to the complete
+    FOAF subset (a view, not a re-projection); 'all' and 'gmeow' views too."""
+    from gmeow_tools.config import PREFIXES
+    from gmeow_tools.projections import project_gts_subset
+
+    out = tmp_path / "out"
+    rep = transpile(source_file, out_dir=out, profiles=["foaf"])
+    gts_path = next(p for p in rep.transform.written if p.suffix == ".gts")
+    views = tmp_path / "views"
+
+    foaf = Graph().parse(
+        project_gts_subset(gts_path, "foaf", dist_dir=views), format="turtle"
+    )
+    index = Graph().parse(out / "index.ttl", format="turtle")
+    fns = PREFIXES["foaf"]
+    foaf_in_max = {
+        t for t in index if str(t[1]).startswith(fns) or str(t[2]).startswith(fns)
+    }
+    assert foaf_in_max <= set(foaf), "view must hold the full FOAF subset of maximal"
+    assert all(not str(p).startswith(SCHEMA) for _s, p, _o in foaf), "no schema leak"
+
+    allg = Graph().parse(
+        project_gts_subset(gts_path, "all", dist_dir=views), format="turtle"
+    )
+    gm = Graph().parse(
+        project_gts_subset(gts_path, "gmeow", dist_dir=views), format="turtle"
+    )
+    assert len(allg) > len(gm) > 0  # all ⊃ the pure-gmeow base
+    assert all(str(p).startswith(GM) or str(p).endswith("#type") for _s, p, _o in gm)
 
 
 def test_transpile_produces_maximal_family(source_file: Path, tmp_path: Path) -> None:
