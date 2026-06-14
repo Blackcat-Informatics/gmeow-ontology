@@ -134,3 +134,60 @@ incoming edge ("path context") was prototyped and resolved **zero** extra edges
 on the real corpus — the untyped nodes' own predicates are mostly gaps, so an
 inferred type buys nothing. It is deliberately not implemented; see the
 `up_projection_descend` module docstring.
+
+## Acceptance — the honest, real-data scoreboard
+
+A prior coverage metric was *gamed*: hand-authored fixtures, written to make the
+projection emit a target vocabulary, then measured to confirm it did — circular.
+The acceptance harness (`gmeow-dev acceptance`, `make acceptance`) is the
+antidote. It runs the whole transpile over **verbatim real-world graphs** — the
+`tests/fixtures/coverage/external/` snapshots, explicitly *not* GMEOW-authored, so
+the numbers cannot be moved by writing more fixtures — and scores five gates:
+
+| gate | kind | what it proves |
+|---|---|---|
+| pure-GMEOW intermediate | **hard** | the up-projected draft carries *only* GMEOW + structural terms — no consumer-vocab residue |
+| round-trip ⊇ source | scoreboard | `down(up(source))` recovers the source's triples, per vocabulary — *red until done* |
+| size invariant | **hard** | the maximal output strictly out-sizes the source (the representational fan-out fired) |
+| external-validator | **hard** | no `@x-gmeow-*` tag leaks to the consumer tiers (a parser reads it as nothing) |
+| honest coverage | scoreboard | per-source triples lifted vs the gap, and vocabulary coverage against the source |
+
+It is a **progress meter, not a CI blocker**: the scoreboard gates may stay red
+for the whole epic, and that is the point — they are an honest signal of how much
+real published RDF GMEOW can already round-trip.
+
+### The genuinely-external validator
+
+The external-validator gate does not re-implement a checker that could
+rubber-stamp itself. It reuses the **target vocabularies' own published axioms**
+(the vendored snapshots under `imports/targets/`, `refresh`-able from upstream)
+two ways:
+
+- **term attestation** (report-only) — every term the output emits in a vocabulary's
+  namespace is checked against that vocabulary's own definition. The snapshots are
+  *minimal axiom graphs*, so a term absent from every axiom is *reported*, never
+  failed — the snapshot cannot prove a term is fabricated, only that it is
+  unattested.
+- **range SHACL** (report-only) — SHACL node-shapes are *generated from* the
+  vocabularies' own `rdfs:range` axioms and run with `pyshacl`. RDFS range is
+  open-world (descriptive, not a constraint), so violations are surfaced for
+  inspection rather than failed.
+
+The one hard line is the `@x-gmeow-*` tag ban — non-negotiable, because no
+consumer parser reads `@x-gmeow-english` as English.
+
+### What the data says
+
+`owl:sameAs` links to outside entities (Wikidata, geni, DBpedia) are *external
+linkage* — "whatever the outside world emits," not a GMEOW coverage gap — so they
+are reported on their own line and kept out of the headline recall, neither hidden
+nor charged against coverage. Everything else (a `schema:`/`foaf:`/`doap:` term
+the source carries that the output does not recover) is either a GMEOW coverage
+gap or a non-inverse cell — both real bugs, and both visible in the per-vocabulary
+breakdown.
+
+```sh
+gmeow-dev acceptance                       # score every external/ snapshot
+gmeow-dev acceptance path/to/source.ttl    # score one file
+gmeow-dev acceptance -o acceptance.md      # write the Markdown scoreboard to a file
+```
