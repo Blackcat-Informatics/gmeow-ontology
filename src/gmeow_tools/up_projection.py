@@ -19,12 +19,19 @@ backwards — never hand-authored — across an **epistemic ladder**, best→wea
   ``gmeow:mappedFrom`` (the source term) off it — best-faithful and refutable,
   never an unmarked overclaim.
 
+Rule resolution is **layer-ranked** (preferred-up-target disambiguation): an
+identity match (``exactMatch``/``equivalent*``) outranks a structural projection
+of a *narrower* gmeow term to the same external target — so ``schema:name``
+reverses to the identity ``gmeow:name`` even though the narrower ``gmeow:fullName``
+also projects down to it. Only a target with no identity match falls to the
+structural layer.
+
 Doctrine (#448): the output is **pure GMEOW** — only lifted terms appear; a
 source term with no rule is reported in the gap, never guessed and never passed
-through. Where a target is the down-image of *several* gmeow terms (a many-to-one
-projection, in either the clean or closeMatch layer), the reverse is
-**ambiguous** and is deliberately *not* lifted — it needs a preferred-up-target
-decision (a later stage), so guessing would fabricate. Subjects, objects, and
+through. Where a target is the down-image of *several* peer gmeow terms with no
+ranking winner (rival identities, or rival projections and no identity, in
+either the clean or closeMatch layer), the reverse is **ambiguous** and is
+deliberately *not* lifted — guessing would fabricate. Subjects, objects, and
 literals are carried verbatim; only the predicate / rdf:type IRI is rewritten.
 """
 
@@ -216,19 +223,37 @@ class LiftMap:
 
 
 def build_lift_map() -> LiftMap:
-    """Derive the unambiguous lift from the alignment layers (incl. inverse paths)."""
+    """Derive the unambiguous lift from the alignment layers (incl. inverse paths).
+
+    Rule resolution is **layer-ranked** (preferred-up-target disambiguation,
+    #451 stage 3): an SSSOM ``exactMatch``/``equivalent*`` declares term
+    *identity*, whose reverse is unambiguous by definition, so it outranks any
+    structural *projection* of a narrower gmeow term to the same external target.
+    Only when a target has **no** identity match does the structural layer decide
+    it; a tie *within* either layer (two identities, or two projections and no
+    identity) is genuinely ambiguous and held out — never guessed.
+    """
     direct_edoalpath, inverse_edoalpath = _edoalpath_pairs()
-    merged: dict[str, set[str]] = defaultdict(set)
-    for layer in (_sssom_clean_pairs(), _structural_pairs(), direct_edoalpath):
+    identity = _sssom_clean_pairs()  # exactMatch / equivalent* — term identity
+    projection: dict[str, set[str]] = defaultdict(set)  # structural + direct path
+    for layer in (_structural_pairs(), direct_edoalpath):
         for target, gmeows in layer.items():
-            merged[target] |= gmeows
+            projection[target] |= gmeows
     rules: dict[str, str] = {}
     ambiguous: dict[str, set[str]] = {}
-    for target, gmeows in merged.items():
-        if len(gmeows) == 1:
-            rules[target] = next(iter(gmeows))
+    for target in set(identity) | set(projection):
+        ids = identity.get(target, set())
+        if len(ids) == 1:
+            # identity wins over any projection collision for the same target
+            rules[target] = next(iter(ids))
+        elif len(ids) > 1:
+            ambiguous[target] = ids  # rival identities — genuinely ambiguous
         else:
-            ambiguous[target] = gmeows
+            projs = projection.get(target, set())
+            if len(projs) == 1:
+                rules[target] = next(iter(projs))
+            else:
+                ambiguous[target] = projs
     # inverse rules: a direct (non-swap) rule, when one exists, always wins; a
     # many-to-one inverse collision is ambiguous, never silently dropped (so
     # up_project reports it honestly instead of miscounting it as a gap).
