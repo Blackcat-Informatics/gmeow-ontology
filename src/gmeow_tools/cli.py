@@ -991,6 +991,54 @@ def transform(
             console.print(table)
 
 
+@app.command(name="up-project")
+def up_project_cmd(
+    source: Path = typer.Argument(  # noqa: B008
+        ..., help="A non-GMEOW source RDF file (Turtle) to lift up into GMEOW."
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None, "-o", "--out", help="Write the GMEOW lift here (default: stdout Turtle)."
+    ),
+) -> None:
+    """Lift a consumer-vocabulary RDF file UP into pure GMEOW (clean-reversal, #451).
+
+    Rewrites each term that has a mechanically-invertible alignment rule to its
+    GMEOW counterpart; terms with no clean rule, or whose reverse is ambiguous
+    (a many-to-one down-image), are reported and left out — never guessed.
+    """
+    from rdflib import Graph
+
+    from gmeow_tools.up_projection import up_project
+
+    try:
+        src = Graph().parse(source, format="turtle")
+    except (OSError, ValueError, SyntaxError) as exc:
+        raise _fail(f"cannot read or parse {source}: {exc}") from exc
+    try:
+        result = up_project(src)
+    except ValueError as exc:
+        raise _fail(str(exc)) from exc
+    if out is not None:
+        try:
+            result.graph.serialize(destination=out, format="turtle")
+        except OSError as exc:
+            raise _fail(f"cannot write {out}: {exc}") from exc
+        err_console.print(f"[green]wrote[/green] {out}")
+    else:
+        # raw Turtle on stdout (typer.echo, no Rich-markup mangling) so the
+        # output pipes cleanly; all diagnostics go to stderr.
+        typer.echo(result.graph.serialize(format="turtle"))
+    err_console.print(
+        f"[green]lifted[/green] {result.lifted} triples · "
+        f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
+        f"[yellow]ambiguous[/yellow] {len(result.ambiguous_terms)} terms",
+    )
+    for term, n in sorted(result.gap_terms.items()):
+        err_console.print(f"[yellow]gap[/yellow] {term} (x{n})")
+    for term, n in sorted(result.ambiguous_terms.items()):
+        err_console.print(f"[yellow]ambiguous[/yellow] {term} (x{n})")
+
+
 _EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")
 
 
