@@ -4221,6 +4221,576 @@ gmeow:fixture1959LesPaulConfiguration
     gmeow:configurationTuningFrame gmeow:tuningSystem12EDO ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
-# =========================================================================== #
-# ANALYSIS STANDPOINTS — reserved for issue #315 (MusicAnalysisClaim, ...)
-# =========================================================================== #
+# --------------------------------------------------------------------------- #
+# ANALYSIS STANDPOINTS — issue #315
+# --------------------------------------------------------------------------- #
+
+# Reference-frame profile helpers for music-theory frames (Principle 11).
+gmeow:frameRealmMusicAnalysis
+    a gmeow:FrameRealm ;
+    rdfs:label "music analysis"@x-gmeow-english ;
+    skos:definition "The frame realm for analytical theory frames — Roman-numeral, Schenkerian, pc-set, maqam, raga, transformational, corpus-statistical, AI-model, etc."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:frameKindAnalytical
+    a gmeow:FrameKind ;
+    rdfs:label "analytical"@x-gmeow-english ;
+    skos:definition "A conceptual frame whose coordinates are analytical categories (chord labels, scale degrees, formal functions) rather than physical quantities."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:axisMusicAnalysis
+    a gmeow:Axis ;
+    rdfs:label "music analysis axis"@x-gmeow-english ;
+    skos:definition "The single abstract axis of a music-analysis reference frame; specific analytical dimensions are interpreted by the frame's theory, not asserted as coordinates in the ontology (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# MusicAnalysisClaim — the reified standpoint-indexed analysis relator
+# --------------------------------------------------------------------------- #
+
+gmeow:MusicAnalysisClaim
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:label "Music Analysis Claim"@x-gmeow-english ;
+    skos:definition "A reified musical-analytical observation: {analysisTarget × analysisProperty × analysisResult × analyst-vantage × theory-frame}. Inherits confidence, displayable, and determinacy from Observation (Principles 9, 11, 14)."@x-gmeow-english ;
+    gmeow:requiresFrame gmeow:analysisFrame ;
+    gmeow:frameCardinality "exactly-one" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:MusicAnalysisClaim rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisTarget   ; owl:someValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisProperty ; owl:someValuesFrom gmeow:AnalysisProperty ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisResult   ; owl:someValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage          ; owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisFrame    ; owl:someValuesFrom gmeow:ReferenceFrame ] .
+
+gmeow:analysisTarget
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:MusicAnalysisClaim ;
+    rdfs:range owl:Thing ;
+    rdfs:label "analysis target"@x-gmeow-english ;
+    skos:definition "The musical entity being analysed — a MusicalSegment, Expression, Recording, time-region, or other music-theory object. Functional per claim: one target per analysis."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisProperty
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MusicAnalysisClaim ;
+    rdfs:range gmeow:AnalysisProperty ;
+    rdfs:label "analysis property"@x-gmeow-english ;
+    skos:definition "The analytical dimension being asserted — key, harmony label, meter, form function, motif identity, mode, tuning identification, groove, schema, etc. Functional per claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisResult
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MusicAnalysisClaim ;
+    rdfs:range owl:Thing ;
+    rdfs:label "analysis result"@x-gmeow-english ;
+    skos:definition "The result of the analysis — a harmonic function, pitch collection, metric structure, form-function value, set-class label, or other music-theory value. Functional per claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:MusicAnalysisClaim ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "analysis frame"@x-gmeow-english ;
+    skos:definition "The music-theory reference frame in which the analysis result is expressed — orthogonal to the analyst vantage (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Open value vocabularies — never subclassed (Principle 9)
+# --------------------------------------------------------------------------- #
+
+gmeow:AnalysisProperty
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Analysis Property"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of analytical dimensions. Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyKey
+    a gmeow:AnalysisProperty ;
+    rdfs:label "key"@x-gmeow-english ;
+    skos:definition "The tonal key of a passage or segment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyHarmonyLabel
+    a gmeow:AnalysisProperty ;
+    rdfs:label "harmony label"@x-gmeow-english ;
+    skos:definition "A chord or harmonic-function label."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyMeter
+    a gmeow:AnalysisProperty ;
+    rdfs:label "meter"@x-gmeow-english ;
+    skos:definition "The meter or metric structure of a span."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyFormFunction
+    a gmeow:AnalysisProperty ;
+    rdfs:label "form function"@x-gmeow-english ;
+    skos:definition "The formal function of a segment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyMotifIdentity
+    a gmeow:AnalysisProperty ;
+    rdfs:label "motif identity"@x-gmeow-english ;
+    skos:definition "The identity of a motif or theme."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyMode
+    a gmeow:AnalysisProperty ;
+    rdfs:label "mode"@x-gmeow-english ;
+    skos:definition "A mode, raga, maqam, or pathet identity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyTuningIdentification
+    a gmeow:AnalysisProperty ;
+    rdfs:label "tuning identification"@x-gmeow-english ;
+    skos:definition "Identification of the tuning system in use."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyGroove
+    a gmeow:AnalysisProperty ;
+    rdfs:label "groove"@x-gmeow-english ;
+    skos:definition "A groove or rhythmic feel classification."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertySchema
+    a gmeow:AnalysisProperty ;
+    rdfs:label "schema"@x-gmeow-english ;
+    skos:definition "A harmonic or melodic schema label."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:FormFunction
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Form Function"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of formal functions. Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionIntro
+    a gmeow:FormFunction ;
+    rdfs:label "intro"@x-gmeow-english ;
+    skos:definition "Introduction."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionOutro
+    a gmeow:FormFunction ;
+    rdfs:label "outro"@x-gmeow-english ;
+    skos:definition "Outro or closing section."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionVerse
+    a gmeow:FormFunction ;
+    rdfs:label "verse"@x-gmeow-english ;
+    skos:definition "Verse section."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionChorus
+    a gmeow:FormFunction ;
+    rdfs:label "chorus"@x-gmeow-english ;
+    skos:definition "Chorus section."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionBridge
+    a gmeow:FormFunction ;
+    rdfs:label "bridge"@x-gmeow-english ;
+    skos:definition "Bridge section."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionRiff
+    a gmeow:FormFunction ;
+    rdfs:label "riff"@x-gmeow-english ;
+    skos:definition "A riff-based section."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionExposition
+    a gmeow:FormFunction ;
+    rdfs:label "exposition"@x-gmeow-english ;
+    skos:definition "Sonata exposition."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionDevelopment
+    a gmeow:FormFunction ;
+    rdfs:label "development"@x-gmeow-english ;
+    skos:definition "Sonata development."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionRecapitulation
+    a gmeow:FormFunction ;
+    rdfs:label "recapitulation"@x-gmeow-english ;
+    skos:definition "Sonata recapitulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionAlap
+    a gmeow:FormFunction ;
+    rdfs:label "ālāp"@x-gmeow-english ;
+    skos:definition "An unmetered introductory section in Hindustani music."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionGat
+    a gmeow:FormFunction ;
+    rdfs:label "gat"@x-gmeow-english ;
+    skos:definition "A composed, metric section in Hindustani music."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:formFunctionDrop
+    a gmeow:FormFunction ;
+    rdfs:label "drop"@x-gmeow-english ;
+    skos:definition "A drop or breakdown section, common in electronic and dance music."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:HarmonicFunction
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Harmonic Function"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of harmonic functions. Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionTonic
+    a gmeow:HarmonicFunction ;
+    rdfs:label "tonic"@x-gmeow-english ;
+    skos:definition "Tonic function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionSupertonic
+    a gmeow:HarmonicFunction ;
+    rdfs:label "supertonic"@x-gmeow-english ;
+    skos:definition "Supertonic function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionMediant
+    a gmeow:HarmonicFunction ;
+    rdfs:label "mediant"@x-gmeow-english ;
+    skos:definition "Mediant function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionSubdominant
+    a gmeow:HarmonicFunction ;
+    rdfs:label "subdominant"@x-gmeow-english ;
+    skos:definition "Subdominant function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionDominant
+    a gmeow:HarmonicFunction ;
+    rdfs:label "dominant"@x-gmeow-english ;
+    skos:definition "Dominant function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionSubmediant
+    a gmeow:HarmonicFunction ;
+    rdfs:label "submediant"@x-gmeow-english ;
+    skos:definition "Submediant function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionLeadingTone
+    a gmeow:HarmonicFunction ;
+    rdfs:label "leading-tone"@x-gmeow-english ;
+    skos:definition "Leading-tone function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:harmonicFunctionGermanSixth
+    a gmeow:HarmonicFunction ;
+    rdfs:label "German sixth"@x-gmeow-english ;
+    skos:definition "The German augmented-sixth chord as a harmonic-function label."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:NeoRiemannianOperation
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Neo-Riemannian Operation"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of Neo-Riemannian operations. Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:neoRiemannianP
+    a gmeow:NeoRiemannianOperation ;
+    rdfs:label "parallel (P)"@x-gmeow-english ;
+    skos:definition "Parallel operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:neoRiemannianL
+    a gmeow:NeoRiemannianOperation ;
+    rdfs:label "leading-tone exchange (L)"@x-gmeow-english ;
+    skos:definition "Leading-tone exchange."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:neoRiemannianR
+    a gmeow:NeoRiemannianOperation ;
+    rdfs:label "relative (R)"@x-gmeow-english ;
+    skos:definition "Relative operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:neoRiemannianN
+    a gmeow:NeoRiemannianOperation ;
+    rdfs:label "Nebenverwandt (N)"@x-gmeow-english ;
+    skos:definition "Nebenverwandt operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:neoRiemannianS
+    a gmeow:NeoRiemannianOperation ;
+    rdfs:label "slide (S)"@x-gmeow-english ;
+    skos:definition "Slide operation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:SetClassLabel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Set Class Label"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of pitch-class set labels (Forte names and successors). Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:SchenkerLevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Schenker Level"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of Schenkerian structural levels. Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:schenkerLevelForeground
+    a gmeow:SchenkerLevel ;
+    rdfs:label "foreground"@x-gmeow-english ;
+    skos:definition "Foreground (surface) level."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:schenkerLevelMiddleground
+    a gmeow:SchenkerLevel ;
+    rdfs:label "middleground"@x-gmeow-english ;
+    skos:definition "Middleground level."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:schenkerLevelBackground
+    a gmeow:SchenkerLevel ;
+    rdfs:label "background"@x-gmeow-english ;
+    skos:definition "Background (Urlinie) level."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Theory frames — ReferenceFrame individuals (Principle 11)
+# --------------------------------------------------------------------------- #
+
+gmeow:theoryFrameRomanNumeral
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Roman-numeral analysis frame"@x-gmeow-english ;
+    skos:definition "A reference frame for harmonic analysis expressed as Roman numerals."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFrameSchenkerian
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Schenkerian analysis frame"@x-gmeow-english ;
+    skos:definition "A reference frame for Schenkerian reduction and voice-leading analysis."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFramePitchClassSet
+    a gmeow:ReferenceFrame ;
+    rdfs:label "pitch-class-set analysis frame"@x-gmeow-english ;
+    skos:definition "A reference frame for atonal analysis using pitch-class sets and Forte labels."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFrameMaqamTheory
+    a gmeow:ReferenceFrame ;
+    rdfs:label "maqam-theory frame"@x-gmeow-english ;
+    skos:definition "A reference frame for Arabic/Turkish maqam analysis."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFrameRagaGrammar
+    a gmeow:ReferenceFrame ;
+    rdfs:label "raga-grammar frame"@x-gmeow-english ;
+    skos:definition "A reference frame for Hindustani raga analysis."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFramePathet
+    a gmeow:ReferenceFrame ;
+    rdfs:label "pathet frame"@x-gmeow-english ;
+    skos:definition "A reference frame for Javanese/Indonesian pathet analysis."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFrameTransformational
+    a gmeow:ReferenceFrame ;
+    rdfs:label "transformational analysis frame"@x-gmeow-english ;
+    skos:definition "A reference frame for transformational and voice-leading-space analysis."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFrameCorpusStatistical
+    a gmeow:ReferenceFrame ;
+    rdfs:label "corpus-statistical analysis frame"@x-gmeow-english ;
+    skos:definition "A reference frame whose analytical categories are derived from corpus statistics."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:theoryFrameAIModel
+    a gmeow:ReferenceFrame ;
+    rdfs:label "AI-model analysis frame"@x-gmeow-english ;
+    skos:definition "A reference frame whose analytical categories are produced by a machine-learning model."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Genre doctrine — seeds, lineage, and a refutable fixture
+# --------------------------------------------------------------------------- #
+
+gmeow:genreRock
+    a gmeow:Genre ;
+    rdfs:label "rock"@x-gmeow-english ;
+    skos:definition "The rock music genre."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreJazz
+    a gmeow:Genre ;
+    rdfs:label "jazz"@x-gmeow-english ;
+    skos:definition "The jazz music genre."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreBlues
+    a gmeow:Genre ;
+    rdfs:label "blues"@x-gmeow-english ;
+    skos:definition "The blues music genre."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreFunk
+    a gmeow:Genre ;
+    rdfs:label "funk"@x-gmeow-english ;
+    skos:definition "The funk music genre."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreSoul
+    a gmeow:Genre ;
+    rdfs:label "soul"@x-gmeow-english ;
+    skos:definition "The soul music genre."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreElectronic
+    a gmeow:Genre ;
+    rdfs:label "electronic"@x-gmeow-english ;
+    skos:definition "The electronic music genre."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreClassical
+    a gmeow:Genre ;
+    rdfs:label "classical"@x-gmeow-english ;
+    skos:definition "The classical music genre."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreMathRock
+    a gmeow:Genre ;
+    rdfs:label "math rock"@x-gmeow-english ;
+    skos:definition "A rhythmically complex, indie/post-rock offshoot."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreProgressiveRock
+    a gmeow:Genre ;
+    rdfs:label "progressive rock"@x-gmeow-english ;
+    skos:definition "A rock genre emphasizing extended forms and harmonic experimentation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genrePostRock
+    a gmeow:Genre ;
+    rdfs:label "post-rock"@x-gmeow-english ;
+    skos:definition "A rock-derived genre using rock instrumentation outside conventional rock structures."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreFusion
+    a gmeow:Genre ;
+    rdfs:label "fusion"@x-gmeow-english ;
+    skos:definition "A genre blending jazz improvisation with rock/funk rhythms."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreDisco
+    a gmeow:Genre ;
+    rdfs:label "disco"@x-gmeow-english ;
+    skos:definition "A dance music genre derived from funk and soul."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:genreHipHop
+    a gmeow:Genre ;
+    rdfs:label "hip hop"@x-gmeow-english ;
+    skos:definition "A culture and music genre built on rapping, DJing, and beat-making."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Scene-split / fusion lineage (Principle 9: co-equal, no taxonomy).
+gmeow:genreMathRock        gmeow:wasDerivedFrom gmeow:genreRock .
+gmeow:genreProgressiveRock gmeow:wasDerivedFrom gmeow:genreRock .
+gmeow:genrePostRock        gmeow:wasDerivedFrom gmeow:genreRock .
+gmeow:genreFusion          gmeow:wasDerivedFrom gmeow:genreJazz ;
+                            gmeow:wasDerivedFrom gmeow:genreRock .
+gmeow:genreDisco           gmeow:wasDerivedFrom gmeow:genreFunk ;
+                            gmeow:wasDerivedFrom gmeow:genreSoul .
+
+# Fixture work used by the refuted-genre statement cells.
+gmeow:fixtureMathRockWork
+    a gmeow:MusicalWork ;
+    rdfs:label "fixture math-rock work"@x-gmeow-english ;
+    skos:definition "A placeholder musical work used to demonstrate contested genre attribution (issue #315)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Fixture for a reified analysis claim (complements the statement-layer cells).
+gmeow:fixtureRomanNumeralClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "fixture Roman-numeral dominant claim"@x-gmeow-english ;
+    skos:definition "A sample MusicAnalysisClaim asserting a dominant-function harmony in Roman-numeral frame (issue #315)."@x-gmeow-english ;
+    gmeow:analysisTarget   gmeow:fixtureSessionTake3Event ;
+    gmeow:analysisProperty gmeow:analysisPropertyHarmonyLabel ;
+    gmeow:analysisResult   gmeow:harmonicFunctionDominant ;
+    gmeow:vantage          gmeow:fixtureAnalystA ;
+    gmeow:analysisFrame    gmeow:theoryFrameRomanNumeral ;
+    gmeow:confidence       "0.92"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAnalystA
+    a gmeow:Agent ;
+    rdfs:label "fixture analyst A"@x-gmeow-english ;
+    skos:definition "A placeholder analyst used in the MusicAnalysisClaim fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
