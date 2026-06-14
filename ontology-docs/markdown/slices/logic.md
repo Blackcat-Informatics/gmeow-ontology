@@ -14,6 +14,19 @@ This slice owns 0 terms and contributes 0 mapping or projection rows. Use it whe
 
 - The reasoning layer and every projection consumer: the native `logic:` solver is the reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it ([Principle 17](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-17)). Foundational by [Principle 15](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-15): it serves every consumer by construction. Pre-implementation, its consumer is the design set in `design/`.
 
+## Design Documents
+
+This slice includes slice-local design notes. They are authored beside the slice and rendered into the docs as part of the same deterministic documentation bundle.
+
+| Document | Source |
+|---|---|
+| [Logic Conformance](logic/design/LOGIC-CONFORMANCE.md) | [`slices/core/logic/design/LOGIC-CONFORMANCE.md`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/logic/design/LOGIC-CONFORMANCE.md) |
+| [Logic Migration](logic/design/LOGIC-MIGRATION.md) | [`slices/core/logic/design/LOGIC-MIGRATION.md`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/logic/design/LOGIC-MIGRATION.md) |
+| [Logic References](logic/design/LOGIC-REFERENCES.md) | [`slices/core/logic/design/LOGIC-REFERENCES.md`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/logic/design/LOGIC-REFERENCES.md) |
+| [Logic Runtime](logic/design/LOGIC-RUNTIME.md) | [`slices/core/logic/design/LOGIC-RUNTIME.md`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/logic/design/LOGIC-RUNTIME.md) |
+| [Logic Semantics](logic/design/LOGIC-SEMANTICS.md) | [`slices/core/logic/design/LOGIC-SEMANTICS.md`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/logic/design/LOGIC-SEMANTICS.md) |
+| [Logic](logic/design/LOGIC.md) | [`slices/core/logic/design/LOGIC.md`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/logic/design/LOGIC.md) |
+
 ## Local Map
 
 ![logic map](../diagrams/slices/logic.svg)

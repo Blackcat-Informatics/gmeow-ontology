@@ -36,6 +36,8 @@ def test_build_ontology_docs_creates_expected_tree(tmp_path: Path) -> None:
     assert (out / "site" / "diagrams" / "slices" / "kernel.svg").exists()
     assert (out / "site" / "terms" / "Person" / "index.html").exists()
     assert (docs / "index.md").exists()
+    assert (docs / "adoption" / "index.md").exists()
+    assert (docs / "adoption" / "schema.md").exists()
     assert (docs / "about.md").exists()
     assert (docs / "changelog.md").exists()
     assert (docs / "reference" / "classes" / "index.md").exists()
@@ -43,6 +45,7 @@ def test_build_ontology_docs_creates_expected_tree(tmp_path: Path) -> None:
     assert (docs / "reference" / "individuals" / "index.md").exists()
     assert (docs / "reference" / "datatypes" / "index.md").exists()
     assert (docs / "slices" / "index.md").exists()
+    assert (docs / "slices" / "logic" / "design" / "LOGIC.md").exists()
     assert (docs / "profiles" / "index.md").exists()
     assert (docs / "profiles" / "core.md").exists()
     assert (docs / "profiles" / "full.md").exists()
@@ -102,6 +105,7 @@ def test_index_contains_ontology_header_and_slice_stats(tmp_path: Path) -> None:
     assert "## Slices" in index
     assert "Learning Paths" in index
     assert "Examples" in index
+    assert "Adoption Targets" in index
     assert "Linkages" in index
     assert "## Reference" in index
     assert "## Distribution" in index
@@ -270,6 +274,48 @@ def test_linkages_page_summarizes_mapping_dsl(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
+def test_adoption_target_pages_are_generated_from_linkages(tmp_path: Path) -> None:
+    out = tmp_path / "ontology-docs"
+    build_ontology_docs(out)
+
+    index = (out / "markdown" / "adoption" / "index.md").read_text(encoding="utf-8")
+    schema = (out / "markdown" / "adoption" / "schema.md").read_text(encoding="utf-8")
+    html = (out / "site" / "adoption" / "schema" / "index.html").read_text(
+        encoding="utf-8"
+    )
+
+    assert "# Adoption Targets" in index
+    assert "[Schema.org](schema.md) (`schema`)" in index
+    assert "# Schema.org" in schema
+    assert "**Prefix:** `schema`" in schema
+    assert "## Coverage" in schema
+    assert "## Source Terms" in schema
+    assert "## Mapping Rows" in schema
+    assert "../external/ontologies.md#target-schema" in schema
+    assert "schema:Person" in schema
+    assert 'href="../../adoption/"' in html
+
+
+@pytest.mark.ci_only
+def test_slice_design_docs_are_rendered_and_linked(tmp_path: Path) -> None:
+    out = tmp_path / "ontology-docs"
+    build_ontology_docs(out)
+
+    logic = (out / "markdown" / "slices" / "logic.md").read_text(encoding="utf-8")
+    design = (out / "markdown" / "slices" / "logic" / "design" / "LOGIC.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Design Documents" in logic
+    assert "GMEOW Logic" in logic
+    assert "slices/core/logic/design/LOGIC.md" in logic
+    assert "# Logic" in design
+    assert "[logic](../../logic.md)" in design
+    assert "## The document set" in design
+    assert "[`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)" in design
+
+
+@pytest.mark.ci_only
 def test_recipes_and_examples_are_generated_from_slice_sources(tmp_path: Path) -> None:
     out = tmp_path / "ontology-docs"
     build_ontology_docs(out)
@@ -359,7 +405,11 @@ def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) 
 
     assert '"curie": "gmeow:PersonName"' in search_index
     assert '"kind": "learning-path"' in search_index
+    assert '"kind": "adoption-target"' in search_index
+    assert '"kind": "slice-design"' in search_index
     assert '"path": "learning-paths/index.html#model-a-person"' in search_index
+    assert '"path": "adoption/schema/index.html"' in search_index
+    assert '"path": "slices/logic/design/LOGIC/index.html"' in search_index
     assert '"recipe": "person-names-and-display"' in search_index
     assert '"kind": "example"' in search_index
     assert (
@@ -369,6 +419,8 @@ def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) 
     assert '"slice": "names"' in search_index
     assert "person-names-and-display: Model Person Names" in llms_docs
     assert "model-a-person: Model a Person Without Flattening Identity" in llms_docs
+    assert "schema: Schema.org; linkage rows" in llms_docs
+    assert "logic: Logic; source slices/core/logic/design/LOGIC.md" in llms_docs
     assert "slices/core/names/examples/person-names.ttl" in llms_docs
     assert "gmeow:PersonName" in llms_docs
 
@@ -407,6 +459,7 @@ def test_html_links_are_directory_index_safe(tmp_path: Path) -> None:
     assert 'href="assets/gmeow.css"' in index
     assert 'href="learning-paths/"' in index
     assert 'href="examples/"' in index
+    assert 'href="adoption/"' in index
     assert "https://cdn.simplecss.org" not in index
 
     person = out / "site" / "reference" / "classes" / "gmeow-Person" / "index.html"

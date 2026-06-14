@@ -1,6 +1,1496 @@
 [
   {
     "keywords": [
+      "",
+      "BBC News Ontology",
+      "bbc",
+      "iptc",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/bbc/index.html",
+    "summary": "3 linkage rows for bbc.",
+    "title": "BBC News Ontology"
+  },
+  {
+    "keywords": [
+      "",
+      "BFO",
+      "bfo",
+      "upper"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/bfo/index.html",
+    "summary": "9 linkage rows for bfo.",
+    "title": "BFO"
+  },
+  {
+    "keywords": [
+      "",
+      "BIBFRAME",
+      "bibframe",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/bibframe/index.html",
+    "summary": "10 linkage rows for bibframe.",
+    "title": "BIBFRAME"
+  },
+  {
+    "keywords": [
+      "",
+      "BIBO",
+      "bibo",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/bibo/index.html",
+    "summary": "8 linkage rows for bibo.",
+    "title": "BIBO"
+  },
+  {
+    "keywords": [
+      "",
+      "BIO vocabulary",
+      "bio",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/bio/index.html",
+    "summary": "23 linkage rows for bio.",
+    "title": "BIO vocabulary"
+  },
+  {
+    "keywords": [
+      "",
+      "BOT (Building Topology Ontology)",
+      "bot",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/bot/index.html",
+    "summary": "34 linkage rows for bot.",
+    "title": "BOT (Building Topology Ontology)"
+  },
+  {
+    "keywords": [
+      "",
+      "Brick",
+      "brick",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/brick/index.html",
+    "summary": "2 linkage rows for brick.",
+    "title": "Brick"
+  },
+  {
+    "keywords": [
+      "",
+      "CC REL",
+      "cc",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/cc/index.html",
+    "summary": "27 linkage rows for cc.",
+    "title": "CC REL"
+  },
+  {
+    "keywords": [
+      "",
+      "CIDOC CRM",
+      "crm",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/crm/index.html",
+    "summary": "43 linkage rows for crm.",
+    "title": "CIDOC CRM"
+  },
+  {
+    "keywords": [
+      "",
+      "CRMarchaeo",
+      "crmarc",
+      "crmarchaeo",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/crmarc/index.html",
+    "summary": "14 linkage rows for crmarc.",
+    "title": "CRMarchaeo"
+  },
+  {
+    "keywords": [
+      "",
+      "CRMinf",
+      "crminf",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/crminf/index.html",
+    "summary": "14 linkage rows for crminf.",
+    "title": "CRMinf"
+  },
+  {
+    "keywords": [
+      "",
+      "CRMsci",
+      "crmsci",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/crmsci/index.html",
+    "summary": "3 linkage rows for crmsci.",
+    "title": "CRMsci"
+  },
+  {
+    "keywords": [
+      "",
+      "CodeMeta",
+      "codemeta",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/codemeta/index.html",
+    "summary": "56 linkage rows for codemeta.",
+    "title": "CodeMeta"
+  },
+  {
+    "keywords": [
+      "",
+      "DCMI Metadata Terms",
+      "dcat",
+      "dcterms",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/dcterms/index.html",
+    "summary": "111 linkage rows for dcterms.",
+    "title": "DCMI Metadata Terms"
+  },
+  {
+    "keywords": [
+      "",
+      "DOAP",
+      "doap",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/doap/index.html",
+    "summary": "70 linkage rows for doap.",
+    "title": "DOAP"
+  },
+  {
+    "keywords": [
+      "",
+      "FALDO",
+      "faldo",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/faldo/index.html",
+    "summary": "6 linkage rows for faldo.",
+    "title": "FALDO"
+  },
+  {
+    "keywords": [
+      "",
+      "FIBO AccountingEquity",
+      "fibo-fnd-acc-ae",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/fibo-fnd-acc-ae/index.html",
+    "summary": "2 linkage rows for fibo-fnd-acc-ae.",
+    "title": "FIBO AccountingEquity"
+  },
+  {
+    "keywords": [
+      "",
+      "FIBO CurrencyAmount",
+      "fibo-fnd-acc-cur",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/fibo-fnd-acc-cur/index.html",
+    "summary": "4 linkage rows for fibo-fnd-acc-cur.",
+    "title": "FIBO CurrencyAmount"
+  },
+  {
+    "keywords": [
+      "",
+      "FIBO FinancialInstruments",
+      "fibo-fbc-fi-fi",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/fibo-fbc-fi-fi/index.html",
+    "summary": "2 linkage rows for fibo-fbc-fi-fi.",
+    "title": "FIBO FinancialInstruments"
+  },
+  {
+    "keywords": [
+      "",
+      "FIBO ISO4217 Currency Codes",
+      "fibo-iso4217",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/fibo-iso4217/index.html",
+    "summary": "8 linkage rows for fibo-iso4217.",
+    "title": "FIBO ISO4217 Currency Codes"
+  },
+  {
+    "keywords": [
+      "",
+      "FIBO ProductsAndServices",
+      "fibo-fnd-pas-ps",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/fibo-fnd-pas-ps/index.html",
+    "summary": "1 linkage rows for fibo-fnd-pas-ps.",
+    "title": "FIBO ProductsAndServices"
+  },
+  {
+    "keywords": [
+      "",
+      "FOAF",
+      "foaf",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/foaf/index.html",
+    "summary": "75 linkage rows for foaf.",
+    "title": "FOAF"
+  },
+  {
+    "keywords": [
+      "",
+      "FRBRcore",
+      "frbr",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/frbr/index.html",
+    "summary": "7 linkage rows for frbr.",
+    "title": "FRBRcore"
+  },
+  {
+    "keywords": [
+      "",
+      "FaBiO",
+      "fabio",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/fabio/index.html",
+    "summary": "4 linkage rows for fabio.",
+    "title": "FaBiO"
+  },
+  {
+    "keywords": [
+      "",
+      "ForgeFed",
+      "forgefed",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/forgefed/index.html",
+    "summary": "3 linkage rows for forgefed.",
+    "title": "ForgeFed"
+  },
+  {
+    "keywords": [
+      "",
+      "GTFS",
+      "gtfs",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gtfs/index.html",
+    "summary": "1 linkage rows for gtfs.",
+    "title": "GTFS"
+  },
+  {
+    "keywords": [
+      "",
+      "Gender, Sex, and Sexual Orientation Ontology",
+      "concept_scheme",
+      "gsso"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gsso/index.html",
+    "summary": "8 linkage rows for gsso.",
+    "title": "Gender, Sex, and Sexual Orientation Ontology"
+  },
+  {
+    "keywords": [
+      "",
+      "GeoSPARQL",
+      "geo",
+      "geosparql",
+      "schema",
+      "sosa"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/geo/index.html",
+    "summary": "80 linkage rows for geo.",
+    "title": "GeoSPARQL"
+  },
+  {
+    "keywords": [
+      "",
+      "Getty Vocabulary Program",
+      "concept_scheme",
+      "gvp"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gvp/index.html",
+    "summary": "1 linkage rows for gvp.",
+    "title": "Getty Vocabulary Program"
+  },
+  {
+    "keywords": [
+      "",
+      "HL7 FHIR",
+      "fhir",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/fhir/index.html",
+    "summary": "12 linkage rows for fhir.",
+    "title": "HL7 FHIR"
+  },
+  {
+    "keywords": [
+      "",
+      "Homosaurus",
+      "concept_scheme",
+      "homosaurus"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/homosaurus/index.html",
+    "summary": "17 linkage rows for homosaurus.",
+    "title": "Homosaurus"
+  },
+  {
+    "keywords": [
+      "",
+      "IAO",
+      "iao",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/iao/index.html",
+    "summary": "2 linkage rows for iao.",
+    "title": "IAO"
+  },
+  {
+    "keywords": [
+      "",
+      "IIIF Presentation API",
+      "iiif",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/iiif/index.html",
+    "summary": "13 linkage rows for iiif.",
+    "title": "IIIF Presentation API"
+  },
+  {
+    "keywords": [
+      "",
+      "IPTC NewsML-G2",
+      "iptc",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/iptc/index.html",
+    "summary": "6 linkage rows for iptc.",
+    "title": "IPTC NewsML-G2"
+  },
+  {
+    "keywords": [
+      "",
+      "IVOA",
+      "ivoa",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ivoa/index.html",
+    "summary": "19 linkage rows for ivoa.",
+    "title": "IVOA"
+  },
+  {
+    "keywords": [
+      "",
+      "IVOA ObsCore",
+      "ivoa",
+      "obscore",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/obscore/index.html",
+    "summary": "19 linkage rows for obscore.",
+    "title": "IVOA ObsCore"
+  },
+  {
+    "keywords": [
+      "",
+      "LIME",
+      "lime",
+      "ontolex",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/lime/index.html",
+    "summary": "10 linkage rows for lime.",
+    "title": "LIME"
+  },
+  {
+    "keywords": [
+      "",
+      "LOINC",
+      "loinc",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/loinc/index.html",
+    "summary": "8 linkage rows for loinc.",
+    "title": "LOINC"
+  },
+  {
+    "keywords": [
+      "",
+      "LRMoo",
+      "lrmoo",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/lrmoo/index.html",
+    "summary": "6 linkage rows for lrmoo.",
+    "title": "LRMoo"
+  },
+  {
+    "keywords": [
+      "",
+      "Lexvo Ontology",
+      "lvont",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/lvont/index.html",
+    "summary": "2 linkage rows for lvont.",
+    "title": "Lexvo Ontology"
+  },
+  {
+    "keywords": [
+      "",
+      "MOAT",
+      "moat",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/moat/index.html",
+    "summary": "1 linkage rows for moat.",
+    "title": "MOAT"
+  },
+  {
+    "keywords": [
+      "",
+      "Music Ontology",
+      "mo",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/mo/index.html",
+    "summary": "1 linkage rows for mo.",
+    "title": "Music Ontology"
+  },
+  {
+    "keywords": [
+      "",
+      "Nepomuk Message Ontology",
+      "nmo",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/nmo/index.html",
+    "summary": "15 linkage rows for nmo.",
+    "title": "Nepomuk Message Ontology"
+  },
+  {
+    "keywords": [
+      "",
+      "ODRL 2.2",
+      "odrl",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/odrl/index.html",
+    "summary": "180 linkage rows for odrl.",
+    "title": "ODRL 2.2"
+  },
+  {
+    "keywords": [
+      "",
+      "OGC Moving Features",
+      "mf",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/mf/index.html",
+    "summary": "2 linkage rows for mf.",
+    "title": "OGC Moving Features"
+  },
+  {
+    "keywords": [
+      "",
+      "ORG",
+      "org",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/org/index.html",
+    "summary": "29 linkage rows for org.",
+    "title": "ORG"
+  },
+  {
+    "keywords": [
+      "",
+      "OWL-Time",
+      "owl-time",
+      "schema",
+      "time"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/time/index.html",
+    "summary": "73 linkage rows for time.",
+    "title": "OWL-Time"
+  },
+  {
+    "keywords": [
+      "",
+      "OntoLex-Lemon",
+      "ontolex",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ontolex/index.html",
+    "summary": "19 linkage rows for ontolex.",
+    "title": "OntoLex-Lemon"
+  },
+  {
+    "keywords": [
+      "",
+      "Ontology for Media Resources",
+      "ma",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ma/index.html",
+    "summary": "4 linkage rows for ma.",
+    "title": "Ontology for Media Resources"
+  },
+  {
+    "keywords": [
+      "",
+      "P-Plan",
+      "pplan",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/pplan/index.html",
+    "summary": "6 linkage rows for pplan.",
+    "title": "P-Plan"
+  },
+  {
+    "keywords": [
+      "",
+      "PREMIS 3",
+      "premis",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/premis/index.html",
+    "summary": "7 linkage rows for premis.",
+    "title": "PREMIS 3"
+  },
+  {
+    "keywords": [
+      "",
+      "PROV-O",
+      "dcat",
+      "prov",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/prov/index.html",
+    "summary": "73 linkage rows for prov.",
+    "title": "PROV-O"
+  },
+  {
+    "keywords": [
+      "",
+      "QUDT",
+      "qudt",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/qudt/index.html",
+    "summary": "7 linkage rows for qudt.",
+    "title": "QUDT"
+  },
+  {
+    "keywords": [
+      "",
+      "RDF Data Cube",
+      "qb",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/qb/index.html",
+    "summary": "11 linkage rows for qb.",
+    "title": "RDF Data Cube"
+  },
+  {
+    "keywords": [
+      "",
+      "REL (Relationship)",
+      "rel",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/rel/index.html",
+    "summary": "7 linkage rows for rel.",
+    "title": "REL (Relationship)"
+  },
+  {
+    "keywords": [
+      "",
+      "RightsStatements.org",
+      "concept_scheme",
+      "rstmt"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/rstmt/index.html",
+    "summary": "12 linkage rows for rstmt.",
+    "title": "RightsStatements.org"
+  },
+  {
+    "keywords": [
+      "",
+      "SIOC",
+      "schema",
+      "sioc"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/sioc/index.html",
+    "summary": "21 linkage rows for sioc.",
+    "title": "SIOC"
+  },
+  {
+    "keywords": [
+      "",
+      "SKOS",
+      "concept_scheme",
+      "skos"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/skos/index.html",
+    "summary": "6 linkage rows for skos.",
+    "title": "SKOS"
+  },
+  {
+    "keywords": [
+      "",
+      "SNOMED CT",
+      "concept_scheme",
+      "loinc",
+      "snomed"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/snomed/index.html",
+    "summary": "5 linkage rows for snomed.",
+    "title": "SNOMED CT"
+  },
+  {
+    "keywords": [
+      "",
+      "SPDX",
+      "dcat",
+      "schema",
+      "spdx"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/spdx/index.html",
+    "summary": "17 linkage rows for spdx.",
+    "title": "SPDX"
+  },
+  {
+    "keywords": [
+      "",
+      "Schema.org",
+      "resume",
+      "schema",
+      "schema-org",
+      "schema-org-schedule"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/schema/index.html",
+    "summary": "687 linkage rows for schema.",
+    "title": "Schema.org"
+  },
+  {
+    "keywords": [
+      "",
+      "Sequence Ontology",
+      "concept_scheme",
+      "so"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/so/index.html",
+    "summary": "7 linkage rows for so.",
+    "title": "Sequence Ontology"
+  },
+  {
+    "keywords": [
+      "",
+      "Tag Ontology",
+      "schema",
+      "tags"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/tags/index.html",
+    "summary": "1 linkage rows for tags.",
+    "title": "Tag Ontology"
+  },
+  {
+    "keywords": [
+      "",
+      "W3C DQV",
+      "dqv",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/dqv/index.html",
+    "summary": "6 linkage rows for dqv.",
+    "title": "W3C DQV"
+  },
+  {
+    "keywords": [
+      "",
+      "W3C EXIF",
+      "exif",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/exif/index.html",
+    "summary": "12 linkage rows for exif.",
+    "title": "W3C EXIF"
+  },
+  {
+    "keywords": [
+      "",
+      "W3C GEDCOM",
+      "gedcom",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gedcom/index.html",
+    "summary": "52 linkage rows for gedcom.",
+    "title": "W3C GEDCOM"
+  },
+  {
+    "keywords": [
+      "",
+      "WGS84 Geo Positioning",
+      "foaf",
+      "schema",
+      "wgs84"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/wgs84/index.html",
+    "summary": "7 linkage rows for wgs84.",
+    "title": "WGS84 Geo Positioning"
+  },
+  {
+    "keywords": [
+      "",
+      "WOT Schema",
+      "schema",
+      "wot"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/wot/index.html",
+    "summary": "8 linkage rows for wot.",
+    "title": "WOT Schema"
+  },
+  {
+    "keywords": [
+      "",
+      "activitystreams",
+      "as",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/as/index.html",
+    "summary": "6 linkage rows for as.",
+    "title": "as"
+  },
+  {
+    "keywords": [
+      "",
+      "bpmn",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/bpmn/index.html",
+    "summary": "3 linkage rows for bpmn.",
+    "title": "bpmn"
+  },
+  {
+    "keywords": [
+      "",
+      "ccpd",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ccpd/index.html",
+    "summary": "1 linkage rows for ccpd.",
+    "title": "ccpd"
+  },
+  {
+    "keywords": [
+      "",
+      "ceterms",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ceterms/index.html",
+    "summary": "2 linkage rows for ceterms.",
+    "title": "ceterms"
+  },
+  {
+    "keywords": [
+      "",
+      "cito",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/cito/index.html",
+    "summary": "12 linkage rows for cito.",
+    "title": "cito"
+  },
+  {
+    "keywords": [
+      "",
+      "cora",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/cora/index.html",
+    "summary": "2 linkage rows for cora.",
+    "title": "cora"
+  },
+  {
+    "keywords": [
+      "",
+      "cp",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/cp/index.html",
+    "summary": "7 linkage rows for cp.",
+    "title": "cp"
+  },
+  {
+    "keywords": [
+      "",
+      "credit",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/credit/index.html",
+    "summary": "14 linkage rows for credit.",
+    "title": "credit"
+  },
+  {
+    "keywords": [
+      "",
+      "crmgeo",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/crmgeo/index.html",
+    "summary": "4 linkage rows for crmgeo.",
+    "title": "crmgeo"
+  },
+  {
+    "keywords": [
+      "",
+      "dc",
+      "oai_dc",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/dc/index.html",
+    "summary": "45 linkage rows for dc.",
+    "title": "dc"
+  },
+  {
+    "keywords": [
+      "",
+      "dcat",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/dcat/index.html",
+    "summary": "8 linkage rows for dcat.",
+    "title": "dcat"
+  },
+  {
+    "keywords": [
+      "",
+      "dcmitype",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/dcmitype/index.html",
+    "summary": "11 linkage rows for dcmitype.",
+    "title": "dcmitype"
+  },
+  {
+    "keywords": [
+      "",
+      "dpv",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/dpv/index.html",
+    "summary": "12 linkage rows for dpv.",
+    "title": "dpv"
+  },
+  {
+    "keywords": [
+      "",
+      "dul",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/dul/index.html",
+    "summary": "2 linkage rows for dul.",
+    "title": "dul"
+  },
+  {
+    "keywords": [
+      "",
+      "edtf",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/edtf/index.html",
+    "summary": "1 linkage rows for edtf.",
+    "title": "edtf"
+  },
+  {
+    "keywords": [
+      "",
+      "esco",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/esco/index.html",
+    "summary": "3 linkage rows for esco.",
+    "title": "esco"
+  },
+  {
+    "keywords": [
+      "",
+      "gUFO",
+      "gufo",
+      "upper"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gufo/index.html",
+    "summary": "6 linkage rows for gufo.",
+    "title": "gUFO"
+  },
+  {
+    "keywords": [
+      "",
+      "gn",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gn/index.html",
+    "summary": "8 linkage rows for gn.",
+    "title": "gn"
+  },
+  {
+    "keywords": [
+      "",
+      "gts",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gts/index.html",
+    "summary": "1 linkage rows for gts.",
+    "title": "gts"
+  },
+  {
+    "keywords": [
+      "",
+      "gx",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gx/index.html",
+    "summary": "39 linkage rows for gx.",
+    "title": "gx"
+  },
+  {
+    "keywords": [
+      "",
+      "gxv",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/gxv/index.html",
+    "summary": "4 linkage rows for gxv.",
+    "title": "gxv"
+  },
+  {
+    "keywords": [
+      "",
+      "ical",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ical/index.html",
+    "summary": "64 linkage rows for ical.",
+    "title": "ical"
+  },
+  {
+    "keywords": [
+      "",
+      "ifc",
+      "ifcOWL (IFC4)",
+      "schema"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ifc/index.html",
+    "summary": "4 linkage rows for ifc.",
+    "title": "ifcOWL (IFC4)"
+  },
+  {
+    "keywords": [
+      "",
+      "iso19156",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/iso19156/index.html",
+    "summary": "2 linkage rows for iso19156.",
+    "title": "iso19156"
+  },
+  {
+    "keywords": [
+      "",
+      "knowrob",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/knowrob/index.html",
+    "summary": "4 linkage rows for knowrob.",
+    "title": "knowrob"
+  },
+  {
+    "keywords": [
+      "",
+      "ladm",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ladm/index.html",
+    "summary": "5 linkage rows for ladm.",
+    "title": "ladm"
+  },
+  {
+    "keywords": [
+      "",
+      "lgdo",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/lgdo/index.html",
+    "summary": "2 linkage rows for lgdo.",
+    "title": "lgdo"
+  },
+  {
+    "keywords": [
+      "",
+      "lode",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/lode/index.html",
+    "summary": "3 linkage rows for lode.",
+    "title": "lode"
+  },
+  {
+    "keywords": [
+      "",
+      "mads",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/mads/index.html",
+    "summary": "1 linkage rows for mads.",
+    "title": "mads"
+  },
+  {
+    "keywords": [
+      "",
+      "mls",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/mls/index.html",
+    "summary": "3 linkage rows for mls.",
+    "title": "mls"
+  },
+  {
+    "keywords": [
+      "",
+      "mrg",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/mrg/index.html",
+    "summary": "4 linkage rows for mrg.",
+    "title": "mrg"
+  },
+  {
+    "keywords": [
+      "",
+      "np",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/np/index.html",
+    "summary": "2 linkage rows for np.",
+    "title": "np"
+  },
+  {
+    "keywords": [
+      "",
+      "iiif",
+      "iptc",
+      "oa",
+      "other",
+      "web-annotation"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/oa/index.html",
+    "summary": "59 linkage rows for oa.",
+    "title": "oa"
+  },
+  {
+    "keywords": [
+      "",
+      "obi",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/obi/index.html",
+    "summary": "5 linkage rows for obi.",
+    "title": "obi"
+  },
+  {
+    "keywords": [
+      "",
+      "oboe",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/oboe/index.html",
+    "summary": "4 linkage rows for oboe.",
+    "title": "oboe"
+  },
+  {
+    "keywords": [
+      "",
+      "om",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/om/index.html",
+    "summary": "2 linkage rows for om.",
+    "title": "om"
+  },
+  {
+    "keywords": [
+      "",
+      "opmw",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/opmw/index.html",
+    "summary": "3 linkage rows for opmw.",
+    "title": "opmw"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "pato"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/pato/index.html",
+    "summary": "1 linkage rows for pato.",
+    "title": "pato"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "pav"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/pav/index.html",
+    "summary": "2 linkage rows for pav.",
+    "title": "pav"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "periodo"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/periodo/index.html",
+    "summary": "1 linkage rows for periodo.",
+    "title": "periodo"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "pleiades"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/pleiades/index.html",
+    "summary": "2 linkage rows for pleiades.",
+    "title": "pleiades"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "pos"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/pos/index.html",
+    "summary": "5 linkage rows for pos.",
+    "title": "pos"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "prof"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/prof/index.html",
+    "summary": "1 linkage rows for prof.",
+    "title": "prof"
+  },
+  {
+    "keywords": [
+      "activitystreams",
+      "bibframe",
+      "crmarchaeo",
+      "dcat",
+      "foaf",
+      "gedcom",
+      "geosparql",
+      "ical",
+      "iiif",
+      "intoto",
+      "iptc",
+      "jcal",
+      "loinc",
+      "odrl",
+      "ontolex",
+      "org",
+      "other",
+      "owl-time",
+      "prov",
+      "qb",
+      "rdf",
+      "schema-org",
+      "schema-org-schedule",
+      "sigstore",
+      "sioc",
+      "slsa",
+      "vcard",
+      "web-annotation"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/rdf/index.html",
+    "summary": "376 linkage rows for rdf.",
+    "title": "rdf"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "ro_crate"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/ro-crate/index.html",
+    "summary": "1 linkage rows for ro_crate.",
+    "title": "ro_crate"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "sem"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/sem/index.html",
+    "summary": "7 linkage rows for sem.",
+    "title": "sem"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "sf"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/sf/index.html",
+    "summary": "6 linkage rows for sf.",
+    "title": "sf"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "soma"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/soma/index.html",
+    "summary": "1 linkage rows for soma.",
+    "title": "soma"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "sosa"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/sosa/index.html",
+    "summary": "57 linkage rows for sosa.",
+    "title": "sosa"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "sta"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/sta/index.html",
+    "summary": "3 linkage rows for sta.",
+    "title": "sta"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "swh"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/swh/index.html",
+    "summary": "6 linkage rows for swh.",
+    "title": "swh"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "teo"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/teo/index.html",
+    "summary": "14 linkage rows for teo.",
+    "title": "teo"
+  },
+  {
+    "keywords": [
+      "",
+      "schema",
+      "vCard",
+      "vcard"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/vcard/index.html",
+    "summary": "83 linkage rows for vcard.",
+    "title": "vCard"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "vc"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/vc/index.html",
+    "summary": "5 linkage rows for vc.",
+    "title": "vc"
+  },
+  {
+    "keywords": [
+      "other",
+      "vcard",
+      "vcardx"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/vcardx/index.html",
+    "summary": "6 linkage rows for vcardx.",
+    "title": "vcardx"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "whg"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/whg/index.html",
+    "summary": "2 linkage rows for whg.",
+    "title": "whg"
+  },
+  {
+    "keywords": [
+      "",
+      "other",
+      "wikibase"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/wikibase/index.html",
+    "summary": "1 linkage rows for wikibase.",
+    "title": "wikibase"
+  },
+  {
+    "keywords": [
       "gmeow:Group",
       "gmeow:Organization",
       "gmeow:Person",
@@ -589,6 +2079,8 @@
       "gmeow:InformationObject",
       "gmeow:Language",
       "gmeow:bcp47Tag",
+      "gmeow:langEnglish",
+      "gmeow:languageTag",
       "gmeow:title",
       "gmeow:writtenInLanguage",
       "slices/core/language/examples/multilingual-document.ttl"
@@ -2105,6 +3597,72 @@
     "slice": "versions",
     "summary": "core slice with 0 examples",
     "title": "GMEOW Versions Module"
+  },
+  {
+    "keywords": [
+      "logic",
+      "slices/core/logic/design/LOGIC.md"
+    ],
+    "kind": "slice-design",
+    "path": "slices/logic/design/LOGIC/index.html",
+    "slice": "logic",
+    "summary": "<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca> --> <!-- SPDX-License-Identifier: Apache-2.0 --> # GMEOW Logic — Vision and Doctrine > Status: canonical target architecture for GMEOW's reasoning layer. This is the **manifesto** > of a five-document design set; it carries th...",
+    "title": "Logic"
+  },
+  {
+    "keywords": [
+      "logic",
+      "slices/core/logic/design/LOGIC-CONFORMANCE.md"
+    ],
+    "kind": "slice-design",
+    "path": "slices/logic/design/LOGIC-CONFORMANCE/index.html",
+    "slice": "logic",
+    "summary": "<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca> --> <!-- SPDX-License-Identifier: Apache-2.0 --> # GMEOW Logic — Conformance Corpus and Preservation Contract > Status: implementation contract for `logic:`. This is the **conformance** member of the > [GMEOW Logic document se...",
+    "title": "Logic Conformance"
+  },
+  {
+    "keywords": [
+      "logic",
+      "slices/core/logic/design/LOGIC-MIGRATION.md"
+    ],
+    "kind": "slice-design",
+    "path": "slices/logic/design/LOGIC-MIGRATION/index.html",
+    "slice": "logic",
+    "summary": "<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca> --> <!-- SPDX-License-Identifier: Apache-2.0 --> # GMEOW Logic — Migration, MVP Ladder, and Risk Register > Status: rollout specification for `logic:`. This is the **migration** member of the > [GMEOW Logic document set](LOGIC...",
+    "title": "Logic Migration"
+  },
+  {
+    "keywords": [
+      "logic",
+      "slices/core/logic/design/LOGIC-REFERENCES.md"
+    ],
+    "kind": "slice-design",
+    "path": "slices/logic/design/LOGIC-REFERENCES/index.html",
+    "slice": "logic",
+    "summary": "<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> --> <!-- SPDX-License-Identifier: CC-BY-4.0 --> # GMEOW Logic — References > Status: bibliography appendix for the [GMEOW Logic design set](LOGIC.md#the-document-set). The > `logic:` design relies on a substantial body of ext...",
+    "title": "Logic References"
+  },
+  {
+    "keywords": [
+      "logic",
+      "slices/core/logic/design/LOGIC-RUNTIME.md"
+    ],
+    "kind": "slice-design",
+    "path": "slices/logic/design/LOGIC-RUNTIME/index.html",
+    "slice": "logic",
+    "summary": "<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca> --> <!-- SPDX-License-Identifier: Apache-2.0 --> # GMEOW Logic — Runtime and Engine Architecture > Status: runtime specification for `logic:`. This is the **runtime** member of the > [GMEOW Logic document set](LOGIC.md#the-doc...",
+    "title": "Logic Runtime"
+  },
+  {
+    "keywords": [
+      "logic",
+      "slices/core/logic/design/LOGIC-SEMANTICS.md"
+    ],
+    "kind": "slice-design",
+    "path": "slices/logic/design/LOGIC-SEMANTICS/index.html",
+    "slice": "logic",
+    "summary": "<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca> --> <!-- SPDX-License-Identifier: Apache-2.0 --> # GMEOW Logic — Formal Semantics and Profiles > Status: formal-semantics specification for `logic:`. This is the **semantics** member of the > [GMEOW Logic document set](LOGIC.m...",
+    "title": "Logic Semantics"
   },
   {
     "curie": "gmeow:AboutnessMode",

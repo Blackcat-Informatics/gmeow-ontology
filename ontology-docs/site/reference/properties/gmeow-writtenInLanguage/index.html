@@ -21,6 +21,7 @@
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
       <a href="../../../slices/">Slices</a>
+      <a href="../../../adoption/">Adoption</a>
       <a href="../../../linkages/">Linkages</a>
       <a href="../../../reference/">Reference</a>
       <a href="../../../external/ontologies/">External</a>
@@ -60,10 +61,11 @@
 @prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/language/&gt; .
 @prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
 
-# --- A bilingual document: two co-equal languages, neither primary.
+# --- A bilingual document: two co-equal languages, neither primary. The title is
+#     carried as separate co-equal language-tagged literals, one per language.
 ex:manual a gmeow:InformationObject ;
-    gmeow:title            &quot;Installation Manual / インストールマニュアル&quot;@en ;
-    gmeow:writtenInLanguage ex:english , ex:japanese .
+    gmeow:title             &quot;Installation Manual&quot;@en , &quot;インストールマニュアル&quot;@und ;
+    gmeow:writtenInLanguage gmeow:langEnglish , ex:japanese .
 </code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>, <a href="../../classes/gmeow-Language/"><code>gmeow:Language</code></a></p>

@@ -21,6 +21,7 @@
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
       <a href="../../../slices/">Slices</a>
+      <a href="../../../adoption/">Adoption</a>
       <a href="../../../linkages/">Linkages</a>
       <a href="../../../reference/">Reference</a>
       <a href="../../../external/ontologies/">External</a>
@@ -47,10 +48,11 @@
 <li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl"><code>slices/core/language/examples/multilingual-document.ttl</code></a></li>
 <li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-language-examples-multilingual-document">open in catalog</a>#example-slices-core-language-examples-multilingual-document</li>
 </ul>
-<pre><code class="language-turtle"># --- A bilingual document: two co-equal languages, neither primary.
+<pre><code class="language-turtle"># --- A bilingual document: two co-equal languages, neither primary. The title is
+#     carried as separate co-equal language-tagged literals, one per language.
 ex:manual a gmeow:InformationObject ;
-    gmeow:title            &quot;Installation Manual / インストールマニュアル&quot;@en ;
-    gmeow:writtenInLanguage ex:english , ex:japanese .
+    gmeow:title             &quot;Installation Manual&quot;@en , &quot;インストールマニュアル&quot;@und ;
+    gmeow:writtenInLanguage gmeow:langEnglish , ex:japanese .
 </code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-Entity/"><code>gmeow:Entity</code></a></p>

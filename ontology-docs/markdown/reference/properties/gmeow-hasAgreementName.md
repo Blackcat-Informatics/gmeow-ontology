@@ -29,10 +29,11 @@ These snippets are generated from canonical slice examples and trimmed to the Tu
 
 ```turtle
 # --- The contract: a relator binding the two parties, bearing a formal name.
+#     (Validity bounds — gmeow:validFrom/validUntil — are statement-level RDF-1.2
+#     annotations, carried in the statement layer rather than as A-box triples.)
 ex:contract a gmeow:Contract ;
     gmeow:hasParty         ex:acme , ex:dana ;
-    gmeow:hasAgreementName ex:contractName ;
-    gmeow:validFrom        "2026-01-15T00:00:00Z"^^xsd:dateTime .
+    gmeow:hasAgreementName ex:contractName .
 ```
 
 ## Common Companion Terms
