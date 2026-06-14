@@ -852,6 +852,48 @@ def crossref() -> None:
         )
 
 
+@app.command(name="references-backfill")
+def references_backfill(
+    github: bool = typer.Option(
+        True,
+        "--github/--no-github",
+        help="Include GitHub issue, PR, comment, and review text via the gh CLI.",
+    ),
+    repo: str | None = typer.Option(
+        None,
+        "--repo",
+        help="GitHub repository in owner/name form (default: current GMEOW repo).",
+    ),
+    candidates_file: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--candidates-file",
+        help="JSONL audit output for harvested citation candidates.",
+    ),
+) -> None:
+    """Backfill the canonical citation ledger from local and GitHub carriers."""
+    from gmeow_tools.references import (
+        DEFAULT_CANDIDATES_FILE,
+        DEFAULT_REPO,
+        backfill_references,
+    )
+
+    try:
+        report = backfill_references(
+            include_github=github,
+            repo=repo or DEFAULT_REPO,
+            candidates_file=candidates_file or DEFAULT_CANDIDATES_FILE,
+        )
+    except RuntimeError as exc:
+        raise _fail(f"✗ citation backfill failed: {exc}") from exc
+    console.print(
+        "[green]✓[/green] references backfilled: "
+        f"{report.unique_candidates} unique candidates "
+        f"({report.local_candidates} local, {report.github_candidates} GitHub)"
+    )
+    console.print(f"  ledger: {report.references_file}")
+    console.print(f"  candidates: {report.candidates_file}")
+
+
 @app.command()
 def normalize() -> None:
     """Canonicalize the authored ontology sources for stable diffs."""

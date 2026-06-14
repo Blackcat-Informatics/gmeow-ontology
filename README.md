@@ -134,6 +134,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/transpile.md`](./docs/transpile.md) | Doctrine | The full transpile — consumer RDF → pure-GMEOW draft → MAXIMAL multi-vocab; `gmeow transpile`, stdin streaming, and the draft as a first-class artifact |
 | [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The gUFO ↔ BFO 2020 foundational-spine bridge, by reference (Principle 5 applied recursively) |
 | [`docs/import-provenance.md`](./docs/import-provenance.md) | Doctrine | How external vocabularies are sourced; the IMPORT_OK vs reference-only license policy and carrier-time |
+| [`docs/CITATIONS.md`](./docs/CITATIONS.md) | Doctrine | The canonical citation ledger, generated bibliography exports, and agent maintenance rule |
 | [`docs/standpoints.md`](./docs/standpoints.md) | Doctrine | Contested facts as coexisting, standpoint-indexed claims — no privileged winner |
 | [`docs/rights.md`](./docs/rights.md) | Doctrine | Rights / IP / licensing as reified, temporally-bound, machine-readable claims (ODRL superset) |
 | [`docs/temporal-queries.md`](./docs/temporal-queries.md) | Reference | TQL — the parameterized temporal query algebra (Allen relations) over the events/temporal model |

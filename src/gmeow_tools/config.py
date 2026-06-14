@@ -223,11 +223,17 @@ FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "coverage"
 #: world emits, ``owl:sameAs`` and all. Drop a new snapshot here to mark it
 #: external; the gates that police our own RDF skip this subtree.
 EXTERNAL_FIXTURES_DIR = FIXTURES_DIR / "external"
-#: Authored self-description stays in metadata/; the generated VoID/DCAT live
+#: Authored project metadata stays in metadata/; generated metadata exports live
 #: under generated/metadata/ (#287).
+SOURCE_METADATA_DIR = PROJECT_ROOT / "metadata"
+REFERENCES_FILE = SOURCE_METADATA_DIR / "references.ttl"
 METADATA_DIR = GENERATED_DIR / "metadata"
 VOID_FILE = METADATA_DIR / "void.ttl"
 DCAT_FILE = METADATA_DIR / "dcat.ttl"
+REFERENCES_DIR = GENERATED_DIR / "references"
+REFERENCES_CSL_FILE = REFERENCES_DIR / "references.csl.json"
+REFERENCES_BIB_FILE = REFERENCES_DIR / "references.bib"
+REFERENCES_MD_FILE = REFERENCES_DIR / "references.md"
 
 APACHE_DIR = GENERATED_DIR / "apache"
 APACHE_CONF = APACHE_DIR / "gmeow.conf"
