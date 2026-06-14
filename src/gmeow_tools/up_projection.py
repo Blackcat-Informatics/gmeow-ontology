@@ -116,9 +116,11 @@ def _edoalpath_pairs() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
             apred = graph.value(atoms[0], GM.predicate)
             if not isinstance(apred, URIRef):
                 continue
-            is_inverse = str(graph.value(pattern, GM.anchor)) == str(
-                graph.value(atoms[0], GM.objectVar)
-            )
+            anchor = graph.value(pattern, GM.anchor)
+            objvar = graph.value(atoms[0], GM.objectVar)
+            # a missing anchor/objectVar must NOT read as inverse — guard the
+            # None==None trap before comparing the variable names
+            is_inverse = anchor is not None and objvar is not None and anchor == objvar
             for binding in graph.objects(cell, GM.hasBinding):
                 tgt = graph.value(binding, GM.toPredicate)
                 if isinstance(tgt, URIRef) and _in_projection_ns(str(tgt)):
@@ -154,12 +156,17 @@ def build_lift_map() -> LiftMap:
             rules[target] = next(iter(gmeows))
         else:
             ambiguous[target] = gmeows
-    # inverse rules: only unambiguous targets not already claimed by a direct
-    # (non-swap) rule — a direct lift, when one exists, wins.
+    # inverse rules: a direct (non-swap) rule, when one exists, always wins; a
+    # many-to-one inverse collision is ambiguous, never silently dropped (so
+    # up_project reports it honestly instead of miscounting it as a gap).
     inverse_rules: dict[str, str] = {}
     for target, gmeows in inverse_edoalpath.items():
-        if len(gmeows) == 1 and target not in rules and target not in ambiguous:
+        if target in rules or target in ambiguous:
+            continue
+        if len(gmeows) == 1:
             inverse_rules[target] = next(iter(gmeows))
+        else:
+            ambiguous[target] = gmeows
     return LiftMap(rules=rules, ambiguous=ambiguous, inverse_rules=inverse_rules)
 
 
@@ -213,10 +220,12 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
         if key in lift.rules:
             out.add((s, URIRef(lift.rules[key]), o))
             lifted += 1
-        elif key in lift.inverse_rules and isinstance(o, URIRef | BNode):
-            # the edge was inverted on the way down; swap it back
-            out.add((o, URIRef(lift.inverse_rules[key]), s))
-            lifted += 1
+        elif key in lift.inverse_rules:
+            # a rule exists — this is not a gap. A literal object is skipped
+            # (it cannot become a subject after the swap), not accounted.
+            if isinstance(o, URIRef | BNode):
+                out.add((o, URIRef(lift.inverse_rules[key]), s))
+                lifted += 1
         else:
             account(key)
     return UpProjection(

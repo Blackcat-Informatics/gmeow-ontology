@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from rdflib import RDF, Graph, URIRef
+from rdflib import RDF, BNode, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
 from gmeow_tools.config import FIXTURES_DIR
@@ -100,6 +100,38 @@ def test_up_project_recovers_inverse_path_terms_swapped() -> None:
         URIRef(GM + "subOrganizationOf"),
         URIRef(ex + "meridian-institute"),
     ) in org.graph
+
+    # a blank-node object swaps too — it is a legal RDF subject after the swap
+    bn = BNode()
+    src = Graph()
+    src.add((URIRef(ex + "meridian-institute"), URIRef(SCHEMA + "alumni"), bn))
+    bnode_up = up_project(src, lift)
+    assert (
+        bn,
+        URIRef(GM + "alumniOf"),
+        URIRef(ex + "meridian-institute"),
+    ) in bnode_up.graph
+
+
+def test_up_project_inverse_literal_object_is_skipped_not_a_gap() -> None:
+    """An inverse-rule predicate with a LITERAL object cannot swap (a literal is
+    not a legal subject); it is skipped silently, never counted as a gap — a lift
+    rule exists for it, so reporting a gap would be dishonest accounting."""
+    lift = build_lift_map()
+    src = Graph()
+    # schema:alumni carrying a stray literal object (malformed consumer data)
+    src.add(
+        (
+            URIRef("https://example.org/organizations/x"),
+            URIRef(SCHEMA + "alumni"),
+            Literal("not a resource"),
+        )
+    )
+    up = up_project(src, lift)
+    assert up.lifted == 0
+    assert "schema:alumni" not in up.gap_terms
+    assert "schema:alumni" not in up.ambiguous_terms
+    assert len(up.graph) == 0
 
 
 def test_up_project_does_not_guess_ambiguous_or_structural() -> None:
