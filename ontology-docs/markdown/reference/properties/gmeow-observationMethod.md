@@ -21,6 +21,34 @@ Use [`gmeow:observationMethod`](gmeow-observationMethod.md) from [`gmeow:Observa
 
 These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
 
+### Temperature Reading
+
+- **Source:** [`slices/core/observations/examples/temperature-reading.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/observations/examples/temperature-reading.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-observations-examples-temperature-reading)#example-slices-core-observations-examples-temperature-reading
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a measurement is a reified Observation (, P11). A
+# gmeow:Measurement records WHAT was observed (gmeow:observedFeature), HOW
+# (gmeow:observationMethod), and from WHERE (gmeow:vantage — the sensor). Its
+# result is NOT a bare number on the observation: the scalar lives in an
+# entity-valued gmeow:ScalarQuantity wrapper that bundles the value with its UNIT
+# and uncertainty, so a temperature is never asserted free-floating (P11 — every
+# value carries its frame). The unit is aligned to QUDT by reference (P5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The measurement: observed feature, method, vantage, and an entity result.
+ex:reading a gmeow:Measurement ;
+    gmeow:observedFeature   ex:room ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:vantage           ex:sensor ;
+    gmeow:observationResult ex:temp .
+```
+
 ### Grounded Claim
 
 - **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
@@ -49,32 +77,6 @@ ex:claim-close-2300 a gmeow:StandpointClaim ;
     gmeow:claimModality gmeow:probable ;
     gmeow:wasGeneratedBy ex:invocation-19 ;
     gmeow:wasAttributedTo ex:assistant .
-```
-
-### Blame Deflection
-
-- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
-- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
-
-```turtle
-# --- What the spokesperson privately HOLDS: the internal engineer caused it.
-ex:heldClaim a gmeow:StandpointClaim ;
-    gmeow:vantage ex:spokesperson ;
-    gmeow:observedFeature ex:outage ;
-    gmeow:observationResult ex:internalCause ;
-    gmeow:observationMethod gmeow:methodExpertJudgement ;
-    gmeow:claimModality gmeow:unequivocal .
-
-# --- What the spokesperson publicly PROJECTS: the vendor caused it. Asserted
-#     unequivocally, but UNTRUE — the falsehood is a veridicality value on the
-#     claim, never an isFalse flag.
-ex:projectedClaim a gmeow:StandpointClaim ;
-    gmeow:vantage ex:spokesperson ;
-    gmeow:observedFeature ex:outage ;
-    gmeow:observationResult ex:vendor ;
-    gmeow:observationMethod gmeow:methodExpertJudgement ;
-    gmeow:claimModality gmeow:unequivocal ;
-    gmeow:claimVeridicality gmeow:veridicalityUntrue .
 ```
 
 ## Common Companion Terms

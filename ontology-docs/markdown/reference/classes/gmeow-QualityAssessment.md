@@ -17,6 +17,39 @@ A reified assessment of the quality of an entity or dataset, expressed as an obs
 
 Use [`gmeow:QualityAssessment`](gmeow-QualityAssessment.md) as a specialized kind of [`gmeow:Observation`](gmeow-Observation.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Dataset Completeness
+
+- **Source:** [`slices/core/quality/examples/dataset-completeness.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/quality/examples/dataset-completeness.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-quality-examples-dataset-completeness)#example-slices-core-quality-examples-dataset-completeness
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: data quality IS a measurement . A gmeow:QualityAssessment
+# is a gmeow:Observation subclass, so a completeness assessment carries the SAME
+# bundle as any other measurement: gmeow:assessedEntity (the feature, a sub-
+# property of observedFeature), a gmeow:qualityDimension naming WHICH quality, a
+# gmeow:observationMethod, a gmeow:vantage (who assessed), and an entity-valued
+# gmeow:ScalarQuantity result (98.5% with its unit) rather than a bare number.
+# Quality is not a special boolean flag — it is an observation like temperature.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/quality/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The assessment: which entity, which dimension, by what method, from whom.
+ex:assessment a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:dataset ;
+    gmeow:qualityDimension  gmeow:qualityDimensionCompleteness ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:auditor ;
+    gmeow:observationResult ex:completeness .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Observation`](gmeow-Observation.md)

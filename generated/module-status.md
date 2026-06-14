@@ -49,13 +49,13 @@ Tier-2 uplift backlog.
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 0 | - | full |
 | notation | extension | extensions | 4 | 5 | 9 | 0 | 0 | - | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 0 | - | full |
-| observations | core | core | 6 | 11 | 19 | 0 | 0 | 0/30 | full |
+| observations | core | core | 6 | 11 | 19 | 0 | 1 | 0/30 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 0/51 | full |
 | places | core | core | 7 | 46 | 140 | 0 | 1 | 0/186 | full |
 | procedures | extension | extensions | 2 | 9 | 26 | 0 | 0 | - | full |
 | profiles | core | core | 3 | 1 | 4 | 0 | 0 | 0/5 | full |
 | provenance | core | core | 3 | 4 | 9 | 0 | 1 | 0/13 | full |
-| quality | core | core | 2 | 2 | 2 | 0 | 0 | 0/4 | full |
+| quality | core | core | 2 | 2 | 2 | 0 | 1 | 0/4 | full |
 | rights | core | core | 4 | 22 | 48 | 0 | 1 | 0/70 | full |
 | risk | extension | extensions | 2 | 8 | 19 | 0 | 1 | - | full |
 | sensory | extension | extensions | 3 | 4 | 6 | 0 | 0 | - | full |

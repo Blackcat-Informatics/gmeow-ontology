@@ -1155,6 +1155,17 @@
   {
     "keywords": [
       "",
+      "mimo",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/mimo/index.html",
+    "summary": "7 linkage rows for mimo.",
+    "title": "mimo"
+  },
+  {
+    "keywords": [
+      "",
       "mls",
       "other"
     ],
@@ -1674,6 +1685,32 @@
     "slice": "standpoint",
     "summary": "Canonical Turtle example for the standpoint slice.",
     "title": "Contested Authorship"
+  },
+  {
+    "keywords": [
+      "gmeow:Dataset",
+      "gmeow:Observation",
+      "gmeow:Organization",
+      "gmeow:QualityAssessment",
+      "gmeow:ScalarQuantity",
+      "gmeow:assessedEntity",
+      "gmeow:hasUnit",
+      "gmeow:methodComputationalModel",
+      "gmeow:name",
+      "gmeow:observationMethod",
+      "gmeow:observationResult",
+      "gmeow:qualityDimension",
+      "gmeow:qualityDimensionCompleteness",
+      "gmeow:quantityValue",
+      "gmeow:title",
+      "gmeow:vantage",
+      "slices/core/quality/examples/dataset-completeness.ttl"
+    ],
+    "kind": "example",
+    "path": "examples/index.html#example-slices-core-quality-examples-dataset-completeness",
+    "slice": "quality",
+    "summary": "Canonical Turtle example for the quality slice.",
+    "title": "Dataset Completeness"
   },
   {
     "keywords": [
@@ -2296,6 +2333,29 @@
   },
   {
     "keywords": [
+      "gmeow:Measurement",
+      "gmeow:Place",
+      "gmeow:ScalarQuantity",
+      "gmeow:SoftwareAgent",
+      "gmeow:hasUnit",
+      "gmeow:methodInstrumentalReading",
+      "gmeow:name",
+      "gmeow:observationMethod",
+      "gmeow:observationResult",
+      "gmeow:observedFeature",
+      "gmeow:quantityUncertainty",
+      "gmeow:quantityValue",
+      "gmeow:vantage",
+      "slices/core/observations/examples/temperature-reading.ttl"
+    ],
+    "kind": "example",
+    "path": "examples/index.html#example-slices-core-observations-examples-temperature-reading",
+    "slice": "observations",
+    "summary": "Canonical Turtle example for the observations slice.",
+    "title": "Temperature Reading"
+  },
+  {
+    "keywords": [
       "gmeow:Cascade",
       "gmeow:CausalLink",
       "gmeow:EventType",
@@ -2882,7 +2942,7 @@
     "kind": "slice",
     "path": "slices/quality/index.html",
     "slice": "quality",
-    "summary": "core slice with 0 examples",
+    "summary": "core slice with 1 examples",
     "title": "GMEOW Data Quality Module"
   },
   {
@@ -3333,7 +3393,7 @@
     "kind": "slice",
     "path": "slices/observations/index.html",
     "slice": "observations",
-    "summary": "core slice with 0 examples",
+    "summary": "core slice with 1 examples",
     "title": "GMEOW Observations Module"
   },
   {
