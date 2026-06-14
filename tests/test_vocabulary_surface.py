@@ -13,7 +13,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
-from rdflib import OWL, RDF, Graph, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import DCTERMS, SKOS
 
 from gmeow_tools.config import (
     CATALOG_FILE,
@@ -27,7 +28,12 @@ from gmeow_tools.config import (
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_module_files
-from gmeow_tools.slices import iter_slice_example_files
+from gmeow_tools.slices import (
+    iter_slice_example_files,
+    iter_slice_mapping_files,
+    iter_slice_module_files,
+    iter_slice_shape_files,
+)
 
 GMEOW = Namespace(NAMESPACE)
 GMEOW_MODULES = NAMESPACE + "modules/"
@@ -329,6 +335,85 @@ def test_slice_examples_use_only_declared_terms(
     messages = [f"  {name}: {bad}" for name, bad in undeclared.items()]
     assert not undeclared, "Undeclared GMEOW terms in slice examples:\n" + "\n".join(
         messages
+    )
+
+
+# Predicates whose object is human-readable, translatable prose. Every literal
+# on one of these MUST carry a language tag so a translation (Mandarin, French,
+# …) can attach a sibling literal beside the source rendering. The internal
+# authoring tag is ``@x-gmeow-english``; published projections coarsen it to a
+# public BCP-47 tag (``@en``) at the generation boundary — either satisfies the
+# discipline, so the gate only fails CLOSED on a *plain* (untagged) literal.
+LOCALIZABLE_PREDICATES: frozenset[URIRef] = frozenset(
+    {
+        RDFS.label,
+        RDFS.comment,
+        SKOS.definition,
+        SKOS.scopeNote,
+        SKOS.example,
+        SKOS.prefLabel,
+        SKOS.altLabel,
+        SKOS.note,
+        DCTERMS.title,
+        DCTERMS.description,
+        GMEOW.name,
+        GMEOW.title,
+        GMEOW.description,
+        GMEOW.fullName,
+    }
+)
+
+
+def _iter_slice_source_files() -> list[Path]:
+    """Every hand-authored TTL under ``slices/`` — modules, shapes, mappings, examples.
+
+    Generated artifacts live under ``generated/`` and are governed instead by the
+    internal-tag leak gate (they carry public ``@en``), so they are out of scope here.
+    """
+    return [
+        *iter_slice_module_files(),
+        *iter_slice_shape_files(),
+        *iter_slice_mapping_files(),
+        *iter_slice_example_files(),
+    ]
+
+
+def test_slice_source_localizable_literals_are_language_tagged() -> None:
+    """Localizable literals in slice source must carry a language tag.
+
+    The ontology is about to be translated wholesale (Mandarin, French). A
+    translation works by attaching a language-tagged sibling literal beside each
+    source rendering — which is impossible if the source literal is *plain* (no
+    tag), because a plain literal and a tagged one are distinct RDF terms with no
+    declared relationship. A plain ``rdfs:label`` or ``gmeow:name`` therefore
+    silently becomes untranslatable. SHACL does not catch this (a plain literal
+    satisfies any ``sh:datatype rdfs:Literal`` / language-free shape), so this
+    surface gate fails closed on every untagged localizable literal — the
+    translation-readiness sibling of the declared-term-surface checks above.
+    """
+    source_files = _iter_slice_source_files()
+    assert source_files, "No slice source files found to validate!"
+    untagged: dict[str, list[str]] = {}
+    for path in source_files:
+        graph = _parse_ttl(path)
+        bad = sorted(
+            f"{graph.namespace_manager.normalizeUri(str(p))} {obj!r}"
+            for _, p, obj in graph
+            if p in LOCALIZABLE_PREDICATES
+            and isinstance(obj, Literal)
+            and not obj.language
+        )
+        if bad:
+            untagged[path.relative_to(PROJECT_ROOT).as_posix()] = bad
+
+    messages = [
+        f"  {name}:\n    " + "\n    ".join(bad) for name, bad in untagged.items()
+    ]
+    assert not untagged, (
+        "Plain (untagged) localizable literals in slice source — every label, "
+        "name, title, definition and comment must carry a language tag "
+        "(@x-gmeow-english for authoring) so translations can attach:\n"
+        + "\n".join(messages)
     )
 
 

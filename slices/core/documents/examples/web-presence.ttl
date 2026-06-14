@@ -35,4 +35,4 @@ ex:aboutMara a gmeow:WebPage ;
     gmeow:embodies ex:siteContent .
 
 ex:mara a gmeow:Person ;
-    gmeow:name "Mara Okafor" .
+    gmeow:name "Mara Okafor"@x-gmeow-english .

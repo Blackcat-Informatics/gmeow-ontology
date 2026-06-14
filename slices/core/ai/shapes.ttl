@@ -13,7 +13,7 @@
 
 gmeow:ContradictionNeedsTwoClaimsShape
     a sh:NodeShape ;
-    rdfs:label "Contradiction needs two claims shape" ;
+    rdfs:label "Contradiction needs two claims shape"@x-gmeow-english ;
     skos:definition "Closed-world half of the Contradiction relator's EL existential: a surfaced conflict relates at least two claim nodes — one claim cannot conflict with nothing (P9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetClass gmeow:Contradiction ;
@@ -26,7 +26,7 @@ gmeow:ContradictionNeedsTwoClaimsShape
 
 gmeow:ChunkLocationShape
     a sh:NodeShape ;
-    rdfs:label "Chunk location shape" ;
+    rdfs:label "Chunk location shape"@x-gmeow-english ;
     skos:definition "A Chunk segments exactly one source — re-chunking mints new individuals, never re-points one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetClass gmeow:Chunk ;
@@ -51,7 +51,7 @@ gmeow:ChunkLocationShape
 
 gmeow:SpanSanityShape
     a sh:NodeShape ;
-    rdfs:label "Span sanity shape" ;
+    rdfs:label "Span sanity shape"@x-gmeow-english ;
     skos:definition "A span's exclusive end offset must exceed its inclusive start; nonsensical spans would silently break the mechanical AIS checking the typed offsets exist for (#55)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetSubjectsOf gmeow:spanStart ;
@@ -69,7 +69,7 @@ gmeow:SpanSanityShape
 
 gmeow:MemoryItemOwnerShape
     a sh:NodeShape ;
-    rdfs:label "Memory item owner shape" ;
+    rdfs:label "Memory item owner shape"@x-gmeow-english ;
     skos:definition "Closed-world half of the MemoryItem role's relational dependence: a memory belonging to nobody is not a memory."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetClass gmeow:MemoryItem ;
@@ -86,7 +86,7 @@ gmeow:MemoryItemOwnerShape
 
 gmeow:ClaimNeedsEvidenceShape
     a sh:NodeShape ;
-    rdfs:label "Claim needs evidence shape" ;
+    rdfs:label "Claim needs evidence shape"@x-gmeow-english ;
     skos:definition "An LLM-extracted claim with no gmeow:groundedIn span is a FLAGGED HALLUCINATION — surfaced as a warning, retained, never deleted (P10). Targets only machine-extracted claims: a human assertion without pinned evidence is ordinary testimony, not a flag."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:target [
@@ -108,7 +108,7 @@ gmeow:ClaimNeedsEvidenceShape
 
 gmeow:GroundingSpanShape
     a sh:NodeShape ;
-    rdfs:label "Grounding span shape" ;
+    rdfs:label "Grounding span shape"@x-gmeow-english ;
     skos:definition "A span used for claim grounding must be mechanically checkable: pinned into a chunk, offset-located, and polarity-classified. Targets only spans referenced via gmeow:groundedIn — the citations slice's selectors are not chunk-pinned and are not targeted."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:target [
@@ -145,7 +145,7 @@ gmeow:GroundingSpanShape
 
 gmeow:StaleSourceShape
     a sh:NodeShape ;
-    rdfs:label "Stale source shape" ;
+    rdfs:label "Stale source shape"@x-gmeow-english ;
     skos:definition "A claim grounded in a chunk whose source was modified AFTER the claim's assertion time is flagged stale: the evidentiary bytes may no longer say what they said. A warning — staleness is a re-verification trigger, never an eviction (P10)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetSubjectsOf gmeow:groundedIn ;

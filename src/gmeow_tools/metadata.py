@@ -100,7 +100,10 @@ def _fold_linksets(view: FoldView) -> Graph:
             (
                 linkset,
                 RDFS.label,
-                Literal(f"GMEOW {predicate_id} links to {target_ns} ({count})"),
+                Literal(
+                    f"GMEOW {predicate_id} links to {target_ns} ({count})",
+                    lang="x-gmeow-english",
+                ),
             )
         )
     return graph
