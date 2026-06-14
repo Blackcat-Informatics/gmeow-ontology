@@ -413,14 +413,19 @@ def local_candidates(root: Path = PROJECT_ROOT) -> list[CitationCandidate]:
 
 def _run_gh(args: Sequence[str]) -> str:
     """Run ``gh`` and return stdout, raising RuntimeError on failure."""
-    result = subprocess.run(
-        ["gh", *args],
-        check=False,
-        capture_output=True,
-        text=True,
-        cwd=PROJECT_ROOT,
-        timeout=120,
-    )
+    try:
+        result = subprocess.run(
+            ["gh", *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=PROJECT_ROOT,
+            timeout=120,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError("gh CLI is not installed or not in PATH") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"gh {' '.join(args)} timed out after 120s") from exc
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(f"gh {' '.join(args)} failed: {detail}")
@@ -494,16 +499,16 @@ def _gh_pr_review_summaries(repo: str) -> list[Mapping[str, object]]:
             args.extend(["-F", f"cursor={cursor}"])
         payload = json.loads(_run_gh(args))
         root = cast(Mapping[str, object], payload)
-        data = cast(Mapping[str, object], root.get("data", {}))
-        repository = cast(Mapping[str, object], data.get("repository", {}))
-        pulls = cast(Mapping[str, object], repository.get("pullRequests", {}))
-        nodes = pulls.get("nodes", [])
+        data = cast(Mapping[str, object], root.get("data") or {})
+        repository = cast(Mapping[str, object], data.get("repository") or {})
+        pulls = cast(Mapping[str, object], repository.get("pullRequests") or {})
+        nodes = pulls.get("nodes") or []
         if isinstance(nodes, list):
             for pr in cast(list[Mapping[str, object]], nodes):
                 number = pr.get("number")
                 title = pr.get("title")
-                reviews = cast(Mapping[str, object], pr.get("reviews", {}))
-                review_nodes = reviews.get("nodes", [])
+                reviews = cast(Mapping[str, object], pr.get("reviews") or {})
+                review_nodes = reviews.get("nodes") or []
                 if not isinstance(review_nodes, list):
                     continue
                 for review in cast(list[Mapping[str, object]], review_nodes):
@@ -526,7 +531,7 @@ def _gh_pr_review_summaries(repo: str) -> list[Mapping[str, object]]:
                             "number": number,
                         }
                     )
-        page_info = cast(Mapping[str, object], pulls.get("pageInfo", {}))
+        page_info = cast(Mapping[str, object], pulls.get("pageInfo") or {})
         if page_info.get("hasNextPage") is not True:
             break
         next_cursor = page_info.get("endCursor")
