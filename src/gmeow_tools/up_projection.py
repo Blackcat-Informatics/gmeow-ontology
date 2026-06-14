@@ -32,6 +32,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 
 from rdflib import RDF, XSD, BNode, Graph, Literal, Namespace, URIRef
 from rdflib.term import Node
@@ -73,9 +74,11 @@ def _sssom_closematch_pairs() -> dict[str, dict[str, str]]:
     A closeMatch is *not* an equivalence, so it lifts with a claim (below), not
     as a fact. The confidence is the curator's value carried verbatim for the
     claim's ``gmeow:confidence`` annotation; when a pair recurs across files the
-    higher confidence wins (deterministic). Rows with no parseable confidence are
-    skipped — a claim without its confidence would lose the very metadata that
-    makes the lift honest.
+    higher confidence wins (deterministic). A row is skipped unless its
+    confidence is a finite value in [0,1] in valid ``xsd:decimal`` lexical form
+    (no exponent) — the raw string is emitted as an ``xsd:decimal`` literal, so
+    an ill-formed value would produce an ill-typed claim, and a claim without a
+    sound confidence loses the very metadata that makes the lift honest.
     """
     pairs: dict[str, dict[str, str]] = defaultdict(dict)
     for path in sorted(MAPPINGS_DIR.glob("*.sssom.tsv")):
@@ -86,20 +89,35 @@ def _sssom_closematch_pairs() -> dict[str, dict[str, str]]:
             if bucket != "liftable-with-claim":
                 continue
             conf = row.get("confidence", "").strip()
-            try:
-                conf_val = float(conf)
-            except ValueError:
-                continue
-            if not 0.0 <= conf_val <= 1.0:
+            conf_val = _decimal_confidence(conf)
+            if conf_val is None:
                 continue
             tiri = _to_iri(target)
             if not _in_projection_ns(tiri):
                 continue
             giri = _to_iri(gmeow)
             prev = pairs[tiri].get(giri)
-            if prev is None or conf_val > float(prev):  # higher confidence wins
+            if prev is None or conf_val > Decimal(prev):  # higher confidence wins
                 pairs[tiri][giri] = conf
     return pairs
+
+
+def _decimal_confidence(conf: str) -> Decimal | None:
+    """Parse a confidence string to a Decimal in [0,1], or None if unusable.
+
+    Rejects non-decimals, exponent forms (``1e-1`` is valid ``float`` but not
+    valid ``xsd:decimal`` lexical form), and NaN/Infinity — so the raw string
+    can be emitted verbatim as a well-typed ``xsd:decimal`` literal.
+    """
+    if "e" in conf.lower():
+        return None
+    try:
+        value = Decimal(conf)
+    except InvalidOperation:
+        return None
+    if not value.is_finite() or not Decimal(0) <= value <= Decimal(1):
+        return None
+    return value
 
 
 def _structural_pairs() -> dict[str, set[str]]:
@@ -318,12 +336,15 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
             if key in lift.rules:  # rdf:type is never inverted
                 out.add((s, RDF.type, URIRef(lift.rules[key])))
                 lifted += 1
-            elif key in lift.claim_rules and isinstance(s, URIRef):
-                # a class closeMatch — claim membership, never assert it
-                gmeow, conf = lift.claim_rules[key]
-                _emit_claim(out, s, RDF.type, URIRef(gmeow), URIRef(key), conf)
-                claimed += 1
-                claims[_canon_qname(key)] += 1
+            elif key in lift.claim_rules:
+                # a class closeMatch — claim membership, never assert it. A
+                # blank-node subject is unquotable (qSubject is IRI-only), so it
+                # is skipped — a rule exists, so it is NOT a gap.
+                if isinstance(s, URIRef):
+                    gmeow, conf = lift.claim_rules[key]
+                    _emit_claim(out, s, RDF.type, URIRef(gmeow), URIRef(key), conf)
+                    claimed += 1
+                    claims[_canon_qname(key)] += 1
             else:
                 account(key)
             continue

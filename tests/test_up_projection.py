@@ -251,6 +251,38 @@ def test_up_project_claim_skips_blank_node_endpoints() -> None:
     assert "schema:sender" not in up.ambiguous_terms
 
 
+def test_up_project_class_claim_skips_blank_node_subject() -> None:
+    """A class closeMatch on a blank-node subject is unquotable (qSubject is
+    IRI-only), so it is skipped — a rule exists, so it is NOT a gap (parity with
+    the property-claim blank-node skip)."""
+    lift = build_lift_map()
+    # find a closeMatch claim target that is a class (lifts via rdf:type)
+    target = SCHEMA + "Offer"  # gmeow:Offering, a class closeMatch
+    assert target in lift.claim_rules
+    src = Graph()
+    src.add((BNode(), RDF.type, URIRef(target)))
+    up = up_project(src, lift)
+    assert up.claimed == 0
+    assert len(up.graph) == 0
+    assert "schema:Offer" not in up.gap_terms
+    assert "schema:Offer" not in up.ambiguous_terms
+
+
+def test_decimal_confidence_rejects_non_decimal_lexical_forms() -> None:
+    """Confidence must be a finite [0,1] value in xsd:decimal lexical form — the
+    raw string is emitted as an xsd:decimal literal, so exponent / NaN / out-of-
+    range forms (valid float, invalid decimal) are rejected, not silently kept."""
+    from decimal import Decimal
+
+    from gmeow_tools.up_projection import _decimal_confidence
+
+    assert _decimal_confidence("0.9") == Decimal("0.9")
+    assert _decimal_confidence("1") == Decimal("1")
+    assert _decimal_confidence("0") == Decimal("0")
+    for bad in ("1e-1", "1E-1", "NaN", "Infinity", "-0.1", "1.5", "abc", ""):
+        assert _decimal_confidence(bad) is None, bad
+
+
 def test_up_project_empty_graph_raises() -> None:
     """up_project fails fast on an empty source (its contract is non-empty input)."""
     import pytest
