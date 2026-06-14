@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Clean 1:1 projection wins (#449 triage): GMEOW terms with an identical
+# schema.org / FOAF counterpart that had no cell.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/clean/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:doc a gmeow:Document ; rdfs:label "A Doc"@x-gmeow-english ;
+    gmeow:conformsTo <https://example.org/spec/v1> ;
+    gmeow:validFrom "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "2027-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasEditor ex:editor .
+
+ex:editor a gmeow:Person ; rdfs:label "An Editor"@x-gmeow-english .
+
+ex:data a gmeow:Dataset ; rdfs:label "A Dataset"@x-gmeow-english ;
+    gmeow:ownedBy ex:org .
+
+ex:org a gmeow:Organization ; rdfs:label "Parent Org"@x-gmeow-english ;
+    gmeow:telephone "+16045551234" .
+
+ex:subOrg a gmeow:Organization ; rdfs:label "Sub Org"@x-gmeow-english ;
+    gmeow:subOrganizationOf ex:org .

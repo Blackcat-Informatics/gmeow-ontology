@@ -207,3 +207,19 @@ gmeow:mapFoafAccount a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "faAcct" ; gmeow:tPred rdf:type ; gmeow:tObjValue foaf:OnlineAccount ]
             [ gmeow:tSubj "faAcct" ; gmeow:tPred foaf:accountName ; gmeow:tObj "faName" ]
             [ gmeow:tSubj "faAcct" ; gmeow:tPred foaf:accountServiceHomepage ; gmeow:tObj "faHome" ] ) ] .
+
+# Clean 1:1 win (#449 triage): telephone → foaf:phone. FOAF's foaf:phone is an
+# ObjectProperty over tel: resources, so the number is minted into a tel: URI.
+gmeow:mapFoafPhone a gmeow:ProjectionMapping ;
+    rdfs:label "telephone → foaf:phone (tel: resource)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fpAgent" ; gmeow:value "fpTel" ;
+        gmeow:atom ( [ gmeow:subjectVar "fpAgent" ; gmeow:predicate gmeow:telephone ; gmeow:objectVar "fpNum" ] ) ;
+        gmeow:mint [ gmeow:bindVar "fpTel" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    "tel:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "fpNum" ] ) ] ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:telephone ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:phone ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the phone literal is minted into a tel: URI to match foaf:phone's resource range" ] .

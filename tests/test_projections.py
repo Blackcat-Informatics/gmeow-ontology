@@ -1234,3 +1234,39 @@ def test_schema_org_business_facet() -> None:
     # taxID rides the Identifier facet (scheme "tax"), not a bespoke term
     assert (acme, URIRef(SCHEMA + "taxID"), Literal("12-3456789")) in g
     _assert_no_gmeow_leakage(g)
+
+
+def test_schema_org_clean_wins() -> None:
+    """#449 clean-1:1 wins: identical-term schema/foaf projections that were missing."""
+    g = project_graph("schema-org", _fixture_store("clean-wins.ttl"))
+    ex = "https://example.org/clean/"
+    doc, org, sub = URIRef(ex + "doc"), URIRef(ex + "org"), URIRef(ex + "subOrg")
+    assert (
+        doc,
+        URIRef(SCHEMA + "conformsTo"),
+        URIRef("https://example.org/spec/v1"),
+    ) in g
+    assert (
+        doc,
+        URIRef(SCHEMA + "validFrom"),
+        Literal("2026-01-01T00:00:00Z", datatype=XSD.dateTime),
+    ) in g
+    assert (
+        doc,
+        URIRef(SCHEMA + "validThrough"),
+        Literal("2027-01-01T00:00:00Z", datatype=XSD.dateTime),
+    ) in g
+    assert (doc, URIRef(SCHEMA + "editor"), URIRef(ex + "editor")) in g
+    assert (URIRef(ex + "data"), URIRef(SCHEMA + "owner"), org) in g
+    assert (URIRef(ex + "data"), RDF.type, URIRef(SCHEMA + "Dataset")) in g
+    # inverse: the PARENT gains schema:subOrganization pointing at the child
+    assert (org, URIRef(SCHEMA + "subOrganization"), sub) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_foaf_phone_clean_win() -> None:
+    """#449 clean-1:1 win: telephone → foaf:phone."""
+    g = project_graph("foaf", _fixture_store("clean-wins.ttl"))
+    ex = "https://example.org/clean/"
+    assert (URIRef(ex + "org"), URIRef(FOAF + "phone"), URIRef("tel:+16045551234")) in g
+    _assert_no_gmeow_leakage(g)
