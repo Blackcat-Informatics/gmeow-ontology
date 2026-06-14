@@ -42,7 +42,7 @@ Tier-2 uplift backlog.
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 0 | - | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 0 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 0/8 | full |
-| logic | core | core | 0 | 0 | 0 | 0 | 0 | 0/0 | full |
+| logic | core | core | 0 | 14 | 11 | 12 | 0 | 0/25 | full |
 | music | extension | extensions | 11 | 52 | 121 | 0 | 0 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 2/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 0 | - | full |
@@ -70,4 +70,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 0 | 0/11 | full |
 
-**61 slices** · documentation: 61 full guides, 0 stubs remaining (#325); advisory coverage: 3/1053 core class/property terms (#471).
+**61 slices** · documentation: 61 full guides, 0 stubs remaining (#325); advisory coverage: 3/1078 core class/property terms (#471).
