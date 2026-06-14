@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from rdflib import RDF, Graph, Literal, URIRef
+from rdflib.term import Node
 
 from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.up_projection import up_project
@@ -12,13 +13,12 @@ from gmeow_tools.up_projection_descend import build_context, up_project_descend
 
 GM = "https://blackcatinformatics.ca/gmeow/"
 SCHEMA = "https://schema.org/"
-PROV = "http://www.w3.org/ns/prov#"
 
 
-def _src(*triples: tuple[URIRef, URIRef, object]) -> Graph:
+def _src(*triples: tuple[Node, Node, Node]) -> Graph:
     g = Graph()
-    for s, p, o in triples:
-        g.add((s, p, o))
+    for triple in triples:
+        g.add(triple)
     return g
 
 
@@ -89,16 +89,19 @@ def test_descent_defers_when_type_adds_no_signal() -> None:
 def test_descent_never_regresses_facts_on_the_real_corpus() -> None:
     """On the vendored real snapshots the descent strictly improves the floor:
     facts never decrease and the ambiguous count drops (context rescues)."""
+    exercised = 0
     for name in ("bii", "paudley"):
         path = FIXTURES_DIR / "external" / f"{name}.ttl"
         if not path.exists():
             continue
+        exercised += 1
         src = Graph().parse(path, format="turtle")
         flat = up_project(src)
         desc = up_project_descend(src)
         assert desc.lifted >= flat.lifted, f"{name}: facts regressed"
         assert sum(desc.ambiguous_terms.values()) < sum(flat.ambiguous_terms.values())
         assert desc.context_resolved > 0
+    assert exercised, "no corpus fixtures exercised — vacuous pass"
 
 
 def test_descent_output_is_pure_gmeow() -> None:

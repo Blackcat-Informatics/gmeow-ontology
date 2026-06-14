@@ -29,11 +29,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.term import Node
 
-from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.graph import shared_merged_graph
 from gmeow_tools.up_projection import (
     GM,
     LiftMap,
@@ -96,6 +97,7 @@ def _ancestor_closure(graph: Graph) -> dict[str, frozenset[str]]:
     return closure
 
 
+@lru_cache(maxsize=1)
 def build_context() -> _Context:
     """Derive the type-conditioned candidate map from the alignment layers.
 
@@ -103,8 +105,11 @@ def build_context() -> _Context:
     tagged with the gmeow term's ``rdfs:domain`` (the type-context) and its
     fact/claim relation. Inverse-path rules are left to the floor (their reversal
     swaps endpoints, orthogonal to type selection).
+
+    Cached (the alignment layers and class hierarchy are static for a process);
+    the returned ``_Context`` is read-only — never mutate it.
     """
-    graph = load_merged_graph(include_imports=False)
+    graph = shared_merged_graph(include_imports=False)
 
     def domain(gmeow_iri: str) -> str | None:
         doms = [
@@ -158,7 +163,9 @@ def _resolve(
         return None
     supers: set[str] = set()
     for t in subject_types:
-        supers |= ctx.ancestors.get(t, frozenset({t})) | {t}
+        # the ancestor closure is reflexive and its fallback includes t, so the
+        # subject's own type is always present — no separate union with {t}
+        supers |= ctx.ancestors.get(t, frozenset({t}))
     typed = [
         c for c in cands if c.context_type is not None and c.context_type in supers
     ]
@@ -230,7 +237,8 @@ def up_project_descend(source: Graph, lift: LiftMap | None = None) -> UpProjecti
         if cand.relation == "=":
             acc.fact(s, URIRef(cand.gmeow), o)
         elif isinstance(s, URIRef) and isinstance(o, URIRef | Literal):
-            acc.claim(s, URIRef(cand.gmeow), o, URIRef(str(p)), cand.confidence)
+            # p is a URIRef here (the gate above continued otherwise)
+            acc.claim(s, URIRef(cand.gmeow), o, p, cand.confidence)
         else:
             # a claim with an unquotable blank-node endpoint — defer to the floor
             _lift_edge(acc, s, p, o, lift)
