@@ -21,10 +21,10 @@ ex:outage a gmeow:Event ;
     gmeow:eventTime "2026-03-04T02:00:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
-ex:internalCause a gmeow:Person ; gmeow:name "the on-call engineer (internal)" .
-ex:vendor a gmeow:Organization ; gmeow:name "Northwind CDN (third party)" .
+ex:internalCause a gmeow:Person ; gmeow:name "the on-call engineer (internal)"@x-gmeow-english .
+ex:vendor a gmeow:Organization ; gmeow:name "Northwind CDN (third party)"@x-gmeow-english .
 
-ex:spokesperson a gmeow:Person ; gmeow:name "Comms lead" .
+ex:spokesperson a gmeow:Person ; gmeow:name "Comms lead"@x-gmeow-english .
 
 # --- What the spokesperson privately HOLDS: the internal engineer caused it.
 ex:heldClaim a gmeow:StandpointClaim ;

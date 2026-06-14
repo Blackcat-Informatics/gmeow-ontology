@@ -15,8 +15,8 @@
 ex:play a gmeow:CreativeWork ;
     gmeow:title "The Contested Tragedy"@x-gmeow-english .
 
-ex:marlowe a gmeow:Person ; gmeow:name "Christopher Marlowe" .
-ex:shakespeare a gmeow:Person ; gmeow:name "William Shakespeare" .
+ex:marlowe a gmeow:Person ; gmeow:name "Christopher Marlowe"@x-gmeow-english .
+ex:shakespeare a gmeow:Person ; gmeow:name "William Shakespeare"@x-gmeow-english .
 
 # --- Standpoints: the scholarly positions from which each claim is held.
 ex:revisionists a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
