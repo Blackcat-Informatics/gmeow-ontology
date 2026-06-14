@@ -65,6 +65,43 @@ def test_up_project_output_is_pure_gmeow() -> None:
             assert str(o).startswith(GM), f"non-gmeow type {o}"
 
 
+def test_up_project_recovers_inverse_path_terms_swapped() -> None:
+    """An inverted down-projection (edoalPath anchored on the atom's object)
+    round-trips back to the original gmeow edge with subject↔object restored.
+
+    ``gmeow:alumniOf`` (alum→school) projects down to ``schema:alumni``
+    (school→alum, inverted); the up-lift must swap the endpoints back so the
+    recovered edge points alum→school, not school→alum.
+    """
+    lift = build_lift_map()
+    assert SCHEMA + "alumni" in lift.inverse_rules
+    assert lift.inverse_rules[SCHEMA + "alumni"] == GM + "alumniOf"
+
+    up = up_project(_down("gap-clusters.ttl", "schema-org"), lift)
+    gap = "https://example.org/gap/"
+    # recovered in the ORIGINAL direction: ada (alum) → cambridge (school)
+    assert (
+        URIRef(gap + "ada"),
+        URIRef(GM + "alumniOf"),
+        URIRef(gap + "cambridge"),
+    ) in up.graph
+    # and NOT the inverted school→alum direction the consumer graph carried
+    assert (
+        URIRef(gap + "cambridge"),
+        URIRef(GM + "alumniOf"),
+        URIRef(gap + "ada"),
+    ) not in up.graph
+
+    # subOrganization is the down-image of the same gmeow term; it also swaps
+    org = up_project(_down("organizations.ttl", "schema-org"), lift)
+    ex = "https://example.org/organizations/"
+    assert (
+        URIRef(ex + "archives-dept"),
+        URIRef(GM + "subOrganizationOf"),
+        URIRef(ex + "meridian-institute"),
+    ) in org.graph
+
+
 def test_up_project_does_not_guess_ambiguous_or_structural() -> None:
     """Ambiguous (schema:name) and structural-only (minted) terms are reported,
     never lifted — the no-fabrication discipline."""
