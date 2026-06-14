@@ -23,6 +23,13 @@ ONTOLOGY_IRI = "https://blackcatinformatics.ca/gmeow"
 #: Vocabulary namespace (term IRIs are NAMESPACE + local name).
 NAMESPACE = ONTOLOGY_IRI + "/"
 
+#: The ``logic:`` namespace — GMEOW Logic's canonical reasoning vocabulary
+#: (the UFO⁺ foundation, semantic/decidability profiles, world/modal terms, and
+#: the quantitative + preservation-polarity axes). ``logic:`` is the canonical
+#: foundation of which gUFO, OWL, Datalog, SHACL, Prolog and N3 are generated
+#: lossy projections (Principle 17); term IRIs are ``LOGIC_NAMESPACE + local``.
+LOGIC_NAMESPACE = "https://blackcatinformatics.ca/logic/"
+
 #: Explicit allowlist for ``owl:sameAs`` assertions whose object is outside the
 #: GMEOW namespace. GMEOW's default policy (Principle 5) forbids such triples
 #: because they collapse contested or standpoint-indexed identity. Entries here
@@ -265,6 +272,9 @@ JENA_IMAGE = "stain/jena:5.4.0"
 PREFIXES: dict[str, str] = {
     # GMEOW + RDF core
     "gmeow": NAMESPACE,
+    # GMEOW Logic — the canonical reasoning vocabulary (Principle 17). gUFO,
+    # OWL, Datalog, SHACL, Prolog and N3 are generated lossy projections of it.
+    "logic": LOGIC_NAMESPACE,
     "owl": "http://www.w3.org/2002/07/owl#",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",

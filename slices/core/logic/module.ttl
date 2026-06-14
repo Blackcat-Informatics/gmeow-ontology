@@ -5,19 +5,293 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/logic>
     a owl:Ontology ;
     rdfs:label "GMEOW Logic"@x-gmeow-english ;
-    skos:definition "The GMEOW Logic module — home of the `logic:` reasoning vocabulary. A minimal stub: the normative design is in `design/`, and the `logic:` terms, rules, profiles, and generators are minted when the engine lands (Principle 17). No terms are declared here yet, so the module adds no axioms to the reasoned core."@x-gmeow-english ;
+    skos:definition "The GMEOW Logic module — home of the `logic:` reasoning vocabulary. It declares the canonical UFO⁺ foundation (the foundational sorts and relations authored in `logic:`, of which gUFO is a generated down-projection), the semantic profiles every rule set must declare, the world/modal terms, the four distinct quantitative axes (probability, confidence, weight, evidence), and the preservation-polarity vocabulary of the loss ledger. The `logic:` namespace is the canonical foundation; OWL, Datalog, SHACL, Prolog, N3, and the gUFO/BFO/DOLCE upper ontologies are its generated lossy projections (Principle 17). `logic:` terms are STANDALONE: they carry no gUFO parentage, because gUFO is a projection of `logic:`, not its ground. The normative semantics are in `design/LOGIC-SEMANTICS.md`; the preservation contract is in `design/LOGIC-CONFORMANCE.md`."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:comment "Stub module. The logic: namespace <https://blackcatinformatics.ca/logic/> is reserved here; its vocabulary (the unified core, semantic profiles, the foundation UFO⁺, world/modal terms) is specified in design/LOGIC-SEMANTICS.md and minted with implementation. Until then this slice contributes only its identity and tier (the manifest), not ontology terms."@x-gmeow-english ;
+    rdfs:comment "Foundation vocabulary for GMEOW Logic. The logic: namespace <https://blackcatinformatics.ca/logic/> is the canonical reasoning surface; its terms are declared standalone (no gUFO stereotypes, no rdfs:subClassOf into gmeow: reasoned classes) so the gUFO projection can be generated from them rather than the reverse. The rules, solver, profile machinery, and conformance corpus are minted as the native engine lands; this module mints the term surface."@x-gmeow-english ;
+    vann:preferredNamespacePrefix "logic" ;
+    vann:preferredNamespaceUri "https://blackcatinformatics.ca/logic/" ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
-# No terms yet. The `logic:` vocabulary (logic:Kind, logic:Relator,
-# logic:rigidlyAppliesTo, logic:World, logic:counterfactualOf, the semantic
-# and decidability profiles, …) is specified in design/ and minted when the
-# native solver lands, together with its generators and conformance corpus
-# (Principle 17, amendment-in-the-open).
+# Annotation properties (declared so the ontology stays OWL 2 DL).
 # --------------------------------------------------------------------------- #
+
+vann:preferredNamespacePrefix a owl:AnnotationProperty .
+vann:preferredNamespaceUri    a owl:AnnotationProperty .
+
+# --------------------------------------------------------------------------- #
+# The UFO⁺ foundation — canonical foundational sorts (LOGIC-SEMANTICS.md
+# §The `logic:` Foundation). These are STANDALONE: no gUFO parentage and no
+# gUFO stereotype, because gUFO is a generated down-projection of logic:,
+# not its ground. Bare declarations only — no axioms, no domain/range edges
+# into gmeow: reasoned classes. The OntoUML disciplines that today live as
+# external Python lints (rigidity, identity-supply, relator mediation) become
+# actual axioms over these terms when the native solver lands.
+# --------------------------------------------------------------------------- #
+
+logic:Kind
+    a owl:Class ;
+    rdfs:label "Kind"@x-gmeow-english ;
+    skos:definition "A rigid sortal that supplies a principle of identity to its instances and applies necessarily across every world in which an instance exists: an ultimate sortal under which an object falls for its whole existence. Every object instantiates exactly one ultimate Kind. Rigid (rigidlyAppliesTo) and identity-supplying (suppliesIdentity); contrast the anti-rigid Role and Phase."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:SubKind
+    a owl:Class ;
+    rdfs:label "Sub Kind"@x-gmeow-english ;
+    skos:definition "A rigid sortal that specializes a Kind without supplying its own independent principle of identity: it carries the identity criterion inherited from the Kind it specializes. Rigid like a Kind, but identity-dependent rather than identity-supplying."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Phase
+    a owl:Class ;
+    rdfs:label "Phase"@x-gmeow-english ;
+    skos:definition "An anti-rigid sortal an instance falls under during a stage of its existence determined by a change in its own intrinsic state — child, adult, vacant, occupied. Anti-rigid: there is a world of existence in which the instance lacks the Phase (the anti-rigidity witness). Contrast Role, whose change is relational rather than intrinsic."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Role
+    a owl:Class ;
+    rdfs:label "Role"@x-gmeow-english ;
+    skos:definition "An anti-rigid sortal an instance falls under contingently, by virtue of a relation it bears to some other entity — student, employee, defendant. Anti-rigid: there is a world of existence in which the instance lacks the Role (the anti-rigidity witness). Identity-dependent on the underlying Kind; contrast Phase, whose change is intrinsic rather than relational."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Category
+    a owl:Class ;
+    rdfs:label "Category"@x-gmeow-english ;
+    skos:definition "A rigid non-sortal that classifies instances of several different Kinds by shared essential properties without itself supplying a principle of identity: it dispersively spans Kinds rather than carrying its own identity criterion. Rigid but identity-dispersive; the rigid counterpart of the anti-rigid RoleMixin and PhaseMixin."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Mixin
+    a owl:Class ;
+    rdfs:label "Mixin"@x-gmeow-english ;
+    skos:definition "A semi-rigid non-sortal that classifies instances of several Kinds, applying rigidly to some instances and anti-rigidly to others: a dispersive type whose rigidity is mixed across its extension. Identity-dispersive like a Category, but semi-rigid rather than uniformly rigid."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:RoleMixin
+    a owl:Class ;
+    rdfs:label "Role Mixin"@x-gmeow-english ;
+    skos:definition "An anti-rigid non-sortal that abstracts a relationally-acquired property shared across instances of several Kinds — customer (a person or an organization), insured party. Anti-rigid and identity-dispersive: a Role generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:PhaseMixin
+    a owl:Class ;
+    rdfs:label "Phase Mixin"@x-gmeow-english ;
+    skos:definition "An anti-rigid non-sortal that abstracts an intrinsically-determined phase shared across instances of several Kinds — living thing (a person or an animal in its living phase). Anti-rigid and identity-dispersive: a Phase generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Relator
+    a owl:Class ;
+    rdfs:label "Relator"@x-gmeow-english ;
+    skos:definition "A truthmaker of a material relation: an objectified relationship — a marriage, an employment, an enrolment — that mediates two or more relata and existentially depends on each of them. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the relation it grounds holds in virtue of the Relator existing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Event
+    a owl:Class ;
+    rdfs:label "Event"@x-gmeow-english ;
+    skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Situation
+    a owl:Class ;
+    rdfs:label "Situation"@x-gmeow-english ;
+    skos:definition "A reified configuration of entities and their properties standing in a state of affairs at a time — the DOLCE Description-and-Situation sense: a snapshot of how things are that can satisfy a described state (a goal-world realized by a Situation). The static counterpart of the dynamic Event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
+# Foundation relations (LOGIC-SEMANTICS.md §The `logic:` Foundation,
+# §Operational semantics). STANDALONE object properties — no domain/range
+# edges into gmeow: reasoned classes; the disciplines they name are lowered
+# onto world-indexed / first-order machinery when the solver lands.
+# --------------------------------------------------------------------------- #
+
+logic:rigidlyAppliesTo
+    a owl:ObjectProperty ;
+    rdfs:label "rigidly applies to"@x-gmeow-english ;
+    skos:definition "Relates a rigid type to the individuals it necessarily classifies: for every individual and every pair of worlds in which the individual exists, if it instantiates the type in one world it instantiates it in the other. The modal rigidity constraint; a Kind rigidly applies to its instances, an anti-rigid Role or Phase does not (the same constraint negated). Lowered to a universally quantified, world-indexed rule evaluated by closure over the finite materialized world set, needing no native modal operator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:suppliesIdentity
+    a owl:ObjectProperty ;
+    rdfs:label "supplies identity"@x-gmeow-english ;
+    skos:definition "Relates an ultimate sortal to an individual whose principle of identity it supplies: the second-order identity-supply relation, reified as a first-order relation over punned type individuals (HiLog/F-logic style) so that 'every object instantiates exactly one ultimate sortal' becomes a first-order counting constraint. Kinds supply identity; SubKinds, Roles, and Phases inherit it; non-sortals (Category, Mixin, RoleMixin, PhaseMixin) supply none."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:mediates
+    a owl:ObjectProperty ;
+    rdfs:label "mediates"@x-gmeow-english ;
+    skos:definition "Relates a Relator to one of the entities it connects: the relationship between an objectified relation and each of its relata, on which the Relator existentially depends. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the material relation the Relator grounds holds in virtue of these mediation links."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
+# Semantic profiles (LOGIC-SEMANTICS.md §Semantic profiles). Every rule set
+# MUST declare the profile that governs it; a rule set with no declared
+# profile is rejected by the compiler. Soundness, completeness, and the
+# decidability class are all stated relative to the declared profile.
+# --------------------------------------------------------------------------- #
+
+logic:SemanticProfile
+    a owl:Class ;
+    rdfs:label "Semantic Profile"@x-gmeow-english ;
+    skos:definition "The named semantics that governs a rule set's interpretation. Because logic: admits monotonic Horn rules, negation-as-failure, well-founded and stable-model semantics, and procedural Prolog all at once, 'sound' is meaningless until the profile is named — so every rule set must declare one, and soundness, completeness, and decidability class are all stated relative to it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:PositiveHornProfile
+    a owl:NamedIndividual, logic:SemanticProfile ;
+    rdfs:label "Positive Horn Profile"@x-gmeow-english ;
+    skos:definition "The monotonic Horn-rule semantics: least-model semantics over positive (negation-free) rules, always terminating for the function-free fragment. The base case against which every richer profile adds expressivity and cost."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:StratifiedNAFProfile
+    a owl:NamedIndividual, logic:SemanticProfile ;
+    rdfs:label "Stratified Negation-As-Failure Profile"@x-gmeow-english ;
+    skos:definition "Negation-as-failure under stratification: a unique perfect model with PTIME data complexity, where negated literals are evaluated only over strata already settled. Adds well-behaved negation without the multiple models of the stable-model semantics."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:WellFoundedProfile
+    a owl:NamedIndividual, logic:SemanticProfile ;
+    rdfs:label "Well-Founded Profile"@x-gmeow-english ;
+    skos:definition "The well-founded semantics: a three-valued (true/false/undefined), total, polynomial-time semantics for normal logic programs that assigns a unique well-founded model even with unstratified negation, leaving genuinely circular literals undefined rather than branching."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:StableModelProfile
+    a owl:NamedIndividual, logic:SemanticProfile ;
+    rdfs:label "Stable Model Profile"@x-gmeow-english ;
+    skos:definition "Answer-set / stable-model semantics: a program may have several stable models (possibly none), and entailment is over those models. NP-hard in the worst case; the profile that admits genuine non-determinism and disjunctive reasoning."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:ProceduralPrologProfile
+    a owl:NamedIndividual, logic:SemanticProfile ;
+    rdfs:label "Procedural Prolog Profile"@x-gmeow-english ;
+    skos:definition "SLD resolution with cut and builtins: an operational, not purely declarative, semantics in which procedural search control (cut) and order-sensitive evaluation are permitted. Cut lives only here; artifacts using it must not project as declarative rules without recording the loss, because cut can change a program's answer set and defeats faithful-by-construction explanation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:ProbabilisticProfile
+    a owl:NamedIndividual, logic:SemanticProfile ;
+    rdfs:label "Probabilistic Profile"@x-gmeow-english ;
+    skos:definition "Probabilistic inference over logic:probability, ProbLog-style: requires an explicit independence or dependency model. Probabilistic inference is available only in this profile — it is not the default reading of every confidence number, and a logic:confidence annotation is never interpreted as a probability unless an explicit mapping to logic:probability is declared."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
+# Worlds, modality, and counterfactuals (LOGIC-SEMANTICS.md §Worlds). A world
+# is a reified, named context; the Kripke frame is realized by GMEOW's
+# existing contextual index. logic:accessibleFrom is STANDALONE here (the
+# gmeow:sharpens specialization is asserted on the gmeow: side, not minted
+# as an axiom in this module).
+# --------------------------------------------------------------------------- #
+
+logic:World
+    a owl:Class ;
+    rdfs:label "World"@x-gmeow-english ;
+    skos:definition "A reified, named context relative to which truth is evaluated — a possible world in the Kripke sense, realized by GMEOW's materialized contextual index (standpoints, narrative reference frames, goal-, ought-, feared-, and counterfactual-worlds). Truth is world-relative and entailment is world-indexed: a contradiction within one world is a witness, a contradiction across worlds is not an inconsistency in the model. Carries a world-type taxonomy (epistemic, doxastic, telic, deontic, alethic, representational, counterfactual)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:accessibleFrom
+    a owl:ObjectProperty ;
+    rdfs:label "accessible from"@x-gmeow-english ;
+    skos:definition "The Kripke accessibility relation between worlds: relates a world to a world from which it is reachable, generalizing the standpoint sharpening poset. The modal operators are the standard translation over this relation — necessity is truth in every accessible world, possibility truth in some. Evaluation is bounded universal quantification because the world set is the finite, materialized contextual index, not the unbounded space of all logically possible worlds."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:counterfactualOf
+    a owl:ObjectProperty ;
+    rdfs:label "counterfactual of"@x-gmeow-english ;
+    skos:definition "Relates a constructed counterfactual world to the base world it minimally revises: the surface for Lewis/Stalnaker counterfactuals, where the antecedent-world is computed by a revision rule rather than asserted and its contents must not leak into the base graph. Closeness is declared data (a generalized sharpening poset), not a fixed semantics; under the default Deterministic Revision Profile a declared entrenchment ordering yields a single revised world, and a genuine tie returns unknown rather than branching."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
+# Quantitative axes (LOGIC-SEMANTICS.md §Confidence, probability, weight, and
+# evidence). These four are normatively DISTINCT and not interchangeable: a
+# confidence score, a calibrated probability, a solver ranking weight, and an
+# evidential warrant are different things. Treating arbitrary confidence
+# metadata as a probability model is a named failure mode.
+# --------------------------------------------------------------------------- #
+
+logic:probability
+    a owl:DatatypeProperty ;
+    rdfs:label "probability"@x-gmeow-english ;
+    skos:definition "A calibrated probability under probabilistic fact/event semantics, requiring an explicit independence or dependency model. Distinct from logic:confidence, logic:weight, and logic:evidenceStrength and not interchangeable with them: probabilistic inference is available only in logic:ProbabilisticProfile. A logic:confidence annotation is NOT a probability unless an explicit mapping to this property is declared."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:confidence
+    a owl:DatatypeProperty ;
+    rdfs:label "confidence"@x-gmeow-english ;
+    skos:definition "Epistemic confidence assigned to a statement by a source or process — how sure the asserter is. Normatively distinct from logic:probability: a confidence score is NOT a probability and MUST NOT be interpreted as one unless an explicit mapping to logic:probability is declared. Also distinct from logic:weight (a solver ranking) and logic:evidenceStrength (evidential warrant)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:weight
+    a owl:DatatypeProperty ;
+    rdfs:label "weight"@x-gmeow-english ;
+    skos:definition "A solver or ranking weight — a numeric preference used to order or score derivations — not necessarily probabilistic and not an epistemic confidence. Normatively distinct from logic:probability, logic:confidence, and logic:evidenceStrength: a ranking weight carries no calibrated probabilistic or evidential meaning unless one is separately and explicitly declared."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:evidenceStrength
+    a owl:DatatypeProperty ;
+    rdfs:label "evidence strength"@x-gmeow-english ;
+    skos:definition "Evidential support for a statement, provenance-derived and reusing the evidence-slice warrant axes (source tier, evidence class): how well-warranted a claim is by its evidence. Normatively distinct from logic:probability, logic:confidence, and logic:weight — an evidential warrant is not a calibrated probability, an asserter's confidence, or a solver ranking, and is not interchangeable with any of them."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
+# Preservation polarity (LOGIC-CONFORMANCE.md §The loss ledger). For reasoning
+# projections, "lossy" is not enough: a consumer needs to know what a
+# projection GUARANTEES about answers, not only what it omits. Each projection
+# records a preservation polarity alongside a complexity/decidability class.
+# Overclaiming preservation is a red build, exactly like dropping a fact
+# silently.
+# --------------------------------------------------------------------------- #
+
+logic:PreservationKind
+    a owl:Class ;
+    rdfs:label "Preservation Kind"@x-gmeow-english ;
+    skos:definition "The polarity of guarantee a reasoning projection makes about its answers relative to the canonical logic: model: the answer-preservation classification recorded in the loss ledger for each projection, distinct from and complementary to the complexity/decidability class. Its individuals range from exact preservation through sound under-approximation and complete over-approximation to validation-only and the two inconsistency-direction kinds."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:preservationKind
+    a owl:ObjectProperty ;
+    rdfs:range logic:PreservationKind ;
+    rdfs:label "preservation kind"@x-gmeow-english ;
+    skos:definition "Relates a projection (or projection-report entry) to the logic:PreservationKind it claims: the machine-readable preservation polarity in the loss ledger. Lets a report say not just 'dropped modality' but, e.g., 'OWL-EL is a logic:SoundUnderApproximation for subclass entailments under profile X; PTIME'. The projections conformance category checks that each emitted projection matches its declared preservation kind."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:complexityClass
+    a owl:DatatypeProperty ;
+    rdfs:label "complexity class"@x-gmeow-english ;
+    skos:definition "The complexity / decidability class a projection or profile certifies — EL → PTIME, DL → decidable/N2EXPTIME, Datalog → terminating/PTIME-data — recorded alongside the preservation polarity in the loss ledger. Decidability is a projection guarantee bought by projecting down, not a canonical-layer promise: the canonical layer is maximally expressive and only semi-decidable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:ExactPreservation
+    a owl:NamedIndividual, logic:PreservationKind ;
+    rdfs:label "Exact Preservation"@x-gmeow-english ;
+    skos:definition "The projection yields the same answers as the canonical model for the declared query class: neither misses canonical answers nor adds spurious ones. The strongest preservation polarity, claimable only for a certified subfragment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:SoundUnderApproximation
+    a owl:NamedIndividual, logic:PreservationKind ;
+    rdfs:label "Sound Under-Approximation"@x-gmeow-english ;
+    skos:definition "Anything the projection entails is canonically valid, but the projection may miss canonical answers: sound but incomplete. The projection never overclaims a derivation; it may under-derive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:CompleteOverApproximation
+    a owl:NamedIndividual, logic:PreservationKind ;
+    rdfs:label "Complete Over-Approximation"@x-gmeow-english ;
+    skos:definition "The projection may overgenerate but will not miss canonical answers: complete but possibly unsound. Every canonical answer appears, alongside possible spurious ones; the dual of logic:SoundUnderApproximation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:ValidationOnly
+    a owl:NamedIndividual, logic:PreservationKind ;
+    rdfs:label "Validation Only"@x-gmeow-english ;
+    skos:definition "The projection detects some invalidity but is not an entailment relation: it can flag ill-formedness without computing canonical consequences. The honest label for bridge views (e.g. BFO/DOLCE) that constrain but do not reason; they carry this or no preservation claim, never logic:ExactPreservation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:InconsistencyPreserving
+    a owl:NamedIndividual, logic:PreservationKind ;
+    rdfs:label "Inconsistency Preserving"@x-gmeow-english ;
+    skos:definition "A canonical inconsistency appears as an inconsistency in the projection: the projection does not silently mask a contradiction present in the canonical model. The inconsistency-direction polarity guaranteeing canonical → projection visibility."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:InconsistencyReflecting
+    a owl:NamedIndividual, logic:PreservationKind ;
+    rdfs:label "Inconsistency Reflecting"@x-gmeow-english ;
+    skos:definition "An inconsistency in the projection implies an inconsistency in the canonical model: the projection raises no spurious contradiction absent from the canonical model. The inconsistency-direction polarity guaranteeing projection → canonical soundness, dual to logic:InconsistencyPreserving."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
