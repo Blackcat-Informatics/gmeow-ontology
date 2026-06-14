@@ -7,22 +7,31 @@
 # comment: "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)."
 # curie_map:
 #   gmeow: https://blackcatinformatics.ca/gmeow/
+#   mo: http://purl.org/ontology/mo/
+#   prov: http://www.w3.org/ns/prov#
+#   schema: https://schema.org/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:DegreeOfFreedom	skos:closeMatch	wd:Q623715	semapv:ManualMappingCuration	0.8	Wikidata 'aleatoric music' (Q623715) — the GMEOW relator declares the same indeterminacy structurally.
 gmeow:MetricStructure	skos:closeMatch	wd:Q155234	semapv:ManualMappingCuration	0.85	Wikidata 'time signature' (Q155234) — a CMN projection of the underlying MetricStructure.
+gmeow:PerformanceParticipation	skos:closeMatch	prov:Association	semapv:ManualMappingCuration	0.8	PROV-O Association is the generic qualified participation idiom.
 gmeow:PitchCollection	skos:closeMatch	wd:Q179651	semapv:ManualMappingCuration	0.9	Wikidata 'scale' (Q179651) — broader than the GMEOW collection view.
 gmeow:PitchSpellingSystem	skos:closeMatch	wd:Q233861	semapv:ManualMappingCuration	0.9	Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view.
 gmeow:PitchValue	skos:closeMatch	wd:Q1760309	semapv:ManualMappingCuration	0.85	Wikidata 'pitch class' (Q1760309) — a pitch value under octave equivalence.
 gmeow:TempoMap	skos:closeMatch	wd:Q189214	semapv:ManualMappingCuration	0.85	Wikidata 'tempo' (Q189214) — the broad concept; GMEOW models tempo as a piecewise frame mapping.
 gmeow:TuningSystem	skos:closeMatch	wd:Q723441	semapv:ManualMappingCuration	0.9	Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view.
 gmeow:determinationDelegatedPerformer	skos:closeMatch	wd:Q1049625	semapv:ManualMappingCuration	0.8	Wikidata 'musical improvisation' (Q1049625) — improvisation is one form of performer-delegated determination.
+gmeow:eventTypeConcert	skos:closeMatch	wd:Q182832	semapv:ManualMappingCuration	0.95	Wikidata 'concert' (Q182832).
+gmeow:performanceOf	skos:closeMatch	mo:performance	semapv:ManualMappingCuration	0.75	Music Ontology mo:performance relates a performance event to the musical work performed.
+gmeow:performanceOf	skos:closeMatch	wd:P2550	semapv:ManualMappingCuration	0.85	Wikidata 'recording or performance of' (P2550) — the closest available property for performance→work linkage.
 gmeow:pitchCollectionKindMaqam	skos:closeMatch	wd:Q12826678	semapv:ManualMappingCuration	0.85	Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions.
 gmeow:pitchCollectionKindMode	skos:exactMatch	wd:Q731978	semapv:ManualMappingCuration	0.95	Wikidata 'mode (music)' (Q731978).
 gmeow:pitchCollectionKindRaga	skos:exactMatch	wd:Q216926	semapv:ManualMappingCuration	0.95	Wikidata 'raga' (Q216926).
 gmeow:polymeterPattern	skos:closeMatch	wd:Q2102956	semapv:ManualMappingCuration	0.8	Wikidata 'polymeter' (Q2102956) — in GMEOW polymeter is modelled as the concurrent MeterAssignment pattern, not as a class.
+gmeow:roleEnsembleMember	skos:relatedMatch	wd:Q2088357	semapv:ManualMappingCuration	0.75	Wikidata 'musical ensemble' (Q2088357) — the entity an ensemble member participates in.
+gmeow:rolePerformer	skos:closeMatch	schema:performer	semapv:ManualMappingCuration	0.85	schema.org performer — already bridged from the events slice; repeated here for the music alignment set.
 gmeow:timeMappingKindTuplet	skos:closeMatch	wd:Q2092296	semapv:ManualMappingCuration	0.85	Wikidata 'tuplet' (Q2092296) — a tuplet is one kind of rational TimeMapping.
 gmeow:tuningSystem12EDO	skos:exactMatch	wd:Q752518	semapv:ManualMappingCuration	0.98	Wikidata '12 equal temperament' (Q752518).
 gmeow:tuningSystemBohlenPierce	skos:exactMatch	wd:Q11901664	semapv:ManualMappingCuration	0.95	Wikidata 'Bohlen–Pierce scale' (Q11901664).

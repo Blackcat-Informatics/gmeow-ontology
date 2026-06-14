@@ -42,7 +42,7 @@ Tier-2 uplift backlog.
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 0 | - | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 0 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 0/8 | full |
-| music | extension | extensions | 11 | 47 | 109 | 0 | 0 | - | full |
+| music | extension | extensions | 11 | 51 | 115 | 0 | 0 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 2/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 0 | - | full |
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 0 | - | full |

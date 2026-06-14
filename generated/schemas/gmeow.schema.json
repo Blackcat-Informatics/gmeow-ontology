@@ -473,6 +473,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -853,6 +862,15 @@
             },
             "title": "Agent",
             "type": "object"
+        },
+        "AgentEnum": {
+            "description": "",
+            "enum": [
+                "fixtureSessionBassist",
+                "fixtureSessionDrummer"
+            ],
+            "title": "AgentEnum",
+            "type": "string"
         },
         "AggregationFunction": {
             "additionalProperties": false,
@@ -11300,6 +11318,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -15275,6 +15302,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -17394,6 +17430,15 @@
                 "parentCommit": {
                     "items": {
                         "$ref": "#/$defs/Commit"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -36424,6 +36469,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -36513,7 +36567,12 @@
             "description": "",
             "enum": [
                 "fixtureKlavierstuckPerformanceOne",
-                "fixtureKlavierstuckPerformanceTwo"
+                "fixtureKlavierstuckPerformanceTwo",
+                "fixtureSessionEvent",
+                "fixtureSessionOverdubEvent",
+                "fixtureSessionTake1Event",
+                "fixtureSessionTake2Event",
+                "fixtureSessionTake3Event"
             ],
             "title": "EventEnum",
             "type": "string"
@@ -37194,9 +37253,11 @@
                 "eventTypeClinicalTrial",
                 "eventTypeCodeReview",
                 "eventTypeCommit",
+                "eventTypeConcert",
                 "eventTypeConfirmation",
                 "eventTypeCreation",
                 "eventTypeCremation",
+                "eventTypeDJSet",
                 "eventTypeDeath",
                 "eventTypeDeception",
                 "eventTypeDestruction",
@@ -37220,6 +37281,7 @@
                 "eventTypeImageScanning",
                 "eventTypeImmigration",
                 "eventTypeImpersonation",
+                "eventTypeJamSession",
                 "eventTypeLie",
                 "eventTypeManifestationProduction",
                 "eventTypeMarriage",
@@ -37227,14 +37289,18 @@
                 "eventTypeMerger",
                 "eventTypeMigration",
                 "eventTypeMilitaryService",
+                "eventTypeMusicalPerformance",
                 "eventTypeNameChange",
                 "eventTypeNaturalization",
                 "eventTypeOmission",
                 "eventTypeOrdination",
+                "eventTypeOverdub",
                 "eventTypePaltering",
                 "eventTypeProbate",
                 "eventTypePromotion",
                 "eventTypePush",
+                "eventTypeRecordingSession",
+                "eventTypeRehearsal",
                 "eventTypeRelease",
                 "eventTypeRename",
                 "eventTypeResidence",
@@ -37242,12 +37308,15 @@
                 "eventTypeRetirement",
                 "eventTypeSelfDeception",
                 "eventTypeSeparation",
+                "eventTypeSoundcheck",
                 "eventTypeSpinOff",
                 "eventTypeSplit",
                 "eventTypeSupersession",
                 "eventTypeSurvey",
+                "eventTypeTake",
                 "eventTypeTermination",
                 "eventTypeTransfer",
+                "eventTypeTransmission",
                 "eventTypeWill",
                 "eventTypeWorkConception"
             ],
@@ -38203,6 +38272,15 @@
                 "overlaps": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -39427,7 +39505,8 @@
             "enum": [
                 "fixtureGraphicScoreExpression",
                 "fixtureGraphicScoreTranscription",
-                "fixtureReichPhasingExpression"
+                "fixtureReichPhasingExpression",
+                "fixtureSessionExpression"
             ],
             "title": "ExpressionEnum",
             "type": "string"
@@ -42993,6 +43072,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -44614,6 +44702,15 @@
                 "overlaps": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -52209,6 +52306,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -54016,6 +54122,509 @@
             },
             "title": "Instant",
             "type": "object"
+        },
+        "InstrumentConfiguration": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "items": {
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDirectReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasIdentifier": {
+                    "items": {
+                        "$ref": "#/$defs/Identifier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLogo": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVoice": {
+                    "items": {
+                        "$ref": "#/$defs/Voice"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "items": {
+                        "type": "boolean"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "mentionedIn": {
+                    "items": {
+                        "$ref": "#/$defs/Note"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "ownedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "InstrumentConfiguration",
+            "type": "object"
+        },
+        "InstrumentType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "InstrumentType",
+            "type": "object"
+        },
+        "InstrumentTypeEnum": {
+            "description": "",
+            "enum": [
+                "instrumentTypeDoubleBass",
+                "instrumentTypeDrumKit",
+                "instrumentTypeElectricGuitar",
+                "instrumentTypePiano",
+                "instrumentTypeViolin"
+            ],
+            "title": "InstrumentTypeEnum",
+            "type": "string"
         },
         "Intention": {
             "additionalProperties": false,
@@ -57451,6 +58060,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -58650,6 +59268,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -59106,6 +59733,15 @@
                 "overlaps": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -61526,6 +62162,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -63743,6 +64388,15 @@
                 "overlaps": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -71466,6 +72120,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -75531,6 +76194,15 @@
                 "overlaps": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -79993,6 +80665,7 @@
                 "fixtureGraphicScoreWork",
                 "fixtureKlavierstuckXIWork",
                 "fixtureReichPhasingWork",
+                "fixtureSessionWork",
                 "fixtureStructureWork"
             ],
             "title": "MusicalWorkEnum",
@@ -87337,6 +88010,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -93490,6 +94172,7 @@
         "ParticipantRoleEnum": {
             "description": "",
             "enum": [
+                "roleAccompanist",
                 "roleAgent",
                 "roleAttendee",
                 "roleBeneficiary",
@@ -93500,7 +94183,10 @@
                 "roleDupe",
                 "roleEmployee",
                 "roleEmployer",
+                "roleEnsembleMember",
+                "roleImproviser",
                 "roleIntermediary",
+                "roleLearner",
                 "roleOfficiant",
                 "roleOrganizer",
                 "roleParticipantPrincipal",
@@ -93508,7 +94194,10 @@
                 "rolePayer",
                 "rolePerformer",
                 "roleProducer",
+                "roleSessionMusician",
+                "roleSoloist",
                 "roleSpinDoctor",
+                "roleTransmitter",
                 "roleVictim",
                 "roleWitness"
             ],
@@ -94863,6 +95552,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -95035,6 +95733,106 @@
                 "fixtureKlavierstuckDecisionTwo"
             ],
             "title": "PerformanceDecisionEnum",
+            "type": "string"
+        },
+        "PerformanceParticipation": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "participationConfiguration": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/InstrumentConfiguration"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "participationEvent": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Event"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "participationInstrument": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/InstrumentType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "participationInstrumentItem": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Item"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "participationInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "participationPart": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "participationParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "participationRole": {
+                    "items": {
+                        "$ref": "#/$defs/ParticipantRole"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "participationTechnique": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/PlayingTechnique"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "PerformanceParticipation",
+            "type": "object"
+        },
+        "PerformanceParticipationEnum": {
+            "description": "",
+            "enum": [
+                "fixtureTake3BassParticipation",
+                "fixtureTake3DrumParticipation"
+            ],
+            "title": "PerformanceParticipationEnum",
             "type": "string"
         },
         "PeriodType": {
@@ -102041,6 +102839,22 @@
                 "placeTypeThoroughfare"
             ],
             "title": "PlaceTypeEnum",
+            "type": "string"
+        },
+        "PlayingTechnique": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "PlayingTechnique",
+            "type": "object"
+        },
+        "PlayingTechniqueEnum": {
+            "description": "",
+            "enum": [
+                "playingTechniqueArco",
+                "playingTechniquePizzicato",
+                "playingTechniquePreparedPiano"
+            ],
+            "title": "PlayingTechniqueEnum",
             "type": "string"
         },
         "Pose": {
@@ -110000,6 +110814,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -112181,6 +113004,18 @@
             },
             "title": "Recording",
             "type": "object"
+        },
+        "RecordingEnum": {
+            "description": "",
+            "enum": [
+                "fixtureSessionComposite",
+                "fixtureSessionOverdubRecording",
+                "fixtureSessionTake1Recording",
+                "fixtureSessionTake2Recording",
+                "fixtureSessionTake3Recording"
+            ],
+            "title": "RecordingEnum",
+            "type": "string"
         },
         "RecurrenceRule": {
             "additionalProperties": false,
@@ -115442,6 +116277,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -117024,6 +117868,15 @@
                 "overlaps": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -144166,6 +145019,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -150979,6 +151841,15 @@
                         "null"
                     ]
                 },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "predecessorOrganization": {
                     "items": {
                         "$ref": "#/$defs/Organization"
@@ -155285,6 +156156,15 @@
                 "overlaps": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",

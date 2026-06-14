@@ -244,13 +244,40 @@ gmeow:eventTypeTransfer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/s
 gmeow:eventTypeResignation a gmeow:EventType ; rdfs:label "resignation"@x-gmeow-english ; skos:definition "The event of an agent voluntarily ending employment."@x-gmeow-english .
 gmeow:eventTypeResignation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:eventTypeTermination a gmeow:EventType ; rdfs:label "termination"@x-gmeow-english ; skos:definition "The event of an agent's employment being ended by the organization."@x-gmeow-english .
+gmeow:eventTypeTermination rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+
+# --------------------------------------------------------------------------- #
+# Musical performance event types — values, not Event subclasses (Principle 9;
+# issue #313). A performance is an Event whose gmeow:eventType carries one or
+# more of these values; there is no MusicalPerformance class.
+# --------------------------------------------------------------------------- #
+
+gmeow:eventTypeMusicalPerformance a gmeow:EventType ; rdfs:label "musical performance"@x-gmeow-english ; skos:definition "A performance of music — the central event type for the music extension. Co-typed with more specific values such as concert, recording session, or take as needed."@x-gmeow-english .
+gmeow:eventTypeMusicalPerformance rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeConcert          a gmeow:EventType ; rdfs:label "concert"@x-gmeow-english ;          skos:definition "A public musical performance, typically before an audience."@x-gmeow-english .
+gmeow:eventTypeConcert rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeRecordingSession a gmeow:EventType ; rdfs:label "recording session"@x-gmeow-english ; skos:definition "A session at which one or more recordings are captured."@x-gmeow-english .
+gmeow:eventTypeRecordingSession rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeTake             a gmeow:EventType ; rdfs:label "take"@x-gmeow-english ;             skos:definition "A single recorded attempt or capture during a recording session."@x-gmeow-english .
+gmeow:eventTypeTake rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeOverdub          a gmeow:EventType ; rdfs:label "overdub"@x-gmeow-english ;          skos:definition "A take recorded over or alongside existing recorded material."@x-gmeow-english .
+gmeow:eventTypeOverdub rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeRehearsal        a gmeow:EventType ; rdfs:label "rehearsal"@x-gmeow-english ;        skos:definition "A practice or preparation event for a musical performance."@x-gmeow-english .
+gmeow:eventTypeRehearsal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeJamSession       a gmeow:EventType ; rdfs:label "jam session"@x-gmeow-english ;      skos:definition "An informal musical performance, often improvisatory, by multiple participants."@x-gmeow-english .
+gmeow:eventTypeJamSession rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeSoundcheck       a gmeow:EventType ; rdfs:label "soundcheck"@x-gmeow-english ;       skos:definition "A pre-performance event for checking sound and equipment."@x-gmeow-english .
+gmeow:eventTypeSoundcheck rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeDJSet            a gmeow:EventType ; rdfs:label "DJ set"@x-gmeow-english ;            skos:definition "A performance in which a DJ selects and plays recorded music."@x-gmeow-english .
+gmeow:eventTypeDJSet rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeTransmission     a gmeow:EventType ; rdfs:label "transmission"@x-gmeow-english ;     skos:definition "An oral-tradition teaching event in which musical knowledge is passed from one agent to another (used by M10 #316)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Participant role — an OPEN value vocabulary. Generalizes the former genealogy
 # hasPrincipal / hasWitness / hasOfficiant subproperties into role values borne
 # on a gmeow:Participation relator.
 # --------------------------------------------------------------------------- #
-gmeow:eventTypeTermination rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:eventTypeTransmission rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:ParticipantRole
     a owl:Class, gufo:AbstractIndividualType ;
@@ -284,13 +311,28 @@ gmeow:roleBeneficiary rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/sli
 gmeow:roleEmployee           a gmeow:ParticipantRole ; rdfs:label "employee"@x-gmeow-english ;             skos:definition "The agent employed in an employment event."@x-gmeow-english .
 gmeow:roleEmployee rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:roleEmployer           a gmeow:ParticipantRole ; rdfs:label "employer"@x-gmeow-english ;             skos:definition "The organization employing in an employment event."@x-gmeow-english .
+gmeow:roleEmployer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+
+gmeow:roleSoloist              a gmeow:ParticipantRole ; rdfs:label "soloist"@x-gmeow-english ;            skos:definition "A performer featured as a soloist in a musical performance."@x-gmeow-english .
+gmeow:roleSoloist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleAccompanist          a gmeow:ParticipantRole ; rdfs:label "accompanist"@x-gmeow-english ;        skos:definition "A performer who accompanies a soloist or ensemble."@x-gmeow-english .
+gmeow:roleAccompanist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleEnsembleMember       a gmeow:ParticipantRole ; rdfs:label "ensemble member"@x-gmeow-english ;    skos:definition "A performer participating as a member of a musical ensemble."@x-gmeow-english .
+gmeow:roleEnsembleMember rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleSessionMusician      a gmeow:ParticipantRole ; rdfs:label "session musician"@x-gmeow-english ;   skos:definition "A musician hired to perform in a recording session."@x-gmeow-english .
+gmeow:roleSessionMusician rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleImproviser           a gmeow:ParticipantRole ; rdfs:label "improviser"@x-gmeow-english ;          skos:definition "A performer whose participation is primarily improvisatory."@x-gmeow-english .
+gmeow:roleImproviser rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleTransmitter          a gmeow:ParticipantRole ; rdfs:label "transmitter"@x-gmeow-english ;         skos:definition "An agent who transmits musical knowledge in an oral-tradition teaching event (used by M10 #316)."@x-gmeow-english .
+gmeow:roleTransmitter rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleLearner              a gmeow:ParticipantRole ; rdfs:label "learner"@x-gmeow-english ;             skos:definition "An agent who receives musical knowledge in an oral-tradition teaching event (used by M10 #316)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Temporal precision — an OPEN value vocabulary for the granularity of an event's
 # dating. Lets fuzzy / approximate dates be modelled honestly instead of as a
 # free-text string (the former gmeow:eventDate).
 # --------------------------------------------------------------------------- #
-gmeow:roleEmployer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
+gmeow:roleLearner rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:TemporalPrecision
     a owl:Class, gufo:AbstractIndividualType ;

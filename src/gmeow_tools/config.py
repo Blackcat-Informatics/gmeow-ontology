@@ -346,6 +346,8 @@ PREFIXES: dict[str, str] = {
     "schema": "https://schema.org/",
     "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
     "vcard": "http://www.w3.org/2006/vcard/ns#",
+    # Music Ontology (legacy but widely-used; bridged by reference only)
+    "mo": "http://purl.org/ontology/mo/",
     # Workflow / process alignment (#226)
     "pplan": "http://purl.org/net/p-plan#",
     "opmw": "https://www.opmw.org/ontology/",
@@ -589,6 +591,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "dcterms": AlignmentTarget(
         "DCMI Metadata Terms", PREFIXES["dcterms"], "CC0-1.0", "schema"
     ),
+    "mo": AlignmentTarget("Music Ontology", PREFIXES["mo"], "Unknown", "schema"),
     "gedcom": AlignmentTarget(
         "W3C GEDCOM", PREFIXES["gedcom"], "W3C-Document", "schema"
     ),
