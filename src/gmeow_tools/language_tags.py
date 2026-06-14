@@ -70,24 +70,30 @@ class _AmbiguousTagError(ValueError):
     """Raised when a language tag property has more than one distinct value."""
 
 
-def load_tag_map(graph: Graph) -> dict[str, str]:
+def load_tag_map(
+    graph: Graph, *, classes: list[URIRef] | None = None
+) -> dict[str, str]:
     """Build a mapping from internal language tag to BCP-47 tag.
 
     Scans ``gmeow:Language`` and its explicit subclasses
-    (``gmeow:FormalLanguage``, ``gmeow:ProgrammingLanguage``) in *graph*.
-    Because rdflib does not perform OWL inference, each concrete class is
+    (``gmeow:FormalLanguage``, ``gmeow:ProgrammingLanguage``) in *graph* by
+    default. Because rdflib does not perform OWL inference, each concrete class is
     queried directly and a seen-set deduplicates shared individuals.
     Returns ``{internal_tag: bcp47_tag}``.
 
     Args:
         graph: An rdflib graph containing GMEOW language individuals.
+        classes: Restrict the scan to these language classes (default: all
+            three). The inverse map uses natural ``gmeow:Language`` only — a
+            programming language's code is tagged ``en`` too, so including them
+            would make the ``en`` reverse ambiguous.
 
     Returns:
         A dict mapping internal tag strings to BCP-47 tag strings.
     """
     tag_prop = _language_tag_iri()
     bcp_prop = _bcp47_tag_iri()
-    lang_classes = [
+    lang_classes = classes or [
         _language_class_iri(),
         _formal_language_class_iri(),
         _programming_language_class_iri(),
@@ -306,6 +312,62 @@ def retag_graph(graph: Graph, *, tag_map: dict[str, str] | None = None) -> Graph
     for s_, p_, o_ in graph:
         if isinstance(o_, Literal) and o_.language and is_internal_tag(o_.language):
             swaps.append((s_, p_, o_, retag_literal(o_, tag_map=tag_map)))
+    for s_, p_, old, new in swaps:
+        if new != old:
+            graph.remove((s_, p_, old))
+            graph.add((s_, p_, new))
+    return graph
+
+
+def load_inverse_tag_map(graph: Graph) -> dict[str, str]:
+    """Build the BCP-47 → internal mapping — the inverse of :func:`load_tag_map`.
+
+    Built from **natural** ``gmeow:Language`` individuals only: a programming
+    language's code carries an ``en`` BCP-47 tag too, so including them would make
+    the ``en`` reverse ambiguous — but a consumer *prose* ``@en`` literal is
+    natural English. A BCP-47 tag that several natural languages still share is
+    dropped rather than guessed (the no-fabrication discipline). Keys are
+    lowercased to match rdflib's normalized ``Literal.language``.
+    """
+    natural = load_tag_map(graph, classes=[_language_class_iri()])
+    by_bcp: dict[str, set[str]] = {}
+    for internal, bcp in natural.items():
+        by_bcp.setdefault(bcp.lower(), set()).add(internal)
+    return {bcp: next(iter(ints)) for bcp, ints in by_bcp.items() if len(ints) == 1}
+
+
+@lru_cache(maxsize=1)
+def _default_inverse_tag_map() -> dict[str, str]:
+    """Load the inverse (BCP-47 → internal) tag map from the merged graph (cached)."""
+    from gmeow_tools.graph import load_merged_graph
+
+    return load_inverse_tag_map(load_merged_graph())
+
+
+def retag_graph_to_internal(
+    graph: Graph, *, tag_map: dict[str, str] | None = None
+) -> Graph:
+    """Retag every public BCP-47 literal to its canonical ``x-gmeow-*`` form.
+
+    The **inverse** of :func:`retag_graph` — the up-projection boundary pass
+    (#451 invertible-FnO, ``fnComposeBcp`` read backwards): a consumer source
+    carries public tags (``en``/``fr``/``zh``), but the pure-GMEOW intermediate
+    is canonical, so an ``@en`` literal becomes ``@x-gmeow-english``. A public tag
+    with no internal counterpart (no GMEOW language individual) is left as-is.
+    Mutates and returns *graph*.
+    """
+    if tag_map is None:
+        tag_map = _default_inverse_tag_map()
+    swaps = []
+    for s_, p_, o_ in graph:
+        if (
+            isinstance(o_, Literal)
+            and o_.language
+            and not is_internal_tag(o_.language)
+            and o_.language.lower() in tag_map
+        ):
+            new = Literal(str(o_), lang=tag_map[o_.language.lower()])
+            swaps.append((s_, p_, o_, new))
     for s_, p_, old, new in swaps:
         if new != old:
             graph.remove((s_, p_, old))

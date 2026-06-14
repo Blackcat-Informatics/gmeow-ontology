@@ -520,3 +520,39 @@ def test_language_tag_map_is_deterministic_and_covers_catalog() -> None:
     ):
         assert internal_tag in tag_map_a, f"missing tag mapping for {internal_tag}"
         assert tag_map_a[internal_tag], f"empty BCP-47 mapping for {internal_tag}"
+
+
+def test_inverse_tag_map_recovers_natural_internal_tags() -> None:
+    """The inverse map (public BCP-47 → internal) is the up-projection direction —
+    ``fnComposeBcp`` read backwards (#451). It is built from **natural** languages
+    only: a programming language's code is also tagged ``@en``, so including the
+    programming catalog would make ``en`` ambiguous and drop it — but a consumer
+    *prose* ``@en`` literal is natural English, never code."""
+    from gmeow_tools.language_tags import load_inverse_tag_map
+
+    inverse = load_inverse_tag_map(load_merged_graph(include_imports=True))
+    assert inverse["en"] == "x-gmeow-english"
+    assert inverse["fr"] == "x-gmeow-french"
+    assert inverse["zh"] == "x-gmeow-mandarin"
+
+
+def test_retag_graph_to_internal_lifts_public_to_canonical() -> None:
+    """``retag_graph_to_internal`` retags public BCP-47 literals up to the canonical
+    internal form and leaves untagged / already-internal literals alone (#451)."""
+    from rdflib import Graph as RDFGraph
+    from rdflib import Literal, URIRef
+
+    from gmeow_tools.language_tags import retag_graph_to_internal
+
+    g = RDFGraph()
+    s = URIRef("https://ex.org/s")
+    plain = URIRef("https://ex.org/plain")
+    g.add((s, URIRef("https://ex.org/prose"), Literal("hello", lang="en")))
+    g.add(
+        (s, URIRef("https://ex.org/canon"), Literal("bonjour", lang="x-gmeow-french"))
+    )
+    g.add((s, plain, Literal("42")))
+    retag_graph_to_internal(g)
+    tags = {o.language for _s, _p, o in g if isinstance(o, Literal) and o.language}
+    assert tags == {"x-gmeow-english", "x-gmeow-french"}, "public lifted, internal kept"
+    assert (s, plain, Literal("42")) in g, "untagged literal untouched"
