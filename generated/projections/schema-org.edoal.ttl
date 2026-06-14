@@ -137,6 +137,14 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "conformsTo → schema:conformsTo"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:conformsTo ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:conformsTo ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "ContactPoint → schema:ContactPoint"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:ContactPoint ] ;
@@ -217,6 +225,14 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "Dataset → schema:Dataset"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Dataset ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Dataset ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "dateModified → schema:dateModified"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:dateModified ] ;
@@ -283,6 +299,14 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:dissolutionDate ] ;
             align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasEditor → schema:editor"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasEditor ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:editor ] ;
+            align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "mediaType → schema:encodingFormat"@en ;
@@ -713,6 +737,14 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
         [ a align:Cell ;
+            rdfs:label "ownedBy → schema:owner"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:ownedBy ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:owner ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "ownerOf → schema:owns"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:ownerOf ] ;
@@ -986,6 +1018,15 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "subOrganizationOf → schema:subOrganization (inverse, parent→child)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:inverse [ a edoal:Relation ;
+                            edoal:uri gmeow:subOrganizationOf ] ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:subOrganization ] ;
+            align:relation "<=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "isAbout inverse → schema:subjectOf"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:isAbout ] ;
@@ -1042,6 +1083,22 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:usageInfo ] ;
             align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "validFrom → schema:validFrom"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:validFrom ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:validFrom ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "validUntil → schema:validThrough"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:validUntil ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:validThrough ] ;
+            align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "hasVersion → schema:hasPart (the version entity)"@en ;

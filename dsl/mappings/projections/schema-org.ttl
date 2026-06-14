@@ -1502,6 +1502,69 @@ gmeow:mapSchemaOwns a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:ownerOf ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:owns ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
 
+# --------------------------------------------------------------------------- #
+# Clean 1:1 wins (#449 triage): GMEOW terms with an identical schema.org
+# counterpart that had no cell. Direct property/class projections.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaConformsTo a gmeow:ProjectionMapping ;
+    rdfs:label "conformsTo → schema:conformsTo"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ctWork" ; gmeow:value "ctSpec" ;
+        gmeow:atom ( [ gmeow:subjectVar "ctWork" ; gmeow:predicate gmeow:conformsTo ; gmeow:objectVar "ctSpec" ] ) ;
+        gmeow:edoalSource gmeow:conformsTo ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:conformsTo ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaValidFrom a gmeow:ProjectionMapping ;
+    rdfs:label "validFrom → schema:validFrom"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "vfEnt" ; gmeow:value "vfDate" ;
+        gmeow:atom ( [ gmeow:subjectVar "vfEnt" ; gmeow:predicate gmeow:validFrom ; gmeow:objectVar "vfDate" ] ) ;
+        gmeow:edoalSource gmeow:validFrom ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:validFrom ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaValidThrough a gmeow:ProjectionMapping ;
+    rdfs:label "validUntil → schema:validThrough"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "vtEnt" ; gmeow:value "vtDate" ;
+        gmeow:atom ( [ gmeow:subjectVar "vtEnt" ; gmeow:predicate gmeow:validUntil ; gmeow:objectVar "vtDate" ] ) ;
+        gmeow:edoalSource gmeow:validUntil ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:validThrough ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaEditor a gmeow:ProjectionMapping ;
+    rdfs:label "hasEditor → schema:editor"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "edWork" ; gmeow:value "edAgent" ;
+        gmeow:atom ( [ gmeow:subjectVar "edWork" ; gmeow:predicate gmeow:hasEditor ; gmeow:objectVar "edAgent" ] ) ;
+        gmeow:edoalSource gmeow:hasEditor ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:editor ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaOwner a gmeow:ProjectionMapping ;
+    rdfs:label "ownedBy → schema:owner"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "owItem" ; gmeow:value "owAgent" ;
+        gmeow:atom ( [ gmeow:subjectVar "owItem" ; gmeow:predicate gmeow:ownedBy ; gmeow:objectVar "owAgent" ] ) ;
+        gmeow:edoalSource gmeow:ownedBy ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:owner ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaDataset a gmeow:ProjectionMapping ;
+    rdfs:label "Dataset → schema:Dataset"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ds" ;
+        gmeow:atom ( [ gmeow:subjectVar "ds" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Dataset ] ) ;
+        gmeow:edoalSource gmeow:Dataset ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:Dataset ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaSubOrganization a gmeow:ProjectionMapping ;
+    rdfs:label "subOrganizationOf → schema:subOrganization (inverse, parent→child)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "soParent" ; gmeow:value "soSub" ;
+        gmeow:atom ( [ gmeow:subjectVar "soSub" ; gmeow:predicate gmeow:subOrganizationOf ; gmeow:objectVar "soParent" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:subOrganization ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "the inverse reading: the parent gains schema:subOrganization pointing at each child" ] .
+
 gmeow:mapSchemaServiceDissolution a gmeow:ProjectionMapping ;
     rdfs:label "serviceShutdownDate → schema:dissolutionDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [

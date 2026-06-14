@@ -64,10 +64,10 @@ def test_real_data_baseline_is_sane() -> None:
     # Update deliberately (with the docs/up-projection-audit.md regen) when
     # cells or GMEOW coverage genuinely change.
     by_name = {f.name: f for f in report.files}
-    assert (by_name["bii"].liftable, by_name["bii"].total) == (203, 269)
-    assert (by_name["paudley"].liftable, by_name["paudley"].total) == (251, 332)
-    assert (report.liftable, report.total) == (454, 601)
-    assert len(report.gaps) == 95
+    assert (by_name["bii"].liftable, by_name["bii"].total) == (208, 269)
+    assert (by_name["paudley"].liftable, by_name["paudley"].total) == (253, 332)
+    assert (report.liftable, report.total) == (461, 601)
+    assert len(report.gaps) == 88
     # gaps are de-duplicated and sorted across the corpus
     assert report.gaps == sorted(set(report.gaps))
     # the markdown renders with the headline + a gap section
