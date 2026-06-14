@@ -28,7 +28,13 @@ from pathlib import Path
 from rdflib import RDF, Graph, Namespace, URIRef
 from rdflib.term import Node
 
-from gmeow_tools.config import FIXTURES_DIR, MAPPING_DSL_DIR, MAPPINGS_DIR, SLICES_DIR
+from gmeow_tools.config import (
+    FIXTURES_DIR,
+    MAPPING_DSL_DIR,
+    MAPPINGS_DIR,
+    PREFIXES,
+    SLICES_DIR,
+)
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 _GM_PFX = "gmeow:"
@@ -102,6 +108,42 @@ _STRUCT_LIFTABLE = frozenset(_STRUCT_RANK) - {"structural-mint"}
 
 _CORPUS = ("bii", "paudley")
 
+#: Full namespace IRIs we project to, resolved from PROJECTION_PREFIXES. Matching
+#: is by IRI (not qname), so the SAME term under different prefixes — e.g. the
+#: geosparql namespace as ``geo:`` in our cells but ``geosparql:`` in a real file
+#: — is recognised as one term, never a false gap.
+PROJECTION_NS: frozenset[str] = frozenset(
+    PREFIXES[p] for p in PROJECTION_PREFIXES if p in PREFIXES
+)
+#: Prefixes sorted by descending namespace length, for stable canonical qnames.
+_CANON_PREFIXES: tuple[tuple[str, str], ...] = tuple(
+    sorted(PREFIXES.items(), key=lambda kv: -len(kv[1]))
+)
+
+
+def _to_iri(curie: str) -> str:
+    """Resolve a ``prefix:local`` curie to its full IRI via the canonical prefixes.
+
+    Anything already an IRI or carrying an unknown prefix is passed through.
+    """
+    if ":" not in curie or curie.startswith(("http://", "https://")):
+        return curie
+    pfx, local = curie.split(":", 1)
+    ns = PREFIXES.get(pfx)
+    return f"{ns}{local}" if ns else curie
+
+
+def _in_projection_ns(iri: str) -> bool:
+    return any(iri.startswith(ns) for ns in PROJECTION_NS)
+
+
+def _canon_qname(iri: str) -> str:
+    """Canonical display qname for an IRI (longest matching namespace wins)."""
+    for pfx, ns in _CANON_PREFIXES:
+        if iri.startswith(ns):
+            return f"{pfx}:{iri[len(ns) :]}"
+    return iri
+
 
 def _prefix(term: str) -> str:
     return term.split(":", 1)[0] if ":" in term else ""
@@ -155,33 +197,29 @@ def classify_sssom(subj: str, pred: str, obj: str) -> tuple[str, str, str]:
 
 
 def sssom_best_buckets() -> dict[str, str]:
-    """Target qname → best up-bucket across all SSSOM cells (projection targets)."""
+    """Target IRI → best up-bucket across all SSSOM cells (projection targets)."""
     best: dict[str, str] = {}
     for path in sorted(MAPPINGS_DIR.glob("*.sssom.tsv")):
         for row in _read_sssom(path):
             bucket, _gmeow, target = classify_sssom(
                 row["subject_id"], row["predicate_id"], row["object_id"]
             )
-            if _prefix(target) not in PROJECTION_PREFIXES:
+            # a non-gmeow↔gmeow row contributes no up-bucket; skip it so its
+            # rank-0 bucket can't mask a real down-only classification → false GAP
+            if bucket == "both-or-neither-gmeow":
                 continue
-            cur = best.get(target)
+            iri = _to_iri(target)
+            if not _in_projection_ns(iri):
+                continue
+            cur = best.get(iri)
             if cur is None or _SSSOM_RANK.get(bucket, 0) > _SSSOM_RANK.get(cur, 0):
-                best[target] = bucket
+                best[iri] = bucket
     return best
 
 
 # --------------------------------------------------------------------------- #
 # Structural (ProjectionMapping) layer
 # --------------------------------------------------------------------------- #
-
-
-def _qname(uri: URIRef, graph: Graph) -> str:
-    s = str(uri)
-    # most-specific prefix first: a longer namespace can be a prefix of none
-    for pfx, ns in sorted(graph.namespaces(), key=lambda kv: -len(str(kv[1]))):
-        if s.startswith(str(ns)):
-            return f"{pfx}:{s[len(str(ns)) :]}"
-    return s
 
 
 def _rdf_list(graph: Graph, node: Node | None) -> list[Node]:
@@ -203,7 +241,7 @@ def _projection_files() -> list[Path]:
 
 
 def structural_best_classes() -> dict[str, str]:
-    """Target qname → best structural invertibility class across all cells."""
+    """Target IRI → best structural invertibility class across all cells."""
     best: dict[str, str] = {}
     for path in _projection_files():
         graph = Graph().parse(path, format="turtle")
@@ -240,22 +278,21 @@ def _template_atoms(graph: Graph, binding: Node) -> Iterator[Node]:
 
 
 def _emitted_targets(graph: Graph, binding: Node) -> set[str]:
+    """Projection-target IRIs a binding emits, filtered to projection namespaces.
+
+    Reads ``toClass``/``toPredicate``/``edoalTarget`` and the template atoms'
+    ``tPred``/``tObjValue``; only URIRefs in a projection namespace are kept.
+    """
     targets: set[str] = set()
     for pred in (GM.toClass, GM.toPredicate, GM.edoalTarget):
         for obj in graph.objects(binding, pred):
-            if not isinstance(obj, URIRef):
-                continue
-            q = _qname(obj, graph)
-            if _prefix(q) in PROJECTION_PREFIXES:
-                targets.add(q)
+            if isinstance(obj, URIRef) and _in_projection_ns(str(obj)):
+                targets.add(str(obj))
     for atom in _template_atoms(graph, binding):
         for pred in (GM.tPred, GM.tObjValue):
             for obj in graph.objects(atom, pred):
-                if not isinstance(obj, URIRef):
-                    continue
-                q = _qname(obj, graph)
-                if _prefix(q) in PROJECTION_PREFIXES:
-                    targets.add(q)
+                if isinstance(obj, URIRef) and _in_projection_ns(str(obj)):
+                    targets.add(str(obj))
     return targets
 
 
@@ -265,23 +302,13 @@ def _emitted_targets(graph: Graph, binding: Node) -> set[str]:
 
 
 def _used_target_terms(path: Path) -> set[str]:
+    """Full target-vocabulary IRIs used (as predicate or rdf:type) in a file."""
     graph = Graph().parse(path, format="turtle")
-    # most-specific (longest) namespace first, so overlapping namespaces don't
-    # contract to the wrong prefix and skew the baseline
-    ns2pfx = sorted(
-        ((str(ns), pfx) for pfx, ns in graph.namespaces()), key=lambda kv: -len(kv[0])
-    )
-
-    def q(uri: object) -> str:
-        s = str(uri)
-        for ns, pfx in ns2pfx:
-            if s.startswith(ns):
-                return f"{pfx}:{s[len(ns) :]}"
-        return s
-
-    preds = {q(p) for p in set(graph.predicates())}
-    types = {q(o) for o in set(graph.objects(None, RDF.type)) if isinstance(o, URIRef)}
-    return {t for t in (preds | types) if _prefix(t) in PROJECTION_PREFIXES}
+    preds = {str(p) for p in set(graph.predicates())}
+    types = {
+        str(o) for o in set(graph.objects(None, RDF.type)) if isinstance(o, URIRef)
+    }
+    return {iri for iri in (preds | types) if _in_projection_ns(iri)}
 
 
 def combined_class(term: str, sssom: dict[str, str], struct: dict[str, str]) -> str:
@@ -352,8 +379,9 @@ def run_audit() -> AuditReport:
             continue
         per_term: dict[str, str] = {}
         per_vocab: dict[str, dict[str, int]] = {}
-        for term in sorted(_used_target_terms(path)):
-            cls = combined_class(term, sssom, struct)
+        for iri in sorted(_used_target_terms(path)):
+            cls = combined_class(iri, sssom, struct)  # matched by IRI
+            term = _canon_qname(iri)  # displayed as a canonical qname
             per_term[term] = cls
             per_vocab.setdefault(_prefix(term), {}).setdefault(cls, 0)
             per_vocab[_prefix(term)][cls] += 1
