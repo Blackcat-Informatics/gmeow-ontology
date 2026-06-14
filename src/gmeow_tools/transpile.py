@@ -93,12 +93,11 @@ def transpile(
         raise ValueError(msg)
 
     target.mkdir(parents=True, exist_ok=True)
-    draft = Graph()
-    bind_prefixes(draft)
-    for triple in lift.graph:
-        draft.add(triple)
+    # serialize lift.graph directly (no O(N) copy); transform_graph skolemizes
+    # into a fresh graph, so it never mutates this one.
+    bind_prefixes(lift.graph)
     draft_path = target / f"{source_path.stem}.gmeow.ttl"
-    draft.serialize(destination=draft_path, format="turtle")
+    lift.graph.serialize(destination=draft_path, format="turtle")
 
     report = transform_graph(
         lift.graph, source_path.stem, out_dir=target, profiles=profiles
