@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: ingest lineage on the PROV triad (#443). A machine-generated
+# summary records WHERE it came from (gmeow:wasDerivedFrom → the source), HOW it
+# was produced (gmeow:wasGeneratedBy → an Activity), and WHO ran it
+# (gmeow:wasAttributedTo → an Agent), with gmeow:confidence pinning how much to
+# trust the derivation. The importer is a gmeow:SoftwareAgent that self-records
+# its own run — the producer of the provenance is inside the provenance.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/provenance/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The source: an imported work, pinned by location + content digest.
+ex:sourcePaper a gmeow:CreativeWork ;
+    gmeow:sourceLocation  "/imports/papers/smith-2020-erosion.pdf" ;
+    gmeow:sourceModifiedAt "2020-07-11T00:00:00Z"^^xsd:dateTime ;
+    gmeow:contentDigest   "blake3:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" .
+
+# --- The activity and the agent that performed it (the importer self-records).
+ex:import a gmeow:ImportActivity ;
+    gmeow:ingestedAt       "2026-06-14T09:30:00Z"^^xsd:dateTime ;
+    gmeow:wasAssociatedWith ex:importer .
+
+ex:importer a gmeow:SoftwareAgent ;
+    gmeow:name "gmeow PDF summariser"@x-gmeow-english .
+
+# --- The derived artefact: WHERE from, HOW made, WHO by, and HOW trusted.
+ex:abstract a gmeow:Summary ;
+    gmeow:wasDerivedFrom  ex:sourcePaper ;
+    gmeow:wasGeneratedBy  ex:import ;
+    gmeow:wasAttributedTo ex:importer ;
+    gmeow:confidence      0.92 .

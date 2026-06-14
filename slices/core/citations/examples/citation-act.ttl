@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: citation is flat-first, reified on demand (#443, P4 — the same
+# promotion pattern as rights). A bare gmeow:cites edge covers "A references B".
+# When the citation's INTENT and exact LOCATION matter, it is promoted to a
+# gmeow:CitationAct relator binding gmeow:citingEntity × gmeow:citedEntity ×
+# gmeow:citationIntent, pinned to a precise gmeow:Selector (page + verbatim quote)
+# via gmeow:viaSelector. gmeow:cites pairsWith gmeow:CitationAct: the flat edge
+# and its reification name the same fact at two levels of detail.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/citations/> .
+
+ex:myPaper a gmeow:CreativeWork ;
+    gmeow:title "On Coastal Erosion in Temperate Estuaries"@x-gmeow-english ;
+    gmeow:cites ex:citedPaper .
+
+ex:citedPaper a gmeow:CreativeWork ;
+    gmeow:title "Sediment Transport Models"@x-gmeow-english .
+
+# --- The reified act: not just THAT it cites, but WHY (uses a method from it)
+#     and WHERE (the exact passage the method appears in).
+ex:cite1 a gmeow:CitationAct ;
+    gmeow:citingEntity   ex:myPaper ;
+    gmeow:citedEntity    ex:citedPaper ;
+    gmeow:citationIntent gmeow:intentUsesMethodIn ;
+    gmeow:viaSelector    ex:sel1 .
+
+ex:sel1 a gmeow:Selector ;
+    gmeow:selectorPage      "42" ;
+    gmeow:selectorTextQuote "the modified Exner equation for bed evolution" .
