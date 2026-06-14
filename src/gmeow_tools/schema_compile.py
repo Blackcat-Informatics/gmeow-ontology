@@ -26,6 +26,7 @@ Value vocabularies (individuals of GMEOW classes) are emitted as LinkML enums.
 from __future__ import annotations
 
 import concurrent.futures
+import inspect
 import json
 import os
 from collections.abc import Mapping, Sequence
@@ -580,6 +581,13 @@ class SchemaGenerator(Generator):
             SCHEMAS_DIR / _GRAPHQL_FILE,
             SCHEMAS_DIR / _OPENAPI_FILE,
         ]
+
+    @property
+    def implementation_paths(self) -> Sequence[Path]:
+        """Helper modules whose logic affects generated schema artifacts."""
+        import gmeow_tools.gts_views
+
+        return [Path(inspect.getfile(gmeow_tools.gts_views))]
 
     def render(self, staging: Path) -> None:
         """Render schema artifacts into the staging tree."""

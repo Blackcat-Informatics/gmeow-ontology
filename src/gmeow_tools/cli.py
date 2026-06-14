@@ -134,7 +134,6 @@ def regenerate(
     for _name, report in results.items():
         if report.skipped:
             console.print(f"[blue]⏵[/blue] {_name} skipped (unchanged)")
-            continue
         for path in report.written:
             console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
         if report.orphans:
@@ -214,7 +213,6 @@ def check_generated(
     for name, report in results.items():
         if report.skipped:
             console.print(f"[blue]⏵[/blue] {name} skipped (unchanged)")
-            continue
         if report.drifted:
             total_drift += len(report.drifted)
             for rel in sorted(report.drifted):

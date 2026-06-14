@@ -210,22 +210,20 @@ class RunReport:
 def run(name: str, check: bool = False, skip_unchanged: bool = False) -> RunReport:
     """Execute one registered generator.
 
-    1. Sweeps stale temp dirs.
-    2. Optionally skips rendering if inputs and implementation are unchanged.
-    3. Creates a ``.gmeow-tmp-`` staging directory.
-    4. Computes the source hash and exposes it on the generator as
+    1. Optionally skips rendering if inputs and implementation are unchanged.
+    2. Creates a ``.gmeow-tmp-`` staging directory.
+    3. Computes the source hash and exposes it on the generator as
        ``_source_hash`` so that renderers can embed it in banners.
-    5. Calls ``gen.render(staging)``.
-    6. Compares each declared output (fresh vs committed).
-    7. Detects orphans in the output directories.
-    8. In ``check`` mode: returns a report without touching the tree.
-    9. In write mode: atomically copies from staging to committed paths.
+    4. Calls ``gen.render(staging)``.
+    5. Compares each declared output (fresh vs committed).
+    6. Detects orphans in the output directories.
+    7. In ``check`` mode: returns a report without touching the tree.
+    8. In write mode: atomically copies from staging to committed paths.
 
     Raises:
         KeyError: If *name* is not registered.
     """
     gen = _REGISTRY[name]
-    sweep_stale_gmeow_temp_dirs()
 
     if skip_unchanged:
         stamp = _read_stamp(name)
@@ -283,7 +281,9 @@ def run(name: str, check: bool = False, skip_unchanged: bool = False) -> RunRepo
                     orphan_path.unlink()
             report = RunReport(written=written, orphans=orphans)
 
-    if skip_unchanged:
+    if skip_unchanged and (
+        not check or (not report.drifted and not report.orphans and not report.problems)
+    ):
         _write_stamp(name, _cache_hash(gen), _output_hash(gen))
     return report
 
@@ -348,8 +348,9 @@ def _run_generators(
     """Run the requested generators in topological levels.
 
     When *jobs* is greater than one, independent generators at the same
-    topological level execute in parallel. Results are returned in a
-    deterministic name-sorted order.
+    topological level execute in parallel. A single process pool is reused
+    across all levels to avoid startup/shutdown overhead. Results are returned
+    in a deterministic name-sorted order.
     """
     if names is None:
         name_list = regenerate_order()
@@ -361,29 +362,33 @@ def _run_generators(
 
     levels = _regenerate_levels(name_list)
     workers = _normalize_jobs(jobs)
+    sweep_stale_gmeow_temp_dirs()
     results: dict[str, RunReport] = {}
 
-    for level in levels:
-        level_names = sorted(level)
-        if workers == 1 or len(level_names) == 1:
-            for name in level_names:
+    # No point paying process-pool overhead for a single generator.
+    if workers == 1 or len(name_list) == 1:
+        for level in levels:
+            for name in sorted(level):
                 results[name] = run(name, check=check, skip_unchanged=skip_unchanged)
-        else:
-            with concurrent.futures.ProcessPoolExecutor(
-                max_workers=workers,
-                initializer=_init_worker,
-            ) as executor:
-                futures = {
-                    executor.submit(_worker_run, name, check, skip_unchanged): name
-                    for name in level_names
-                }
-                for future in concurrent.futures.as_completed(futures):
-                    name = futures[future]
-                    try:
-                        results[name] = future.result()
-                    except Exception:
-                        executor.shutdown(wait=False, cancel_futures=True)
-                        raise
+        return dict(sorted(results.items()))
+
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=workers,
+        initializer=_init_worker,
+    ) as executor:
+        for level in levels:
+            level_names = sorted(level)
+            futures = {
+                executor.submit(_worker_run, name, check, skip_unchanged): name
+                for name in level_names
+            }
+            for future in concurrent.futures.as_completed(futures):
+                name = futures[future]
+                try:
+                    results[name] = future.result()
+                except Exception:
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    raise
 
     return dict(sorted(results.items()))
 
@@ -407,10 +412,27 @@ def _regenerate_levels(names: list[str]) -> list[list[str]]:
             if producer is not None and producer in name_set and producer != name:
                 deps[name].add(producer)
 
+    # Topological sort restricted to the requested subset so dependents are
+    # always ordered after their producers regardless of input order.
+    in_degree = {name: len(deps[name]) for name in names}
+    queue = deque(sorted(name for name, deg in in_degree.items() if deg == 0))
+    topo: list[str] = []
+    while queue:
+        name = queue.popleft()
+        topo.append(name)
+        for other, other_deps in deps.items():
+            if name in other_deps:
+                in_degree[other] -= 1
+                if in_degree[other] == 0:
+                    queue.append(other)
+    if len(topo) != len(names):
+        # Cycle detected — fall back to a single safe level.
+        return [sorted(names)]
+
     # Assign level = 1 + max(level of dependency); roots are level 0.
     level: dict[str, int] = {}
-    for name in names:
-        level[name] = 1 + max((level[d] for d in deps[name] if d in level), default=0)
+    for name in topo:
+        level[name] = 1 + max((level[d] for d in deps[name]), default=0)
 
     groups: dict[int, list[str]] = {}
     for name, lv in level.items():
@@ -464,13 +486,24 @@ def _cache_hash(gen: Generator) -> str:
 
 
 def _generator_source_files(gen: Generator) -> list[Path]:
-    """Source files that implement *gen* and the generator framework itself."""
+    """Source files that implement *gen* and the generator framework itself.
+
+    Generators may declare additional implementation dependencies via an
+    optional ``implementation_paths`` attribute (e.g. helper modules that
+    affect rendered output). Changes to any of these files invalidate the
+    skip-unchanged cache.
+    """
     framework = Path(__file__).resolve()
     try:
         module = Path(inspect.getfile(gen.__class__)).resolve()
     except (TypeError, OSError):
         module = framework
-    return [framework, module]
+    extra = [
+        p.resolve()
+        for p in getattr(gen, "implementation_paths", [])
+        if isinstance(p, Path)
+    ]
+    return sorted({framework, module, *extra})
 
 
 def _stamp_path(name: str) -> Path:

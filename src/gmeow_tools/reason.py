@@ -272,7 +272,11 @@ def verify(
 
     if reasoned is not None:
         reasoned = reasoned.resolve()
-    if reasoned is not None and reasoned.exists():
+        if not reasoned.exists():
+            raise FileNotFoundError(
+                f"pre-computed reasoned input not found: {reasoned}"
+            )
+    if reasoned is not None:
         # Fast path: use a previously materialized reasoned graph.
         return _robot(
             [

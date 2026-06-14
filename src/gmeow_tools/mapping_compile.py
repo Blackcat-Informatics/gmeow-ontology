@@ -20,6 +20,7 @@ isomorphism, TSV/SPARQL by bytes), reporting any drift without writing.
 from __future__ import annotations
 
 import concurrent.futures
+import inspect
 import io
 import json
 import os
@@ -136,15 +137,13 @@ _GENERATED_BANNER = (
 
 #: Per-profile rendering state for the process pool (set by initializer).
 _PROFILE_DSL: Dsl | None = None
-_PROFILE_ONTO: Graph | None = None
 _PROFILE_VOCAB: SuppressionVocab | None = None
 
 
-def _init_profile_worker(dsl: Dsl, onto: Graph, vocab: SuppressionVocab) -> None:
-    """Process-pool initializer: cache DSL/ontology/vocab in worker globals."""
-    global _PROFILE_DSL, _PROFILE_ONTO, _PROFILE_VOCAB
+def _init_profile_worker(dsl: Dsl, vocab: SuppressionVocab) -> None:
+    """Process-pool initializer: cache DSL/vocab in worker globals."""
+    global _PROFILE_DSL, _PROFILE_VOCAB
     _PROFILE_DSL = dsl
-    _PROFILE_ONTO = onto
     _PROFILE_VOCAB = vocab
 
 
@@ -1848,7 +1847,7 @@ def _artifacts(
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=workers,
             initializer=_init_profile_worker,
-            initargs=(dsl, onto, vocab),
+            initargs=(dsl, vocab),
         ) as executor:
             for profile, edoal_graph, sparql_text in executor.map(
                 _emit_profile_pair, _PROFILES, chunksize=1
@@ -1997,6 +1996,19 @@ class MappingGenerator(Generator):
             paths.append(MAPPINGS_DIR / file)
         self._cached_outputs = paths
         return paths
+
+    @property
+    def implementation_paths(self) -> Sequence[Path]:
+        """Helper modules whose logic affects generated mapping artifacts."""
+        import gmeow_tools.graph
+        import gmeow_tools.mapping_dsl
+        import gmeow_tools.projection_lint
+
+        return [
+            Path(inspect.getfile(gmeow_tools.graph)),
+            Path(inspect.getfile(gmeow_tools.mapping_dsl)),
+            Path(inspect.getfile(gmeow_tools.projection_lint)),
+        ]
 
     def render(self, staging: Path) -> None:
         """Render mapping artifacts into the staging tree."""
