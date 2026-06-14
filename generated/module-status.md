@@ -30,7 +30,7 @@ Tier-2 uplift backlog.
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 0/8 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 0/10 | full |
-| expertise | core | core | 4 | 6 | 11 | 0 | 0 | 0/17 | full |
+| expertise | core | core | 4 | 6 | 11 | 0 | 1 | 0/17 | full |
 | finance | extension | extensions | 9 | 21 | 38 | 0 | 0 | - | full |
 | gender | core | core | 5 | 6 | 7 | 0 | 1 | 0/13 | full |
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 0 | - | full |
@@ -65,7 +65,7 @@ Tier-2 uplift backlog.
 | sources | core | core | 1 | 0 | 3 | 0 | 0 | 0/3 | full |
 | standpoint | core | core | 3 | 3 | 7 | 0 | 1 | 0/10 | full |
 | tags | core | core | 2 | 3 | 11 | 0 | 1 | 0/14 | full |
-| teleology | core | core | 3 | 7 | 10 | 0 | 0 | 0/17 | full |
+| teleology | core | core | 3 | 7 | 10 | 0 | 1 | 0/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 0/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 0 | 0/11 | full |
