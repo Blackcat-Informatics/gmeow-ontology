@@ -2,7 +2,7 @@
 
 # Individuals
 
-1954 documented individuals.
+1981 documented individuals.
 
 | Term | Label | Defined By | Linkages |
 |---|---|---|---|
@@ -611,6 +611,9 @@
 | [`gmeow:finalityStatusOrphaned`](gmeow-finalityStatusOrphaned.md) | orphaned | [`gmeow:slices/attestation`](../../slices/attestation.md) | 0 |
 | [`gmeow:finalityStatusPending`](gmeow-finalityStatusPending.md) | pending | [`gmeow:slices/attestation`](../../slices/attestation.md) | 0 |
 | [`gmeow:finalityStatusReorged`](gmeow-finalityStatusReorged.md) | reorged | [`gmeow:slices/attestation`](../../slices/attestation.md) | 0 |
+| [`gmeow:fixture1959LesPaul`](gmeow-fixture1959LesPaul.md) | 1959 Les Paul fixture | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:fixture1959LesPaulConfiguration`](gmeow-fixture1959LesPaulConfiguration.md) | 1959 Les Paul stage configuration | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:fixtureDropDGuitarConfiguration`](gmeow-fixtureDropDGuitarConfiguration.md) | drop-D electric guitar configuration | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureFourThirtyThreeWork`](gmeow-fixtureFourThirtyThreeWork.md) | 4′33″ | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureGraphicScoreExpression`](gmeow-fixtureGraphicScoreExpression.md) | graphic score expression | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureGraphicScoreTranscription`](gmeow-fixtureGraphicScoreTranscription.md) | graphic score CMN transcription | [`gmeow:slices/music`](../../slices/music.md) | 0 |
@@ -626,6 +629,7 @@
 | [`gmeow:fixtureKlavierstuckPerformanceOne`](gmeow-fixtureKlavierstuckPerformanceOne.md) | Klavierstück XI performance traversal 1 | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureKlavierstuckPerformanceTwo`](gmeow-fixtureKlavierstuckPerformanceTwo.md) | Klavierstück XI performance traversal 2 | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureKlavierstuckXIWork`](gmeow-fixtureKlavierstuckXIWork.md) | Klavierstück XI | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:fixturePreparedPianoConfiguration`](gmeow-fixturePreparedPianoConfiguration.md) | Cage prepared piano configuration | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureReichPhasingExpression`](gmeow-fixtureReichPhasingExpression.md) | Reich-style phasing realization | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureReichPhasingProcess`](gmeow-fixtureReichPhasingProcess.md) | Reich-style phasing process | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:fixtureReichPhasingWork`](gmeow-fixtureReichPhasingWork.md) | Reich-style phasing work | [`gmeow:slices/music`](../../slices/music.md) | 0 |
@@ -800,11 +804,24 @@
 | [`gmeow:indexAlgorithmFlat`](gmeow-indexAlgorithmFlat.md) | flat | [`gmeow:slices/graphrag`](../../slices/graphrag.md) | 0 |
 | [`gmeow:indexAlgorithmHnsw`](gmeow-indexAlgorithmHnsw.md) | HNSW | [`gmeow:slices/graphrag`](../../slices/graphrag.md) | 0 |
 | [`gmeow:indexAlgorithmIvf`](gmeow-indexAlgorithmIvf.md) | IVF | [`gmeow:slices/graphrag`](../../slices/graphrag.md) | 0 |
+| [`gmeow:instrumentModificationCapo`](gmeow-instrumentModificationCapo.md) | capo | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentModificationElectrified`](gmeow-instrumentModificationElectrified.md) | electrified | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentModificationExtendedRange`](gmeow-instrumentModificationExtendedRange.md) | extended range | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentModificationMute`](gmeow-instrumentModificationMute.md) | mute | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentModificationPrepared`](gmeow-instrumentModificationPrepared.md) | prepared | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentModificationScordatura`](gmeow-instrumentModificationScordatura.md) | scordatura | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentTypeAdaptedGuitar`](gmeow-instrumentTypeAdaptedGuitar.md) | adapted guitar | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:instrumentTypeDoubleBass`](gmeow-instrumentTypeDoubleBass.md) | double bass | [`gmeow:slices/music`](../../slices/music.md) | 0 |
-| [`gmeow:instrumentTypeDrumKit`](gmeow-instrumentTypeDrumKit.md) | drum kit | [`gmeow:slices/music`](../../slices/music.md) | 0 |
-| [`gmeow:instrumentTypeElectricGuitar`](gmeow-instrumentTypeElectricGuitar.md) | electric guitar | [`gmeow:slices/music`](../../slices/music.md) | 0 |
-| [`gmeow:instrumentTypePiano`](gmeow-instrumentTypePiano.md) | piano | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentTypeDrumKit`](gmeow-instrumentTypeDrumKit.md) | drum kit | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:instrumentTypeElectricGuitar`](gmeow-instrumentTypeElectricGuitar.md) | electric guitar | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:instrumentTypeGamelan`](gmeow-instrumentTypeGamelan.md) | gamelan | [`gmeow:slices/music`](../../slices/music.md) | 2 |
+| [`gmeow:instrumentTypeModularSynth`](gmeow-instrumentTypeModularSynth.md) | modular synthesizer | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:instrumentTypePiano`](gmeow-instrumentTypePiano.md) | piano | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:instrumentTypeSitar`](gmeow-instrumentTypeSitar.md) | sitar | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:instrumentTypeTabla`](gmeow-instrumentTypeTabla.md) | tabla | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:instrumentTypeTurntables`](gmeow-instrumentTypeTurntables.md) | turntables | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:instrumentTypeViolin`](gmeow-instrumentTypeViolin.md) | violin | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:instrumentTypeVoice`](gmeow-instrumentTypeVoice.md) | voice | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:intentBridgedByReference`](gmeow-intentBridgedByReference.md) | bridged by reference | [`gmeow:slices/citations`](../../slices/citations.md) | 0 |
 | [`gmeow:intentCitesAsDataSource`](gmeow-intentCitesAsDataSource.md) | cites as data source | [`gmeow:slices/citations`](../../slices/citations.md) | 1 |
 | [`gmeow:intentConformsTo`](gmeow-intentConformsTo.md) | conforms to | [`gmeow:slices/citations`](../../slices/citations.md) | 1 |
@@ -1271,6 +1288,7 @@
 | [`gmeow:pitchCollectionRastMaqam`](gmeow-pitchCollectionRastMaqam.md) | Rast maqam on C | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:pitchCollectionWustaJinsG`](gmeow-pitchCollectionWustaJinsG.md) | Wusta jins on G | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:pitchCollectionYamanRaga`](gmeow-pitchCollectionYamanRaga.md) | Raga Yaman | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:pitchIntervalMajorSecondDown`](gmeow-pitchIntervalMajorSecondDown.md) | major second down | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:pitchIntervalPerfectFifth`](gmeow-pitchIntervalPerfectFifth.md) | perfect fifth | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:pitchIntervalSeptimalComma`](gmeow-pitchIntervalSeptimalComma.md) | septimal comma | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:pitchIntervalSyntonicComma`](gmeow-pitchIntervalSyntonicComma.md) | syntonic comma | [`gmeow:slices/music`](../../slices/music.md) | 0 |
@@ -1323,8 +1341,16 @@
 | [`gmeow:placeTypeSite`](gmeow-placeTypeSite.md) | site / campus | [`gmeow:slices/places`](../../slices/places.md) | 3 |
 | [`gmeow:placeTypeThoroughfare`](gmeow-placeTypeThoroughfare.md) | thoroughfare / street | [`gmeow:slices/places`](../../slices/places.md) | 0 |
 | [`gmeow:playingTechniqueArco`](gmeow-playingTechniqueArco.md) | arco | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniqueBentNote`](gmeow-playingTechniqueBentNote.md) | bent note | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniqueColLegno`](gmeow-playingTechniqueColLegno.md) | col legno | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniqueGrowl`](gmeow-playingTechniqueGrowl.md) | growl | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniqueHarmonics`](gmeow-playingTechniqueHarmonics.md) | harmonics | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniqueKonnakol`](gmeow-playingTechniqueKonnakol.md) | konnakol | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniqueMultiphonics`](gmeow-playingTechniqueMultiphonics.md) | multiphonics | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:playingTechniquePizzicato`](gmeow-playingTechniquePizzicato.md) | pizzicato | [`gmeow:slices/music`](../../slices/music.md) | 0 |
-| [`gmeow:playingTechniquePreparedPiano`](gmeow-playingTechniquePreparedPiano.md) | prepared piano | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniquePreparedPiano`](gmeow-playingTechniquePreparedPiano.md) | prepared piano | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:playingTechniqueSlap`](gmeow-playingTechniqueSlap.md) | slap | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:playingTechniqueTapping`](gmeow-playingTechniqueTapping.md) | tapping | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:polarityBarrier`](gmeow-polarityBarrier.md) | barrier | [`gmeow:slices/accessibility`](../../slices/accessibility.md) | 0 |
 | [`gmeow:polarityCautionary`](gmeow-polarityCautionary.md) | cautionary | [`gmeow:slices/norms`](../../slices/norms.md) | 0 |
 | [`gmeow:polarityFeature`](gmeow-polarityFeature.md) | feature | [`gmeow:slices/accessibility`](../../slices/accessibility.md) | 0 |
@@ -1896,6 +1922,7 @@
 | [`gmeow:tuningSystem24EDO`](gmeow-tuningSystem24EDO.md) | 24-tone equal temperament | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:tuningSystem31EDO`](gmeow-tuningSystem31EDO.md) | 31-tone equal temperament | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:tuningSystemBohlenPierce`](gmeow-tuningSystemBohlenPierce.md) | Bohlen-Pierce | [`gmeow:slices/music`](../../slices/music.md) | 1 |
+| [`gmeow:tuningSystemGuitarDropD`](gmeow-tuningSystemGuitarDropD.md) | guitar drop-D tablature frame | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:tuningSystemJustIntonation`](gmeow-tuningSystemJustIntonation.md) | just intonation lattice | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:tuningSystemKindAdaptive`](gmeow-tuningSystemKindAdaptive.md) | adaptive | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:tuningSystemKindEqualDivision`](gmeow-tuningSystemKindEqualDivision.md) | equal division | [`gmeow:slices/music`](../../slices/music.md) | 0 |

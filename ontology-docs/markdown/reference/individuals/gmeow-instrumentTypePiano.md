@@ -20,3 +20,30 @@ Use [`gmeow:instrumentTypePiano`](gmeow-instrumentTypePiano.md) as a controlled 
 ## Common Companion Terms
 
 [`gmeow:InstrumentType`](../classes/gmeow-InstrumentType.md)
+
+## External Equivalences
+
+Equivalent or closely aligned targets: `mimo`
+
+## Linkages
+
+Generated from the canonical mapping DSL. SSSOM files are the generated public interchange form for term equivalences.
+
+### Term Equivalences
+
+| Source | Kind | Profile | Predicate/Relation | Target | Evidence |
+|---|---|---|---|---|---|
+| [`gmeow:instrumentTypePiano`](gmeow-instrumentTypePiano.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | mimo:2299 | `gmeow-music.sssom.tsv`; `gmeow:eqMu028`; confidence 0.95 |
+
+<details>
+<summary>Published Alignment Graph</summary>
+
+<h3>Alignments</h3>
+<table>
+<thead><tr><th>Relation</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td><code>exactMatch</code></td><td><a href="http://www.mimo-db.eu/InstrumentsKeywords/2299"><code>mimo:2299</code></a></td></tr>
+</tbody>
+</table>
+
+</details>

@@ -47,11 +47,11 @@
 <text x="74" y="480" font-size="11" font-family="sans-serif" fill="#171717">class</text>
 <line x1="174" y1="84" x2="244" y2="436" stroke="#0f766e" opacity="0.35"/>
 <rect x="64" y="472" width="360" height="28" rx="6" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
-<text x="74" y="496" font-size="14" font-family="sans-serif" fill="#171717">gmeow:InstrumentType</text>
+<text x="74" y="496" font-size="14" font-family="sans-serif" fill="#171717">gmeow:InstrumentModification</text>
 <text x="74" y="516" font-size="11" font-family="sans-serif" fill="#171717">class</text>
 <line x1="174" y1="84" x2="244" y2="472" stroke="#0f766e" opacity="0.35"/>
 <rect x="64" y="508" width="360" height="28" rx="6" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
-<text x="74" y="532" font-size="14" font-family="sans-serif" fill="#171717">gmeow:MeterAssignment</text>
+<text x="74" y="532" font-size="14" font-family="sans-serif" fill="#171717">gmeow:InstrumentType</text>
 <text x="74" y="552" font-size="11" font-family="sans-serif" fill="#171717">class</text>
 <line x1="174" y1="84" x2="244" y2="508" stroke="#0f766e" opacity="0.35"/>
 </svg>

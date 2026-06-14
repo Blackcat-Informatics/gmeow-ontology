@@ -20,3 +20,30 @@ Use [`gmeow:playingTechniquePreparedPiano`](gmeow-playingTechniquePreparedPiano.
 ## Common Companion Terms
 
 [`gmeow:PlayingTechnique`](../classes/gmeow-PlayingTechnique.md)
+
+## External Equivalences
+
+Equivalent or closely aligned targets: `wd`
+
+## Linkages
+
+Generated from the canonical mapping DSL. SSSOM files are the generated public interchange form for term equivalences.
+
+### Term Equivalences
+
+| Source | Kind | Profile | Predicate/Relation | Target | Evidence |
+|---|---|---|---|---|---|
+| [`gmeow:playingTechniquePreparedPiano`](gmeow-playingTechniquePreparedPiano.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q754186](https://www.wikidata.org/wiki/Q754186) | `gmeow-music.sssom.tsv`; `gmeow:eqMu035`; confidence 0.9 |
+
+<details>
+<summary>Published Alignment Graph</summary>
+
+<h3>Alignments</h3>
+<table>
+<thead><tr><th>Relation</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td><code>closeMatch</code></td><td><a href="https://www.wikidata.org/wiki/Q754186"><code>wd:Q754186</code></a></td></tr>
+</tbody>
+</table>
+
+</details>

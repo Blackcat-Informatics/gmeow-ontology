@@ -7,7 +7,7 @@
 - **Category:** property
 - **Defined by:** [`gmeow:slices/music`](../../slices/music.md)
 
-The instrument configuration used in this participation. Functional per relator. Range is the stub class.
+The instrument configuration used in this participation. Functional per relator. Range elaborated in.
 
 ## Structure
 
