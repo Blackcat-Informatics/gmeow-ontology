@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, Graph, URIRef
+from rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.transform import transform
 from gmeow_tools.transpile import transpile
@@ -94,10 +94,26 @@ def test_consumer_tiers_are_bcp47_canonical_keeps_internal(tmp_path: Path) -> No
     )
     transform(abox, out_dir=tmp_path / "out", profiles=["schema-org"])
     out = tmp_path / "out"
-    for tier in ("index.ttl", "index.jsonld", "index.nt"):
-        assert "x-gmeow" not in (out / tier).read_text(encoding="utf-8"), tier
+    # parse each consumer tier and assert no LITERAL carries an internal tag
+    # (robust to any "x-gmeow" substring that might appear in an IRI)
+    tiers = (("index.ttl", "turtle"), ("index.jsonld", "json-ld"), ("index.nt", "nt"))
+    for tier, fmt in tiers:
+        for _s, _p, o in Graph().parse(out / tier, format=fmt):
+            if isinstance(o, Literal) and o.language:
+                assert not o.language.startswith("x-gmeow"), f"{tier}: {o.language}"
     # the canonical N-Quads keep the internal tag (the source of truth)
-    assert "x-gmeow" in (out / "index.nq").read_text(encoding="utf-8")
+    import pyoxigraph
+
+    store = pyoxigraph.Store()
+    store.bulk_load(
+        (out / "index.nq").read_bytes(), format=pyoxigraph.RdfFormat.N_QUADS
+    )
+    internal = {
+        q.object.language
+        for q in store
+        if isinstance(q.object, pyoxigraph.Literal) and q.object.language
+    }
+    assert any(lang.startswith("x-gmeow") for lang in internal)
 
 
 def test_tier_discipline_no_reifiers_in_consumer_tiers(tmp_path: Path) -> None:
