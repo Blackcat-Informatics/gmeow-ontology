@@ -2712,9 +2712,9 @@ gmeow:BranchHasOutgoingFlowsShape
 # Notes & Annotation building block (#63)
 # --------------------------------------------------------------------------- #
 
-gmeow:AnnotationShape
+gmeow:WebAnnotationShape
     a sh:NodeShape ;
-    rdfs:label "Annotation well-formedness shape" ;
+    rdfs:label "Web Annotation well-formedness shape" ;
     sh:targetClass gmeow:Annotation ;
     sh:property [
         sh:path gmeow:annotationTarget ;

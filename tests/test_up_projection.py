@@ -306,14 +306,14 @@ def test_up_project_claims_are_shacl_valid() -> None:
     """Every emitted claim satisfies the StatementMetadata SHACL shape — the
     output is well-formed GMEOW, not just GMEOW-namespaced.
 
-    Validated against the statement-DSL shapes *in isolation* (as the DSL
-    validator does), not the merged shapes graph: the merged graph fuses the two
-    same-IRI ``gmeow:AnnotationShape`` definitions (statement-DSL's annProperty
-    one and the web-annotation one), a collision that never occurs in production.
+    Validated against the merged shapes graph with the statement-DSL shapes as
+    the base, exactly the loader path that previously fused the two colliding
+    ``gmeow:AnnotationShape`` definitions (#478). After the rename the merged
+    graph no longer confuses the statement-DSL annotation shape with the Web
+    Annotation shape.
     """
-    from pyshacl import validate as shacl_validate
-
     from gmeow_tools.config import STATEMENT_DSL_SHAPES_FILE
+    from gmeow_tools.validate import run_shacl
 
     src = Graph()
     a = URIRef("https://ex.org/a")
@@ -322,11 +322,8 @@ def test_up_project_claims_are_shacl_valid() -> None:
     src.add((URIRef("https://ex.org/app"), ver, Literal("9")))
     up = up_project(src)
     assert up.claimed == 2
-    shapes = Graph().parse(STATEMENT_DSL_SHAPES_FILE, format="turtle")
-    conforms, _report_graph, report_text = shacl_validate(
-        up.graph, shacl_graph=shapes, advanced=True, inference="none"
-    )
-    assert conforms, report_text
+    result = run_shacl(up.graph, shapes_path=STATEMENT_DSL_SHAPES_FILE)
+    assert result.ok, "\n".join(result.errors)
 
 
 def test_up_project_claim_skips_blank_node_endpoints() -> None:
