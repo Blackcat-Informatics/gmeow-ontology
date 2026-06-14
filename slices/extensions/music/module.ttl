@@ -13,10 +13,11 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:comment """Frame-relative musical content; every notation is a lossy projection.
 
-This module implements the pitch layer (issue #308) on top of the structural
-foundation (issue #307): TuningSystem as ReferenceFrame, exact-rational
-PitchValue / PitchInterval, PitchAnchor, Spectrum-derived PitchCollection, and
-the TuningSystemKind value vocabulary."""@x-gmeow-english ;
+This module implements the music extension slice: pitch frames (issue #308),
+pitch collections and spelling (issue #309), musical time (issue #310), and the
+structure graph (issue #311): MusicalSegment, ToneEvent, Voice, PitchTrajectory,
+and SegmentTransformation. Bulk note-level data lives in GTS music-package
+bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -1646,10 +1647,9 @@ gmeow:hasTempoMapSegment
 
 gmeow:segmentSpan
     a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:TempoMapSegment ;
     rdfs:range gmeow:MusicalTimeSpan ;
     rdfs:label "segment span"@x-gmeow-english ;
-    skos:definition "The MusicalTimeSpan over which this TempoMapSegment applies."@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan over which this segment applies — a TempoMapSegment or a MusicalSegment. The domain is deliberately left open so the same property serves both time and structure layers; each layer construres its use in SHACL (Principle 4)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:segmentTempoMapKind
@@ -1983,14 +1983,14 @@ gmeow:musicalTimeFrameCommon
     gmeow:hasMetricKind gmeow:metricPositionalDistance ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
-gmeow:voiceGuitarPlaceholder a gmeow:Entity ;
+gmeow:voiceGuitarPlaceholder a gmeow:Voice ;
     rdfs:label "guitar voice placeholder"@x-gmeow-english ;
-    skos:definition "A placeholder entity representing a guitar voice for the polymeter fixture; will be replaced by a Voice individual when #311 lands."@x-gmeow-english ;
+    skos:definition "A guitar voice for the polymeter fixture."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
-gmeow:voiceDrumsPlaceholder a gmeow:Entity ;
+gmeow:voiceDrumsPlaceholder a gmeow:Voice ;
     rdfs:label "drums voice placeholder"@x-gmeow-english ;
-    skos:definition "A placeholder entity representing a drums voice for the polymeter fixture; will be replaced by a Voice individual when #311 lands."@x-gmeow-english ;
+    skos:definition "A drums voice for the polymeter fixture."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:musicalTimeFrameVoiceGuitar
@@ -2291,8 +2291,666 @@ gmeow:polymeterPattern
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# STRUCTURE GRAPH — reserved for issue #311 (MusicalSegment, ToneEvent, ...)
+# STRUCTURE GRAPH — issue #311 (MusicalSegment, ToneEvent, Voice,
+#                                 PitchTrajectory, SegmentTransformation)
 # =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:MusicalSegment
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ContentSegment ;
+    rdfs:label "Musical Segment"@x-gmeow-english ;
+    skos:definition "A structural part of a musical work or expression — a graph node carrying musical content at any granularity. Modelled as a gufo:SubKind inheriting identity from gmeow:ContentSegment; ONE class for every granularity, with specific levels (riff, motif, phrase, section, talea, color, ...) as values of segmentKind, never subclasses (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:SegmentKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Segment Kind"@x-gmeow-english ;
+    skos:definition "The granularity or functional role of a MusicalSegment, drawn from an open value vocabulary of individuals. Never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ToneEvent
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:MusicalSegment ;
+    rdfs:label "Tone Event"@x-gmeow-english ;
+    skos:definition "The one structural subkind of MusicalSegment — an atomic sounding unit with pitch content (a PitchValue, a PitchTrajectory, or unpitched), a duration via segmentSpan, and optional parameters such as dynamics and articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchTrajectory
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Pitch Trajectory"@x-gmeow-english ;
+    skos:definition "Continuous pitch as content — an ordered set of control points (musical-time × PitchValue) plus an interpolation kind. Models glissandi, gamaka ornaments, UPIC curves, and other continuously varying pitch (stress case 6). Interpolation is solver-evaluated, never reasoner-asserted (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchTrajectoryControlPoint
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Pitch Trajectory Control Point"@x-gmeow-english ;
+    skos:definition "One ordered (musical-time, PitchValue) pair belonging to a PitchTrajectory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PitchTrajectoryInterpolationKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Pitch Trajectory Interpolation Kind"@x-gmeow-english ;
+    skos:definition "The interpolation mode of a PitchTrajectory — linear in cents, exponential, or stochastic-by-reference. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:Voice
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Voice"@x-gmeow-english ;
+    skos:definition "A continuity strand binding MusicalSegments together; may host its own MusicalTimeFrame, TuningSystem, and MetricStructure. The carrier for polymeter, tempo canons, aleatoric boxes, and per-voice tuning/time frames (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:SegmentTransformation
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Segment Transformation"@x-gmeow-english ;
+    skos:definition "A reified relator binding a source MusicalSegment, a target MusicalSegment, a transformation type, and an optional parameter. The AI-analysis backbone: assertions may come from composer text or from an analysis standpoint via the statement layer (Principles 2, 9, 14)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TransformationType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Transformation Type"@x-gmeow-english ;
+    skos:definition "The kind of segment transformation — transposition, inversion, retrograde, augmentation, diminution, phase shift, reaccentuation, octave displacement, timbre reorchestration, spectral compression, ornamentation, quotation, reduction. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ArticulationKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Articulation Kind"@x-gmeow-english ;
+    skos:definition "An articulation or attack quality applied to a ToneEvent — staccato, legato, tenuto, accent, marcato, pizzicato, harmonic, etc. A value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:DynamicsValue
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Dynamics Value"@x-gmeow-english ;
+    skos:definition "A symbolic dynamic level for a ToneEvent — ppp, pp, p, mp, mf, f, ff, fff. A value vocabulary of individuals; measured decibel values are frame-relative Observations outside this vocabulary (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TimbreDescriptor
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Timbre Descriptor"@x-gmeow-english ;
+    skos:definition "A placeholder class for a timbre descriptor applied to a ToneEvent; the full sensory bridge lands in M11 (#317)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:segmentKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MusicalSegment ;
+    rdfs:range gmeow:SegmentKind ;
+    rdfs:label "segment kind"@x-gmeow-english ;
+    skos:definition "The granularity or functional role of this MusicalSegment (riff, motif, phrase, section, talea, color, ...). Functional: a segment is of exactly one kind; contested categorisations are coexisting standpoints (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:toneEventPitchValue
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToneEvent ;
+    rdfs:range gmeow:PitchValue ;
+    rdfs:label "tone event pitch value"@x-gmeow-english ;
+    skos:definition "A frame-relative pitch value sounded by this ToneEvent. Mutually exclusive with toneEventPitchTrajectory and toneEventIsUnpitched; SHACL enforces at most one pitch-content mode."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:toneEventPitchTrajectory
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToneEvent ;
+    rdfs:range gmeow:PitchTrajectory ;
+    rdfs:label "tone event pitch trajectory"@x-gmeow-english ;
+    skos:definition "A continuous pitch trajectory sounded by this ToneEvent. Mutually exclusive with toneEventPitchValue and toneEventIsUnpitched."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:toneEventDynamics
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToneEvent ;
+    rdfs:range gmeow:DynamicsValue ;
+    rdfs:label "tone event dynamics"@x-gmeow-english ;
+    skos:definition "The symbolic dynamic level of this ToneEvent (ppp ... fff). Measured decibel observations use the observation layer, not this shortcut."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:toneEventArticulation
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToneEvent ;
+    rdfs:range gmeow:ArticulationKind ;
+    rdfs:label "tone event articulation"@x-gmeow-english ;
+    skos:definition "The articulation or attack quality applied to this ToneEvent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:toneEventTimbre
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToneEvent ;
+    rdfs:range gmeow:TimbreDescriptor ;
+    rdfs:label "tone event timbre"@x-gmeow-english ;
+    skos:definition "A timbre descriptor applied to this ToneEvent; the full sensory bridge lands in M11 (#317)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:trajectoryControlPoint
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PitchTrajectory ;
+    rdfs:range gmeow:PitchTrajectoryControlPoint ;
+    rdfs:label "trajectory control point"@x-gmeow-english ;
+    skos:definition "Relates a PitchTrajectory to one of its ordered control points. Non-functional: a trajectory has many control points."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:controlPointOfTrajectory
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf gmeow:trajectoryControlPoint ;
+    rdfs:domain gmeow:PitchTrajectoryControlPoint ;
+    rdfs:range gmeow:PitchTrajectory ;
+    rdfs:label "control point of trajectory"@x-gmeow-english ;
+    skos:definition "The PitchTrajectory to which this control point belongs. Functional: a control point belongs to exactly one trajectory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:controlPointPitch
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchTrajectoryControlPoint ;
+    rdfs:range gmeow:PitchValue ;
+    rdfs:label "control point pitch"@x-gmeow-english ;
+    skos:definition "The frame-relative PitchValue of this control point."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:controlPointTimeFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchTrajectoryControlPoint ;
+    rdfs:range gmeow:MusicalTimeFrame ;
+    rdfs:label "control point time frame"@x-gmeow-english ;
+    skos:definition "The MusicalTimeFrame in which the control point's time position is expressed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:interpolationKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchTrajectory ;
+    rdfs:range gmeow:PitchTrajectoryInterpolationKind ;
+    rdfs:label "interpolation kind"@x-gmeow-english ;
+    skos:definition "The interpolation mode between control points (linearCents, exponential, stochasticByReference)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:hasVoice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Voice ;
+    rdfs:label "has voice"@x-gmeow-english ;
+    skos:definition "Relates a musical work, expression, or segment to one of its voices. Non-functional: a work may have many voices, and a voice may participate in many works."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:voiceOf
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:hasVoice ;
+    rdfs:domain gmeow:Voice ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "voice of"@x-gmeow-english ;
+    skos:definition "The work, expression, or segment that this voice belongs to. Non-functional: voices may be reused across structures."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:voiceTimeFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Voice ;
+    rdfs:range gmeow:MusicalTimeFrame ;
+    rdfs:label "voice time frame"@x-gmeow-english ;
+    skos:definition "The MusicalTimeFrame hosted by this Voice. Functional per closed-world shape; coexisting frames are statement-layer claims (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:voiceTuningFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Voice ;
+    rdfs:range gmeow:TuningSystem ;
+    rdfs:label "voice tuning frame"@x-gmeow-english ;
+    skos:definition "The TuningSystem hosted by this Voice. Functional per closed-world shape; coexisting tunings are statement-layer claims (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:voiceMetricStructure
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Voice ;
+    rdfs:range gmeow:MetricStructure ;
+    rdfs:label "voice metric structure"@x-gmeow-english ;
+    skos:definition "The MetricStructure hosted by this Voice. Functional per closed-world shape; coexisting meters are statement-layer claims."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformationSource
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SegmentTransformation ;
+    rdfs:range gmeow:MusicalSegment ;
+    rdfs:label "transformation source"@x-gmeow-english ;
+    skos:definition "The source MusicalSegment of this transformation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformationTarget
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SegmentTransformation ;
+    rdfs:range gmeow:MusicalSegment ;
+    rdfs:label "transformation target"@x-gmeow-english ;
+    skos:definition "The target MusicalSegment produced by this transformation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformationType
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SegmentTransformation ;
+    rdfs:range gmeow:TransformationType ;
+    rdfs:label "transformation type"@x-gmeow-english ;
+    skos:definition "The kind of transformation relating source and target (transposition, inversion, retrograde, ...)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformationParameter
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SegmentTransformation ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "transformation parameter"@x-gmeow-english ;
+    skos:definition "An optional parameter qualifying the transformation — e.g. a PitchInterval for transposition, a MetricStructure for reaccentuation, or another entity. The exact interpretation is type-dependent and solver-evaluated (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# DATATYPE PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:toneEventIsUnpitched
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ToneEvent ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "tone event is unpitched"@x-gmeow-english ;
+    skos:definition "True when this ToneEvent has no definite pitch (e.g. percussion, noise). Mutually exclusive with toneEventPitchValue and toneEventPitchTrajectory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:controlPointTimePositionNumerator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchTrajectoryControlPoint ;
+    rdfs:range xsd:integer ;
+    rdfs:label "control point time position numerator"@x-gmeow-english ;
+    skos:definition "The numerator of the rational time position of this control point in its MusicalTimeFrame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:controlPointTimePositionDenominator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchTrajectoryControlPoint ;
+    rdfs:range xsd:integer ;
+    rdfs:label "control point time position denominator"@x-gmeow-english ;
+    skos:definition "The denominator of the rational time position of this control point in its MusicalTimeFrame. Always positive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:controlPointOrder
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PitchTrajectoryControlPoint ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "control point order"@x-gmeow-english ;
+    skos:definition "The zero-based order of this control point within its PitchTrajectory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — relator EL patterns
+# --------------------------------------------------------------------------- #
+
+gmeow:SegmentTransformation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:transformationSource ; owl:someValuesFrom gmeow:MusicalSegment ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:transformationTarget ; owl:someValuesFrom gmeow:MusicalSegment ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:transformationType ;     owl:someValuesFrom gmeow:TransformationType ] .
+
+gmeow:PitchTrajectoryControlPoint rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointOfTrajectory ; owl:someValuesFrom gmeow:PitchTrajectory ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointPitch ;        owl:someValuesFrom gmeow:PitchValue ] .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — SegmentKind
+# --------------------------------------------------------------------------- #
+
+gmeow:segmentKindToneEventContainer a gmeow:SegmentKind ;
+    rdfs:label "tone-event container"@x-gmeow-english ;
+    skos:definition "A MusicalSegment whose immediate children are ToneEvents."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindMotif a gmeow:SegmentKind ;
+    rdfs:label "motif"@x-gmeow-english ;
+    skos:definition "A short, characteristic musical idea."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindRiff a gmeow:SegmentKind ;
+    rdfs:label "riff"@x-gmeow-english ;
+    skos:definition "A repeated, often rhythmic-melodic figure (stress case 16)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindCell a gmeow:SegmentKind ;
+    rdfs:label "cell"@x-gmeow-english ;
+    skos:definition "A small, compact unit of musical material, often the basis for serial or process works."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindPhrase a gmeow:SegmentKind ;
+    rdfs:label "phrase"@x-gmeow-english ;
+    skos:definition "A coherent musical phrase or breath unit."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindSection a gmeow:SegmentKind ;
+    rdfs:label "section"@x-gmeow-english ;
+    skos:definition "A large formal section of a work (verse, chorus, exposition, development)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindFragment a gmeow:SegmentKind ;
+    rdfs:label "fragment"@x-gmeow-english ;
+    skos:definition "A mobile or unordered fragment, as in Stockhausen's Klavierstück XI (stress case 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindTalea a gmeow:SegmentKind ;
+    rdfs:label "talea"@x-gmeow-english ;
+    skos:definition "A recurring rhythmic pattern in isorhythmic or mensural music; paired with color (stress case 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindColor a gmeow:SegmentKind ;
+    rdfs:label "color"@x-gmeow-english ;
+    skos:definition "A recurring pitch pattern in isorhythmic music; paired with talea (stress case 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindDrone a gmeow:SegmentKind ;
+    rdfs:label "drone"@x-gmeow-english ;
+    skos:definition "A sustained or repeated tone or cluster."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:segmentKindLoop a gmeow:SegmentKind ;
+    rdfs:label "loop"@x-gmeow-english ;
+    skos:definition "A repeating segment, often in electronic or sampled music."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — TransformationType
+# --------------------------------------------------------------------------- #
+
+gmeow:transformTransposition a gmeow:TransformationType ;
+    rdfs:label "transposition"@x-gmeow-english ;
+    skos:definition "Translation of all pitches by a fixed interval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformInversion a gmeow:TransformationType ;
+    rdfs:label "inversion"@x-gmeow-english ;
+    skos:definition "Reflection of intervals around a fixed axis."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformRetrograde a gmeow:TransformationType ;
+    rdfs:label "retrograde"@x-gmeow-english ;
+    skos:definition "Reversal of the order of elements; source = target when the segment is internally palindromic (stress case 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformAugmentation a gmeow:TransformationType ;
+    rdfs:label "augmentation"@x-gmeow-english ;
+    skos:definition "Proportional lengthening of durations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformDiminution a gmeow:TransformationType ;
+    rdfs:label "diminution"@x-gmeow-english ;
+    skos:definition "Proportional shortening of durations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformPhaseShift a gmeow:TransformationType ;
+    rdfs:label "phase shift"@x-gmeow-english ;
+    skos:definition "Displacement of a repeating pattern in time, as in Reich-style phasing (stress case 19)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformReaccentuation a gmeow:TransformationType ;
+    rdfs:label "reaccentuation"@x-gmeow-english ;
+    skos:definition "Re-distribution of metric or dynamic accents."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformOctaveDisplacement a gmeow:TransformationType ;
+    rdfs:label "octave displacement"@x-gmeow-english ;
+    skos:definition "Relocation of pitches by one or more octaves."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformTimbreReorchestration a gmeow:TransformationType ;
+    rdfs:label "timbre reorchestration"@x-gmeow-english ;
+    skos:definition "Reassignment of a segment to different timbral resources."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformSpectralCompression a gmeow:TransformationType ;
+    rdfs:label "spectral compression"@x-gmeow-english ;
+    skos:definition "Rescaling of the spectral envelope of a segment (stress case 7)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformOrnamentation a gmeow:TransformationType ;
+    rdfs:label "ornamentation"@x-gmeow-english ;
+    skos:definition "Addition of ornamental material to a source segment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformQuotation a gmeow:TransformationType ;
+    rdfs:label "quotation"@x-gmeow-english ;
+    skos:definition "Inclusion of a source segment as material within a target segment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:transformReduction a gmeow:TransformationType ;
+    rdfs:label "reduction"@x-gmeow-english ;
+    skos:definition "Analytical reduction of a segment to a simpler underlying structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — PitchTrajectoryInterpolationKind
+# --------------------------------------------------------------------------- #
+
+gmeow:interpolationLinearCents a gmeow:PitchTrajectoryInterpolationKind ;
+    rdfs:label "linear cents"@x-gmeow-english ;
+    skos:definition "Linear interpolation on a logarithmic cents scale between control points."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:interpolationExponential a gmeow:PitchTrajectoryInterpolationKind ;
+    rdfs:label "exponential"@x-gmeow-english ;
+    skos:definition "Exponential interpolation between control points."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:interpolationStochasticByReference a gmeow:PitchTrajectoryInterpolationKind ;
+    rdfs:label "stochastic by reference"@x-gmeow-english ;
+    skos:definition "Interpolation governed by a stochastic process referenced by an FnO function or external solver (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — ArticulationKind
+# --------------------------------------------------------------------------- #
+
+gmeow:articulationStaccato a gmeow:ArticulationKind ;
+    rdfs:label "staccato"@x-gmeow-english ;
+    skos:definition "A short, detached articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:articulationLegato a gmeow:ArticulationKind ;
+    rdfs:label "legato"@x-gmeow-english ;
+    skos:definition "A smooth, connected articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:articulationTenuto a gmeow:ArticulationKind ;
+    rdfs:label "tenuto"@x-gmeow-english ;
+    skos:definition "An articulation indicating a note is held for its full value."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:articulationAccent a gmeow:ArticulationKind ;
+    rdfs:label "accent"@x-gmeow-english ;
+    skos:definition "An emphasis on a particular tone event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:articulationMarcato a gmeow:ArticulationKind ;
+    rdfs:label "marcato"@x-gmeow-english ;
+    skos:definition "A strongly accented articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:articulationPizzicato a gmeow:ArticulationKind ;
+    rdfs:label "pizzicato"@x-gmeow-english ;
+    skos:definition "A plucked-string articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:articulationHarmonic a gmeow:ArticulationKind ;
+    rdfs:label "harmonic"@x-gmeow-english ;
+    skos:definition "A string harmonic articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — DynamicsValue
+# --------------------------------------------------------------------------- #
+
+gmeow:dynamicsPpp a gmeow:DynamicsValue ;
+    rdfs:label "pianississimo"@x-gmeow-english ;
+    skos:definition "Extremely soft."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dynamicsPp a gmeow:DynamicsValue ;
+    rdfs:label "pianissimo"@x-gmeow-english ;
+    skos:definition "Very soft."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dynamicsP a gmeow:DynamicsValue ;
+    rdfs:label "piano"@x-gmeow-english ;
+    skos:definition "Soft."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dynamicsMp a gmeow:DynamicsValue ;
+    rdfs:label "mezzo-piano"@x-gmeow-english ;
+    skos:definition "Moderately soft."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dynamicsMf a gmeow:DynamicsValue ;
+    rdfs:label "mezzo-forte"@x-gmeow-english ;
+    skos:definition "Moderately loud."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dynamicsF a gmeow:DynamicsValue ;
+    rdfs:label "forte"@x-gmeow-english ;
+    skos:definition "Loud."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dynamicsFf a gmeow:DynamicsValue ;
+    rdfs:label "fortissimo"@x-gmeow-english ;
+    skos:definition "Very loud."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dynamicsFff a gmeow:DynamicsValue ;
+    rdfs:label "fortississimo"@x-gmeow-english ;
+    skos:definition "Extremely loud."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# STRUCTURE FIXTURES — riff A → transposed riff A′ → re-accented riff A″
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureStructureWork
+    a gmeow:MusicalWork ;
+    rdfs:label "fixture structure work"@x-gmeow-english ;
+    skos:definition "A worked musical work fixture that owns the structure-graph fixtures."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureRiffA
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff A"@x-gmeow-english ;
+    skos:definition "A worked riff fixture used to demonstrate the SegmentTransformation chain (stress case 16)."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:musicalTimeSpanBarOne ;
+    gmeow:segmentOf gmeow:fixtureStructureWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureRiffATransposed
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff A transposed"@x-gmeow-english ;
+    skos:definition "Riff A transposed up a minor third."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:musicalTimeSpanBarTwo ;
+    gmeow:segmentOf gmeow:fixtureStructureWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureRiffAReaccented
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff A re-accented"@x-gmeow-english ;
+    skos:definition "The transposed riff A′ with re-distributed accents."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:musicalTimeSpanWholeSection ;
+    gmeow:segmentOf gmeow:fixtureStructureWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureTransposition
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff A → riff A transposed"@x-gmeow-english ;
+    skos:definition "A transposition transformation linking riff A to its minor-third transposition."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureStructureRiffA ;
+    gmeow:transformationTarget gmeow:fixtureStructureRiffATransposed ;
+    gmeow:transformationType gmeow:transformTransposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureReaccentuation
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff A transposed → riff A re-accented"@x-gmeow-english ;
+    skos:definition "A reaccentuation transformation linking the transposed riff to the re-accented riff."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureStructureRiffATransposed ;
+    gmeow:transformationTarget gmeow:fixtureStructureRiffAReaccented ;
+    gmeow:transformationType gmeow:transformReaccentuation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureToneEventC4
+    a gmeow:ToneEvent ;
+    rdfs:label "fixture tone event C4"@x-gmeow-english ;
+    skos:definition "A simple quarter-note C4 tone event in 12-EDO, used as a structural fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentSpan gmeow:musicalTimeSpanBarOne ;
+    gmeow:segmentOf gmeow:fixtureStructureRiffA ;
+    gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture ;
+    gmeow:toneEventDynamics gmeow:dynamicsMf ;
+    gmeow:toneEventArticulation gmeow:articulationStaccato ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValueC4Fixture
+    a gmeow:PitchValue ;
+    rdfs:label "C4 fixture pitch value"@x-gmeow-english ;
+    skos:definition "A 12-EDO C4 pitch value for the structural fixture, expressed in cents from the origin."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "0.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureGlissando
+    a gmeow:PitchTrajectory ;
+    rdfs:label "fixture glissando trajectory"@x-gmeow-english ;
+    skos:definition "A two-point glissando from C4 to G4 in 12-EDO (stress case 6)."@x-gmeow-english ;
+    gmeow:interpolationKind gmeow:interpolationLinearCents ;
+    gmeow:trajectoryControlPoint gmeow:fixtureStructureGlissPointC4 ;
+    gmeow:trajectoryControlPoint gmeow:fixtureStructureGlissPointG4 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureGlissPointC4
+    a gmeow:PitchTrajectoryControlPoint ;
+    rdfs:label "glissando start C4"@x-gmeow-english ;
+    skos:definition "The start control point of the fixture glissando."@x-gmeow-english ;
+    gmeow:controlPointOfTrajectory gmeow:fixtureStructureGlissando ;
+    gmeow:controlPointOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:controlPointTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:controlPointTimePositionNumerator "0"^^xsd:integer ;
+    gmeow:controlPointTimePositionDenominator "1"^^xsd:integer ;
+    gmeow:controlPointPitch gmeow:pitchValueC4Fixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureGlissPointG4
+    a gmeow:PitchTrajectoryControlPoint ;
+    rdfs:label "glissando end G4"@x-gmeow-english ;
+    skos:definition "The end control point of the fixture glissando."@x-gmeow-english ;
+    gmeow:controlPointOfTrajectory gmeow:fixtureStructureGlissando ;
+    gmeow:controlPointOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:controlPointTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:controlPointTimePositionNumerator "1"^^xsd:integer ;
+    gmeow:controlPointTimePositionDenominator "2"^^xsd:integer ;
+    gmeow:controlPointPitch gmeow:pitchValueG4Fixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:pitchValueG4Fixture
+    a gmeow:PitchValue ;
+    rdfs:label "G4 fixture pitch value"@x-gmeow-english ;
+    skos:definition "A 12-EDO G4 pitch value for the structural fixture, expressed in cents from the origin."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "700.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStructureVoiceBass
+    a gmeow:Voice ;
+    rdfs:label "bass voice"@x-gmeow-english ;
+    skos:definition "A worked bass voice hosting the riff transformation chain."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:musicalTimeFrameCommon ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
 # PERFORMANCE — reserved for issue #313 / #312 (DegreeOfFreedom, ...)

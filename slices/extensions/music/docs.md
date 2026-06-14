@@ -82,6 +82,43 @@ Seed fixtures: a 5/8 → 7/8 → 4/4 sequence, 7/8-over-4/4 polymeter, nested 5:
 and 3:2 tuplets, a √2:2 mensuration canon, a swing groove, and a Carter-style
 metric modulation.
 
+## Structure graph (issue #311)
+
+A `gmeow:MusicalSegment` is the single structural node for musical content at
+any granularity: riff, motif, phrase, section, fragment, talea, color, drone,
+loop, or tone-event container. Granularity is a `gmeow:segmentKind` value —
+there are no subclasses per granularity (Principle 9). Containment rides the
+universal `gmeow:hasPart` / `gmeow:partOf` spine; placement in musical time is
+declared with `gmeow:segmentSpan` pointing to a `MusicalTimeSpan`.
+
+`gmeow:ToneEvent` is the one structural subkind of `MusicalSegment` — an atomic
+sounding unit. Its pitch content is exactly one of a `PitchValue`, a
+`PitchTrajectory`, or the unpitched flag. Dynamics and articulation are symbolic
+value shortcuts; measured dB and timbre analysis are standpointed Observations
+or M11 sensory claims.
+
+`gmeow:PitchTrajectory` models continuous pitch: glissandi, gamaka, UPIC curves.
+It owns ordered `PitchTrajectoryControlPoint`s, each carrying a
+`PitchValue` and a rational position inside a `MusicalTimeFrame`, plus an
+`interpolationKind`. The actual curve evaluation is solver work (Principle 12).
+
+`gmeow:Voice` is a continuity strand that binds segments and may host its own
+`MusicalTimeFrame`, `TuningSystem`, and `MetricStructure`. It is the carrier for
+polymeter, tempo canons, and per-voice frames.
+
+`gmeow:SegmentTransformation` is a relator `{source × target × type × parameter}`
+and the AI-analysis backbone. A transformation may be asserted by composer text
+or by an analysis standpoint through the statement layer (Principles 2, 9, 14).
+
+**Note-level scale doctrine.** Bulk `ToneEvent` data for real pieces (millions
+of events) lives in GTS `music-package` bundles, not the reasoned core. The
+ontology gates the TBox and seed fixtures; package bundles carry the instance
+payload (Principles 8, 12, 13).
+
+Seed fixtures: riff A → transposed riff A′ → re-accented riff A″ transformation
+chain; a C4 `ToneEvent`; a two-point C4→G4 glissando trajectory; and a bass
+`Voice`.
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.
