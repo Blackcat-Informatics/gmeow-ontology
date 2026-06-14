@@ -32,7 +32,7 @@ Tier-2 uplift backlog.
 | evidence | core | core | 2 | 5 | 5 | 0 | 0 | 0/10 | full |
 | expertise | core | core | 4 | 6 | 11 | 0 | 0 | 0/17 | full |
 | finance | extension | extensions | 9 | 21 | 38 | 0 | 0 | - | full |
-| gender | core | core | 5 | 6 | 7 | 0 | 0 | 0/13 | full |
+| gender | core | core | 5 | 6 | 7 | 0 | 1 | 0/13 | full |
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 0 | - | full |
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 0/18 | full |
@@ -59,7 +59,7 @@ Tier-2 uplift backlog.
 | risk | extension | extensions | 2 | 8 | 19 | 0 | 1 | - | full |
 | sensory | extension | extensions | 3 | 4 | 6 | 0 | 0 | - | full |
 | sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 0 | - | full |
-| sexuality | core | core | 2 | 4 | 4 | 0 | 0 | 0/8 | full |
+| sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 0/8 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 0 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 0 | 0/3 | full |
 | standpoint | core | core | 3 | 3 | 7 | 0 | 1 | 0/10 | full |
