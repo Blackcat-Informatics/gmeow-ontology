@@ -13,7 +13,7 @@
 
 # --- The WEMI backing the whole site shares: one Work, one Expression.
 ex:siteWork a gmeow:Work ;
-    gmeow:title "Blackcat Informatics website" .
+    gmeow:title "Blackcat Informatics website"@x-gmeow-english .
 
 ex:siteContent a gmeow:Expression ;
     gmeow:realizes ex:siteWork .

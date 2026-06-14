@@ -13,7 +13,7 @@
 
 # --- Work: the abstract intellectual creation, independent of any text or copy.
 ex:novel a gmeow:Work ;
-    gmeow:title "The Lighthouse at World's End" .
+    gmeow:title "The Lighthouse at World's End"@x-gmeow-english .
 
 # --- Expressions: two realizations of the one Work (P9-style co-equality — the
 #     translation is not a lesser version, just another Expression).
