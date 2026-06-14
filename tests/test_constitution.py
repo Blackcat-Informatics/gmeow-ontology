@@ -51,10 +51,10 @@ def test_every_principle_has_a_manifest_entry() -> None:
 
 
 def test_honor_system_principles_are_visible_not_silent() -> None:
-    """Practice-only principles surface as warnings (today: 1, 6, 15)."""
+    """Practice-only principles surface as warnings (today: 1, 6, 15, 17)."""
     result = check_constitution()
     flagged = {int(w.split()[1]) for w in result.warnings if "review practice" in w}
-    assert flagged == {1, 6, 15}
+    assert flagged == {1, 6, 15, 17}
 
 
 def test_zero_enforcement_is_an_error(tmp_path: Path) -> None:
