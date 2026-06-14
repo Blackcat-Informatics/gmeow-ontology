@@ -67,6 +67,14 @@ gmeow:hasWebPage
     skos:definition "Relates an entity to a web page representing it — a homepage, a profile page, a project site. The structured form of a 'website / URL' field: the page is a first-class gmeow:WebPage (documents module) whose IRI is its URL, so it can itself carry a title, language, and rights. Non-functional — an entity may have several pages."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
 
+gmeow:nationality
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "nationality"@x-gmeow-english ;
+    skos:definition "The country of a person's nationality (schema:nationality) — a gmeow:Place. The legal/national-identity bond, distinct from where a person currently lives. Non-functional: a person may hold several nationalities; contested cases are standpoint-indexed claims (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
+
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38) — principal ultimate Kinds are pairwise disjoint.
 #

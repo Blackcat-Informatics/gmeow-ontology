@@ -4823,6 +4823,7 @@ export interface Measurement extends Observation {
 
 
 export interface MediaObject extends Manifestation {
+    caption?: string[],
     captureDevice?: PhysicalObject[],
     captureTime?: string[],
     colourspace?: ReferenceFrame[],
@@ -4832,6 +4833,7 @@ export interface MediaObject extends Manifestation {
     imageOrientation?: number,
     pixelHeight?: number,
     pixelWidth?: number,
+    transcript?: string[],
 }
 
 
@@ -5457,6 +5459,7 @@ export interface Permission extends Rule {
 
 
 export interface Person extends Agent {
+    alumniOf?: Organization[],
     hasAncestor?: Person[],
     hasChild?: Person[],
     hasDescendant?: Person[],
@@ -5474,6 +5477,7 @@ export interface Person extends Agent {
     hasSpouse?: Person[],
     honorific?: Honorific[],
     intersexVariation?: string[],
+    nationality?: Place[],
     sexAssignedAtBirth?: SexAssignedAtBirth[],
 }
 
@@ -5755,6 +5759,8 @@ export interface Prohibition extends Rule {
 
 
 export interface Project extends Entity {
+    bugDatabase?: string[],
+    downloadPage?: string[],
     governanceModel?: GovernanceModel[],
     hasRelease?: Release[],
     hasRepository?: Repository[],

@@ -11184,6 +11184,7 @@ type MediaObject
     embodies: [Expression]
     exemplifiedBy: [Document]
     hasManifestationFormat: ManifestationFormat
+    caption: [String]
     captureDevice: [PhysicalObject]
     captureTime: [String]
     colourspace: [ReferenceFrame]
@@ -11193,6 +11194,7 @@ type MediaObject
     imageOrientation: Float
     pixelHeight: Int
     pixelWidth: Int
+    transcript: [String]
   }
 
 type Membership
@@ -14104,6 +14106,7 @@ type Person
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    alumniOf: [Organization]
     hasAncestor: [Person]
     hasChild: [Person]
     hasDescendant: [Person]
@@ -14121,6 +14124,7 @@ type Person
     hasSpouse: [Person]
     honorific: [Honorific]
     intersexVariation: [String]
+    nationality: [Place]
     sexAssignedAtBirth: [SexAssignedAtBirth]
   }
 
@@ -15584,6 +15588,8 @@ type Project
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    bugDatabase: [String]
+    downloadPage: [String]
     governanceModel: [GovernanceModel]
     hasRelease: [Release]
     hasRepository: [Repository]
@@ -18714,6 +18720,8 @@ type SoftwareProject
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    bugDatabase: [String]
+    downloadPage: [String]
     governanceModel: [GovernanceModel]
     hasRelease: [Release]
     hasRepository: [Repository]

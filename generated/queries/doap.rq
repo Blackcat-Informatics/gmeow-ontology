@@ -27,6 +27,8 @@ CONSTRUCT {
     ?dsdProj doap:shortdesc ?_final_dsdText .
     ?dcrProj doap:created ?dcrDate .
     ?dhProj doap:homepage ?dhUrl .
+    ?dbProj doap:bug-database ?dbUrl .
+    ?dpProj doap:download-page ?dpUrl .
     ?dplProj doap:programming-language ?_final_dplLabel .
 }
 WHERE {
@@ -167,6 +169,14 @@ WHERE {
     UNION {
         ?dhProj gmeow:projectHomepage ?dhUrl .
         FILTER NOT EXISTS { ?dhProj gmeow:displayable false . }
+    }
+    UNION {
+        ?dbProj gmeow:bugDatabase ?dbUrl .
+        FILTER NOT EXISTS { ?dbProj gmeow:displayable false . }
+    }
+    UNION {
+        ?dpProj gmeow:downloadPage ?dpUrl .
+        FILTER NOT EXISTS { ?dpProj gmeow:displayable false . }
     }
     UNION {
         ?dplProj gmeow:programmingLanguage ?dplLang .

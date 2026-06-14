@@ -51,6 +51,23 @@
             align:relation "<=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
+            rdfs:label "alumniOf → schema:alumniOf"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:alumniOf ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:alumniOf ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "alumniOf → schema:alumni (inverse, org→person)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:inverse [ a edoal:Relation ;
+                            edoal:uri gmeow:alumniOf ] ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:alumni ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "Participation (attendee role) → schema:attendee"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:compose ( [ a edoal:Relation ;
@@ -112,6 +129,14 @@
                     edoal:uri schema:Brand ] ;
             align:relation "<=" ;
             edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "caption → schema:caption"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:caption ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:caption ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "captureTime → schema:dateCreated"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -611,6 +636,14 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ] ],
         [ a align:Cell ;
+            rdfs:label "nationality → schema:nationality"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:nationality ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:nationality ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "NetworkAddress (URL type) → schema:url"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasNetworkAddress ] ;
@@ -1067,6 +1100,14 @@
                     edoal:uri schema:tool ] ;
             align:relation "<=" ;
             edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "transcript → schema:transcript"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:transcript ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:transcript ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "hasWebPage → schema:url (the WebPage IRI)"@en ;
             align:entity1 [ a edoal:Relation ;

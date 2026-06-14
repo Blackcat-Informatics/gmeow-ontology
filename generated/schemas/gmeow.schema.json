@@ -68671,6 +68671,15 @@
                         "null"
                     ]
                 },
+                "caption": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "captureDevice": {
                     "items": {
                         "$ref": "#/$defs/PhysicalObject"
@@ -69527,6 +69536,15 @@
                     ]
                 },
                 "title": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "transcript": {
                     "items": {
                         "type": "string"
                     },
@@ -94331,6 +94349,15 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+                "alumniOf": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "email": {
                     "items": {
                         "type": "string"
@@ -94631,6 +94658,15 @@
                 "memberOf": {
                     "items": {
                         "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "nationality": {
+                    "items": {
+                        "$ref": "#/$defs/Place"
                     },
                     "type": [
                         "array",
@@ -106007,6 +106043,15 @@
                         "null"
                     ]
                 },
+                "bugDatabase": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "cites": {
                     "items": {
                         "$ref": "#/$defs/CreativeWork"
@@ -106044,6 +106089,15 @@
                     ]
                 },
                 "description": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "downloadPage": {
                     "items": {
                         "type": "string"
                     },
@@ -132200,6 +132254,15 @@
                         "null"
                     ]
                 },
+                "bugDatabase": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "cites": {
                     "items": {
                         "$ref": "#/$defs/CreativeWork"
@@ -132237,6 +132300,15 @@
                     ]
                 },
                 "description": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "downloadPage": {
                     "items": {
                         "type": "string"
                     },

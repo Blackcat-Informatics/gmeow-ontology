@@ -142,6 +142,22 @@ gmeow:MediaObject
     gmeow:frameRequirementSeverity "warning" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
+gmeow:transcript
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "transcript"@x-gmeow-english ;
+    skos:definition "A text transcript of the spoken/audio content of a media object (schema:transcript). Distinct from gmeow:transcriptionOf, which is phonetic/script transcription of language — this is the verbatim text of audio/video. Non-functional: a media object may carry transcripts in several languages."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+gmeow:caption
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "caption"@x-gmeow-english ;
+    skos:definition "A caption for a media object — the short text shown with an image, audio, or video (schema:caption). Non-functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
 gmeow:WebPage
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Manifestation ;
