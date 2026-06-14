@@ -1,26 +1,31 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
-"""Up-projection — the clean-reversal lift (consumer RDF → GMEOW, #451).
+"""Up-projection — clean-reversal lift + closeMatch claims (consumer RDF → GMEOW, #451).
 
 The first half of the full transpile (#448): lift a non-GMEOW source graph *up*
-into pure GMEOW. This module is the **clean-reversal** stage — the mechanically
-invertible portion the #449 audit identified — and it is derived, not
-hand-authored: the lift rules are the alignment layer read backwards.
+into pure GMEOW. The module derives its rules from the alignment layer read
+backwards — never hand-authored — across an **epistemic ladder**, best→weakest:
 
-A lift rule ``target → gmeow`` comes from either layer:
-
-* **SSSOM clean-reversible cells** (``exactMatch``/``equivalent*``): symmetric,
-  so the target reverses to its gmeow counterpart unambiguously.
-* **Structural simple-1to1 cells** (a plain ``toPredicate``/``toClass`` with one
-  ``edoalSource``): the down-cell ``gmeow:X → target:Y`` reverses to ``Y → X``.
+* **Clean rule** (``exactMatch``/``equivalent*`` SSSOM, or a structural
+  simple-1to1 / direct ``edoalPath`` cell): symmetric, so the target reverses to
+  its gmeow counterpart as a **bare fact triple**.
+* **Inverse rule** (an ``edoalPath`` cell anchored on its atom's object): the
+  down-projection inverted the edge, so the lift re-swaps subject and object —
+  still a bare fact.
+* **closeMatch claim** (``skos:closeMatch`` SSSOM): the terms are *close but not
+  equivalent*, so the target is **not** asserted as fact. It is lifted wrapped in
+  a provenance-stamped ``gmeow:StatementMetadata`` claim that quotes the inferred
+  triple and hangs ``gmeow:confidence`` (the curator's value) and
+  ``gmeow:mappedFrom`` (the source term) off it — best-faithful and refutable,
+  never an unmarked overclaim.
 
 Doctrine (#448): the output is **pure GMEOW** — only lifted terms appear; a
-source term with no clean rule is reported in the gap, never guessed and never
-passed through. Where a target is the down-image of *several* gmeow terms
-(a many-to-one projection), the reverse is **ambiguous** and is deliberately
-*not* lifted here — it needs a preferred-up-target decision (a later stage),
-so guessing would fabricate. Subjects, objects, and literals are carried
-verbatim; only the predicate / rdf:type IRI is rewritten.
+source term with no rule is reported in the gap, never guessed and never passed
+through. Where a target is the down-image of *several* gmeow terms (a many-to-one
+projection, in either the clean or closeMatch layer), the reverse is
+**ambiguous** and is deliberately *not* lifted — it needs a preferred-up-target
+decision (a later stage), so guessing would fabricate. Subjects, objects, and
+literals are carried verbatim; only the predicate / rdf:type IRI is rewritten.
 """
 
 from __future__ import annotations
@@ -28,7 +33,8 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from rdflib import RDF, BNode, Graph, Namespace, URIRef
+from rdflib import RDF, XSD, BNode, Graph, Literal, Namespace, URIRef
+from rdflib.term import Node
 
 from gmeow_tools.config import MAPPINGS_DIR
 from gmeow_tools.up_projection_audit import (
@@ -58,6 +64,41 @@ def _sssom_clean_pairs() -> dict[str, set[str]]:
             tiri = _to_iri(target)
             if _in_projection_ns(tiri):
                 pairs[tiri].add(_to_iri(gmeow))
+    return pairs
+
+
+def _sssom_closematch_pairs() -> dict[str, dict[str, str]]:
+    """Target IRI → {gmeow IRI: confidence} from ``skos:closeMatch`` cells.
+
+    A closeMatch is *not* an equivalence, so it lifts with a claim (below), not
+    as a fact. The confidence is the curator's value carried verbatim for the
+    claim's ``gmeow:confidence`` annotation; when a pair recurs across files the
+    higher confidence wins (deterministic). Rows with no parseable confidence are
+    skipped — a claim without its confidence would lose the very metadata that
+    makes the lift honest.
+    """
+    pairs: dict[str, dict[str, str]] = defaultdict(dict)
+    for path in sorted(MAPPINGS_DIR.glob("*.sssom.tsv")):
+        for row in _read_sssom(path):
+            bucket, gmeow, target = classify_sssom(
+                row["subject_id"], row["predicate_id"], row["object_id"]
+            )
+            if bucket != "liftable-with-claim":
+                continue
+            conf = row.get("confidence", "").strip()
+            try:
+                conf_val = float(conf)
+            except ValueError:
+                continue
+            if not 0.0 <= conf_val <= 1.0:
+                continue
+            tiri = _to_iri(target)
+            if not _in_projection_ns(tiri):
+                continue
+            giri = _to_iri(gmeow)
+            prev = pairs[tiri].get(giri)
+            if prev is None or conf_val > float(prev):  # higher confidence wins
+                pairs[tiri][giri] = conf
     return pairs
 
 
@@ -151,6 +192,9 @@ class LiftMap:
     ambiguous: dict[str, set[str]]  # target IRI → the rival gmeow IRIs (skipped)
     # inverse-path targets: lift with a subject↔object swap
     inverse_rules: dict[str, str] = field(default_factory=dict)
+    # closeMatch targets: lift with a provenance-stamped claim, not a bare fact.
+    # target IRI → (gmeow IRI, curated confidence string)
+    claim_rules: dict[str, tuple[str, str]] = field(default_factory=dict)
 
 
 def build_lift_map() -> LiftMap:
@@ -178,17 +222,67 @@ def build_lift_map() -> LiftMap:
             inverse_rules[target] = next(iter(gmeows))
         else:
             ambiguous[target] = gmeows
-    return LiftMap(rules=rules, ambiguous=ambiguous, inverse_rules=inverse_rules)
+    # closeMatch claims: any clean coverage (direct or inverse fact) wins over a
+    # weaker claim; a many-to-one closeMatch collision is ambiguous, held out.
+    claim_rules: dict[str, tuple[str, str]] = {}
+    for target, gmeow_confs in _sssom_closematch_pairs().items():
+        if target in rules or target in inverse_rules or target in ambiguous:
+            continue
+        if len(gmeow_confs) == 1:
+            gmeow, conf = next(iter(gmeow_confs.items()))
+            claim_rules[target] = (gmeow, conf)
+        else:
+            ambiguous[target] = set(gmeow_confs)
+    return LiftMap(
+        rules=rules,
+        ambiguous=ambiguous,
+        inverse_rules=inverse_rules,
+        claim_rules=claim_rules,
+    )
 
 
 @dataclass
 class UpProjection:
-    """The result of an up-projection: the GMEOW graph + an honest gap account."""
+    """The result of an up-projection: the GMEOW graph + an honest account.
+
+    ``lifted`` counts bare-fact triples (clean + inverse rules); ``claimed``
+    counts closeMatch lifts wrapped in a ``gmeow:StatementMetadata`` claim — the
+    two are kept distinct because fact and claim are exactly the doctrine's
+    epistemic line.
+    """
 
     graph: Graph  # pure GMEOW
-    lifted: int  # source triples lifted
+    lifted: int  # source triples lifted as bare facts
     gap_terms: dict[str, int] = field(default_factory=dict)  # uncovered qname → count
     ambiguous_terms: dict[str, int] = field(default_factory=dict)  # skipped → count
+    claimed: int = 0  # source triples lifted as provenance-stamped claims
+    claim_terms: dict[str, int] = field(default_factory=dict)  # claimed qname → count
+
+
+def _emit_claim(
+    out: Graph, subj: Node, qpred: URIRef, qobj: Node, source_term: URIRef, conf: str
+) -> None:
+    """Emit one ``gmeow:StatementMetadata`` cell quoting ``(subj qpred qobj)``.
+
+    The cell carries two annotations: ``gmeow:confidence`` (the curator's value)
+    and ``gmeow:mappedFrom`` (the source term the claim was lifted from). The
+    quoted triple is *not* asserted directly — a closeMatch is close, not equal,
+    so the lifted edge exists only inside the reifier, refutable and provenanced.
+    """
+    cell = BNode()
+    out.add((cell, RDF.type, GM.StatementMetadata))
+    out.add((cell, GM.qSubject, subj))
+    out.add((cell, GM.qPredicate, qpred))
+    qobj_pred = GM.qObjectLiteral if isinstance(qobj, Literal) else GM.qObject
+    out.add((cell, qobj_pred, qobj))
+    for prop, value in (
+        (GM.confidence, Literal(conf, datatype=XSD.decimal)),
+        (GM.mappedFrom, source_term),
+    ):
+        ann = BNode()
+        out.add((cell, GM.annotation, ann))
+        out.add((ann, GM.annProperty, prop))
+        out.add((ann, GM.annValue, value))
 
 
 def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
@@ -207,8 +301,10 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     out = Graph()
     out.bind("gmeow", GM)
     lifted = 0
+    claimed = 0
     gaps: dict[str, int] = defaultdict(int)
     ambig: dict[str, int] = defaultdict(int)
+    claims: dict[str, int] = defaultdict(int)
 
     def account(key: str) -> None:
         if key in lift.ambiguous:
@@ -222,6 +318,12 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
             if key in lift.rules:  # rdf:type is never inverted
                 out.add((s, RDF.type, URIRef(lift.rules[key])))
                 lifted += 1
+            elif key in lift.claim_rules and isinstance(s, URIRef):
+                # a class closeMatch — claim membership, never assert it
+                gmeow, conf = lift.claim_rules[key]
+                _emit_claim(out, s, RDF.type, URIRef(gmeow), URIRef(key), conf)
+                claimed += 1
+                claims[_canon_qname(key)] += 1
             else:
                 account(key)
             continue
@@ -237,8 +339,23 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
             if isinstance(o, URIRef | BNode):
                 out.add((o, URIRef(lift.inverse_rules[key]), s))
                 lifted += 1
+        elif key in lift.claim_rules:
+            # closeMatch — lift with a claim, never as a bare fact. The quoted
+            # triple needs an IRI subject and an IRI/literal object (the SHACL
+            # StatementMetadata shape); a blank-node endpoint is unquotable, so
+            # it is skipped (a rule exists — not a gap).
+            if isinstance(s, URIRef) and isinstance(o, URIRef | Literal):
+                gmeow, conf = lift.claim_rules[key]
+                _emit_claim(out, s, URIRef(gmeow), o, URIRef(key), conf)
+                claimed += 1
+                claims[_canon_qname(key)] += 1
         else:
             account(key)
     return UpProjection(
-        graph=out, lifted=lifted, gap_terms=dict(gaps), ambiguous_terms=dict(ambig)
+        graph=out,
+        lifted=lifted,
+        gap_terms=dict(gaps),
+        ambiguous_terms=dict(ambig),
+        claimed=claimed,
+        claim_terms=dict(claims),
     )
