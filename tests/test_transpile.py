@@ -93,6 +93,43 @@ def test_transpile_empty_lift_raises(tmp_path: Path) -> None:
         transpile(src, out_dir=tmp_path / "out", profiles=["schema-org"])
 
 
+def test_transpile_graph_matches_file(source_file: Path, tmp_path: Path) -> None:
+    """transpile_graph over an in-memory graph (the stdin path) matches
+    transpile over the same file."""
+    from gmeow_tools.transpile import transpile_graph
+
+    from_file = transpile(source_file, out_dir=tmp_path / "a", profiles=["schema-org"])
+    graph = Graph()
+    graph.parse(source_file, format="turtle")
+    from_graph = transpile_graph(
+        graph, "people", out_dir=tmp_path / "b", profiles=["schema-org"]
+    )
+    assert from_file.lifted == from_graph.lifted
+    assert from_file.transform.projected == from_graph.transform.projected
+    a = Graph().parse(tmp_path / "a" / "index.ttl", format="turtle")
+    b = Graph().parse(tmp_path / "b" / "index.ttl", format="turtle")
+    assert len(a) == len(b)
+
+
+def test_transpile_cli_reads_stdin(tmp_path: Path) -> None:
+    """`gmeow transpile -` reads the source from stdin and writes the family,
+    naming the draft from the 'stdin' stem."""
+    from typer.testing import CliRunner
+
+    from gmeow_tools.cli import app
+
+    out = tmp_path / "out"
+    result = CliRunner().invoke(
+        app,
+        ["transpile", "-", "-o", str(out), "--profiles", "schema-org"],
+        input=_SOURCE,
+    )
+    assert result.exit_code == 0, result.output
+    assert (out / "stdin.gmeow.ttl").exists()
+    assert (out / "index.ttl").exists()
+    assert (out / "stdin.gts").exists()
+
+
 def test_transform_graph_matches_transform_file(tmp_path: Path) -> None:
     """The refactor is behaviour-preserving: transform_graph over a parsed graph
     writes the same base+derived triple count as transform over the file."""

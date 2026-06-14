@@ -9,6 +9,7 @@ subcommands rather than reimplementing any behaviour.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import httpx
 import typer
@@ -17,6 +18,9 @@ from rich.console import Console
 import gts
 from gmeow_tools import __version__
 from gmeow_tools.projections import PROFILES as _PROFILES
+
+if TYPE_CHECKING:
+    from rdflib import Graph
 
 app = typer.Typer(
     name="gmeow",
@@ -32,6 +36,27 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     """Print an error and return an Exit to raise."""
     err_console.print(f"[red]{message}[/red]")
     return typer.Exit(code=code)
+
+
+def _read_turtle(source: Path) -> tuple[Graph, str]:
+    """Parse Turtle from a file, or from stdin when ``source`` is ``-``.
+
+    Returns ``(graph, stem)`` — the stem is the basename for the file case and
+    ``"stdin"`` for the pipe, so the tools compose: ``… | gmeow transpile -``.
+    """
+    import sys
+
+    from rdflib import Graph
+
+    graph = Graph()
+    if str(source) == "-":
+        graph.parse(data=sys.stdin.read(), format="turtle")
+        return graph, "stdin"
+    try:
+        graph.parse(source, format="turtle")
+    except (OSError, ValueError, SyntaxError) as exc:
+        raise _fail(f"cannot read or parse {source}: {exc}") from exc
+    return graph, source.stem
 
 
 _REASONED_INPUT_OPTION = typer.Option(
@@ -895,7 +920,7 @@ def project(
 def transform(
     abox: Path = typer.Argument(  # noqa: B008
         ...,
-        help="Canonical GMEOW A-Box Turtle file (the single source of truth).",
+        help="Canonical GMEOW A-Box Turtle file, or '-' to read it from stdin.",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None,
@@ -925,16 +950,26 @@ def transform(
     provenance audit trail), index.nq (RDF 1.2), index.ttl / index.jsonld
     (asserted base triples — plain-RDF readable). Saturation materializes
     STRONG equivalences only, gated by the alignment-direction lint;
-    suppression (displayable false) is honored fail-closed.
+    suppression (displayable false) is honored fail-closed. Reads the A-Box from
+    stdin when <abox> is '-', so ``gmeow up-project src | gmeow transform -``
+    streams the two halves.
     """
     from rdflib import Graph
 
-    from gmeow_tools.transform import TransformAbortedError, vocab_coverage
+    from gmeow_tools.transform import (
+        TransformAbortedError,
+        transform_graph,
+        vocab_coverage,
+    )
     from gmeow_tools.transform import transform as run_transform
 
     names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
     try:
-        result = run_transform(abox, out_dir=out, profiles=names)
+        if str(abox) == "-":
+            graph, stem = _read_turtle(abox)
+            result = transform_graph(graph, stem, out_dir=out, profiles=names)
+        else:
+            result = run_transform(abox, out_dir=out, profiles=names)
     except (TransformAbortedError, ValueError) as exc:
         raise _fail(f"✗ {exc}") from exc
     for path in result.written:
@@ -962,7 +997,8 @@ def transform(
 @app.command(name="up-project")
 def up_project_cmd(
     source: Path = typer.Argument(  # noqa: B008
-        ..., help="A non-GMEOW source RDF file (Turtle) to lift up into GMEOW."
+        ...,
+        help="A non-GMEOW source RDF file (Turtle), or '-' to read it from stdin.",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Write the GMEOW lift here (default: stdout Turtle)."
@@ -985,17 +1021,13 @@ def up_project_cmd(
     With ``--descend``, an ambiguous or inferred term is resolved by the
     subject's type — ``schema:about`` on a ``MediaObject`` becomes ``gmeow:depicts``
     but on any other entity ``gmeow:isAbout`` — falling through to the per-term
-    floor when the type adds no signal.
+    floor when the type adds no signal. Reads from stdin and writes Turtle to
+    stdout, so ``cat src | gmeow up-project - | gmeow transform -`` streams.
     """
-    from rdflib import Graph
-
     from gmeow_tools.up_projection import up_project
     from gmeow_tools.up_projection_descend import up_project_descend
 
-    try:
-        src = Graph().parse(source, format="turtle")
-    except (OSError, ValueError, SyntaxError) as exc:
-        raise _fail(f"cannot read or parse {source}: {exc}") from exc
+    src, _stem = _read_turtle(source)
     try:
         result = up_project_descend(src) if descend else up_project(src)
     except ValueError as exc:
@@ -1032,7 +1064,8 @@ def up_project_cmd(
 @app.command()
 def transpile(
     source: Path = typer.Argument(  # noqa: B008
-        ..., help="A non-GMEOW source RDF file (Turtle) to transpile."
+        ...,
+        help="A non-GMEOW source RDF file (Turtle), or '-' to read it from stdin.",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Output directory (default dist/transpile/<stem>/)."
@@ -1052,9 +1085,11 @@ def transpile(
     descent), write that draft, then run MAXIMAL(G) = G + E(G) + P(G) over it —
     the canonical base, its strong-equivalence saturation, and every projection
     profile — into one fat, provenance-audited multi-vocabulary file family.
+    Reads the source from stdin when <source> is '-' (``cat src | gmeow transpile -``).
     """
     from gmeow_tools.projections import PROFILES
     from gmeow_tools.transpile import transpile as run_transpile
+    from gmeow_tools.transpile import transpile_graph
 
     names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
     if names is not None:
@@ -1062,7 +1097,15 @@ def transpile(
         if unknown:
             raise _fail(f"unknown projection profile(s): {', '.join(unknown)}")
     try:
-        result = run_transpile(source, out_dir=out, profiles=names, descend=not floor)
+        if str(source) == "-":
+            graph, stem = _read_turtle(source)
+            result = transpile_graph(
+                graph, stem, out_dir=out, profiles=names, descend=not floor
+            )
+        else:
+            result = run_transpile(
+                source, out_dir=out, profiles=names, descend=not floor
+            )
     except (OSError, ValueError, SyntaxError) as exc:
         raise _fail(str(exc)) from exc
 
