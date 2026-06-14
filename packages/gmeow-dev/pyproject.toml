@@ -1,0 +1,21 @@
+[project]
+name = "gmeow-dev"
+version = "1.0.2"
+description = "Repository-maintenance CLI for the GMEOW ontology checkout."
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "Blackcat Informatics Inc." }]
+dependencies = ["gmeow==1.0.2"]
+
+[project.scripts]
+gmeow-dev = "gmeow_dev.cli:app"
+
+[tool.uv.sources]
+gmeow = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gmeow_dev"]

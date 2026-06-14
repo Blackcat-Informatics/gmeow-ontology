@@ -166,9 +166,14 @@ print("quickstart-ok")
 """
         _run([str(python), "-c", quickstart])
 
-        # 4. Verify the bundled ontology CLI and the engine CLI binaries.
-        _run([str(bin_dir / "gmeow"), "--help"])
+        # 4. Verify the bundled consumer CLI and the engine CLI binaries.
+        gmeow_help = _run([str(bin_dir / "gmeow"), "--help"])
+        assert "regenerate" not in gmeow_help.stdout
+        assert "quality" not in gmeow_help.stdout
+        gts_help = _run([str(bin_dir / "gmeow"), "gts", "--help"])
+        assert "compile-full" not in gts_help.stdout
         _run([str(bin_dir / "gmeow"), "info"])
+        _run([str(bin_dir / "gmeow"), "verify"])
         _run([str(bin_dir / "gts"), "info", str(assistant)])
 
     elapsed = time.monotonic() - start

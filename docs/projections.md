@@ -8,7 +8,7 @@ gives 1:1 term equivalence; projecting *down* to a target needs **structural
 transformations** SSSOM can't express. GMEOW's alignment stack has four standard
 artifacts — but they are **no longer hand-authored four ways**. A single
 GMEOW-grounded DSL in `mapping-dsl/` is the authoring source, and
-`gmeow compile-mappings` renders all four (see [Single-source compilation](#single-source-compilation)):
+`gmeow-dev regenerate mappings` renders all four (see [Single-source compilation](#single-source-compilation)):
 
 | Layer | Expresses | Generated artifact |
 |---|---|---|
@@ -48,7 +48,7 @@ distributions + checksums, the #58 catalog leg; see
 [research-objects.md](./research-objects.md)), and the five standpoint
 projections (CRMinf,
 Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
-`queries/projections/*.rq` by `gmeow compile-mappings`. Also runs in `gmeow build`. A
+`queries/projections/*.rq` by `gmeow-dev regenerate mappings`. Also runs in `gmeow-dev build`. A
 target-by-target summary with spec links is in the
 [README projection-targets table](../README.md#projection-targets).
 
@@ -130,8 +130,8 @@ layer never reasoned over):
   property paths) — **no raw SPARQL** appears in the source.
 
 ```sh
-gmeow compile-mappings          # render all four artifacts in-place
-gmeow compile-mappings --check  # CI gate: fail if a committed artifact is stale
+gmeow-dev regenerate mappings          # render all four artifacts in-place
+gmeow-dev check-generated mappings     # CI gate: fail if a committed artifact is stale
 ```
 
 Two properties hold **by construction**, eliminating the bug classes review used
@@ -143,8 +143,8 @@ to catch:
   binding list — they cannot drift.
 
 The compiler runs the three `projection_lint` cross-layer invariants on its own
-output before writing; a violation aborts the compile. `gmeow compile-mappings
---check` is wired into CI as the standing no-drift regression. Adding a new
+output before writing; a violation aborts the compile. `gmeow-dev check-generated mappings`
+is wired into CI as the standing no-drift regression. Adding a new
 projection is now a **single DSL cell**, not four edits.
 
 ### Maximal use of the four target languages
@@ -238,7 +238,7 @@ Key authoring choices, each a single field on the pattern or binding:
   traversal; otherwise `gmeow:edoalSource` names the salient term; otherwise the
   projection is structural / SSSOM-backed (no EDOAL cell).
 
-After any change, run `gmeow compile-mappings` (then `make mappings`); the
+After any change, run `gmeow-dev regenerate mappings` (then `make mappings`); the
 compiler runs the cross-layer invariants on its own output and refuses to emit on
 violation. Never hand-edit the generated `mappings/`, `projections/`,
-`queries/projections/` files — `gmeow compile-mappings --check` (in CI) fails on drift.
+`queries/projections/` files — `gmeow-dev check-generated mappings` (in CI) fails on drift.

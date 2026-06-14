@@ -1,6 +1,6 @@
 """Compile the GMEOW mapping DSL into the four standard alignment artifacts.
 
-``gmeow compile-mappings`` renders, from the single authoring source in
+``gmeow-dev regenerate mappings`` renders, from the single authoring source in
 ``mapping-dsl/``:
 
 * ``mappings/*.sssom.tsv`` — SSSOM 1:1 term-equivalence rows;

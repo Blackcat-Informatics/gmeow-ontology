@@ -46,7 +46,7 @@ jobs:
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: false
-      - run: uv sync --frozen
+      - run: uv sync --all-packages --frozen
 
       - name: Sign gmeow-full.gts with the release key
         env:
@@ -58,14 +58,14 @@ jobs:
           fi
           mkdir -p /tmp/gpg
           printf '%s' "$GMEOW_RELEASE_SIGNING_KEY" > /tmp/gpg/signing-key.asc
-          uv run gmeow gts compile-full \
+          uv run --package gmeow-dev gmeow-dev gts compile-full \
             --sign-key /tmp/gpg/signing-key.asc \
             --public-key keys/gmeow-release-key.asc \
             -o generated/dist/gmeow-full.gts
           rm -f /tmp/gpg/signing-key.asc
 
       - name: Verify signed gmeow-full.gts
-        run: uv run gmeow gts verify generated/dist/gmeow-full.gts
+        run: uv run gmeow verify generated/dist/gmeow-full.gts
 
       - run: uv build --package gmeow --out-dir dist
 

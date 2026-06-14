@@ -16,6 +16,7 @@ resolution-markers = [
 [manifest]
 members = [
     "gmeow",
+    "gmeow-dev",
     "gmeow-gts",
 ]
 
@@ -878,6 +879,17 @@ dev = [
     { name = "ruff", specifier = ">=0.9" },
     { name = "types-jsonschema", specifier = ">=4.23" },
 ]
+
+[[package]]
+name = "gmeow-dev"
+version = "1.0.2"
+source = { editable = "packages/gmeow-dev" }
+dependencies = [
+    { name = "gmeow" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "gmeow", editable = "." }]
 
 [[package]]
 name = "gmeow-gts"

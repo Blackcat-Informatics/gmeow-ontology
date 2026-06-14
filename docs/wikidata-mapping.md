@@ -53,7 +53,7 @@ Wikidata is community-curated and sometimes reflects dominant-culture categories
 
 ## Mapping Conventions
 
-All term-level Wikidata mappings are authored in `mapping-dsl/equivalences/*.ttl` and compiled to `mappings/*.sssom.tsv` by `make compile-mappings`. Do not hand-edit generated files.
+All term-level Wikidata mappings are authored in `mapping-dsl/equivalences/*.ttl` and compiled to `mappings/*.sssom.tsv` by `gmeow-dev regenerate mappings`. Do not hand-edit generated files.
 
 ### Required fields
 

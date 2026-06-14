@@ -249,12 +249,12 @@ resolves it. ELK gates every push (fast); HermiT gates releases (sound + complet
 ### Linking & the license policy
 
 Alignments are authored once in the **mapping DSL** (`mapping-dsl/`) and compiled
-(`gmeow compile-mappings`) to SSSOM + EDOAL + FnO + SPARQL — see [§ The mapping
+(`gmeow-dev regenerate mappings`) to SSSOM + EDOAL + FnO + SPARQL — see [§ The mapping
 compiler](#the-mapping-compiler). Asserting a link (`owl:equivalentClass`,
 `skos:exactMatch`, …) to any external term is always permitted — it copies nothing.
 **Copying** axioms in (via `owl:imports` / ROBOT `extract`) is license-gated: a
 reference-only source (NC/ND/share-alike/copyleft/proprietary) is **refused**
-(`gmeow extract --target …`). The policy is classified by license family in
+(`gmeow-dev extract --target …`). The policy is classified by license family in
 `config.py`, so new targets are classified correctly by default.
 
 ### The mapping compiler
@@ -262,10 +262,10 @@ reference-only source (NC/ND/share-alike/copyleft/proprietary) is **refused**
 GMEOW's doctrine — *one canonical source, everything else a generated lossy
 projection* ([Principle 4](./CONSTITUTION.md)) — applies to the alignment layer
 itself. Every mapping is authored
-**once** as a `gmeow:`-grounded Turtle cell in `mapping-dsl/`, and `gmeow
-compile-mappings` renders the four standard artifacts (SSSOM term links, EDOAL
+**once** as a `gmeow:`-grounded Turtle cell in `mapping-dsl/`, and
+`gmeow-dev regenerate mappings` renders the four standard artifacts (SSSOM term links, EDOAL
 complex cells, FnO transform functions, SPARQL CONSTRUCT executors). Drift is
-impossible by construction; `gmeow compile-mappings --check` is the CI no-drift
+impossible by construction; `gmeow-dev check-generated mappings` is the CI no-drift
 gate. The compiler uses each target language to its full extent (EDOAL
 `compose`/`inverse` relation paths, FnO `fnom` implementation linkage, SSSOM
 provenance + labels, the full SPARQL path/expression algebra) — all expressed as

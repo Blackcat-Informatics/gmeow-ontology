@@ -47,7 +47,7 @@ or source material for a claim.
 Run the backfill tool when adding or refreshing citation coverage:
 
 ```bash
-uv run gmeow references-backfill
+uv run --package gmeow-dev gmeow-dev references-backfill
 ```
 
 The command reads authored local files and accessible GitHub issue/PR/review
