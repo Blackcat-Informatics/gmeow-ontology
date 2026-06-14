@@ -42,6 +42,14 @@
 
 gmeow:fixtureReichPhasingExpression prov:wasGeneratedBy gmeow:fixtureReichPhasingProcess .
 
+gmeow:fixtureSessionOverdubRecording prov:wasGeneratedBy gmeow:fixtureSessionOverdubEvent .
+
+gmeow:fixtureSessionTake1Recording prov:wasGeneratedBy gmeow:fixtureSessionTake1Event .
+
+gmeow:fixtureSessionTake2Recording prov:wasGeneratedBy gmeow:fixtureSessionTake2Event .
+
+gmeow:fixtureSessionTake3Recording prov:wasGeneratedBy gmeow:fixtureSessionTake3Event .
+
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith> a dcat:Dataset,
         dcat:Distribution ;
     dcat:distribution <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> .

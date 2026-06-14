@@ -1147,3 +1147,106 @@ gmeow:OrnamentProfileKindShape
         """ ;
         sh:message "OrnamentProfileKind must not be subclassed (Principle 9)." ;
     ] .
+
+# =========================================================================== #
+# PERFORMANCE EVENTS & PARTICIPATION SHAPES — issue #313
+# =========================================================================== #
+
+gmeow:PerformanceParticipationShape
+    a sh:NodeShape ;
+    rdfs:label "Performance participation shape"@x-gmeow-english ;
+    skos:definition "A PerformanceParticipation relator must bind exactly one event, one participant, and one role; instrument/item/configuration/part/technique are functional per relator, with the instrument cardinality surfaced as a warning that one participation should be minted per instrument."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PerformanceParticipation ;
+    sh:property [
+        sh:path gmeow:participationEvent ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PerformanceParticipation must reference exactly one Event." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationParticipant ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PerformanceParticipation must reference exactly one participant." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationRole ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PerformanceParticipation must declare exactly one ParticipantRole (functional per relator)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationInstrument ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Warning ;
+        sh:message "At most one instrument per PerformanceParticipation — mint one participation per instrument." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationInstrumentItem ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one specific instrument item per PerformanceParticipation." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationConfiguration ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one instrument configuration per PerformanceParticipation." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationPart ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one part per PerformanceParticipation." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationTechnique ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one playing technique per PerformanceParticipation." ;
+    ] .
+
+gmeow:InstrumentTypeShape
+    a sh:NodeShape ;
+    rdfs:label "Instrument type shape"@x-gmeow-english ;
+    skos:definition "InstrumentType is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:InstrumentType ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "InstrumentType must not be subclassed (Principle 9)." ;
+    ] .
+
+gmeow:PlayingTechniqueShape
+    a sh:NodeShape ;
+    rdfs:label "Playing technique shape"@x-gmeow-english ;
+    skos:definition "PlayingTechnique is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:PlayingTechnique ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "PlayingTechnique must not be subclassed (Principle 9)." ;
+    ] .

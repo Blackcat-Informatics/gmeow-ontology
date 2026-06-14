@@ -37,6 +37,12 @@ enum AestheticQualityEnum
     qualitySublimity
   }
 
+enum AgentEnum
+  {
+    fixtureSessionBassist
+    fixtureSessionDrummer
+  }
+
 enum AggregationFunctionEnum
   {
     aggAverage
@@ -727,6 +733,11 @@ enum EventEnum
   {
     fixtureKlavierstuckPerformanceOne
     fixtureKlavierstuckPerformanceTwo
+    fixtureSessionEvent
+    fixtureSessionOverdubEvent
+    fixtureSessionTake1Event
+    fixtureSessionTake2Event
+    fixtureSessionTake3Event
   }
 
 enum EventTypeEnum
@@ -748,9 +759,11 @@ enum EventTypeEnum
     eventTypeClinicalTrial
     eventTypeCodeReview
     eventTypeCommit
+    eventTypeConcert
     eventTypeConfirmation
     eventTypeCreation
     eventTypeCremation
+    eventTypeDJSet
     eventTypeDeath
     eventTypeDeception
     eventTypeDestruction
@@ -774,6 +787,7 @@ enum EventTypeEnum
     eventTypeImageScanning
     eventTypeImmigration
     eventTypeImpersonation
+    eventTypeJamSession
     eventTypeLie
     eventTypeManifestationProduction
     eventTypeMarriage
@@ -781,14 +795,18 @@ enum EventTypeEnum
     eventTypeMerger
     eventTypeMigration
     eventTypeMilitaryService
+    eventTypeMusicalPerformance
     eventTypeNameChange
     eventTypeNaturalization
     eventTypeOmission
     eventTypeOrdination
+    eventTypeOverdub
     eventTypePaltering
     eventTypeProbate
     eventTypePromotion
     eventTypePush
+    eventTypeRecordingSession
+    eventTypeRehearsal
     eventTypeRelease
     eventTypeRename
     eventTypeResidence
@@ -796,12 +814,15 @@ enum EventTypeEnum
     eventTypeRetirement
     eventTypeSelfDeception
     eventTypeSeparation
+    eventTypeSoundcheck
     eventTypeSpinOff
     eventTypeSplit
     eventTypeSupersession
     eventTypeSurvey
+    eventTypeTake
     eventTypeTermination
     eventTypeTransfer
+    eventTypeTransmission
     eventTypeWill
     eventTypeWorkConception
   }
@@ -855,6 +876,7 @@ enum ExpressionEnum
     fixtureGraphicScoreExpression
     fixtureGraphicScoreTranscription
     fixtureReichPhasingExpression
+    fixtureSessionExpression
   }
 
 enum ExpressionLanguageEnum
@@ -1085,6 +1107,15 @@ enum IndexAlgorithmEnum
     indexAlgorithmFlat
     indexAlgorithmHnsw
     indexAlgorithmIvf
+  }
+
+enum InstrumentTypeEnum
+  {
+    instrumentTypeDoubleBass
+    instrumentTypeDrumKit
+    instrumentTypeElectricGuitar
+    instrumentTypePiano
+    instrumentTypeViolin
   }
 
 enum InvitationStatusEnum
@@ -1497,6 +1528,7 @@ enum MusicalWorkEnum
     fixtureGraphicScoreWork
     fixtureKlavierstuckXIWork
     fixtureReichPhasingWork
+    fixtureSessionWork
     fixtureStructureWork
   }
 
@@ -1723,6 +1755,7 @@ enum OrnamentProfileKindEnum
 
 enum ParticipantRoleEnum
   {
+    roleAccompanist
     roleAgent
     roleAttendee
     roleBeneficiary
@@ -1733,7 +1766,10 @@ enum ParticipantRoleEnum
     roleDupe
     roleEmployee
     roleEmployer
+    roleEnsembleMember
+    roleImproviser
     roleIntermediary
+    roleLearner
     roleOfficiant
     roleOrganizer
     roleParticipantPrincipal
@@ -1741,7 +1777,10 @@ enum ParticipantRoleEnum
     rolePayer
     rolePerformer
     roleProducer
+    roleSessionMusician
+    roleSoloist
     roleSpinDoctor
+    roleTransmitter
     roleVictim
     roleWitness
   }
@@ -1759,6 +1798,12 @@ enum PerformanceDecisionEnum
   {
     fixtureKlavierstuckDecisionOne
     fixtureKlavierstuckDecisionTwo
+  }
+
+enum PerformanceParticipationEnum
+  {
+    fixtureTake3BassParticipation
+    fixtureTake3DrumParticipation
   }
 
 enum PeriodTypeEnum
@@ -1949,6 +1994,13 @@ enum PlaceTypeEnum
     placeTypeThoroughfare
   }
 
+enum PlayingTechniqueEnum
+  {
+    playingTechniqueArco
+    playingTechniquePizzicato
+    playingTechniquePreparedPiano
+  }
+
 enum PostingDirectionEnum
   {
     postingDirectionCredit
@@ -2101,6 +2153,15 @@ enum RealizationModeEnum
     realizationModeNotated
     realizationModeOral
     realizationModePerformed
+  }
+
+enum RecordingEnum
+  {
+    fixtureSessionComposite
+    fixtureSessionOverdubRecording
+    fixtureSessionTake1Recording
+    fixtureSessionTake2Recording
+    fixtureSessionTake3Recording
   }
 
 enum ReferenceFrameEnum
@@ -2929,6 +2990,7 @@ type Activity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -4243,6 +4305,7 @@ type BuildActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -4747,6 +4810,7 @@ type CodeReview
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -4979,6 +5043,7 @@ type Commit
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -7311,6 +7376,7 @@ type Event
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -7516,6 +7582,7 @@ type Execution
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -8089,6 +8156,7 @@ type FinancialTransaction
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -8820,6 +8888,7 @@ type GTSCompaction
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -9209,6 +9278,7 @@ type ImportActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -9434,6 +9504,67 @@ type Instant
   {
     inTemporalFrame: [TemporalFrame]
     instantValue: String
+  }
+
+type InstrumentConfiguration
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+  }
+
+type InstrumentType
+  {
   }
 
 type Intention
@@ -9844,6 +9975,7 @@ type JournalEntry
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -9995,6 +10127,7 @@ type LanguageChangeEvent
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -10052,6 +10185,7 @@ type LanguageCreation
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -10344,6 +10478,7 @@ type LedgerEvent
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -10612,6 +10747,7 @@ type LifeEvent
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -11518,6 +11654,7 @@ type Merge
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -12011,6 +12148,7 @@ type ModelInvocation
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -13406,6 +13544,7 @@ type ObservationalActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -14246,6 +14385,7 @@ type Payment
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -14270,6 +14410,19 @@ type PerformanceDecision
     decisionConstraint: TraversalConstraint
     decisionPerformance: Event
     decisionSequence: String
+  }
+
+type PerformanceParticipation
+  {
+    participationEvent: Event
+    participationInterval: [TimeInterval]
+    participationParticipant: [Entity]
+    participationRole: [ParticipantRole]
+    participationConfiguration: InstrumentConfiguration
+    participationInstrument: [InstrumentType]
+    participationInstrumentItem: Item
+    participationPart: String
+    participationTechnique: PlayingTechnique
   }
 
 type PeriodType
@@ -15164,6 +15317,10 @@ type PlaceNaming
   }
 
 type PlaceType
+  {
+  }
+
+type PlayingTechnique
   {
   }
 
@@ -16112,6 +16269,7 @@ type Push
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -16752,6 +16910,7 @@ type Release
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -16939,6 +17098,7 @@ type RetrievalEvent
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -20192,6 +20352,7 @@ type Task
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -20998,6 +21159,7 @@ type ToolCall
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
@@ -21523,6 +21685,7 @@ type VerificationActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    performanceOf: [CreativeWork]
     predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: [Int]
