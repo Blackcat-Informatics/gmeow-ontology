@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: goals, intentions, and commitments (#443). GMEOW separates the
+# intentional moments gUFO keeps distinct: a gmeow:Goal is the SocialObject an
+# agent aims at (gmeow:hasGoal); a gmeow:Intention is an intentional MODE borne by
+# an agent that aims at that goal (gmeow:intentionGoal) and MOTIVATES concrete
+# action (gmeow:motivates → an Event); a gmeow:Commitment is a relator binding a
+# committed agent to a beneficiary. The desire-to / intend-to / commit-to layers
+# are not collapsed — each is its own first-class moment.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/teleology/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:dana a gmeow:Person ;
+    gmeow:name    "Dana Reyes"@x-gmeow-english ;
+    gmeow:hasGoal ex:degreeGoal .
+
+# --- The goal: a social object the agent aims at.
+ex:degreeGoal a gmeow:Goal ; rdfs:label "Earn a master's degree"@x-gmeow-english .
+
+# --- The intention: an intentional mode borne by Dana, aimed at the goal, that
+#     motivates a concrete action (the graduation event).
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer  ex:dana ;
+    gmeow:intentionGoal ex:degreeGoal ;
+    gmeow:motivates     ex:graduation .
+
+ex:graduation a gmeow:Event ;
+    rdfs:label                "Graduation ceremony"@x-gmeow-english ;
+    gmeow:eventType           gmeow:eventTypeGraduation ;
+    gmeow:eventTime           "2027-06-15T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame  gmeow:temporalFrameUTCGregorian .
+
+# --- The commitment: a relator binding the committed agent to a beneficiary,
+#     aimed at the same goal — distinct from merely intending; a promise made TO
+#     someone (a Commitment is an intentional moment, so it too aims at a goal).
+#     The beneficiary must be an Agent — here the employer who sponsored the
+#     degree (a gmeow:Group is a gufo:Collection, not an Agent).
+ex:commitment a gmeow:Commitment ;
+    gmeow:committedAgent        ex:dana ;
+    gmeow:commitmentBeneficiary ex:employer ;
+    gmeow:intentionGoal         ex:degreeGoal .
+
+ex:employer a gmeow:Organization ; gmeow:name "Acme Robotics Inc."@x-gmeow-english .
