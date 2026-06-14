@@ -16,6 +16,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - [Recipes](recipes/index.md) for task-first modelling walkthroughs.
 - [Examples](examples/index.md) for canonical slice-local Turtle examples.
 - [Adoption Targets](adoption/index.md) for schema.org, [PROV-O](external/ontologies.md#target-prov), Wikidata, and other projection surfaces.
+- [Bibliography](references/index.md) for the generated bibliography from the canonical citation ledger.
 - [Cross-cutting concerns](concerns/index.md) for reusable ideas.
 - [Slices](slices/index.md) for modular guide pages and dependency maps.
 - [Linkages](linkages/index.md) for SSSOM alignments and projection coverage.

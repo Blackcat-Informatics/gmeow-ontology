@@ -147,6 +147,9 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - wikibase: wikibase; linkage rows 1
 - wot: WOT Schema; linkage rows 8
 
+## References
+- references: generated bibliography from metadata/references.ttl; exports generated/references/references.md, references.csl.json, references.bib
+
 ## Slices
 - accessibility: GMEOW Accessibility Module; tier extension; profiles -
 - accounts: GMEOW Accounts Module; tier core; profiles -

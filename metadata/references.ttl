@@ -2688,7 +2688,7 @@
 <https://blackcatinformatics.ca/gmeow/references/citation/5f320108101cae29> a gmeow:CitationAct ;
     rdfs:label "GitHub PR review comment #unknown by coderabbitai[bot]"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity <https://blackcatinformatics> ;
+    gmeow:citedEntity <https://blackcatinformatics.ca> ;
     gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/pull/250#discussion_r3382119131> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/5f320108101cae29> .
 
@@ -6174,7 +6174,7 @@
 <https://blackcatinformatics.ca/gmeow/references/citation/e5c85f3f2bc10a47> a gmeow:CitationAct ;
     rdfs:label "GitHub PR review comment #unknown by coderabbitai[bot]"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity <http://qudt> ;
+    gmeow:citedEntity <http://qudt.org/schema/qudt/> ;
     gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/pull/123#discussion_r3368633844> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/e5c85f3f2bc10a47> .
 
@@ -7336,10 +7336,6 @@ vann: a gmeow:CreativeWork ;
     rdfs:label "purl.org/vocab/vann"@en ;
     gmeow:sourceLocation "http://purl.org/vocab/vann/" .
 
-<http://qudt> a gmeow:CreativeWork ;
-    rdfs:label "qudt"@en ;
-    gmeow:sourceLocation "http://qudt" .
-
 <http://qudt.org/schema/qudt/> a gmeow:CreativeWork ;
     rdfs:label "qudt.org/schema/qudt"@en ;
     gmeow:sourceLocation "http://qudt.org/schema/qudt/" .
@@ -8315,10 +8311,6 @@ foaf:homepage a gmeow:CreativeWork ;
 <https://bioportal.bioontology.org/ontologies/SNOMEDCT?p=classes&conceptid=116154003> a gmeow:CreativeWork ;
     rdfs:label "bioportal.bioontology.org/ontologies/SNOMEDCT"@en ;
     gmeow:sourceLocation "https://bioportal.bioontology.org/ontologies/SNOMEDCT?p=classes&conceptid=116154003" .
-
-<https://blackcatinformatics> a gmeow:CreativeWork ;
-    rdfs:label "blackcatinformatics"@en ;
-    gmeow:sourceLocation "https://blackcatinformatics" .
 
 <https://blackcatinformatics.ca> a gmeow:CreativeWork ;
     rdfs:label "blackcatinformatics.ca"@en ;
