@@ -54,6 +54,10 @@ def test_logic_module_terms_are_complete() -> None:
 
         definitions = list(graph.objects(subject, SKOS.definition))
         assert definitions, f"{subject} is missing a skos:definition"
+        assert any(
+            isinstance(defn, Literal) and defn.language == _X_GMEOW_ENGLISH
+            for defn in definitions
+        ), f"{subject} has no @{_X_GMEOW_ENGLISH} skos:definition"
 
         defined_by = list(graph.objects(subject, RDFS.isDefinedBy))
         assert defined_by == [_LOGIC_SLICE_IRI], (
