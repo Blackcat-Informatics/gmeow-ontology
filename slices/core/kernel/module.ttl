@@ -295,6 +295,14 @@ gmeow:eligibleForConsumer
     rdfs:range gmeow:ProjectionContext ;
     rdfs:label "eligible for consumer"@x-gmeow-english ;
     skos:definition "Relates a value, entity, or claim to the projection consumers it is eligible for — the explicit *who* facet of disclosure control. Domain-free (universal, like hasGranularity and hasSensitivity). NOT functional: in a multi-source merge sources may state different consumer eligibilities, and those claims coexist rather than force the reasoner to collapse distinct consumers (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:eligibleForConsumer gmeow:consumerPublicSite ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a value, entity, or claim has been cleared for one or more named downstream consumer contexts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this as a raw privacy override or release rationale; pair it with sensitivity, disclosure policy, evidence, and solver checks where release is conditional."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:ProjectionContext individuals such as gmeow:consumerInternalArchive, gmeow:consumerAgentMemory, or gmeow:consumerPublicSite; conflicting source-specific eligibilities coexist rather than collapse."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory,
+        gmeow:consumerPublicSite,
+        gmeow:consumerResearchQueue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # Seeds
@@ -368,6 +376,40 @@ gmeow:pairsWith
     a owl:AnnotationProperty ;
     rdfs:label "pairs with"@x-gmeow-english ;
     skos:definition "Links the two halves of a flat-first/reify-on-demand pair — the flat shortcut and the reified relator that carries the same relationship when period, role, confidence, or standpoint must be first-class (gmeow:hasGoal ↔ gmeow:IntentionTenure; gmeow:hasLicense ↔ gmeow:License; gmeow:narrates ↔ gmeow:NarrationUsage). Symmetric by doctrine, asserted in one direction (flat → reified) and read both ways by tooling; an AnnotationProperty so the pairing is machine-usable documentation (gmeow describe renders the promotion path from it), never a logical bridge (Principle 12: no axiom makes the flat form entail the relator)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:useWhen
+    a owl:AnnotationProperty ;
+    rdfs:subPropertyOf skos:scopeNote ;
+    rdfs:label "use when"@x-gmeow-english ;
+    skos:definition "Term-level advisory metadata naming the modeling situation in which a class, property, individual, or slice-level construct should be used. A narrower, machine-addressable form of skos:scopeNote for the WHEN facet; it has no logical force and is consumed by describe, docs, validation, and projection guidance tooling."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:avoidWhen
+    a owl:AnnotationProperty ;
+    rdfs:subPropertyOf skos:scopeNote ;
+    rdfs:label "avoid when"@x-gmeow-english ;
+    skos:definition "Term-level advisory metadata naming conditions in which a class, property, individual, or slice-level construct should not be used, or should be promoted to a more precise construct. A narrower, machine-addressable form of skos:scopeNote for negative scope advice; it has no logical force."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:howToUse
+    a owl:AnnotationProperty ;
+    rdfs:label "how to use"@x-gmeow-english ;
+    skos:definition "Term-level advisory metadata carrying a short modeling recipe for the HOW facet: the companion properties, relators, statement metadata, or projection checks that normally travel with the annotated term. Documentation-only; it does not change OWL entailments."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:useForConsumer
+    a owl:AnnotationProperty ;
+    rdfs:range gmeow:ProjectionContext ;
+    rdfs:label "use for consumer"@x-gmeow-english ;
+    skos:definition "Term-level advisory metadata naming downstream ProjectionContext individuals for which the annotated ontology construct is normally appropriate. This is documentation about the ontology term itself, distinct from gmeow:eligibleForConsumer on data values or claims; values must be declared gmeow:ProjectionContext individuals."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:avoidForConsumer
+    a owl:AnnotationProperty ;
+    rdfs:range gmeow:ProjectionContext ;
+    rdfs:label "avoid for consumer"@x-gmeow-english ;
+    skos:definition "Term-level advisory metadata naming downstream ProjectionContext individuals for which the annotated ontology construct is normally too detailed, too lossy, or otherwise inappropriate without an explicit projection rule. This is documentation about the ontology term itself, distinct from gmeow:eligibleForConsumer on data values or claims; values must be declared gmeow:ProjectionContext individuals."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:guideBlob

@@ -125,7 +125,7 @@ lint-visible justification for a legitimately primary-style value-vocabulary nam
 
 ## Documentation doctrine (issue #325)
 
-### gmeow:pairsWith · gmeow:guideBlob
+### gmeow:pairsWith · gmeow:useWhen · gmeow:howToUse · gmeow:guideBlob
 
 Docs ship *with* the ontology in three tiers (Principle 4): term docs are canonical in
 the graph; narrative guides are canonical markdown whose `### gmeow:Term` anchors resolve
@@ -135,6 +135,13 @@ makes the flat-first/reify-on-demand pairing machine-usable: flat shortcut → r
 relator (`gmeow:hasTag` ↔ `gmeow:Tagging`), rendered by `gmeow describe` from structure,
 never a logical bridge (Principle 12). Documentation literals are CommonMark typed
 `gmeow:markdown`; HTML/SGML subsets are rejected.
+
+Advisory term metadata splits generic scope prose into machine-readable WHEN/HOW/WHERE
+facets. `gmeow:useWhen` and `gmeow:avoidWhen` are narrower `skos:scopeNote`s;
+`gmeow:howToUse` carries the short modeling recipe; `gmeow:useForConsumer` and
+`gmeow:avoidForConsumer` point to declared `gmeow:ProjectionContext` individuals so
+`describe`, generated docs, and projection tooling can say which consumers a construct is
+meant for without turning that advice into logical entailment.
 
 The kernel depends on nothing and is depended on by every slice; whatever computation it
 names is solver work (Principle 12) — the kernel models the axes, tooling evaluates them.
