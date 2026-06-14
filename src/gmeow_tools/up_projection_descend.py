@@ -102,18 +102,26 @@ def _ancestor_closure(graph: Graph) -> dict[str, frozenset[str]]:
     return closure
 
 
-def _pattern_atoms(graph: Graph, atom_list: Node | None) -> list[Node]:
+def _pattern_atoms(
+    graph: Graph, atom_list: Node | None, seen: set[Node] | None = None
+) -> list[Node]:
     """Flatten a pattern's atoms, descending into ``gmeow:optionalGroup`` wraps.
 
     An optional leg (e.g. the ``identifierUrl`` of an ``Identifier`` record) is
     nested inside an ``optionalGroup`` rather than listed directly, so a flat walk
-    misses it — and with it the predicate that types and binds the leg.
+    misses it — and with it the predicate that types and binds the leg. ``seen``
+    guards against a cyclic ``optionalGroup`` (a malformed pattern).
     """
+    if seen is None:
+        seen = set()
     out: list[Node] = []
     for atom in _rdf_list(graph, atom_list):
+        if atom in seen:
+            continue
+        seen.add(atom)
         group = graph.value(atom, GM.optionalGroup)
         if group is not None:
-            out.extend(_pattern_atoms(graph, group))
+            out.extend(_pattern_atoms(graph, group, seen))
         else:
             out.append(atom)
     return out
@@ -160,7 +168,7 @@ def _multiatom_pairs() -> dict[str, set[str]]:
                         source = obj_source.get(str(tobj)) if tobj is not None else None
                         if source is not None:
                             pairs[str(tpred)].add(source)
-    return pairs
+    return dict(pairs)
 
 
 @lru_cache(maxsize=1)

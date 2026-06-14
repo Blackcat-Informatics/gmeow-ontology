@@ -108,7 +108,7 @@ def test_multiatom_harvest_resolves_identifier_url_on_blank_node() -> None:
 def test_multiatom_legs_resolve_as_facts_not_claims() -> None:
     """Multi-atom template legs are value-preserving, so they resolve as facts
     (not provenance-stamped claims) once the subject's type is confirmed."""
-    from gmeow_tools.up_projection_descend import _resolve, build_context
+    from gmeow_tools.up_projection_descend import _resolve
 
     ctx = build_context()
     for pred, gmeow in (
