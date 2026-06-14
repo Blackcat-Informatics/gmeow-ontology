@@ -40,10 +40,11 @@ These snippets are generated from canonical slice examples and trimmed to the Tu
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-# --- A bilingual document: two co-equal languages, neither primary.
+# --- A bilingual document: two co-equal languages, neither primary. The title is
+#     carried as separate co-equal language-tagged literals, one per language.
 ex:manual a gmeow:InformationObject ;
-    gmeow:title            "Installation Manual / インストールマニュアル"@en ;
-    gmeow:writtenInLanguage ex:english , ex:japanese .
+    gmeow:title             "Installation Manual"@en , "インストールマニュアル"@und ;
+    gmeow:writtenInLanguage gmeow:langEnglish , ex:japanese .
 ```
 
 ## Common Companion Terms

@@ -528,6 +528,17 @@ class DocExample:
 
 
 @dataclass(slots=True)
+class DocDesignDoc:
+    """A slice-local design note discovered from ``design/*.md``."""
+
+    path: Path
+    title: str
+    slice_name: str
+    rel: Path
+    text: str
+
+
+@dataclass(slots=True)
 class DocRecipe:
     """A task-oriented adoption page backed by one or more examples."""
 
@@ -578,6 +589,7 @@ class DocsModel:
     slices: dict[str, Slice]
     examples: list[DocExample]
     examples_by_slice: dict[str, list[DocExample]]
+    design_docs_by_slice: dict[str, list[DocDesignDoc]]
     recipes: list[DocRecipe]
     learning_paths: list[DocLearningPath]
 
@@ -1165,6 +1177,28 @@ def _collect_examples(
     return examples
 
 
+def _collect_design_docs(slices: dict[str, Slice]) -> dict[str, list[DocDesignDoc]]:
+    """Discover slice-local Markdown design notes."""
+    grouped: dict[str, list[DocDesignDoc]] = defaultdict(list)
+    for slice_entry in sorted(slices.values(), key=lambda s: s.name):
+        design_dir = slice_entry.path / "design"
+        if not design_dir.exists():
+            continue
+        for path in sorted(design_dir.glob("*.md")):
+            rel_path = path.relative_to(PROJECT_ROOT)
+            out_rel = Path("slices") / slice_entry.name / "design" / path.name
+            grouped[slice_entry.name].append(
+                DocDesignDoc(
+                    path=rel_path,
+                    title=_title_from_stem(path.stem),
+                    slice_name=slice_entry.name,
+                    rel=out_rel,
+                    text=path.read_text(encoding="utf-8").rstrip(),
+                )
+            )
+    return dict(sorted(grouped.items()))
+
+
 def _default_recipes() -> list[DocRecipe]:
     """Return stable task-oriented recipes backed by canonical examples."""
     return [
@@ -1628,6 +1662,7 @@ def _load_model(gts_path: Path | None = None) -> DocsModel:
         term.linkages.sort(key=_link_sort_key)
     slices = discover_slices()
     examples = _collect_examples(slices, terms_by_curie)
+    design_docs_by_slice = _collect_design_docs(slices)
     examples_by_slice: dict[str, list[DocExample]] = defaultdict(list)
     for example in examples:
         examples_by_slice[example.slice_name].append(example)
@@ -1644,6 +1679,7 @@ def _load_model(gts_path: Path | None = None) -> DocsModel:
         slices=slices,
         examples=examples,
         examples_by_slice=dict(examples_by_slice),
+        design_docs_by_slice=design_docs_by_slice,
         recipes=_default_recipes(),
         learning_paths=_default_learning_paths(),
     )
@@ -1862,6 +1898,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
       <a href="{prefix}examples/">Examples</a>
       <a href="{prefix}concerns/">Concerns</a>
       <a href="{prefix}slices/">Slices</a>
+      <a href="{prefix}adoption/">Adoption</a>
       <a href="{prefix}linkages/">Linkages</a>
       <a href="{prefix}reference/">Reference</a>
       <a href="{prefix}external/ontologies/">External</a>
@@ -2250,6 +2287,8 @@ def _landing(model: DocsModel) -> Page:
         "- [Learning Paths](learning-paths/index.md) for curated adoption journeys.",
         "- [Recipes](recipes/index.md) for task-first modelling walkthroughs.",
         "- [Examples](examples/index.md) for canonical slice-local Turtle examples.",
+        "- [Adoption Targets](adoption/index.md) for schema.org, PROV-O, "
+        "Wikidata, and other projection surfaces.",
         "- [Cross-cutting concerns](concerns/index.md) for reusable ideas.",
         "- [Slices](slices/index.md) for modular guide pages and dependency maps.",
         "- [Linkages](linkages/index.md) for SSSOM alignments and projection coverage.",
@@ -3011,6 +3050,29 @@ def _slice_page(slice_entry: Slice, model: DocsModel) -> Page:
                 "",
             ]
         )
+    design_docs = model.design_docs_by_slice.get(slice_entry.name, [])
+    if design_docs:
+        lines.extend(
+            [
+                "## Design Documents",
+                "",
+                "This slice includes slice-local design notes. They are authored "
+                "beside the slice and rendered into the docs as part of the "
+                "same deterministic documentation bundle.",
+                "",
+                "| Document | Source |",
+                "|---|---|",
+            ]
+        )
+        for design_doc in design_docs:
+            design_rel = posixpath.relpath(
+                design_doc.rel.as_posix(), start=page_rel.parent.as_posix()
+            )
+            lines.append(
+                f"| [{design_doc.title}]({design_rel}) | "
+                f"{_repo_source_link(design_doc.path)} |"
+            )
+        lines.append("")
     lines.extend(
         [
             "## Local Map",
@@ -3080,6 +3142,34 @@ def _slice_page(slice_entry: Slice, model: DocsModel) -> Page:
         slice_entry.name,
         "\n".join(lines),
     )
+
+
+def _design_doc_page(design_doc: DocDesignDoc) -> Page:
+    """Render a slice-local design note."""
+    source = _repo_source_link(design_doc.path)
+    slice_rel = posixpath.relpath(
+        (Path("slices") / f"{design_doc.slice_name}.md").as_posix(),
+        start=design_doc.rel.parent.as_posix(),
+    )
+    lines = [
+        f"# {design_doc.title}",
+        "",
+        f"- **Slice:** [{design_doc.slice_name}]({slice_rel})",
+        f"- **Source:** {source}",
+        "",
+        design_doc.text,
+        "",
+    ]
+    return Page(design_doc.rel, design_doc.title, "\n".join(lines))
+
+
+def _design_doc_pages(model: DocsModel) -> list[Page]:
+    """Render all discovered slice-local design notes."""
+    return [
+        _design_doc_page(design_doc)
+        for slice_name in sorted(model.design_docs_by_slice)
+        for design_doc in model.design_docs_by_slice[slice_name]
+    ]
 
 
 def _profile_pages(model: DocsModel) -> list[Page]:
@@ -3269,6 +3359,175 @@ def _linkages_page(model: DocsModel) -> Page:
     return Page(Path("linkages") / "index.md", "Linkages", "\n".join(lines))
 
 
+def _links_for_target(model: DocsModel, prefix: str) -> list[DocLinkage]:
+    """Return linkage rows that mention one external target prefix."""
+    return [
+        link for link in model.linkages if prefix in _target_prefixes([link.target])
+    ]
+
+
+def _adoption_target_prefixes(model: DocsModel) -> list[str]:
+    """Return known external prefixes worth rendering as adoption pages."""
+    known = set(PREFIXES) | set(_external_targets())
+    return sorted(
+        {
+            prefix
+            for link in model.linkages
+            for prefix in _target_prefixes([link.target])
+            if prefix in known and prefix not in {"gmeow", "wd", "wdt"}
+        }
+    )
+
+
+def _adoption_index(model: DocsModel) -> Page:
+    """Render the adoption target index."""
+    targets = _external_targets()
+    rows: list[tuple[str, str, str, str, str, int, int]] = []
+    for prefix in _adoption_target_prefixes(model):
+        links = _links_for_target(model, prefix)
+        if not links:
+            continue
+        name, namespace, license_value, kind = targets.get(
+            prefix, (prefix, PREFIXES.get(prefix, ""), "Unknown", "other")
+        )
+        projections = sum(1 for link in links if link.kind == "projection")
+        equivalences = sum(1 for link in links if link.kind == "equivalence")
+        rows.append(
+            (prefix, name, namespace, license_value, kind, projections, equivalences)
+        )
+    rel = Path("adoption") / "index.md"
+    lines = [
+        "# Adoption Targets",
+        "",
+        "These pages explain how GMEOW links to external vocabularies and "
+        "projection surfaces. They are generated from the canonical mapping DSL "
+        "and the external ontology catalog.",
+        "",
+        "| Target | Kind | Projection Rows | Equivalence Rows | License | Namespace |",
+        "|---|---|---:|---:|---|---|",
+    ]
+    for (
+        prefix,
+        name,
+        namespace,
+        license_value,
+        kind,
+        projections,
+        equivalences,
+    ) in sorted(rows, key=lambda row: (-row[5] - row[6], row[0])):
+        lines.append(
+            f"| [{name}]({_safe_filename(prefix).lower()}.md) (`{prefix}`) | "
+            f"{kind} | {projections} | {equivalences} | "
+            f"`{license_value or '-'}` | <{namespace}> |"
+        )
+    lines.append("")
+    return Page(rel, "Adoption Targets", "\n".join(lines))
+
+
+def _adoption_target_page(prefix: str, model: DocsModel) -> Page:
+    """Render one adoption target page from linkage rows."""
+    links = sorted(_links_for_target(model, prefix), key=_link_sort_key)
+    targets = _external_targets()
+    name, namespace, license_value, kind = targets.get(
+        prefix, (prefix, PREFIXES.get(prefix, ""), "Unknown", "other")
+    )
+    projections = [link for link in links if link.kind == "projection"]
+    equivalences = [link for link in links if link.kind == "equivalence"]
+    profiles = sorted({link.profile for link in projections if link.profile})
+    lossy = [link for link in projections if link.lossy_drops]
+    source_terms = sorted({link.source for link in links})
+    slices = sorted(
+        {
+            model.terms_by_curie[source].owner.replace("gmeow:slices/", "")
+            for source in source_terms
+            if source in model.terms_by_curie and model.terms_by_curie[source].owner
+        }
+    )
+    rel = Path("adoption") / f"{_safe_filename(prefix).lower()}.md"
+    external_href = _external_ontologies_rel(rel, _external_target_anchor(prefix))
+    lines = [
+        f"# {name}",
+        "",
+        f"- **Prefix:** `{prefix}`",
+        f"- **Kind:** {kind}",
+        f"- **License:** `{license_value or '-'}`",
+        f"- **Namespace / website:** <{namespace}>",
+        f"- **External catalog:** [open catalog entry]({external_href})",
+        "",
+        "## Coverage",
+        "",
+        f"- **GMEOW source terms:** {len(source_terms)}",
+        f"- **Projection rows:** {len(projections)}",
+        f"- **Equivalence rows:** {len(equivalences)}",
+        "- **Profiles:** " + (", ".join(f"`{profile}`" for profile in profiles) or "-"),
+        "- **Slices:** "
+        + (
+            ", ".join(
+                _relative_page_link(
+                    slice_name, Path("slices") / f"{slice_name}.md", rel
+                )
+                for slice_name in slices
+            )
+            or "-"
+        ),
+        "",
+        "## How To Use This Target",
+        "",
+        "Use native GMEOW terms as the authoring surface, then inspect the "
+        "projection rows below to see which facts can leave GMEOW for this "
+        "consumer vocabulary. Treat lossy notes as adoption warnings, not as "
+        "implementation details.",
+        "",
+    ]
+    if lossy:
+        lines.extend(
+            [
+                "## Loss Notes",
+                "",
+                "| Profile | Source | Dropped Structure |",
+                "|---|---|---|",
+            ]
+        )
+        for link in lossy[:40]:
+            lines.append(
+                f"| `{link.profile or '-'}` | "
+                f"{_curie_link_from(link.source, model, rel)} | "
+                f"{_escape_md_cell('; '.join(link.lossy_drops))} |"
+            )
+        if len(lossy) > 40:
+            lines.append(f"| ... | ... | {len(lossy) - 40} more lossy rows |")
+        lines.append("")
+    if source_terms:
+        lines.extend(
+            ["## Source Terms", "", "| Term | Label | Slice |", "|---|---|---|"]
+        )
+        for source in source_terms[:80]:
+            term = model.terms_by_curie.get(source)
+            if term is None:
+                continue
+            slice_name = term.owner.replace("gmeow:slices/", "")
+            lines.append(
+                f"| {_curie_link_from(source, model, rel)} | "
+                f"{_escape_md_cell(term.label)} | `{slice_name or '-'}` |"
+            )
+        if len(source_terms) > 80:
+            lines.append(f"| ... | ... | {len(source_terms) - 80} more terms |")
+        lines.append("")
+    lines.extend(["## Mapping Rows", ""])
+    lines.extend(_linkage_table(links, from_rel=rel, model=model, limit=120))
+    lines.append("")
+    return Page(rel, name, "\n".join(lines))
+
+
+def _adoption_pages(model: DocsModel) -> list[Page]:
+    """Render adoption target index and per-target pages."""
+    prefixes = _adoption_target_prefixes(model)
+    return [
+        _adoption_index(model),
+        *[_adoption_target_page(prefix, model) for prefix in prefixes],
+    ]
+
+
 def _external_targets() -> dict[str, tuple[str, str, str, str]]:
     """Return all external ontology targets surfaced in documentation."""
     targets = {
@@ -3451,6 +3710,7 @@ def _all_pages(model: DocsModel) -> list[Page]:
         _recipes_index(model),
         _examples_index(model),
         _reference_index(model),
+        *_adoption_pages(model),
         _linkages_page(model),
         _external_ontologies_page(),
         _external_terms_page(),
@@ -3472,6 +3732,7 @@ def _all_pages(model: DocsModel) -> list[Page]:
         _slice_page(s, model)
         for s in sorted(model.slices.values(), key=lambda x: x.name)
     )
+    pages.extend(_design_doc_pages(model))
     pages.extend(_profile_pages(model))
     pages.append(_concern_index(model.concerns))
     pages.extend(_concern_page(concern) for concern in model.concerns)
@@ -3744,6 +4005,34 @@ def _search_index(model: DocsModel) -> list[dict[str, object]]:
                 ),
             }
         )
+    for prefix in _adoption_target_prefixes(model):
+        links = _links_for_target(model, prefix)
+        name, _, _, kind = _external_targets().get(prefix, (prefix, "", "", "other"))
+        rows.append(
+            {
+                "kind": "adoption-target",
+                "title": name,
+                "path": _site_rel_for_md(
+                    Path("adoption") / f"{_safe_filename(prefix).lower()}.md"
+                ).as_posix(),
+                "summary": f"{len(links)} linkage rows for {prefix}.",
+                "keywords": sorted(
+                    {prefix, name, kind, *[link.profile for link in links]}
+                ),
+            }
+        )
+    for slice_name, design_docs in sorted(model.design_docs_by_slice.items()):
+        for design_doc in design_docs:
+            rows.append(
+                {
+                    "kind": "slice-design",
+                    "title": design_doc.title,
+                    "path": _site_rel_for_md(design_doc.rel).as_posix(),
+                    "slice": slice_name,
+                    "summary": _short_text(design_doc.text, limit=320),
+                    "keywords": sorted({slice_name, design_doc.path.as_posix()}),
+                }
+            )
     for example in model.examples:
         rows.append(
             {
@@ -3782,6 +4071,11 @@ def _llms_docs_text(model: DocsModel) -> str:
             f"- {path.slug}: {path.title}; audience {path.audience}; terms "
             f"{', '.join(path.term_curies)}"
         )
+    lines.extend(["", "## Adoption Targets"])
+    for prefix in _adoption_target_prefixes(model):
+        links = _links_for_target(model, prefix)
+        name = _external_targets().get(prefix, (prefix, "", "", ""))[0]
+        lines.append(f"- {prefix}: {name}; linkage rows {len(links)}")
     lines.extend(["", "## Slices"])
     for slice_entry in sorted(model.slices.values(), key=lambda s: s.name):
         lines.append(
@@ -3789,6 +4083,13 @@ def _llms_docs_text(model: DocsModel) -> str:
             f"tier {slice_entry.tier}; profiles "
             f"{', '.join(sorted(slice_entry.profiles)) or '-'}"
         )
+    lines.extend(["", "## Slice Design Documents"])
+    for slice_name, design_docs in sorted(model.design_docs_by_slice.items()):
+        for design_doc in design_docs:
+            lines.append(
+                f"- {slice_name}: {design_doc.title}; source "
+                f"{design_doc.path.as_posix()}"
+            )
     lines.extend(["", "## Examples"])
     for example in sorted(model.examples, key=lambda ex: (ex.slice_name, ex.path)):
         lines.append(

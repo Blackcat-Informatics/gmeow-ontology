@@ -17,6 +17,25 @@ The internal private-use BCP-47 language tag (e.g., 'und') used for @lang annota
 
 Use [`gmeow:languageTag`](gmeow-languageTag.md) from [`gmeow:Language`](../classes/gmeow-Language.md) to [`xsd:string`](http://www.w3.org/2001/XMLSchema#string) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Multilingual Document
+
+- **Source:** [`slices/core/language/examples/multilingual-document.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-language-examples-multilingual-document)#example-slices-core-language-examples-multilingual-document
+
+```turtle
+# --- Languages: first-class, BCP-47-tagged. English already exists as the core
+#     seed gmeow:langEnglish — reused, not re-minted. Japanese has no seed, so it
+#     is minted, declaring its internal private-use tag for @lang annotations.
+ex:japanese a gmeow:Language ;
+    rdfs:label        "Japanese"@en ;
+    gmeow:bcp47Tag    "ja" ;
+    gmeow:languageTag "und" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Language`](../classes/gmeow-Language.md)
