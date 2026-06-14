@@ -2094,6 +2094,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -2474,6 +2483,26 @@
             },
             "title": "Article",
             "type": "object"
+          },
+          "ArticulationKind": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ArticulationKind",
+            "type": "object"
+          },
+          "ArticulationKindEnum": {
+            "description": "",
+            "enum": [
+              "articulationAccent",
+              "articulationHarmonic",
+              "articulationLegato",
+              "articulationMarcato",
+              "articulationPizzicato",
+              "articulationStaccato",
+              "articulationTenuto"
+            ],
+            "title": "ArticulationKindEnum",
+            "type": "string"
           },
           "Assessment": {
             "additionalProperties": false,
@@ -2896,6 +2925,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -3495,6 +3533,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -4125,6 +4172,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -4680,6 +4736,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -5192,6 +5257,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -5987,6 +6061,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -6580,6 +6663,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -7095,6 +7187,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -7580,6 +7681,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -8056,6 +8166,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -8594,6 +8713,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -9100,6 +9228,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -9896,6 +10033,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -10585,6 +10731,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -11768,6 +11923,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -12522,6 +12686,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -13190,6 +13363,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -13919,6 +14101,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -14426,6 +14617,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -15794,6 +15994,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -16493,6 +16702,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -17654,6 +17872,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -18151,6 +18378,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -18824,6 +19060,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -19463,6 +19708,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -20009,6 +20263,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -20506,6 +20769,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -21206,6 +21478,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -22296,6 +22577,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -23146,6 +23436,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -23901,6 +24200,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -24407,6 +24715,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -24948,6 +25265,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -25512,6 +25838,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -26055,6 +26390,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -26611,6 +26955,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -27154,6 +27507,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -27971,6 +28333,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -28955,6 +29326,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -29888,6 +30268,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -30429,6 +30818,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -31206,6 +31604,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -31869,6 +32276,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -32364,6 +32780,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -32646,6 +33071,27 @@
             },
             "title": "Duty",
             "type": "object"
+          },
+          "DynamicsValue": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "DynamicsValue",
+            "type": "object"
+          },
+          "DynamicsValueEnum": {
+            "description": "",
+            "enum": [
+              "dynamicsF",
+              "dynamicsFf",
+              "dynamicsFff",
+              "dynamicsMf",
+              "dynamicsMp",
+              "dynamicsP",
+              "dynamicsPp",
+              "dynamicsPpp"
+            ],
+            "title": "DynamicsValueEnum",
+            "type": "string"
           },
           "EmailAddress": {
             "additionalProperties": false,
@@ -33210,6 +33656,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -34027,6 +34482,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -34563,6 +35027,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -35236,6 +35709,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -35440,9 +35922,7 @@
             "description": "",
             "enum": [
               "polymeterPattern",
-              "procedureIngestionRawRoot",
-              "voiceDrumsPlaceholder",
-              "voiceGuitarPlaceholder"
+              "procedureIngestionRawRoot"
             ],
             "title": "EntityEnum",
             "type": "string"
@@ -36365,6 +36845,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -37016,6 +37505,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -38475,6 +38973,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -39162,6 +39669,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -39659,6 +40175,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -40164,6 +40689,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -40936,6 +41470,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -41781,6 +42324,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -42753,6 +43305,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -43268,6 +43829,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -44657,6 +45227,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -45645,6 +46224,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -46392,6 +46980,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -46880,6 +47477,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -47396,6 +48002,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -47944,6 +48559,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -48442,6 +49066,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -49053,6 +49686,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -49547,6 +50189,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -50333,6 +50984,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -51330,6 +51990,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -51871,6 +52540,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -52377,6 +53055,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -53050,6 +53737,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -53880,6 +54576,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -54614,6 +55319,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -55394,6 +56108,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -56669,6 +57392,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -58362,6 +59094,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -58987,6 +59728,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -59535,6 +60285,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -60541,6 +61300,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -61130,6 +61898,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -61657,6 +62434,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -62987,6 +63773,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -63707,6 +64502,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -64276,6 +65080,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -64862,6 +65675,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -65472,6 +66294,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -66286,6 +67117,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -66965,6 +67805,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -67467,6 +68316,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -68409,6 +69267,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -69326,6 +70193,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -70337,6 +71213,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -70906,6 +71791,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -71498,6 +72392,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -72220,6 +73123,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -72787,6 +73699,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -73362,6 +74283,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -74384,6 +75314,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -74860,6 +75799,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -75445,6 +76393,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -75682,6 +76639,572 @@
               "multipartTypeSigned"
             ],
             "title": "MultipartTypeEnum",
+            "type": "string"
+          },
+          "MusicalSegment": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contributesToFrame": {
+                "items": {
+                  "$ref": "#/$defs/NarrativeReferenceFrame"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "detectedMediaType": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLogo": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "narrates": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "segmentIndex": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "segmentKind": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SegmentKind"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "segmentOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "segmentType": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ContentSegmentType"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "MusicalSegment",
+            "type": "object"
+          },
+          "MusicalSegmentEnum": {
+            "description": "",
+            "enum": [
+              "fixtureStructureRiffA",
+              "fixtureStructureRiffAReaccented",
+              "fixtureStructureRiffATransposed"
+            ],
+            "title": "MusicalSegmentEnum",
             "type": "string"
           },
           "MusicalTimeFrame": {
@@ -76045,6 +77568,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -76574,6 +78106,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -77377,6 +78918,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -77758,6 +79308,14 @@
             "title": "MusicalWork",
             "type": "object"
           },
+          "MusicalWorkEnum": {
+            "description": "",
+            "enum": [
+              "fixtureStructureWork"
+            ],
+            "title": "MusicalWorkEnum",
+            "type": "string"
+          },
           "Myth": {
             "additionalProperties": false,
             "description": "",
@@ -78046,6 +79604,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -78559,6 +80126,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -79261,6 +80837,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -79903,6 +81488,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -80413,6 +82007,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -80913,6 +82516,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -81511,6 +83123,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -82035,6 +83656,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -82581,6 +84211,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -83093,6 +84732,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -83590,6 +85238,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -84188,6 +85845,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -85469,6 +87135,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -85966,6 +87641,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -86537,6 +88221,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -87052,6 +88745,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -87593,6 +89295,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -88108,6 +89819,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -89118,6 +90838,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -89684,6 +91413,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -90236,6 +91974,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -91132,6 +92879,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -92317,6 +94073,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -93404,6 +95169,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -93886,6 +95660,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -94425,6 +96208,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -95064,6 +96856,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -95561,6 +97362,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -96128,6 +97938,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -96348,6 +98167,1077 @@
               "pitchSpellingSystemSargam"
             ],
             "title": "PitchSpellingSystemEnum",
+            "type": "string"
+          },
+          "PitchTrajectory": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLogo": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "interpolationKind": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PitchTrajectoryInterpolationKind"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "trajectoryControlPoint": {
+                "items": {
+                  "$ref": "#/$defs/PitchTrajectoryControlPoint"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "PitchTrajectory",
+            "type": "object"
+          },
+          "PitchTrajectoryControlPoint": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "controlPointOfTrajectory": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PitchTrajectory"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "controlPointOrder": {
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "controlPointPitch": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PitchValue"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "controlPointTimeFrame": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/MusicalTimeFrame"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "controlPointTimePositionDenominator": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "controlPointTimePositionNumerator": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLogo": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "PitchTrajectoryControlPoint",
+            "type": "object"
+          },
+          "PitchTrajectoryControlPointEnum": {
+            "description": "",
+            "enum": [
+              "fixtureStructureGlissPointC4",
+              "fixtureStructureGlissPointG4"
+            ],
+            "title": "PitchTrajectoryControlPointEnum",
+            "type": "string"
+          },
+          "PitchTrajectoryEnum": {
+            "description": "",
+            "enum": [
+              "fixtureStructureGlissando"
+            ],
+            "title": "PitchTrajectoryEnum",
+            "type": "string"
+          },
+          "PitchTrajectoryInterpolationKind": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "PitchTrajectoryInterpolationKind",
+            "type": "object"
+          },
+          "PitchTrajectoryInterpolationKindEnum": {
+            "description": "",
+            "enum": [
+              "interpolationExponential",
+              "interpolationLinearCents",
+              "interpolationStochasticByReference"
+            ],
+            "title": "PitchTrajectoryInterpolationKindEnum",
             "type": "string"
           },
           "PitchValue": {
@@ -96641,6 +99531,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -96883,6 +99782,8 @@
               "pitchValue24EDOEHalfFlat4",
               "pitchValue24EDOF4",
               "pitchValue24EDOG4",
+              "pitchValueC4Fixture",
+              "pitchValueG4Fixture",
               "pitchValueJI7Over4"
             ],
             "title": "PitchValueEnum",
@@ -97302,6 +100203,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -98129,6 +101039,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -98868,6 +101787,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -99383,6 +102311,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -99957,6 +102894,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -100659,6 +103605,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -101489,6 +104444,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -102183,6 +105147,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -102732,6 +105705,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -103324,6 +106306,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -103891,6 +106882,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -104431,6 +107431,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -104938,6 +107947,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -106183,6 +109201,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -106653,6 +109680,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -107467,6 +110503,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -108115,6 +111160,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -108618,6 +111672,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -109209,6 +112272,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -109790,6 +112862,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -110278,6 +113359,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -111434,6 +114524,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -111976,6 +115075,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -113003,6 +116111,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -113735,6 +116852,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -114303,6 +117429,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -114882,6 +118017,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -115407,6 +118551,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -116007,6 +119160,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -116532,6 +119694,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -117185,6 +120356,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -117981,6 +121161,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -118629,6 +121818,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -119014,6 +122212,87 @@
             "title": "ScriptRoleEnum",
             "type": "string"
           },
+          "SegmentKind": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SegmentKind",
+            "type": "object"
+          },
+          "SegmentKindEnum": {
+            "description": "",
+            "enum": [
+              "segmentKindCell",
+              "segmentKindColor",
+              "segmentKindDrone",
+              "segmentKindFragment",
+              "segmentKindLoop",
+              "segmentKindMotif",
+              "segmentKindPhrase",
+              "segmentKindRiff",
+              "segmentKindSection",
+              "segmentKindTalea",
+              "segmentKindToneEventContainer"
+            ],
+            "title": "SegmentKindEnum",
+            "type": "string"
+          },
+          "SegmentTransformation": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "transformationParameter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "transformationSource": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/MusicalSegment"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "transformationTarget": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/MusicalSegment"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "transformationType": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TransformationType"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "title": "SegmentTransformation",
+            "type": "object"
+          },
+          "SegmentTransformationEnum": {
+            "description": "",
+            "enum": [
+              "fixtureStructureReaccentuation",
+              "fixtureStructureTransposition"
+            ],
+            "title": "SegmentTransformationEnum",
+            "type": "string"
+          },
           "Selector": {
             "additionalProperties": false,
             "description": "",
@@ -119302,6 +122581,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -120104,6 +123392,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -120629,6 +123926,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -121405,6 +124711,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -121875,6 +125190,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -122394,6 +125718,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -123203,6 +126536,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -124119,6 +127461,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -125068,6 +128419,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -125725,6 +129085,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -126355,6 +129724,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -126894,6 +130272,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -127364,6 +130751,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -128410,6 +131806,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -129094,6 +132499,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -129630,6 +133044,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -130127,6 +133550,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -130645,6 +134077,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -131413,6 +134854,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -132071,6 +135521,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -132832,6 +136291,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -133453,6 +136921,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -134056,6 +137533,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -134543,6 +138029,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -135355,6 +138850,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -136002,6 +139506,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -136543,6 +140056,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -137049,6 +140571,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -137568,6 +141099,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -138118,6 +141658,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -138652,6 +142201,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -139697,6 +143255,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -140271,6 +143838,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -140395,16 +143971,6 @@
                 "type": [
                   "integer",
                   "null"
-                ]
-              },
-              "segmentSpan": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/MusicalTimeSpan"
-                  },
-                  {
-                    "type": "null"
-                  }
                 ]
               },
               "segmentTempoMapKind": {
@@ -140912,6 +144478,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -141925,6 +145500,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -142600,6 +146184,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -142816,6 +146409,491 @@
               }
             },
             "title": "Thread",
+            "type": "object"
+          },
+          "TimbreDescriptor": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLogo": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "TimbreDescriptor",
             "type": "object"
           },
           "TimeInterval": {
@@ -143256,6 +147334,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -143838,6 +147925,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -144344,6 +148440,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -144549,6 +148654,626 @@
             },
             "title": "TimeZone",
             "type": "object"
+          },
+          "ToneEvent": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contributesToFrame": {
+                "items": {
+                  "$ref": "#/$defs/NarrativeReferenceFrame"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "detectedMediaType": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLogo": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "narrates": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "segmentIndex": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "segmentKind": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SegmentKind"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "segmentOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "segmentType": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ContentSegmentType"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "toneEventArticulation": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ArticulationKind"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "toneEventDynamics": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/DynamicsValue"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "toneEventIsUnpitched": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "toneEventPitchTrajectory": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PitchTrajectory"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "toneEventPitchValue": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PitchValue"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "toneEventTimbre": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TimbreDescriptor"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "writtenInLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "ToneEvent",
+            "type": "object"
+          },
+          "ToneEventEnum": {
+            "description": "",
+            "enum": [
+              "fixtureStructureToneEventC4"
+            ],
+            "title": "ToneEventEnum",
+            "type": "string"
           },
           "ToolCall": {
             "additionalProperties": false,
@@ -145364,6 +150089,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -145651,6 +150385,32 @@
               "codecZstd"
             ],
             "title": "TransformCodecEnum",
+            "type": "string"
+          },
+          "TransformationType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "TransformationType",
+            "type": "object"
+          },
+          "TransformationTypeEnum": {
+            "description": "",
+            "enum": [
+              "transformAugmentation",
+              "transformDiminution",
+              "transformInversion",
+              "transformOctaveDisplacement",
+              "transformOrnamentation",
+              "transformPhaseShift",
+              "transformQuotation",
+              "transformReaccentuation",
+              "transformReduction",
+              "transformRetrograde",
+              "transformSpectralCompression",
+              "transformTimbreReorchestration",
+              "transformTransposition"
+            ],
+            "title": "TransformationTypeEnum",
             "type": "string"
           },
           "TransliterationScheme": {
@@ -145966,6 +150726,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -146484,6 +151253,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -147154,6 +151932,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -148013,6 +152800,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -148995,6 +153791,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -149724,6 +154529,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -150291,6 +155105,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -150627,6 +155450,540 @@
               "virtualLocationTypeWebsite"
             ],
             "title": "VirtualLocationTypeEnum",
+            "type": "string"
+          },
+          "Voice": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "items": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "depictedIn": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDirectReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasIdentifier": {
+                "items": {
+                  "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLogo": {
+                "items": {
+                  "$ref": "#/$defs/MediaObject"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasReply": {
+                "items": {
+                  "$ref": "#/$defs/Comment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVersion": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "items": {
+                  "type": "boolean"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isReferencedBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentionedIn": {
+                "items": {
+                  "$ref": "#/$defs/Note"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "ownedBy": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "references": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "voiceMetricStructure": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/MetricStructure"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "voiceOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "voiceTimeFrame": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/MusicalTimeFrame"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "voiceTuningFrame": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TuningSystem"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "Voice",
+            "type": "object"
+          },
+          "VoiceEnum": {
+            "description": "",
+            "enum": [
+              "fixtureStructureVoiceBass",
+              "voiceDrumsPlaceholder",
+              "voiceGuitarPlaceholder"
+            ],
+            "title": "VoiceEnum",
             "type": "string"
           },
           "WalletScheme": {
@@ -151221,6 +156578,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",
@@ -152181,6 +157547,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -153097,6 +158472,15 @@
                   "null"
                 ]
               },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasWebPage": {
                 "items": {
                   "$ref": "#/$defs/WebPage"
@@ -153766,6 +159150,15 @@
               "hasVersion": {
                 "items": {
                   "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasVoice": {
+                "items": {
+                  "$ref": "#/$defs/Voice"
                 },
                 "type": [
                   "array",

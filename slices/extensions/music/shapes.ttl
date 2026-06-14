@@ -629,3 +629,248 @@ gmeow:GrooveProfileShape
         sh:severity sh:Violation ;
         sh:message "A GrooveProfile must apply to exactly one MusicalTimeFrame." ;
     ] .
+#
+# STRUCTURE GRAPH SHAPES — issue #311
+#
+
+gmeow:MusicalSegmentShape
+    a sh:NodeShape ;
+    rdfs:label "Musical segment shape"@x-gmeow-english ;
+    skos:definition "A MusicalSegment must declare exactly one segmentKind and at most one segmentSpan."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MusicalSegment ;
+    sh:property [
+        sh:path gmeow:segmentKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalSegment must have exactly one segmentKind (Principle 9)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:segmentSpan ;
+        sh:minCount 0 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicalSegment may have at most one segmentSpan (coexisting spans live in the statement layer)." ;
+    ] .
+
+gmeow:ToneEventShape
+    a sh:NodeShape ;
+    rdfs:label "Tone event shape"@x-gmeow-english ;
+    skos:definition "A ToneEvent is a MusicalSegment with at most one pitch-content mode and optional dynamics/articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:ToneEvent ;
+    sh:property [
+        sh:path gmeow:toneEventPitchValue ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A ToneEvent may have at most one toneEventPitchValue." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:toneEventPitchTrajectory ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A ToneEvent may have at most one toneEventPitchTrajectory." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:toneEventIsUnpitched ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A ToneEvent may have at most one toneEventIsUnpitched flag." ;
+    ] ;
+    sh:xone (
+        [ sh:property [ sh:path gmeow:toneEventPitchValue ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
+        [ sh:property [ sh:path gmeow:toneEventPitchTrajectory ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
+        [ sh:property [ sh:path gmeow:toneEventIsUnpitched ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:boolean ; sh:hasValue "true"^^xsd:boolean ; sh:severity sh:Violation ] ]
+    ) ;
+    sh:message "A ToneEvent must have exactly one pitch-content mode: toneEventPitchValue, toneEventPitchTrajectory, or toneEventIsUnpitched true." ;
+    sh:property [
+        sh:path gmeow:toneEventDynamics ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A ToneEvent may have at most one dynamics value." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:toneEventArticulation ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A ToneEvent may have at most one articulation value." ;
+    ] .
+
+gmeow:PitchTrajectoryShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch trajectory shape"@x-gmeow-english ;
+    skos:definition "A PitchTrajectory must declare an interpolation kind and have at least two ordered control points."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchTrajectory ;
+    sh:property [
+        sh:path gmeow:interpolationKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectory must declare exactly one interpolationKind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:trajectoryControlPoint ;
+        sh:minCount 2 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectory must have at least two control points." ;
+    ] .
+
+gmeow:PitchTrajectoryControlPointShape
+    a sh:NodeShape ;
+    rdfs:label "Pitch trajectory control point shape"@x-gmeow-english ;
+    skos:definition "A control point must belong to exactly one trajectory, have exactly one order, one pitch, one time frame, and one rational time position."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:PitchTrajectoryControlPoint ;
+    sh:property [
+        sh:path gmeow:controlPointOfTrajectory ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectoryControlPoint must belong to exactly one PitchTrajectory." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:controlPointOrder ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectoryControlPoint must have exactly one controlPointOrder." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:controlPointPitch ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectoryControlPoint must have exactly one controlPointPitch." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:controlPointTimeFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectoryControlPoint must have exactly one controlPointTimeFrame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:controlPointTimePositionNumerator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectoryControlPoint must have exactly one time position numerator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:controlPointTimePositionDenominator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minExclusive 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A PitchTrajectoryControlPoint must have exactly one positive time position denominator." ;
+    ] .
+
+gmeow:VoiceShape
+    a sh:NodeShape ;
+    rdfs:label "Voice shape"@x-gmeow-english ;
+    skos:definition "A Voice may host at most one MusicalTimeFrame, TuningSystem, and MetricStructure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:Voice ;
+    sh:property [
+        sh:path gmeow:voiceTimeFrame ;
+        sh:minCount 0 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Voice may host at most one MusicalTimeFrame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:voiceTuningFrame ;
+        sh:minCount 0 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Voice may host at most one TuningSystem." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:voiceMetricStructure ;
+        sh:minCount 0 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Voice may host at most one MetricStructure." ;
+    ] .
+
+gmeow:SegmentTransformationShape
+    a sh:NodeShape ;
+    rdfs:label "Segment transformation shape"@x-gmeow-english ;
+    skos:definition "A SegmentTransformation must bind exactly one source, one target, and one type; source and target must be distinct."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:SegmentTransformation ;
+    sh:property [
+        sh:path gmeow:transformationSource ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A SegmentTransformation must have exactly one source MusicalSegment." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:transformationTarget ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A SegmentTransformation must have exactly one target MusicalSegment." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:transformationType ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A SegmentTransformation must have exactly one transformationType." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:transformationParameter ;
+        sh:minCount 0 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A SegmentTransformation may have at most one transformationParameter." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A SegmentTransformation source and target must be distinct entities." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this
+            WHERE {
+                $this gmeow:transformationSource ?source ;
+                      gmeow:transformationTarget ?target .
+                FILTER (?source = ?target)
+            }
+        """ ;
+    ] .
+
+gmeow:SegmentKindShape
+    a sh:NodeShape ;
+    rdfs:label "Segment kind shape"@x-gmeow-english ;
+    skos:definition "SegmentKind is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:SegmentKind ;
+    sh:property [
+        sh:path rdfs:subClassOf ;
+        sh:maxCount 0 ;
+        sh:severity sh:Violation ;
+        sh:message "SegmentKind must not be subclassed (Principle 9)." ;
+    ] .
+
+gmeow:TransformationTypeShape
+    a sh:NodeShape ;
+    rdfs:label "Transformation type shape"@x-gmeow-english ;
+    skos:definition "TransformationType is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:TransformationType ;
+    sh:property [
+        sh:path rdfs:subClassOf ;
+        sh:maxCount 0 ;
+        sh:severity sh:Violation ;
+        sh:message "TransformationType must not be subclassed (Principle 9)." ;
+    ] .
