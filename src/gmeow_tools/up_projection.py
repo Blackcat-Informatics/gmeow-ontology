@@ -6,25 +6,37 @@ The first half of the full transpile (#448): lift a non-GMEOW source graph *up*
 into pure GMEOW. The module derives its rules from the alignment layer read
 backwards — never hand-authored — across an **epistemic ladder**, best→weakest:
 
-* **Clean rule** (``exactMatch``/``equivalent*`` SSSOM, or a structural
-  simple-1to1 / direct ``edoalPath`` cell): symmetric, so the target reverses to
-  its gmeow counterpart as a **bare fact triple**.
-* **Inverse rule** (an ``edoalPath`` cell anchored on its atom's object): the
-  down-projection inverted the edge, so the lift re-swaps subject and object —
-  still a bare fact.
-* **closeMatch claim** (``skos:closeMatch`` SSSOM): the terms are *close but not
-  equivalent*, so the target is **not** asserted as fact. It is lifted wrapped in
-  a provenance-stamped ``gmeow:StatementMetadata`` claim that quotes the inferred
-  triple and hangs ``gmeow:confidence`` (the curator's value) and
-  ``gmeow:mappedFrom`` (the source term) off it — best-faithful and refutable,
-  never an unmarked overclaim.
+The split between a **fact** and a **claim** is the EDOAL relation read backwards:
+a cell that *identifies* the gmeow term reverses as a fact; a cell that only
+*infers* it (a non-equivalence) lifts as a provenance-stamped claim, never an
+unmarked overclaim. Ranked best→weakest:
+
+* **Identity / exact fact** (``exactMatch``/``equivalent*`` SSSOM, a structural
+  ``=`` simple-1to1 cell, or a direct ``edoalPath`` cell): the gmeow term and the
+  target denote the same thing, so the target reverses to a **bare fact triple**.
+* **Inverse fact** (an ``edoalPath`` cell anchored on its atom's object): the
+  down-projection inverted the edge, so the lift re-swaps subject and object.
+* **Claim** — *infers* the gmeow term, so it lifts wrapped in a
+  ``gmeow:StatementMetadata`` reifier carrying ``gmeow:mappedFrom`` (the source
+  term) and ``gmeow:confidence`` (when supplied), the quoted triple never
+  asserted directly. Two cell kinds infer:
+    - a ``<=`` **generalizing** structural cell (a narrow gmeow term *dumbed
+      down* to a coarser target; its reverse infers specificity), and
+    - a ``skos:closeMatch`` SSSOM cell (close but not equal).
+  The generalizing cell is the authored inverse of the down-projection (round-
+  trip fidelity), so it outranks a looser closeMatch.
+
+Rule resolution is **layer-ranked** (preferred-up-target disambiguation): an
+identity match outranks a structural projection of a *narrower* gmeow term to the
+same target — so ``schema:name`` reverses to the identity ``gmeow:name`` even
+though the narrower ``gmeow:fullName`` also projects down to it.
 
 Doctrine (#448): the output is **pure GMEOW** — only lifted terms appear; a
 source term with no rule is reported in the gap, never guessed and never passed
-through. Where a target is the down-image of *several* gmeow terms (a many-to-one
-projection, in either the clean or closeMatch layer), the reverse is
-**ambiguous** and is deliberately *not* lifted — it needs a preferred-up-target
-decision (a later stage), so guessing would fabricate. Subjects, objects, and
+through. Where a layer has *several* candidates for one target with no ranking
+winner (rival identities, rival exact projections, or several inferred
+candidates — a many-to-one collapse), the reverse is **ambiguous** and is
+deliberately *not* lifted — guessing would fabricate. Subjects, objects, and
 literals are carried verbatim; only the predicate / rdf:type IRI is rewritten.
 """
 
@@ -120,9 +132,27 @@ def _decimal_confidence(conf: str) -> Decimal | None:
     return value
 
 
-def _structural_pairs() -> dict[str, set[str]]:
-    """Target IRI → set of gmeow IRIs from structural simple-1to1 cells."""
-    pairs: dict[str, set[str]] = defaultdict(set)
+def _structural_pairs() -> tuple[dict[str, set[str]], dict[str, dict[str, str]]]:
+    """Split structural simple-1to1 cells by their EDOAL ``gmeow:relation``.
+
+    Returns ``(exact, generalizing)``.
+
+    * **exact** (``relation "="``): the gmeow term and the target denote the same
+      thing, so the projection reverses cleanly as a **fact** — ``target IRI →
+      {gmeow IRIs}``.
+    * **generalizing** (``relation "<="``): the gmeow term is *narrower* and the
+      down-projection collapses it UP to a coarser target (a "dumb-down", carrying
+      ``gmeow:lossyDrop``). Reversing it infers specificity the data does not
+      carry, so it lifts with a **claim**, never a fact — ``target IRI → {gmeow
+      IRI: confidence}``, the confidence taken from the cell. A target with
+      several generalizing sources is a genuine many-to-one collapse, resolved as
+      ambiguous downstream.
+
+    Only ``=`` and ``<=`` occur in the cells; any other qualifier is skipped
+    rather than guessed at.
+    """
+    exact: dict[str, set[str]] = defaultdict(set)
+    generalizing: dict[str, dict[str, str]] = defaultdict(dict)
     for path in _projection_files():
         graph = Graph().parse(path, format="turtle")
         for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
@@ -145,9 +175,20 @@ def _structural_pairs() -> dict[str, set[str]]:
                 tgt = graph.value(binding, GM.toPredicate) or graph.value(
                     binding, GM.toClass
                 )
-                if isinstance(tgt, URIRef) and _in_projection_ns(str(tgt)):
-                    pairs[str(tgt)].add(str(src))
-    return pairs
+                if not (isinstance(tgt, URIRef) and _in_projection_ns(str(tgt))):
+                    continue
+                rel = str(graph.value(binding, GM.relation))
+                if rel == "=":
+                    exact[str(tgt)].add(str(src))
+                elif rel == "<=":
+                    conf = _decimal_confidence(str(graph.value(binding, GM.confidence)))
+                    cur = str(conf) if conf is not None else ""
+                    prev = generalizing[str(tgt)].get(str(src))
+                    if prev is None or (
+                        cur and (not prev or Decimal(cur) > Decimal(prev))
+                    ):
+                        generalizing[str(tgt)][str(src)] = cur
+    return exact, generalizing
 
 
 def _edoalpath_pairs() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
@@ -216,19 +257,47 @@ class LiftMap:
 
 
 def build_lift_map() -> LiftMap:
-    """Derive the unambiguous lift from the alignment layers (incl. inverse paths)."""
+    """Derive the unambiguous lift from the alignment layers (incl. inverse paths).
+
+    Rule resolution is **layer-ranked** (preferred-up-target disambiguation,
+    #451 stage 3). Facts come from the identity and exact layers; everything that
+    only *infers* the gmeow term lifts as a claim:
+
+    1. **Identity** (SSSOM ``exactMatch``/``equivalent*``) — term identity,
+       reverses unambiguously, so it outranks any structural collision.
+    2. **Exact structural** (``=`` simple-1to1) and **direct edoalPath** — clean
+       1:1 projections, reverse as facts when no identity decides the target.
+    3. **Inverse edoalPath** — fact with a subject↔object swap.
+    4. **Claims** — a ``skos:closeMatch`` OR a ``<=`` *generalizing* structural
+       cell (a narrow gmeow term dumbed down to a coarser target). Both *infer*
+       the gmeow term rather than identify it, so they lift with a provenance-
+       stamped claim, never a fact.
+
+    At every layer a tie (rival identities, rival exact projections, several
+    inferred candidates) is genuinely ambiguous and held out — never guessed.
+    """
     direct_edoalpath, inverse_edoalpath = _edoalpath_pairs()
-    merged: dict[str, set[str]] = defaultdict(set)
-    for layer in (_sssom_clean_pairs(), _structural_pairs(), direct_edoalpath):
+    identity = _sssom_clean_pairs()  # exactMatch / equivalent* — term identity
+    exact_struct, generalizing_struct = _structural_pairs()
+    projection: dict[str, set[str]] = defaultdict(set)  # EXACT structural + path
+    for layer in (exact_struct, direct_edoalpath):
         for target, gmeows in layer.items():
-            merged[target] |= gmeows
+            projection[target] |= gmeows
     rules: dict[str, str] = {}
     ambiguous: dict[str, set[str]] = {}
-    for target, gmeows in merged.items():
-        if len(gmeows) == 1:
-            rules[target] = next(iter(gmeows))
+    for target in set(identity) | set(projection):
+        ids = identity.get(target, set())
+        if len(ids) == 1:
+            # identity wins over any projection collision for the same target
+            rules[target] = next(iter(ids))
+        elif len(ids) > 1:
+            ambiguous[target] = ids  # rival identities — genuinely ambiguous
         else:
-            ambiguous[target] = gmeows
+            projs = projection.get(target, set())
+            if len(projs) == 1:
+                rules[target] = next(iter(projs))
+            else:
+                ambiguous[target] = projs
     # inverse rules: a direct (non-swap) rule, when one exists, always wins; a
     # many-to-one inverse collision is ambiguous, never silently dropped (so
     # up_project reports it honestly instead of miscounting it as a gap).
@@ -240,17 +309,32 @@ def build_lift_map() -> LiftMap:
             inverse_rules[target] = next(iter(gmeows))
         else:
             ambiguous[target] = gmeows
-    # closeMatch claims: any clean coverage (direct or inverse fact) wins over a
-    # weaker claim; a many-to-one closeMatch collision is ambiguous, held out.
+    # claim layer, ranked. Both a generalizing (<=) structural cell and a
+    # closeMatch *infer* the gmeow term (never assert it), but the generalizing
+    # cell is the authored inverse of the down-projection — the term that, when
+    # projected down, yields this very target (round-trip fidelity) — so it
+    # outranks the looser closeMatch. Any fact rule already wins over both; a
+    # layer with several candidates for a target is a genuine many-to-one
+    # collapse, held out as ambiguous.
     claim_rules: dict[str, tuple[str, str]] = {}
-    for target, gmeow_confs in _sssom_closematch_pairs().items():
-        if target in rules or target in inverse_rules or target in ambiguous:
-            continue
-        if len(gmeow_confs) == 1:
-            gmeow, conf = next(iter(gmeow_confs.items()))
-            claim_rules[target] = (gmeow, conf)
-        else:
-            ambiguous[target] = set(gmeow_confs)
+
+    def add_claims(candidates: dict[str, dict[str, str]]) -> None:
+        for target, cands in candidates.items():
+            if (
+                target in rules
+                or target in inverse_rules
+                or target in ambiguous
+                or target in claim_rules
+            ):
+                continue
+            if len(cands) == 1:
+                gmeow, conf = next(iter(cands.items()))
+                claim_rules[target] = (gmeow, conf)
+            else:
+                ambiguous[target] = set(cands)
+
+    add_claims(generalizing_struct)  # authored inverses first
+    add_claims(_sssom_closematch_pairs())  # then looser closeMatch for the rest
     return LiftMap(
         rules=rules,
         ambiguous=ambiguous,
@@ -282,10 +366,11 @@ def _emit_claim(
 ) -> None:
     """Emit one ``gmeow:StatementMetadata`` cell quoting ``(subj qpred qobj)``.
 
-    The cell carries two annotations: ``gmeow:confidence`` (the curator's value)
-    and ``gmeow:mappedFrom`` (the source term the claim was lifted from). The
-    quoted triple is *not* asserted directly — a closeMatch is close, not equal,
-    so the lifted edge exists only inside the reifier, refutable and provenanced.
+    The cell always carries ``gmeow:mappedFrom`` (the source term the claim was
+    inferred from) and, when the cell supplied one, ``gmeow:confidence``. The
+    quoted triple is *not* asserted directly — a closeMatch / generalizing cell
+    *infers* the gmeow term rather than identifying it, so the lifted edge exists
+    only inside the reifier, refutable and provenanced.
     """
     cell = BNode()
     out.add((cell, RDF.type, GM.StatementMetadata))
@@ -293,10 +378,10 @@ def _emit_claim(
     out.add((cell, GM.qPredicate, qpred))
     qobj_pred = GM.qObjectLiteral if isinstance(qobj, Literal) else GM.qObject
     out.add((cell, qobj_pred, qobj))
-    for prop, value in (
-        (GM.confidence, Literal(conf, datatype=XSD.decimal)),
-        (GM.mappedFrom, source_term),
-    ):
+    annotations: list[tuple[URIRef, Node]] = [(GM.mappedFrom, source_term)]
+    if conf:  # a generalizing cell may carry no curated confidence — omit it then
+        annotations.append((GM.confidence, Literal(conf, datatype=XSD.decimal)))
+    for prop, value in annotations:
         ann = BNode()
         out.add((cell, GM.annotation, ann))
         out.add((ann, GM.annProperty, prop))
