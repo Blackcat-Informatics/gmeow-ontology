@@ -4,9 +4,11 @@
 # Worked example: ingest lineage on the PROV triad (#443). A machine-generated
 # summary records WHERE it came from (gmeow:wasDerivedFrom → the source), HOW it
 # was produced (gmeow:wasGeneratedBy → an Activity), and WHO ran it
-# (gmeow:wasAttributedTo → an Agent), with gmeow:confidence pinning how much to
-# trust the derivation. The importer is a gmeow:SoftwareAgent that self-records
-# its own run — the producer of the provenance is inside the provenance.
+# (gmeow:wasAttributedTo → an Agent). The importer is a gmeow:SoftwareAgent that
+# self-records its own run — the producer of the provenance is inside it.
+# (How much to trust the derivation is gmeow:confidence — an annotation on the
+# derivation STATEMENT, carried in the RDF-1.2 statement layer rather than as an
+# A-box property on the individual, so it is out of scope for this flat example.)
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/provenance/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -25,9 +27,8 @@ ex:import a gmeow:ImportActivity ;
 ex:importer a gmeow:SoftwareAgent ;
     gmeow:name "gmeow PDF summariser"@x-gmeow-english .
 
-# --- The derived artefact: WHERE from, HOW made, WHO by, and HOW trusted.
+# --- The derived artefact: WHERE from, HOW made, and WHO by.
 ex:abstract a gmeow:Summary ;
     gmeow:wasDerivedFrom  ex:sourcePaper ;
     gmeow:wasGeneratedBy  ex:import ;
-    gmeow:wasAttributedTo ex:importer ;
-    gmeow:confidence      0.92 .
+    gmeow:wasAttributedTo ex:importer .
