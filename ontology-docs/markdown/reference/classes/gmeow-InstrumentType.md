@@ -7,7 +7,7 @@
 - **Category:** class
 - **Defined by:** [`gmeow:slices/music`](../../slices/music.md)
 
-The kind of a musical instrument — piano, violin, drum kit, etc. An open value vocabulary of individuals; never subclassed ([Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)). Stub range for (Instruments & configurations).
+The kind of a musical instrument — piano, violin, drum kit, voice, etc. An open value vocabulary of individuals; never subclassed ([Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)). Each individual may carry a Hornbostel–Sachs code ([`gmeow:hsNumber`](../properties/gmeow-hsNumber.md)) and a MIMO exactMatch ([Principle 5](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-5)).
 
 ## Structure
 
@@ -16,3 +16,32 @@ The kind of a musical instrument — piano, violin, drum kit, etc. An open value
 ## Practical Pattern
 
 Use [`gmeow:InstrumentType`](gmeow-InstrumentType.md) as a specialized kind of [`gufo:QualityValue`](../../external/terms.md#gufo-qualityvalue). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
+
+## External Equivalences
+
+Equivalent or closely aligned targets: `wd`
+
+## Linkages
+
+Generated from the canonical mapping DSL. SSSOM files are the generated public interchange form for term equivalences.
+
+### Term Equivalences
+
+| Source | Kind | Profile | Predicate/Relation | Target | Evidence |
+|---|---|---|---|---|---|
+| [`gmeow:InstrumentType`](gmeow-InstrumentType.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q26836418](https://www.wikidata.org/wiki/Q26836418) | `gmeow-music.sssom.tsv`; `gmeow:eqMu027`; confidence 0.85 |
+| [`gmeow:InstrumentType`](gmeow-InstrumentType.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q34379](https://www.wikidata.org/wiki/Q34379) | `gmeow-music.sssom.tsv`; `gmeow:eqMu025`; confidence 0.9 |
+
+<details>
+<summary>Published Alignment Graph</summary>
+
+<h3>Alignments</h3>
+<table>
+<thead><tr><th>Relation</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td><code>closeMatch</code></td><td><a href="https://www.wikidata.org/wiki/Q26836418"><code>wd:Q26836418</code></a></td></tr>
+<tr><td><code>closeMatch</code></td><td><a href="https://www.wikidata.org/wiki/Q34379"><code>wd:Q34379</code></a></td></tr>
+</tbody>
+</table>
+
+</details>

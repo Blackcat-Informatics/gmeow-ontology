@@ -54241,6 +54241,7 @@
           "InstrumentConfigurationEnum": {
             "description": "",
             "enum": [
+              "fixture1959LesPaulConfiguration",
               "fixtureDropDGuitarConfiguration",
               "fixturePreparedPianoConfiguration"
             ],

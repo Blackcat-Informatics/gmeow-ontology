@@ -4,7 +4,7 @@
 
 Browse GMEOW terms by category. Cross-ontology links and projection coverage are summarized in [Linkages](../linkages/index.md).
 
-- [Classes](reference/classes/index.md): 593 terms
-- [Properties](reference/properties/index.md): 1368 terms
-- [Individuals](reference/individuals/index.md): 1954 terms
+- [Classes](reference/classes/index.md): 594 terms
+- [Properties](reference/properties/index.md): 1374 terms
+- [Individuals](reference/individuals/index.md): 1981 terms
 - [Datatypes](reference/datatypes/index.md): 1 terms

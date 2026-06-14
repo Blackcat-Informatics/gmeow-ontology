@@ -4170,14 +4170,13 @@ gmeow:tuningSystemGuitarDropD
     gmeow:degreeCount "6"^^xsd:nonNegativeInteger ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
-# The interval of a major second down — the drop in drop-D (E → D, ratio 8/9).
+# The interval of a major second down — the drop in drop-D (E → D, -200 cents in 12-EDO).
 gmeow:pitchIntervalMajorSecondDown
     a gmeow:PitchInterval ;
     rdfs:label "major second down"@x-gmeow-english ;
     skos:definition "A descending major second, the interval by which a standard guitar low E is dropped to D in drop-D tuning."@x-gmeow-english ;
     gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
-    gmeow:ratioNumerator "8"^^xsd:integer ;
-    gmeow:ratioDenominator "9"^^xsd:integer ;
+    gmeow:centsFromOrigin "-200.0"^^xsd:decimal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # Cage prepared piano configuration: a piano prepared with objects between the
@@ -4209,6 +4208,17 @@ gmeow:fixture1959LesPaul
     a gmeow:PhysicalObject ;
     rdfs:label "1959 Les Paul fixture"@x-gmeow-english ;
     skos:definition "A placeholder physical instrument item used to test the participationInstrumentItem Entity range (issue #314)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Item-level configuration for the 1959 Les Paul fixture: it exercises the
+# gmeow:configurationOf path of the InstrumentConfiguration XOR model.
+gmeow:fixture1959LesPaulConfiguration
+    a gmeow:InstrumentConfiguration ;
+    rdfs:label "1959 Les Paul stage configuration"@x-gmeow-english ;
+    skos:definition "An item-level configuration fixture binding the 1959 Les Paul instrument item to an electrified modification and the 12-EDO tuning frame (issue #314)."@x-gmeow-english ;
+    gmeow:configurationOf gmeow:fixture1959LesPaul ;
+    gmeow:configurationModification gmeow:instrumentModificationElectrified ;
+    gmeow:configurationTuningFrame gmeow:tuningSystem12EDO ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #

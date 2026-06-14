@@ -1122,6 +1122,7 @@ enum IndexAlgorithmEnum
 
 enum InstrumentConfigurationEnum
   {
+    fixture1959LesPaulConfiguration
     fixtureDropDGuitarConfiguration
     fixturePreparedPianoConfiguration
   }

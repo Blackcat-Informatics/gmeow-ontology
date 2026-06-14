@@ -1122,6 +1122,7 @@ export enum IndexAlgorithmEnum {
 
 export enum InstrumentConfigurationEnum {
 
+    number_1959_Les_Paul_stage_configuration = "fixture1959LesPaulConfiguration",
     drop_D_electric_guitar_configuration = "fixtureDropDGuitarConfiguration",
     Cage_prepared_piano_configuration = "fixturePreparedPianoConfiguration",
 };

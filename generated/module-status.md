@@ -13,7 +13,7 @@ Tier-2 uplift backlog.
 | affect | extension | extensions | 2 | 5 | 6 | 0 | 1 | - | full |
 | agentic | extension | extensions | 6 | 1 | 4 | 0 | 1 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 0 | - | full |
-| agreements | core | core | 2 | 3 | 2 | 0 | 0 | 0/5 | full |
+| agreements | core | core | 2 | 3 | 2 | 0 | 1 | 0/5 | full |
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 0/34 | full |
 | archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 0 | - | full |
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 0/44 | full |
@@ -37,11 +37,12 @@ Tier-2 uplift backlog.
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 0/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 0 | - | full |
-| kernel | core | core | 0 | 11 | 26 | 0 | 0 | 1/37 | full |
-| language | core | core | 2 | 5 | 5 | 3 | 0 | 0/10 | full |
+| kernel | core | core | 0 | 12 | 27 | 0 | 0 | 1/39 | full |
+| language | core | core | 2 | 5 | 5 | 3 | 1 | 0/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 0 | - | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 0 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 0/8 | full |
+| logic | core | core | 0 | 0 | 0 | 0 | 0 | 0/0 | full |
 | music | extension | extensions | 11 | 52 | 121 | 0 | 0 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 2/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 0 | - | full |
@@ -63,10 +64,10 @@ Tier-2 uplift backlog.
 | software | extension | extensions | 10 | 33 | 53 | 0 | 0 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 0 | 0/3 | full |
 | standpoint | core | core | 3 | 3 | 7 | 0 | 1 | 0/10 | full |
-| tags | core | core | 2 | 3 | 11 | 0 | 0 | 0/14 | full |
+| tags | core | core | 2 | 3 | 11 | 0 | 1 | 0/14 | full |
 | teleology | core | core | 3 | 7 | 10 | 0 | 0 | 0/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 0/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 0 | 0/11 | full |
 
-**60 slices** · documentation: 60 full guides, 0 stubs remaining (#325); advisory coverage: 3/1051 core class/property terms (#471).
+**61 slices** · documentation: 61 full guides, 0 stubs remaining (#325); advisory coverage: 3/1053 core class/property terms (#471).

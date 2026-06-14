@@ -5,7 +5,7 @@ Principles 4, 5, 8, 9, 11, 16.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import ValidationResult, run_shacl
@@ -135,7 +135,7 @@ def test_instrument_type_mimo_matches() -> None:
     for term, expected in matches.items():
         assert (
             URIRef(GMEOW + term),
-            URIRef("http://www.w3.org/2004/02/skos/core#exactMatch"),
+            SKOS.exactMatch,
             expected,
         ) in graph, f"{term} should exactMatch {expected}"
 
@@ -182,12 +182,15 @@ def test_playing_technique_seeds_exist() -> None:
 
 
 def test_configuration_fixtures_exist() -> None:
-    """The prepared-piano and drop-D configuration fixtures are present."""
+    """The prepared-piano, drop-D, and item-level Les Paul configuration
+    fixtures are present."""
     graph = _graph()
     prepared = URIRef(GMEOW + "fixturePreparedPianoConfiguration")
     dropd = URIRef(GMEOW + "fixtureDropDGuitarConfiguration")
+    les_paul = URIRef(GMEOW + "fixture1959LesPaulConfiguration")
     assert (prepared, RDF.type, GMEOW.InstrumentConfiguration) in graph
     assert (dropd, RDF.type, GMEOW.InstrumentConfiguration) in graph
+    assert (les_paul, RDF.type, GMEOW.InstrumentConfiguration) in graph
     assert (
         prepared,
         GMEOW.configurationModification,
@@ -202,6 +205,11 @@ def test_configuration_fixtures_exist() -> None:
         dropd,
         GMEOW.configurationInterval,
         GMEOW.pitchIntervalMajorSecondDown,
+    ) in graph
+    assert (
+        les_paul,
+        GMEOW.configurationOf,
+        URIRef(GMEOW + "fixture1959LesPaul"),
     ) in graph
 
 
@@ -250,7 +258,7 @@ def test_instrument_configuration_missing_target_fails_shacl() -> None:
     result = run_shacl(g)
     assert not result.ok
     assert result.errors
-    assert "at least one specific instrument item" in _error_text(result)
+    assert "exactly one of: a specific instrument item" in _error_text(result)
 
 
 def test_instrument_configuration_two_intervals_fails_shacl() -> None:

@@ -4,10 +4,10 @@
 
 This page is generated from the canonical mapping DSL under `dsl/mappings/` plus slice-local `mappings/` directories. Generated SSSOM, EDOAL, FnO, and SPARQL artifacts are downstream views.
 
-- **SSSOM term-equivalence rows:** 1655
+- **SSSOM term-equivalence rows:** 1667
 - **SSSOM mapping sets:** 55
 - **Projection bindings:** 510
-- **Documented GMEOW-term linkage rows:** 2894
+- **Documented GMEOW-term linkage rows:** 2906
 
 ## Projection Profiles
 
@@ -68,7 +68,7 @@ This page is generated from the canonical mapping DSL under `dsl/mappings/` plus
 
 ### Other
 
-- `wd`: 261 linkage rows
+- `wd`: 266 linkage rows
 - `rdf`: 107 linkage rows
 - `sosa`: 48 linkage rows
 - `ical`: 41 linkage rows
@@ -84,6 +84,7 @@ This page is generated from the canonical mapping DSL under `dsl/mappings/` plus
 - `gn`: 8 linkage rows
 - `https`: 8 linkage rows
 - `cp`: 7 linkage rows
+- `mimo`: 7 linkage rows
 - `sem`: 7 linkage rows
 - `sf`: 6 linkage rows
 - `swh`: 6 linkage rows
@@ -231,7 +232,7 @@ This page is generated from the canonical mapping DSL under `dsl/mappings/` plus
 | `gmeow-languages.sssom.tsv` | 16 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/languages` | Language alignments — schema.org + Wikidata. [`gmeow:Language`](../reference/classes/gmeow-Language.md) is registry-INDEPENDENT (a self-minted IRI); these are see-also links, and coreference of language INSTANCES to Lexvo (http://lexvo.org/id/iso639-3/…), Glottol... |
 | `gmeow-lexicon.sssom.tsv` | 9 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/lexicon` | Lexicon alignments — OntoLex-Lemon, LIME, [PROV-O](../external/ontologies.md#target-prov), Wikidata. [`gmeow:LexicalItem`](../reference/classes/gmeow-LexicalItem.md) and [`gmeow:LexicalForm`](../reference/classes/gmeow-LexicalForm.md) are registry-independent, first-class information objects. The OntoLex alignment is by reference ([Principle 5](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-5)); GMEOW d... |
 | `gmeow-lifecycle.sssom.tsv` | 8 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/lifecycle` | Universal-lifecycle alignments — [`gmeow:hasCreationEvent`](../reference/properties/gmeow-hasCreationEvent.md) / [`gmeow:hasDestructionEvent`](../reference/properties/gmeow-hasDestructionEvent.md) / [`gmeow:existenceInterval`](../reference/properties/gmeow-existenceInterval.md) / [`gmeow:supersededBy`](../reference/properties/gmeow-supersededBy.md) / [`gmeow:supersedes`](../reference/properties/gmeow-supersedes.md), plus the open [`gmeow:EventType`](../reference/classes/gmeow-EventType.md) value additions (creation, destr... |
-| `gmeow-music.sssom.tsv` | 24 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/music` | Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference ([Principle 5](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-5)). |
+| `gmeow-music.sssom.tsv` | 36 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/music` | Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference ([Principle 5](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-5)). |
 | `gmeow-names.sssom.tsv` | 55 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/names` | Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. Multi-cultural name-part KIND... |
 | `gmeow-narrative.sssom.tsv` | 14 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/narrative` | Narrative reference frame and creative-work alignments to schema.org and Wikidata. OntoMedia/GOLEM/TEI/LTO projections deferred to follow-up issues. |
 | `gmeow-norms.sssom.tsv` | 2 | `https://creativecommons.org/licenses/by/4.0/` | `https://blackcatinformatics.ca/gmeow/mappings/norms` | Assessment/rubric alignments to schema.org's review cluster: the Assessment relator is per-review — its vantage is the review author — so the schema review idiom carries coexisting verdicts faithfully ([Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)... |
@@ -262,7 +263,7 @@ This page is generated from the canonical mapping DSL under `dsl/mappings/` plus
 | Prefix | Linkage Rows |
 |---|---:|
 | `schema` | 407 |
-| `wd` | 261 |
+| `wd` | 266 |
 | `odrl` | 153 |
 | `rdf` | 107 |
 | `dcterms` | 101 |
@@ -313,6 +314,7 @@ This page is generated from the canonical mapping DSL under `dsl/mappings/` plus
 | `wot` | 8 |
 | `cp` | 7 |
 | `frbr` | 7 |
+| `mimo` | 7 |
 | `premis` | 7 |
 | `qudt` | 7 |
 | `rel` | 7 |
@@ -477,6 +479,6 @@ This page is generated from the canonical mapping DSL under `dsl/mappings/` plus
 | [`gmeow:CreativeWork`](../reference/classes/gmeow-CreativeWork.md) | equivalence | `-` | [skos:relatedMatch](http://www.w3.org/2004/02/skos/core#relatedMatch) | [cc:Work](http://creativecommons.org/ns#Work) | `gmeow-rights.sssom.tsv`; `gmeow:eqRights183`; confidence 0.6 |
 | [`gmeow:CreativeWork`](../reference/classes/gmeow-CreativeWork.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [gxv:SourceDescription](http://gedcomx.org/v1/SourceDescription) | `gmeow-genealogy.sssom.tsv`; `gmeow:eqGenealogy051`; confidence 0.85 |
 | [`gmeow:CreativeWork`](../reference/classes/gmeow-CreativeWork.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [prov:Entity](http://www.w3.org/ns/prov#Entity) | `gmeow-provenance.sssom.tsv`; `gmeow:eqProvenance006`; confidence 0.6 |
-|... |... |... |... |... | 2814 more rows |
+|... |... |... |... |... | 2826 more rows |
 
 </details>

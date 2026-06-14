@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Closed-world halves of the Music module's pitch-frame axioms (issue #308).
+# SHACL validation shapes for the Music extension slice (issues #308, #310, #311, #312, #313, #314).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
@@ -1258,7 +1258,7 @@ gmeow:PlayingTechniqueShape
 gmeow:InstrumentConfigurationShape
     a sh:NodeShape ;
     rdfs:label "Instrument configuration shape"@x-gmeow-english ;
-    skos:definition "An InstrumentConfiguration relator must declare at least one modification, at least one of configurationOf or configurationInstrumentType, at most one tuning frame, and at most one interval."@x-gmeow-english ;
+    skos:definition "An InstrumentConfiguration relator must declare at least one modification, exactly one of configurationOf or configurationInstrumentType (but not both), at most one tuning frame, and at most one interval."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     sh:targetClass gmeow:InstrumentConfiguration ;
     sh:property [
@@ -1300,7 +1300,7 @@ gmeow:InstrumentConfigurationShape
         [ sh:property [ sh:path gmeow:configurationOf ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
         [ sh:property [ sh:path gmeow:configurationInstrumentType ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
     ) ;
-    sh:message "An InstrumentConfiguration must target at least one specific instrument item (configurationOf) or one instrument type (configurationInstrumentType)." .
+    sh:message "An InstrumentConfiguration must target exactly one of: a specific instrument item (configurationOf) OR an instrument type (configurationInstrumentType), but not both." .
 
 gmeow:InstrumentModificationShape
     a sh:NodeShape ;

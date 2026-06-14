@@ -349,15 +349,15 @@ gmeow:eqMu025 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 gmeow:eqMu026 a gmeow:TermEquivalence ;
-    rdfs:label "hsNumber ↔ Wikidata Q496327"@x-gmeow-english ;
-    skos:definition "Maps the GMEOW hsNumber property to Wikidata 'Hornbostel–Sachs' (Q496327), the classification system the literal values name."@x-gmeow-english ;
+    rdfs:label "hsNumber ↔ Wikidata P1762"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW hsNumber property to Wikidata 'Hornbostel-Sachs classification' (P1762)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     gmeow:alignSubject gmeow:hsNumber ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q496327 ;
+    gmeow:alignObject wd:P1762 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'Hornbostel–Sachs' (Q496327) — the classification system named by hsNumber literals." ;
+    gmeow:comment "Wikidata 'Hornbostel-Sachs classification' (P1762) — the property that carries Hornbostel-Sachs classification identifiers, matching the values stored in gmeow:hsNumber literals." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 gmeow:eqMu027 a gmeow:TermEquivalence ;
