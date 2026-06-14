@@ -16,9 +16,9 @@ Outputs (``gmeow transform <abox>``):
   cell / projection alignment IRI, ``gmeow:confidence`` when recorded),
   emitted natively by the GTS producer (no Jena hot path).
 * ``index.nq`` — the full RDF 1.2 N-Quads form (the gts→nquads shim).
-* ``index.ttl`` / ``index.jsonld`` — the ASSERTED BASE TRIPLES only: a
-  consumer ignorant of RDF 1.2 still parses every plain triple (maximal
-  readability); the audit trail lives in the ``.gts``/``.nq`` forms.
+* ``index.ttl`` / ``index.jsonld`` / ``index.nt`` — the ASSERTED BASE TRIPLES
+  only, in three plain-RDF syntaxes: a consumer ignorant of RDF 1.2 still parses
+  every triple (maximal readability); the audit trail lives in ``.gts``/``.nq``.
 
 Gates: the alignment-direction lint authorizes saturation (ERROR rows are
 refused; an ``equivalence-collapse`` ERROR aborts the whole transform — a
@@ -188,7 +188,7 @@ def _serialize_outputs(
     out_dir: Path,
     stem: str,
 ) -> list[Path]:
-    """Write .gts / index.nq / index.ttl / index.jsonld, all verified."""
+    """Write .gts / index.nq / index.ttl / index.jsonld / index.nt, all verified."""
     import pyoxigraph
 
     from gts import read, to_nquads
@@ -226,6 +226,15 @@ def _serialize_outputs(
         msg = f"index.jsonld round-trip changed triple count: {jsonld_path}"
         raise ValueError(msg)
     written.append(jsonld_path)
+
+    nt_path = out_dir / "index.nt"
+    base_plus_derived.serialize(destination=nt_path, format="nt")
+    check = Graph()
+    check.parse(nt_path, format="nt")
+    if len(check) != len(base_plus_derived):
+        msg = f"index.nt round-trip changed triple count: {nt_path}"
+        raise ValueError(msg)
+    written.append(nt_path)
     return written
 
 

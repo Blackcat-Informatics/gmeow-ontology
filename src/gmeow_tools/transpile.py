@@ -25,12 +25,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from rdflib import Graph
+from rdflib import RDF, Graph, URIRef
 
 from gmeow_tools.config import DIST_DIR
 from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.transform import TransformReport, transform_graph
-from gmeow_tools.up_projection import up_project
+from gmeow_tools.up_projection import UpProjection, up_project
+from gmeow_tools.up_projection_audit import _canon_qname
 from gmeow_tools.up_projection_descend import up_project_descend
 
 if TYPE_CHECKING:
@@ -52,7 +53,62 @@ class TranspileReport:
     gap_terms: int  # distinct source terms with no lift rule
     ambiguous_terms: int  # distinct source terms held out as ambiguous
     draft_path: Path  # the pure-GMEOW intermediate
+    gap_report_path: Path  # the gap report (un-lifted source triples)
     transform: TransformReport  # the MAXIMAL(G) report
+
+
+def _gap_report(source: Graph, lift: UpProjection, stem: str) -> str:
+    """Render a Markdown gap report — every un-lifted source triple.
+
+    Never silently dropped: a triple is un-lifted because its term has **no lift
+    rule** (a coverage gap) or its reverse is **ambiguous** (many gmeow
+    up-targets, held out rather than guessed). Each is listed under its term.
+    """
+    gaps, ambig = lift.gap_terms, lift.ambiguous_terms
+    held: dict[str, list[tuple[str, str, str]]] = {}
+    for s, p, o in source:
+        if not isinstance(p, URIRef):
+            continue
+        is_type = p == RDF.type and isinstance(o, URIRef)
+        term = _canon_qname(str(o)) if is_type else _canon_qname(str(p))
+        if term in gaps or term in ambig:
+            held.setdefault(term, []).append((s.n3(), p.n3(), o.n3()))
+
+    lines = [f"# Transpile gap report — {stem}\n"]
+    lines.append(
+        f"Lifted **{lift.lifted}** facts + **{lift.claimed}** claims. "
+        f"The terms below could not be faithfully lifted to GMEOW — recorded "
+        f"here, never silently dropped.\n"
+    )
+
+    def section(title: str, terms: dict[str, int], why: str) -> None:
+        total = sum(terms.values())
+        lines.append(f"## {title} — {total} triples / {len(terms)} terms\n")
+        lines.append(f"_{why}_\n")
+        if not terms:
+            lines.append("(none)\n")
+            return
+        lines.append("| term | triples |")
+        lines.append("|---|---|")
+        for term, n in sorted(terms.items(), key=lambda kv: (-kv[1], kv[0])):
+            lines.append(f"| `{term}` | {n} |")
+        lines.append("")
+
+    section("Gap terms", gaps, "no GMEOW lift rule — a coverage gap")
+    section(
+        "Ambiguous terms",
+        ambig,
+        "several gmeow up-targets, held out rather than guessed",
+    )
+
+    if held:
+        lines.append("## Un-lifted source triples\n")
+        for term in sorted(held):
+            lines.append(f"### `{term}`\n")
+            lines.append("```turtle")
+            lines.extend(f"{s} {p} {o} ." for s, p, o in sorted(held[term]))
+            lines.append("```\n")
+    return "\n".join(lines)
 
 
 def transpile(
@@ -126,6 +182,9 @@ def transpile_graph(
     draft_path = target / f"{stem}.gmeow.ttl"
     lift.graph.serialize(destination=draft_path, format="turtle")
 
+    gap_report_path = target / f"{stem}.gaps.md"
+    gap_report_path.write_text(_gap_report(source, lift, stem), encoding="utf-8")
+
     report = transform_graph(lift.graph, stem, out_dir=target, profiles=profiles)
 
     return TranspileReport(
@@ -135,5 +194,6 @@ def transpile_graph(
         gap_terms=len(lift.gap_terms),
         ambiguous_terms=len(lift.ambiguous_terms),
         draft_path=draft_path,
+        gap_report_path=gap_report_path,
         transform=report,
     )

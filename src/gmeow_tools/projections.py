@@ -228,3 +228,90 @@ def project_file(input_path: Path, profile: str, *, dist_dir: Path = DIST_DIR) -
     store = sparql.store_with(include_imports=False, extra_triples=data)
     out = project_graph(profile, store)
     return _serialize(out, dist_dir / f"gmeow-{input_path.stem}-{profile}.ttl")
+
+
+_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
+
+#: Single-vocab view selectors that are not projection profiles.
+GTS_VIEW_ALL = ("all", "maximal")
+GTS_VIEW_GMEOW = "gmeow"
+
+
+def gts_base_graph(gts_path: Path) -> Graph:
+    """Extract the asserted base triples from a transpiled ``.gts``.
+
+    A ``.gts`` is the canonical RDF-1.2 product: base/derived triples *plus* their
+    provenance reifiers. This returns just the plain asserted triples — the
+    reifier rows (``rdf:reifies``) and the quoted triple-terms are dropped — by
+    routing through pyoxigraph (which parses RDF-1.2 N-Quads that rdflib cannot).
+    """
+    import io
+
+    import gts
+
+    nquads = gts.to_nquads(gts.read(gts_path.read_bytes()))
+    parsed = pyoxigraph.Store()
+    parsed.bulk_load(nquads.encode(), format=pyoxigraph.RdfFormat.N_QUADS)
+    reifies = pyoxigraph.NamedNode(_REIFIES)
+    base = pyoxigraph.Store()
+    for quad in parsed:
+        # drop reifier rows and any quad with a quoted triple-term endpoint
+        # (RDF-1.2 allows them in subject OR object; plain N-Triples / rdflib
+        # cannot represent either, so they are not asserted base triples)
+        if (
+            quad.predicate == reifies
+            or isinstance(quad.subject, pyoxigraph.Triple)
+            or isinstance(quad.object, pyoxigraph.Triple)
+        ):
+            continue
+        base.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
+    buf = io.BytesIO()
+    base.dump(
+        buf,
+        format=pyoxigraph.RdfFormat.N_TRIPLES,
+        from_graph=pyoxigraph.DefaultGraph(),
+    )
+    graph = Graph()
+    graph.parse(data=buf.getvalue(), format="nt")
+    return graph
+
+
+def _view_namespaces(view: str) -> frozenset[str]:
+    """The IRI namespaces a single-vocab view keeps (empty = keep everything)."""
+    if view in GTS_VIEW_ALL:
+        return frozenset()  # the whole maximal — GMEOW + every vocab
+    if view == GTS_VIEW_GMEOW:
+        return frozenset({PREFIXES["gmeow"]})
+    return frozenset(PREFIXES[p] for p in PROFILES[view].prefixes if p in PREFIXES)
+
+
+def project_gts_subset(gts_path: Path, view: str, *, dist_dir: Path = DIST_DIR) -> Path:
+    """Emit the single-vocabulary view of a transpiled ``.gts`` (a filter).
+
+    A *filter*, not a re-projection. The ``.gts`` is already maximal (GMEOW +
+    every vocab), so a vocab view is the subset of its triples in that vocab's
+    namespaces — the complete, drift-free view. ``view`` is a projection profile
+    name, ``"gmeow"`` (the pure base), or
+    ``"all"``/``"maximal"`` (the whole product). A triple is kept when its
+    predicate is in the view's namespaces, or when it types a subject into a
+    class of those namespaces (``rdf:type`` to a kept class).
+    """
+    from rdflib import RDF, URIRef
+
+    base = gts_base_graph(gts_path)
+    namespaces = _view_namespaces(view)
+    if not namespaces:
+        out = base  # all / maximal — keep everything
+    else:
+        out = Graph()
+        for s, p, o in base:
+            keep = any(str(p).startswith(ns) for ns in namespaces) or (
+                p == RDF.type
+                and isinstance(o, URIRef)
+                and any(str(o).startswith(ns) for ns in namespaces)
+            )
+            if keep:
+                out.add((s, p, o))
+    for prefix, iri in PREFIXES.items():
+        out.bind(prefix, iri)
+    return _serialize(out, dist_dir / f"gmeow-{gts_path.stem}-{view}.ttl")
