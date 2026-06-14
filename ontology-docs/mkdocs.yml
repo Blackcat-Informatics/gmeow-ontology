@@ -8,10 +8,10 @@ site_dir: site
 nav:
   - Home: index.md
   - Reference:
-      - reference/classes/index.md
-      - reference/properties/index.md
-      - reference/individuals/index.md
-      - reference/datatypes/index.md
+      - Classes: reference/classes/index.md
+      - Properties: reference/properties/index.md
+      - Individuals: reference/individuals/index.md
+      - Datatypes: reference/datatypes/index.md
   - Slices: slices/index.md
   - Profiles: profiles/index.md
   - Visualization: visualization/index.md
@@ -20,19 +20,18 @@ nav:
   - Changelog: changelog.md
 
 site_name: GMEOW Ontology Documentation
-site_url: https://blackcatinformatics.ca/gmeow/docs/
 site_author: Blackcat Informatics Inc.
 site_description: >
   Global Metadata and Entity Ontology for the Web
 
 theme:
   name: material
+  logo: assets/logo.svg
+  font: false
   palette:
     - scheme: default
       primary: custom
       accent: custom
-  logo: https://blackcatinformatics.ca/gmeow/logo.svg
-  favicon: https://blackcatinformatics.ca/gmeow/favicon.ico
 
 extra_css:
   - stylesheets/extra.css

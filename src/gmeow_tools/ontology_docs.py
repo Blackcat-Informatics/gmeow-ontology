@@ -19,12 +19,14 @@ The tree is assembled with MkDocs Material and includes:
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+import shutil
 import subprocess
 from collections import defaultdict
 from pathlib import Path
-from typing import TYPE_CHECKING, TypedDict, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 from rdflib import OWL, RDF, RDFS, Graph, URIRef
 from rdflib.namespace import DCTERMS, SKOS
@@ -228,7 +230,7 @@ def _build_mkdocs_site(outdir: Path) -> None:
     env["NO_MKDOCS_2_WARNING"] = "true"
     try:
         subprocess.run(
-            ["mkdocs", "build", "-f", str(config), "-q"],
+            ["mkdocs", "build", "-f", str(config.name), "-q"],
             check=True,
             cwd=str(config.parent),
             env=env,
@@ -705,7 +707,14 @@ def _render_reference_pages(
 
 
 def _render_mkdocs_config(ctx: _WriteContext) -> None:
-    """Write ``mkdocs.yml`` with GMEOW brand colours and navigation."""
+    """Write ``mkdocs.yml`` with GMEOW brand colours and local navigation."""
+    assets_dir = ctx.docs / "assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    logo_source = PROJECT_ROOT / "docs" / "gmeow-logo.svg"
+    logo_dest = assets_dir / "logo.svg"
+    if logo_source.exists():
+        shutil.copy(logo_source, logo_dest)
+
     nav = [
         "docs_dir: docs",
         "site_dir: site",
@@ -713,10 +722,10 @@ def _render_mkdocs_config(ctx: _WriteContext) -> None:
         "nav:",
         "  - Home: index.md",
         "  - Reference:",
-        "      - reference/classes/index.md",
-        "      - reference/properties/index.md",
-        "      - reference/individuals/index.md",
-        "      - reference/datatypes/index.md",
+        "      - Classes: reference/classes/index.md",
+        "      - Properties: reference/properties/index.md",
+        "      - Individuals: reference/individuals/index.md",
+        "      - Datatypes: reference/datatypes/index.md",
         "  - Slices: slices/index.md",
         "  - Profiles: profiles/index.md",
         "  - Visualization: visualization/index.md",
@@ -725,19 +734,18 @@ def _render_mkdocs_config(ctx: _WriteContext) -> None:
         "  - Changelog: changelog.md",
         "",
         "site_name: GMEOW Ontology Documentation",
-        "site_url: https://blackcatinformatics.ca/gmeow/docs/",
         "site_author: Blackcat Informatics Inc.",
         "site_description: >",
         "  Global Metadata and Entity Ontology for the Web",
         "",
         "theme:",
         "  name: material",
+        "  logo: assets/logo.svg",
+        "  font: false",
         "  palette:",
         "    - scheme: default",
         "      primary: custom",
         "      accent: custom",
-        "  logo: https://blackcatinformatics.ca/gmeow/logo.svg",
-        "  favicon: https://blackcatinformatics.ca/gmeow/favicon.ico",
         "",
         "extra_css:",
         "  - stylesheets/extra.css",
@@ -764,6 +772,156 @@ def _render_mkdocs_config(ctx: _WriteContext) -> None:
     ctx.write(css_dir / "extra.css", css)
 
 
+def _container_path(path: Path) -> str:
+    """Return the ``/work/...`` path seen by Docker for a host *path*.
+
+    Relative paths are resolved against the current working directory; the
+    result must live under ``PROJECT_ROOT`` because that is what the
+    container mounts at ``/work``.
+    """
+    abs_path = path.resolve()
+    return f"/work/{abs_path.relative_to(PROJECT_ROOT).as_posix()}"
+
+
+def _canonicalize_webvowl_json(path: Path, source: Path) -> None:
+    """Rewrite the WebVOWL ontology JSON with deterministic IDs and ordering.
+
+    OWL2VOWL (inside WIDOCO) assigns numeric IDs based on Java collection
+    iteration order and emits duplicate nodes for reused terms, so the raw
+    output is nondeterministic. We deduplicate by semantic descriptor, renumber
+    from a stable order, and sort every list so the committed artifact is
+    reproducible.
+    """
+    data = json.loads(path.read_text(encoding="utf-8"))
+
+    class_attr_by_id = {item["id"]: item for item in data["classAttribute"]}
+    prop_attr_by_id = {item["id"]: item for item in data["propertyAttribute"]}
+
+    def _class_descriptor(oid: str, seen: set[str] | None = None) -> tuple[object, ...]:
+        if seen is None:
+            seen = set()
+        if oid in seen:
+            return ("cycle",)
+        seen = seen | {oid}
+        attr = class_attr_by_id[oid]
+        if "iri" in attr:
+            return ("iri", attr["iri"])
+        parts: list[object] = [attr.get("type", "")]
+        if "union" in attr:
+            members = [_class_descriptor(mid, seen) for mid in attr["union"]]
+            parts.append(("union", tuple(sorted(members))))
+        label = attr.get("label", {})
+        if isinstance(label, dict):
+            parts.append(tuple(sorted(label.items())))
+        return ("anon", tuple(parts))
+
+    def _prop_descriptor(pid: str, seen: set[str] | None = None) -> tuple[object, ...]:
+        if seen is None:
+            seen = set()
+        attr = prop_attr_by_id[pid]
+        if "iri" in attr:
+            dom = _class_descriptor(attr["domain"], seen) if "domain" in attr else ("",)
+            rng = _class_descriptor(attr["range"], seen) if "range" in attr else ("",)
+            return ("iri", attr["iri"], dom, rng)
+        parts: list[object] = [attr.get("type", "")]
+        if "domain" in attr:
+            parts.append(_class_descriptor(attr["domain"], seen))
+        if "range" in attr:
+            parts.append(_class_descriptor(attr["range"], seen))
+        parts.append(tuple(sorted(attr.get("attributes", []))))
+        return ("anon", tuple(parts))
+
+    class_descs = {c["id"]: _class_descriptor(c["id"]) for c in data["class"]}
+    prop_descs = {p["id"]: _prop_descriptor(p["id"]) for p in data["property"]}
+
+    unique_class_descs = sorted(set(class_descs.values()))
+    unique_prop_descs = sorted(set(prop_descs.values()))
+    class_new_id = {desc: str(i) for i, desc in enumerate(unique_class_descs)}
+    prop_new_id = {
+        desc: str(i + len(unique_class_descs))
+        for i, desc in enumerate(unique_prop_descs)
+    }
+
+    id_map: dict[str, str] = {}
+    for old, desc in class_descs.items():
+        id_map[old] = class_new_id[desc]
+    for old, desc in prop_descs.items():
+        id_map[old] = prop_new_id[desc]
+    new_ids = set(id_map.values())
+
+    def _sort_key(value: object) -> tuple[int, object]:
+        if isinstance(value, dict):
+            return (1, json.dumps(value, sort_keys=True, ensure_ascii=False))
+        if isinstance(value, list):
+            return (2, json.dumps(value))
+        return (0, value)
+
+    def _normalize(value: object) -> object:
+        if isinstance(value, str) and value in id_map:
+            return id_map[value]
+        if isinstance(value, dict):
+            return {k: _normalize(v) for k, v in sorted(value.items())}
+        if isinstance(value, list):
+            items = [_normalize(v) for v in value]
+            if items and all(isinstance(x, str) and x in new_ids for x in items):
+                return sorted({cast(str, x) for x in items}, key=int)
+            return sorted(items, key=_sort_key)
+        return value
+
+    data = cast(dict[str, Any], _normalize(data))
+
+    # WIDOCO picks header metadata nondeterministically when many slice
+    # ontologies are present; override it from the root ontology source.
+    header = data.get("header", {})
+    graph = Graph()
+    graph.parse(source, format="turtle")
+    onto = URIRef(ONTOLOGY_IRI)
+
+    def _first(values: list[str]) -> str | None:
+        return values[0] if values else None
+
+    title = _first(
+        [str(o) for o in graph.objects(onto, DCTERMS.title)]
+        or [str(o) for o in graph.objects(onto, RDFS.label)]
+    )
+    description = _first(
+        [str(o) for o in graph.objects(onto, DCTERMS.description)]
+        or [str(o) for o in graph.objects(onto, SKOS.definition)]
+        or [str(o) for o in graph.objects(onto, RDFS.comment)]
+    )
+    authors = [str(o) for o in graph.objects(onto, DCTERMS.creator)] or [
+        str(o) for o in graph.objects(onto, DCTERMS.publisher)
+    ]
+    version = _first([str(o) for o in graph.objects(onto, OWL.versionInfo)])
+
+    if title:
+        header["title"] = {"x-gmeow-english": title}
+        header["labels"] = {"x-gmeow-english": title}
+    if description:
+        header["description"] = {"x-gmeow-english": description}
+        header["comments"] = {"x-gmeow-english": description}
+    if authors:
+        header["author"] = authors
+    if version:
+        header["version"] = version
+    header["iri"] = f"{ONTOLOGY_IRI}/"
+    data["header"] = dict(sorted(header.items()))
+
+    # Replace OWL2VOWL's nondeterministic numeric counters on anonymous
+    # "is a" properties with the stable new ID.
+    for prop_attr in data.get("propertyAttribute", []):
+        if "iri" not in prop_attr:
+            label = prop_attr.get("label", {})
+            if isinstance(label, dict) and label.get("IRI-based", "").isdigit():
+                label["IRI-based"] = prop_attr["id"]
+                prop_attr["label"] = dict(sorted(label.items()))
+
+    path.write_text(
+        json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _render_webvowl(ctx: _WriteContext, source: Path) -> None:
     """Generate WebVOWL JSON when the WIDOCO image is available."""
     viz_dir = ctx.docs / "visualization"
@@ -782,21 +940,35 @@ def _render_webvowl(ctx: _WriteContext, source: Path) -> None:
             WIDOCO_IMAGE,
             [
                 "-ontFile",
-                str(source.relative_to(PROJECT_ROOT)),
+                _container_path(source),
                 "-outFolder",
-                str(viz_dir.relative_to(PROJECT_ROOT)),
+                _container_path(viz_dir),
                 "-rewriteAll",
                 "-uniteSections",
                 "-includeAnnotationProperties",
                 "-noPlaceHolderText",
+                "-webVowl",
             ],
+            image_workdir=True,
         )
-    except Exception:  # pragma: no cover - best-effort optional stage
+    except Exception as exc:  # pragma: no cover - best-effort optional stage
+        logging.exception("WebVOWL generation failed: %s", exc)
         ctx.write(
             viz_dir / "index.md",
             "# Visualization\n\nWebVOWL generation failed; see logs.\n",
         )
         return
+
+    # WIDOCO places the WebVOWL bundle under ``doc/webvowl/``; hoist it so the
+    # MkDocs page can reference it directly.
+    webvowl_src = viz_dir / "doc" / "webvowl"
+    webvowl_dst = viz_dir / "webvowl"
+    if webvowl_src.exists():
+        if webvowl_dst.exists():
+            shutil.rmtree(webvowl_dst)
+        shutil.move(str(webvowl_src), str(webvowl_dst))
+        shutil.rmtree(viz_dir / "doc")
+        _canonicalize_webvowl_json(webvowl_dst / "data" / "ontology.json", source)
 
     ctx.write(
         viz_dir / "index.md",
@@ -839,51 +1011,57 @@ def _render_widoco_fragments(ctx: _WriteContext, source: Path) -> None:
         return
 
     widoco_dir = ctx.docs / ".widoco-tmp"
-    widoco_dir.mkdir(parents=True, exist_ok=True)
     try:
+        widoco_dir.mkdir(parents=True, exist_ok=True)
         run_container(
             WIDOCO_IMAGE,
             [
                 "-ontFile",
-                str(source.relative_to(PROJECT_ROOT)),
+                _container_path(source),
                 "-outFolder",
-                str(widoco_dir.relative_to(PROJECT_ROOT)),
+                _container_path(widoco_dir),
                 "-rewriteAll",
                 "-uniteSections",
                 "-includeAnnotationProperties",
                 "-noPlaceHolderText",
             ],
+            image_workdir=True,
         )
+
+        index_html = widoco_dir / "index-en.html"
+        about_text = f"# About\n\nWIDOCO provenance for <{ONTOLOGY_IRI}>.\n"
+        if index_html.exists():
+            html = index_html.read_text(encoding="utf-8")
+            title = "GMEOW"
+            if "<title>" in html:
+                title = html.split("<title>")[1].split("</title>")[0]
+            about_text = f"# About {title}\n\nProvenance and metadata from WIDOCO.\n"
+        ctx.write(ctx.docs / "about.md", about_text)
+
+        changelog_html = widoco_dir / "sections" / "changelog-en.html"
+        if changelog_html.exists():
+            ctx.write(
+                ctx.docs / "changelog.md",
+                "# Changelog\n\n" + changelog_html.read_text(encoding="utf-8") + "\n",
+            )
+        else:
+            ctx.write(
+                ctx.docs / "changelog.md",
+                "# Changelog\n\nNo changelog available.\n",
+            )
+
+        htaccess = widoco_dir / ".htaccess"
+        if htaccess.exists():
+            ctx.write(ctx.docs / ".htaccess", htaccess.read_text(encoding="utf-8"))
     except Exception as exc:  # pragma: no cover - optional Docker stage
         ctx.write(ctx.docs / "about.md", f"# About\n\nWIDOCO run failed: {exc}\n")
         ctx.write(
             ctx.docs / "changelog.md",
             f"# Changelog\n\nWIDOCO run failed: {exc}\n",
         )
-        return
-
-    index_html = widoco_dir / "index-en.html"
-    about_text = f"# About\n\nWIDOCO provenance for <{ONTOLOGY_IRI}>.\n"
-    if index_html.exists():
-        html = index_html.read_text(encoding="utf-8")
-        title = "GMEOW"
-        if "<title>" in html:
-            title = html.split("<title>")[1].split("</title>")[0]
-        about_text = f"# About {title}\n\nProvenance and metadata from WIDOCO.\n"
-    ctx.write(ctx.docs / "about.md", about_text)
-
-    changelog_html = widoco_dir / "sections" / "changelog-en.html"
-    if changelog_html.exists():
-        ctx.write(
-            ctx.docs / "changelog.md",
-            "# Changelog\n\n" + changelog_html.read_text(encoding="utf-8") + "\n",
-        )
-    else:
-        ctx.write(ctx.docs / "changelog.md", "# Changelog\n\nNo changelog available.\n")
-
-    htaccess = widoco_dir / ".htaccess"
-    if htaccess.exists():
-        ctx.write(ctx.docs / ".htaccess", htaccess.read_text(encoding="utf-8"))
+    finally:
+        if widoco_dir.exists():
+            shutil.rmtree(widoco_dir)
 
 
 # --------------------------------------------------------------------------- #

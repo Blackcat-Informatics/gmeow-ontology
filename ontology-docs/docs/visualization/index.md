@@ -4,4 +4,4 @@
 
 # Visualization
 
-WebVOWL diagram generation requires Docker and the WIDOCO image.
+<iframe src="webvowl/index.html" width="100%" height="800px"></iframe>

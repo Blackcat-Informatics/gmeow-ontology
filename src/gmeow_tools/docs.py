@@ -117,6 +117,17 @@ def profiles_section_html() -> str:
     )
 
 
+def _container_path(path: Path) -> str:
+    """Return the ``/work/...`` path seen by Docker for a host *path*.
+
+    Relative paths are resolved against the current working directory; the
+    result must live under ``PROJECT_ROOT`` because that is what the
+    container mounts at ``/work``.
+    """
+    abs_path = path.resolve()
+    return f"/work/{abs_path.relative_to(PROJECT_ROOT).as_posix()}"
+
+
 def widoco_available() -> bool:
     """Return whether the pinned WIDOCO image is present locally."""
     return image_available(WIDOCO_IMAGE)
@@ -141,13 +152,14 @@ def widoco_docs(source: Path, *, outdir: Path | None = None) -> Path:
         WIDOCO_IMAGE,
         [
             "-ontFile",
-            str(source.relative_to(PROJECT_ROOT)),
+            _container_path(source),
             "-outFolder",
-            str(out.relative_to(PROJECT_ROOT)),
+            _container_path(out),
             "-rewriteAll",
             "-uniteSections",
             "-includeAnnotationProperties",
             "-noPlaceHolderText",
         ],
+        image_workdir=True,
     )
     return out

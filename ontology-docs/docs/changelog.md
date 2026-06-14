@@ -4,4 +4,4 @@
 
 # Changelog
 
-WIDOCO-derived changelog requires Docker.
+No changelog available.

@@ -113,6 +113,7 @@ def run_container(
     args: Sequence[str],
     *,
     workdir: Path = PROJECT_ROOT,
+    image_workdir: bool = False,
     network: bool = False,
     hostname: str | None = None,
     check: bool = True,
@@ -124,6 +125,11 @@ def run_container(
         image: The pinned image reference (see ``config``).
         args: The command and arguments to run inside the container.
         workdir: Host directory to mount at ``/work`` (defaults to the repo root).
+        image_workdir: If ``True``, keep the image's default working directory
+            instead of forcing ``/work``. Use this for images whose entrypoint
+            depends on its own working directory (e.g. WIDOCO's relative
+            ``widoco.jar`` path). When ``True``, pass absolute ``/work/...``
+            paths in ``args``.
         network: If ``False`` (default), run with ``--network none`` for
             hermetic, deterministic builds. Set ``True`` only for steps that
             must reach the network.
@@ -160,9 +166,9 @@ def run_container(
         _user_spec(),
         "--volume",
         f"{workdir}:/work",
-        "--workdir",
-        "/work",
     ]
+    if not image_workdir:
+        docker_cmd += ["--workdir", "/work"]
     if hostname is not None:
         docker_cmd += ["--hostname", hostname]
     if not network:

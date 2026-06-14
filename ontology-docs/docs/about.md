@@ -4,4 +4,4 @@
 
 # About
 
-WIDOCO-derived provenance metadata requires Docker.
+WIDOCO provenance for <https://blackcatinformatics.ca/gmeow>.
