@@ -13,7 +13,7 @@
       "slices/core/entities/examples/agent-sortals.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/entities/examples/agent-sortals.ttl",
+    "path": "examples/index.html#example-slices-core-entities-examples-agent-sortals",
     "slice": "entities",
     "summary": "Canonical Turtle example for the entities slice.",
     "title": "Agent Sortals"
@@ -39,7 +39,7 @@
       "slices/extensions/agentic/examples/agent-trajectory.ttl"
     ],
     "kind": "example",
-    "path": "slices/extensions/agentic/examples/agent-trajectory.ttl",
+    "path": "examples/index.html#example-slices-extensions-agentic-examples-agent-trajectory",
     "slice": "agentic",
     "summary": "Canonical Turtle example for the agentic slice.",
     "title": "Agent Trajectory"
@@ -58,7 +58,7 @@
       "slices/core/coreference/examples/authority-links.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/coreference/examples/authority-links.ttl",
+    "path": "examples/index.html#example-slices-core-coreference-examples-authority-links",
     "slice": "coreference",
     "summary": "Canonical Turtle example for the coreference slice.",
     "title": "Authority Links"
@@ -96,7 +96,7 @@
       "slices/core/deception/examples/blame-deflection.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/deception/examples/blame-deflection.ttl",
+    "path": "examples/index.html#example-slices-core-deception-examples-blame-deflection",
     "slice": "deception",
     "summary": "Canonical Turtle example for the deception slice.",
     "title": "Blame Deflection"
@@ -118,7 +118,7 @@
       "slices/core/citations/examples/citation-act.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/citations/examples/citation-act.ttl",
+    "path": "examples/index.html#example-slices-core-citations-examples-citation-act",
     "slice": "citations",
     "summary": "Canonical Turtle example for the citations slice.",
     "title": "Citation Act"
@@ -152,7 +152,7 @@
       "slices/core/contacts/examples/contact-points.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/contacts/examples/contact-points.ttl",
+    "path": "examples/index.html#example-slices-core-contacts-examples-contact-points",
     "slice": "contacts",
     "summary": "Canonical Turtle example for the contacts slice.",
     "title": "Contact Points"
@@ -180,7 +180,7 @@
       "slices/core/standpoint/examples/contested-authorship.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/standpoint/examples/contested-authorship.ttl",
+    "path": "examples/index.html#example-slices-core-standpoint-examples-contested-authorship",
     "slice": "standpoint",
     "summary": "Canonical Turtle example for the standpoint slice.",
     "title": "Contested Authorship"
@@ -212,7 +212,7 @@
       "slices/core/lifecycle/examples/dissolved-org.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/lifecycle/examples/dissolved-org.ttl",
+    "path": "examples/index.html#example-slices-core-lifecycle-examples-dissolved-org",
     "slice": "lifecycle",
     "summary": "Canonical Turtle example for the lifecycle slice.",
     "title": "Dissolved Org"
@@ -245,7 +245,7 @@
       "slices/core/gts/examples/dist-package.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/gts/examples/dist-package.ttl",
+    "path": "examples/index.html#example-slices-core-gts-examples-dist-package",
     "slice": "gts",
     "summary": "Canonical Turtle example for the gts slice.",
     "title": "Dist Package"
@@ -310,7 +310,7 @@
       "slices/core/ai/examples/grounded-claim.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/ai/examples/grounded-claim.ttl",
+    "path": "examples/index.html#example-slices-core-ai-examples-grounded-claim",
     "slice": "ai",
     "summary": "Canonical Turtle example for the ai slice.",
     "title": "Grounded Claim"
@@ -334,7 +334,7 @@
       "slices/core/provenance/examples/import-lineage.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/provenance/examples/import-lineage.ttl",
+    "path": "examples/index.html#example-slices-core-provenance-examples-import-lineage",
     "slice": "provenance",
     "summary": "Canonical Turtle example for the provenance slice.",
     "title": "Import Lineage"
@@ -354,7 +354,7 @@
       "slices/core/temporal/examples/intervals-and-frames.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/temporal/examples/intervals-and-frames.ttl",
+    "path": "examples/index.html#example-slices-core-temporal-examples-intervals-and-frames",
     "slice": "temporal",
     "summary": "Canonical Turtle example for the temporal slice.",
     "title": "Intervals And Frames"
@@ -396,7 +396,7 @@
       "slices/core/rights/examples/licensed-dataset.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/rights/examples/licensed-dataset.ttl",
+    "path": "examples/index.html#example-slices-core-rights-examples-licensed-dataset",
     "slice": "rights",
     "summary": "Canonical Turtle example for the rights slice.",
     "title": "Licensed Dataset"
@@ -440,7 +440,7 @@
       "slices/extensions/graphrag/examples/lillith-dataset.ttl"
     ],
     "kind": "example",
-    "path": "slices/extensions/graphrag/examples/lillith-dataset.ttl",
+    "path": "examples/index.html#example-slices-extensions-graphrag-examples-lillith-dataset",
     "slice": "graphrag",
     "summary": "Canonical Turtle example for the graphrag slice.",
     "title": "Lillith Dataset"
@@ -494,7 +494,7 @@
       "slices/extensions/graphrag/examples/lillith-pipeline.ttl"
     ],
     "kind": "example",
-    "path": "slices/extensions/graphrag/examples/lillith-pipeline.ttl",
+    "path": "examples/index.html#example-slices-extensions-graphrag-examples-lillith-pipeline",
     "slice": "graphrag",
     "summary": "Canonical Turtle example for the graphrag slice.",
     "title": "Lillith Pipeline"
@@ -529,7 +529,7 @@
       "slices/core/places/examples/located-place.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/places/examples/located-place.ttl",
+    "path": "examples/index.html#example-slices-core-places-examples-located-place",
     "slice": "places",
     "summary": "Canonical Turtle example for the places slice.",
     "title": "Located Place"
@@ -561,7 +561,7 @@
       "slices/core/evidence/examples/notability-assessment.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/evidence/examples/notability-assessment.ttl",
+    "path": "examples/index.html#example-slices-core-evidence-examples-notability-assessment",
     "slice": "evidence",
     "summary": "Canonical Turtle example for the evidence slice.",
     "title": "Notability Assessment"
@@ -589,7 +589,7 @@
       "slices/core/accounts/examples/online-presence.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/accounts/examples/online-presence.ttl",
+    "path": "examples/index.html#example-slices-core-accounts-examples-online-presence",
     "slice": "accounts",
     "summary": "Canonical Turtle example for the accounts slice.",
     "title": "Online Presence"
@@ -624,7 +624,7 @@
       "slices/core/names/examples/person-names.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/names/examples/person-names.ttl",
+    "path": "examples/index.html#example-slices-core-names-examples-person-names",
     "slice": "names",
     "summary": "Canonical Turtle example for the names slice.",
     "title": "Person Names"
@@ -646,7 +646,7 @@
       "slices/core/organization/examples/post-and-membership.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/organization/examples/post-and-membership.ttl",
+    "path": "examples/index.html#example-slices-core-organization-examples-post-and-membership",
     "slice": "organization",
     "summary": "Canonical Turtle example for the organization slice.",
     "title": "Post And Membership"
@@ -675,7 +675,7 @@
       "slices/core/gender/examples/self-asserted-facets.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/gender/examples/self-asserted-facets.ttl",
+    "path": "examples/index.html#example-slices-core-gender-examples-self-asserted-facets",
     "slice": "gender",
     "summary": "Canonical Turtle example for the gender slice.",
     "title": "Self Asserted Facets"
@@ -708,7 +708,7 @@
       "slices/core/attestation/examples/software-release.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/attestation/examples/software-release.ttl",
+    "path": "examples/index.html#example-slices-core-attestation-examples-software-release",
     "slice": "attestation",
     "summary": "Canonical Turtle example for the attestation slice.",
     "title": "Software Release"
@@ -732,7 +732,7 @@
       "slices/core/sexuality/examples/split-attraction.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/sexuality/examples/split-attraction.ttl",
+    "path": "examples/index.html#example-slices-core-sexuality-examples-split-attraction",
     "slice": "sexuality",
     "summary": "Canonical Turtle example for the sexuality slice.",
     "title": "Split Attraction"
@@ -766,7 +766,7 @@
       "slices/extensions/risk/examples/trust-collapse.ttl"
     ],
     "kind": "example",
-    "path": "slices/extensions/risk/examples/trust-collapse.ttl",
+    "path": "examples/index.html#example-slices-extensions-risk-examples-trust-collapse",
     "slice": "risk",
     "summary": "Canonical Turtle example for the risk slice.",
     "title": "Trust Collapse"
@@ -796,7 +796,7 @@
       "slices/extensions/affect/examples/two-critics.ttl"
     ],
     "kind": "example",
-    "path": "slices/extensions/affect/examples/two-critics.ttl",
+    "path": "examples/index.html#example-slices-extensions-affect-examples-two-critics",
     "slice": "affect",
     "summary": "Canonical Turtle example for the affect slice.",
     "title": "Two Critics"
@@ -826,7 +826,7 @@
       "slices/core/trust/examples/web-of-trust.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/trust/examples/web-of-trust.ttl",
+    "path": "examples/index.html#example-slices-core-trust-examples-web-of-trust",
     "slice": "trust",
     "summary": "Canonical Turtle example for the trust slice.",
     "title": "Web Of Trust"
@@ -848,7 +848,7 @@
       "slices/core/documents/examples/web-presence.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/documents/examples/web-presence.ttl",
+    "path": "examples/index.html#example-slices-core-documents-examples-web-presence",
     "slice": "documents",
     "summary": "Canonical Turtle example for the documents slice.",
     "title": "Web Presence"
@@ -875,7 +875,7 @@
       "slices/core/events/examples/wedding.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/events/examples/wedding.ttl",
+    "path": "examples/index.html#example-slices-core-events-examples-wedding",
     "slice": "events",
     "summary": "Canonical Turtle example for the events slice.",
     "title": "Wedding"
@@ -893,10 +893,126 @@
       "slices/core/creative-works/examples/wemi-novel.ttl"
     ],
     "kind": "example",
-    "path": "slices/core/creative-works/examples/wemi-novel.ttl",
+    "path": "examples/index.html#example-slices-core-creative-works-examples-wemi-novel",
     "slice": "creative-works",
     "summary": "Canonical Turtle example for the creative-works slice.",
     "title": "Wemi Novel"
+  },
+  {
+    "keywords": [
+      "Developers recording extracted facts, chunks, and tools.",
+      "audit-ai-or-graph-rag",
+      "dcat",
+      "gmeow:Chunk",
+      "gmeow:Dataset",
+      "gmeow:EvidenceSpan",
+      "gmeow:ExtractedEntity",
+      "gmeow:usedModel",
+      "graph-rag-dataset-lineage",
+      "prov",
+      "schema",
+      "slices/core/ai/examples/grounded-claim.ttl",
+      "slices/extensions/agentic/examples/agent-trajectory.ttl",
+      "slices/extensions/graphrag/examples/lillith-dataset.ttl",
+      "slices/extensions/graphrag/examples/lillith-pipeline.ttl"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#audit-ai-or-graph-rag",
+    "summary": "Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them.",
+    "title": "Audit AI and Graph-RAG Pipelines"
+  },
+  {
+    "keywords": [
+      "Developers handling evidence, provenance, or disagreement.",
+      "contested-or-attributed-facts",
+      "crminf",
+      "gmeow:Attestation",
+      "gmeow:Evidence",
+      "gmeow:StandpointClaim",
+      "gmeow:accordingTo",
+      "gmeow:confidence",
+      "model-a-contested-claim",
+      "prov",
+      "slices/core/attestation/examples/software-release.ttl",
+      "slices/core/evidence/examples/notability-assessment.ttl",
+      "slices/core/provenance/examples/import-lineage.ttl",
+      "slices/core/standpoint/examples/contested-authorship.ttl",
+      "wikidata"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#model-a-contested-claim",
+    "summary": "Represent claims by vantage and evidence rather than overwriting facts into a single global truth slot.",
+    "title": "Model a Contested or Attributed Claim"
+  },
+  {
+    "keywords": [
+      "Developers importing contact, profile, or biography data.",
+      "foaf",
+      "gmeow:ContactPoint",
+      "gmeow:NameUsage",
+      "gmeow:Person",
+      "gmeow:PersonName",
+      "gmeow:displayable",
+      "model-a-person",
+      "person-names-and-display",
+      "schema",
+      "slices/core/contacts/examples/contact-points.ttl",
+      "slices/core/coreference/examples/authority-links.ttl",
+      "slices/core/entities/examples/agent-sortals.ttl",
+      "slices/core/names/examples/person-names.ttl",
+      "vcard",
+      "wikidata"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#model-a-person",
+    "summary": "Start with a person, add names and contact points, then keep authority links and display choices separate from identity.",
+    "title": "Model a Person Without Flattening Identity"
+  },
+  {
+    "keywords": [
+      "Developers projecting native GMEOW into web-facing JSON-LD.",
+      "documents-and-schema-org",
+      "events-and-participants",
+      "geo",
+      "gmeow:Document",
+      "gmeow:Event",
+      "gmeow:Organization",
+      "gmeow:Participation",
+      "gmeow:Place",
+      "org",
+      "prov",
+      "publish-web-structured-data",
+      "schema",
+      "slices/core/documents/examples/web-presence.ttl",
+      "slices/core/events/examples/wedding.ttl",
+      "slices/core/organization/examples/post-and-membership.ttl",
+      "slices/core/places/examples/located-place.ttl"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#publish-web-structured-data",
+    "summary": "Model documents, events, people, and organizations natively, then inspect which fields project cleanly to broad consumers.",
+    "title": "Publish Web Structured Data"
+  },
+  {
+    "keywords": [
+      "Developers distributing GMEOW snapshots or local docs.",
+      "dcat",
+      "gmeow:GTSDocument",
+      "gmeow:GTSProfile",
+      "gmeow:GTSSegment",
+      "gmeow:usesTransformCodec",
+      "offline-gts-distribution",
+      "ship-offline-gts-docs",
+      "slices/core/gts/examples/dist-package.ttl",
+      "slices/core/provenance/examples/import-lineage.ttl",
+      "slices/core/rights/examples/licensed-dataset.ttl",
+      "spdx",
+      "void"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#ship-offline-gts-docs",
+    "summary": "Treat the distribution file, embedded docs, profiles, segments, codecs, and lineage as first-class graph facts.",
+    "title": "Ship Offline GTS Documentation"
   },
   {
     "keywords": [
@@ -1522,6 +1638,17 @@
     "slice": "places",
     "summary": "core slice with 1 examples",
     "title": "GMEOW Locations Module"
+  },
+  {
+    "keywords": [
+      "core",
+      "logic"
+    ],
+    "kind": "slice",
+    "path": "slices/logic/index.html",
+    "slice": "logic",
+    "summary": "core slice with 0 examples",
+    "title": "GMEOW Logic"
   },
   {
     "keywords": [

@@ -540,6 +540,20 @@ class DocRecipe:
 
 
 @dataclass(slots=True)
+class DocLearningPath:
+    """A curated adoption journey across recipes, examples, and terms."""
+
+    slug: str
+    title: str
+    audience: str
+    goal: str
+    recipe_slugs: list[str]
+    example_paths: list[Path]
+    term_curies: list[str]
+    adoption_targets: list[str] = field(default_factory=list)
+
+
+@dataclass(slots=True)
 class Page:
     """One generated Markdown page and its HTML title."""
 
@@ -565,6 +579,7 @@ class DocsModel:
     examples: list[DocExample]
     examples_by_slice: dict[str, list[DocExample]]
     recipes: list[DocRecipe]
+    learning_paths: list[DocLearningPath]
 
 
 def _safe_filename(value: str) -> str:
@@ -1253,6 +1268,130 @@ def _default_recipes() -> list[DocRecipe]:
     ]
 
 
+def _default_learning_paths() -> list[DocLearningPath]:
+    """Return curated paths that sequence recipes and examples for adoption."""
+    return [
+        DocLearningPath(
+            slug="model-a-person",
+            title="Model a Person Without Flattening Identity",
+            audience="Developers importing contact, profile, or biography data.",
+            goal=(
+                "Start with a person, add names and contact points, then keep "
+                "authority links and display choices separate from identity."
+            ),
+            recipe_slugs=["person-names-and-display"],
+            example_paths=[
+                Path("slices/core/entities/examples/agent-sortals.ttl"),
+                Path("slices/core/names/examples/person-names.ttl"),
+                Path("slices/core/contacts/examples/contact-points.ttl"),
+                Path("slices/core/coreference/examples/authority-links.ttl"),
+            ],
+            term_curies=[
+                "gmeow:Person",
+                "gmeow:PersonName",
+                "gmeow:NameUsage",
+                "gmeow:ContactPoint",
+                "gmeow:displayable",
+            ],
+            adoption_targets=["schema", "foaf", "vcard", "wikidata"],
+        ),
+        DocLearningPath(
+            slug="model-a-contested-claim",
+            title="Model a Contested or Attributed Claim",
+            audience="Developers handling evidence, provenance, or disagreement.",
+            goal=(
+                "Represent claims by vantage and evidence rather than overwriting "
+                "facts into a single global truth slot."
+            ),
+            recipe_slugs=["contested-or-attributed-facts"],
+            example_paths=[
+                Path("slices/core/standpoint/examples/contested-authorship.ttl"),
+                Path("slices/core/evidence/examples/notability-assessment.ttl"),
+                Path("slices/core/provenance/examples/import-lineage.ttl"),
+                Path("slices/core/attestation/examples/software-release.ttl"),
+            ],
+            term_curies=[
+                "gmeow:StandpointClaim",
+                "gmeow:Evidence",
+                "gmeow:Attestation",
+                "gmeow:accordingTo",
+                "gmeow:confidence",
+            ],
+            adoption_targets=["prov", "crminf", "wikidata"],
+        ),
+        DocLearningPath(
+            slug="publish-web-structured-data",
+            title="Publish Web Structured Data",
+            audience="Developers projecting native GMEOW into web-facing JSON-LD.",
+            goal=(
+                "Model documents, events, people, and organizations natively, "
+                "then inspect which fields project cleanly to broad consumers."
+            ),
+            recipe_slugs=["documents-and-schema-org", "events-and-participants"],
+            example_paths=[
+                Path("slices/core/documents/examples/web-presence.ttl"),
+                Path("slices/core/events/examples/wedding.ttl"),
+                Path("slices/core/organization/examples/post-and-membership.ttl"),
+                Path("slices/core/places/examples/located-place.ttl"),
+            ],
+            term_curies=[
+                "gmeow:Document",
+                "gmeow:Event",
+                "gmeow:Participation",
+                "gmeow:Organization",
+                "gmeow:Place",
+            ],
+            adoption_targets=["schema", "prov", "geo", "org"],
+        ),
+        DocLearningPath(
+            slug="ship-offline-gts-docs",
+            title="Ship Offline GTS Documentation",
+            audience="Developers distributing GMEOW snapshots or local docs.",
+            goal=(
+                "Treat the distribution file, embedded docs, profiles, segments, "
+                "codecs, and lineage as first-class graph facts."
+            ),
+            recipe_slugs=["offline-gts-distribution"],
+            example_paths=[
+                Path("slices/core/gts/examples/dist-package.ttl"),
+                Path("slices/core/provenance/examples/import-lineage.ttl"),
+                Path("slices/core/rights/examples/licensed-dataset.ttl"),
+            ],
+            term_curies=[
+                "gmeow:GTSDocument",
+                "gmeow:GTSProfile",
+                "gmeow:GTSSegment",
+                "gmeow:usesTransformCodec",
+            ],
+            adoption_targets=["dcat", "void", "spdx"],
+        ),
+        DocLearningPath(
+            slug="audit-ai-or-graph-rag",
+            title="Audit AI and Graph-RAG Pipelines",
+            audience="Developers recording extracted facts, chunks, and tools.",
+            goal=(
+                "Connect generated claims to source chunks, evidence spans, "
+                "tools, model context, and provenance before consumers see them."
+            ),
+            recipe_slugs=["graph-rag-dataset-lineage"],
+            example_paths=[
+                Path("slices/core/ai/examples/grounded-claim.ttl"),
+                Path("slices/extensions/graphrag/examples/lillith-dataset.ttl"),
+                Path("slices/extensions/graphrag/examples/lillith-pipeline.ttl"),
+                Path("slices/extensions/agentic/examples/agent-trajectory.ttl"),
+            ],
+            term_curies=[
+                "gmeow:Dataset",
+                "gmeow:Chunk",
+                "gmeow:ExtractedEntity",
+                "gmeow:EvidenceSpan",
+                "gmeow:usedModel",
+            ],
+            adoption_targets=["prov", "dcat", "schema"],
+        ),
+    ]
+
+
 def _link_sort_key(link: DocLinkage) -> tuple[str, str, str, str, str]:
     """Stable sort key for linkage rows."""
     return (link.kind, link.source, link.profile, link.target, link.cell)
@@ -1506,6 +1645,7 @@ def _load_model(gts_path: Path | None = None) -> DocsModel:
         examples=examples,
         examples_by_slice=dict(examples_by_slice),
         recipes=_default_recipes(),
+        learning_paths=_default_learning_paths(),
     )
 
 
@@ -1516,7 +1656,7 @@ class _Writer:
         self.root = outdir
         self.markdown = outdir / "markdown"
         self.site = outdir / "site"
-        self.source_hash = source_hash or "unknown"
+        self.source_hash = source_hash
         if outdir.exists():
             shutil.rmtree(outdir)
         self.markdown.mkdir(parents=True)
@@ -1524,10 +1664,10 @@ class _Writer:
 
     def banner(self, style: str = "html") -> str:
         """Return the generated-file banner for a comment style."""
-        msg = (
-            "GENERATED by gmeow ontology-docs. DO NOT EDIT. "
-            f"Source hash: {self.source_hash}."
-        )
+        # Do not include the generator source hash in every docs file. The
+        # generator registry still uses hashes for drift checks, but per-file
+        # hash banners caused whole-site churn for one-line docs improvements.
+        msg = "GENERATED by gmeow ontology-docs. DO NOT EDIT."
         if style == "hash":
             return f"# {msg}\n\n"
         return f"<!-- {msg} -->\n\n"
@@ -1717,7 +1857,9 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
     <nav aria-label="Primary">
       <a href="{home}">Home</a>
       <a href="{prefix}getting-started/">Getting Started</a>
+      <a href="{prefix}learning-paths/">Learning Paths</a>
       <a href="{prefix}recipes/">Recipes</a>
+      <a href="{prefix}examples/">Examples</a>
       <a href="{prefix}concerns/">Concerns</a>
       <a href="{prefix}slices/">Slices</a>
       <a href="{prefix}linkages/">Linkages</a>
@@ -1911,6 +2053,11 @@ def _example_by_path(model: DocsModel, path: Path) -> DocExample | None:
     )
 
 
+def _recipe_by_slug(model: DocsModel, slug: str) -> DocRecipe | None:
+    """Return a recipe by stable slug."""
+    return next((recipe for recipe in model.recipes if recipe.slug == slug), None)
+
+
 def _repo_source_link(path: Path) -> str:
     """Return a GitHub source link for a repository-relative path."""
     return f"[`{path.as_posix()}`]({_REPO_BLOB_URL}{path.as_posix()})"
@@ -1938,6 +2085,79 @@ def _render_example(
             + ", ".join(f"`{prefix}`" for prefix in example.external_prefixes)
         )
     lines.extend(["", "```turtle", example.text, "```", ""])
+    return lines
+
+
+def _snippet_for_term(example: DocExample, term: DocTerm) -> str | None:
+    """Return a compact Turtle snippet showing the term in one example."""
+    if term.curie not in example.text:
+        return None
+    prefix_lines: list[str] = []
+    body_blocks: list[str] = []
+    for block in re.split(r"\n\s*\n", example.text):
+        block_text = block.strip()
+        if not block_text:
+            continue
+        if block_text.startswith(("@prefix ", "PREFIX ", "@base ", "BASE ")):
+            prefix_lines.append(block_text)
+        elif term.curie in block_text:
+            body_blocks.append(block_text)
+    if not body_blocks:
+        return None
+    lines = [*prefix_lines[:12], "", *body_blocks[:2]]
+    snippet_lines = "\n\n".join(lines).strip().splitlines()
+    if len(snippet_lines) > 80:
+        snippet_lines = [*snippet_lines[:80], "# ..."]
+    return "\n".join(snippet_lines)
+
+
+def _term_example_snippets(term: DocTerm, model: DocsModel) -> list[str]:
+    """Render copyable snippets from examples that mention a term."""
+    snippets: list[tuple[DocExample, str]] = []
+    owner_slice = term.owner.replace("gmeow:slices/", "") if term.owner else ""
+    examples = sorted(
+        model.examples,
+        key=lambda example: (
+            example.slice_name != owner_slice,
+            example.slice_name,
+            example.path.as_posix(),
+        ),
+    )
+    for example in examples:
+        snippet = _snippet_for_term(example, term)
+        if snippet is not None:
+            snippets.append((example, snippet))
+        if len(snippets) >= 2:
+            break
+    if not snippets:
+        return []
+    rel = _term_md_rel(term)
+    lines = [
+        "## Example Snippets",
+        "",
+        "These snippets are generated from canonical slice examples and trimmed "
+        "to the Turtle blocks where this term appears.",
+        "",
+    ]
+    for example, snippet in snippets:
+        catalog_rel = posixpath.relpath(
+            (Path("examples") / "index.md").as_posix(),
+            start=rel.parent.as_posix() or ".",
+        )
+        catalog_href = f"[open in catalog]({catalog_rel}#{_example_anchor(example)})"
+        lines.extend(
+            [
+                f"### {example.title}",
+                "",
+                f"- **Source:** {_repo_source_link(example.path)}",
+                f"- **Examples catalog:** {catalog_href}#{_example_anchor(example)}",
+                "",
+                "```turtle",
+                snippet,
+                "```",
+                "",
+            ]
+        )
     return lines
 
 
@@ -2027,7 +2247,9 @@ def _landing(model: DocsModel) -> Page:
         "## Start Here",
         "",
         "- [Getting Started](getting-started.md) for the five-minute adoption path.",
+        "- [Learning Paths](learning-paths/index.md) for curated adoption journeys.",
         "- [Recipes](recipes/index.md) for task-first modelling walkthroughs.",
+        "- [Examples](examples/index.md) for canonical slice-local Turtle examples.",
         "- [Cross-cutting concerns](concerns/index.md) for reusable ideas.",
         "- [Slices](slices/index.md) for modular guide pages and dependency maps.",
         "- [Linkages](linkages/index.md) for SSSOM alignments and projection coverage.",
@@ -2145,9 +2367,12 @@ def _getting_started() -> Page:
         "",
         "## Pick a first path",
         "",
-        "For fuller walkthroughs, start with [Recipes](recipes/index.md). Each "
-        "recipe points to canonical Turtle examples and the term pages that "
-        "explain the pattern.",
+        "For fuller walkthroughs, start with "
+        "[Learning Paths](learning-paths/index.md) or [Recipes](recipes/index.md). "
+        "Each recipe points to canonical Turtle examples and the term pages "
+        "that explain the pattern. The generated [Examples](examples/index.md) "
+        "catalog lists every slice-local Turtle example when you want broader "
+        "coverage.",
         "",
         "| If you are modelling... | Start with | Then inspect |",
         "|---|---|---|",
@@ -2236,6 +2461,127 @@ def _recipes_index(model: DocsModel) -> Page:
         )
     lines.append("")
     return Page(Path("recipes") / "index.md", "Recipes", "\n".join(lines))
+
+
+def _learning_paths_index(model: DocsModel) -> Page:
+    """Render curated adoption paths across recipes, examples, and terms."""
+    rel = Path("learning-paths") / "index.md"
+    lines = [
+        "# Learning Paths",
+        "",
+        "Learning paths sequence recipes, canonical examples, term pages, and "
+        "external adoption targets for common implementation goals.",
+        "",
+        "| Path | Audience | Goal |",
+        "|---|---|---|",
+    ]
+    for path in model.learning_paths:
+        lines.append(
+            f"| [{path.title}](#{path.slug}) | {_escape_md_cell(path.audience)} | "
+            f"{_escape_md_cell(path.goal)} |"
+        )
+    lines.append("")
+    for path in model.learning_paths:
+        recipe_links = []
+        for slug in path.recipe_slugs:
+            recipe = _recipe_by_slug(model, slug)
+            if recipe is not None:
+                recipe_links.append(
+                    _relative_page_link(
+                        recipe.title, Path("recipes") / f"{recipe.slug}.md", rel
+                    )
+                )
+        example_links = []
+        for example_path in path.example_paths:
+            example = _example_by_path(model, example_path)
+            if example is None:
+                example_links.append(_repo_source_link(example_path))
+            else:
+                examples_rel = posixpath.relpath(
+                    (Path("examples") / "index.md").as_posix(),
+                    start=rel.parent.as_posix() or ".",
+                )
+                example_links.append(
+                    f"[{example.title}]({examples_rel}#{_example_anchor(example)})"
+                )
+        term_links = [
+            _curie_link_from(term, model, rel)
+            for term in path.term_curies
+            if term in model.terms_by_curie
+        ]
+        target_links = [
+            (
+                f"[`{target}`]"
+                f"({_external_ontologies_rel(rel, _external_target_anchor(target))})"
+            )
+            for target in path.adoption_targets
+        ]
+        lines.extend(
+            [
+                f"## {path.title}",
+                f'<a id="{path.slug}"></a>',
+                "",
+                f"**Audience:** {path.audience}",
+                "",
+                path.goal,
+                "",
+                "### Steps",
+                "",
+            ]
+        )
+        if recipe_links:
+            lines.append("1. Read " + ", ".join(recipe_links) + ".")
+        if example_links:
+            lines.append("2. Copy and adapt " + ", ".join(example_links) + ".")
+        if term_links:
+            lines.append("3. Inspect " + ", ".join(term_links) + ".")
+        if target_links:
+            lines.append("4. Check adoption targets " + ", ".join(target_links) + ".")
+        lines.append("")
+    return Page(rel, "Learning Paths", "\n".join(lines))
+
+
+def _example_anchor(example: DocExample) -> str:
+    """Return the stable Markdown/HTML anchor for an example path."""
+    stem = _safe_filename(example.path.with_suffix("").as_posix()).lower()
+    return f"example-{stem}"
+
+
+def _examples_index(model: DocsModel) -> Page:
+    """Render the canonical examples catalog."""
+    rel = Path("examples") / "index.md"
+    lines = [
+        "# Examples",
+        "",
+        "These examples are discovered from `slices/**/examples/*.ttl` and "
+        "rendered from canonical Turtle sources. Use them as copyable starting "
+        "points, then follow the linked terms and slice pages for the doctrine "
+        "behind each pattern.",
+        "",
+        "| Slice | Example | Terms | External Prefixes | Source |",
+        "|---|---|---|---|---|",
+    ]
+    for example in sorted(model.examples, key=lambda ex: (ex.slice_name, ex.path)):
+        slice_link = _relative_page_link(
+            example.slice_name,
+            Path("slices") / f"{example.slice_name}.md",
+            rel,
+        )
+        title = f'<a id="{_example_anchor(example)}"></a>{example.title}'
+        terms = ", ".join(
+            _curie_link_from(term, model, rel)
+            for term in example.terms[:8]
+            if term in model.terms_by_curie
+        )
+        if len(example.terms) > 8:
+            terms = f"{terms}, ..." if terms else "..."
+        prefixes = ", ".join(f"`{prefix}`" for prefix in example.external_prefixes)
+        lines.append(
+            f"| {slice_link} | {title} | {terms or '-'} | {prefixes or '-'} | "
+            f"{_repo_source_link(example.path)} |"
+        )
+    lines.append("")
+    return Page(rel, "Examples", "\n".join(lines))
 
 
 def _recipe_page(recipe: DocRecipe, model: DocsModel) -> Page:
@@ -2430,6 +2776,7 @@ def _term_page(term: DocTerm, model: DocsModel) -> Page:
         lines.extend(["## Structure", "", *facts, ""])
 
     lines.extend(["## Practical Pattern", "", _term_practical_pattern(term), ""])
+    lines.extend(_term_example_snippets(term, model))
     companions = _common_companion_terms(term, model)
     if companions:
         lines.extend(
@@ -3100,7 +3447,9 @@ def _all_pages(model: DocsModel) -> list[Page]:
         _changelog_page(model),
         _visualization_page(),
         _quality_page(),
+        _learning_paths_index(model),
         _recipes_index(model),
+        _examples_index(model),
         _reference_index(model),
         _linkages_page(model),
         _external_ontologies_page(),
@@ -3375,12 +3724,35 @@ def _search_index(model: DocsModel) -> list[dict[str, object]]:
                 "keywords": sorted({recipe.slug, *recipe.term_curies}),
             }
         )
+    for path in model.learning_paths:
+        rows.append(
+            {
+                "kind": "learning-path",
+                "title": path.title,
+                "path": _site_rel_for_md(Path("learning-paths") / "index.md").as_posix()
+                + f"#{path.slug}",
+                "summary": path.goal,
+                "keywords": sorted(
+                    {
+                        path.slug,
+                        path.audience,
+                        *path.recipe_slugs,
+                        *[p.as_posix() for p in path.example_paths],
+                        *path.term_curies,
+                        *path.adoption_targets,
+                    }
+                ),
+            }
+        )
     for example in model.examples:
         rows.append(
             {
                 "kind": "example",
                 "title": example.title,
-                "path": example.path.as_posix(),
+                "path": (
+                    _site_rel_for_md(Path("examples") / "index.md").as_posix()
+                    + f"#{_example_anchor(example)}"
+                ),
                 "slice": example.slice_name,
                 "summary": (
                     f"Canonical Turtle example for the {example.slice_name} slice."
@@ -3404,12 +3776,24 @@ def _llms_docs_text(model: DocsModel) -> str:
         lines.append(
             f"- {recipe.slug}: {recipe.title}; terms " + ", ".join(recipe.term_curies)
         )
+    lines.extend(["", "## Learning Paths"])
+    for path in model.learning_paths:
+        lines.append(
+            f"- {path.slug}: {path.title}; audience {path.audience}; terms "
+            f"{', '.join(path.term_curies)}"
+        )
     lines.extend(["", "## Slices"])
     for slice_entry in sorted(model.slices.values(), key=lambda s: s.name):
         lines.append(
             f"- {slice_entry.name}: {slice_entry.title or slice_entry.name}; "
             f"tier {slice_entry.tier}; profiles "
             f"{', '.join(sorted(slice_entry.profiles)) or '-'}"
+        )
+    lines.extend(["", "## Examples"])
+    for example in sorted(model.examples, key=lambda ex: (ex.slice_name, ex.path)):
+        lines.append(
+            f"- {example.path.as_posix()}: {example.title}; slice "
+            f"{example.slice_name}; terms {', '.join(example.terms[:12]) or '-'}"
         )
     lines.extend(["", "## Terms"])
     for term in model.terms:
@@ -3437,7 +3821,8 @@ def build_ontology_docs(
 
     Args:
         outdir: Destination directory, normally ``ontology-docs/``.
-        source_hash: Source hash supplied by the generator framework.
+        source_hash: Source hash supplied by the generator framework. The docs
+            writer intentionally does not embed it in each output file.
         gts_path: Optional GTS snapshot path for tests.
     """
     model = _load_model(gts_path)
