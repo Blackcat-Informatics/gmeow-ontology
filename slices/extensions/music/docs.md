@@ -165,6 +165,56 @@ raga/maqam model (Principles 9, 11). Seed fixture: Raga Yaman gamaka profile.
 fragments. It is plain data; reachability is computed by
 `gmeow:fnTraverseMobileForm`, never reasoned by the DL engine.
 
+## Performance: events and participation (issue #313)
+
+### Event types and the no-subclass doctrine
+
+There is **no `gmeow:MusicalPerformance` class**. A performance is an ordinary
+`gmeow:Event` whose `gmeow:eventType` carries one or more musical values:
+`musicalPerformance`, `concert`, `recordingSession`, `take`, `overdub`,
+`rehearsal`, `jamSession`, `soundcheck`, `DJSet`, and `transmission` (the oral-
+tradition teaching event used by M10). Live vs studio is not a type split; it is
+`eventType × eventLocation` (Principles 6, 9, 11).
+
+### gmeow:performanceOf
+
+`gmeow:performanceOf` links an event to the `CreativeWork` it performs — usually
+an `Expression` interpreting a known version, or a `Work` directly for an
+improvised or oral rendition with no fixed mediating Expression. It is
+non-functional: a medley performs several works, and a work is performed by many
+events.
+
+### gmeow:PerformanceParticipation
+
+`gmeow:PerformanceParticipation` is a `gufo:SubKind` of the core
+`gmeow:Participation` relator. It adds music-specific attributes to the universal
+participation pattern:
+
+- `participationInstrument` — the kind of instrument (`InstrumentType`).
+- `participationInstrumentItem` — the specific physical instrument item.
+- `participationConfiguration` — the configured instrument setup (`InstrumentConfiguration`, stub for #314).
+- `participationPart` — the musical part performed (open range).
+- `participationTechnique` — the playing technique (`PlayingTechnique`).
+
+Playing bass on take 3 is event involvement modelled as one
+`PerformanceParticipation`, not a third relator (Principle 4). The SHACL shape
+advises ≤1 instrument per participation — mint one participation per instrument.
+
+### Credit derivation
+
+A `Contribution` on the resulting `Recording` is derived from the
+`PerformanceParticipation` cells by a documented FnO projection rule
+(`gmeow:fnParticipationToContribution`), never an OWL property chain (Principle
+12). Full cataloguing of the rule lands with the projection toolchain (#319).
+
+### Session micro-fixture
+
+`fixtureSessionEvent` → 3 take events (`fixtureSessionTake1Event` …
+`fixtureSessionTake3Event`) → an overdub event → a composite `Recording`. Each
+take event generates a `Recording`; the composite `wasDerivedFrom` the take
+recordings. The fixture demonstrates the “who played what on take 3” competency
+query via `PerformanceParticipation`.
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.

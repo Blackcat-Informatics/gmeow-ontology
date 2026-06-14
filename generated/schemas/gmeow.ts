@@ -37,6 +37,12 @@ export enum AestheticQualityEnum {
     sublimity = "qualitySublimity",
 };
 
+export enum AgentEnum {
+
+    fixture_session_bassist = "fixtureSessionBassist",
+    fixture_session_drummer = "fixtureSessionDrummer",
+};
+
 export enum AggregationFunctionEnum {
 
     average = "aggAverage",
@@ -727,6 +733,11 @@ export enum EventEnum {
 
     Klavierstück_XI_performance_traversal_1 = "fixtureKlavierstuckPerformanceOne",
     Klavierstück_XI_performance_traversal_2 = "fixtureKlavierstuckPerformanceTwo",
+    fixture_recording_session_event = "fixtureSessionEvent",
+    fixture_overdub_event = "fixtureSessionOverdubEvent",
+    fixture_take_1_event = "fixtureSessionTake1Event",
+    fixture_take_2_event = "fixtureSessionTake2Event",
+    fixture_take_3_event = "fixtureSessionTake3Event",
 };
 
 export enum EventTypeEnum {
@@ -748,9 +759,11 @@ export enum EventTypeEnum {
     clinical_trial = "eventTypeClinicalTrial",
     code_review = "eventTypeCodeReview",
     commit = "eventTypeCommit",
+    concert = "eventTypeConcert",
     confirmation = "eventTypeConfirmation",
     creation = "eventTypeCreation",
     cremation = "eventTypeCremation",
+    DJ_set = "eventTypeDJSet",
     death = "eventTypeDeath",
     deception = "eventTypeDeception",
     destruction = "eventTypeDestruction",
@@ -774,6 +787,7 @@ export enum EventTypeEnum {
     image_scanning = "eventTypeImageScanning",
     immigration = "eventTypeImmigration",
     impersonation = "eventTypeImpersonation",
+    jam_session = "eventTypeJamSession",
     lie_SOLIDUS_falsification = "eventTypeLie",
     manifestation_production = "eventTypeManifestationProduction",
     marriage = "eventTypeMarriage",
@@ -781,14 +795,18 @@ export enum EventTypeEnum {
     merger = "eventTypeMerger",
     migration = "eventTypeMigration",
     military_service = "eventTypeMilitaryService",
+    musical_performance = "eventTypeMusicalPerformance",
     name_change = "eventTypeNameChange",
     naturalization = "eventTypeNaturalization",
     omission_SOLIDUS_concealment = "eventTypeOmission",
     ordination = "eventTypeOrdination",
+    overdub = "eventTypeOverdub",
     paltering = "eventTypePaltering",
     probate = "eventTypeProbate",
     promotion = "eventTypePromotion",
     push = "eventTypePush",
+    recording_session = "eventTypeRecordingSession",
+    rehearsal = "eventTypeRehearsal",
     release = "eventTypeRelease",
     rename = "eventTypeRename",
     residence = "eventTypeResidence",
@@ -796,12 +814,15 @@ export enum EventTypeEnum {
     retirement = "eventTypeRetirement",
     self_deception = "eventTypeSelfDeception",
     separation = "eventTypeSeparation",
+    soundcheck = "eventTypeSoundcheck",
     spin_off = "eventTypeSpinOff",
     split = "eventTypeSplit",
     supersession = "eventTypeSupersession",
     survey = "eventTypeSurvey",
+    take = "eventTypeTake",
     termination = "eventTypeTermination",
     transfer = "eventTypeTransfer",
+    transmission = "eventTypeTransmission",
     will = "eventTypeWill",
     work_conception = "eventTypeWorkConception",
 };
@@ -855,6 +876,7 @@ export enum ExpressionEnum {
     graphic_score_expression = "fixtureGraphicScoreExpression",
     graphic_score_CMN_transcription = "fixtureGraphicScoreTranscription",
     Reich_style_phasing_realization = "fixtureReichPhasingExpression",
+    session_expression_fixture = "fixtureSessionExpression",
 };
 
 export enum ExpressionLanguageEnum {
@@ -1085,6 +1107,15 @@ export enum IndexAlgorithmEnum {
     flat = "indexAlgorithmFlat",
     HNSW = "indexAlgorithmHnsw",
     IVF = "indexAlgorithmIvf",
+};
+
+export enum InstrumentTypeEnum {
+
+    double_bass = "instrumentTypeDoubleBass",
+    drum_kit = "instrumentTypeDrumKit",
+    electric_guitar = "instrumentTypeElectricGuitar",
+    piano = "instrumentTypePiano",
+    violin = "instrumentTypeViolin",
 };
 
 export enum InvitationStatusEnum {
@@ -1497,6 +1528,7 @@ export enum MusicalWorkEnum {
     graphic_score_work_fixture = "fixtureGraphicScoreWork",
     Klavierstück_XI = "fixtureKlavierstuckXIWork",
     Reich_style_phasing_work = "fixtureReichPhasingWork",
+    session_work_fixture = "fixtureSessionWork",
     fixture_structure_work = "fixtureStructureWork",
 };
 
@@ -1723,6 +1755,7 @@ export enum OrnamentProfileKindEnum {
 
 export enum ParticipantRoleEnum {
 
+    accompanist = "roleAccompanist",
     agent = "roleAgent",
     attendee = "roleAttendee",
     beneficiary = "roleBeneficiary",
@@ -1733,7 +1766,10 @@ export enum ParticipantRoleEnum {
     dupe = "roleDupe",
     employee = "roleEmployee",
     employer = "roleEmployer",
+    ensemble_member = "roleEnsembleMember",
+    improviser = "roleImproviser",
     intermediary = "roleIntermediary",
+    learner = "roleLearner",
     officiant = "roleOfficiant",
     organizer = "roleOrganizer",
     principal_SOLIDUS_subject = "roleParticipantPrincipal",
@@ -1741,7 +1777,10 @@ export enum ParticipantRoleEnum {
     payer = "rolePayer",
     performer = "rolePerformer",
     producer = "roleProducer",
+    session_musician = "roleSessionMusician",
+    soloist = "roleSoloist",
     spin_doctor = "roleSpinDoctor",
+    transmitter = "roleTransmitter",
     victim = "roleVictim",
     witness = "roleWitness",
 };
@@ -1759,6 +1798,12 @@ export enum PerformanceDecisionEnum {
 
     Klavierstück_XI_decision_1 = "fixtureKlavierstuckDecisionOne",
     Klavierstück_XI_decision_2 = "fixtureKlavierstuckDecisionTwo",
+};
+
+export enum PerformanceParticipationEnum {
+
+    fixture_take_3_bass_participation = "fixtureTake3BassParticipation",
+    fixture_take_3_drum_participation = "fixtureTake3DrumParticipation",
 };
 
 export enum PeriodTypeEnum {
@@ -1949,6 +1994,13 @@ export enum PlaceTypeEnum {
     thoroughfare_SOLIDUS_street = "placeTypeThoroughfare",
 };
 
+export enum PlayingTechniqueEnum {
+
+    arco = "playingTechniqueArco",
+    pizzicato = "playingTechniquePizzicato",
+    prepared_piano = "playingTechniquePreparedPiano",
+};
+
 export enum PostingDirectionEnum {
 
     credit = "postingDirectionCredit",
@@ -2101,6 +2153,15 @@ export enum RealizationModeEnum {
     notated = "realizationModeNotated",
     oral = "realizationModeOral",
     performed = "realizationModePerformed",
+};
+
+export enum RecordingEnum {
+
+    fixture_composite_recording = "fixtureSessionComposite",
+    fixture_overdub_recording = "fixtureSessionOverdubRecording",
+    fixture_take_1_recording = "fixtureSessionTake1Recording",
+    fixture_take_2_recording = "fixtureSessionTake2Recording",
+    fixture_take_3_recording = "fixtureSessionTake3Recording",
 };
 
 export enum ReferenceFrameEnum {
@@ -4107,6 +4168,7 @@ export interface Event {
     occurrenceOfSeries?: EventSeries[],
     overlappedBy?: Event[],
     overlaps?: Event[],
+    performanceOf?: CreativeWork[],
     predecessorOrganization?: Organization[],
     projectedStandpoint?: StandpointClaim[],
     propagationMutationDistance?: number[],
@@ -4575,6 +4637,16 @@ export interface InscriptionTransliteration {
 export interface Instant {
     inTemporalFrame?: TemporalFrame[],
     instantValue?: string,
+}
+
+
+
+export interface InstrumentConfiguration extends Entity {
+}
+
+
+
+export interface InstrumentType {
 }
 
 
@@ -5611,6 +5683,16 @@ export interface PerformanceDecision {
 
 
 
+export interface PerformanceParticipation extends Participation {
+    participationConfiguration?: InstrumentConfiguration,
+    participationInstrument?: InstrumentType[],
+    participationInstrumentItem?: Item,
+    participationPart?: string,
+    participationTechnique?: PlayingTechnique,
+}
+
+
+
 export interface PeriodType {
 }
 
@@ -5788,6 +5870,11 @@ export interface PlaceNaming extends NameUsage {
 
 
 export interface PlaceType {
+}
+
+
+
+export interface PlayingTechnique {
 }
 
 
