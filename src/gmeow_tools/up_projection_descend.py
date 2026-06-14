@@ -47,7 +47,12 @@ from gmeow_tools.up_projection import (
     _structural_pairs,
     build_lift_map,
 )
-from gmeow_tools.up_projection_audit import _canon_qname
+from gmeow_tools.up_projection_audit import (
+    _canon_qname,
+    _in_projection_ns,
+    _projection_files,
+    _rdf_list,
+)
 
 
 @dataclass(frozen=True)
@@ -97,6 +102,75 @@ def _ancestor_closure(graph: Graph) -> dict[str, frozenset[str]]:
     return closure
 
 
+def _pattern_atoms(
+    graph: Graph, atom_list: Node | None, seen: set[Node] | None = None
+) -> list[Node]:
+    """Flatten a pattern's atoms, descending into ``gmeow:optionalGroup`` wraps.
+
+    An optional leg (e.g. the ``identifierUrl`` of an ``Identifier`` record) is
+    nested inside an ``optionalGroup`` rather than listed directly, so a flat walk
+    misses it — and with it the predicate that types and binds the leg. ``seen``
+    guards against a cyclic ``optionalGroup`` (a malformed pattern).
+    """
+    if seen is None:
+        seen = set()
+    out: list[Node] = []
+    for atom in _rdf_list(graph, atom_list):
+        if atom in seen:
+            continue
+        seen.add(atom)
+        group = graph.value(atom, GM.optionalGroup)
+        if group is not None:
+            out.extend(_pattern_atoms(graph, group, seen))
+        else:
+            out.append(atom)
+    return out
+
+
+def _multiatom_pairs() -> dict[str, set[str]]:
+    """Map consumer predicates to their gmeow sources via cells' template legs.
+
+    Covers the multi-atom / type-anchored cells the flat simple-1to1 harvest
+    skips. A template atom ``[tSubj tPred tObj]`` emits the consumer ``tPred``;
+    its gmeow source is the pattern atom that binds ``tObj`` as its object via a
+    gmeow predicate — the *same* variable, so the leg is value-preserving. This
+    recovers the cells the flat simple-1to1 harvest skips — e.g. ``schema:url`` ←
+    ``gmeow:identifierUrl`` from the multi-leg ``Identifier`` →
+    ``schema:PropertyValue`` cell — so the descent can resolve them by the
+    subject's type (``identifierUrl``'s ``rdfs:domain`` is ``Identifier``).
+    """
+    pairs: dict[str, set[str]] = defaultdict(set)
+    for path in _projection_files():
+        graph = Graph().parse(path, format="turtle")
+        for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
+            pattern = graph.value(cell, GM.hasMappingPattern)
+            if pattern is None:
+                continue
+            obj_source: dict[str, str] = {}
+            for atom in _pattern_atoms(graph, graph.value(pattern, GM.atom)):
+                objvar = graph.value(atom, GM.objectVar)
+                pred = graph.value(atom, GM.predicate)
+                if (
+                    objvar is not None
+                    and isinstance(pred, URIRef)
+                    and str(pred).startswith(str(GM))
+                ):
+                    obj_source[str(objvar)] = str(pred)
+            for binding in graph.objects(cell, GM.hasBinding):
+                for tmpl in graph.objects(binding, GM.templateAtoms):
+                    for tatom in _rdf_list(graph, tmpl):
+                        tpred = graph.value(tatom, GM.tPred)
+                        tobj = graph.value(tatom, GM.tObj)
+                        if not (
+                            isinstance(tpred, URIRef) and _in_projection_ns(str(tpred))
+                        ):
+                            continue
+                        source = obj_source.get(str(tobj)) if tobj is not None else None
+                        if source is not None:
+                            pairs[str(tpred)].add(source)
+    return dict(pairs)
+
+
 @lru_cache(maxsize=1)
 def build_context() -> _Context:
     """Derive the type-conditioned candidate map from the alignment layers.
@@ -141,8 +215,20 @@ def build_context() -> _Context:
     for target, gmeows in direct_path.items():  # direct edoalPath → fact
         for gmeow in gmeows:
             add(target, gmeow, "=", "")
+    for target, sources in _multiatom_pairs().items():
+        # A template leg carries the *same* variable to and from, so its value
+        # round-trips exactly: once the subject's type is confirmed (the
+        # context_type match), the leg is a structural FACT, not an inference. The
+        # cell's `<=` marks whole-cell lossiness (e.g. an Identifier record's
+        # dropped jurisdiction), not this value-preserving leg.
+        for gmeow in sources:
+            add(target, gmeow, "=", "")
 
-    return _Context(candidates=dict(candidates), ancestors=_ancestor_closure(graph))
+    # dedup: the same (gmeow, type-context, relation) recurs across layers/cells
+    deduped: dict[str, list[_Candidate]] = {
+        target: list(dict.fromkeys(cands)) for target, cands in candidates.items()
+    }
+    return _Context(candidates=deduped, ancestors=_ancestor_closure(graph))
 
 
 def _resolve(
