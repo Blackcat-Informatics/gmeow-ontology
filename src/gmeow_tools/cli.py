@@ -49,14 +49,16 @@ def _read_turtle(source: Path) -> tuple[Graph, str]:
     from rdflib import Graph
 
     graph = Graph()
-    if str(source) == "-":
-        graph.parse(data=sys.stdin.read(), format="turtle")
-        return graph, "stdin"
+    stdin = str(source) == "-"
     try:
-        graph.parse(source, format="turtle")
+        if stdin:
+            graph.parse(data=sys.stdin.read(), format="turtle")
+        else:
+            graph.parse(source, format="turtle")
     except (OSError, ValueError, SyntaxError) as exc:
-        raise _fail(f"cannot read or parse {source}: {exc}") from exc
-    return graph, source.stem
+        where = "stdin" if stdin else source
+        raise _fail(f"cannot read or parse {where}: {exc}") from exc
+    return (graph, "stdin") if stdin else (graph, source.stem)
 
 
 _REASONED_INPUT_OPTION = typer.Option(

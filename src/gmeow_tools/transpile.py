@@ -106,9 +106,12 @@ def transpile_graph(
         The :class:`TranspileReport`.
 
     Raises:
-        ValueError: If nothing lifts to GMEOW (an empty pure-GMEOW draft has
-            nothing to project — surfaced, not a silent empty publication).
+        ValueError: If ``stem`` is empty/blank, or nothing lifts to GMEOW (an
+            empty pure-GMEOW draft has nothing to project — surfaced, not a
+            silent empty publication).
     """
+    if not stem.strip():
+        raise ValueError("transpile_graph: stem must be a non-empty string")
     target = out_dir if out_dir is not None else DIST_DIR / "transpile" / stem
 
     lift = up_project_descend(source) if descend else up_project(source)
