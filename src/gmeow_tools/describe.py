@@ -56,6 +56,11 @@ class TermCard:
     definition: str = ""
     scope_notes: list[str] = field(default_factory=list)
     examples: list[str] = field(default_factory=list)
+    use_when: list[str] = field(default_factory=list)
+    avoid_when: list[str] = field(default_factory=list)
+    how_to_use: list[str] = field(default_factory=list)
+    use_for_consumer: list[str] = field(default_factory=list)
+    avoid_for_consumer: list[str] = field(default_factory=list)
     pairs_with: list[str] = field(default_factory=list)
     paired_from: list[str] = field(default_factory=list)
     alignments: list[str] = field(default_factory=list)
@@ -178,8 +183,17 @@ def build_card(graph: Graph, term: URIRef) -> TermCard:
         )
     )
     card.definition = str(graph.value(term, SKOS.definition) or "")
-    card.scope_notes = [str(o) for o in graph.objects(term, SKOS.scopeNote)]
-    card.examples = [str(o) for o in graph.objects(term, SKOS.example)]
+    card.scope_notes = sorted(str(o) for o in graph.objects(term, SKOS.scopeNote))
+    card.examples = sorted(str(o) for o in graph.objects(term, SKOS.example))
+    card.use_when = sorted(str(o) for o in graph.objects(term, GM.useWhen))
+    card.avoid_when = sorted(str(o) for o in graph.objects(term, GM.avoidWhen))
+    card.how_to_use = sorted(str(o) for o in graph.objects(term, GM.howToUse))
+    card.use_for_consumer = sorted(
+        _short(o) for o in graph.objects(term, GM.useForConsumer)
+    )
+    card.avoid_for_consumer = sorted(
+        _short(o) for o in graph.objects(term, GM.avoidForConsumer)
+    )
     card.pairs_with = sorted(_short(o) for o in graph.objects(term, GM.pairsWith))
     card.paired_from = sorted(_short(s) for s in graph.subjects(GM.pairsWith, term))
 
@@ -250,6 +264,18 @@ def render_card(card: TermCard) -> str:
         lines.append(f"  [yellow]Scope[/yellow]  {note}")
     for example in card.examples:
         lines.append(f"  [cyan]Example[/cyan]  {example}")
+    for note in card.use_when:
+        lines.append(f"  [yellow]Use when[/yellow]  {note}")
+    for note in card.avoid_when:
+        lines.append(f"  [yellow]Avoid when[/yellow]  {note}")
+    for note in card.how_to_use:
+        lines.append(f"  [cyan]How[/cyan]  {note}")
+    if card.use_for_consumer:
+        lines.append("  [green]Use for[/green]  " + " · ".join(card.use_for_consumer))
+    if card.avoid_for_consumer:
+        lines.append(
+            "  [green]Avoid for[/green]  " + " · ".join(card.avoid_for_consumer)
+        )
     for target in card.pairs_with:
         lines.append(
             f"  [magenta]Pairs with[/magenta]  {target} — promote when "

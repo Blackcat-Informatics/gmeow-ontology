@@ -28,6 +28,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
+from typing import TypedDict
 
 from gmeow_tools.config import (
     DIST_DIR,
@@ -45,6 +46,7 @@ from gts.nquads import term_token, to_nquads
 _OWL = "http://www.w3.org/2002/07/owl#"
 _RDFS = "http://www.w3.org/2000/01/rdf-schema#"
 _SKOS = "http://www.w3.org/2004/02/skos/core#"
+_GM = NAMESPACE
 
 
 def _resolve_meta(title: str | None, version: str | None) -> tuple[str, str]:
@@ -79,6 +81,16 @@ _ALIGN_TAGS: dict[str, str] = {
 }
 
 
+class _AdvisoryKwargs(TypedDict):
+    scope_notes: list[str]
+    examples: list[str]
+    use_when: list[str]
+    avoid_when: list[str]
+    how_to_use: list[str]
+    use_for_consumer: list[str]
+    avoid_for_consumer: list[str]
+
+
 @dataclass(slots=True)
 class Term:
     """One flattened vocabulary term (class, property, or individual)."""
@@ -96,6 +108,13 @@ class Term:
     sub_property_of: list[str] = field(default_factory=list)  # CURIEs
     types: list[str] = field(default_factory=list)  # CURIEs (individuals only)
     alignments: list[str] = field(default_factory=list)  # "tag=curie"
+    scope_notes: list[str] = field(default_factory=list)
+    examples: list[str] = field(default_factory=list)
+    use_when: list[str] = field(default_factory=list)
+    avoid_when: list[str] = field(default_factory=list)
+    how_to_use: list[str] = field(default_factory=list)
+    use_for_consumer: list[str] = field(default_factory=list)  # CURIEs
+    avoid_for_consumer: list[str] = field(default_factory=list)  # CURIEs
 
     def as_record(self) -> dict[str, object]:
         """Return a JSON-serializable record for the JSONL catalog."""
@@ -120,6 +139,20 @@ class Term:
             rec["types"] = self.types
         if self.alignments:
             rec["alignments"] = self.alignments
+        if self.scope_notes:
+            rec["scopeNotes"] = self.scope_notes
+        if self.examples:
+            rec["examples"] = self.examples
+        if self.use_when:
+            rec["useWhen"] = self.use_when
+        if self.avoid_when:
+            rec["avoidWhen"] = self.avoid_when
+        if self.how_to_use:
+            rec["howToUse"] = self.how_to_use
+        if self.use_for_consumer:
+            rec["useForConsumer"] = self.use_for_consumer
+        if self.avoid_for_consumer:
+            rec["avoidForConsumer"] = self.avoid_for_consumer
         return rec
 
 
@@ -172,6 +205,31 @@ def _fold_curies(view: FoldView, s_tid: int, p_iri: str) -> list[str]:
     return sorted(
         curie(view.lex(o)) for o in view.objects(s_tid, p_iri) if view.is_iri(o)
     )
+
+
+def _fold_public_texts(view: FoldView, s_tid: int, p_iri: str) -> list[str]:
+    """Public-facing literal text for a documentation predicate."""
+    literals = [o for o in view.objects(s_tid, p_iri) if view.is_literal(o)]
+    if not literals:
+        return []
+    representative = view.public_text(s_tid, p_iri)
+    texts = sorted({view.lex(o) for o in literals})
+    if not representative:
+        return texts
+    return [representative, *(text for text in texts if text != representative)]
+
+
+def _fold_advisory(view: FoldView, s_tid: int) -> _AdvisoryKwargs:
+    """Shared term-documentation metadata used by every flat export."""
+    return {
+        "scope_notes": _fold_public_texts(view, s_tid, _SKOS + "scopeNote"),
+        "examples": _fold_public_texts(view, s_tid, _SKOS + "example"),
+        "use_when": _fold_public_texts(view, s_tid, _GM + "useWhen"),
+        "avoid_when": _fold_public_texts(view, s_tid, _GM + "avoidWhen"),
+        "how_to_use": _fold_public_texts(view, s_tid, _GM + "howToUse"),
+        "use_for_consumer": _fold_curies(view, s_tid, _GM + "useForConsumer"),
+        "avoid_for_consumer": _fold_curies(view, s_tid, _GM + "avoidForConsumer"),
+    }
 
 
 def _fold_alignments(view: FoldView, s_tid: int) -> list[str]:
@@ -242,6 +300,7 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                 definition=view.public_text(t, definition_iri),
                 parents=_fold_curies(view, t, _RDFS + "subClassOf"),
                 alignments=_fold_alignments(view, t),
+                **_fold_advisory(view, t),
             )
         )
 
@@ -272,6 +331,7 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                 ),
                 sub_property_of=_fold_curies(view, t, _RDFS + "subPropertyOf"),
                 alignments=_fold_alignments(view, t),
+                **_fold_advisory(view, t),
             )
         )
 
@@ -295,6 +355,7 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                         if o in classes
                     ),
                     alignments=_fold_alignments(view, t),
+                    **_fold_advisory(view, t),
                 )
             )
 
@@ -305,11 +366,29 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
 # Writers
 # --------------------------------------------------------------------------- #
 
-_CLASS_COLUMNS = ["curie", "label", "definition", "subClassOf", "alignments", "iri"]
+_ADVISORY_COLUMNS = [
+    "scopeNotes",
+    "examples",
+    "useWhen",
+    "avoidWhen",
+    "howToUse",
+    "useForConsumer",
+    "avoidForConsumer",
+]
+_CLASS_COLUMNS = [
+    "curie",
+    "label",
+    "definition",
+    *_ADVISORY_COLUMNS,
+    "subClassOf",
+    "alignments",
+    "iri",
+]
 _PROPERTY_COLUMNS = [
     "curie",
     "label",
     "definition",
+    *_ADVISORY_COLUMNS,
     "propertyKind",
     "domain",
     "range",
@@ -318,7 +397,28 @@ _PROPERTY_COLUMNS = [
     "alignments",
     "iri",
 ]
-_INDIVIDUAL_COLUMNS = ["curie", "label", "definition", "types", "alignments", "iri"]
+_INDIVIDUAL_COLUMNS = [
+    "curie",
+    "label",
+    "definition",
+    *_ADVISORY_COLUMNS,
+    "types",
+    "alignments",
+    "iri",
+]
+
+
+def _advisory_record(term: Term) -> dict[str, str]:
+    """CSV-friendly representation of term advisory metadata."""
+    return {
+        "scopeNotes": "; ".join(term.scope_notes),
+        "examples": "; ".join(term.examples),
+        "useWhen": "; ".join(term.use_when),
+        "avoidWhen": "; ".join(term.avoid_when),
+        "howToUse": "; ".join(term.how_to_use),
+        "useForConsumer": "; ".join(term.use_for_consumer),
+        "avoidForConsumer": "; ".join(term.avoid_for_consumer),
+    }
 
 
 def _write_csv(path: Path, columns: list[str], rows: Iterable[dict[str, str]]) -> None:
@@ -344,6 +444,7 @@ def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
                 "curie": t.curie,
                 "label": t.label,
                 "definition": t.definition,
+                **_advisory_record(t),
                 "subClassOf": "; ".join(t.parents),
                 "alignments": "; ".join(t.alignments),
                 "iri": t.iri,
@@ -361,6 +462,7 @@ def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
                 "curie": t.curie,
                 "label": t.label,
                 "definition": t.definition,
+                **_advisory_record(t),
                 "propertyKind": t.prop_kind,
                 "domain": t.domain,
                 "range": t.range,
@@ -382,6 +484,7 @@ def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
                 "curie": t.curie,
                 "label": t.label,
                 "definition": t.definition,
+                **_advisory_record(t),
                 "types": "; ".join(t.types),
                 "alignments": "; ".join(t.alignments),
                 "iri": t.iri,
@@ -426,6 +529,29 @@ def write_jsonl(terms: list[Term], dist_dir: Path) -> Path:
     return path
 
 
+def _append_markdown_advisory(lines: list[str], term: Term) -> None:
+    """Append human-facing advisory fields for a term reference entry."""
+    for label, values in (
+        ("Scope", term.scope_notes),
+        ("Example", term.examples),
+        ("Use when", term.use_when),
+        ("Avoid when", term.avoid_when),
+        ("How to use", term.how_to_use),
+    ):
+        if values:
+            lines.append(f"\n*{label}:* " + " ".join(values))
+    if term.use_for_consumer:
+        lines.append(
+            "\n*Use for consumers:* "
+            + ", ".join(f"`{c}`" for c in term.use_for_consumer)
+        )
+    if term.avoid_for_consumer:
+        lines.append(
+            "\n*Avoid for consumers:* "
+            + ", ".join(f"`{c}`" for c in term.avoid_for_consumer)
+        )
+
+
 def write_markdown(
     terms: list[Term],
     dist_dir: Path,
@@ -452,6 +578,7 @@ def write_markdown(
         lines.append(f"### {t.label or t.curie} (`{t.curie}`)")
         if t.definition:
             lines.append(f"\n{t.definition}")
+        _append_markdown_advisory(lines, t)
         if t.parents:
             lines.append(f"\n*Subclass of:* {', '.join(f'`{p}`' for p in t.parents)}")
         if t.alignments:
@@ -462,6 +589,7 @@ def write_markdown(
         lines.append(f"### {t.label or t.curie} (`{t.curie}`)")
         if t.definition:
             lines.append(f"\n{t.definition}")
+        _append_markdown_advisory(lines, t)
         meta = f"*{t.prop_kind} property*"
         if t.domain or t.range:
             meta += f" — `{t.domain or '?'}` → `{t.range or '?'}`"
@@ -477,6 +605,7 @@ def write_markdown(
             lines.append(f"### {t.label or t.curie} (`{t.curie}`)")
             if t.definition:
                 lines.append(f"\n{t.definition}")
+            _append_markdown_advisory(lines, t)
             if t.types:
                 lines.append(f"\n*Type:* {', '.join(f'`{x}`' for x in t.types)}")
             lines.append("")

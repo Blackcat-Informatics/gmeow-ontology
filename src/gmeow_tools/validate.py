@@ -38,6 +38,12 @@ from gmeow_tools.slices import (
 )
 
 _DEFINITION = SKOS.definition
+_USE_WHEN = URIRef(NAMESPACE + "useWhen")
+_AVOID_WHEN = URIRef(NAMESPACE + "avoidWhen")
+_HOW_TO_USE = URIRef(NAMESPACE + "howToUse")
+_USE_FOR_CONSUMER = URIRef(NAMESPACE + "useForConsumer")
+_AVOID_FOR_CONSUMER = URIRef(NAMESPACE + "avoidForConsumer")
+_PROJECTION_CONTEXT = URIRef(NAMESPACE + "ProjectionContext")
 
 
 @lru_cache(maxsize=4)
@@ -321,12 +327,13 @@ def structural_lint(graph: Graph) -> ValidationResult:
 
     declared = set(typed)
 
-    # Tier-1 depth, graded (#325): public-facing terms — classes and
-    # object/datatype properties in CORE slices — should also carry a
-    # skos:scopeNote (use-when / avoid-when) and a skos:example (worked
-    # micro-example). WARNINGS for now; severity is promoted once coverage
-    # is high (tracked by the module-status matrix). Annotation properties,
-    # individuals, and extension-tier terms are exempt at this grade.
+    # Tier-1 depth, graded (#325/#471): public-facing terms — classes and
+    # object/datatype properties in CORE slices — should also carry advisory
+    # useWhen/howToUse metadata; worked skos:example coverage is nudged only
+    # after howToUse exists, so warnings stay additive instead of duplicative.
+    # WARNINGS for now; severity is promoted once coverage is high (tracked by
+    # the module-status matrix). Annotation properties, individuals, and
+    # extension-tier terms are exempt at this grade.
     core_slice_iris = {
         URIRef(s.iri)  # type: ignore[attr-defined]
         for s in _discover_slices_cached().values()
@@ -338,14 +345,36 @@ def structural_lint(graph: Graph) -> ValidationResult:
         defined_by = set(graph.objects(term, RDFS.isDefinedBy))
         if not (defined_by & core_slice_iris):
             continue
-        if (term, SKOS.scopeNote, None) not in graph:
+        if (term, _USE_WHEN, None) not in graph:
             result.warnings.append(
-                f"{kind} {term} is missing skos:scopeNote (Tier-1 depth, #325)"
+                f"{kind} {term} is missing gmeow:useWhen (Tier-1 depth, #471)"
             )
-        if (term, SKOS.example, None) not in graph:
+        has_how_to_use = (term, _HOW_TO_USE, None) in graph
+        if not has_how_to_use:
             result.warnings.append(
-                f"{kind} {term} is missing skos:example (Tier-1 depth, #325)"
+                f"{kind} {term} is missing gmeow:howToUse (Tier-1 depth, #471)"
             )
+        elif (term, SKOS.example, None) not in graph:
+            result.warnings.append(
+                f"{kind} {term} has gmeow:howToUse but no skos:example "
+                f"(Tier-1 depth, #471)"
+            )
+
+    for predicate in (_USE_FOR_CONSUMER, _AVOID_FOR_CONSUMER):
+        for subject, _, consumer in graph.triples((None, predicate, None)):
+            if (
+                not isinstance(consumer, URIRef)
+                or (
+                    consumer,
+                    RDF.type,
+                    _PROJECTION_CONTEXT,
+                )
+                not in graph
+            ):
+                result.errors.append(
+                    f"{predicate} on {subject} points to non-ProjectionContext "
+                    f"value {consumer}"
+                )
 
     # Dangling GMEOW subclass/subproperty targets.
     for predicate in (RDFS.subClassOf, RDFS.subPropertyOf):

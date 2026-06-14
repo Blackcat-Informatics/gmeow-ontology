@@ -62,6 +62,7 @@ def _build_test_gts(tmp_path: Path) -> Path:
         Term(TermKind.IRI, RDFS + "range"),
         Term(TermKind.IRI, DCTERMS + "title"),
         Term(TermKind.IRI, OWL + "versionInfo"),
+        Term(TermKind.IRI, SKOS + "example"),
         Term(TermKind.IRI, NAMESPACE + "TestConcept"),
         Term(TermKind.IRI, NAMESPACE + "TestParent"),
         Term(TermKind.IRI, NAMESPACE + "hasName"),
@@ -69,6 +70,13 @@ def _build_test_gts(tmp_path: Path) -> Path:
         Term(TermKind.IRI, NAMESPACE + "Language"),
         Term(TermKind.IRI, NAMESPACE + "languageTag"),
         Term(TermKind.IRI, NAMESPACE + "bcp47Tag"),
+        Term(TermKind.IRI, NAMESPACE + "useWhen"),
+        Term(TermKind.IRI, NAMESPACE + "avoidWhen"),
+        Term(TermKind.IRI, NAMESPACE + "howToUse"),
+        Term(TermKind.IRI, NAMESPACE + "useForConsumer"),
+        Term(TermKind.IRI, NAMESPACE + "avoidForConsumer"),
+        Term(TermKind.IRI, NAMESPACE + "consumerPublicSite"),
+        Term(TermKind.IRI, NAMESPACE + "consumerSchemaOrgJsonLd"),
         Term(TermKind.LITERAL, "Test Ontology"),
         Term(TermKind.LITERAL, "1.0.0-test"),
         Term(TermKind.LITERAL, "Test Concept", lang="x-gmeow-english"),
@@ -82,6 +90,14 @@ def _build_test_gts(tmp_path: Path) -> Path:
         Term(TermKind.LITERAL, "x-gmeow-english"),
         Term(TermKind.LITERAL, "en"),
         Term(TermKind.LITERAL, "core/test"),
+        Term(
+            TermKind.LITERAL,
+            "ex:thing gmeow:hasName ex:name .",
+            lang="x-gmeow-english",
+        ),
+        Term(TermKind.LITERAL, "Use for test name bearings.", lang="x-gmeow-english"),
+        Term(TermKind.LITERAL, "Avoid for contextual usages.", lang="x-gmeow-english"),
+        Term(TermKind.LITERAL, "Attach a PersonName node.", lang="x-gmeow-english"),
     ]
     w.add_terms(terms)
 
@@ -94,50 +110,56 @@ def _build_test_gts(tmp_path: Path) -> Path:
                 2,
                 None,
             ),  # ontology a owl:Class? actually ontology header; use owl:Ontology?
-            (0, 11, 20, None),  # dcterms:title
-            (0, 12, 21, None),  # owl:versionInfo
+            (0, 11, 28, None),  # dcterms:title
+            (0, 12, 29, None),  # owl:versionInfo
         ]
     )
     # fold_meta only needs the ontology IRI subject and its title/versionInfo values.
     # Add language mapping.
     w.add_quads(
         [
-            (17, 1, 2, None),  # Language a owl:Class
-            (17, 18, 30, None),  # languageTag x-gmeow-english
-            (17, 19, 31, None),  # bcp47Tag en
+            (18, 1, 2, None),  # Language a owl:Class
+            (18, 19, 38, None),  # languageTag x-gmeow-english
+            (18, 20, 39, None),  # bcp47Tag en
         ]
     )
     # Class hierarchy.
     w.add_quads(
         [
-            (13, 1, 2, None),  # TestConcept a owl:Class
-            (14, 1, 2, None),  # TestParent a owl:Class
-            (13, 5, 22, None),  # label
-            (13, 6, 23, None),  # definition
-            (13, 7, 0, None),  # isDefinedBy ontology
-            (13, 8, 14, None),  # subClassOf TestParent
-            (14, 1, 2, None),
-            (14, 5, 24, None),
-            (14, 6, 25, None),
+            (14, 1, 2, None),  # TestConcept a owl:Class
+            (15, 1, 2, None),  # TestParent a owl:Class
+            (14, 5, 30, None),  # label
+            (14, 6, 31, None),  # definition
+            (14, 7, 0, None),  # isDefinedBy ontology
+            (14, 8, 15, None),  # subClassOf TestParent
+            (15, 1, 2, None),
+            (15, 5, 32, None),
+            (15, 6, 33, None),
         ]
     )
     # Property.
     w.add_quads(
         [
-            (15, 1, 3, None),  # hasName a owl:ObjectProperty
-            (15, 1, 4, None),  # functional
-            (15, 5, 26, None),
-            (15, 6, 27, None),
-            (15, 9, 13, None),  # domain TestConcept
-            (15, 10, 14, None),  # range TestParent
+            (16, 1, 3, None),  # hasName a owl:ObjectProperty
+            (16, 1, 4, None),  # functional
+            (16, 5, 34, None),
+            (16, 6, 35, None),
+            (16, 9, 14, None),  # domain TestConcept
+            (16, 10, 15, None),  # range TestParent
+            (16, 13, 41, None),  # skos:example
+            (16, 21, 42, None),  # useWhen
+            (16, 22, 43, None),  # avoidWhen
+            (16, 23, 44, None),  # howToUse
+            (16, 24, 26, None),  # useForConsumer
+            (16, 25, 27, None),  # avoidForConsumer
         ]
     )
     # Individual.
     w.add_quads(
         [
-            (16, 1, 13, None),  # TestIndividual a TestConcept
-            (16, 5, 28, None),
-            (16, 6, 29, None),
+            (17, 1, 14, None),  # TestIndividual a TestConcept
+            (17, 5, 36, None),
+            (17, 6, 37, None),
         ]
     )
 
@@ -190,6 +212,15 @@ def test_create_docs_writes_expected_tree(tmp_path: Path) -> None:
     assert (out / "ontology-docs" / "index.md").exists()
     assert (out / "alignments.md").exists()
     assert (out / "statements.md").exists()
+
+    prop = (out / "terms" / "properties" / "gmeow-hasName.md").read_text(
+        encoding="utf-8"
+    )
+    assert "## Usage Advice" in prop
+    assert "**Use when:** Use for test name bearings." in prop
+    assert "**Avoid when:** Avoid for contextual usages." in prop
+    assert "**How to use:** Attach a PersonName node." in prop
+    assert "`gmeow:consumerPublicSite`" in prop
 
 
 def test_create_docs_retags_internal_language_tags(tmp_path: Path) -> None:

@@ -66,6 +66,34 @@ def _defined_by(view: FoldView, tid: int) -> str:
     return curie(view.lex(owner_tid))
 
 
+def _append_usage_advice(lines: list[str], term: Term) -> None:
+    """Append advisory metadata to a generated per-term Markdown page."""
+    fields = [
+        ("Scope", term.scope_notes),
+        ("Example", term.examples),
+        ("Use when", term.use_when),
+        ("Avoid when", term.avoid_when),
+        ("How to use", term.how_to_use),
+    ]
+    consumer_fields = [
+        ("Use for consumers", term.use_for_consumer),
+        ("Avoid for consumers", term.avoid_for_consumer),
+    ]
+    if not any(values for _, values in fields + consumer_fields):
+        return
+    lines.append("## Usage Advice")
+    lines.append("")
+    for label, values in fields:
+        if values:
+            lines.append(f"- **{label}:** " + " ".join(values))
+    for label, values in consumer_fields:
+        if values:
+            lines.append(
+                f"- **{label}:** " + ", ".join(_link(value) for value in values)
+            )
+    lines.append("")
+
+
 def _write_index(
     out_dir: Path,
     view: FoldView,
@@ -128,6 +156,8 @@ def _write_term_file(out_dir: Path, term: Term, view: FoldView) -> None:
         if owner:
             lines.append(f"*Defined by:* {_link(owner)}")
             lines.append("")
+
+    _append_usage_advice(lines, term)
 
     if term.category == "class":
         if term.parents:
