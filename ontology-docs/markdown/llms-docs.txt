@@ -93,6 +93,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - ma: Ontology for Media Resources; linkage rows 4
 - mads: mads; linkage rows 1
 - mf: OGC Moving Features; linkage rows 2
+- mimo: mimo; linkage rows 7
 - mls: mls; linkage rows 3
 - mo: Music Ontology; linkage rows 1
 - moat: MOAT; linkage rows 1
@@ -243,9 +244,11 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - slices/core/language/examples/multilingual-document.ttl: Multilingual Document; slice language; terms gmeow:InformationObject, gmeow:Language, gmeow:bcp47Tag, gmeow:langEnglish, gmeow:languageTag, gmeow:title, gmeow:writtenInLanguage
 - slices/core/lifecycle/examples/dissolved-org.ttl: Dissolved Org; slice lifecycle; terms gmeow:Event, gmeow:Instant, gmeow:Organization, gmeow:TimeInterval, gmeow:displayable, gmeow:eventTemporalFrame, gmeow:eventTime, gmeow:eventType, gmeow:eventTypeCreation, gmeow:eventTypeDestruction, gmeow:eventTypeDissolution, gmeow:existenceInterval
 - slices/core/names/examples/person-names.ttl: Person Names; slice names; terms gmeow:NamePart, gmeow:NameUsage, gmeow:Person, gmeow:PersonName, gmeow:displayable, gmeow:fullName, gmeow:hasName, gmeow:hasNamePart, gmeow:hasPronounSet, gmeow:namePartGiven, gmeow:namePartMiddle, gmeow:namePartSurname
+- slices/core/observations/examples/temperature-reading.ttl: Temperature Reading; slice observations; terms gmeow:Measurement, gmeow:Place, gmeow:ScalarQuantity, gmeow:SoftwareAgent, gmeow:hasUnit, gmeow:methodInstrumentalReading, gmeow:name, gmeow:observationMethod, gmeow:observationResult, gmeow:observedFeature, gmeow:quantityUncertainty, gmeow:quantityValue
 - slices/core/organization/examples/post-and-membership.ttl: Post And Membership; slice organization; terms gmeow:Membership, gmeow:Organization, gmeow:Person, gmeow:Post, gmeow:fillsPost, gmeow:membershipMember, gmeow:membershipOrganization, gmeow:name, gmeow:organizationType, gmeow:organizationTypeCompany, gmeow:postIn, gmeow:subOrganizationOf
 - slices/core/places/examples/located-place.ttl: Located Place; slice places; terms gmeow:CoordinateObservation, gmeow:GeoCoordinates, gmeow:Organization, gmeow:Place, gmeow:assertedAt, gmeow:authorityLink, gmeow:confidence, gmeow:containedInPlace, gmeow:coordinateObservationOf, gmeow:coordinateResult, gmeow:elevation, gmeow:hasCoordinates
 - slices/core/provenance/examples/import-lineage.ttl: Import Lineage; slice provenance; terms gmeow:CreativeWork, gmeow:ImportActivity, gmeow:SoftwareAgent, gmeow:Summary, gmeow:confidence, gmeow:contentDigest, gmeow:ingestedAt, gmeow:name, gmeow:sourceLocation, gmeow:sourceModifiedAt, gmeow:wasAssociatedWith, gmeow:wasAttributedTo
+- slices/core/quality/examples/dataset-completeness.ttl: Dataset Completeness; slice quality; terms gmeow:Dataset, gmeow:Observation, gmeow:Organization, gmeow:QualityAssessment, gmeow:ScalarQuantity, gmeow:assessedEntity, gmeow:hasUnit, gmeow:methodComputationalModel, gmeow:name, gmeow:observationMethod, gmeow:observationResult, gmeow:qualityDimension
 - slices/core/rights/examples/licensed-dataset.ttl: Licensed Dataset; slice rights; terms gmeow:Copyright, gmeow:Dataset, gmeow:Duty, gmeow:License, gmeow:Permission, gmeow:Person, gmeow:Prohibition, gmeow:RightsAction, gmeow:RightsStatement, gmeow:actionAttribute, gmeow:actionCommercialize, gmeow:actionReproduce
 - slices/extensions/risk/examples/trust-collapse.ttl: Trust Collapse; slice risk; terms gmeow:Cascade, gmeow:CausalLink, gmeow:EventType, gmeow:Hazard, gmeow:Mitigation, gmeow:SocialObject, gmeow:cascadeFirstLink, gmeow:cascadeSeverity, gmeow:causalModality, gmeow:causallyNecessitates, gmeow:causallyPromotes, gmeow:hazardBearer
 - slices/core/sexuality/examples/split-attraction.ttl: Split Attraction; slice sexuality; terms gmeow:IdentityFacet, gmeow:Person, gmeow:RomanticOrientation, gmeow:SexualOrientation, gmeow:facetSubject, gmeow:facetVantage, gmeow:hasRomanticOrientation, gmeow:hasSexualOrientation, gmeow:name, gmeow:orientAsexual, gmeow:romanticBiromantic, gmeow:romanticOrientationValue
@@ -487,8 +490,9 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:InscriptionTranslation (class; gmeow:slices/archaeological-evidence): A translation of an inscription into another language — an Observation that produces a LexicalForm representing the meaning of the source inscription in a target language. Standpoint-scoped: competing translations coexist without privilege...
 - gmeow:InscriptionTransliteration (class; gmeow:slices/archaeological-evidence): A transliteration of an inscription into another script — an Observation that maps sign sequences from one writing system to another, producing a LexicalForm. Standpoint-scoped: competing transliteration schemes (e.g. Hepburn vs Kunrei-shi...
 - gmeow:Instant (class; gmeow:slices/temporal): A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame.
-- gmeow:InstrumentConfiguration (class; gmeow:slices/music): A configured instrument setup — instrument × modification × tuning frame × extended-technique arrangement. Minimal stub declared here as the range of gmeow:participationConfiguration; fully elaborated in issue #314 (Principle 4).
-- gmeow:InstrumentType (class; gmeow:slices/music): The kind of a musical instrument — piano, violin, drum kit, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Stub range for issue #314 (Instruments & configurations).
+- gmeow:InstrumentConfiguration (class; gmeow:slices/music): A configured instrument setup — a relator binding an instrument item or type, one or more modifications, a tuning frame, and an interval. The prepared-piano / drop-tuning answer (issue #314). A physical instrument and a software instrument...
+- gmeow:InstrumentModification (class; gmeow:slices/music): A modification applied to an instrument in an InstrumentConfiguration — prepared, scordatura, capo, mute, electrified, extended range, etc. An open value vocabulary of individuals; never subclassed (Principle 9).
+- gmeow:InstrumentType (class; gmeow:slices/music): The kind of a musical instrument — piano, violin, drum kit, voice, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Each individual may carry a Hornbostel–Sachs code (gmeow:hsNumber) and a MIMO exactMatch (Prin...
 - gmeow:Intention (class; gmeow:slices/teleology): An intentional mode of internal commitment — the agent has settled on pursuing the goal (UFO-C: intention), though no other agent holds them to it. Inheres in exactly one agent (gmeow:intentBearer); aims at exactly one goal (gmeow:intentio...
 - gmeow:IntentionTenure (class; gmeow:slices/teleology): The reified, time-scoped fact that an agent held an intentional mode over an interval — a goal adopted in January and abandoned in June is an opened-then-closed tenure, never a deletion (Principle 10). The StandpointTenure idiom applied to...
 - gmeow:IntentionalMode (class; gmeow:slices/teleology): The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. The intrinsic branch of gmeow:IntentionalMoment. Never instantiated directly: instances are Desires or In...
@@ -1454,6 +1458,9 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:finalityStatusOrphaned (individual; gmeow:slices/attestation): The block containing the transaction was abandoned by the canonical chain.
 - gmeow:finalityStatusPending (individual; gmeow:slices/attestation): The ledger transaction has been submitted but not yet included in a block or confirmed.
 - gmeow:finalityStatusReorged (individual; gmeow:slices/attestation): The transaction was affected by a chain reorganization and is no longer in the canonical chain.
+- gmeow:fixture1959LesPaul (individual; gmeow:slices/music): A placeholder physical instrument item used to test the participationInstrumentItem Entity range (issue #314).
+- gmeow:fixture1959LesPaulConfiguration (individual; gmeow:slices/music): An item-level configuration fixture binding the 1959 Les Paul instrument item to an electrified modification and the 12-EDO tuning frame (issue #314).
+- gmeow:fixtureDropDGuitarConfiguration (individual; gmeow:slices/music): A drop-D guitar configuration fixture: electric guitar + scordatura modification + tablature-relative drop-D frame + major-second-down interval.
 - gmeow:fixtureFourThirtyThreeWork (individual; gmeow:slices/music): John Cage's 4′33″ as a fixture: a fully specified work whose content is the ambient sound delegated by positive assertion.
 - gmeow:fixtureGraphicScoreExpression (individual; gmeow:slices/music): The Expression realized by the canonical visual graphic score.
 - gmeow:fixtureGraphicScoreTranscription (individual; gmeow:slices/music): A symbolic CMN transcription of the graphic score, explicitly a standpointed interpretation derived from the visual Manifestation.
@@ -1469,6 +1476,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:fixtureKlavierstuckPerformanceOne (individual; gmeow:slices/music): A documented performance of Klavierstück XI with traversal A → C → B → D.
 - gmeow:fixtureKlavierstuckPerformanceTwo (individual; gmeow:slices/music): A documented performance of Klavierstück XI with traversal B → D → A → C.
 - gmeow:fixtureKlavierstuckXIWork (individual; gmeow:slices/music): Stockhausen's Klavierstück XI as a mobile-form fixture: fragments plus a traversal constraint.
+- gmeow:fixturePreparedPianoConfiguration (individual; gmeow:slices/music): A prepared-piano configuration fixture: piano + prepared modification over the 12-EDO frame, no interval (timbre change, not tuning change).
 - gmeow:fixtureReichPhasingExpression (individual; gmeow:slices/music): One realization of the Reich-style phasing process, linked by provenance.
 - gmeow:fixtureReichPhasingProcess (individual; gmeow:slices/music): A generative process fixture: two voices begin in unison; one accelerates slightly until it has shifted by one beat, then locks.
 - gmeow:fixtureReichPhasingWork (individual; gmeow:slices/music): A worked musical work fixture whose identity is the phasing process itself.
@@ -1643,11 +1651,24 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:indexAlgorithmFlat (individual; gmeow:slices/graphrag): Exhaustive (brute-force) scan — exact, no approximation structure.
 - gmeow:indexAlgorithmHnsw (individual; gmeow:slices/graphrag): Hierarchical Navigable Small World graph index.
 - gmeow:indexAlgorithmIvf (individual; gmeow:slices/graphrag): Inverted-file (coarse-quantizer) index.
+- gmeow:instrumentModificationCapo (individual; gmeow:slices/music): A capo is placed on a stringed instrument, raising the open-string pitch.
+- gmeow:instrumentModificationElectrified (individual; gmeow:slices/music): The instrument is augmented with electronic pickups, amplification, or signal processing.
+- gmeow:instrumentModificationExtendedRange (individual; gmeow:slices/music): The instrument has additional strings, keys, or sounding elements beyond its conventional range.
+- gmeow:instrumentModificationMute (individual; gmeow:slices/music): A mute is applied to alter the timbre or volume of the instrument.
+- gmeow:instrumentModificationPrepared (individual; gmeow:slices/music): The instrument is prepared — objects are inserted on or between sounding elements to alter timbre (e.g. Cage prepared piano).
+- gmeow:instrumentModificationScordatura (individual; gmeow:slices/music): The instrument is tuned away from its standard tuning (e.g. drop-D guitar, solo violin scordatura).
+- gmeow:instrumentTypeAdaptedGuitar (individual; gmeow:slices/music): A guitar adapted for a non-standard tuning or playing technique, as in Harry Partch's instrumentarium. No direct MIMO entry exists.
 - gmeow:instrumentTypeDoubleBass (individual; gmeow:slices/music): The largest and lowest-pitched bowed string instrument in the modern symphony orchestra.
 - gmeow:instrumentTypeDrumKit (individual; gmeow:slices/music): A collection of drums, cymbals, and other percussion instruments played by a single drummer.
 - gmeow:instrumentTypeElectricGuitar (individual; gmeow:slices/music): A guitar that uses one or more pickups to convert string vibration into electrical signals.
+- gmeow:instrumentTypeGamelan (individual; gmeow:slices/music): An ensemble of percussion instruments from Indonesia, treated here as a single instrument-type for performance-credit purposes.
+- gmeow:instrumentTypeModularSynth (individual; gmeow:slices/music): A synthesizer composed of separate modules connected by patch cables, often voltage-controlled.
 - gmeow:instrumentTypePiano (individual; gmeow:slices/music): A keyboard instrument in which strings are struck by hammers.
+- gmeow:instrumentTypeSitar (individual; gmeow:slices/music): A plucked stringed instrument used in Hindustani classical music.
+- gmeow:instrumentTypeTabla (individual; gmeow:slices/music): A pair of twin hand drums used in Hindustani classical music.
+- gmeow:instrumentTypeTurntables (individual; gmeow:slices/music): A pair of phonograph turntables used as a musical instrument, especially in DJing and turntablism. No direct MIMO entry exists.
 - gmeow:instrumentTypeViolin (individual; gmeow:slices/music): A bowed string instrument with four strings tuned in fifths.
+- gmeow:instrumentTypeVoice (individual; gmeow:slices/music): The human voice as a musical instrument. No MIMO exactMatch exists for the voice as instrument; aligned where possible by reference (Principle 5).
 - gmeow:intentBridgedByReference (individual; gmeow:slices/citations): The cited work is bridged by reference — aligned to but not imported as axioms (Principle 5).
 - gmeow:intentCitesAsDataSource (individual; gmeow:slices/citations): The cited work is used as a data source.
 - gmeow:intentConformsTo (individual; gmeow:slices/citations): The citing entity conforms to the cited work (a standard, schema, or specification).
@@ -2114,6 +2135,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:pitchCollectionRastMaqam (individual; gmeow:slices/music): The Arabic Rast maqam on C, composed of ordered ajnas (Rast on C, Wusta on G, Rast on high C), as a maqam seed (stress case 12).
 - gmeow:pitchCollectionWustaJinsG (individual; gmeow:slices/music): The Wusta jins (G-A-B half-flat-C) within Rast maqam.
 - gmeow:pitchCollectionYamanRaga (individual; gmeow:slices/music): A simplified Hindustani Raga Yaman (Kalyan) seed in 12-EDO, illustrating vādī, samvādī, and member roles.
+- gmeow:pitchIntervalMajorSecondDown (individual; gmeow:slices/music): A descending major second, the interval by which a standard guitar low E is dropped to D in drop-D tuning.
 - gmeow:pitchIntervalPerfectFifth (individual; gmeow:slices/music): The just-intonation perfect fifth, ratio 3/2.
 - gmeow:pitchIntervalSeptimalComma (individual; gmeow:slices/music): The small interval 64/63 between a just-intonation dominant seventh and a harmonic seventh.
 - gmeow:pitchIntervalSyntonicComma (individual; gmeow:slices/music): The interval 81/80 between a Pythagorean major third and a just-intonation major third.
@@ -2166,8 +2188,16 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:placeTypeSite (individual; gmeow:slices/places): The site place type — a classification of a location by its function or form in human geography.
 - gmeow:placeTypeThoroughfare (individual; gmeow:slices/places): The thoroughfare place type — a classification of a location by its function or form in human geography.
 - gmeow:playingTechniqueArco (individual; gmeow:slices/music): Playing a bowed string instrument with the bow.
+- gmeow:playingTechniqueBentNote (individual; gmeow:slices/music): A continuous pitch inflection from one pitch to another, common in blues, jazz, and many world-music traditions.
+- gmeow:playingTechniqueColLegno (individual; gmeow:slices/music): Striking the strings with the wood of the bow rather than the hair.
+- gmeow:playingTechniqueGrowl (individual; gmeow:slices/music): A brass or woodwind timbre produced by growling or fluttering the vocal cords while playing.
+- gmeow:playingTechniqueHarmonics (individual; gmeow:slices/music): A technique that emphasizes upper partials of a string or air column to produce flute-like overtones.
+- gmeow:playingTechniqueKonnakol (individual; gmeow:slices/music): Vocal syllables used to articulate and teach rhythmic patterns in South Indian music.
+- gmeow:playingTechniqueMultiphonics (individual; gmeow:slices/music): Producing two or more simultaneous pitches on a monophonic instrument, common in wind and string extended techniques.
 - gmeow:playingTechniquePizzicato (individual; gmeow:slices/music): Plucking the strings of a bowed string instrument rather than bowing them.
 - gmeow:playingTechniquePreparedPiano (individual; gmeow:slices/music): A piano whose sound is altered by placing objects on or between the strings.
+- gmeow:playingTechniqueSlap (individual; gmeow:slices/music): A percussive string-playing technique in which the string is struck against the fingerboard.
+- gmeow:playingTechniqueTapping (individual; gmeow:slices/music): Producing notes by tapping the fingerboard or strings, often on guitar or electric bass.
 - gmeow:polarityBarrier (individual; gmeow:slices/accessibility): A negative accessibility barrier — the subject impedes the facet.
 - gmeow:polarityCautionary (individual; gmeow:slices/norms): A boundary case — superficially like the reward pole but warning or redirecting (the anti-pattern with a correct-criterion redirect).
 - gmeow:polarityFeature (individual; gmeow:slices/accessibility): A positive accessibility feature — the subject provides the facet.
@@ -2739,6 +2769,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:tuningSystem24EDO (individual; gmeow:slices/music): Quarter-tone equal division of the octave into 24 parts.
 - gmeow:tuningSystem31EDO (individual; gmeow:slices/music): Equal division of the octave into 31 parts, a closer approximation to meantone and just intonation.
 - gmeow:tuningSystemBohlenPierce (individual; gmeow:slices/music): An equal division of the tritave (3/1) into 13 steps, a non-octave tuning system.
+- gmeow:tuningSystemGuitarDropD (individual; gmeow:slices/music): A tablature-relative tuning frame for a six-string guitar whose lowest string is tuned down a major second to D, used by the drop-D configuration fixture (issue #314).
 - gmeow:tuningSystemJustIntonation (individual; gmeow:slices/music): A generic just-intonation reference frame: pitch values are integer ratios within a prime limit, relative to a chosen origin.
 - gmeow:tuningSystemKindAdaptive (individual; gmeow:slices/music): A tuning system that changes in response to context, performance, or algorithmic process (e.g., dynamic just intonation, live retuning).
 - gmeow:tuningSystemKindEqualDivision (individual; gmeow:slices/music): A tuning system that divides a fixed interval (usually the octave) into a number of equal parts (e.g., 12-EDO, 19-EDO, 31-EDO).
@@ -2995,6 +3026,11 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:conditionsOfAccess (property; gmeow:slices/rights): Human-readable conditions under which the asset may be accessed (schema:conditionsOfAccess), e.g. "on-site access only".
 - gmeow:conferredByEvent (property; gmeow:slices/names): The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non...
 - gmeow:confidence (property; gmeow:slices/provenance): Confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies.
+- gmeow:configurationInstrumentType (property; gmeow:slices/music): The kind of instrument this configuration applies to, when no specific item is named (e.g. drop-D electric guitar). Functional per relator.
+- gmeow:configurationInterval (property; gmeow:slices/music): The interval that describes this configuration (e.g. the whole-step drop for drop-D). Functional per relator; optional because some modifications (prepared piano) alter timbre without a named interval.
+- gmeow:configurationModification (property; gmeow:slices/music): A modification applied in this configuration — prepared, scordatura, capo, mute, electrified, extended range, etc. Non-functional so that compound modifications (e.g. muted + electrified) can be asserted in one relator.
+- gmeow:configurationOf (property; gmeow:slices/music): The specific instrument item this configuration applies to — a PhysicalObject (e.g. a 1959 Les Paul), an InformationObject (e.g. a synth plugin), or any other Entity. Functional per relator; use configurationInstrumentType when no specific...
+- gmeow:configurationTuningFrame (property; gmeow:slices/music): The tuning frame relative to which this configuration is expressed (Principle 11). Functional per relator.
 - gmeow:confirmationDepth (property; gmeow:slices/attestation): The number of blocks confirming a transaction or log entry since its inclusion. Domain-free.
 - gmeow:conflictStrategy (property; gmeow:slices/rights): How a rights statement resolves a permission/prohibition conflict over the same action (odrl:conflict): gmeow:conflictPerm (permission wins), gmeow:conflictProhibit (prohibition wins), gmeow:conflictInvalid (the policy is void). Functional.
 - gmeow:conformsTo (property; gmeow:slices/creative-works): An established standard to which the described resource conforms.
@@ -3432,6 +3468,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:hopOrdinal (property; gmeow:slices/email): The position of a hop within the message path (1 = closest to the origin).
 - gmeow:hostedAt (property; gmeow:slices/software): The forge or hosting platform where a repository is hosted. Non-functional: a repository may be mirrored on multiple platforms.
 - gmeow:howToUse (property; gmeow:slices/kernel): Term-level advisory metadata carrying a short modeling recipe for the HOW facet: the companion properties, relators, statement metadata, or projection checks that normally travel with the annotated term. Documentation-only; it does not cha...
+- gmeow:hsNumber (property; gmeow:slices/music): The Hornbostel–Sachs classification number for this instrument type, as a literal string (e.g. "314.122-4-8" for piano). Optional; carried as a literal because HS codes are not quantitative values (Principle 11).
 - gmeow:iban (property; gmeow:slices/finance): The International Bank Account Number (ISO 13616) of a bank account.
 - gmeow:identifier (property; gmeow:slices/documents): A formal identifier of a creative work, such as a DOI or patent number.
 - gmeow:identifierScheme (property; gmeow:slices/organization): The scheme of an identifier — e.g. 'lei', 'ror', 'naics', 'isicV4', 'companyRegistration', 'wikidata'. Declared on the Identifier node, not the Organization, to avoid cross-product pairing bugs when multiple identifiers coexist.
@@ -3711,10 +3748,10 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - gmeow:participantMessage (property; gmeow:slices/email): The message a participant occurrence belongs to.
 - gmeow:participantOrdinal (property; gmeow:slices/email): The zero-based position of this address occurrence.
 - gmeow:participantRole (property; gmeow:slices/email): The header or envelope role of this address occurrence.
-- gmeow:participationConfiguration (property; gmeow:slices/music): The instrument configuration used in this participation. Functional per relator. Range is the #314 stub class.
+- gmeow:participationConfiguration (property; gmeow:slices/music): The instrument configuration used in this participation. Functional per relator. Range elaborated in issue #314.
 - gmeow:participationEvent (property; gmeow:slices/events): The event a participation is part of (functional — one event per participation).
 - gmeow:participationInstrument (property; gmeow:slices/music): The kind of instrument involved in this performance participation. One instrument type per PerformanceParticipation is recommended; mint one participation per instrument (SHACL advisory).
-- gmeow:participationInstrumentItem (property; gmeow:slices/music): The specific physical instrument item used in this participation — the particular Stradivarius, the named drum kit, etc. Functional per relator.
+- gmeow:participationInstrumentItem (property; gmeow:slices/music): The specific instrument item used in this participation — the particular 1959 Les Paul (a PhysicalObject), a synth plugin (an InformationObject), the named drum kit, etc. Ranges over Entity so that any item-kind can be named without mintin...
 - gmeow:participationInterval (property; gmeow:slices/events): The time interval over which the participation held. (A relator carries its period this way — matching usageInterval / relationshipInterval — rather than via duringInterval.)
 - gmeow:participationPart (property; gmeow:slices/music): The musical part or role the participant performed — e.g. bass line, lead vocal, first violin. Range intentionally open (the tenurePosition precedent) so a part may be a segment, a voice, a named chair, or any other entity. Functional per...
 - gmeow:participationParticipant (property; gmeow:slices/events): The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants.

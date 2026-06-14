@@ -6,7 +6,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 
 - **Version:** `0.1.0`
 - **Namespace:** <https://blackcatinformatics.ca/gmeow/>
-- **Terms:** 593 classes, 1368 properties, 1954 individuals, 1 datatypes
+- **Terms:** 594 classes, 1374 properties, 1981 individuals, 1 datatypes
 - **Slices:** 37 core, 24 extension
 
 ## Start Here

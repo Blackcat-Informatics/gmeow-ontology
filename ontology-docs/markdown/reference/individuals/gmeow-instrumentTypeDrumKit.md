@@ -20,3 +20,30 @@ Use [`gmeow:instrumentTypeDrumKit`](gmeow-instrumentTypeDrumKit.md) as a control
 ## Common Companion Terms
 
 [`gmeow:InstrumentType`](../classes/gmeow-InstrumentType.md)
+
+## External Equivalences
+
+Equivalent or closely aligned targets: `mimo`
+
+## Linkages
+
+Generated from the canonical mapping DSL. SSSOM files are the generated public interchange form for term equivalences.
+
+### Term Equivalences
+
+| Source | Kind | Profile | Predicate/Relation | Target | Evidence |
+|---|---|---|---|---|---|
+| [`gmeow:instrumentTypeDrumKit`](gmeow-instrumentTypeDrumKit.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | mimo:2493 | `gmeow-music.sssom.tsv`; `gmeow:eqMu030`; confidence 0.85 |
+
+<details>
+<summary>Published Alignment Graph</summary>
+
+<h3>Alignments</h3>
+<table>
+<thead><tr><th>Relation</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td><code>closeMatch</code></td><td><a href="http://www.mimo-db.eu/InstrumentsKeywords/2493"><code>mimo:2493</code></a></td></tr>
+</tbody>
+</table>
+
+</details>

@@ -215,6 +215,29 @@ take event generates a `Recording`; the composite `wasDerivedFrom` the take
 recordings. The fixture demonstrates the “who played what on take 3” competency
 query via `PerformanceParticipation`.
 
+## Instruments & configurations (issue #314)
+
+### Three levels, no subclass tree
+
+GMEOW models instruments at three levels and refuses both a physical-only assumption and a flat string:
+
+1. **`gmeow:InstrumentType`** — an open value vocabulary (`gufo:QualityValue` individuals): piano, violin, drum kit, voice, sitar, tabla, modular synthesizer, turntables, adapted guitar, gamelan, etc. Each seed optionally carries a `gmeow:hsNumber` Hornbostel–Sachs literal and a `skos:exactMatch` to the MIMO vocabulary (Principle 5).
+2. **Specific instrument items** — no new class. A 1959 Les Paul is a `gmeow:PhysicalObject`; a synth plugin is a `gmeow:InformationObject`. `gmeow:participationInstrumentItem` ranges over `gmeow:Entity` so any item-kind can be named.
+3. **`gmeow:InstrumentConfiguration`** — a `gufo:Relator` binding an instrument item or type, one or more `InstrumentModification` values, a `TuningSystem`, and an optional `PitchInterval`.
+
+### `InstrumentModification`
+
+An open value vocabulary: `prepared`, `scordatura`, `capo`, `mute`, `electrified`, `extendedRange`. Multiple modifications may coexist on one configuration (e.g. muted + electrified).
+
+### `PlayingTechnique`
+
+Another open value vocabulary carried on `PerformanceParticipation`: arco, pizzicato, col legno, prepared piano, multiphonics, tapping, slap, growl, konnakol, bent note, harmonics.
+
+### Micro-fixtures
+
+- **Cage prepared piano**: piano + prepared + 12-EDO frame, no interval (timbre change, not tuning change).
+- **Drop-D electric guitar**: electric guitar + scordatura + a `tablatureRelative` drop-D frame + a major-second-down interval.
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.

@@ -49,6 +49,43 @@
 </ul>
 <h2>Local Map</h2>
 <p><img alt="quality map" src="../../diagrams/slices/quality.svg"></p>
+<h2>Examples</h2>
+<h3>Dataset Completeness</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/quality/examples/dataset-completeness.ttl"><code>slices/core/quality/examples/dataset-completeness.ttl</code></a></li>
+<li><strong>GMEOW terms:</strong> <a href="../../reference/classes/gmeow-Dataset/"><code>gmeow:Dataset</code></a>, <a href="../../reference/classes/gmeow-Observation/"><code>gmeow:Observation</code></a>, <a href="../../reference/classes/gmeow-Organization/"><code>gmeow:Organization</code></a>, <a href="../../reference/classes/gmeow-QualityAssessment/"><code>gmeow:QualityAssessment</code></a>, <a href="../../reference/classes/gmeow-ScalarQuantity/"><code>gmeow:ScalarQuantity</code></a>, <a href="../../reference/properties/gmeow-assessedEntity/"><code>gmeow:assessedEntity</code></a>, <a href="../../reference/properties/gmeow-hasUnit/"><code>gmeow:hasUnit</code></a>, <a href="../../reference/individuals/gmeow-methodComputationalModel/"><code>gmeow:methodComputationalModel</code></a>, <a href="../../reference/properties/gmeow-name/"><code>gmeow:name</code></a>, <a href="../../reference/properties/gmeow-observationMethod/"><code>gmeow:observationMethod</code></a></li>
+<li><strong>External prefixes:</strong> <code>xsd</code></li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: data quality IS a measurement . A gmeow:QualityAssessment
+# is a gmeow:Observation subclass, so a completeness assessment carries the SAME
+# bundle as any other measurement: gmeow:assessedEntity (the feature, a sub-
+# property of observedFeature), a gmeow:qualityDimension naming WHICH quality, a
+# gmeow:observationMethod, a gmeow:vantage (who assessed), and an entity-valued
+# gmeow:ScalarQuantity result (98.5% with its unit) rather than a bare number.
+# Quality is not a special boolean flag — it is an observation like temperature.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/quality/&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+ex:dataset a gmeow:Dataset ; gmeow:title &quot;Coastal Bird Survey 2026&quot;@en .
+ex:auditor a gmeow:Organization ; gmeow:name &quot;Data Quality Audit Ltd.&quot;@en .
+
+# --- The assessment: which entity, which dimension, by what method, from whom.
+ex:assessment a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:dataset ;
+    gmeow:qualityDimension  gmeow:qualityDimensionCompleteness ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:auditor ;
+    gmeow:observationResult ex:completeness .
+
+# --- The result: a scalar percentage, unit-bundled like any measurement.
+ex:completeness a gmeow:ScalarQuantity ;
+    gmeow:quantityValue &quot;98.5&quot;^^xsd:decimal ;
+    gmeow:hasUnit       &lt;http://qudt.org/vocab/unit/PERCENT&gt; .
+</code></pre>
 <h2>Terms</h2>
 <h3>Classes</h3>
 <table>

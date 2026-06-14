@@ -27,6 +27,46 @@ This slice owns 47 terms and contributes 104 mapping or projection rows. Use it 
 
 ![observations map](../diagrams/slices/observations.svg)
 
+## Examples
+
+### Temperature Reading
+
+- **Source:** [`slices/core/observations/examples/temperature-reading.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/observations/examples/temperature-reading.ttl)
+- **GMEOW terms:** [`gmeow:Measurement`](../reference/classes/gmeow-Measurement.md), [`gmeow:Place`](../reference/classes/gmeow-Place.md), [`gmeow:ScalarQuantity`](../reference/classes/gmeow-ScalarQuantity.md), [`gmeow:SoftwareAgent`](../reference/classes/gmeow-SoftwareAgent.md), [`gmeow:hasUnit`](../reference/properties/gmeow-hasUnit.md), [`gmeow:methodInstrumentalReading`](../reference/individuals/gmeow-methodInstrumentalReading.md), [`gmeow:name`](../reference/properties/gmeow-name.md), [`gmeow:observationMethod`](../reference/properties/gmeow-observationMethod.md), [`gmeow:observationResult`](../reference/properties/gmeow-observationResult.md), [`gmeow:observedFeature`](../reference/properties/gmeow-observedFeature.md)
+- **External prefixes:** `xsd`
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a measurement is a reified Observation (, P11). A
+# gmeow:Measurement records WHAT was observed (gmeow:observedFeature), HOW
+# (gmeow:observationMethod), and from WHERE (gmeow:vantage — the sensor). Its
+# result is NOT a bare number on the observation: the scalar lives in an
+# entity-valued gmeow:ScalarQuantity wrapper that bundles the value with its UNIT
+# and uncertainty, so a temperature is never asserted free-floating (P11 — every
+# value carries its frame). The unit is aligned to QUDT by reference (P5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:sensor a gmeow:SoftwareAgent ; gmeow:name "Rack temperature sensor 7"@en .
+ex:room   a gmeow:Place ; gmeow:name "Server room A"@en .
+
+# --- The measurement: observed feature, method, vantage, and an entity result.
+ex:reading a gmeow:Measurement ;
+    gmeow:observedFeature   ex:room ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:vantage           ex:sensor ;
+    gmeow:observationResult ex:temp .
+
+# --- The result wrapper: value + unit + uncertainty, not a bare literal.
+ex:temp a gmeow:ScalarQuantity ;
+    gmeow:quantityValue       "22.5"^^xsd:decimal ;
+    gmeow:quantityUncertainty "0.1"^^xsd:decimal ;
+    gmeow:hasUnit             <http://qudt.org/vocab/unit/DEG_C> .
+```
+
 ## Terms
 
 ### Classes

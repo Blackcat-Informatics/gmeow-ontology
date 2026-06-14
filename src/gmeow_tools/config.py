@@ -353,6 +353,8 @@ PREFIXES: dict[str, str] = {
     "vcard": "http://www.w3.org/2006/vcard/ns#",
     # Music Ontology (legacy but widely-used; bridged by reference only)
     "mo": "http://purl.org/ontology/mo/",
+    # MIMO instrument vocabulary (bridged by reference only)
+    "mimo": "http://www.mimo-db.eu/InstrumentsKeywords/",
     # Workflow / process alignment (#226)
     "pplan": "http://purl.org/net/p-plan#",
     "opmw": "https://www.opmw.org/ontology/",

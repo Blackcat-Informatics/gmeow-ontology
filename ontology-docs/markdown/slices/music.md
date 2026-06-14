@@ -8,7 +8,7 @@
 
 ## What This Slice Covers
 
-This slice owns 463 terms and contributes 21 mapping or projection rows. Use it when its terms match the native fact you want to preserve; use the linkage tables to see how those facts leave GMEOW for consumer vocabularies.
+This slice owns 497 terms and contributes 33 mapping or projection rows. Use it when its terms match the native fact you want to preserve; use the linkage tables to see how those facts leave GMEOW for consumer vocabularies.
 
 ## Dependencies
 
@@ -47,8 +47,9 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:GenerativeProcessKind`](../reference/classes/gmeow-GenerativeProcessKind.md) | Generative Process Kind | The kind of a generative process — phasing, stochastic, verbal score, rule-based, algorithmic. An open value vocabulary of individuals; never subclassed (Princ... |
 | [`gmeow:GrooveProfile`](../reference/classes/gmeow-GrooveProfile.md) | Groove Profile | A systematic, repeatable deviation from a strict metric grid — swing ratio, per-grid-position offsets, or a measured microtiming profile. Groove is content, no... |
 | [`gmeow:GrooveProfileKind`](../reference/classes/gmeow-GrooveProfileKind.md) | Groove Profile Kind | The kind of a GrooveProfile — swing ratio, per-grid-position offsets, or a measured profile. A value vocabulary of individuals; never subclassed. |
-| [`gmeow:InstrumentConfiguration`](../reference/classes/gmeow-InstrumentConfiguration.md) | Instrument Configuration | A configured instrument setup — instrument × modification × tuning frame × extended-technique arrangement. Minimal stub declared here as the range of gmeow:par... |
-| [`gmeow:InstrumentType`](../reference/classes/gmeow-InstrumentType.md) | Instrument Type | The kind of a musical instrument — piano, violin, drum kit, etc. An open value vocabulary of individuals; never subclassed ([Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)). Stub range for issue... |
+| [`gmeow:InstrumentConfiguration`](../reference/classes/gmeow-InstrumentConfiguration.md) | Instrument Configuration | A configured instrument setup — a relator binding an instrument item or type, one or more modifications, a tuning frame, and an interval. The prepared-piano /... |
+| [`gmeow:InstrumentModification`](../reference/classes/gmeow-InstrumentModification.md) | Instrument Modification | A modification applied to an instrument in an InstrumentConfiguration — prepared, scordatura, capo, mute, electrified, extended range, etc. An open value vocab... |
+| [`gmeow:InstrumentType`](../reference/classes/gmeow-InstrumentType.md) | Instrument Type | The kind of a musical instrument — piano, violin, drum kit, voice, etc. An open value vocabulary of individuals; never subclassed ([Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)). Each individua... |
 | [`gmeow:MeterAssignment`](../reference/classes/gmeow-MeterAssignment.md) | Meter Assignment | A reified relator binding a carrier (e.g. a voice), a MetricStructure, and a MusicalTimeSpan. Consecutive assignments model bar-by-bar changes; concurrent assi... |
 | [`gmeow:MetricGroup`](../reference/classes/gmeow-MetricGroup.md) | Metric Group | One ordered group within a MetricStructure, carrying a rational length and an optional accent weight. Additive meters are sequences of MetricGroups. |
 | [`gmeow:MetricModulation`](../reference/classes/gmeow-MetricModulation.md) | Metric Modulation | A reified relator declaring a transition from one MusicalTimeFrame to another via a pivot equivalence expressed as a rational pair (e.g. 3/8 = 1/4). The pivot... |
@@ -104,6 +105,11 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:centsFromOrigin`](../reference/properties/gmeow-centsFromOrigin.md) | cents from origin | A convenience measure of a pitch or interval in cents, generated from the exact ratio by fnRatioToCents. Not canonical; the ratio pair is canonical (Principle... |
 | [`gmeow:collectionKind`](../reference/properties/gmeow-collectionKind.md) | collection kind | The kind of pitch collection (scale, mode, maqam, raga, pitch-class set, etc.). Functional: a PitchCollection is of exactly one kind; hybrid or contested categ... |
 | [`gmeow:collectionPartOrder`](../reference/properties/gmeow-collectionPartOrder.md) | collection part order | The zero-based position of this pitch collection as a part of a larger collection (e.g. the order of a jins within a maqam). Scoped to the primary parent; if a... |
+| [`gmeow:configurationInstrumentType`](../reference/properties/gmeow-configurationInstrumentType.md) | configuration instrument type | The kind of instrument this configuration applies to, when no specific item is named (e.g. drop-D electric guitar). Functional per relator. |
+| [`gmeow:configurationInterval`](../reference/properties/gmeow-configurationInterval.md) | configuration interval | The interval that describes this configuration (e.g. the whole-step drop for drop-D). Functional per relator; optional because some modifications (prepared pia... |
+| [`gmeow:configurationModification`](../reference/properties/gmeow-configurationModification.md) | configuration modification | A modification applied in this configuration — prepared, scordatura, capo, mute, electrified, extended range, etc. Non-functional so that compound modification... |
+| [`gmeow:configurationOf`](../reference/properties/gmeow-configurationOf.md) | configuration of | The specific instrument item this configuration applies to — a PhysicalObject (e.g. a 1959 Les Paul), an InformationObject (e.g. a synth plugin), or any other... |
+| [`gmeow:configurationTuningFrame`](../reference/properties/gmeow-configurationTuningFrame.md) | configuration tuning frame | The tuning frame relative to which this configuration is expressed ([Principle 11](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-11)). Functional per relator. |
 | [`gmeow:constraintAppliesTo`](../reference/properties/gmeow-constraintAppliesTo.md) | constraint applies to | The work, expression, or performance to which this TraversalConstraint applies. |
 | [`gmeow:constraintFunction`](../reference/properties/gmeow-constraintFunction.md) | constraint function | An optional FnO function reference that interprets the selection and termination rules ([Principle 12](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-12)). |
 | [`gmeow:constraintText`](../reference/properties/gmeow-constraintText.md) | constraint text | Human-readable selection and termination rules for the mobile form. Language-tagged; at most one value per language ([Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)). |
@@ -138,6 +144,7 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:hasTempoMapSegment`](../reference/properties/gmeow-hasTempoMapSegment.md) | has tempo map segment | Links a TempoMap to one of its piecewise segments. |
 | [`gmeow:hasTuningFrame`](../reference/properties/gmeow-hasTuningFrame.md) | has tuning frame | The tuning system relative to which this pitch value or interval is expressed. Non-functional globally so that higher-level musical entities may carry multiple... |
 | [`gmeow:hasVoice`](../reference/properties/gmeow-hasVoice.md) | has voice | Relates a musical work, expression, or segment to one of its voices. Non-functional: a work may have many voices, and a voice may participate in many works. |
+| [`gmeow:hsNumber`](../reference/properties/gmeow-hsNumber.md) | Hornbostel–Sachs number | The Hornbostel–Sachs classification number for this instrument type, as a literal string (e.g. "314.122-4-8" for piano). Optional; carried as a literal because... |
 | [`gmeow:interpolationKind`](../reference/properties/gmeow-interpolationKind.md) | interpolation kind | The interpolation mode between control points (linearCents, exponential, stochasticByReference). |
 | [`gmeow:mapRatioDenominator`](../reference/properties/gmeow-mapRatioDenominator.md) | map ratio denominator | The denominator of the rational ratio carried by a TimeMapping (e.g. 2 for a 3:2 tuplet). Always positive. |
 | [`gmeow:mapRatioNumerator`](../reference/properties/gmeow-mapRatioNumerator.md) | map ratio numerator | The numerator of the rational ratio carried by a TimeMapping (e.g. 3 for a 3:2 tuplet). |
@@ -159,9 +166,9 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:ornamentDescription`](../reference/properties/gmeow-ornamentDescription.md) | ornament description | A human-readable description of the ornament convention and its execution. Language-tagged; at most one value per language ([Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)). |
 | [`gmeow:ornamentProfileKind`](../reference/properties/gmeow-ornamentProfileKind.md) | ornament profile kind | The kind of ornament profile (gamaka family, baroque agrément, etc.). |
 | [`gmeow:ornamentReferenceFrame`](../reference/properties/gmeow-ornamentReferenceFrame.md) | ornament reference frame | The tuning system relative to which the ornament profile's pitch gestures are expressed ([Principle 11](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-11)). |
-| [`gmeow:participationConfiguration`](../reference/properties/gmeow-participationConfiguration.md) | participation configuration | The instrument configuration used in this participation. Functional per relator. Range is the stub class. |
+| [`gmeow:participationConfiguration`](../reference/properties/gmeow-participationConfiguration.md) | participation configuration | The instrument configuration used in this participation. Functional per relator. Range elaborated in. |
 | [`gmeow:participationInstrument`](../reference/properties/gmeow-participationInstrument.md) | participation instrument | The kind of instrument involved in this performance participation. One instrument type per PerformanceParticipation is recommended; mint one participation per... |
-| [`gmeow:participationInstrumentItem`](../reference/properties/gmeow-participationInstrumentItem.md) | participation instrument item | The specific physical instrument item used in this participation — the particular Stradivarius, the named drum kit, etc. Functional per relator. |
+| [`gmeow:participationInstrumentItem`](../reference/properties/gmeow-participationInstrumentItem.md) | participation instrument item | The specific instrument item used in this participation — the particular 1959 Les Paul (a PhysicalObject), a synth plugin (an InformationObject), the named dru... |
 | [`gmeow:participationPart`](../reference/properties/gmeow-participationPart.md) | participation part | The musical part or role the participant performed — e.g. bass line, lead vocal, first violin. Range intentionally open (the tenurePosition precedent) so a par... |
 | [`gmeow:participationTechnique`](../reference/properties/gmeow-participationTechnique.md) | participation technique | The playing technique used in this participation. Functional per relator. |
 | [`gmeow:performanceOf`](../reference/properties/gmeow-performanceOf.md) | performance of | Relates a musical performance event to the creative work it performs — typically an Expression interpreting a known version, or a Work directly for an improvis... |
@@ -250,6 +257,9 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:dynamicsP`](../reference/individuals/gmeow-dynamicsP.md) | piano | Soft. |
 | [`gmeow:dynamicsPp`](../reference/individuals/gmeow-dynamicsPp.md) | pianissimo | Very soft. |
 | [`gmeow:dynamicsPpp`](../reference/individuals/gmeow-dynamicsPpp.md) | pianississimo | Extremely soft. |
+| [`gmeow:fixture1959LesPaul`](../reference/individuals/gmeow-fixture1959LesPaul.md) | 1959 Les Paul fixture | A placeholder physical instrument item used to test the participationInstrumentItem Entity range. |
+| [`gmeow:fixture1959LesPaulConfiguration`](../reference/individuals/gmeow-fixture1959LesPaulConfiguration.md) | 1959 Les Paul stage configuration | An item-level configuration fixture binding the 1959 Les Paul instrument item to an electrified modification and the 12-EDO tuning frame. |
+| [`gmeow:fixtureDropDGuitarConfiguration`](../reference/individuals/gmeow-fixtureDropDGuitarConfiguration.md) | drop-D electric guitar configuration | A drop-D guitar configuration fixture: electric guitar + scordatura modification + tablature-relative drop-D frame + major-second-down interval. |
 | [`gmeow:fixtureFourThirtyThreeWork`](../reference/individuals/gmeow-fixtureFourThirtyThreeWork.md) | 4′33″ | John Cage's 4′33″ as a fixture: a fully specified work whose content is the ambient sound delegated by positive assertion. |
 | [`gmeow:fixtureGraphicScoreExpression`](../reference/individuals/gmeow-fixtureGraphicScoreExpression.md) | graphic score expression | The Expression realized by the canonical visual graphic score. |
 | [`gmeow:fixtureGraphicScoreTranscription`](../reference/individuals/gmeow-fixtureGraphicScoreTranscription.md) | graphic score CMN transcription | A symbolic CMN transcription of the graphic score, explicitly a standpointed interpretation derived from the visual Manifestation. |
@@ -265,6 +275,7 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:fixtureKlavierstuckPerformanceOne`](../reference/individuals/gmeow-fixtureKlavierstuckPerformanceOne.md) | Klavierstück XI performance traversal 1 | A documented performance of Klavierstück XI with traversal A → C → B → D. |
 | [`gmeow:fixtureKlavierstuckPerformanceTwo`](../reference/individuals/gmeow-fixtureKlavierstuckPerformanceTwo.md) | Klavierstück XI performance traversal 2 | A documented performance of Klavierstück XI with traversal B → D → A → C. |
 | [`gmeow:fixtureKlavierstuckXIWork`](../reference/individuals/gmeow-fixtureKlavierstuckXIWork.md) | Klavierstück XI | Stockhausen's Klavierstück XI as a mobile-form fixture: fragments plus a traversal constraint. |
+| [`gmeow:fixturePreparedPianoConfiguration`](../reference/individuals/gmeow-fixturePreparedPianoConfiguration.md) | Cage prepared piano configuration | A prepared-piano configuration fixture: piano + prepared modification over the 12-EDO frame, no interval (timbre change, not tuning change). |
 | [`gmeow:fixtureReichPhasingExpression`](../reference/individuals/gmeow-fixtureReichPhasingExpression.md) | Reich-style phasing realization | One realization of the Reich-style phasing process, linked by provenance. |
 | [`gmeow:fixtureReichPhasingProcess`](../reference/individuals/gmeow-fixtureReichPhasingProcess.md) | Reich-style phasing process | A generative process fixture: two voices begin in unison; one accelerates slightly until it has shifted by one beat, then locks. |
 | [`gmeow:fixtureReichPhasingWork`](../reference/individuals/gmeow-fixtureReichPhasingWork.md) | Reich-style phasing work | A worked musical work fixture whose identity is the phasing process itself. |
@@ -307,11 +318,24 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:grooveProfileKindPositionOffsets`](../reference/individuals/gmeow-grooveProfileKindPositionOffsets.md) | position offsets | A groove profile expressed as per-grid-position time offsets. |
 | [`gmeow:grooveProfileKindSwingRatio`](../reference/individuals/gmeow-grooveProfileKindSwingRatio.md) | swing ratio | A groove profile expressed as a swing ratio (e.g. 2:1 triplet feel). |
 | [`gmeow:grooveProfileSwing`](../reference/individuals/gmeow-grooveProfileSwing.md) | swing groove profile | A simple swing-ratio groove profile on a 1/16 grid, illustrating systematic microtiming as content (stress case 17). |
+| [`gmeow:instrumentModificationCapo`](../reference/individuals/gmeow-instrumentModificationCapo.md) | capo | A capo is placed on a stringed instrument, raising the open-string pitch. |
+| [`gmeow:instrumentModificationElectrified`](../reference/individuals/gmeow-instrumentModificationElectrified.md) | electrified | The instrument is augmented with electronic pickups, amplification, or signal processing. |
+| [`gmeow:instrumentModificationExtendedRange`](../reference/individuals/gmeow-instrumentModificationExtendedRange.md) | extended range | The instrument has additional strings, keys, or sounding elements beyond its conventional range. |
+| [`gmeow:instrumentModificationMute`](../reference/individuals/gmeow-instrumentModificationMute.md) | mute | A mute is applied to alter the timbre or volume of the instrument. |
+| [`gmeow:instrumentModificationPrepared`](../reference/individuals/gmeow-instrumentModificationPrepared.md) | prepared | The instrument is prepared — objects are inserted on or between sounding elements to alter timbre (e.g. Cage prepared piano). |
+| [`gmeow:instrumentModificationScordatura`](../reference/individuals/gmeow-instrumentModificationScordatura.md) | scordatura | The instrument is tuned away from its standard tuning (e.g. drop-D guitar, solo violin scordatura). |
+| [`gmeow:instrumentTypeAdaptedGuitar`](../reference/individuals/gmeow-instrumentTypeAdaptedGuitar.md) | adapted guitar | A guitar adapted for a non-standard tuning or playing technique, as in Harry Partch's instrumentarium. No direct MIMO entry exists. |
 | [`gmeow:instrumentTypeDoubleBass`](../reference/individuals/gmeow-instrumentTypeDoubleBass.md) | double bass | The largest and lowest-pitched bowed string instrument in the modern symphony orchestra. |
 | [`gmeow:instrumentTypeDrumKit`](../reference/individuals/gmeow-instrumentTypeDrumKit.md) | drum kit | A collection of drums, cymbals, and other percussion instruments played by a single drummer. |
 | [`gmeow:instrumentTypeElectricGuitar`](../reference/individuals/gmeow-instrumentTypeElectricGuitar.md) | electric guitar | A guitar that uses one or more pickups to convert string vibration into electrical signals. |
+| [`gmeow:instrumentTypeGamelan`](../reference/individuals/gmeow-instrumentTypeGamelan.md) | gamelan | An ensemble of percussion instruments from Indonesia, treated here as a single instrument-type for performance-credit purposes. |
+| [`gmeow:instrumentTypeModularSynth`](../reference/individuals/gmeow-instrumentTypeModularSynth.md) | modular synthesizer | A synthesizer composed of separate modules connected by patch cables, often voltage-controlled. |
 | [`gmeow:instrumentTypePiano`](../reference/individuals/gmeow-instrumentTypePiano.md) | piano | A keyboard instrument in which strings are struck by hammers. |
+| [`gmeow:instrumentTypeSitar`](../reference/individuals/gmeow-instrumentTypeSitar.md) | sitar | A plucked stringed instrument used in Hindustani classical music. |
+| [`gmeow:instrumentTypeTabla`](../reference/individuals/gmeow-instrumentTypeTabla.md) | tabla | A pair of twin hand drums used in Hindustani classical music. |
+| [`gmeow:instrumentTypeTurntables`](../reference/individuals/gmeow-instrumentTypeTurntables.md) | turntables | A pair of phonograph turntables used as a musical instrument, especially in DJing and turntablism. No direct MIMO entry exists. |
 | [`gmeow:instrumentTypeViolin`](../reference/individuals/gmeow-instrumentTypeViolin.md) | violin | A bowed string instrument with four strings tuned in fifths. |
+| [`gmeow:instrumentTypeVoice`](../reference/individuals/gmeow-instrumentTypeVoice.md) | voice | The human voice as a musical instrument. No MIMO exactMatch exists for the voice as instrument; aligned where possible by reference ([Principle 5](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-5)). |
 | [`gmeow:interpolationExponential`](../reference/individuals/gmeow-interpolationExponential.md) | exponential | Exponential interpolation between control points. |
 | [`gmeow:interpolationLinearCents`](../reference/individuals/gmeow-interpolationLinearCents.md) | linear cents | Linear interpolation on a logarithmic cents scale between control points. |
 | [`gmeow:interpolationStochasticByReference`](../reference/individuals/gmeow-interpolationStochasticByReference.md) | stochastic by reference | Interpolation governed by a stochastic process referenced by an FnO function or external solver ([Principle 12](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-12)). |
@@ -408,6 +432,7 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:pitchCollectionRastMaqam`](../reference/individuals/gmeow-pitchCollectionRastMaqam.md) | Rast maqam on C | The Arabic Rast maqam on C, composed of ordered ajnas (Rast on C, Wusta on G, Rast on high C), as a maqam seed (stress case 12). |
 | [`gmeow:pitchCollectionWustaJinsG`](../reference/individuals/gmeow-pitchCollectionWustaJinsG.md) | Wusta jins on G | The Wusta jins (G-A-B half-flat-C) within Rast maqam. |
 | [`gmeow:pitchCollectionYamanRaga`](../reference/individuals/gmeow-pitchCollectionYamanRaga.md) | Raga Yaman | A simplified Hindustani Raga Yaman (Kalyan) seed in 12-EDO, illustrating vādī, samvādī, and member roles. |
+| [`gmeow:pitchIntervalMajorSecondDown`](../reference/individuals/gmeow-pitchIntervalMajorSecondDown.md) | major second down | A descending major second, the interval by which a standard guitar low E is dropped to D in drop-D tuning. |
 | [`gmeow:pitchIntervalPerfectFifth`](../reference/individuals/gmeow-pitchIntervalPerfectFifth.md) | perfect fifth | The just-intonation perfect fifth, ratio 3/2. |
 | [`gmeow:pitchIntervalSeptimalComma`](../reference/individuals/gmeow-pitchIntervalSeptimalComma.md) | septimal comma | The small interval 64/63 between a just-intonation dominant seventh and a harmonic seventh. |
 | [`gmeow:pitchIntervalSyntonicComma`](../reference/individuals/gmeow-pitchIntervalSyntonicComma.md) | syntonic comma | The interval 81/80 between a Pythagorean major third and a just-intonation major third. |
@@ -446,8 +471,16 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:pitchValueG4Fixture`](../reference/individuals/gmeow-pitchValueG4Fixture.md) | G4 fixture pitch value | A 12-EDO G4 pitch value for the structural fixture, expressed in cents from the origin. |
 | [`gmeow:pitchValueJI7Over4`](../reference/individuals/gmeow-pitchValueJI7Over4.md) | just-intonation 7/4 | The harmonic seventh, ratio 7/4, used as the canonical pitch for the Johnston +7 spelling example. |
 | [`gmeow:playingTechniqueArco`](../reference/individuals/gmeow-playingTechniqueArco.md) | arco | Playing a bowed string instrument with the bow. |
+| [`gmeow:playingTechniqueBentNote`](../reference/individuals/gmeow-playingTechniqueBentNote.md) | bent note | A continuous pitch inflection from one pitch to another, common in blues, jazz, and many world-music traditions. |
+| [`gmeow:playingTechniqueColLegno`](../reference/individuals/gmeow-playingTechniqueColLegno.md) | col legno | Striking the strings with the wood of the bow rather than the hair. |
+| [`gmeow:playingTechniqueGrowl`](../reference/individuals/gmeow-playingTechniqueGrowl.md) | growl | A brass or woodwind timbre produced by growling or fluttering the vocal cords while playing. |
+| [`gmeow:playingTechniqueHarmonics`](../reference/individuals/gmeow-playingTechniqueHarmonics.md) | harmonics | A technique that emphasizes upper partials of a string or air column to produce flute-like overtones. |
+| [`gmeow:playingTechniqueKonnakol`](../reference/individuals/gmeow-playingTechniqueKonnakol.md) | konnakol | Vocal syllables used to articulate and teach rhythmic patterns in South Indian music. |
+| [`gmeow:playingTechniqueMultiphonics`](../reference/individuals/gmeow-playingTechniqueMultiphonics.md) | multiphonics | Producing two or more simultaneous pitches on a monophonic instrument, common in wind and string extended techniques. |
 | [`gmeow:playingTechniquePizzicato`](../reference/individuals/gmeow-playingTechniquePizzicato.md) | pizzicato | Plucking the strings of a bowed string instrument rather than bowing them. |
 | [`gmeow:playingTechniquePreparedPiano`](../reference/individuals/gmeow-playingTechniquePreparedPiano.md) | prepared piano | A piano whose sound is altered by placing objects on or between the strings. |
+| [`gmeow:playingTechniqueSlap`](../reference/individuals/gmeow-playingTechniqueSlap.md) | slap | A percussive string-playing technique in which the string is struck against the fingerboard. |
+| [`gmeow:playingTechniqueTapping`](../reference/individuals/gmeow-playingTechniqueTapping.md) | tapping | Producing notes by tapping the fingerboard or strings, often on guitar or electric bass. |
 | [`gmeow:polymeterPattern`](../reference/individuals/gmeow-polymeterPattern.md) | polymeter pattern | The realisation of polymeter as concurrent MeterAssignments on different carriers within one shared MusicalTimeFrame (stress case 14). |
 | [`gmeow:segmentKindCell`](../reference/individuals/gmeow-segmentKindCell.md) | cell | A small, compact unit of musical material, often the basis for serial or process works. |
 | [`gmeow:segmentKindColor`](../reference/individuals/gmeow-segmentKindColor.md) | color | A recurring pitch pattern in isorhythmic music; paired with talea (stress case 9). |
@@ -495,6 +528,7 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:tuningSystem24EDO`](../reference/individuals/gmeow-tuningSystem24EDO.md) | 24-tone equal temperament | Quarter-tone equal division of the octave into 24 parts. |
 | [`gmeow:tuningSystem31EDO`](../reference/individuals/gmeow-tuningSystem31EDO.md) | 31-tone equal temperament | Equal division of the octave into 31 parts, a closer approximation to meantone and just intonation. |
 | [`gmeow:tuningSystemBohlenPierce`](../reference/individuals/gmeow-tuningSystemBohlenPierce.md) | Bohlen-Pierce | An equal division of the tritave (3/1) into 13 steps, a non-octave tuning system. |
+| [`gmeow:tuningSystemGuitarDropD`](../reference/individuals/gmeow-tuningSystemGuitarDropD.md) | guitar drop-D tablature frame | A tablature-relative tuning frame for a six-string guitar whose lowest string is tuned down a major second to D, used by the drop-D configuration fixture (issu... |
 | [`gmeow:tuningSystemJustIntonation`](../reference/individuals/gmeow-tuningSystemJustIntonation.md) | just intonation lattice | A generic just-intonation reference frame: pitch values are integer ratios within a prime limit, relative to a chosen origin. |
 | [`gmeow:tuningSystemKindAdaptive`](../reference/individuals/gmeow-tuningSystemKindAdaptive.md) | adaptive | A tuning system that changes in response to context, performance, or algorithmic process (e.g., dynamic just intonation, live retuning). |
 | [`gmeow:tuningSystemKindEqualDivision`](../reference/individuals/gmeow-tuningSystemKindEqualDivision.md) | equal division | A tuning system that divides a fixed interval (usually the octave) into a number of equal parts (e.g., 12-EDO, 19-EDO, 31-EDO). |
@@ -514,13 +548,15 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 
 ## Linkages
 
-- **Rows:** 21
+- **Rows:** 33
 - **Projection profiles:** -
-- **External vocabularies:** `mo`, `prov`, `wd`
+- **External vocabularies:** `mimo`, `mo`, `prov`, `wd`
 
 | Source | Kind | Profile | Predicate/Relation | Target | Evidence |
 |---|---|---|---|---|---|
 | [`gmeow:DegreeOfFreedom`](../reference/classes/gmeow-DegreeOfFreedom.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q623715](https://www.wikidata.org/wiki/Q623715) | `gmeow-music.sssom.tsv`; `gmeow:eqMu017`; confidence 0.8 |
+| [`gmeow:InstrumentType`](../reference/classes/gmeow-InstrumentType.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q26836418](https://www.wikidata.org/wiki/Q26836418) | `gmeow-music.sssom.tsv`; `gmeow:eqMu027`; confidence 0.85 |
+| [`gmeow:InstrumentType`](../reference/classes/gmeow-InstrumentType.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q34379](https://www.wikidata.org/wiki/Q34379) | `gmeow-music.sssom.tsv`; `gmeow:eqMu025`; confidence 0.9 |
 | [`gmeow:MetricStructure`](../reference/classes/gmeow-MetricStructure.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q155234](https://www.wikidata.org/wiki/Q155234) | `gmeow-music.sssom.tsv`; `gmeow:eqMu013`; confidence 0.85 |
 | [`gmeow:PerformanceParticipation`](../reference/classes/gmeow-PerformanceParticipation.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [prov:Association](http://www.w3.org/ns/prov#Association) | `gmeow-music.sssom.tsv`; `gmeow:eqMu022`; confidence 0.8 |
 | [`gmeow:PitchCollection`](../reference/classes/gmeow-PitchCollection.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q179651](https://www.wikidata.org/wiki/Q179651) | `gmeow-music.sssom.tsv`; `gmeow:eqMu007`; confidence 0.9 |
@@ -529,18 +565,20 @@ This slice owns 463 terms and contributes 21 mapping or projection rows. Use it 
 | [`gmeow:TempoMap`](../reference/classes/gmeow-TempoMap.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q189214](https://www.wikidata.org/wiki/Q189214) | `gmeow-music.sssom.tsv`; `gmeow:eqMu014`; confidence 0.85 |
 | [`gmeow:TuningSystem`](../reference/classes/gmeow-TuningSystem.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q723441](https://www.wikidata.org/wiki/Q723441) | `gmeow-music.sssom.tsv`; `gmeow:eqMu001`; confidence 0.9 |
 | [`gmeow:determinationDelegatedPerformer`](../reference/individuals/gmeow-determinationDelegatedPerformer.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q1049625](https://www.wikidata.org/wiki/Q1049625) | `gmeow-music.sssom.tsv`; `gmeow:eqMu018`; confidence 0.8 |
+| [`gmeow:hsNumber`](../reference/properties/gmeow-hsNumber.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:P1762](https://www.wikidata.org/wiki/Property:P1762) | `gmeow-music.sssom.tsv`; `gmeow:eqMu026`; confidence 0.85 |
+| [`gmeow:instrumentTypeDrumKit`](../reference/individuals/gmeow-instrumentTypeDrumKit.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | mimo:2493 | `gmeow-music.sssom.tsv`; `gmeow:eqMu030`; confidence 0.85 |
+| [`gmeow:instrumentTypeElectricGuitar`](../reference/individuals/gmeow-instrumentTypeElectricGuitar.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | mimo:3236 | `gmeow-music.sssom.tsv`; `gmeow:eqMu029`; confidence 0.95 |
+| [`gmeow:instrumentTypeGamelan`](../reference/individuals/gmeow-instrumentTypeGamelan.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | mimo:2805 | `gmeow-music.sssom.tsv`; `gmeow:eqMu034`; confidence 0.9 |
+| [`gmeow:instrumentTypeGamelan`](../reference/individuals/gmeow-instrumentTypeGamelan.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q194492](https://www.wikidata.org/wiki/Q194492) | `gmeow-music.sssom.tsv`; `gmeow:eqMu036`; confidence 0.8 |
+| [`gmeow:instrumentTypeModularSynth`](../reference/individuals/gmeow-instrumentTypeModularSynth.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | mimo:2321 | `gmeow-music.sssom.tsv`; `gmeow:eqMu033`; confidence 0.85 |
+| [`gmeow:instrumentTypePiano`](../reference/individuals/gmeow-instrumentTypePiano.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | mimo:2299 | `gmeow-music.sssom.tsv`; `gmeow:eqMu028`; confidence 0.95 |
+| [`gmeow:instrumentTypeSitar`](../reference/individuals/gmeow-instrumentTypeSitar.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | mimo:3456 | `gmeow-music.sssom.tsv`; `gmeow:eqMu031`; confidence 0.95 |
+| [`gmeow:instrumentTypeTabla`](../reference/individuals/gmeow-instrumentTypeTabla.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | mimo:2899 | `gmeow-music.sssom.tsv`; `gmeow:eqMu032`; confidence 0.95 |
 | [`gmeow:performanceOf`](../reference/properties/gmeow-performanceOf.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [mo:performance_of](http://purl.org/ontology/mo/performance_of) | `gmeow-music.sssom.tsv`; `gmeow:eqMu023`; confidence 0.75 |
 | [`gmeow:performanceOf`](../reference/properties/gmeow-performanceOf.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:P2550](https://www.wikidata.org/wiki/Property:P2550) | `gmeow-music.sssom.tsv`; `gmeow:eqMu019`; confidence 0.85 |
 | [`gmeow:pitchCollectionKindMaqam`](../reference/individuals/gmeow-pitchCollectionKindMaqam.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q12826678](https://www.wikidata.org/wiki/Q12826678) | `gmeow-music.sssom.tsv`; `gmeow:eqMu010`; confidence 0.85 |
 | [`gmeow:pitchCollectionKindMode`](../reference/individuals/gmeow-pitchCollectionKindMode.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | [wd:Q731978](https://www.wikidata.org/wiki/Q731978) | `gmeow-music.sssom.tsv`; `gmeow:eqMu008`; confidence 0.95 |
-| [`gmeow:pitchCollectionKindRaga`](../reference/individuals/gmeow-pitchCollectionKindRaga.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | [wd:Q216926](https://www.wikidata.org/wiki/Q216926) | `gmeow-music.sssom.tsv`; `gmeow:eqMu011`; confidence 0.95 |
-| [`gmeow:polymeterPattern`](../reference/individuals/gmeow-polymeterPattern.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q2102956](https://www.wikidata.org/wiki/Q2102956) | `gmeow-music.sssom.tsv`; `gmeow:eqMu015`; confidence 0.8 |
-| [`gmeow:timeMappingKindTuplet`](../reference/individuals/gmeow-timeMappingKindTuplet.md) | equivalence | `-` | [skos:closeMatch](http://www.w3.org/2004/02/skos/core#closeMatch) | [wd:Q2092296](https://www.wikidata.org/wiki/Q2092296) | `gmeow-music.sssom.tsv`; `gmeow:eqMu016`; confidence 0.85 |
-| [`gmeow:tuningSystem12EDO`](../reference/individuals/gmeow-tuningSystem12EDO.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | [wd:Q752518](https://www.wikidata.org/wiki/Q752518) | `gmeow-music.sssom.tsv`; `gmeow:eqMu002`; confidence 0.98 |
-| [`gmeow:tuningSystemBohlenPierce`](../reference/individuals/gmeow-tuningSystemBohlenPierce.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | [wd:Q11901664](https://www.wikidata.org/wiki/Q11901664) | `gmeow-music.sssom.tsv`; `gmeow:eqMu004`; confidence 0.95 |
-| [`gmeow:tuningSystemPelog`](../reference/individuals/gmeow-tuningSystemPelog.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | [wd:Q1094781](https://www.wikidata.org/wiki/Q1094781) | `gmeow-music.sssom.tsv`; `gmeow:eqMu006`; confidence 0.9 |
-| [`gmeow:tuningSystemPythagorean`](../reference/individuals/gmeow-tuningSystemPythagorean.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | [wd:Q1045756](https://www.wikidata.org/wiki/Q1045756) | `gmeow-music.sssom.tsv`; `gmeow:eqMu003`; confidence 0.95 |
-| [`gmeow:tuningSystemSlendro`](../reference/individuals/gmeow-tuningSystemSlendro.md) | equivalence | `-` | [skos:exactMatch](http://www.w3.org/2004/02/skos/core#exactMatch) | [wd:Q431434](https://www.wikidata.org/wiki/Q431434) | `gmeow-music.sssom.tsv`; `gmeow:eqMu005`; confidence 0.9 |
+|... |... |... |... |... | 9 more rows |
 
 ## Guide
 
@@ -760,6 +798,29 @@ A [`Contribution`](../reference/classes/gmeow-Contribution.md) on the resulting 
 take event generates a [`Recording`](../reference/classes/gmeow-Recording.md); the composite [`wasDerivedFrom`](../reference/properties/gmeow-wasDerivedFrom.md) the take
 recordings. The fixture demonstrates the “who played what on take 3” competency
 query via [`PerformanceParticipation`](../reference/classes/gmeow-PerformanceParticipation.md).
+
+## Instruments & configurations
+
+### Three levels, no subclass tree
+
+GMEOW models instruments at three levels and refuses both a physical-only assumption and a flat string:
+
+1. **[`gmeow:InstrumentType`](../reference/classes/gmeow-InstrumentType.md)** — an open value vocabulary ([`gufo:QualityValue`](../external/terms.md#gufo-qualityvalue) individuals): piano, violin, drum kit, voice, sitar, tabla, modular synthesizer, turntables, adapted guitar, gamelan, etc. Each seed optionally carries a [`gmeow:hsNumber`](../reference/properties/gmeow-hsNumber.md) Hornbostel–Sachs literal and a [`skos:exactMatch`](http://www.w3.org/2004/02/skos/core#exactMatch) to the MIMO vocabulary ([Principle 5](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-5)).
+2. **Specific instrument items** — no new class. A 1959 Les Paul is a [`gmeow:PhysicalObject`](../reference/classes/gmeow-PhysicalObject.md); a synth plugin is a [`gmeow:InformationObject`](../reference/classes/gmeow-InformationObject.md). [`gmeow:participationInstrumentItem`](../reference/properties/gmeow-participationInstrumentItem.md) ranges over [`gmeow:Entity`](../reference/classes/gmeow-Entity.md) so any item-kind can be named.
+3. **[`gmeow:InstrumentConfiguration`](../reference/classes/gmeow-InstrumentConfiguration.md)** — a [`gufo:Relator`](../external/terms.md#gufo-relator) binding an instrument item or type, one or more [`InstrumentModification`](../reference/classes/gmeow-InstrumentModification.md) values, a [`TuningSystem`](../reference/classes/gmeow-TuningSystem.md), and an optional [`PitchInterval`](../reference/classes/gmeow-PitchInterval.md).
+
+### [`InstrumentModification`](../reference/classes/gmeow-InstrumentModification.md)
+
+An open value vocabulary: `prepared`, `scordatura`, `capo`, `mute`, `electrified`, `extendedRange`. Multiple modifications may coexist on one configuration (e.g. muted + electrified).
+
+### [`PlayingTechnique`](../reference/classes/gmeow-PlayingTechnique.md)
+
+Another open value vocabulary carried on [`PerformanceParticipation`](../reference/classes/gmeow-PerformanceParticipation.md): arco, pizzicato, col legno, prepared piano, multiphonics, tapping, slap, growl, konnakol, bent note, harmonics.
+
+### Micro-fixtures
+
+- **Cage prepared piano**: piano + prepared + 12-EDO frame, no interval (timbre change, not tuning change).
+- **Drop-D electric guitar**: electric guitar + scordatura + a `tablatureRelative` drop-D frame + a major-second-down interval.
 
 ## Consumer
 

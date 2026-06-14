@@ -1155,6 +1155,17 @@
   {
     "keywords": [
       "",
+      "mimo",
+      "other"
+    ],
+    "kind": "adoption-target",
+    "path": "adoption/mimo/index.html",
+    "summary": "7 linkage rows for mimo.",
+    "title": "mimo"
+  },
+  {
+    "keywords": [
+      "",
       "mls",
       "other"
     ],
@@ -1674,6 +1685,32 @@
     "slice": "standpoint",
     "summary": "Canonical Turtle example for the standpoint slice.",
     "title": "Contested Authorship"
+  },
+  {
+    "keywords": [
+      "gmeow:Dataset",
+      "gmeow:Observation",
+      "gmeow:Organization",
+      "gmeow:QualityAssessment",
+      "gmeow:ScalarQuantity",
+      "gmeow:assessedEntity",
+      "gmeow:hasUnit",
+      "gmeow:methodComputationalModel",
+      "gmeow:name",
+      "gmeow:observationMethod",
+      "gmeow:observationResult",
+      "gmeow:qualityDimension",
+      "gmeow:qualityDimensionCompleteness",
+      "gmeow:quantityValue",
+      "gmeow:title",
+      "gmeow:vantage",
+      "slices/core/quality/examples/dataset-completeness.ttl"
+    ],
+    "kind": "example",
+    "path": "examples/index.html#example-slices-core-quality-examples-dataset-completeness",
+    "slice": "quality",
+    "summary": "Canonical Turtle example for the quality slice.",
+    "title": "Dataset Completeness"
   },
   {
     "keywords": [
@@ -2296,6 +2333,29 @@
   },
   {
     "keywords": [
+      "gmeow:Measurement",
+      "gmeow:Place",
+      "gmeow:ScalarQuantity",
+      "gmeow:SoftwareAgent",
+      "gmeow:hasUnit",
+      "gmeow:methodInstrumentalReading",
+      "gmeow:name",
+      "gmeow:observationMethod",
+      "gmeow:observationResult",
+      "gmeow:observedFeature",
+      "gmeow:quantityUncertainty",
+      "gmeow:quantityValue",
+      "gmeow:vantage",
+      "slices/core/observations/examples/temperature-reading.ttl"
+    ],
+    "kind": "example",
+    "path": "examples/index.html#example-slices-core-observations-examples-temperature-reading",
+    "slice": "observations",
+    "summary": "Canonical Turtle example for the observations slice.",
+    "title": "Temperature Reading"
+  },
+  {
+    "keywords": [
       "gmeow:Cascade",
       "gmeow:CausalLink",
       "gmeow:EventType",
@@ -2895,7 +2955,7 @@
     "kind": "slice",
     "path": "slices/quality/index.html",
     "slice": "quality",
-    "summary": "core slice with 0 examples",
+    "summary": "core slice with 1 examples",
     "title": "GMEOW Data Quality Module"
   },
   {
@@ -3346,7 +3406,7 @@
     "kind": "slice",
     "path": "slices/observations/index.html",
     "slice": "observations",
-    "summary": "core slice with 0 examples",
+    "summary": "core slice with 1 examples",
     "title": "GMEOW Observations Module"
   },
   {
@@ -6944,16 +7004,29 @@
     "curie": "gmeow:InstrumentConfiguration",
     "keywords": [
       "Instrument Configuration",
-      "gmeow:Entity",
       "gmeow:InstrumentConfiguration",
       "gmeow:slices/music",
-      "gufo:Object"
+      "gufo:Relator"
     ],
     "kind": "term:class",
     "path": "reference/classes/gmeow-InstrumentConfiguration/index.html",
     "slice": "music",
-    "summary": "A configured instrument setup — instrument × modification × tuning frame × extended-technique arrangement. Minimal stub declared here as the range of gmeow:participationConfiguration; fully elaborated in issue #314 (Principle 4).",
+    "summary": "A configured instrument setup — a relator binding an instrument item or type, one or more modifications, a tuning frame, and an interval. The prepared-piano / drop-tuning answer (issue #314). A physical instrument and a software instrument are both first-class subjects; no new instrument-item class is minted (Principl...",
     "title": "Instrument Configuration"
+  },
+  {
+    "curie": "gmeow:InstrumentModification",
+    "keywords": [
+      "Instrument Modification",
+      "gmeow:InstrumentModification",
+      "gmeow:slices/music",
+      "gufo:QualityValue"
+    ],
+    "kind": "term:class",
+    "path": "reference/classes/gmeow-InstrumentModification/index.html",
+    "slice": "music",
+    "summary": "A modification applied to an instrument in an InstrumentConfiguration — prepared, scordatura, capo, mute, electrified, extended range, etc. An open value vocabulary of individuals; never subclassed (Principle 9).",
+    "title": "Instrument Modification"
   },
   {
     "curie": "gmeow:InstrumentType",
@@ -6966,7 +7039,7 @@
     "kind": "term:class",
     "path": "reference/classes/gmeow-InstrumentType/index.html",
     "slice": "music",
-    "summary": "The kind of a musical instrument — piano, violin, drum kit, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Stub range for issue #314 (Instruments & configurations).",
+    "summary": "The kind of a musical instrument — piano, violin, drum kit, voice, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Each individual may carry a Hornbostel–Sachs code (gmeow:hsNumber) and a MIMO exactMatch (Principle 5).",
     "title": "Instrument Type"
   },
   {
@@ -12321,6 +12394,34 @@
     "title": "19-tone equal temperament"
   },
   {
+    "curie": "gmeow:fixture1959LesPaul",
+    "keywords": [
+      "1959 Les Paul fixture",
+      "gmeow:PhysicalObject",
+      "gmeow:fixture1959LesPaul",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-fixture1959LesPaul/index.html",
+    "slice": "music",
+    "summary": "A placeholder physical instrument item used to test the participationInstrumentItem Entity range (issue #314).",
+    "title": "1959 Les Paul fixture"
+  },
+  {
+    "curie": "gmeow:fixture1959LesPaulConfiguration",
+    "keywords": [
+      "1959 Les Paul stage configuration",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:fixture1959LesPaulConfiguration",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-fixture1959LesPaulConfiguration/index.html",
+    "slice": "music",
+    "summary": "An item-level configuration fixture binding the 1959 Les Paul instrument item to an electrified modification and the 12-EDO tuning frame (issue #314).",
+    "title": "1959 Les Paul stage configuration"
+  },
+  {
     "curie": "gmeow:pitchValue24EDOA4",
     "keywords": [
       "24-EDO A4",
@@ -13467,6 +13568,20 @@
     "slice": "gts",
     "summary": "RFC 9052 COSE_Encrypt0 sealing: the payload is encrypted to declared recipients; readers without a key see a missing-key opaque frame.",
     "title": "COSE Encrypt0 codec"
+  },
+  {
+    "curie": "gmeow:fixturePreparedPianoConfiguration",
+    "keywords": [
+      "Cage prepared piano configuration",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:fixturePreparedPianoConfiguration",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-fixturePreparedPianoConfiguration/index.html",
+    "slice": "music",
+    "summary": "A prepared-piano configuration fixture: piano + prepared modification over the 12-EDO frame, no interval (timbre change, not tuning change).",
+    "title": "Cage prepared piano configuration"
   },
   {
     "curie": "gmeow:referenceFrameCAD",
@@ -17655,6 +17770,20 @@
     "title": "adaptation of"
   },
   {
+    "curie": "gmeow:instrumentTypeAdaptedGuitar",
+    "keywords": [
+      "adapted guitar",
+      "gmeow:InstrumentType",
+      "gmeow:instrumentTypeAdaptedGuitar",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentTypeAdaptedGuitar/index.html",
+    "slice": "music",
+    "summary": "A guitar adapted for a non-standard tuning or playing technique, as in Harry Partch's instrumentarium. No direct MIMO entry exists.",
+    "title": "adapted guitar"
+  },
+  {
     "curie": "gmeow:tuningSystemKindAdaptive",
     "keywords": [
       "adaptive",
@@ -19153,6 +19282,20 @@
     "title": "beneficiary of deception"
   },
   {
+    "curie": "gmeow:playingTechniqueBentNote",
+    "keywords": [
+      "bent note",
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueBentNote",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueBentNote/index.html",
+    "slice": "music",
+    "summary": "A continuous pitch inflection from one pitch to another, common in blues, jazz, and many world-music traditions.",
+    "title": "bent note"
+  },
+  {
     "curie": "gmeow:genderBigender",
     "keywords": [
       "bigender",
@@ -19783,6 +19926,20 @@
     "title": "canonical"
   },
   {
+    "curie": "gmeow:instrumentModificationCapo",
+    "keywords": [
+      "capo",
+      "gmeow:InstrumentModification",
+      "gmeow:instrumentModificationCapo",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentModificationCapo/index.html",
+    "slice": "music",
+    "summary": "A capo is placed on a stringed instrument, raising the open-string pitch.",
+    "title": "capo"
+  },
+  {
     "curie": "gmeow:frameKindCartesian",
     "keywords": [
       "cartesian",
@@ -20397,6 +20554,20 @@
     "slice": "archaeological-evidence",
     "summary": "A metallic disc bearing stamped legends, symbols, or portraits.",
     "title": "coin"
+  },
+  {
+    "curie": "gmeow:playingTechniqueColLegno",
+    "keywords": [
+      "col legno",
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueColLegno",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueColLegno/index.html",
+    "slice": "music",
+    "summary": "Striking the strings with the wood of the bow rather than the hair.",
+    "title": "col legno"
   },
   {
     "curie": "gmeow:organizationTypeCollaboration",
@@ -22808,6 +22979,20 @@
     "title": "drone"
   },
   {
+    "curie": "gmeow:fixtureDropDGuitarConfiguration",
+    "keywords": [
+      "drop-D electric guitar configuration",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:fixtureDropDGuitarConfiguration",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-fixtureDropDGuitarConfiguration/index.html",
+    "slice": "music",
+    "summary": "A drop-D guitar configuration fixture: electric guitar + scordatura modification + tablature-relative drop-D frame + major-second-down interval.",
+    "title": "drop-D electric guitar configuration"
+  },
+  {
     "curie": "gmeow:instrumentTypeDrumKit",
     "keywords": [
       "drum kit",
@@ -23086,6 +23271,20 @@
     "slice": "music",
     "summary": "A guitar that uses one or more pickups to convert string vibration into electrical signals.",
     "title": "electric guitar"
+  },
+  {
+    "curie": "gmeow:instrumentModificationElectrified",
+    "keywords": [
+      "electrified",
+      "gmeow:InstrumentModification",
+      "gmeow:instrumentModificationElectrified",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentModificationElectrified/index.html",
+    "slice": "music",
+    "summary": "The instrument is augmented with electronic pickups, amplification, or signal processing.",
+    "title": "electrified"
   },
   {
     "curie": "gmeow:datingMethodElectronSpinResonance",
@@ -23828,6 +24027,20 @@
     "slice": "places",
     "summary": "The extended address axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space.",
     "title": "extended address axis"
+  },
+  {
+    "curie": "gmeow:instrumentModificationExtendedRange",
+    "keywords": [
+      "extended range",
+      "gmeow:InstrumentModification",
+      "gmeow:instrumentModificationExtendedRange",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentModificationExtendedRange/index.html",
+    "slice": "music",
+    "summary": "The instrument has additional strings, keys, or sounding elements beyond its conventional range.",
+    "title": "extended range"
   },
   {
     "curie": "gmeow:intentExtends",
@@ -25174,6 +25387,20 @@
     "title": "gamaka"
   },
   {
+    "curie": "gmeow:instrumentTypeGamelan",
+    "keywords": [
+      "gamelan",
+      "gmeow:InstrumentType",
+      "gmeow:instrumentTypeGamelan",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentTypeGamelan/index.html",
+    "slice": "music",
+    "summary": "An ensemble of percussion instruments from Indonesia, treated here as a single instrument-type for performance-credit purposes.",
+    "title": "gamelan"
+  },
+  {
     "curie": "gmeow:genderGenderfluid",
     "keywords": [
       "genderfluid",
@@ -25818,6 +26045,20 @@
     "title": "grid"
   },
   {
+    "curie": "gmeow:playingTechniqueGrowl",
+    "keywords": [
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueGrowl",
+      "gmeow:slices/music",
+      "growl"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueGrowl/index.html",
+    "slice": "music",
+    "summary": "A brass or woodwind timbre produced by growling or fluttering the vocal cords while playing.",
+    "title": "growl"
+  },
+  {
     "curie": "gmeow:meterAssignmentGuitar78",
     "keywords": [
       "gmeow:MeterAssignment",
@@ -25830,6 +26071,20 @@
     "slice": "music",
     "summary": "The guitar voice carrying 7/8 in the polymeter fixture; concurrent with drums 4/4 over the same TempoMap.",
     "title": "guitar 7/8 polymeter assignment"
+  },
+  {
+    "curie": "gmeow:tuningSystemGuitarDropD",
+    "keywords": [
+      "gmeow:TuningSystem",
+      "gmeow:slices/music",
+      "gmeow:tuningSystemGuitarDropD",
+      "guitar drop-D tablature frame"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-tuningSystemGuitarDropD/index.html",
+    "slice": "music",
+    "summary": "A tablature-relative tuning frame for a six-string guitar whose lowest string is tuned down a major second to D, used by the drop-D configuration fixture (issue #314).",
+    "title": "guitar drop-D tablature frame"
   },
   {
     "curie": "gmeow:musicalTimeFrameVoiceGuitar",
@@ -25914,6 +26169,20 @@
     "slice": "music",
     "summary": "A string harmonic articulation.",
     "title": "harmonic"
+  },
+  {
+    "curie": "gmeow:playingTechniqueHarmonics",
+    "keywords": [
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueHarmonics",
+      "gmeow:slices/music",
+      "harmonics"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueHarmonics/index.html",
+    "slice": "music",
+    "summary": "A technique that emphasizes upper partials of a string or air column to produce flute-like overtones.",
+    "title": "harmonics"
   },
   {
     "curie": "gmeow:operatorHasPart",
@@ -27582,6 +27851,20 @@
     "title": "koine"
   },
   {
+    "curie": "gmeow:playingTechniqueKonnakol",
+    "keywords": [
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueKonnakol",
+      "gmeow:slices/music",
+      "konnakol"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueKonnakol/index.html",
+    "slice": "music",
+    "summary": "Vocal syllables used to articulate and teach rhythmic patterns in South Indian music.",
+    "title": "konnakol"
+  },
+  {
     "curie": "gmeow:namePartKunya",
     "keywords": [
       "gmeow:NamePartType",
@@ -28604,6 +28887,20 @@
     "title": "major"
   },
   {
+    "curie": "gmeow:pitchIntervalMajorSecondDown",
+    "keywords": [
+      "gmeow:PitchInterval",
+      "gmeow:pitchIntervalMajorSecondDown",
+      "gmeow:slices/music",
+      "major second down"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-pitchIntervalMajorSecondDown/index.html",
+    "slice": "music",
+    "summary": "A descending major second, the interval by which a standard guitar low E is dropped to D in drop-D tuning.",
+    "title": "major second down"
+  },
+  {
     "curie": "gmeow:genderMan",
     "keywords": [
       "gmeow:Gender",
@@ -29486,6 +29783,20 @@
     "title": "modify"
   },
   {
+    "curie": "gmeow:instrumentTypeModularSynth",
+    "keywords": [
+      "gmeow:InstrumentType",
+      "gmeow:instrumentTypeModularSynth",
+      "gmeow:slices/music",
+      "modular synthesizer"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentTypeModularSynth/index.html",
+    "slice": "music",
+    "summary": "A synthesizer composed of separate modules connected by patch cables, often voltage-controlled.",
+    "title": "modular synthesizer"
+  },
+  {
     "curie": "gmeow:axisMomentumX",
     "keywords": [
       "gmeow:Axis",
@@ -29724,6 +30035,20 @@
     "title": "multimodal"
   },
   {
+    "curie": "gmeow:playingTechniqueMultiphonics",
+    "keywords": [
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueMultiphonics",
+      "gmeow:slices/music",
+      "multiphonics"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueMultiphonics/index.html",
+    "slice": "music",
+    "summary": "Producing two or more simultaneous pitches on a monophonic instrument, common in wind and string extended techniques.",
+    "title": "multiphonics"
+  },
+  {
     "curie": "gmeow:symbolicKindMusical",
     "keywords": [
       "gmeow:SymbolicSystemKind",
@@ -29806,6 +30131,20 @@
     "slice": "places",
     "summary": "The musical time axis of a reference frame — a one-dimensional rational-position axis used by musical-time reference frames.",
     "title": "musical time axis"
+  },
+  {
+    "curie": "gmeow:instrumentModificationMute",
+    "keywords": [
+      "gmeow:InstrumentModification",
+      "gmeow:instrumentModificationMute",
+      "gmeow:slices/music",
+      "mute"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentModificationMute/index.html",
+    "slice": "music",
+    "summary": "A mute is applied to alter the timbre or volume of the instrument.",
+    "title": "mute"
   },
   {
     "curie": "gmeow:eventTypeNameChange",
@@ -32440,6 +32779,20 @@
     "slice": "places",
     "summary": "The premises place type — a classification of a location by its function or form in human geography.",
     "title": "premises / address point"
+  },
+  {
+    "curie": "gmeow:instrumentModificationPrepared",
+    "keywords": [
+      "gmeow:InstrumentModification",
+      "gmeow:instrumentModificationPrepared",
+      "gmeow:slices/music",
+      "prepared"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentModificationPrepared/index.html",
+    "slice": "music",
+    "summary": "The instrument is prepared — objects are inserted on or between sounding elements to alter timbre (e.g. Cage prepared piano).",
+    "title": "prepared"
   },
   {
     "curie": "gmeow:playingTechniquePreparedPiano",
@@ -35159,6 +35512,20 @@
     "title": "schema.org JSON-LD"
   },
   {
+    "curie": "gmeow:instrumentModificationScordatura",
+    "keywords": [
+      "gmeow:InstrumentModification",
+      "gmeow:instrumentModificationScordatura",
+      "gmeow:slices/music",
+      "scordatura"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentModificationScordatura/index.html",
+    "slice": "music",
+    "summary": "The instrument is tuned away from its standard tuning (e.g. drop-D guitar, solo violin scordatura).",
+    "title": "scordatura"
+  },
+  {
     "curie": "gmeow:carrierSeal",
     "keywords": [
       "gmeow:PhysicalCarrierType",
@@ -35775,6 +36142,20 @@
     "title": "single nucleotide polymorphism (SNP)"
   },
   {
+    "curie": "gmeow:instrumentTypeSitar",
+    "keywords": [
+      "gmeow:InstrumentType",
+      "gmeow:instrumentTypeSitar",
+      "gmeow:slices/music",
+      "sitar"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentTypeSitar/index.html",
+    "slice": "music",
+    "summary": "A plucked stringed instrument used in Hindustani classical music.",
+    "title": "sitar"
+  },
+  {
     "curie": "gmeow:placeTypeSite",
     "keywords": [
       "gmeow:PlaceType",
@@ -35815,6 +36196,20 @@
     "slice": "languages",
     "summary": "The slang language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community.",
     "title": "slang"
+  },
+  {
+    "curie": "gmeow:playingTechniqueSlap",
+    "keywords": [
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueSlap",
+      "gmeow:slices/music",
+      "slap"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueSlap/index.html",
+    "slice": "music",
+    "summary": "A percussive string-playing technique in which the string is struck against the fingerboard.",
+    "title": "slap"
   },
   {
     "curie": "gmeow:tuningSystemSlendro",
@@ -37077,6 +37472,20 @@
     "title": "system device"
   },
   {
+    "curie": "gmeow:instrumentTypeTabla",
+    "keywords": [
+      "gmeow:InstrumentType",
+      "gmeow:instrumentTypeTabla",
+      "gmeow:slices/music",
+      "tabla"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentTypeTabla/index.html",
+    "slice": "music",
+    "summary": "A pair of twin hand drums used in Hindustani classical music.",
+    "title": "tabla"
+  },
+  {
     "curie": "gmeow:tuningSystemKindTablatureRelative",
     "keywords": [
       "gmeow:TuningSystemKind",
@@ -37201,6 +37610,20 @@
     "slice": "music",
     "summary": "A recurring rhythmic pattern in isorhythmic or mensural music; paired with color (stress case 9).",
     "title": "talea"
+  },
+  {
+    "curie": "gmeow:playingTechniqueTapping",
+    "keywords": [
+      "gmeow:PlayingTechnique",
+      "gmeow:playingTechniqueTapping",
+      "gmeow:slices/music",
+      "tapping"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-playingTechniqueTapping/index.html",
+    "slice": "music",
+    "summary": "Producing notes by tapping the fingerboard or strings, often on guitar or electric bass.",
+    "title": "tapping"
   },
   {
     "curie": "gmeow:overlayTypeTaxDistrict",
@@ -38113,6 +38536,20 @@
     "title": "tuplet"
   },
   {
+    "curie": "gmeow:instrumentTypeTurntables",
+    "keywords": [
+      "gmeow:InstrumentType",
+      "gmeow:instrumentTypeTurntables",
+      "gmeow:slices/music",
+      "turntables"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentTypeTurntables/index.html",
+    "slice": "music",
+    "summary": "A pair of phonograph turntables used as a musical instrument, especially in DJing and turntablism. No direct MIMO entry exists.",
+    "title": "turntables"
+  },
+  {
     "curie": "gmeow:verdictUndetermined",
     "keywords": [
       "gmeow:EvaluationVerdict",
@@ -38797,6 +39234,20 @@
     "slice": "creative-works",
     "summary": "Preparation, creation and/or presentation of the published work, specifically visualization/data presentation.",
     "title": "visualization"
+  },
+  {
+    "curie": "gmeow:instrumentTypeVoice",
+    "keywords": [
+      "gmeow:InstrumentType",
+      "gmeow:instrumentTypeVoice",
+      "gmeow:slices/music",
+      "voice"
+    ],
+    "kind": "term:individual",
+    "path": "reference/individuals/gmeow-instrumentTypeVoice/index.html",
+    "slice": "music",
+    "summary": "The human voice as a musical instrument. No MIMO exactMatch exists for the voice as instrument; aligned where possible by reference (Principle 5).",
+    "title": "voice"
   },
   {
     "curie": "gmeow:employmentTypeVolunteer",
@@ -39620,6 +40071,21 @@
     "slice": "gts",
     "summary": "The GTS document a segment is part of. Functional: a segment instance belongs to one document (the same bytes appearing in another file are a different segment instance of the same content). A subproperty of gmeow:partOf, so disclosure coarsening walks it by default.",
     "title": "GTS segment of"
+  },
+  {
+    "curie": "gmeow:hsNumber",
+    "keywords": [
+      "Hornbostel–Sachs number",
+      "gmeow:InstrumentType",
+      "gmeow:hsNumber",
+      "gmeow:slices/music",
+      "xsd:string"
+    ],
+    "kind": "term:property",
+    "path": "reference/properties/gmeow-hsNumber/index.html",
+    "slice": "music",
+    "summary": "The Hornbostel–Sachs classification number for this instrument type, as a literal string (e.g. \"314.122-4-8\" for piano). Optional; carried as a literal because HS codes are not quantitative values (Principle 11).",
+    "title": "Hornbostel–Sachs number"
   },
   {
     "curie": "gmeow:iban",
@@ -42574,6 +43040,81 @@
     "slice": "provenance",
     "summary": "Confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies.",
     "title": "confidence"
+  },
+  {
+    "curie": "gmeow:configurationInstrumentType",
+    "keywords": [
+      "configuration instrument type",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:InstrumentType",
+      "gmeow:configurationInstrumentType",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:property",
+    "path": "reference/properties/gmeow-configurationInstrumentType/index.html",
+    "slice": "music",
+    "summary": "The kind of instrument this configuration applies to, when no specific item is named (e.g. drop-D electric guitar). Functional per relator.",
+    "title": "configuration instrument type"
+  },
+  {
+    "curie": "gmeow:configurationInterval",
+    "keywords": [
+      "configuration interval",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:PitchInterval",
+      "gmeow:configurationInterval",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:property",
+    "path": "reference/properties/gmeow-configurationInterval/index.html",
+    "slice": "music",
+    "summary": "The interval that describes this configuration (e.g. the whole-step drop for drop-D). Functional per relator; optional because some modifications (prepared piano) alter timbre without a named interval.",
+    "title": "configuration interval"
+  },
+  {
+    "curie": "gmeow:configurationModification",
+    "keywords": [
+      "configuration modification",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:InstrumentModification",
+      "gmeow:configurationModification",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:property",
+    "path": "reference/properties/gmeow-configurationModification/index.html",
+    "slice": "music",
+    "summary": "A modification applied in this configuration — prepared, scordatura, capo, mute, electrified, extended range, etc. Non-functional so that compound modifications (e.g. muted + electrified) can be asserted in one relator.",
+    "title": "configuration modification"
+  },
+  {
+    "curie": "gmeow:configurationOf",
+    "keywords": [
+      "configuration of",
+      "gmeow:Entity",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:configurationOf",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:property",
+    "path": "reference/properties/gmeow-configurationOf/index.html",
+    "slice": "music",
+    "summary": "The specific instrument item this configuration applies to — a PhysicalObject (e.g. a 1959 Les Paul), an InformationObject (e.g. a synth plugin), or any other Entity. Functional per relator; use configurationInstrumentType when no specific item is named.",
+    "title": "configuration of"
+  },
+  {
+    "curie": "gmeow:configurationTuningFrame",
+    "keywords": [
+      "configuration tuning frame",
+      "gmeow:InstrumentConfiguration",
+      "gmeow:TuningSystem",
+      "gmeow:configurationTuningFrame",
+      "gmeow:slices/music"
+    ],
+    "kind": "term:property",
+    "path": "reference/properties/gmeow-configurationTuningFrame/index.html",
+    "slice": "music",
+    "summary": "The tuning frame relative to which this configuration is expressed (Principle 11). Functional per relator.",
+    "title": "configuration tuning frame"
   },
   {
     "curie": "gmeow:confirmationDepth",
@@ -52966,7 +53507,7 @@
     "kind": "term:property",
     "path": "reference/properties/gmeow-participationConfiguration/index.html",
     "slice": "music",
-    "summary": "The instrument configuration used in this participation. Functional per relator. Range is the #314 stub class.",
+    "summary": "The instrument configuration used in this participation. Functional per relator. Range elaborated in issue #314.",
     "title": "participation configuration"
   },
   {
@@ -53002,7 +53543,7 @@
   {
     "curie": "gmeow:participationInstrumentItem",
     "keywords": [
-      "gmeow:Item",
+      "gmeow:Entity",
       "gmeow:PerformanceParticipation",
       "gmeow:participationInstrumentItem",
       "gmeow:slices/music",
@@ -53011,7 +53552,7 @@
     "kind": "term:property",
     "path": "reference/properties/gmeow-participationInstrumentItem/index.html",
     "slice": "music",
-    "summary": "The specific physical instrument item used in this participation — the particular Stradivarius, the named drum kit, etc. Functional per relator.",
+    "summary": "The specific instrument item used in this participation — the particular 1959 Les Paul (a PhysicalObject), a synth plugin (an InformationObject), the named drum kit, etc. Ranges over Entity so that any item-kind can be named without minting a new class (issue #314; Principle 9). Functional per relator.",
     "title": "participation instrument item"
   },
   {
