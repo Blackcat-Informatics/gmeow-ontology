@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a recurring meeting with invitations (#443). A gmeow:EventSchedule
+# repeats a TEMPLATE event by a gmeow:RecurrenceRule (an RFC 5545 RRULE string),
+# all anchored in an explicit gmeow:TimeZone (IANA id) — so "every Monday 09:00"
+# is unambiguous across DST. Invitations are reified gmeow:EventInvitations
+# carrying both the organiser-side gmeow:invitationStatus and the invitee's own
+# gmeow:rsvpStatus. The event's kind is an open vocabulary: there is no seed
+# "meeting" EventType, so one is minted (the custom-value idiom, P9).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/calendar/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- A minted event kind (open vocabulary — no closed enum of event types).
+ex:eventTypeTeamMeeting a gmeow:EventType ; rdfs:label "team meeting"@x-gmeow-english .
+
+ex:utc a gmeow:TimeZone ; gmeow:timeZoneIanaId "America/Edmonton" .
+
+ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
+
+# --- The template event the schedule repeats.
+ex:standup a gmeow:Event ;
+    rdfs:label               "Weekly engineering standup"@x-gmeow-english ;
+    gmeow:eventType          ex:eventTypeTeamMeeting ;
+    gmeow:eventTime          "2026-06-15T09:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTimeZone      ex:utc .
+
+# --- The recurrence: every Monday, by RFC 5545 rule, in the named time zone.
+ex:schedule a gmeow:EventSchedule ;
+    gmeow:scheduleTemplateEvent  ex:standup ;
+    gmeow:scheduleRecurrenceRule ex:weekly ;
+    gmeow:scheduleTimeZone       ex:utc .
+
+ex:weekly a gmeow:RecurrenceRule ;
+    gmeow:recurrenceRuleText "FREQ=WEEKLY;BYDAY=MO" .
+
+# --- A reified invitation: organiser status AND the invitee's own RSVP.
+ex:invite a gmeow:EventInvitation ;
+    gmeow:invitationEvent   ex:standup ;
+    gmeow:invitationInvitee ex:dana ;
+    gmeow:invitationStatus  gmeow:invitationStatusAccepted ;
+    gmeow:rsvpStatus        gmeow:rsvpStatusAccepted .
