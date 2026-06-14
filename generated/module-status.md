@@ -37,7 +37,7 @@ Tier-2 uplift backlog.
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 0/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 0 | - | full |
-| kernel | core | core | 0 | 12 | 27 | 0 | 0 | 1/39 | full |
+| kernel | core | core | 0 | 12 | 27 | 0 | 1 | 1/39 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 0/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 0 | - | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 0 | - | full |
@@ -62,7 +62,7 @@ Tier-2 uplift backlog.
 | sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 0 | - | full |
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 0/8 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 0 | - | full |
-| sources | core | core | 1 | 0 | 3 | 0 | 0 | 0/3 | full |
+| sources | core | core | 1 | 0 | 3 | 0 | 1 | 0/3 | full |
 | standpoint | core | core | 3 | 3 | 7 | 0 | 1 | 0/10 | full |
 | tags | core | core | 2 | 3 | 11 | 0 | 1 | 0/14 | full |
 | teleology | core | core | 3 | 7 | 10 | 0 | 1 | 0/17 | full |
