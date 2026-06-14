@@ -60,12 +60,11 @@ jobs:
       - name: Type-check (mypy)
         run: uv run mypy
 
-      # Pure-Python tests only. The Docker-backed tests (HermiT/ROBOT reasoning,
-      # Jena RDF 1.2, pyoxigraph cross-check) run in their own parallel jobs
-      # below — no image pulls and no redundant re-runs here. Network tests are
-      # auto-skipped (conftest) unless GMEOW_RUN_NETWORK=1.
+      # Pure-Python tests only. Docker-backed checks run through explicit
+      # gmeow/Make lanes in parallel jobs below, not through pytest. Network
+      # tests are auto-skipped (conftest) unless GMEOW_RUN_NETWORK=1.
       - name: Unit tests (pure Python)
-        run: uv run pytest -q -n auto -m "not docker"
+        run: uv run pytest -q -n auto -m "not docker and not pyoxigraph_ci"
 
   # The Rust format engine (crates/gts, #277) gates against the SAME frozen
   # conformance corpus (generated/gts-vectors/) as the Python oracle — both
@@ -229,13 +228,10 @@ jobs:
       - name: Reason (HermiT) — sound + complete consistency
         run: uv run gmeow reason --reasoner hermit
 
-  # The Docker-backed reasoning tests (HermiT inconsistency cases + the ELK
-  # fixture-coherence check) as their own parallel job. `-m docker` keeps the
-  # owlrl positive-entailment tests in the pure-Python `python` job (no
-  # duplication). test_well_formed (HermiT consistency over the full ontology,
-  # ~15 min) is deselected: it is REDUNDANT with the reason-hermit job above,
-  # which already proves merged-ontology HermiT consistency. Keeping it here too
-  # would run HermiT consistency twice (#433).
+  # The Docker-backed reasoning cases (HermiT inconsistency cases + the ELK
+  # fixture-coherence check) as their own parallel job. The owlrl positive
+  # entailment tests stay in the pure-Python `python` job; live Docker is owned
+  # by the gmeow CLI so pytest never pulls or runs containers.
   reasoning-tests:
     runs-on: ubuntu-latest
     steps:
@@ -256,8 +252,8 @@ jobs:
           ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
           docker pull "$ROBOT_IMAGE"
 
-      - name: Reasoning entailment + consistency tests (Docker)
-        run: uv run pytest -q -m docker tests/test_reasoning_entailments.py -k "not test_well_formed_individual_stays_consistent"
+      - name: Reasoning inconsistency + fixture-coherence cases (Docker)
+        run: uv run gmeow reasoning-cases
 
   statements:
     runs-on: ubuntu-latest
@@ -281,11 +277,8 @@ jobs:
           ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
           docker pull "$ROBOT_IMAGE"
 
-      - name: RDF 1.2 + OWL-form no-drift gate
-        run: uv run gmeow check-generated statements
-
-      - name: RDF 1.2 round-trip / lossless / reasoning tests
-        run: uv run pytest -q -m docker tests/test_statements.py
+      - name: RDF 1.2 round-trip / lossless / reasoning checks
+        run: uv run gmeow statements-docker-check
 
   statements-pyoxigraph:
     runs-on: ubuntu-latest
@@ -301,13 +294,6 @@ jobs:
 
       - name: Sync environment
         run: uv sync --frozen
-
-      - name: Build the pinned Jena image (RDF 1.2 engine) + pull ROBOT
-        run: |
-          JENA_IMAGE=$(uv run python -c "from gmeow_tools.config import JENA_IMAGE; print(JENA_IMAGE)")
-          docker build -t "$JENA_IMAGE" docker/jena
-          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
-          docker pull "$ROBOT_IMAGE"
 
       - name: RDF 1.2 + OWL-form no-drift gate (pyoxigraph cross-check)
         run: uv run gmeow compile-statements-pyoxigraph

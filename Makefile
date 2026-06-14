@@ -11,10 +11,10 @@ TARGET ?= foaf
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 
-.PHONY: help install fmt lint validate crosscheck reason reason-hermit explain verify extract \
+.PHONY: help install fmt lint validate crosscheck reason reason-hermit explain verify reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full quality \
-        normalize build project test test-fast check check-generated release regenerate commit clean pull-images \
+        normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean pull-images \
         coverage crossref constitution-check compliance-report audit evals-score
 
 help: ## Show this help.
@@ -53,6 +53,12 @@ explain: ## Explain any unsatisfiable classes (HermiT, Docker).
 
 verify: reason ## Reasoned-graph negative tests (ROBOT verify over queries/verify/, Docker).
 	uv run gmeow verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
+
+reasoning-cases: ## HermiT/ELK inconsistency and fixture-coherence cases (Docker).
+	uv run gmeow reasoning-cases
+
+statements-docker-check: ## Jena/ROBOT-backed statement artifact and reasoning checks (Docker).
+	uv run gmeow statements-docker-check
 
 extract: ## Report import/extract policy for TARGET (refuses reference-only).
 	uv run gmeow extract --target $(TARGET)
@@ -124,11 +130,10 @@ project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-
 test: ## Run the full test suite (incl. heavy ci_only export tests).
 	uv run pytest -n auto
 
-test-fast: ## Run the fast test suite (excludes ci_only AND docker; for the local `check` gate).
-	uv run pytest -n auto -m "not ci_only and not docker"
+test-fast: ## Run the fast test suite (excludes ci_only, docker, and CI-only pyoxigraph).
+	uv run pytest -n auto -m "not ci_only and not docker and not pyoxigraph_ci"
 
-test-docker: ## Run the Docker-backed tests (HermiT/ROBOT/Jena reasoning) — slow; CI runs these in dedicated jobs.
-	uv run pytest -n auto -m docker
+test-docker: check-docker ## Compatibility alias for the Docker-backed Make lanes.
 
 test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never in CI/check.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
@@ -138,6 +143,10 @@ check: ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in 
 	$(MAKE) test-fast
 	$(MAKE) compliance-report
 	@echo "✓ all checks passed"
+
+check-docker: ## Optional local Docker gate: HermiT, reasoning cases, and Jena statements.
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) reason verify reason-hermit reasoning-cases statements-docker-check
+	@echo "✓ all Docker checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + regenerate + CrossRef deposit.
 	uv run gmeow regenerate

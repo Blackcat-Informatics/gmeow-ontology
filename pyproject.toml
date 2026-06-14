@@ -126,6 +126,7 @@ filterwarnings = [
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
     "docker: tests that require Docker (ROBOT/WIDOCO/Jena)",
+    "pyoxigraph_ci: pyoxigraph RDF 1.2 cross-checks run only in the dedicated CI job",
     "ci_only: heavy secondary/external-export transformation tests (LinkML & developer schemas, flattened exports); run in CI and 'make test', excluded from the fast 'make check' gate",
 ]
 

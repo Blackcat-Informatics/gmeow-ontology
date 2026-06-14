@@ -9,12 +9,10 @@ SHACL-validates split (Principle 8):
   ancestry, location-through-containment, sub-organization transitivity — fast,
   Docker-free, on every run. Each test loads the *real authored* module so it
   pins the shipped axioms, not a hand-built fixture.
-* **HermiT** (via the pinned ROBOT image) is the SOUND authority for
-  INCONSISTENCY: it proves the disjointness axioms reject an individual placed in
-  two axes / two Kinds, and that the real ontology plus the worked example
-  fixtures stay coherent under the broad disjointness. These are marked
-  ``docker`` and skipped when the image is absent — but never silently passed:
-  CI's reasoning job runs them for real.
+* The live HermiT/ROBOT inconsistency and fixture-coherence cases run through
+  ``gmeow reasoning-cases`` so Make/CI can schedule Docker outside pytest.
+  This module keeps Docker-free coverage of the pure entailments and the
+  reasoning-case orchestration.
 """
 
 from __future__ import annotations
@@ -26,22 +24,11 @@ import pytest
 from rdflib import RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
-from gmeow_tools.config import (
-    DIST_DIR,
-    EXTERNAL_FIXTURES_DIR,
-    FIXTURES_DIR,
-    ROBOT_IMAGE,
-)
-from gmeow_tools.reason import MERGED_FILE, merge_release, reason, verify
-from gmeow_tools.runner import ToolExecutionError, image_available
+from gmeow_tools import reasoning_cases
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/test/")
-
-requires_robot = pytest.mark.skipif(
-    not image_available(ROBOT_IMAGE), reason="pinned ROBOT image not present locally"
-)
 
 
 # --------------------------------------------------------------------------- #
@@ -119,107 +106,80 @@ def test_proximity_measurement_is_a_measurement() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Negative & coherence — HermiT (sound, via Docker/ROBOT)
+# Negative & coherence orchestration — mocked here, live in `gmeow reasoning-cases`
 # --------------------------------------------------------------------------- #
 
 
-def _is_consistent(extra: Graph, name: str, *, reasoner: str = "hermit") -> bool:
-    """Whether the merged ontology + ``extra`` is consistent under ``reasoner``.
+def test_two_axis_case_expects_inconsistency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The Docker lane fails if the two-axis bad individual is coherent."""
+    calls: list[tuple[str, str]] = []
 
-    A genuine logical inconsistency returns ``False``; any OTHER tool failure is
-    re-raised, so a tooling problem can never masquerade as a clean (in)consistency
-    verdict.
-    """
-    if not MERGED_FILE.exists():
-        merge_release(MERGED_FILE)
-    graph = Graph()
-    graph.parse(MERGED_FILE, format="turtle")
-    graph += extra
-    out = DIST_DIR / f"test-{name}.ttl"
-    out.parent.mkdir(parents=True, exist_ok=True)  # survive a fresh `make clean`
-    graph.serialize(destination=out, format="turtle")
-    try:
-        reason(reasoner=reasoner, merged=out)
-        return True
-    except ToolExecutionError as exc:
-        text = str(exc).lower()
-        if "inconsist" in text or "unsatisf" in text:
-            return False
-        raise  # e.g. an unsupported-datatype tool error — fail loudly, do not mask
-    finally:
-        out.unlink(missing_ok=True)
+    def fake_consistent(extra: Graph, name: str, *, reasoner: str = "hermit") -> bool:
+        calls.append((name, reasoner))
+        assert (
+            reasoning_cases.EX.x,
+            RDF.type,
+            reasoning_cases.GMEOW.GenderIdentity,
+        ) in extra
+        assert (
+            reasoning_cases.EX.x,
+            RDF.type,
+            reasoning_cases.GMEOW.GenderExpression,
+        ) in extra
+        return False
+
+    monkeypatch.setattr(reasoning_cases, "_is_consistent", fake_consistent)
+    reasoning_cases.assert_two_axis_individual_is_inconsistent()
+    assert calls == [("two-axis", "hermit")]
 
 
-@pytest.mark.docker
-@requires_robot
-def test_two_axis_individual_is_inconsistent() -> None:
-    """One individual in two disjoint identity axes is rejected by HermiT."""
-    bad = Graph()
-    bad.add((EX.x, RDF.type, GMEOW.GenderIdentity))
-    bad.add((EX.x, RDF.type, GMEOW.GenderExpression))
-    assert not _is_consistent(bad, "two-axis"), (
-        "a GenderIdentity that is also a GenderExpression must be inconsistent"
+def test_two_kind_case_expects_inconsistency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The Docker lane fails if the two-kind bad individual is coherent."""
+    calls: list[tuple[str, str]] = []
+
+    def fake_consistent(extra: Graph, name: str, *, reasoner: str = "hermit") -> bool:
+        calls.append((name, reasoner))
+        assert (reasoning_cases.EX.y, RDF.type, reasoning_cases.GMEOW.Person) in extra
+        assert (
+            reasoning_cases.EX.y,
+            RDF.type,
+            reasoning_cases.GMEOW.Organization,
+        ) in extra
+        return False
+
+    monkeypatch.setattr(reasoning_cases, "_is_consistent", fake_consistent)
+    reasoning_cases.assert_two_kind_individual_is_inconsistent()
+    assert calls == [("two-kind", "hermit")]
+
+
+def test_reasoning_cases_run_all_order(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The CLI lane keeps the intended Docker cases in one deterministic order."""
+    calls: list[str] = []
+    monkeypatch.setattr(
+        reasoning_cases,
+        "assert_two_axis_individual_is_inconsistent",
+        lambda: calls.append("axis"),
+    )
+    monkeypatch.setattr(
+        reasoning_cases,
+        "assert_two_kind_individual_is_inconsistent",
+        lambda: calls.append("kind"),
+    )
+    monkeypatch.setattr(
+        reasoning_cases,
+        "assert_worked_fixtures_stay_coherent_under_disjointness",
+        lambda: calls.append("fixtures"),
     )
 
+    completed = reasoning_cases.run_all()
 
-@pytest.mark.docker
-@requires_robot
-def test_two_kind_individual_is_inconsistent() -> None:
-    """One individual in two disjoint ultimate Kinds (Person, Organization) is bad."""
-    bad = Graph()
-    bad.add((EX.y, RDF.type, GMEOW.Person))
-    bad.add((EX.y, RDF.type, GMEOW.Organization))
-    assert not _is_consistent(bad, "two-kind")
-
-
-@pytest.mark.docker
-@requires_robot
-def test_well_formed_individual_stays_consistent() -> None:
-    """The control: a normal person with one gender-identity facet is coherent."""
-    ok = Graph()
-    ok.add((EX.p, RDF.type, GMEOW.Person))
-    ok.add((EX.p, GMEOW.hasGenderIdentity, EX.fac))
-    ok.add((EX.fac, RDF.type, GMEOW.GenderIdentity))
-    ok.add((EX.fac, GMEOW.genderValue, GMEOW.genderNonBinary))
-    assert _is_consistent(ok, "well-formed")
-
-
-@pytest.mark.docker
-@requires_robot
-def test_verify_queries_pass_on_clean_ontology() -> None:
-    """The reasoned-graph QC lane: ROBOT verify finds no violations on the real
-    ontology.
-
-    ``reason.verify`` materializes the merged ontology and runs every
-    queries/verify/*.rq SELECT over it; any returned row is a violation and ROBOT
-    exits non-zero (raising ToolExecutionError). A clean run is the smoke test
-    that the closed-world QC queries — meta-grounding completeness, orthogonality
-    integrity, no class subclassing two disjoint axes — hold. See docs/reasoning.md.
-    """
-    report = verify()  # raises ToolExecutionError if any query returns rows
-    assert "PASS" in report
-    assert "FAIL" not in report
-
-
-@pytest.mark.docker
-@requires_robot
-def test_worked_fixtures_stay_coherent_under_disjointness() -> None:
-    """Broad disjointness must not turn the worked example data inconsistent.
-
-    Checked with ELK, not HermiT: the fixtures carry xsd:date data values, which
-    HermiT rejects (not in its OWL 2 datatype map) before it can rule on logic.
-    ELK ignores datatypes and is complete for DisjointClasses, so it is the right
-    tool to confirm no individual lands in two disjoint classes here.
-    """
-    fixtures = Graph()
-    # GMEOW-authored worked examples only. The external/ snapshots are verbatim
-    # real-world dumps (owl:sameAs merges and all); our disjointness axioms are a
-    # policy on our own RDF, so a third party's graph tripping them is not our
-    # inconsistency to answer for.
-    fixture_files = [
-        p for p in FIXTURES_DIR.rglob("*.ttl") if EXTERNAL_FIXTURES_DIR not in p.parents
+    assert calls == ["axis", "kind", "fixtures"]
+    assert completed == [
+        "two-axis inconsistency",
+        "two-kind inconsistency",
+        "worked-fixture coherence",
     ]
-    assert fixture_files, f"no fixtures found in {FIXTURES_DIR}"  # never pass vacuously
-    for ttl in sorted(fixture_files):
-        fixtures.parse(ttl, format="turtle")
-    assert _is_consistent(fixtures, "fixtures", reasoner="ELK")
