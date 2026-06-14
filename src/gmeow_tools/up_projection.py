@@ -50,6 +50,7 @@ from rdflib import RDF, XSD, BNode, Graph, Literal, Namespace, URIRef
 from rdflib.term import Node
 
 from gmeow_tools.config import MAPPINGS_DIR
+from gmeow_tools.language_tags import retag_graph_to_internal
 from gmeow_tools.up_projection_audit import (
     _canon_qname,
     _in_projection_ns,
@@ -476,7 +477,9 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     counterpart: a direct rule keeps the edge, an inverse-path rule swaps subject
     and object (undoing an inverted down-projection). Subjects/objects/literals
     are carried verbatim. Terms with no rule are accounted in the gap (or, when
-    the reverse is ambiguous, in ``ambiguous_terms``) — never guessed.
+    the reverse is ambiguous, in ``ambiguous_terms``) — never guessed. Public
+    BCP-47 language tags are retagged to the canonical ``x-gmeow-*`` form (the
+    intermediate is canonical GMEOW; ``fnComposeBcp`` read backwards, #451).
     """
     if len(source) == 0:
         raise ValueError("up_project: source graph is empty")
@@ -486,6 +489,7 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     acc.out.bind("gmeow", GM)
     for s, p, o in source:
         _lift_edge(acc, s, p, o, lift)
+    retag_graph_to_internal(acc.out)
     return UpProjection(
         graph=acc.out,
         lifted=acc.lifted,

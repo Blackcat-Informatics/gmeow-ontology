@@ -63,6 +63,24 @@ def test_up_project_recovers_identity_resolved_term() -> None:
     assert "schema:name" not in up.ambiguous_terms
 
 
+def test_up_project_retags_public_bcp47_to_canonical_internal() -> None:
+    """The up-projection is the inverse of ``fnComposeBcp`` (#451): a consumer's
+    public BCP-47 tag (``@en``/``@fr``) is lifted back to the canonical internal
+    ``@x-gmeow-*`` form, so the pure-GMEOW draft is genuinely canonical and the
+    canonical transpile tiers stop leaking public tags."""
+    src = Graph()
+    person = URIRef("https://ex.org/ada")
+    src.add((person, URIRef(SCHEMA + "name"), Literal("Ada Lovelace", lang="en")))
+    src.add((person, URIRef(SCHEMA + "conformsTo"), Literal("v1", lang="fr")))
+    up = up_project(src)
+    tags = {
+        o.language for _s, _p, o in up.graph if isinstance(o, Literal) and o.language
+    }
+    assert tags == {"x-gmeow-english", "x-gmeow-french"}
+    # no public tag survives into canonical GMEOW
+    assert "en" not in tags and "fr" not in tags
+
+
 def _down(fixture: str, profile: str) -> Graph:
     data = Graph().parse(FIXTURES_DIR / fixture, format="turtle")
     store = sparql.store_with(include_imports=True, extra_triples=data)

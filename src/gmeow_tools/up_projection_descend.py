@@ -41,6 +41,7 @@ from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.term import Node
 
 from gmeow_tools.graph import shared_merged_graph
+from gmeow_tools.language_tags import retag_graph_to_internal
 from gmeow_tools.up_projection import (
     GM,
     LiftMap,
@@ -338,6 +339,7 @@ def up_project_descend(source: Graph, lift: LiftMap | None = None) -> UpProjecti
         context_resolved += 1
         context_terms[_canon_qname(str(p))] += 1
 
+    retag_graph_to_internal(acc.out)  # public BCP-47 → canonical x-gmeow-* (#451)
     return UpProjection(
         graph=acc.out,
         lifted=acc.lifted,
