@@ -14419,7 +14419,7 @@ type PerformanceParticipation
     participationParticipant: [Entity]
     participationRole: [ParticipantRole]
     participationConfiguration: InstrumentConfiguration
-    participationInstrument: InstrumentType
+    participationInstrument: [InstrumentType]
     participationInstrumentItem: Item
     participationPart: String
     participationTechnique: PlayingTechnique

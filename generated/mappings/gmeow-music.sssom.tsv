@@ -24,7 +24,7 @@ gmeow:TempoMap	skos:closeMatch	wd:Q189214	semapv:ManualMappingCuration	0.85	Wiki
 gmeow:TuningSystem	skos:closeMatch	wd:Q723441	semapv:ManualMappingCuration	0.9	Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view.
 gmeow:determinationDelegatedPerformer	skos:closeMatch	wd:Q1049625	semapv:ManualMappingCuration	0.8	Wikidata 'musical improvisation' (Q1049625) — improvisation is one form of performer-delegated determination.
 gmeow:eventTypeConcert	skos:closeMatch	wd:Q182832	semapv:ManualMappingCuration	0.95	Wikidata 'concert' (Q182832).
-gmeow:performanceOf	skos:closeMatch	mo:performance	semapv:ManualMappingCuration	0.75	Music Ontology mo:performance relates a performance event to the musical work performed.
+gmeow:performanceOf	skos:closeMatch	mo:performance_of	semapv:ManualMappingCuration	0.75	Music Ontology mo:performance_of relates a performance event to the musical work performed.
 gmeow:performanceOf	skos:closeMatch	wd:P2550	semapv:ManualMappingCuration	0.85	Wikidata 'recording or performance of' (P2550) — the closest available property for performance→work linkage.
 gmeow:pitchCollectionKindMaqam	skos:closeMatch	wd:Q12826678	semapv:ManualMappingCuration	0.85	Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions.
 gmeow:pitchCollectionKindMode	skos:exactMatch	wd:Q731978	semapv:ManualMappingCuration	0.95	Wikidata 'mode (music)' (Q731978).

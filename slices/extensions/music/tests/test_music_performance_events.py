@@ -29,6 +29,7 @@ def _error_text(result: ValidationResult) -> str:
 
 
 def test_performance_events_classes_exist() -> None:
+    """#313 classes are declared as owl:Class."""
     graph = _graph()
     for term in (
         "PerformanceParticipation",
@@ -44,6 +45,7 @@ def test_performance_events_classes_exist() -> None:
 
 
 def test_performance_participation_is_participation_subkind() -> None:
+    """PerformanceParticipation is a gufo:SubKind of core Participation."""
     graph = _graph()
     pp = URIRef(GMEOW + "PerformanceParticipation")
     participation = URIRef(GMEOW + "Participation")
@@ -52,9 +54,14 @@ def test_performance_participation_is_participation_subkind() -> None:
 
 
 def test_performance_event_properties_exist() -> None:
+    """#313 properties have the intended OWL characteristics.
+
+    participationInstrument is deliberately non-functional: the SHACL shape
+    issues a warning for >1 instrument so that deployments can mint multiple
+    participations without forcing identity entailments (Principle 12).
+    """
     graph = _graph()
     functional = [
-        "participationInstrument",
         "participationInstrumentItem",
         "participationConfiguration",
         "participationPart",
@@ -66,6 +73,17 @@ def test_performance_event_properties_exist() -> None:
             RDF.type,
             OWL.FunctionalProperty,
         ) in graph, f"{prop} should be functional"
+
+    assert (
+        URIRef(GMEOW + "participationInstrument"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "participationInstrument"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) not in graph, "participationInstrument must not be functional"
 
     assert (
         URIRef(GMEOW + "performanceOf"),
@@ -80,6 +98,7 @@ def test_performance_event_properties_exist() -> None:
 
 
 def test_event_type_seeds_exist() -> None:
+    """Music event-type seeds are present in the events slice."""
     graph = _graph()
     event_types = (
         "eventTypeMusicalPerformance",
@@ -102,6 +121,7 @@ def test_event_type_seeds_exist() -> None:
 
 
 def test_participant_role_seeds_exist() -> None:
+    """Music participant-role seeds are present in the events slice."""
     graph = _graph()
     roles = (
         "roleSoloist",
@@ -121,6 +141,7 @@ def test_participant_role_seeds_exist() -> None:
 
 
 def test_dual_typed_music_roles() -> None:
+    """Performer, conductor and producer are both Contribution and Participant roles."""
     graph = _graph()
     contribution_role = URIRef(GMEOW + "ContributionRole")
     participant_role = URIRef(GMEOW + "ParticipantRole")
@@ -135,6 +156,7 @@ def test_dual_typed_music_roles() -> None:
 
 
 def test_instrument_type_seeds_exist() -> None:
+    """InstrumentType value seeds are present."""
     graph = _graph()
     for term in (
         "instrumentTypePiano",
@@ -151,6 +173,7 @@ def test_instrument_type_seeds_exist() -> None:
 
 
 def test_playing_technique_seeds_exist() -> None:
+    """PlayingTechnique value seeds are present."""
     graph = _graph()
     for term in (
         "playingTechniqueArco",
@@ -165,6 +188,7 @@ def test_playing_technique_seeds_exist() -> None:
 
 
 def test_session_fixture_exists() -> None:
+    """The session -> takes -> overdub -> composite fixture is present and typed."""
     graph = _graph()
     assert (
         URIRef(GMEOW + "fixtureSessionEvent"),
@@ -197,6 +221,7 @@ def test_session_fixture_exists() -> None:
 
 
 def test_who_played_what_on_take_3() -> None:
+    """The fixture SPARQL query returns bassist + drummer on take 3."""
     graph = _graph()
     query = """
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
@@ -226,6 +251,7 @@ def test_who_played_what_on_take_3() -> None:
 
 
 def test_performance_participation_valid_passes_shacl() -> None:
+    """A complete PerformanceParticipation passes SHACL validation."""
     g = Graph()
     g.bind("gmeow", GMEOW)
     g.bind("ex", EX)
@@ -241,6 +267,7 @@ def test_performance_participation_valid_passes_shacl() -> None:
 
 
 def test_performance_participation_missing_role_fails_shacl() -> None:
+    """A PerformanceParticipation without a role violates SHACL."""
     g = Graph()
     g.bind("gmeow", GMEOW)
     g.bind("ex", EX)
@@ -255,7 +282,8 @@ def test_performance_participation_missing_role_fails_shacl() -> None:
     assert "exactly one ParticipantRole" in _error_text(result)
 
 
-def test_performance_participation_two_instruments_fails_shacl() -> None:
+def test_performance_participation_two_instruments_warns_shacl() -> None:
+    """Two instruments on one participation is allowed but produces a SHACL warning."""
     g = Graph()
     g.bind("gmeow", GMEOW)
     g.bind("ex", EX)

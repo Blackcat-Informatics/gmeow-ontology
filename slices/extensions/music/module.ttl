@@ -3701,11 +3701,11 @@ gmeow:performanceOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:participationInstrument
-    a owl:ObjectProperty, owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:PerformanceParticipation ;
     rdfs:range gmeow:InstrumentType ;
     rdfs:label "participation instrument"@x-gmeow-english ;
-    skos:definition "The kind of instrument involved in this performance participation. Functional per relator: one instrument type per PerformanceParticipation; mint one participation per instrument (SHACL advisory)."@x-gmeow-english ;
+    skos:definition "The kind of instrument involved in this performance participation. One instrument type per PerformanceParticipation is recommended; mint one participation per instrument (SHACL advisory)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:participationInstrumentItem

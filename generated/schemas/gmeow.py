@@ -30005,7 +30005,7 @@ class PerformanceParticipation(Participation):
     participationConfiguration: Optional[InstrumentConfiguration] = Field(default=None, title="participation configuration", json_schema_extra = { "linkml_meta": {'domain': 'PerformanceParticipation',
          'domain_of': ['PerformanceParticipation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/participationConfiguration'} })
-    participationInstrument: Optional[InstrumentType] = Field(default=None, title="participation instrument", json_schema_extra = { "linkml_meta": {'domain': 'PerformanceParticipation',
+    participationInstrument: Optional[list[InstrumentType]] = Field(default=None, title="participation instrument", json_schema_extra = { "linkml_meta": {'domain': 'PerformanceParticipation',
          'domain_of': ['PerformanceParticipation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/participationInstrument'} })
     participationInstrumentItem: Optional[Item] = Field(default=None, title="participation instrument item", json_schema_extra = { "linkml_meta": {'domain': 'PerformanceParticipation',

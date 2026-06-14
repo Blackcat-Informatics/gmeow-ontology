@@ -5685,7 +5685,7 @@ export interface PerformanceDecision {
 
 export interface PerformanceParticipation extends Participation {
     participationConfiguration?: InstrumentConfiguration,
-    participationInstrument?: InstrumentType,
+    participationInstrument?: InstrumentType[],
     participationInstrumentItem?: Item,
     participationPart?: string,
     participationTechnique?: PlayingTechnique,

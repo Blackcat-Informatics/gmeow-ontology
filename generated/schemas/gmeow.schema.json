@@ -95760,13 +95760,12 @@
                     ]
                 },
                 "participationInstrument": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/InstrumentType"
-                        },
-                        {
-                            "type": "null"
-                        }
+                    "items": {
+                        "$ref": "#/$defs/InstrumentType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
                     ]
                 },
                 "participationInstrumentItem": {

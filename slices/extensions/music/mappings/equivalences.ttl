@@ -307,15 +307,15 @@ gmeow:eqMu022 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 gmeow:eqMu023 a gmeow:TermEquivalence ;
-    rdfs:label "performanceOf ↔ Music Ontology mo:performance"@x-gmeow-english ;
+    rdfs:label "performanceOf ↔ Music Ontology mo:performance_of"@x-gmeow-english ;
     skos:definition "Maps the GMEOW performanceOf property to the Music Ontology performance relation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     gmeow:alignSubject gmeow:performanceOf ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject mo:performance ;
+    gmeow:alignObject mo:performance_of ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Music Ontology mo:performance relates a performance event to the musical work performed." ;
+    gmeow:comment "Music Ontology mo:performance_of relates a performance event to the musical work performed." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 gmeow:eqMu024 a gmeow:TermEquivalence ;
