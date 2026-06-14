@@ -61,7 +61,8 @@ function decodeOne(codec: Codec, data: Uint8Array): Uint8Array {
                 });
             }
         }
-        case "zstd": {
+        case "zstd":
+        case "zstd-rsyncable": {
             try {
                 return zstdDecompress(data);
             } catch (e) {

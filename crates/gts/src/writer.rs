@@ -89,6 +89,13 @@ impl Writer {
                 },
             ),
             (
+                3,
+                Codec {
+                    name: "zstd-rsyncable".to_string(),
+                    cls: "compress".to_string(),
+                },
+            ),
+            (
                 7,
                 Codec {
                     name: "cose-encrypt0".to_string(),
