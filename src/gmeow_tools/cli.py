@@ -1032,7 +1032,7 @@ def up_project_cmd(
         typer.echo(result.graph.serialize(format="turtle"))
     err_console.print(
         f"[green]lifted[/green] {result.lifted} facts · "
-        f"[cyan]claimed[/cyan] {result.claimed} closeMatch · "
+        f"[cyan]claimed[/cyan] {result.claimed} inferred · "
         f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
         f"[yellow]ambiguous[/yellow] {len(result.ambiguous_terms)} terms",
     )
