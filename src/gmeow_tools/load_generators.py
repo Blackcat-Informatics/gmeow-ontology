@@ -26,6 +26,7 @@ MODULES = (
     "ontology_docs",
     "parquet_gen",
     "profiles_gen",
+    "references",
     "research_objects",
     "schema_compile",
     "statement_compile",
