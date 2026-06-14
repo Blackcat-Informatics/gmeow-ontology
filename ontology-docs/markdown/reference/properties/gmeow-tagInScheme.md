@@ -17,6 +17,28 @@ Relates a tag to a scheme it belongs to. Non-functional: a tag may reside in man
 
 Use [`gmeow:tagInScheme`](gmeow-tagInScheme.md) from [`gmeow:Tag`](../classes/gmeow-Tag.md) to [`gmeow:TagScheme`](../classes/gmeow-TagScheme.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Folksonomy
+
+- **Source:** [`slices/core/tags/examples/folksonomy.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/tags/examples/folksonomy.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-tags-examples-folksonomy)#example-slices-core-tags-examples-folksonomy
+
+```turtle
+ex:tagAI a gmeow:Tag ;
+    rdfs:label      "artificial-intelligence"@en ;
+    gmeow:tagInScheme ex:scheme ;
+    gmeow:narrowerTag ex:tagML .
+
+ex:tagML a gmeow:Tag ;
+    rdfs:label      "machine-learning"@en ;
+    gmeow:tagInScheme ex:scheme ;
+    gmeow:broaderTag ex:tagAI ;
+    gmeow:relatedTag ex:tagNLP .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Tag`](../classes/gmeow-Tag.md), [`gmeow:TagScheme`](../classes/gmeow-TagScheme.md)

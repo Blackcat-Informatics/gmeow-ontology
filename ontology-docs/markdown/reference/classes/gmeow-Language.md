@@ -17,6 +17,35 @@ A language as a first-class information object with a self-minted IRI: a system 
 
 Use [`gmeow:Language`](gmeow-Language.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Multilingual Document
+
+- **Source:** [`slices/core/language/examples/multilingual-document.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-language-examples-multilingual-document)#example-slices-core-language-examples-multilingual-document
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: language as a first-class entity . A gmeow:Language is a
+# reified individual carrying its gmeow:bcp47Tag — not a bare string column — so a
+# document can be gmeow:writtenInLanguage SEVERAL co-equal languages at once
+# (a bilingual manual), with no primary language privileged. The Language objects
+# are minted (there is no closed enum of languages); the document is an
+# InformationObject, the domain of gmeow:writtenInLanguage.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Languages: first-class, BCP-47-tagged, minted as needed.
+ex:english a gmeow:Language ;
+    rdfs:label     "English"@en ;
+    gmeow:bcp47Tag "en" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

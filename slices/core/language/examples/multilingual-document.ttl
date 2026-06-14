@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: language as a first-class entity (#443). A gmeow:Language is a
+# reified individual carrying its gmeow:bcp47Tag — not a bare string column — so a
+# document can be gmeow:writtenInLanguage SEVERAL co-equal languages at once
+# (a bilingual manual), with no primary language privileged. The Language objects
+# are minted (there is no closed enum of languages); the document is an
+# InformationObject, the domain of gmeow:writtenInLanguage.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Languages: first-class, BCP-47-tagged, minted as needed.
+ex:english a gmeow:Language ;
+    rdfs:label     "English"@x-gmeow-english ;
+    gmeow:bcp47Tag "en" .
+
+ex:japanese a gmeow:Language ;
+    rdfs:label     "Japanese"@x-gmeow-english ;
+    gmeow:bcp47Tag "ja" .
+
+# --- A bilingual document: two co-equal languages, neither primary.
+ex:manual a gmeow:InformationObject ;
+    gmeow:title            "Installation Manual / インストールマニュアル"@x-gmeow-english ;
+    gmeow:writtenInLanguage ex:english , ex:japanese .

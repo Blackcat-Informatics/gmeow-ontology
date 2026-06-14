@@ -17,6 +17,33 @@ A namespaced set of tags — a project vocabulary, a personal tag bucket, or a c
 
 Use [`gmeow:TagScheme`](gmeow-TagScheme.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Folksonomy
+
+- **Source:** [`slices/core/tags/examples/folksonomy.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/tags/examples/folksonomy.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-tags-examples-folksonomy)#example-slices-core-tags-examples-folksonomy
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: tagging is flat-first, reified on demand (, P4). A bare
+# gmeow:hasTag covers "this is tagged X". Tags themselves form a SKOS-style poly-
+# hierarchy (gmeow:broaderTag / gmeow:narrowerTag / gmeow:relatedTag) inside a
+# gmeow:TagScheme. When the PROVENANCE of a tagging matters — who applied it, in
+# which scheme — it is promoted to a reified gmeow:Tagging relator binding tagger
+# × tagged × tag × scheme, so a contested or machine-applied tag is auditable.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- A scheme and a small tag hierarchy within it.
+ex:scheme a gmeow:TagScheme ; rdfs:label "Research topic keywords"@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

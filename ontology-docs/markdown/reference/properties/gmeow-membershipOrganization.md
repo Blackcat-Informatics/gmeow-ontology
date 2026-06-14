@@ -33,6 +33,20 @@ ex:danaTenure a gmeow:Membership ;
     gmeow:fillsPost ex:cfoPost .
 ```
 
+### Employment Contract
+
+- **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-agreements-examples-employment-contract)#example-slices-core-agreements-examples-employment-contract
+
+```turtle
+# --- The employment Membership is FOUNDED ON the contract: it exists because of
+#     it, so the grounding relator points at the agreement rather than assuming it.
+ex:employment a gmeow:Membership ;
+    gmeow:membershipMember       ex:dana ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:foundedOn              ex:contract .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Membership`](../classes/gmeow-Membership.md), [`gmeow:Organization`](../classes/gmeow-Organization.md)

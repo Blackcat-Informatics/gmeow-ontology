@@ -17,6 +17,23 @@ Relates an agent to an agreement it is party to. The party-ship period is carrie
 
 Use [`gmeow:hasAgreement`](gmeow-hasAgreement.md) from [`gmeow:Agent`](../classes/gmeow-Agent.md) to [`gmeow:Agreement`](../classes/gmeow-Agreement.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Employment Contract
+
+- **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-agreements-examples-employment-contract)#example-slices-core-agreements-examples-employment-contract
+
+```turtle
+# --- The contract: a relator binding the two parties, bearing a formal name.
+ex:contract a gmeow:Contract ;
+    gmeow:hasParty         ex:acme , ex:dana ;
+    gmeow:hasAgreementName ex:contractName ;
+    gmeow:validFrom        "2026-01-15T00:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Agent`](../classes/gmeow-Agent.md), [`gmeow:Agreement`](../classes/gmeow-Agreement.md)

@@ -40,6 +40,18 @@
 <p><strong>Subclass of:</strong> <a href="../gmeow-Entity/"><code>gmeow:Entity</code></a>, <a href="../../../external/terms/#gufo-object"><code>gufo:Object</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:InformationObject</code></a> as a specialized kind of <a href="../gmeow-Entity/"><code>gmeow:Entity</code></a>, <a href="../../../external/terms/#gufo-object"><code>gufo:Object</code></a>. Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Multilingual Document</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl"><code>slices/core/language/examples/multilingual-document.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-language-examples-multilingual-document">open in catalog</a>#example-slices-core-language-examples-multilingual-document</li>
+</ul>
+<pre><code class="language-turtle"># --- A bilingual document: two co-equal languages, neither primary.
+ex:manual a gmeow:InformationObject ;
+    gmeow:title            &quot;Installation Manual / インストールマニュアル&quot;@en ;
+    gmeow:writtenInLanguage ex:english , ex:japanese .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-Entity/"><code>gmeow:Entity</code></a></p>
   </main>

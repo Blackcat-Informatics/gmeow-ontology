@@ -18,6 +18,23 @@ Relates an agreement to a structured [`gmeow:AgreementName`](../classes/gmeow-Ag
 
 Use [`gmeow:hasAgreementName`](gmeow-hasAgreementName.md) from [`gmeow:Agreement`](../classes/gmeow-Agreement.md) to [`gmeow:AgreementName`](../classes/gmeow-AgreementName.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Employment Contract
+
+- **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-agreements-examples-employment-contract)#example-slices-core-agreements-examples-employment-contract
+
+```turtle
+# --- The contract: a relator binding the two parties, bearing a formal name.
+ex:contract a gmeow:Contract ;
+    gmeow:hasParty         ex:acme , ex:dana ;
+    gmeow:hasAgreementName ex:contractName ;
+    gmeow:validFrom        "2026-01-15T00:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:hasAppellation`](gmeow-hasAppellation.md), [`gmeow:Agreement`](../classes/gmeow-Agreement.md), [`gmeow:AgreementName`](../classes/gmeow-AgreementName.md)

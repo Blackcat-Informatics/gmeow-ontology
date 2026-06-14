@@ -23,6 +23,42 @@ This slice owns 13 terms and contributes 17 mapping or projection rows. Use it w
 
 ![language map](../diagrams/slices/language.svg)
 
+## Examples
+
+### Multilingual Document
+
+- **Source:** [`slices/core/language/examples/multilingual-document.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl)
+- **GMEOW terms:** [`gmeow:InformationObject`](../reference/classes/gmeow-InformationObject.md), [`gmeow:Language`](../reference/classes/gmeow-Language.md), [`gmeow:bcp47Tag`](../reference/properties/gmeow-bcp47Tag.md), [`gmeow:title`](../reference/properties/gmeow-title.md), [`gmeow:writtenInLanguage`](../reference/properties/gmeow-writtenInLanguage.md)
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: language as a first-class entity . A gmeow:Language is a
+# reified individual carrying its gmeow:bcp47Tag — not a bare string column — so a
+# document can be gmeow:writtenInLanguage SEVERAL co-equal languages at once
+# (a bilingual manual), with no primary language privileged. The Language objects
+# are minted (there is no closed enum of languages); the document is an
+# InformationObject, the domain of gmeow:writtenInLanguage.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Languages: first-class, BCP-47-tagged, minted as needed.
+ex:english a gmeow:Language ;
+    rdfs:label     "English"@en ;
+    gmeow:bcp47Tag "en" .
+
+ex:japanese a gmeow:Language ;
+    rdfs:label     "Japanese"@en ;
+    gmeow:bcp47Tag "ja" .
+
+# --- A bilingual document: two co-equal languages, neither primary.
+ex:manual a gmeow:InformationObject ;
+    gmeow:title            "Installation Manual / インストールマニュアル"@en ;
+    gmeow:writtenInLanguage ex:english , ex:japanese .
+```
+
 ## Terms
 
 ### Classes

@@ -17,6 +17,23 @@ The entity that is tagged in a tagging act. Functional per relator: one tagged e
 
 Use [`gmeow:taggingTagged`](gmeow-taggingTagged.md) from [`gmeow:Tagging`](../classes/gmeow-Tagging.md) to [`gmeow:Entity`](../classes/gmeow-Entity.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Folksonomy
+
+- **Source:** [`slices/core/tags/examples/folksonomy.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/tags/examples/folksonomy.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-tags-examples-folksonomy)#example-slices-core-tags-examples-folksonomy
+
+```turtle
+ex:taggingNLP a gmeow:Tagging ;
+    gmeow:taggingTagged ex:paper ;
+    gmeow:taggingTag    ex:tagNLP ;
+    gmeow:taggingTagger ex:alice ;
+    gmeow:taggingScheme ex:scheme .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Tagging`](../classes/gmeow-Tagging.md), [`gmeow:Entity`](../classes/gmeow-Entity.md)
