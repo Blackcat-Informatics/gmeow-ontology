@@ -40,10 +40,13 @@ These snippets are generated from canonical slice examples and trimmed to the Tu
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-# --- Languages: first-class, BCP-47-tagged, minted as needed.
-ex:english a gmeow:Language ;
-    rdfs:label     "English"@en ;
-    gmeow:bcp47Tag "en" .
+# --- Languages: first-class, BCP-47-tagged. English already exists as the core
+#     seed gmeow:langEnglish — reused, not re-minted. Japanese has no seed, so it
+#     is minted, declaring its internal private-use tag for @lang annotations.
+ex:japanese a gmeow:Language ;
+    rdfs:label        "Japanese"@en ;
+    gmeow:bcp47Tag    "ja" ;
+    gmeow:languageTag "und" .
 ```
 
 ## Common Companion Terms

@@ -28,7 +28,7 @@ This slice owns 13 terms and contributes 17 mapping or projection rows. Use it w
 ### Multilingual Document
 
 - **Source:** [`slices/core/language/examples/multilingual-document.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl)
-- **GMEOW terms:** [`gmeow:InformationObject`](../reference/classes/gmeow-InformationObject.md), [`gmeow:Language`](../reference/classes/gmeow-Language.md), [`gmeow:bcp47Tag`](../reference/properties/gmeow-bcp47Tag.md), [`gmeow:title`](../reference/properties/gmeow-title.md), [`gmeow:writtenInLanguage`](../reference/properties/gmeow-writtenInLanguage.md)
+- **GMEOW terms:** [`gmeow:InformationObject`](../reference/classes/gmeow-InformationObject.md), [`gmeow:Language`](../reference/classes/gmeow-Language.md), [`gmeow:bcp47Tag`](../reference/properties/gmeow-bcp47Tag.md), [`gmeow:langEnglish`](../reference/individuals/gmeow-langEnglish.md), [`gmeow:languageTag`](../reference/properties/gmeow-languageTag.md), [`gmeow:title`](../reference/properties/gmeow-title.md), [`gmeow:writtenInLanguage`](../reference/properties/gmeow-writtenInLanguage.md)
 
 ```turtle
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
@@ -44,19 +44,19 @@ This slice owns 13 terms and contributes 17 mapping or projection rows. Use it w
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/language/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-# --- Languages: first-class, BCP-47-tagged, minted as needed.
-ex:english a gmeow:Language ;
-    rdfs:label     "English"@en ;
-    gmeow:bcp47Tag "en" .
-
+# --- Languages: first-class, BCP-47-tagged. English already exists as the core
+#     seed gmeow:langEnglish — reused, not re-minted. Japanese has no seed, so it
+#     is minted, declaring its internal private-use tag for @lang annotations.
 ex:japanese a gmeow:Language ;
-    rdfs:label     "Japanese"@en ;
-    gmeow:bcp47Tag "ja" .
+    rdfs:label        "Japanese"@en ;
+    gmeow:bcp47Tag    "ja" ;
+    gmeow:languageTag "und" .
 
-# --- A bilingual document: two co-equal languages, neither primary.
+# --- A bilingual document: two co-equal languages, neither primary. The title is
+#     carried as separate co-equal language-tagged literals, one per language.
 ex:manual a gmeow:InformationObject ;
-    gmeow:title            "Installation Manual / インストールマニュアル"@en ;
-    gmeow:writtenInLanguage ex:english , ex:japanese .
+    gmeow:title             "Installation Manual"@en , "インストールマニュアル"@und ;
+    gmeow:writtenInLanguage gmeow:langEnglish , ex:japanese .
 ```
 
 ## Terms

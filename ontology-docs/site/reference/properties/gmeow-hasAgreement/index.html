@@ -21,6 +21,7 @@
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
       <a href="../../../slices/">Slices</a>
+      <a href="../../../adoption/">Adoption</a>
       <a href="../../../linkages/">Linkages</a>
       <a href="../../../reference/">Reference</a>
       <a href="../../../external/ontologies/">External</a>
@@ -48,10 +49,11 @@
 <li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-agreements-examples-employment-contract">open in catalog</a>#example-slices-core-agreements-examples-employment-contract</li>
 </ul>
 <pre><code class="language-turtle"># --- The contract: a relator binding the two parties, bearing a formal name.
+#     (Validity bounds — gmeow:validFrom/validUntil — are statement-level RDF-1.2
+#     annotations, carried in the statement layer rather than as A-box triples.)
 ex:contract a gmeow:Contract ;
     gmeow:hasParty         ex:acme , ex:dana ;
-    gmeow:hasAgreementName ex:contractName ;
-    gmeow:validFrom        &quot;2026-01-15T00:00:00Z&quot;^^xsd:dateTime .
+    gmeow:hasAgreementName ex:contractName .
 </code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Agent/"><code>gmeow:Agent</code></a>, <a href="../../classes/gmeow-Agreement/"><code>gmeow:Agreement</code></a></p>
