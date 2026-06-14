@@ -890,32 +890,61 @@ def build() -> None:
 
 @app.command()
 def project(
+    source: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="A transpiled .gts to view, or a GMEOW data file (.ttl) to project; "
+        "default: the worked-example fixtures.",
+    ),
     profile: str = typer.Option(
         "all",
-        help="Target profile: all|" + "|".join(sorted(_PROFILES)) + ".",
+        help="Target view/profile: all|maximal|gmeow|"
+        + "|".join(sorted(_PROFILES))
+        + ".",
     ),
     data: str = typer.Option(
-        "", help="GMEOW data file to project (default: the worked-example fixtures)."
+        "", help="(deprecated alias for the positional source — a GMEOW data file)."
     ),
 ) -> None:
-    """Project GMEOW to a pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profile.
+    """Project GMEOW to a pure schema.org / FOAF / vCard / … profile.
 
-    The FnO/EDOAL specs under projections/ describe the transformations; this runs
-    their executable SPARQL CONSTRUCT form (pure-Python rdflib). Lossy by design.
+    Two input kinds:
+
+    * A **transpiled .gts** (the maximal product): the profile is a *view filter*
+      — `--profile foaf` emits the FOAF subset already in the .gts, `--profile
+      gmeow` the pure-GMEOW base, `--profile all` the whole maximal (GMEOW + every
+      vocab). A filter of the already-down-projected artifact, never a re-run.
+    * A **GMEOW data file** (.ttl): runs the per-profile CONSTRUCT (the FnO/EDOAL
+      executor, lossy by design). With no source, the worked-example fixtures.
     """
-    from gmeow_tools.projections import PROFILES, project_examples, project_file
+    from gmeow_tools.projections import (
+        GTS_VIEW_ALL,
+        GTS_VIEW_GMEOW,
+        PROFILES,
+        project_examples,
+        project_file,
+        project_gts_subset,
+    )
+
+    src = source or (Path(data) if data else None)
+    if src is None:
+        for path in project_examples():
+            console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+        return
+
+    if src.suffix.lower() == ".gts":
+        valid = set(PROFILES) | {GTS_VIEW_GMEOW, *GTS_VIEW_ALL}
+        if profile not in valid:
+            raise _fail(f"unknown view: {profile} (vocab | gmeow | all | maximal)")
+        path = project_gts_subset(src, profile)
+        console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+        return
 
     names = list(PROFILES) if profile == "all" else [profile]
     for name in names:
         if name not in PROFILES:
             raise _fail(f"unknown profile: {name}")
-    if not data:
-        for path in project_examples():
-            console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
-    else:
-        for name in names:
-            path = project_file(Path(data), name)
-            console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+        path = project_file(src, name)
+        console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 
 @app.command()
@@ -1125,6 +1154,7 @@ def transpile(
         f"[dim]{result.transform.wall_clock_s:.1f}s[/dim]",
     )
     err_console.print(f"[green]draft[/green] {result.draft_path}")
+    err_console.print(f"[green]gaps[/green] {result.gap_report_path}")
     for path in result.transform.written:
         err_console.print(f"[green]wrote[/green] {path}")
 

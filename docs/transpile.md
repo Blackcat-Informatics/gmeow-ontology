@@ -54,10 +54,38 @@ gmeow transpile source.ttl --profiles schema-org,foaf   # a subset of the maxima
 gmeow transpile source.ttl --floor            # use the per-term floor, not the descent
 ```
 
-The output directory receives the draft `<stem>.gmeow.ttl` plus the maximal
-family: `<stem>.gts` (canonical, full RDF 1.2 provenance), `index.nq` (RDF 1.2
-N-Quads), and `index.ttl` / `index.jsonld` (the asserted base triples, plain-RDF
-readable). See [projections](./projections.md) for the file family in detail.
+The output directory receives:
+
+- `<stem>.gmeow.ttl` — the pure-GMEOW draft (the canonical interpretation).
+- `<stem>.gts` — the canonical maximal product, full RDF 1.2 provenance.
+- `index.nq` — RDF 1.2 N-Quads.
+- `index.ttl` / `index.jsonld` / `index.nt` — the asserted base triples, plain-RDF readable in three syntaxes.
+- `<stem>.gaps.md` — the **gap report** (below).
+
+See [projections](./projections.md) for the maximal file family in detail.
+
+### The gap report
+
+Up-projection is honest about what it can't hold: a source term with no lift rule
+(a coverage gap) or an ambiguous reverse (several gmeow up-targets, held out
+rather than guessed) is **never silently dropped** — every un-lifted source
+triple is recorded in `<stem>.gaps.md`, grouped by term, with the lifted-vs-gap
+tallies. It is the audit companion to the draft: the draft is everything GMEOW
+*did* hold, the gap report is everything it *could not*.
+
+### Single-vocabulary views of a transpiled `.gts`
+
+The `.gts` is already maximal (GMEOW + every vocabulary), so a single-vocab view
+is a **filter** of it — the complete subset already present, never a re-run:
+
+```sh
+gmeow project --profile foaf  out/source.gts   # the FOAF-only view
+gmeow project --profile gmeow out/source.gts   # the pure-GMEOW base
+gmeow project --profile all   out/source.gts   # the whole maximal (GMEOW + all)
+```
+
+This is distinct from `gmeow project <gmeow-data.ttl>`, which runs the lossy
+per-profile CONSTRUCT over *GMEOW source* — see [projections](./projections.md).
 
 ### Streaming
 
