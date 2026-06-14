@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a supply-chain attestation (#443). A gmeow:Attestation binds an
+# gmeow:attester (who vouches) to an gmeow:attestedSubject (what is vouched for)
+# under an gmeow:attestationType drawn from the open vocabulary of real formats
+# (SLSA provenance, in-toto, DSSE, C2PA, verifiable credential, …). Here a CI
+# pipeline issues a SLSA-provenance attestation over a release bundle, carries
+# the signed artifact, and a relying party records a gmeow:VerificationResult —
+# the attestation is a claim; verifying it is a separate, recorded act.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ciSystem a gmeow:SoftwareAgent ; gmeow:name "Acme CI pipeline"@x-gmeow-english .
+ex:relyingParty a gmeow:SoftwareAgent ; gmeow:name "Production deploy gate"@x-gmeow-english .
+
+ex:release a gmeow:CreativeWork ;
+    gmeow:title         "myapp 1.0.0 release bundle"@x-gmeow-english ;
+    gmeow:contentDigest "sha256:abc123def4567890abc123def4567890abc123def4567890abc123def4567890" .
+
+# --- The attestation: the CI system vouches for the release as SLSA provenance.
+ex:slsaAttestation a gmeow:Attestation ;
+    gmeow:attester           ex:ciSystem ;
+    gmeow:attestedSubject    ex:release ;
+    gmeow:attestationType    gmeow:attestationTypeSLSAProvenance ;
+    gmeow:issuedAt           "2026-06-14T12:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:artifact ;
+    gmeow:hasSignature       ex:sig ;
+    gmeow:verificationResult ex:verifyResult .
+
+ex:artifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/vnd.in-toto+json" ;
+    gmeow:contentDigest     "sha256:def456abc1237890def456abc1237890def456abc1237890def456abc1237890" .
+
+ex:sig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ecdsa-p256" ;
+    gmeow:signedBy           ex:ciSystem .
+
+# --- Verification is its own recorded act: the deploy gate checked the chain.
+ex:verifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy            ex:relyingParty .
