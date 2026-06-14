@@ -21,6 +21,7 @@
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
       <a href="../../../slices/">Slices</a>
+      <a href="../../../adoption/">Adoption</a>
       <a href="../../../linkages/">Linkages</a>
       <a href="../../../reference/">Reference</a>
       <a href="../../../external/ontologies/">External</a>
@@ -60,10 +61,13 @@
 @prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/language/&gt; .
 @prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
 
-# --- Languages: first-class, BCP-47-tagged, minted as needed.
-ex:english a gmeow:Language ;
-    rdfs:label     &quot;English&quot;@en ;
-    gmeow:bcp47Tag &quot;en&quot; .
+# --- Languages: first-class, BCP-47-tagged. English already exists as the core
+#     seed gmeow:langEnglish — reused, not re-minted. Japanese has no seed, so it
+#     is minted, declaring its internal private-use tag for @lang annotations.
+ex:japanese a gmeow:Language ;
+    rdfs:label        &quot;Japanese&quot;@en ;
+    gmeow:bcp47Tag    &quot;ja&quot; ;
+    gmeow:languageTag &quot;und&quot; .
 </code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Language/"><code>gmeow:Language</code></a></p>

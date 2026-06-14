@@ -39,7 +39,6 @@ These snippets are generated from canonical slice examples and trimmed to the Tu
 # contract, so its grounding is recorded rather than assumed.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agreements/> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:contractName a gmeow:AgreementName ;
     gmeow:fullName "Acme Robotics — Reyes Employment Agreement (2026)"@en .

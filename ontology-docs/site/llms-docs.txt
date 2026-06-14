@@ -19,6 +19,133 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - ship-offline-gts-docs: Ship Offline GTS Documentation; audience Developers distributing GMEOW snapshots or local docs.; terms gmeow:GTSDocument, gmeow:GTSProfile, gmeow:GTSSegment, gmeow:usesTransformCodec
 - audit-ai-or-graph-rag: Audit AI and Graph-RAG Pipelines; audience Developers recording extracted facts, chunks, and tools.; terms gmeow:Dataset, gmeow:Chunk, gmeow:ExtractedEntity, gmeow:EvidenceSpan, gmeow:usedModel
 
+## Adoption Targets
+- as: as; linkage rows 6
+- bbc: BBC News Ontology; linkage rows 3
+- bfo: BFO; linkage rows 9
+- bibframe: BIBFRAME; linkage rows 10
+- bibo: BIBO; linkage rows 8
+- bio: BIO vocabulary; linkage rows 23
+- bot: BOT (Building Topology Ontology); linkage rows 34
+- bpmn: bpmn; linkage rows 3
+- brick: Brick; linkage rows 2
+- cc: CC REL; linkage rows 27
+- ccpd: ccpd; linkage rows 1
+- ceterms: ceterms; linkage rows 2
+- cito: cito; linkage rows 12
+- codemeta: CodeMeta; linkage rows 56
+- cora: cora; linkage rows 2
+- cp: cp; linkage rows 7
+- credit: credit; linkage rows 14
+- crm: CIDOC CRM; linkage rows 43
+- crmarc: CRMarchaeo; linkage rows 14
+- crmgeo: crmgeo; linkage rows 4
+- crminf: CRMinf; linkage rows 14
+- crmsci: CRMsci; linkage rows 3
+- dc: dc; linkage rows 45
+- dcat: dcat; linkage rows 8
+- dcmitype: dcmitype; linkage rows 11
+- dcterms: DCMI Metadata Terms; linkage rows 111
+- doap: DOAP; linkage rows 70
+- dpv: dpv; linkage rows 12
+- dqv: W3C DQV; linkage rows 6
+- dul: dul; linkage rows 2
+- edtf: edtf; linkage rows 1
+- esco: esco; linkage rows 3
+- exif: W3C EXIF; linkage rows 12
+- fabio: FaBiO; linkage rows 4
+- faldo: FALDO; linkage rows 6
+- fhir: HL7 FHIR; linkage rows 12
+- fibo-fbc-fi-fi: FIBO FinancialInstruments; linkage rows 2
+- fibo-fnd-acc-ae: FIBO AccountingEquity; linkage rows 2
+- fibo-fnd-acc-cur: FIBO CurrencyAmount; linkage rows 4
+- fibo-fnd-pas-ps: FIBO ProductsAndServices; linkage rows 1
+- fibo-iso4217: FIBO ISO4217 Currency Codes; linkage rows 8
+- foaf: FOAF; linkage rows 75
+- forgefed: ForgeFed; linkage rows 3
+- frbr: FRBRcore; linkage rows 7
+- gedcom: W3C GEDCOM; linkage rows 52
+- geo: GeoSPARQL; linkage rows 80
+- gn: gn; linkage rows 8
+- gsso: Gender, Sex, and Sexual Orientation Ontology; linkage rows 8
+- gtfs: GTFS; linkage rows 1
+- gts: gts; linkage rows 1
+- gufo: gUFO; linkage rows 6
+- gvp: Getty Vocabulary Program; linkage rows 1
+- gx: gx; linkage rows 39
+- gxv: gxv; linkage rows 4
+- homosaurus: Homosaurus; linkage rows 17
+- iao: IAO; linkage rows 2
+- ical: ical; linkage rows 64
+- ifc: ifcOWL (IFC4); linkage rows 4
+- iiif: IIIF Presentation API; linkage rows 13
+- iptc: IPTC NewsML-G2; linkage rows 6
+- iso19156: iso19156; linkage rows 2
+- ivoa: IVOA; linkage rows 19
+- knowrob: knowrob; linkage rows 4
+- ladm: ladm; linkage rows 5
+- lgdo: lgdo; linkage rows 2
+- lime: LIME; linkage rows 10
+- lode: lode; linkage rows 3
+- loinc: LOINC; linkage rows 8
+- lrmoo: LRMoo; linkage rows 6
+- lvont: Lexvo Ontology; linkage rows 2
+- ma: Ontology for Media Resources; linkage rows 4
+- mads: mads; linkage rows 1
+- mf: OGC Moving Features; linkage rows 2
+- mls: mls; linkage rows 3
+- mo: Music Ontology; linkage rows 1
+- moat: MOAT; linkage rows 1
+- mrg: mrg; linkage rows 4
+- nmo: Nepomuk Message Ontology; linkage rows 15
+- np: np; linkage rows 2
+- oa: oa; linkage rows 59
+- obi: obi; linkage rows 5
+- oboe: oboe; linkage rows 4
+- obscore: IVOA ObsCore; linkage rows 19
+- odrl: ODRL 2.2; linkage rows 180
+- om: om; linkage rows 2
+- ontolex: OntoLex-Lemon; linkage rows 19
+- opmw: opmw; linkage rows 3
+- org: ORG; linkage rows 29
+- pato: pato; linkage rows 1
+- pav: pav; linkage rows 2
+- periodo: periodo; linkage rows 1
+- pleiades: pleiades; linkage rows 2
+- pos: pos; linkage rows 5
+- pplan: P-Plan; linkage rows 6
+- premis: PREMIS 3; linkage rows 7
+- prof: prof; linkage rows 1
+- prov: PROV-O; linkage rows 73
+- qb: RDF Data Cube; linkage rows 11
+- qudt: QUDT; linkage rows 7
+- rdf: rdf; linkage rows 376
+- rel: REL (Relationship); linkage rows 7
+- ro_crate: ro_crate; linkage rows 1
+- rstmt: RightsStatements.org; linkage rows 12
+- schema: Schema.org; linkage rows 687
+- sem: sem; linkage rows 7
+- sf: sf; linkage rows 6
+- sioc: SIOC; linkage rows 21
+- skos: SKOS; linkage rows 6
+- snomed: SNOMED CT; linkage rows 5
+- so: Sequence Ontology; linkage rows 7
+- soma: soma; linkage rows 1
+- sosa: sosa; linkage rows 57
+- spdx: SPDX; linkage rows 17
+- sta: sta; linkage rows 3
+- swh: swh; linkage rows 6
+- tags: Tag Ontology; linkage rows 1
+- teo: teo; linkage rows 14
+- time: OWL-Time; linkage rows 73
+- vc: vc; linkage rows 5
+- vcard: vCard; linkage rows 83
+- vcardx: vcardx; linkage rows 6
+- wgs84: WGS84 Geo Positioning; linkage rows 7
+- whg: whg; linkage rows 2
+- wikibase: wikibase; linkage rows 1
+- wot: WOT Schema; linkage rows 8
+
 ## Slices
 - accessibility: GMEOW Accessibility Module; tier extension; profiles -
 - accounts: GMEOW Accounts Module; tier core; profiles -
@@ -82,6 +209,14 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - trust: GMEOW Trust Module; tier core; profiles -
 - versions: GMEOW Versions Module; tier core; profiles -
 
+## Slice Design Documents
+- logic: Logic Conformance; source slices/core/logic/design/LOGIC-CONFORMANCE.md
+- logic: Logic Migration; source slices/core/logic/design/LOGIC-MIGRATION.md
+- logic: Logic References; source slices/core/logic/design/LOGIC-REFERENCES.md
+- logic: Logic Runtime; source slices/core/logic/design/LOGIC-RUNTIME.md
+- logic: Logic Semantics; source slices/core/logic/design/LOGIC-SEMANTICS.md
+- logic: Logic; source slices/core/logic/design/LOGIC.md
+
 ## Examples
 - slices/core/accounts/examples/online-presence.ttl: Online Presence; slice accounts; terms gmeow:OnlineAccount, gmeow:OnlineService, gmeow:Person, gmeow:accountName, gmeow:accountService, gmeow:accountServiceHomepage, gmeow:accountStatus, gmeow:accountStatusActive, gmeow:accountStatusHistorical, gmeow:activityPubActor, gmeow:holdsAccount, gmeow:name
 - slices/extensions/affect/examples/two-critics.ttl: Two Critics; slice affect; terms gmeow:Appraisal, gmeow:BookRelease, gmeow:Emotion, gmeow:Expression, gmeow:Person, gmeow:Work, gmeow:appraisalDimension, gmeow:appraisalOf, gmeow:appraisalQuality, gmeow:appraisalValue, gmeow:dimensionArousal, gmeow:embodies
@@ -102,7 +237,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - slices/extensions/graphrag/examples/lillith-dataset.ttl: Lillith Dataset; slice graphrag; terms gmeow:BuildActivity, gmeow:Builder, gmeow:Dataset, gmeow:Distribution, gmeow:ImportActivity, gmeow:License, gmeow:Organization, gmeow:Repository, gmeow:buildConfigUri, gmeow:buildOutput, gmeow:buildSource, gmeow:cloneUrl
 - slices/extensions/graphrag/examples/lillith-pipeline.ttl: Lillith Pipeline; slice graphrag; terms gmeow:Activity, gmeow:Chunk, gmeow:Community, gmeow:CommunitySummary, gmeow:Corpus, gmeow:Document, gmeow:Embedding, gmeow:ExtractedEntity, gmeow:ExtractedRelationship, gmeow:ModelInvocation, gmeow:RetrievalEvent, gmeow:SoftwareAgent
 - slices/core/gts/examples/dist-package.ttl: Dist Package; slice gts; terms gmeow:Agent, gmeow:Expression, gmeow:GTSDocument, gmeow:GTSSegment, gmeow:OpaqueFrame, gmeow:Work, gmeow:codecZstd, gmeow:contentDigest, gmeow:embodies, gmeow:gtsHeadId, gmeow:gtsProfile, gmeow:gtsProfileDist
-- slices/core/language/examples/multilingual-document.ttl: Multilingual Document; slice language; terms gmeow:InformationObject, gmeow:Language, gmeow:bcp47Tag, gmeow:title, gmeow:writtenInLanguage
+- slices/core/language/examples/multilingual-document.ttl: Multilingual Document; slice language; terms gmeow:InformationObject, gmeow:Language, gmeow:bcp47Tag, gmeow:langEnglish, gmeow:languageTag, gmeow:title, gmeow:writtenInLanguage
 - slices/core/lifecycle/examples/dissolved-org.ttl: Dissolved Org; slice lifecycle; terms gmeow:Event, gmeow:Instant, gmeow:Organization, gmeow:TimeInterval, gmeow:displayable, gmeow:eventTemporalFrame, gmeow:eventTime, gmeow:eventType, gmeow:eventTypeCreation, gmeow:eventTypeDestruction, gmeow:eventTypeDissolution, gmeow:existenceInterval
 - slices/core/names/examples/person-names.ttl: Person Names; slice names; terms gmeow:NamePart, gmeow:NameUsage, gmeow:Person, gmeow:PersonName, gmeow:displayable, gmeow:fullName, gmeow:hasName, gmeow:hasNamePart, gmeow:hasPronounSet, gmeow:namePartGiven, gmeow:namePartMiddle, gmeow:namePartSurname
 - slices/core/organization/examples/post-and-membership.ttl: Post And Membership; slice organization; terms gmeow:Membership, gmeow:Organization, gmeow:Person, gmeow:Post, gmeow:fillsPost, gmeow:membershipMember, gmeow:membershipOrganization, gmeow:name, gmeow:organizationType, gmeow:organizationTypeCompany, gmeow:postIn, gmeow:subOrganizationOf

@@ -29,7 +29,7 @@ This slice owns 5 terms and contributes 1 mapping or projection rows. Use it whe
 
 - **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
 - **GMEOW terms:** [`gmeow:Agreement`](../reference/classes/gmeow-Agreement.md), [`gmeow:AgreementName`](../reference/classes/gmeow-AgreementName.md), [`gmeow:Contract`](../reference/classes/gmeow-Contract.md), [`gmeow:Membership`](../reference/classes/gmeow-Membership.md), [`gmeow:Organization`](../reference/classes/gmeow-Organization.md), [`gmeow:Person`](../reference/classes/gmeow-Person.md), [`gmeow:foundedOn`](../reference/properties/gmeow-foundedOn.md), [`gmeow:fullName`](../reference/properties/gmeow-fullName.md), [`gmeow:hasAgreementName`](../reference/properties/gmeow-hasAgreementName.md), [`gmeow:hasParty`](../reference/properties/gmeow-hasParty.md)
-- **External prefixes:** `gufo`, `xsd`
+- **External prefixes:** `gufo`
 
 ```turtle
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
@@ -44,16 +44,16 @@ This slice owns 5 terms and contributes 1 mapping or projection rows. Use it whe
 # contract, so its grounding is recorded rather than assumed.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agreements/> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:acme a gmeow:Organization ; gmeow:name "Acme Robotics Inc."@en .
 ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@en .
 
 # --- The contract: a relator binding the two parties, bearing a formal name.
+#     (Validity bounds — gmeow:validFrom/validUntil — are statement-level RDF-1.2
+#     annotations, carried in the statement layer rather than as A-box triples.)
 ex:contract a gmeow:Contract ;
     gmeow:hasParty         ex:acme , ex:dana ;
-    gmeow:hasAgreementName ex:contractName ;
-    gmeow:validFrom        "2026-01-15T00:00:00Z"^^xsd:dateTime .
+    gmeow:hasAgreementName ex:contractName .
 
 ex:contractName a gmeow:AgreementName ;
     gmeow:fullName "Acme Robotics — Reyes Employment Agreement (2026)"@en .

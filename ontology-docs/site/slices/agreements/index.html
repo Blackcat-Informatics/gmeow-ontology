@@ -21,6 +21,7 @@
       <a href="../../examples/">Examples</a>
       <a href="../../concerns/">Concerns</a>
       <a href="../../slices/">Slices</a>
+      <a href="../../adoption/">Adoption</a>
       <a href="../../linkages/">Linkages</a>
       <a href="../../reference/">Reference</a>
       <a href="../../external/ontologies/">External</a>
@@ -52,7 +53,7 @@
 <ul>
 <li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl"><code>slices/core/agreements/examples/employment-contract.ttl</code></a></li>
 <li><strong>GMEOW terms:</strong> <a href="../../reference/classes/gmeow-Agreement/"><code>gmeow:Agreement</code></a>, <a href="../../reference/classes/gmeow-AgreementName/"><code>gmeow:AgreementName</code></a>, <a href="../../reference/classes/gmeow-Contract/"><code>gmeow:Contract</code></a>, <a href="../../reference/classes/gmeow-Membership/"><code>gmeow:Membership</code></a>, <a href="../../reference/classes/gmeow-Organization/"><code>gmeow:Organization</code></a>, <a href="../../reference/classes/gmeow-Person/"><code>gmeow:Person</code></a>, <a href="../../reference/properties/gmeow-foundedOn/"><code>gmeow:foundedOn</code></a>, <a href="../../reference/properties/gmeow-fullName/"><code>gmeow:fullName</code></a>, <a href="../../reference/properties/gmeow-hasAgreementName/"><code>gmeow:hasAgreementName</code></a>, <a href="../../reference/properties/gmeow-hasParty/"><code>gmeow:hasParty</code></a></li>
-<li><strong>External prefixes:</strong> <code>gufo</code>, <code>xsd</code></li>
+<li><strong>External prefixes:</strong> <code>gufo</code></li>
 </ul>
 <pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
 # SPDX-License-Identifier: CC-BY-4.0
@@ -66,16 +67,16 @@
 # contract, so its grounding is recorded rather than assumed.
 @prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
 @prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/agreements/&gt; .
-@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
 
 ex:acme a gmeow:Organization ; gmeow:name &quot;Acme Robotics Inc.&quot;@en .
 ex:dana a gmeow:Person ; gmeow:name &quot;Dana Reyes&quot;@en .
 
 # --- The contract: a relator binding the two parties, bearing a formal name.
+#     (Validity bounds — gmeow:validFrom/validUntil — are statement-level RDF-1.2
+#     annotations, carried in the statement layer rather than as A-box triples.)
 ex:contract a gmeow:Contract ;
     gmeow:hasParty         ex:acme , ex:dana ;
-    gmeow:hasAgreementName ex:contractName ;
-    gmeow:validFrom        &quot;2026-01-15T00:00:00Z&quot;^^xsd:dateTime .
+    gmeow:hasAgreementName ex:contractName .
 
 ex:contractName a gmeow:AgreementName ;
     gmeow:fullName &quot;Acme Robotics — Reyes Employment Agreement (2026)&quot;@en .
