@@ -13,7 +13,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from rdflib import RDF, Graph, Literal, Namespace
-from rdflib.namespace import RDFS, SKOS, XSD
+from rdflib.namespace import RDFS, SH, SKOS, XSD
+from rdflib.term import Node
 
 from gmeow_tools.validate import run_shacl
 
@@ -206,3 +207,38 @@ def test_malformed_expertise_fixture_is_flagged() -> None:
     assert "levelScale should match" in report
     assert "must be an Organization" in report
     assert "should reference a gmeow:Attestation" in report
+
+
+def test_no_nodeshape_iri_collision_across_shape_files() -> None:
+    """Every sh:NodeShape IRI is owned by exactly one shape file (#478).
+
+    ``_shapes_graph`` merges hand-authored shapes, generated shapes, and slice
+    shapes into a single graph. If two files declare the same ``sh:NodeShape``
+    subject, the definitions fuse, producing a shape whose meaning depends on
+    which files happen to be parsed together. This guard fails CI mechanically
+    if that ever happens.
+    """
+    from collections import defaultdict
+
+    from gmeow_tools.config import GENERATED_SHAPES_DIR, SHAPES_DIR
+    from gmeow_tools.slices import iter_slice_shape_files
+
+    files = [
+        *sorted(SHAPES_DIR.glob("*.ttl")),
+        *sorted(GENERATED_SHAPES_DIR.glob("*.ttl")),
+        *iter_slice_shape_files(),
+    ]
+    iri_to_files: dict[Node, list[Path]] = defaultdict(list)
+    for path in files:
+        graph = Graph().parse(path, format="turtle")
+        for iri in graph.subjects(RDF.type, SH.NodeShape):
+            iri_to_files[iri].append(path)
+
+    collisions = {iri: paths for iri, paths in iri_to_files.items() if len(paths) > 1}
+    assert not collisions, (
+        "sh:NodeShape IRIs declared in more than one shape file: "
+        + "; ".join(
+            f"{iri} in {', '.join(str(p) for p in paths)}"
+            for iri, paths in sorted(collisions.items(), key=lambda kv: str(kv[0]))
+        )
+    )
