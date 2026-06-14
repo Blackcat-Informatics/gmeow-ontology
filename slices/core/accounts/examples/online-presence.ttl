@@ -24,7 +24,7 @@ ex:mastodon a gmeow:OnlineService ;
 ex:fediAccount a gmeow:OnlineAccount ;
     gmeow:accountName            "@dana@mastodon.social" ;
     gmeow:accountService         ex:mastodon ;
-    gmeow:accountServiceHomepage "https://mastodon.social"^^xsd:anyURI ;
+    gmeow:accountServiceHomepage <https://mastodon.social> ;
     gmeow:activityPubActor       "https://mastodon.social/users/dana"^^xsd:anyURI ;
     gmeow:accountStatus          gmeow:accountStatusActive .
 
