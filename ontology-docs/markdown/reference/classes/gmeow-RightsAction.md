@@ -16,3 +16,29 @@ The kind of action a rights rule regulates — a VALUE, never a rule subclass. T
 ## Practical Pattern
 
 Use [`gmeow:RightsAction`](gmeow-RightsAction.md) as a specialized kind of [`gufo:QualityValue`](../../external/terms.md#gufo-qualityvalue). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
+
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: rights are flat-first, promoted on demand (, P4). The
+# common case is a single gmeow:hasLicense + gmeow:hasCopyright edge — no relator
+# needed. Only when the deontic RULES matter (who may do what, under which duty,
+# what is forbidden) is the flat form PROMOTED to a gmeow:RightsStatement bearing
+# the ODRL-superset trio: gmeow:Permission / gmeow:Prohibition / gmeow:Duty, each
+# over an open gmeow:RightsAction value. A licence is itself an Agreement, aligned
+# to CC/ODRL by reference (spdxLicenseId, licenseFamily) — never owl:sameAs (P5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/rights/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+```

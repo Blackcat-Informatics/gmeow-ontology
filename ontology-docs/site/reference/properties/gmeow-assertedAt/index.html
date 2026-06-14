@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,22 @@
 <p><strong>Property shape:</strong> annotation property; <code>?</code> -&gt; <a href="http://www.w3.org/2001/XMLSchema#dateTime"><code>xsd:dateTime</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:assertedAt</code></a> from <code>?</code> to <a href="http://www.w3.org/2001/XMLSchema#dateTime"><code>xsd:dateTime</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Located Place</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl"><code>slices/core/places/examples/located-place.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-places-examples-located-place">open in catalog</a>#example-slices-core-places-examples-located-place</li>
+</ul>
+<pre><code class="language-turtle">ex:officeGpsFix a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:officeSite ;
+    gmeow:vantage ex:surveyTeam ;
+    gmeow:observationMethod gmeow:methodGPS ;
+    gmeow:coordinateResult ex:officeCoords ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:confidence 0.95 ;
+    gmeow:assertedAt &quot;2026-03-10T00:00:00Z&quot;^^xsd:dateTime .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-MeasuredValue/"><code>gmeow:MeasuredValue</code></a>, <a href="../../classes/gmeow-Quantity/"><code>gmeow:Quantity</code></a>, <a href="../../classes/gmeow-ScalarQuantity/"><code>gmeow:ScalarQuantity</code></a>, <a href="../gmeow-confidence/"><code>gmeow:confidence</code></a>, <a href="../gmeow-recordedNoLaterThan/"><code>gmeow:recordedNoLaterThan</code></a>, <a href="../gmeow-wasAttributedTo/"><code>gmeow:wasAttributedTo</code></a>, <a href="../gmeow-wasDerivedFrom/"><code>gmeow:wasDerivedFrom</code></a>, <a href="../gmeow-accordingTo/"><code>gmeow:accordingTo</code></a>, <a href="../gmeow-standpointModality/"><code>gmeow:standpointModality</code></a>, <a href="../gmeow-validFrom/"><code>gmeow:validFrom</code></a></p>
 <h2>Cross-Cutting Concerns</h2>

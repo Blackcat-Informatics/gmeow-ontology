@@ -17,6 +17,24 @@ The kind of a name part (a [`gmeow:NamePartType`](../classes/gmeow-NamePartType.
 
 Use [`gmeow:namePartType`](gmeow-namePartType.md) from [`gmeow:NamePart`](../classes/gmeow-NamePart.md) to [`gmeow:NamePartType`](../classes/gmeow-NamePartType.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+ex:partGiven a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Robin" ; gmeow:partOrder 0 .
+ex:partMiddle a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartMiddle ; gmeow:partText "Avery" ; gmeow:partOrder 1 .
+ex:partSurname a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "Chen" ; gmeow:partOrder 2 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:NamePart`](../classes/gmeow-NamePart.md), [`gmeow:NamePartType`](../classes/gmeow-NamePartType.md)

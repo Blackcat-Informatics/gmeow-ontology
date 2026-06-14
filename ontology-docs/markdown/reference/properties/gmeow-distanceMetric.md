@@ -17,6 +17,35 @@ The similarity/distance function under which an embedding or index is meaningful
 
 Use [`gmeow:distanceMetric`](gmeow-distanceMetric.md) from `?` to [`gmeow:DistanceMetric`](../classes/gmeow-DistanceMetric.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:embedding-7 a gmeow:Embedding ;
+    gmeow:embeddingOf ex:chunk-7 ;
+    gmeow:embeddingModel ex:embedder ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
+    gmeow:wasGeneratedBy ex:embed-run ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" .
+
+ex:index-lillith a gmeow:VectorIndex ;
+    gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
+    gmeow:indexesCorpus ex:corpus-lillith ;
+    gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:indexParameters "{\"M\": 16, \"efConstruction\": 200}" ;
+    gmeow:wasGeneratedBy ex:index-build .
+```
+
 ## Common Companion Terms
 
 [`gmeow:DistanceMetric`](../classes/gmeow-DistanceMetric.md)

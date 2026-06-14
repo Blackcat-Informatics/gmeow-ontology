@@ -17,6 +17,64 @@ Links a GMEOW entity to a record in an external authority, registry, database, g
 
 Use [`gmeow:authorityLink`](gmeow-authorityLink.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to `?` when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Authority Links
+
+- **Source:** [`slices/core/coreference/examples/authority-links.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/coreference/examples/authority-links.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-coreference-examples-authority-links)#example-slices-core-coreference-examples-authority-links
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: coreference WITHOUT identity merge . A locally-recorded
+# person is linked to two external authority records — a confident match and a
+# near (uncertain) one — using gmeow:authorityLink (the flat pointer) alongside
+# skos:exactMatch / skos:closeMatch (graded alignment). GMEOW NEVER asserts
+# owl:sameAs to an external entity (Principle 5): identity is aligned by
+# reference, with confidence, never collapsed. A creative work and its later
+# annotated edition show the intra-corpus coreference edges (editionOf,
+# supersedes) that relate distinct records of the "same" thing.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/coreference/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# --- A locally-recorded person aligned to external authorities. The exact match
+#     is asserted with confidence; the near one stays a CLOSE (not exact) match,
+#     so a downstream consumer can choose its own merge threshold.
+ex:recordedAuthor a gmeow:Person ;
+    gmeow:name "Lin Saito"@en ;
+    gmeow:authorityLink <https://orcid.org/0000-0002-1825-0097> ,
+                        <http://www.wikidata.org/entity/Q42> ;
+    skos:exactMatch <https://orcid.org/0000-0002-1825-0097> ;
+    skos:closeMatch <http://www.wikidata.org/entity/Q42> .
+```
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+# --- The containment spine: each place is a first-class Place, related by
+#     gmeow:containedInPlace, with gazetteer alignment by reference.
+ex:canada a gmeow:Place ;
+    gmeow:name "Canada"@en ;
+    gmeow:placeType gmeow:placeTypeCountry ;
+    gmeow:authorityLink wd:Q16 ;
+    skos:exactMatch wd:Q16 .
+
+ex:alberta a gmeow:Place ;
+    gmeow:name "Alberta"@en ;
+    gmeow:placeType gmeow:placeTypeRegion ;
+    gmeow:containedInPlace ex:canada ;
+    gmeow:authorityLink wd:Q1951 ;
+    skos:exactMatch wd:Q1951 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md), [`gmeow:Identifier`](../classes/gmeow-Identifier.md), [`gmeow:hasIdentifier`](gmeow-hasIdentifier.md)

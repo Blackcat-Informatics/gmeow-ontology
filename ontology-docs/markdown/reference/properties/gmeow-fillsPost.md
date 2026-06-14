@@ -17,6 +17,37 @@ Relates a membership to the post (seat) the member occupies. The sitter is the m
 
 Use [`gmeow:fillsPost`](gmeow-fillsPost.md) from [`gmeow:Membership`](../classes/gmeow-Membership.md) to [`gmeow:Post`](../classes/gmeow-Post.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Post And Membership
+
+- **Source:** [`slices/core/organization/examples/post-and-membership.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/organization/examples/post-and-membership.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-organization-examples-post-and-membership)#example-slices-core-organization-examples-post-and-membership
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the seat is not the sitter . GMEOW de-conflates the two
+# things surface vocabularies collapse into "CFO": the gmeow:Post (the seat, a
+# RoleMixin that exists whether or not anyone fills it) and the gmeow:Membership
+# (a person's tenure occupying it). The membership gmeow:fillsPost the post, so a
+# vacancy (a Post with no Membership) and a succession (two Memberships filling
+# one Post) are both expressible. organizationType is an open VALUE (a company is
+# a company by value, not by subclass), and subOrganizationOf decomposes the org
+# structurally — distinct from "is a member of".
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organization/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:danaTenure a gmeow:Membership ;
+    gmeow:membershipMember ex:dana ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:fillsPost ex:cfoPost .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Membership`](../classes/gmeow-Membership.md), [`gmeow:Post`](../classes/gmeow-Post.md)

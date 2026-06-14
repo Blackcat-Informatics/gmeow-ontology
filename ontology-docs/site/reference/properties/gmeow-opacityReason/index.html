@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,28 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-OpaqueFrame/"><code>gmeow:OpaqueFrame</code></a> -&gt; <a href="../../classes/gmeow-OpacityReason/"><code>gmeow:OpacityReason</code></a>; functional</p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:opacityReason</code></a> from <a href="../../classes/gmeow-OpaqueFrame/"><code>gmeow:OpaqueFrame</code></a> to <a href="../../classes/gmeow-OpacityReason/"><code>gmeow:OpacityReason</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Dist Package</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gts/examples/dist-package.ttl"><code>slices/core/gts/examples/dist-package.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-gts-examples-dist-package">open in catalog</a>#example-slices-core-gts-examples-dist-package</li>
+</ul>
+<pre><code class="language-turtle">@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+
+
+# A sealed frame: opacity is vantage-relative — transparent to its recipient.
+ex:gts-opaque-frame-001
+    a gmeow:OpaqueFrame ;
+    rdfs:label &quot;sealed evidence attachment&quot;@en ;
+    gmeow:opaqueFrameIn ex:gts-dist-segment-core ;
+    gmeow:opacityReason gmeow:opacityMissingKey ;
+    gmeow:sealedRecipient ex:agent-archivist-001 .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-OpaqueFrame/"><code>gmeow:OpaqueFrame</code></a>, <a href="../../classes/gmeow-OpacityReason/"><code>gmeow:OpacityReason</code></a></p>
   </main>

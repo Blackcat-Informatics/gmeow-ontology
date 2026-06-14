@@ -18,6 +18,47 @@ The agent asserting an identity facet — the vantage of the claim. When [`gmeow
 
 Use [`gmeow:facetVantage`](gmeow-facetVantage.md) from [`gmeow:Observation`](../classes/gmeow-Observation.md) to [`gmeow:Agent`](../classes/gmeow-Agent.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Self Asserted Facets
+
+- **Source:** [`slices/core/gender/examples/self-asserted-facets.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gender/examples/self-asserted-facets.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gender-examples-self-asserted-facets)#example-slices-core-gender-examples-self-asserted-facets
+
+```turtle
+# A facet is an Observation: it records its gmeow:facetSubject (whose facet) and
+# gmeow:facetVantage (who asserts it). When self-asserted, the vantage IS the
+# subject — that self-reference is exactly what makes it the top authority.
+ex:registry a gmeow:Organization ; gmeow:name "National Records Registry"@en .
+
+# --- The self-asserted identity: subject is its own vantage; displayed.
+ex:selfId a gmeow:GenderIdentity ;
+    gmeow:facetSubject  ex:robin ;
+    gmeow:facetVantage  ex:robin ;
+    gmeow:genderValue   gmeow:genderNonBinary ;
+    gmeow:selfAsserted  true ;
+    gmeow:displayable   true .
+```
+
+### Split Attraction
+
+- **Source:** [`slices/core/sexuality/examples/split-attraction.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/sexuality/examples/split-attraction.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-sexuality-examples-split-attraction)#example-slices-core-sexuality-examples-split-attraction
+
+```turtle
+# A facet is an Observation: gmeow:facetSubject is whose facet it is, and for a
+# self-asserted facet the gmeow:facetVantage is the person themselves (P9).
+
+# --- Sexual orientation axis: asexual.
+ex:sexual a gmeow:SexualOrientation ;
+    gmeow:facetSubject           ex:robin ;
+    gmeow:facetVantage           ex:robin ;
+    gmeow:sexualOrientationValue gmeow:orientAsexual ;
+    gmeow:selfAsserted           true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:vantage`](gmeow-vantage.md), [`gmeow:Observation`](../classes/gmeow-Observation.md), [`gmeow:Agent`](../classes/gmeow-Agent.md)

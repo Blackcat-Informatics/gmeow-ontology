@@ -17,6 +17,31 @@ Evidence from a trade or industry publication that is editorially independent of
 
 Use [`gmeow:evidenceIndependentTradePress`](gmeow-evidenceIndependentTradePress.md) as a controlled value typed as [`gmeow:EvidenceClass`](../classes/gmeow-EvidenceClass.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Notability Assessment
+
+- **Source:** [`slices/core/evidence/examples/notability-assessment.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/evidence/examples/notability-assessment.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-evidence-examples-notability-assessment)#example-slices-core-evidence-examples-notability-assessment
+
+```turtle
+# --- Strong evidence: an independent trade-press feature with depth → supports.
+#     The subject (citingEntity, generic Entity) is supported by the cited work
+#     (citedEntity, a CreativeWork): gmeow:intentSupports reads "the cited work
+#     supports the citing entity", and the evidence dimensions grade that support.
+ex:goodCite a gmeow:CitationAct ;
+    gmeow:citingEntity       ex:subject ;
+    gmeow:citedEntity        ex:feature ;
+    gmeow:citationIntent     gmeow:intentSupports ;
+    gmeow:hasEvidenceClass   gmeow:evidenceIndependentTradePress ;
+    gmeow:sourceTier         gmeow:sourceTierSecondary ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ;
+    gmeow:coverageDepth      gmeow:coverageDepthSignificantCoverage ;
+    gmeow:supportsNotability true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:EvidenceClass`](../classes/gmeow-EvidenceClass.md)

@@ -17,6 +17,26 @@ The instant an agent observed or asserted the annotated claim (e.g. an email Dat
 
 Use [`gmeow:assertedAt`](gmeow-assertedAt.md) from `?` to [`xsd:dateTime`](http://www.w3.org/2001/XMLSchema#dateTime) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+ex:officeGpsFix a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:officeSite ;
+    gmeow:vantage ex:surveyTeam ;
+    gmeow:observationMethod gmeow:methodGPS ;
+    gmeow:coordinateResult ex:officeCoords ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:confidence 0.95 ;
+    gmeow:assertedAt "2026-03-10T00:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:MeasuredValue`](../classes/gmeow-MeasuredValue.md), [`gmeow:Quantity`](../classes/gmeow-Quantity.md), [`gmeow:ScalarQuantity`](../classes/gmeow-ScalarQuantity.md), [`gmeow:confidence`](gmeow-confidence.md), [`gmeow:recordedNoLaterThan`](gmeow-recordedNoLaterThan.md), [`gmeow:wasAttributedTo`](gmeow-wasAttributedTo.md), [`gmeow:wasDerivedFrom`](gmeow-wasDerivedFrom.md), [`gmeow:accordingTo`](gmeow-accordingTo.md), [`gmeow:standpointModality`](gmeow-standpointModality.md), [`gmeow:validFrom`](gmeow-validFrom.md)

@@ -17,6 +17,24 @@ The nickname name purpose — a role that a particular appellation plays in the 
 
 Use [`gmeow:namePurposeNickname`](gmeow-namePurposeNickname.md) as a controlled value typed as [`gmeow:NamePurpose`](../classes/gmeow-NamePurpose.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+# --- A perspectival NameUsage: among close friends, in a familiar register, this
+#     person is called "Rob". The nickname is its own Appellation.
+ex:nickRob a gmeow:PersonName ;
+    gmeow:fullName "Rob"@en ;
+    gmeow:namePurpose gmeow:namePurposeNickname ;
+    gmeow:displayable true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:NamePurpose`](../classes/gmeow-NamePurpose.md)

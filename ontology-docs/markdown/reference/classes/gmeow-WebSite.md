@@ -17,6 +17,22 @@ A web site — the published collection of web pages served under one identity (
 
 Use [`gmeow:WebSite`](gmeow-WebSite.md) as a specialized kind of [`gmeow:Manifestation`](gmeow-Manifestation.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Web Presence
+
+- **Source:** [`slices/core/documents/examples/web-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/documents/examples/web-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-documents-examples-web-presence)#example-slices-core-documents-examples-web-presence
+
+```turtle
+# --- The site (a Manifestation) and its pages (also Manifestations), each
+#     embodying the shared Expression.
+ex:site a gmeow:WebSite ;
+    gmeow:embodies ex:siteContent .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Manifestation`](gmeow-Manifestation.md)

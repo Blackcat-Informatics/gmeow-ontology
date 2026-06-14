@@ -17,6 +17,22 @@ The organization a post belongs to. Functional — a post concerns exactly one o
 
 Use [`gmeow:postIn`](gmeow-postIn.md) from [`gmeow:Post`](../classes/gmeow-Post.md) to [`gmeow:Organization`](../classes/gmeow-Organization.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Post And Membership
+
+- **Source:** [`slices/core/organization/examples/post-and-membership.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/organization/examples/post-and-membership.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-organization-examples-post-and-membership)#example-slices-core-organization-examples-post-and-membership
+
+```turtle
+# --- The CFO Post: the seat, defined independently of who holds it.
+ex:cfoPost a gmeow:Post ;
+    rdfs:label "Chief Financial Officer"@en ;
+    gmeow:postIn ex:acme .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Post`](../classes/gmeow-Post.md), [`gmeow:Organization`](../classes/gmeow-Organization.md)

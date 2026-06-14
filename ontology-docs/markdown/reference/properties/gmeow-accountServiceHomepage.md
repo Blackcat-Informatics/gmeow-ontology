@@ -17,6 +17,24 @@ The homepage of the service an account is held with — the [foaf:accountService
 
 Use [`gmeow:accountServiceHomepage`](gmeow-accountServiceHomepage.md) from [`gmeow:OnlineAccount`](../classes/gmeow-OnlineAccount.md) to `?` when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Online Presence
+
+- **Source:** [`slices/core/accounts/examples/online-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-accounts-examples-online-presence)#example-slices-core-accounts-examples-online-presence
+
+```turtle
+ex:fediAccount a gmeow:OnlineAccount ;
+    gmeow:accountName            "@dana@mastodon.social" ;
+    gmeow:accountService         ex:mastodon ;
+    gmeow:accountServiceHomepage <https://mastodon.social> ;
+    gmeow:activityPubActor       "https://mastodon.social/users/dana"^^xsd:anyURI ;
+    gmeow:accountStatus          gmeow:accountStatusActive .
+```
+
 ## Common Companion Terms
 
 [`gmeow:OnlineAccount`](../classes/gmeow-OnlineAccount.md)

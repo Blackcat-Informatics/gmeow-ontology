@@ -17,6 +17,38 @@ The holder's usage status of an account — a [`gmeow:AccountStatus`](../classes
 
 Use [`gmeow:accountStatus`](gmeow-accountStatus.md) from [`gmeow:OnlineAccount`](../classes/gmeow-OnlineAccount.md) to [`gmeow:AccountStatus`](../classes/gmeow-AccountStatus.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Online Presence
+
+- **Source:** [`slices/core/accounts/examples/online-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-accounts-examples-online-presence)#example-slices-core-accounts-examples-online-presence
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: online accounts, decentralized identity, and P10 . An
+# agent gmeow:holdsAccount one or more gmeow:OnlineAccounts, each on a
+# gmeow:OnlineService. Decentralized identities are first-class: a Mastodon
+# account carries its gmeow:activityPubActor URI, a Nostr account its
+# gmeow:nostrPubkey and gmeow:nip05 handle. P10 (suppression, never deletion):
+# when a service shuts down, its account is kept as gmeow:accountStatusHistorical
+# — the record persists, it is not erased.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accounts/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:fediAccount a gmeow:OnlineAccount ;
+    gmeow:accountName            "@dana@mastodon.social" ;
+    gmeow:accountService         ex:mastodon ;
+    gmeow:accountServiceHomepage <https://mastodon.social> ;
+    gmeow:activityPubActor       "https://mastodon.social/users/dana"^^xsd:anyURI ;
+    gmeow:accountStatus          gmeow:accountStatusActive .
+```
+
 ## Common Companion Terms
 
 [`gmeow:OnlineAccount`](../classes/gmeow-OnlineAccount.md), [`gmeow:AccountStatus`](../classes/gmeow-AccountStatus.md)

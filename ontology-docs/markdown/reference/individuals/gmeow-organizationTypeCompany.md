@@ -17,6 +17,27 @@ A for-profit business entity.
 
 Use [`gmeow:organizationTypeCompany`](gmeow-organizationTypeCompany.md) as a controlled value typed as [`gmeow:OrganizationType`](../classes/gmeow-OrganizationType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Post And Membership
+
+- **Source:** [`slices/core/organization/examples/post-and-membership.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/organization/examples/post-and-membership.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-organization-examples-post-and-membership)#example-slices-core-organization-examples-post-and-membership
+
+```turtle
+# --- The company and a structural sub-organization.
+ex:acme a gmeow:Organization ;
+    gmeow:name "Acme Robotics Inc."@en ;
+    gmeow:organizationType gmeow:organizationTypeCompany .
+
+ex:engineering a gmeow:Organization ;
+    gmeow:name "Engineering Division"@en ;
+    gmeow:organizationType gmeow:organizationTypeCompany ;
+    gmeow:subOrganizationOf ex:acme .
+```
+
 ## Common Companion Terms
 
 [`gmeow:OrganizationType`](../classes/gmeow-OrganizationType.md)

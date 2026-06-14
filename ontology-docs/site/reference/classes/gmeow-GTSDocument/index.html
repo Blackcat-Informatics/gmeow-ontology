@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,26 @@
 <p><strong>Subclass of:</strong> <a href="../gmeow-Manifestation/"><code>gmeow:Manifestation</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:GTSDocument</code></a> as a specialized kind of <a href="../gmeow-Manifestation/"><code>gmeow:Manifestation</code></a>. Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Dist Package</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gts/examples/dist-package.ttl"><code>slices/core/gts/examples/dist-package.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-gts-examples-dist-package">open in catalog</a>#example-slices-core-gts-examples-dist-package</li>
+</ul>
+<pre><code class="language-turtle">@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+
+
+ex:gts-dist-package-001
+    a gmeow:GTSDocument ;
+    rdfs:label &quot;gmeow.gts — the dist snapshot, with a music extension appended&quot;@en ;
+    gmeow:embodies ex:gmeow-ontology-expression-001 ;
+    gmeow:contentDigest &quot;blake3:0e2f4b8a3c1d5e7f9a0b2c4d6e8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f&quot; .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-Manifestation/"><code>gmeow:Manifestation</code></a>, <a href="../gmeow-GTSProfile/"><code>gmeow:GTSProfile</code></a>, <a href="../gmeow-GTSSegment/"><code>gmeow:GTSSegment</code></a></p>
 <h2>Cross-Cutting Concerns</h2>

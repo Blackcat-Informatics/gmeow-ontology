@@ -18,6 +18,40 @@ The party granting a licence ([odrl:assigner](http://www.w3.org/ns/odrl/2/assign
 
 Use [`gmeow:licensor`](gmeow-licensor.md) from [`gmeow:License`](../classes/gmeow-License.md) to [`gmeow:Agent`](../classes/gmeow-Agent.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# --- The licence: an Agreement, aligned to CC by REFERENCE (P5), not equated.
+ex:ccbync a gmeow:License ;
+    rdfs:label          "CC BY-NC 4.0"@en ;
+    gmeow:licensor      ex:researcher ;
+    gmeow:licensedWork  ex:dataset ;
+    gmeow:licenseFamily gmeow:licenseFamilyCC ;
+    gmeow:spdxLicenseId "CC-BY-NC-4.0" .
+```
+
+### Lillith Dataset
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-dataset)#example-slices-extensions-graphrag-examples-lillith-dataset
+
+```turtle
+ex:lillith-license a gmeow:License ;
+    rdfs:label "CC BY 4.0"@en ;
+    gmeow:licensor ex:blackcat ;
+    gmeow:licensedWork ex:lillith-benchmark ;
+    gmeow:licenseFamily gmeow:licenseFamilyCC ;
+    gmeow:spdxLicenseId "CC-BY-4.0" ;
+    gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:hasParty`](gmeow-hasParty.md), [`gmeow:License`](../classes/gmeow-License.md), [`gmeow:Agent`](../classes/gmeow-Agent.md)

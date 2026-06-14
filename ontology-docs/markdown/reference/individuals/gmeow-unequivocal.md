@@ -17,6 +17,51 @@
 
 Use [`gmeow:unequivocal`](gmeow-unequivocal.md) as a controlled value typed as [`gmeow:StandpointModality`](../classes/gmeow-StandpointModality.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contested Authorship
+
+- **Source:** [`slices/core/standpoint/examples/contested-authorship.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/standpoint/examples/contested-authorship.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-standpoint-examples-contested-authorship)#example-slices-core-standpoint-examples-contested-authorship
+
+```turtle
+# --- Claim 2: the orthodoxy holds (settled) that Shakespeare wrote it.
+ex:claimShakespeare a gmeow:StandpointClaim ;
+    gmeow:vantage ex:orthodoxy ;
+    gmeow:observedFeature ex:play ;
+    gmeow:observationResult ex:shakespeare ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal .
+```
+
+### Blame Deflection
+
+- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
+
+```turtle
+# --- What the spokesperson privately HOLDS: the internal engineer caused it.
+ex:heldClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:spokesperson ;
+    gmeow:observedFeature ex:outage ;
+    gmeow:observationResult ex:internalCause ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal .
+
+# --- What the spokesperson publicly PROJECTS: the vendor caused it. Asserted
+#     unequivocally, but UNTRUE — the falsehood is a veridicality value on the
+#     claim, never an isFalse flag.
+ex:projectedClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:spokesperson ;
+    gmeow:observedFeature ex:outage ;
+    gmeow:observationResult ex:vendor ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+```
+
 ## Common Companion Terms
 
 [`gmeow:StandpointModality`](../classes/gmeow-StandpointModality.md)

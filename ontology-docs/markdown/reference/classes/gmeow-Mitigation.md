@@ -16,3 +16,27 @@ A reified countermeasure binding: a measure — a [`gmeow:Norm`](gmeow-Norm.md) 
 ## Practical Pattern
 
 Use [`gmeow:Mitigation`](gmeow-Mitigation.md) as a specialized kind of [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
+
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+# Open-range measure: the oath norm (norms extension) plugs in with no
+# extension→extension axiom — the IRI is reference, not dependency.
+ex:oathMitigation a gmeow:Mitigation ;
+    gmeow:mitigationMeasure ex:oathNorm ;
+    gmeow:mitigationCounters ex:linkBetrayalToDissolution , ex:betrayalHazard ;
+    gmeow:mitigationStatus gmeow:mitigationActive .
+```

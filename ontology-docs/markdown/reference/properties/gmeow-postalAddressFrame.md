@@ -18,6 +18,27 @@ The postal/administrative reference frame in which this address is expressed. Fu
 
 Use [`gmeow:postalAddressFrame`](gmeow-postalAddressFrame.md) from [`gmeow:PostalAddress`](../classes/gmeow-PostalAddress.md) to [`gmeow:ReferenceFrame`](../classes/gmeow-ReferenceFrame.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contact Points
+
+- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+
+```turtle
+# --- Reified postal address: components are coordinates in the postal frame (P11).
+ex:homeAddress a gmeow:PostalAddress ;
+    gmeow:contactPointType   gmeow:contactPointTypePersonal ;
+    gmeow:postalAddressFrame gmeow:referenceFramePostalAddress ;
+    gmeow:streetAddress      "742 Evergreen Terrace" ;
+    gmeow:addressLocality    "Springfield" ;
+    gmeow:addressRegion      "Oregon" ;
+    gmeow:postalCode         "97403" ;
+    gmeow:countryCode        "US" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:hasReferenceFrame`](gmeow-hasReferenceFrame.md), [`gmeow:PostalAddress`](../classes/gmeow-PostalAddress.md), [`gmeow:ReferenceFrame`](../classes/gmeow-ReferenceFrame.md)

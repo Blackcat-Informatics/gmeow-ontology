@@ -17,6 +17,25 @@ The cited work provides a method used by the citing entity.
 
 Use [`gmeow:intentUsesMethodIn`](gmeow-intentUsesMethodIn.md) as a controlled value typed as [`gmeow:CitationIntent`](../classes/gmeow-CitationIntent.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Citation Act
+
+- **Source:** [`slices/core/citations/examples/citation-act.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/citations/examples/citation-act.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-citations-examples-citation-act)#example-slices-core-citations-examples-citation-act
+
+```turtle
+# --- The reified act: not just THAT it cites, but WHY (uses a method from it)
+#     and WHERE (the exact passage the method appears in).
+ex:cite1 a gmeow:CitationAct ;
+    gmeow:citingEntity   ex:myPaper ;
+    gmeow:citedEntity    ex:citedPaper ;
+    gmeow:citationIntent gmeow:intentUsesMethodIn ;
+    gmeow:viaSelector    ex:sel1 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CitationIntent`](../classes/gmeow-CitationIntent.md)

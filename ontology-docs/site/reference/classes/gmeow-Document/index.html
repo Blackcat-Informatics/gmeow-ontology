@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,36 @@
 <p><strong>Subclass of:</strong> <a href="../gmeow-Work/"><code>gmeow:Work</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:Document</code></a> as a specialized kind of <a href="../gmeow-Work/"><code>gmeow:Work</code></a>. Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Agent Trajectory</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl"><code>slices/extensions/agentic/examples/agent-trajectory.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-extensions-agentic-examples-agent-trajectory">open in catalog</a>#example-slices-extensions-agentic-examples-agent-trajectory</li>
+</ul>
+<pre><code class="language-turtle">@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+
+
+# The produced entity links BACK to the call that wrote it (P5).
+ex:note-2200 a gmeow:Document ;
+    rdfs:label &quot;stored memory note&quot;@en ;
+    gmeow:wasGeneratedBy ex:call-7-2 ;
+    gmeow:wasAttributedTo ex:assistant .
+</code></pre>
+<h3>Grounded Claim</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl"><code>slices/core/ai/examples/grounded-claim.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-ai-examples-grounded-claim">open in catalog</a>#example-slices-core-ai-examples-grounded-claim</li>
+</ul>
+<pre><code class="language-turtle"># --- The source and its retrieval segment (the spine's left half).
+ex:handbook a gmeow:Document ;
+    rdfs:label &quot;facilities handbook, 2026 edition&quot;@en ;
+    gmeow:contentDigest &quot;blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0&quot; .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-Work/"><code>gmeow:Work</code></a></p>
 <h2>External Equivalences</h2>

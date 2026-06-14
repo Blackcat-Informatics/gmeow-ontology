@@ -17,6 +17,35 @@ The abstract umbrella category for intellectual and artistic creations in the WE
 
 Use [`gmeow:CreativeWork`](gmeow-CreativeWork.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md), [`gmeow:NarrativeScope`](gmeow-NarrativeScope.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+ex:release a gmeow:CreativeWork ;
+    gmeow:title         "myapp 1.0.0 release bundle"@en ;
+    gmeow:contentDigest "sha256:abc123def4567890abc123def4567890abc123def4567890abc123def4567890" .
+```
+
+### Citation Act
+
+- **Source:** [`slices/core/citations/examples/citation-act.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/citations/examples/citation-act.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-citations-examples-citation-act)#example-slices-core-citations-examples-citation-act
+
+```turtle
+ex:myPaper a gmeow:CreativeWork ;
+    gmeow:title "On Coastal Erosion in Temperate Estuaries"@en ;
+    gmeow:cites ex:citedPaper .
+
+ex:citedPaper a gmeow:CreativeWork ;
+    gmeow:title "Sediment Transport Models"@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md), [`gmeow:NarrativeScope`](gmeow-NarrativeScope.md)

@@ -17,6 +17,28 @@ The entry link of this cascade. Functional and mandatory (SHACL).
 
 Use [`gmeow:cascadeFirstLink`](gmeow-cascadeFirstLink.md) from [`gmeow:Cascade`](../classes/gmeow-Cascade.md) to [`gmeow:CausalLink`](../classes/gmeow-CausalLink.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+ex:trustCollapse a gmeow:Cascade ;
+    rdfs:label "Trust Collapse"@en ;
+    gmeow:cascadeFirstLink ex:linkBetrayalToDissolution ;
+    gmeow:cascadeSeverity gmeow:severityCatastrophic .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Cascade`](../classes/gmeow-Cascade.md), [`gmeow:CausalLink`](../classes/gmeow-CausalLink.md)

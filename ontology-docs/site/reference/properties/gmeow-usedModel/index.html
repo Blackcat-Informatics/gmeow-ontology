@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,39 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-ModelInvocation/"><code>gmeow:ModelInvocation</code></a> -&gt; <a href="../../classes/gmeow-SoftwareAgent/"><code>gmeow:SoftwareAgent</code></a>; functional</p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:usedModel</code></a> from <a href="../../classes/gmeow-ModelInvocation/"><code>gmeow:ModelInvocation</code></a> to <a href="../../classes/gmeow-SoftwareAgent/"><code>gmeow:SoftwareAgent</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Grounded Claim</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl"><code>slices/core/ai/examples/grounded-claim.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-ai-examples-grounded-claim">open in catalog</a>#example-slices-core-ai-examples-grounded-claim</li>
+</ul>
+<pre><code class="language-turtle">ex:invocation-19 a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:hasPrompt ex:prompt-extract ;
+    gmeow:samplingTemperature 0.0 ;
+    gmeow:atTime &quot;2026-05-15T10:00:00Z&quot;^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
+<h3>Agent Trajectory</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl"><code>slices/extensions/agentic/examples/agent-trajectory.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-extensions-agentic-examples-agent-trajectory">open in catalog</a>#example-slices-extensions-agentic-examples-agent-trajectory</li>
+</ul>
+<pre><code class="language-turtle">@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+
+
+ex:invocation-7 a gmeow:ModelInvocation ;
+    rdfs:label &quot;turn 7 model invocation&quot;@en ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:samplingTemperature &quot;0.2&quot;^^xsd:decimal ;
+    gmeow:atTime &quot;2026-06-12T17:03:10Z&quot;^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-ModelInvocation/"><code>gmeow:ModelInvocation</code></a>, <a href="../../classes/gmeow-SoftwareAgent/"><code>gmeow:SoftwareAgent</code></a></p>
   </main>

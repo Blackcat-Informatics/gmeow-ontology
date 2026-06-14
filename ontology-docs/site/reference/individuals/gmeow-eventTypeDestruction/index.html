@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,32 @@
 <p><strong>Types:</strong> <a href="../../classes/gmeow-EventType/"><code>gmeow:EventType</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:eventTypeDestruction</code></a> as a controlled value typed as <a href="../../classes/gmeow-EventType/"><code>gmeow:EventType</code></a>.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Blame Deflection</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl"><code>slices/core/deception/examples/blame-deflection.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-deception-examples-blame-deflection">open in catalog</a>#example-slices-core-deception-examples-blame-deflection</li>
+</ul>
+<pre><code class="language-turtle"># --- The outage being explained, and the two candidate causes.
+ex:outage a gmeow:Event ;
+    rdfs:label &quot;the March data outage&quot;@en ;
+    gmeow:eventType gmeow:eventTypeDestruction ;
+    gmeow:eventTime &quot;2026-03-04T02:00:00Z&quot;^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
+<h3>Dissolved Org</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/lifecycle/examples/dissolved-org.ttl"><code>slices/core/lifecycle/examples/dissolved-org.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-lifecycle-examples-dissolved-org">open in catalog</a>#example-slices-core-lifecycle-examples-dissolved-org</li>
+</ul>
+<pre><code class="language-turtle"># --- Destruction: ONE occurrence carrying two co-equal eventType values.
+ex:dissolution a gmeow:Event ;
+    rdfs:label &quot;dissolution of Meridian Systems&quot;@en ;
+    gmeow:eventType gmeow:eventTypeDissolution , gmeow:eventTypeDestruction ;
+    gmeow:eventTime &quot;2024-11-30T00:00:00Z&quot;^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-EventType/"><code>gmeow:EventType</code></a></p>
 <h2>External Equivalences</h2>

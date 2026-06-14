@@ -5,8 +5,8 @@
 Profiles aggregate slices into named consumption surfaces.
 
 - [claims](claims.md): 6 slices
-- [core](core.md): 36 slices
-- [full](full.md): 60 slices
+- [core](core.md): 37 slices
+- [full](full.md): 61 slices
 - [memory](memory.md): 12 slices
 - [music](music.md): 1 slices
 - [narrative](narrative.md): 4 slices

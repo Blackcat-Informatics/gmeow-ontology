@@ -18,6 +18,59 @@ The temporal frame in which the event's date/interval is expressed — explicit 
 
 Use [`gmeow:eventTemporalFrame`](gmeow-eventTemporalFrame.md) from [`gmeow:Event`](../classes/gmeow-Event.md) to [`gmeow:TemporalFrame`](../classes/gmeow-TemporalFrame.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wedding
+
+- **Source:** [`slices/core/events/examples/wedding.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/events/examples/wedding.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-events-examples-wedding)#example-slices-core-events-examples-wedding
+
+```turtle
+ex:wedding a gmeow:Event ;
+    rdfs:label "the marriage of Alex and Sam"@en ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:eventTime "2026-06-20T15:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventLocation ex:chapel ;
+    # Flat participation for the witnesses ONLY — no role/period/evidence needed.
+    # The principals and the officiant are instead reified below (with roles), so
+    # they are deliberately NOT repeated here: flat and reified never overlap.
+    gmeow:hasParticipant ex:witnessA , ex:witnessB .
+```
+
+### Agent Trajectory
+
+- **Source:** [`slices/extensions/agentic/examples/agent-trajectory.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-agentic-examples-agent-trajectory)#example-slices-extensions-agentic-examples-agent-trajectory
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+ex:invocation-7 a gmeow:ModelInvocation ;
+    rdfs:label "turn 7 model invocation"@en ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:samplingTemperature "0.2"^^xsd:decimal ;
+    gmeow:atTime "2026-06-12T17:03:10Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:call-7-1 a gmeow:ToolCall ;
+    rdfs:label "turn 7, call 1: search"@en ;
+    gmeow:calledByInvocation ex:invocation-7 ;
+    gmeow:usedTool ex:webSearch ;
+    gmeow:toolArguments "{\"query\": \"GTS deterministic encoding spec\"}" ;
+    # Large result: the digest IS the value (gmeow:contentDigest convention).
+    gmeow:toolResult "blake3:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a" ;
+    gmeow:atTime "2026-06-12T17:03:11Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:hasReferenceFrame`](gmeow-hasReferenceFrame.md), [`gmeow:Event`](../classes/gmeow-Event.md), [`gmeow:TemporalFrame`](../classes/gmeow-TemporalFrame.md)

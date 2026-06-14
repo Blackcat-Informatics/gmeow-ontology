@@ -17,6 +17,36 @@ A reified type-level causal claim — antecedent kind × consequent kind × moda
 
 Use [`gmeow:CausalLink`](gmeow-CausalLink.md) as a specialized kind of [`gmeow:RiskFactor`](gmeow-RiskFactor.md), [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+# Reified where modality and mechanism matter.
+ex:linkBetrayalToDissolution a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etBetrayal ;
+    gmeow:linkConsequent ex:etBondDissolution ;
+    gmeow:causalModality gmeow:causallyNecessitates ;
+    gmeow:linkMechanism "The bond is constituted by the oath; betrayal does not damage it, it unmakes it."@en ;
+    gmeow:linkNext ex:linkDissolutionToCollapse .
+
+ex:linkDissolutionToCollapse a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etBondDissolution ;
+    gmeow:linkConsequent ex:etWillCollapse ;
+    gmeow:causalModality gmeow:causallyPromotes .
+```
+
 ## Common Companion Terms
 
 [`gmeow:RiskFactor`](gmeow-RiskFactor.md)

@@ -17,6 +17,27 @@ The country code coordinate value of a postal address, expressed along the [`gme
 
 Use [`gmeow:countryCode`](gmeow-countryCode.md) from [`gmeow:PostalAddress`](../classes/gmeow-PostalAddress.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contact Points
+
+- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+
+```turtle
+# --- Reified postal address: components are coordinates in the postal frame (P11).
+ex:homeAddress a gmeow:PostalAddress ;
+    gmeow:contactPointType   gmeow:contactPointTypePersonal ;
+    gmeow:postalAddressFrame gmeow:referenceFramePostalAddress ;
+    gmeow:streetAddress      "742 Evergreen Terrace" ;
+    gmeow:addressLocality    "Springfield" ;
+    gmeow:addressRegion      "Oregon" ;
+    gmeow:postalCode         "97403" ;
+    gmeow:countryCode        "US" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:PostalAddress`](../classes/gmeow-PostalAddress.md)

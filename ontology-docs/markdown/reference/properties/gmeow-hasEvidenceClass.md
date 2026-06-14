@@ -17,6 +17,44 @@ The evidential warrant of a citation — the kind and strength of evidence it pr
 
 Use [`gmeow:hasEvidenceClass`](gmeow-hasEvidenceClass.md) from [`gmeow:CitationAct`](../classes/gmeow-CitationAct.md) to [`gmeow:EvidenceClass`](../classes/gmeow-EvidenceClass.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Notability Assessment
+
+- **Source:** [`slices/core/evidence/examples/notability-assessment.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/evidence/examples/notability-assessment.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-evidence-examples-notability-assessment)#example-slices-core-evidence-examples-notability-assessment
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: grading citations as evidence . The evidence slice hangs
+# quality dimensions on a gmeow:CitationAct (from the citations slice): its
+# gmeow:hasEvidenceClass, gmeow:sourceTier (primary/secondary/tertiary),
+# gmeow:sourceIndependence and gmeow:coverageDepth together decide whether the
+# citation gmeow:supportsNotability. The Wikipedia-notability discrimination falls
+# straight out: independent + secondary + significant coverage SUPPORTS it; a
+# routine self-originated passing mention does NOT — same predicate, graded.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/evidence/> .
+
+# --- Strong evidence: an independent trade-press feature with depth → supports.
+#     The subject (citingEntity, generic Entity) is supported by the cited work
+#     (citedEntity, a CreativeWork): gmeow:intentSupports reads "the cited work
+#     supports the citing entity", and the evidence dimensions grade that support.
+ex:goodCite a gmeow:CitationAct ;
+    gmeow:citingEntity       ex:subject ;
+    gmeow:citedEntity        ex:feature ;
+    gmeow:citationIntent     gmeow:intentSupports ;
+    gmeow:hasEvidenceClass   gmeow:evidenceIndependentTradePress ;
+    gmeow:sourceTier         gmeow:sourceTierSecondary ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ;
+    gmeow:coverageDepth      gmeow:coverageDepthSignificantCoverage ;
+    gmeow:supportsNotability true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CitationAct`](../classes/gmeow-CitationAct.md), [`gmeow:EvidenceClass`](../classes/gmeow-EvidenceClass.md)

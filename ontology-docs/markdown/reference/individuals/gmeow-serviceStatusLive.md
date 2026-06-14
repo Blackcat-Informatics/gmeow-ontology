@@ -17,6 +17,22 @@ The service is currently operating.
 
 Use [`gmeow:serviceStatusLive`](gmeow-serviceStatusLive.md) as a controlled value typed as [`gmeow:ServiceStatus`](../classes/gmeow-ServiceStatus.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Online Presence
+
+- **Source:** [`slices/core/accounts/examples/online-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-accounts-examples-online-presence)#example-slices-core-accounts-examples-online-presence
+
+```turtle
+# --- A live service and a fediverse (ActivityPub) account on it.
+ex:mastodon a gmeow:OnlineService ;
+    gmeow:name          "mastodon.social"@en ;
+    gmeow:serviceStatus gmeow:serviceStatusLive .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ServiceStatus`](../classes/gmeow-ServiceStatus.md)

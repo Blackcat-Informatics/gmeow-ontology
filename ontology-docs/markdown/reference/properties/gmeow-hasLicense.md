@@ -17,6 +17,57 @@ Relates an entity (a work, dataset, software project, …) to a licence granting
 
 Use [`gmeow:hasLicense`](gmeow-hasLicense.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to [`gmeow:License`](../classes/gmeow-License.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: rights are flat-first, promoted on demand (, P4). The
+# common case is a single gmeow:hasLicense + gmeow:hasCopyright edge — no relator
+# needed. Only when the deontic RULES matter (who may do what, under which duty,
+# what is forbidden) is the flat form PROMOTED to a gmeow:RightsStatement bearing
+# the ODRL-superset trio: gmeow:Permission / gmeow:Prohibition / gmeow:Duty, each
+# over an open gmeow:RightsAction value. A licence is itself an Agreement, aligned
+# to CC/ODRL by reference (spdxLicenseId, licenseFamily) — never owl:sameAs (P5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/rights/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The asset, with the FLAT-first rights edges (the common case) plus a
+#     promoted RightsStatement because permissions/prohibitions/duties are needed.
+ex:dataset a gmeow:Dataset ;
+    gmeow:title "Coastal Bird Survey 2026"@en ;
+    gmeow:hasCopyright       ex:copyright ;
+    gmeow:hasLicense         ex:ccbync ;
+    gmeow:hasRightsStatement ex:rights .
+```
+
+### Lillith Dataset
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-dataset)#example-slices-extensions-graphrag-examples-lillith-dataset
+
+```turtle
+ex:lillith-benchmark a gmeow:Dataset ;
+    rdfs:label "Lillith GraphRAG benchmark"@en ;
+    gmeow:title "Lillith GraphRAG benchmark"@en ;
+    gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
+    gmeow:hasPart ex:corpus-lillith ;
+    gmeow:hasLicense ex:lillith-license ;
+    gmeow:wasAttributedTo ex:blackcat ;
+    gmeow:datePublished "2026-06-12T00:00:00Z"^^xsd:dateTime ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md), [`gmeow:License`](../classes/gmeow-License.md)

@@ -17,6 +17,22 @@ Make copies of the asset ([odrl:reproduce](http://www.w3.org/ns/odrl/2/reproduce
 
 Use [`gmeow:actionReproduce`](gmeow-actionReproduce.md) as a controlled value typed as [`gmeow:RightsAction`](../classes/gmeow-RightsAction.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# --- Permission to reproduce, but only if the attribution DUTY is discharged.
+ex:permReproduce a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionReproduce ;
+    gmeow:hasDuty    ex:dutyAttribute .
+```
+
 ## Common Companion Terms
 
 [`gmeow:RightsAction`](../classes/gmeow-RightsAction.md)

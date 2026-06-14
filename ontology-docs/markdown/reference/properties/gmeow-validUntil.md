@@ -17,6 +17,27 @@ The instant until which the annotated statement is asserted to hold.
 
 Use [`gmeow:validUntil`](gmeow-validUntil.md) from `?` to [`xsd:dateTime`](http://www.w3.org/2001/XMLSchema#dateTime) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+# --- The claims: reified statements observed from the MODEL's vantage.
+# (The RDF 1.2 source authors these as statement annotations; the owl:Axiom
+# form here is the generated downcast idiom, P3.)
+ex:east-wing gmeow:validUntil "2026-12-31T22:00:00Z"^^xsd:dateTime .
+
+ex:stmt-2200 a owl:Axiom ;
+    owl:annotatedSource   ex:east-wing ;
+    owl:annotatedProperty gmeow:validUntil ;
+    owl:annotatedTarget   "2026-12-31T22:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:StandpointTenure`](../classes/gmeow-StandpointTenure.md), [`gmeow:coarsenTo`](gmeow-coarsenTo.md), [`gmeow:displayable`](gmeow-displayable.md), [`gmeow:hasDisclosurePolicy`](gmeow-hasDisclosurePolicy.md), [`gmeow:hasGranularity`](gmeow-hasGranularity.md), [`gmeow:hasSensitivity`](gmeow-hasSensitivity.md), [`gmeow:Standpoint`](../classes/gmeow-Standpoint.md), [`gmeow:accordingTo`](gmeow-accordingTo.md), [`gmeow:standpointModality`](gmeow-standpointModality.md), [`gmeow:validFrom`](gmeow-validFrom.md)

@@ -17,6 +17,23 @@ An anchored target span within a resource — a text quote, character position, 
 
 Use [`gmeow:EvidenceSpan`](gmeow-EvidenceSpan.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:span-close-2200 a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk ex:chunk-042 ;
+    gmeow:spanStart "310"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "366"^^xsd:nonNegativeInteger ;
+    gmeow:supportPolarity gmeow:polaritySupports .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

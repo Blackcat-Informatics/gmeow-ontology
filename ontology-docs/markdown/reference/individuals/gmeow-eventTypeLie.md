@@ -17,6 +17,28 @@ A deception event in which the projected standpoint negates the held standpoint 
 
 Use [`gmeow:eventTypeLie`](gmeow-eventTypeLie.md) as a controlled value typed as [`gmeow:EventType`](../classes/gmeow-EventType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Blame Deflection
+
+- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
+
+```turtle
+# --- The lie: an Event whose held and projected standpoints diverge. That gap
+#     IS the deception; the spokesperson is its participant in the deceiver role.
+ex:coverStory a gmeow:Event ;
+    rdfs:label "the public attribution to the vendor"@en ;
+    gmeow:eventType gmeow:eventTypeLie ;
+    gmeow:eventTime "2026-03-05T09:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:heldStandpoint ex:heldClaim ;
+    gmeow:projectedStandpoint ex:projectedClaim ;
+    gmeow:hasParticipant ex:spokesperson .
+```
+
 ## Common Companion Terms
 
 [`gmeow:EventType`](../classes/gmeow-EventType.md)

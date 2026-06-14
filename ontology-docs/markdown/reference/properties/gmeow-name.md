@@ -17,6 +17,55 @@ A simple label by which an entity is known — the [rdfs:label](http://www.w3.or
 
 Use [`gmeow:name`](gmeow-name.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Agent Sortals
+
+- **Source:** [`slices/core/entities/examples/agent-sortals.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/entities/examples/agent-sortals.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-entities-examples-agent-sortals)#example-slices-core-entities-examples-agent-sortals
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the four agent sortals . A small consultancy, two of its
+# people, an informal working group, and its CI bot — each a distinct gufo:Kind
+# beneath the kernel's gmeow:Agent. The flat naming tier (gmeow:name) carries the
+# 80% case here; anything that needs structure — a reified PersonName, a contact
+# point, a location — attaches to these Kinds from its own slice (the entities
+# slice stays deliberately thin). Person ⟂ Organization ⟂ SoftwareAgent are
+# pairwise disjoint (a human is never a bot); Group is deliberately NOT disjoint
+# (a structured organization is arguably also a group, P9).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/entities/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Organization: the flat name/description tier. A structured web presence
+#     (gmeow:hasWebPage → a WEMI gmeow:WebPage) is shown in the documents example;
+#     here the flat tier carries it.
+ex:blackcat a gmeow:Organization ;
+    gmeow:name "Blackcat Informatics Inc."@en ;
+    gmeow:description "A small ontology and tooling consultancy."@en .
+```
+
+### Online Presence
+
+- **Source:** [`slices/core/accounts/examples/online-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-accounts-examples-online-presence)#example-slices-core-accounts-examples-online-presence
+
+```turtle
+ex:dana a gmeow:Person ;
+    gmeow:name "Dana Reyes"@en ;
+    gmeow:holdsAccount ex:fediAccount , ex:nostrAccount , ex:oldAccount .
+
+# --- A live service and a fediverse (ActivityPub) account on it.
+ex:mastodon a gmeow:OnlineService ;
+    gmeow:name          "mastodon.social"@en ;
+    gmeow:serviceStatus gmeow:serviceStatusLive .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md)

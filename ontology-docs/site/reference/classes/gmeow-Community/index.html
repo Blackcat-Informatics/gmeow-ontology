@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,27 @@
 <p><strong>Subclass of:</strong> <a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:Community</code></a> as a specialized kind of <a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>. Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Lillith Pipeline</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl"><code>slices/extensions/graphrag/examples/lillith-pipeline.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-extensions-graphrag-examples-lillith-pipeline">open in catalog</a>#example-slices-extensions-graphrag-examples-lillith-pipeline</li>
+</ul>
+<pre><code class="language-turtle">ex:community-infra a gmeow:Community ;
+    rdfs:label &quot;infrastructure community&quot;@en ;
+    gmeow:contentDigest &quot;blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44&quot; ;
+    gmeow:communityLevel &quot;0&quot;^^xsd:nonNegativeInteger ;
+    gmeow:communityMember ex:desc-mara, ex:desc-buildsys ;
+    gmeow:wasGeneratedBy ex:cluster-run .
+
+ex:summary-infra a gmeow:CommunitySummary ;
+    rdfs:label &quot;summary: the infrastructure crew&quot;@en ;
+    gmeow:contentDigest &quot;blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55&quot; ;
+    gmeow:summarizesCommunity ex:community-infra ;
+    gmeow:wasDerivedFrom ex:desc-mara, ex:desc-buildsys, ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a></p>
 <h2>External Equivalences</h2>

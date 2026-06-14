@@ -17,6 +17,28 @@ Links an entity to the entity that replaced it — Constantinople [`supersededBy
 
 Use [`gmeow:supersededBy`](gmeow-supersededBy.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to [`gmeow:Entity`](../classes/gmeow-Entity.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Dissolved Org
+
+- **Source:** [`slices/core/lifecycle/examples/dissolved-org.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/lifecycle/examples/dissolved-org.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-lifecycle-examples-dissolved-org)#example-slices-core-lifecycle-examples-dissolved-org
+
+```turtle
+# --- The dissolved company: still here, with its full lifecycle attached.
+#     Superseded AND no longer extant, so gmeow:displayable false suppresses it
+#     from default display — the record is retained, never deleted (P10).
+ex:meridian a gmeow:Organization ;
+    gmeow:name "Meridian Systems Ltd."@en ;
+    gmeow:hasCreationEvent ex:founding ;
+    gmeow:hasDestructionEvent ex:dissolution ;
+    gmeow:existenceInterval ex:meridianLife ;
+    gmeow:supersededBy ex:apex ;
+    gmeow:displayable false .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md)

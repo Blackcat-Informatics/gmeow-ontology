@@ -17,6 +17,40 @@ Where the source artifact came from — a file path, original filename, or URL. 
 
 Use [`gmeow:sourceLocation`](gmeow-sourceLocation.md) from [`gmeow:CreativeWork`](../classes/gmeow-CreativeWork.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Dataset
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-dataset)#example-slices-extensions-graphrag-examples-lillith-dataset
+
+```turtle
+ex:lillith-benchmark a gmeow:Dataset ;
+    rdfs:label "Lillith GraphRAG benchmark"@en ;
+    gmeow:title "Lillith GraphRAG benchmark"@en ;
+    gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
+    gmeow:hasPart ex:corpus-lillith ;
+    gmeow:hasLicense ex:lillith-license ;
+    gmeow:wasAttributedTo ex:blackcat ;
+    gmeow:datePublished "2026-06-12T00:00:00Z"^^xsd:dateTime ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
+```
+
+### Import Lineage
+
+- **Source:** [`slices/core/provenance/examples/import-lineage.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/provenance/examples/import-lineage.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-provenance-examples-import-lineage)#example-slices-core-provenance-examples-import-lineage
+
+```turtle
+# --- The source: an imported work, pinned by location + content digest.
+ex:sourcePaper a gmeow:CreativeWork ;
+    gmeow:sourceLocation  "/imports/papers/smith-2020-erosion.pdf" ;
+    gmeow:sourceModifiedAt "2020-07-11T00:00:00Z"^^xsd:dateTime ;
+    gmeow:contentDigest   "blake3:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CreativeWork`](../classes/gmeow-CreativeWork.md)

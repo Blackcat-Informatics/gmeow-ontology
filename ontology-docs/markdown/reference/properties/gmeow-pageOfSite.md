@@ -18,6 +18,34 @@ Relates a web page to the web site it belongs to — a specialisation of [`gmeow
 
 Use [`gmeow:pageOfSite`](gmeow-pageOfSite.md) from [`gmeow:WebPage`](../classes/gmeow-WebPage.md) to [`gmeow:WebSite`](../classes/gmeow-WebSite.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Web Presence
+
+- **Source:** [`slices/core/documents/examples/web-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/documents/examples/web-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-documents-examples-web-presence)#example-slices-core-documents-examples-web-presence
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a web presence on the WEMI spine (, ). A WebSite and
+# its WebPages are concrete gmeow:Manifestations — so each embodies an Expression
+# that realizes a Work, the same four-tier backing every published artifact
+# carries. Pages belong to the site via gmeow:pageOfSite (⊑ partOf). The about
+# page names a person as its gmeow:pagePrincipalSubject (⊑ isAbout), which makes
+# it a gmeow:ProfilePage by INFERENCE — ProfilePage is a defined class (any
+# WebPage whose principal subject is an Agent), so no manual typing is needed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documents/> .
+
+ex:homepage a gmeow:WebPage ;
+    gmeow:pageOfSite ex:site ;
+    gmeow:embodies ex:siteContent .
+```
+
 ## Common Companion Terms
 
 [`gmeow:partOf`](gmeow-partOf.md), [`gmeow:WebPage`](../classes/gmeow-WebPage.md), [`gmeow:WebSite`](../classes/gmeow-WebSite.md)

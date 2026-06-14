@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,40 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-CitationAct/"><code>gmeow:CitationAct</code></a> -&gt; <a href="../../classes/gmeow-SourceTier/"><code>gmeow:SourceTier</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:sourceTier</code></a> from <a href="../../classes/gmeow-CitationAct/"><code>gmeow:CitationAct</code></a> to <a href="../../classes/gmeow-SourceTier/"><code>gmeow:SourceTier</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Notability Assessment</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/evidence/examples/notability-assessment.ttl"><code>slices/core/evidence/examples/notability-assessment.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-evidence-examples-notability-assessment">open in catalog</a>#example-slices-core-evidence-examples-notability-assessment</li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: grading citations as evidence . The evidence slice hangs
+# quality dimensions on a gmeow:CitationAct (from the citations slice): its
+# gmeow:hasEvidenceClass, gmeow:sourceTier (primary/secondary/tertiary),
+# gmeow:sourceIndependence and gmeow:coverageDepth together decide whether the
+# citation gmeow:supportsNotability. The Wikipedia-notability discrimination falls
+# straight out: independent + secondary + significant coverage SUPPORTS it; a
+# routine self-originated passing mention does NOT — same predicate, graded.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/evidence/&gt; .
+
+# --- Strong evidence: an independent trade-press feature with depth → supports.
+#     The subject (citingEntity, generic Entity) is supported by the cited work
+#     (citedEntity, a CreativeWork): gmeow:intentSupports reads &quot;the cited work
+#     supports the citing entity&quot;, and the evidence dimensions grade that support.
+ex:goodCite a gmeow:CitationAct ;
+    gmeow:citingEntity       ex:subject ;
+    gmeow:citedEntity        ex:feature ;
+    gmeow:citationIntent     gmeow:intentSupports ;
+    gmeow:hasEvidenceClass   gmeow:evidenceIndependentTradePress ;
+    gmeow:sourceTier         gmeow:sourceTierSecondary ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ;
+    gmeow:coverageDepth      gmeow:coverageDepthSignificantCoverage ;
+    gmeow:supportsNotability true .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-CitationAct/"><code>gmeow:CitationAct</code></a>, <a href="../../classes/gmeow-SourceTier/"><code>gmeow:SourceTier</code></a></p>
   </main>

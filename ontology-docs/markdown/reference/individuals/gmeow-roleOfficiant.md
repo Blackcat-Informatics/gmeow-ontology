@@ -17,6 +17,22 @@ A person who officiated at the event. Generalizes the former gmeow:hasOfficiant.
 
 Use [`gmeow:roleOfficiant`](gmeow-roleOfficiant.md) as a controlled value typed as [`gmeow:ParticipantRole`](../classes/gmeow-ParticipantRole.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wedding
+
+- **Source:** [`slices/core/events/examples/wedding.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/events/examples/wedding.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-events-examples-wedding)#example-slices-core-events-examples-wedding
+
+```turtle
+ex:partOfficiant a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:officiant ;
+    gmeow:participationRole gmeow:roleOfficiant .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ParticipantRole`](../classes/gmeow-ParticipantRole.md)

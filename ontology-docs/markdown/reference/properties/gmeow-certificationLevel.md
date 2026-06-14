@@ -17,6 +17,24 @@ How carefully the binding was verified (OpenPGP certification level): generic, p
 
 Use [`gmeow:certificationLevel`](gmeow-certificationLevel.md) from [`gmeow:Certification`](../classes/gmeow-Certification.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Web Of Trust
+
+- **Source:** [`slices/core/trust/examples/web-of-trust.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/trust/examples/web-of-trust.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-trust-examples-web-of-trust)#example-slices-core-trust-examples-web-of-trust
+
+```turtle
+# --- Alice signs Bob's key, certifying the key↔identity binding.
+ex:cert a gmeow:Certification ;
+    gmeow:certifier         ex:alice ;
+    gmeow:certifiedKey      ex:bobKey ;
+    gmeow:certifiedIdentity ex:bob ;
+    gmeow:certificationLevel "positive" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Certification`](../classes/gmeow-Certification.md)

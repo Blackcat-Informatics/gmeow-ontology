@@ -17,6 +17,28 @@ The kind(s) of this emotion. NOT functional: blended emotions carry several type
 
 Use [`gmeow:emotionType`](gmeow-emotionType.md) from [`gmeow:Emotion`](../classes/gmeow-Emotion.md) to [`gmeow:EmotionType`](../classes/gmeow-EmotionType.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Two Critics
+
+- **Source:** [`slices/extensions/affect/examples/two-critics.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/affect/examples/two-critics.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-affect-examples-two-critics)#example-slices-extensions-affect-examples-two-critics
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+ex:awe a gmeow:Emotion ;
+    rdfs:label "the reader's awe"@en ;
+    gmeow:emotionBearer ex:reader ;
+    gmeow:emotionType gmeow:emotionFear , gmeow:emotionSurprise .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Emotion`](../classes/gmeow-Emotion.md), [`gmeow:EmotionType`](../classes/gmeow-EmotionType.md)

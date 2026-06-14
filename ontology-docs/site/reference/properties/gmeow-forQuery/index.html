@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,21 @@
 <p><strong>Property shape:</strong> datatype property; <a href="../../classes/gmeow-RetrievalEvent/"><code>gmeow:RetrievalEvent</code></a> -&gt; <a href="http://www.w3.org/2001/XMLSchema#string"><code>xsd:string</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:forQuery</code></a> from <a href="../../classes/gmeow-RetrievalEvent/"><code>gmeow:RetrievalEvent</code></a> to <a href="http://www.w3.org/2001/XMLSchema#string"><code>xsd:string</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Lillith Pipeline</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl"><code>slices/extensions/graphrag/examples/lillith-pipeline.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-extensions-graphrag-examples-lillith-pipeline">open in catalog</a>#example-slices-extensions-graphrag-examples-lillith-pipeline</li>
+</ul>
+<pre><code class="language-turtle"># --- Retrieval: why did the model see this passage?
+ex:retrieval-3 a gmeow:RetrievalEvent ;
+    gmeow:forQuery &quot;who maintained the build system?&quot; ;
+    gmeow:againstIndex ex:index-lillith ;
+    gmeow:retrievedChunk ex:chunk-7 ;
+    gmeow:atTime &quot;2026-06-02T10:00:00Z&quot;^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-RetrievalEvent/"><code>gmeow:RetrievalEvent</code></a></p>
   </main>

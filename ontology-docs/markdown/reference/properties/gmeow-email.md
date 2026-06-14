@@ -17,6 +17,37 @@ An email address at which an agent can be reached.
 
 Use [`gmeow:email`](gmeow-email.md) from [`gmeow:Agent`](../classes/gmeow-Agent.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contact Points
+
+- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: contact details are flat-first, reified on demand (, P4).
+# A bare gmeow:email / gmeow:telephone on the agent covers the common case. When
+# a contact point carries a TYPE (work vs personal), a PROVIDER, structured parts
+# or a postal frame, it is promoted to a reified gmeow:ContactPoint reached via
+# gmeow:hasContactPoint. A gmeow:PostalAddress is expressed in an explicit postal/
+# administrative REFERENCE FRAME (P11): its street/locality/region components are
+# coordinate values along that frame's axes — the as-written surface form, kept
+# distinct from the resolved geographic Place (gmeow:addressPlace).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/contacts/> .
+
+ex:dana a gmeow:Person ;
+    gmeow:name      "Dana Reyes"@en ;
+    gmeow:email     "dana@example.org" ;        # flat shortcut — the common case
+    gmeow:telephone "+1-555-0142" ;             # flat shortcut
+    gmeow:hasContactPoint ex:workEmail , ex:homeAddress .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Agent`](../classes/gmeow-Agent.md)

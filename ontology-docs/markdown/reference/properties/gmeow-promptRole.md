@@ -17,6 +17,26 @@ The conversational role this prompt occupies (open vocabulary: system, user, ass
 
 Use [`gmeow:promptRole`](gmeow-promptRole.md) from [`gmeow:Prompt`](../classes/gmeow-Prompt.md) to [`gmeow:PromptRole`](../classes/gmeow-PromptRole.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:prompt-extract a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleSystem ;
+    gmeow:filledFrom ex:template-extract-v1 ;
+    gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" .
+
+ex:template-extract-v1 a gmeow:PromptTemplate ;
+    rdfs:label "claim-extraction template v1"@en ;
+    gmeow:promptRole gmeow:promptRoleSystem .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Prompt`](../classes/gmeow-Prompt.md), [`gmeow:PromptRole`](../classes/gmeow-PromptRole.md)

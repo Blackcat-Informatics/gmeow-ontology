@@ -17,6 +17,58 @@ A temporal occurrence in which entities participate in roles, over possibly fuzz
 
 Use [`gmeow:Event`](gmeow-Event.md) as a specialized kind of [`gufo:Event`](../../external/terms.md#gufo-event). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wedding
+
+- **Source:** [`slices/core/events/examples/wedding.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/events/examples/wedding.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-events-examples-wedding)#example-slices-core-events-examples-wedding
+
+```turtle
+ex:wedding a gmeow:Event ;
+    rdfs:label "the marriage of Alex and Sam"@en ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:eventTime "2026-06-20T15:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventLocation ex:chapel ;
+    # Flat participation for the witnesses ONLY — no role/period/evidence needed.
+    # The principals and the officiant are instead reified below (with roles), so
+    # they are deliberately NOT repeated here: flat and reified never overlap.
+    gmeow:hasParticipant ex:witnessA , ex:witnessB .
+```
+
+### Blame Deflection
+
+- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: deception is held ≠ projected (, ). A spokesperson
+# privately BELIEVES an internal misconfiguration caused an outage, but publicly
+# PROJECTS that a third-party vendor did. The lie is a gmeow:Event linking the
+# two StandpointClaims: gmeow:heldStandpoint (the believed claim) and
+# gmeow:projectedStandpoint (the asserted-but-disbelieved one). Falsehood is not
+# an isFalse boolean — it is the projected claim carrying gmeow:claimVeridicality
+# gmeow:veridicalityUntrue. Nothing here needs a "deception class": ordinary
+# claims, an event type, and the held/projected gap do all the work.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The outage being explained, and the two candidate causes.
+ex:outage a gmeow:Event ;
+    rdfs:label "the March data outage"@en ;
+    gmeow:eventType gmeow:eventTypeDestruction ;
+    gmeow:eventTime "2026-03-04T02:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## External Equivalences
 
 Equivalent or closely aligned targets: `bbc`, `crm`, `dcmitype`, `ical`, `lode`, `org`, `prov`, `schema`, `sem`, `wd`

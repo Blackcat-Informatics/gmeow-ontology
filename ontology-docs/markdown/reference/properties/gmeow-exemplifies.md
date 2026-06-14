@@ -17,6 +17,21 @@ Relates an [`Item`](../classes/gmeow-Item.md) to the [`Manifestation`](../classe
 
 Use [`gmeow:exemplifies`](gmeow-exemplifies.md) from [`gmeow:Item`](../classes/gmeow-Item.md) to [`gmeow:Manifestation`](../classes/gmeow-Manifestation.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wemi Novel
+
+- **Source:** [`slices/core/creative-works/examples/wemi-novel.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/creative-works/examples/wemi-novel.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-creative-works-examples-wemi-novel)#example-slices-core-creative-works-examples-wemi-novel
+
+```turtle
+# --- Item: one exemplar — a specific physical copy of the hardback.
+ex:libraryCopy a gmeow:Item ;
+    gmeow:exemplifies ex:hardback .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Item`](../classes/gmeow-Item.md), [`gmeow:Manifestation`](../classes/gmeow-Manifestation.md)

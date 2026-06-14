@@ -17,6 +17,26 @@ The city place type — a classification of a location by its function or form i
 
 Use [`gmeow:placeTypeCity`](gmeow-placeTypeCity.md) as a controlled value typed as [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+ex:edmonton a gmeow:Place ;
+    gmeow:name "Edmonton"@en ;
+    gmeow:placeType gmeow:placeTypeCity ;
+    gmeow:containedInPlace ex:alberta ;
+    gmeow:authorityLink wd:Q2096 ;
+    skos:exactMatch wd:Q2096 ;
+    # The flat coordinate shortcut: a GeoCoordinates point, no provenance needed.
+    gmeow:hasCoordinates ex:edmontonCoords .
+```
+
 ## Common Companion Terms
 
 [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md)

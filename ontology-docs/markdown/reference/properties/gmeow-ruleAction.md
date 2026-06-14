@@ -18,6 +18,25 @@ The regulated action of a rule — one of the open [`gmeow:RightsAction`](../cla
 
 Use [`gmeow:ruleAction`](gmeow-ruleAction.md) from [`gmeow:Rule`](../classes/gmeow-Rule.md) to [`gmeow:RightsAction`](../classes/gmeow-RightsAction.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# --- Permission to reproduce, but only if the attribution DUTY is discharged.
+ex:permReproduce a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionReproduce ;
+    gmeow:hasDuty    ex:dutyAttribute .
+
+ex:dutyAttribute a gmeow:Duty ;
+    gmeow:ruleAction gmeow:actionAttribute .
+```
+
 ## Common Companion Terms
 
 [`gmeow:prescribedConduct`](gmeow-prescribedConduct.md), [`gmeow:Rule`](../classes/gmeow-Rule.md), [`gmeow:RightsAction`](../classes/gmeow-RightsAction.md)

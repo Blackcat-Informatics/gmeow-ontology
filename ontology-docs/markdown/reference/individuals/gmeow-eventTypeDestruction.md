@@ -17,6 +17,38 @@ The event of an entity ceasing to exist — the universal form of death (person)
 
 Use [`gmeow:eventTypeDestruction`](gmeow-eventTypeDestruction.md) as a controlled value typed as [`gmeow:EventType`](../classes/gmeow-EventType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Blame Deflection
+
+- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
+
+```turtle
+# --- The outage being explained, and the two candidate causes.
+ex:outage a gmeow:Event ;
+    rdfs:label "the March data outage"@en ;
+    gmeow:eventType gmeow:eventTypeDestruction ;
+    gmeow:eventTime "2026-03-04T02:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
+### Dissolved Org
+
+- **Source:** [`slices/core/lifecycle/examples/dissolved-org.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/lifecycle/examples/dissolved-org.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-lifecycle-examples-dissolved-org)#example-slices-core-lifecycle-examples-dissolved-org
+
+```turtle
+# --- Destruction: ONE occurrence carrying two co-equal eventType values.
+ex:dissolution a gmeow:Event ;
+    rdfs:label "dissolution of Meridian Systems"@en ;
+    gmeow:eventType gmeow:eventTypeDissolution , gmeow:eventTypeDestruction ;
+    gmeow:eventTime "2024-11-30T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:EventType`](../classes/gmeow-EventType.md)

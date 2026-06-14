@@ -17,6 +17,24 @@ The region place type — a classification of a location by its function or form
 
 Use [`gmeow:placeTypeRegion`](gmeow-placeTypeRegion.md) as a controlled value typed as [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+ex:alberta a gmeow:Place ;
+    gmeow:name "Alberta"@en ;
+    gmeow:placeType gmeow:placeTypeRegion ;
+    gmeow:containedInPlace ex:canada ;
+    gmeow:authorityLink wd:Q1951 ;
+    skos:exactMatch wd:Q1951 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md)

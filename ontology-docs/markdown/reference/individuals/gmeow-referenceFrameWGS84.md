@@ -17,6 +17,26 @@ The wgs 84 reference frame — a named coordinate system or value space together
 
 Use [`gmeow:referenceFrameWGS84`](gmeow-referenceFrameWGS84.md) as a controlled value typed as [`gmeow:ReferenceFrame`](../classes/gmeow-ReferenceFrame.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+ex:officeGpsFix a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:officeSite ;
+    gmeow:vantage ex:surveyTeam ;
+    gmeow:observationMethod gmeow:methodGPS ;
+    gmeow:coordinateResult ex:officeCoords ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:confidence 0.95 ;
+    gmeow:assertedAt "2026-03-10T00:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ReferenceFrame`](../classes/gmeow-ReferenceFrame.md)

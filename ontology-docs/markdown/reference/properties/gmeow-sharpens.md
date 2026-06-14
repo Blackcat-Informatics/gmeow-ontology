@@ -17,6 +17,22 @@ S1 sharpens S2: every precisification S1 admits is also admitted by S2, so S1 is
 
 Use [`gmeow:sharpens`](gmeow-sharpens.md) from [`gmeow:Standpoint`](../classes/gmeow-Standpoint.md) to [`gmeow:Standpoint`](../classes/gmeow-Standpoint.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contested Authorship
+
+- **Source:** [`slices/core/standpoint/examples/contested-authorship.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/standpoint/examples/contested-authorship.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-standpoint-examples-contested-authorship)#example-slices-core-standpoint-examples-contested-authorship
+
+```turtle
+# --- Standpoints: the scholarly positions from which each claim is held.
+ex:revisionists a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:orthodoxy a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:forensicPanel a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Standpoint`](../classes/gmeow-Standpoint.md)

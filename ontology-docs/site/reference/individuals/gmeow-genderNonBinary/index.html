@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,40 @@
 <p><strong>Types:</strong> <a href="../../classes/gmeow-Gender/"><code>gmeow:Gender</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:genderNonBinary</code></a> as a controlled value typed as <a href="../../classes/gmeow-Gender/"><code>gmeow:Gender</code></a>.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Self Asserted Facets</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gender/examples/self-asserted-facets.ttl"><code>slices/core/gender/examples/self-asserted-facets.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-gender-examples-self-asserted-facets">open in catalog</a>#example-slices-core-gender-examples-self-asserted-facets</li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: gender as reified, self-asserted, co-equal facets (, P9/P10).
+# Each axis is a reified gmeow:IdentityFacet (the NameUsage relator idiom), never a
+# flat enum column. Four tenets are visible here:
+#   • SELF-ASSERTION is the top authority — a self-asserted facet (selfAsserted
+#     true) outranks an external registry record (selfAsserted false), which is
+#     SUPPRESSED, never deleted (gmeow:displayable false, P10): kept for provenance,
+#     never leaked or displayed.
+#   • CO-EQUALITY — gender identity and gender expression are separate facets with
+#     no primary/preferred slot; expression is never inferred from identity.
+#   • SEX ≠ GENDER — gmeow:sexAssignedAtBirth is a RECORDED administrative datum,
+#     not an IdentityFacet, and implies nothing about identity or expression.
+#   • OPEN VOCABULARY — values are individuals (gmeow:genderNonBinary, …), never
+#     Person subclasses and never a forced enum.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/gender/&gt; .
+
+# --- The self-asserted identity: subject is its own vantage; displayed.
+ex:selfId a gmeow:GenderIdentity ;
+    gmeow:facetSubject  ex:robin ;
+    gmeow:facetVantage  ex:robin ;
+    gmeow:genderValue   gmeow:genderNonBinary ;
+    gmeow:selfAsserted  true ;
+    gmeow:displayable   true .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Gender/"><code>gmeow:Gender</code></a></p>
 <h2>External Equivalences</h2>

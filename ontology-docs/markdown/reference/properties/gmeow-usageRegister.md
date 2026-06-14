@@ -17,6 +17,22 @@ The social register of a name-usage (formal, intimate, professional, casual) —
 
 Use [`gmeow:usageRegister`](gmeow-usageRegister.md) from [`gmeow:NameUsage`](../classes/gmeow-NameUsage.md) to [`gmeow:NameRegister`](../classes/gmeow-NameRegister.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+ex:usageRobFriends a gmeow:NameUsage ;
+    gmeow:usageNamed ex:robin ;
+    gmeow:usageAppellation ex:nickRob ;
+    gmeow:usageRegister gmeow:registerIntimate .
+```
+
 ## Common Companion Terms
 
 [`gmeow:NameUsage`](../classes/gmeow-NameUsage.md), [`gmeow:NameRegister`](../classes/gmeow-NameRegister.md)

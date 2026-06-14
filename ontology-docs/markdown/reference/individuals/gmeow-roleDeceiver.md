@@ -17,6 +17,22 @@ The participant in a deception event who projects a standpoint that diverges fro
 
 Use [`gmeow:roleDeceiver`](gmeow-roleDeceiver.md) as a controlled value typed as [`gmeow:ParticipantRole`](../classes/gmeow-ParticipantRole.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Blame Deflection
+
+- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
+
+```turtle
+ex:deceiverRole a gmeow:Participation ;
+    gmeow:participationEvent ex:coverStory ;
+    gmeow:participationParticipant ex:spokesperson ;
+    gmeow:participationRole gmeow:roleDeceiver .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ParticipantRole`](../classes/gmeow-ParticipantRole.md)

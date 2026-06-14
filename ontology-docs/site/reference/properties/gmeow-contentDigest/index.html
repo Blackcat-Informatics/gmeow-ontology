@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,46 @@
 <p><strong>Property shape:</strong> datatype property; <code>?</code> -&gt; <a href="http://www.w3.org/2000/01/rdf-schema#Literal"><code>rdfs:Literal</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:contentDigest</code></a> from <code>?</code> to <a href="http://www.w3.org/2000/01/rdf-schema#Literal"><code>rdfs:Literal</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Agent Trajectory</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl"><code>slices/extensions/agentic/examples/agent-trajectory.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-extensions-agentic-examples-agent-trajectory">open in catalog</a>#example-slices-extensions-agentic-examples-agent-trajectory</li>
+</ul>
+<pre><code class="language-turtle">@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+
+
+ex:call-7-1 a gmeow:ToolCall ;
+    rdfs:label &quot;turn 7, call 1: search&quot;@en ;
+    gmeow:calledByInvocation ex:invocation-7 ;
+    gmeow:usedTool ex:webSearch ;
+    gmeow:toolArguments &quot;{\&quot;query\&quot;: \&quot;GTS deterministic encoding spec\&quot;}&quot; ;
+    # Large result: the digest IS the value (gmeow:contentDigest convention).
+    gmeow:toolResult &quot;blake3:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a&quot; ;
+    gmeow:atTime &quot;2026-06-12T17:03:11Z&quot;^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
+<h3>Grounded Claim</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl"><code>slices/core/ai/examples/grounded-claim.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-ai-examples-grounded-claim">open in catalog</a>#example-slices-core-ai-examples-grounded-claim</li>
+</ul>
+<pre><code class="language-turtle"># --- The source and its retrieval segment (the spine's left half).
+ex:handbook a gmeow:Document ;
+    rdfs:label &quot;facilities handbook, 2026 edition&quot;@en ;
+    gmeow:contentDigest &quot;blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0&quot; .
+
+ex:chunk-042 a gmeow:Chunk ;
+    gmeow:chunkOf ex:handbook ;
+    gmeow:spanStart &quot;18200&quot;^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd &quot;18950&quot;^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest &quot;blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809&quot; .
+</code></pre>
 <h2>Projects To</h2>
 <table>
 <thead>

@@ -17,6 +17,43 @@ The verbatim result payload the tool returned, byte-faithful — the PAYLOAD of 
 
 Use [`gmeow:toolResult`](gmeow-toolResult.md) from [`gmeow:ToolCall`](../classes/gmeow-ToolCall.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Agent Trajectory
+
+- **Source:** [`slices/extensions/agentic/examples/agent-trajectory.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-agentic-examples-agent-trajectory)#example-slices-extensions-agentic-examples-agent-trajectory
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+ex:call-7-1 a gmeow:ToolCall ;
+    rdfs:label "turn 7, call 1: search"@en ;
+    gmeow:calledByInvocation ex:invocation-7 ;
+    gmeow:usedTool ex:webSearch ;
+    gmeow:toolArguments "{\"query\": \"GTS deterministic encoding spec\"}" ;
+    # Large result: the digest IS the value (gmeow:contentDigest convention).
+    gmeow:toolResult "blake3:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a" ;
+    gmeow:atTime "2026-06-12T17:03:11Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:call-7-2 a gmeow:ToolCall ;
+    rdfs:label "turn 7, call 2: store a memory note"@en ;
+    gmeow:calledByInvocation ex:invocation-7 ;
+    gmeow:usedTool ex:storeClaim ;
+    gmeow:toolArguments "{\"text\": \"the GTS spec mandates RFC 8949 deterministic encoding\"}" ;
+    gmeow:toolResult "{\"ok\": true}" ;
+    gmeow:atTime "2026-06-12T17:03:14Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ToolCall`](../classes/gmeow-ToolCall.md)

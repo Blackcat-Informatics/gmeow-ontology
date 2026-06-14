@@ -17,6 +17,50 @@ An entity that can act, bear responsibility, and enter into agreements: a person
 
 Use [`gmeow:Agent`](gmeow-Agent.md) as a specialized kind of [`gmeow:Entity`](gmeow-Entity.md), [`gufo:FunctionalComplex`](../../external/terms.md#gufo-functionalcomplex). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Agent Sortals
+
+- **Source:** [`slices/core/entities/examples/agent-sortals.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/entities/examples/agent-sortals.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-entities-examples-agent-sortals)#example-slices-core-entities-examples-agent-sortals
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the four agent sortals . A small consultancy, two of its
+# people, an informal working group, and its CI bot — each a distinct gufo:Kind
+# beneath the kernel's gmeow:Agent. The flat naming tier (gmeow:name) carries the
+# 80% case here; anything that needs structure — a reified PersonName, a contact
+# point, a location — attaches to these Kinds from its own slice (the entities
+# slice stays deliberately thin). Person ⟂ Organization ⟂ SoftwareAgent are
+# pairwise disjoint (a human is never a bot); Group is deliberately NOT disjoint
+# (a structured organization is arguably also a group, P9).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/entities/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+```
+
+### Dist Package
+
+- **Source:** [`slices/core/gts/examples/dist-package.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gts/examples/dist-package.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gts-examples-dist-package)#example-slices-core-gts-examples-dist-package
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+ex:agent-archivist-001
+    a gmeow:Agent ;
+    rdfs:label "the archivist"@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](gmeow-Entity.md)

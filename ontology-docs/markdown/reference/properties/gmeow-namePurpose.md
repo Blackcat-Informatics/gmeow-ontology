@@ -17,6 +17,31 @@ The intrinsic kind/purpose(s) of an appellation (legal, birth, chosen, professio
 
 Use [`gmeow:namePurpose`](gmeow-namePurpose.md) from [`gmeow:Appellation`](../classes/gmeow-Appellation.md) to [`gmeow:NamePurpose`](../classes/gmeow-NamePurpose.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+# --- The chosen legal name, decomposed into ordered parts (displayable).
+ex:nameChosen a gmeow:PersonName ;
+    gmeow:fullName "Robin Avery Chen"@en ;
+    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:displayable true ;
+    gmeow:hasNamePart ex:partGiven , ex:partMiddle , ex:partSurname .
+
+# --- The superseded deadname: RETAINED (the record stays auditable) but
+#     displayable false, so no projection ever surfaces it (P10).
+ex:nameDead a gmeow:PersonName ;
+    gmeow:fullName "Jordan Chen"@en ;
+    gmeow:namePurpose gmeow:namePurposeDeadname ;
+    gmeow:displayable false .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Appellation`](../classes/gmeow-Appellation.md), [`gmeow:NamePurpose`](../classes/gmeow-NamePurpose.md)

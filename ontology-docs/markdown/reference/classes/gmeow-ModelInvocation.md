@@ -17,6 +17,45 @@ One call to a generative model: the model agent ([`gmeow:usedModel`](../properti
 
 Use [`gmeow:ModelInvocation`](gmeow-ModelInvocation.md) as a specialized kind of [`gmeow:Activity`](gmeow-Activity.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:invocation-19 a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:hasPrompt ex:prompt-extract ;
+    gmeow:samplingTemperature 0.0 ;
+    gmeow:atTime "2026-05-15T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
+### Agent Trajectory
+
+- **Source:** [`slices/extensions/agentic/examples/agent-trajectory.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-agentic-examples-agent-trajectory)#example-slices-extensions-agentic-examples-agent-trajectory
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+ex:invocation-7 a gmeow:ModelInvocation ;
+    rdfs:label "turn 7 model invocation"@en ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:samplingTemperature "0.2"^^xsd:decimal ;
+    gmeow:atTime "2026-06-12T17:03:10Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Activity`](gmeow-Activity.md)

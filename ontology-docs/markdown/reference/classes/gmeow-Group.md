@@ -17,6 +17,24 @@ A collection of agents treated as a unit without the formal structure of an orga
 
 Use [`gmeow:Group`](gmeow-Group.md) as a specialized kind of [`gmeow:Entity`](gmeow-Entity.md), [`gufo:Collection`](http://purl.org/nemo/gufo#Collection). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Agent Sortals
+
+- **Source:** [`slices/core/entities/examples/agent-sortals.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/entities/examples/agent-sortals.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-entities-examples-agent-sortals)#example-slices-core-entities-examples-agent-sortals
+
+```turtle
+# --- Group: a collection of agents treated as a unit WITHOUT the formal
+#     structure of an organization. Sub-organization decomposition would instead
+#     use gmeow:subOrganizationOf in the organization slice.
+ex:platformTeam a gmeow:Group ;
+    gmeow:name "Platform team"@en ;
+    gmeow:description "An informal cross-functional working group, not a legal sub-organization."@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](gmeow-Entity.md)

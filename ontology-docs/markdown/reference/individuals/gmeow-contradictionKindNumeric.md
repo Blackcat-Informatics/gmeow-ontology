@@ -17,6 +17,23 @@ The claims carry incompatible quantities.
 
 Use [`gmeow:contradictionKindNumeric`](gmeow-contradictionKindNumeric.md) as a controlled value typed as [`gmeow:ContradictionKind`](../classes/gmeow-ContradictionKind.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+# --- The conflict, SURFACED and attributed — never resolved by rank (P9).
+ex:contradiction-close a gmeow:Contradiction ;
+    gmeow:contradictsClaim ex:claim-close-2200, ex:claim-close-2300 ;
+    gmeow:contradictionKind gmeow:contradictionKindNumeric ;
+    gmeow:detectedBy ex:auditor .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ContradictionKind`](../classes/gmeow-ContradictionKind.md)

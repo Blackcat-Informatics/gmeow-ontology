@@ -18,6 +18,36 @@ The source information object this chunk segments. Functional: a chunk is cut fr
 
 Use [`gmeow:chunkOf`](gmeow-chunkOf.md) from [`gmeow:Chunk`](../classes/gmeow-Chunk.md) to [`gmeow:InformationObject`](../classes/gmeow-InformationObject.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:chunk-042 a gmeow:Chunk ;
+    gmeow:chunkOf ex:handbook ;
+    gmeow:spanStart "18200"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "18950"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" .
+```
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:chunk-7 a gmeow:Chunk ;
+    gmeow:chunkOf ex:mail-archive ;
+    gmeow:spanStart "5200"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "6100"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:partOf`](gmeow-partOf.md), [`gmeow:Chunk`](../classes/gmeow-Chunk.md), [`gmeow:InformationObject`](../classes/gmeow-InformationObject.md)

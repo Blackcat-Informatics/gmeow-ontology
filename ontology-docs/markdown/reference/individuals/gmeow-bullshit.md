@@ -17,6 +17,24 @@ The standpoint asserts P with indifference to its truth-value — Frankfurt's bu
 
 Use [`gmeow:bullshit`](gmeow-bullshit.md) as a controlled value typed as [`gmeow:StandpointModality`](../classes/gmeow-StandpointModality.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:verdict-2300 a gmeow:StandpointClaim ;
+    gmeow:vantage ex:auditor ;
+    gmeow:observedFeature ex:stmt-2300-is-claimed ;
+    gmeow:observationMethod gmeow:methodNliDerivation ;
+    gmeow:claimModality gmeow:bullshit ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+```
+
 ## Common Companion Terms
 
 [`gmeow:StandpointModality`](../classes/gmeow-StandpointModality.md)

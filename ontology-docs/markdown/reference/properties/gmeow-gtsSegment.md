@@ -17,6 +17,44 @@ A segment of this GTS document — the inverse of [`gmeow:gtsSegmentOf`](gmeow-g
 
 Use [`gmeow:gtsSegment`](gmeow-gtsSegment.md) from [`gmeow:GTSDocument`](../classes/gmeow-GTSDocument.md) to [`gmeow:GTSSegment`](../classes/gmeow-GTSSegment.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Dist Package
+
+- **Source:** [`slices/core/gts/examples/dist-package.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gts/examples/dist-package.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gts-examples-dist-package)#example-slices-core-gts-examples-dist-package
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+ex:gts-dist-segment-core
+    a gmeow:GTSSegment ;
+    rdfs:label "core dist segment"@en ;
+    gmeow:gtsSegmentOf ex:gts-dist-package-001 ;
+    gmeow:embodies ex:gmeow-ontology-expression-001 ;
+    gmeow:gtsSegmentIndex "0"^^xsd:nonNegativeInteger ;
+    gmeow:gtsHeadId "blake3:929d046b2300eb09424f2d46b07fb793ad97ddde5e9fdb25ebefe245e8da8be8" ;
+    gmeow:gtsProfile gmeow:gtsProfileDist ;
+    gmeow:usesTransformCodec gmeow:codecZstd .
+
+ex:gts-dist-segment-music
+    a gmeow:GTSSegment ;
+    rdfs:label "appended music-extension segment"@en ;
+    gmeow:gtsSegmentOf ex:gts-dist-package-001 ;
+    gmeow:embodies ex:gmeow-ontology-expression-001 ;
+    gmeow:gtsSegmentIndex "1"^^xsd:nonNegativeInteger ;
+    gmeow:gtsHeadId "blake3:167704cc2c533090b63ff3bf38b4fcff2bb70b33f996aa22f53025044e310ee8" ;
+    gmeow:gtsProfile gmeow:gtsProfileGeneric ;
+    gmeow:usesTransformCodec gmeow:codecZstd .
+```
+
 ## Common Companion Terms
 
 [`gmeow:GTSDocument`](../classes/gmeow-GTSDocument.md), [`gmeow:GTSSegment`](../classes/gmeow-GTSSegment.md)

@@ -17,6 +17,22 @@ Allen MEETS: this interval ends exactly when the related interval begins. NOT tr
 
 Use [`gmeow:intervalMeets`](gmeow-intervalMeets.md) from [`gmeow:TimeInterval`](../classes/gmeow-TimeInterval.md) to [`gmeow:TimeInterval`](../classes/gmeow-TimeInterval.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Intervals And Frames
+
+- **Source:** [`slices/core/temporal/examples/intervals-and-frames.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/temporal/examples/intervals-and-frames.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-temporal-examples-intervals-and-frames)#example-slices-core-temporal-examples-intervals-and-frames
+
+```turtle
+# --- Allen relation: the talk's end instant is exactly the Q&A's start instant
+#     (13:45:00Z), so they MEET — adjacency, not Allen "before" (which would need
+#     a gap between them).
+ex:talkInterval gmeow:intervalMeets ex:qaInterval .
+```
+
 ## Common Companion Terms
 
 [`gmeow:TimeInterval`](../classes/gmeow-TimeInterval.md)

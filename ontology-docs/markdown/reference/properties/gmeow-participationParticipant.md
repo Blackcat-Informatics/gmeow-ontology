@@ -17,6 +17,42 @@ The entity that took part in the event in this participation. Range is [`gmeow:E
 
 Use [`gmeow:participationParticipant`](gmeow-participationParticipant.md) from [`gmeow:Participation`](../classes/gmeow-Participation.md) to [`gmeow:Entity`](../classes/gmeow-Entity.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wedding
+
+- **Source:** [`slices/core/events/examples/wedding.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/events/examples/wedding.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-events-examples-wedding)#example-slices-core-events-examples-wedding
+
+```turtle
+# --- Reified participations: the two principals and the officiant, with roles.
+#     A withdrawn or disputed role would coexist as another Participation
+#     (displayable false, or standpoint-indexed) — never overwritten (P9/P10).
+ex:partAlex a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:alex ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+
+ex:partSam a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:sam ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+```
+
+### Blame Deflection
+
+- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
+
+```turtle
+ex:deceiverRole a gmeow:Participation ;
+    gmeow:participationEvent ex:coverStory ;
+    gmeow:participationParticipant ex:spokesperson ;
+    gmeow:participationRole gmeow:roleDeceiver .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Participation`](../classes/gmeow-Participation.md), [`gmeow:Entity`](../classes/gmeow-Entity.md)

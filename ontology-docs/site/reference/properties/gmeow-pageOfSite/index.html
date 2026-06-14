@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -40,6 +41,30 @@
 <strong>Sub-property of:</strong> <a href="../gmeow-partOf/"><code>gmeow:partOf</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:pageOfSite</code></a> from <a href="../../classes/gmeow-WebPage/"><code>gmeow:WebPage</code></a> to <a href="../../classes/gmeow-WebSite/"><code>gmeow:WebSite</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Web Presence</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/documents/examples/web-presence.ttl"><code>slices/core/documents/examples/web-presence.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-documents-examples-web-presence">open in catalog</a>#example-slices-core-documents-examples-web-presence</li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a web presence on the WEMI spine (, ). A WebSite and
+# its WebPages are concrete gmeow:Manifestations — so each embodies an Expression
+# that realizes a Work, the same four-tier backing every published artifact
+# carries. Pages belong to the site via gmeow:pageOfSite (⊑ partOf). The about
+# page names a person as its gmeow:pagePrincipalSubject (⊑ isAbout), which makes
+# it a gmeow:ProfilePage by INFERENCE — ProfilePage is a defined class (any
+# WebPage whose principal subject is an Agent), so no manual typing is needed.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/documents/&gt; .
+
+ex:homepage a gmeow:WebPage ;
+    gmeow:pageOfSite ex:site ;
+    gmeow:embodies ex:siteContent .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-partOf/"><code>gmeow:partOf</code></a>, <a href="../../classes/gmeow-WebPage/"><code>gmeow:WebPage</code></a>, <a href="../../classes/gmeow-WebSite/"><code>gmeow:WebSite</code></a></p>
 <h2>Projects To</h2>

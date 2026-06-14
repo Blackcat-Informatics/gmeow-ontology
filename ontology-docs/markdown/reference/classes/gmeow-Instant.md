@@ -17,6 +17,41 @@ A zero-duration point in time, distinct from a [`TimeInterval`](gmeow-TimeInterv
 
 Use [`gmeow:Instant`](gmeow-Instant.md) as a specialized kind of [`gufo:AbstractIndividual`](http://purl.org/nemo/gufo#AbstractIndividual). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Intervals And Frames
+
+- **Source:** [`slices/core/temporal/examples/intervals-and-frames.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/temporal/examples/intervals-and-frames.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-temporal-examples-intervals-and-frames)#example-slices-core-temporal-examples-intervals-and-frames
+
+```turtle
+# --- The talk interval: begin and end Instants, each in the UTC/Gregorian frame.
+ex:talkStart a gmeow:Instant ;
+    gmeow:instantValue "2026-09-14T13:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:talkEnd a gmeow:Instant ;
+    gmeow:instantValue "2026-09-14T13:45:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
+### Dissolved Org
+
+- **Source:** [`slices/core/lifecycle/examples/dissolved-org.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/lifecycle/examples/dissolved-org.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-lifecycle-examples-dissolved-org)#example-slices-core-lifecycle-examples-dissolved-org
+
+```turtle
+ex:lifeBegin a gmeow:Instant ;
+    gmeow:instantValue "2010-04-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:lifeEnd a gmeow:Instant ;
+    gmeow:instantValue "2024-11-30T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## External Equivalences
 
 Equivalent or closely aligned targets: `crm`, `time`

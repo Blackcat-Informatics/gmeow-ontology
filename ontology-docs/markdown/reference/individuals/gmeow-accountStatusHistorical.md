@@ -17,6 +17,36 @@ A retired account, kept for the record (P10): the holder no longer uses it.
 
 Use [`gmeow:accountStatusHistorical`](gmeow-accountStatusHistorical.md) as a controlled value typed as [`gmeow:AccountStatus`](../classes/gmeow-AccountStatus.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Online Presence
+
+- **Source:** [`slices/core/accounts/examples/online-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-accounts-examples-online-presence)#example-slices-core-accounts-examples-online-presence
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: online accounts, decentralized identity, and P10 . An
+# agent gmeow:holdsAccount one or more gmeow:OnlineAccounts, each on a
+# gmeow:OnlineService. Decentralized identities are first-class: a Mastodon
+# account carries its gmeow:activityPubActor URI, a Nostr account its
+# gmeow:nostrPubkey and gmeow:nip05 handle. P10 (suppression, never deletion):
+# when a service shuts down, its account is kept as gmeow:accountStatusHistorical
+# — the record persists, it is not erased.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accounts/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:oldAccount a gmeow:OnlineAccount ;
+    gmeow:accountName   "dana_old" ;
+    gmeow:accountService ex:defunct ;
+    gmeow:accountStatus gmeow:accountStatusHistorical .
+```
+
 ## Common Companion Terms
 
 [`gmeow:AccountStatus`](../classes/gmeow-AccountStatus.md)

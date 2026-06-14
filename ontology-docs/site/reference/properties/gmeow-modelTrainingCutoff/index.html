@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,20 @@
 <p><strong>Property shape:</strong> datatype property; <a href="../../classes/gmeow-ModelCard/"><code>gmeow:ModelCard</code></a> -&gt; <a href="http://www.w3.org/2001/XMLSchema#date"><code>xsd:date</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:modelTrainingCutoff</code></a> from <a href="../../classes/gmeow-ModelCard/"><code>gmeow:ModelCard</code></a> to <a href="http://www.w3.org/2001/XMLSchema#date"><code>xsd:date</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Grounded Claim</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl"><code>slices/core/ai/examples/grounded-claim.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-ai-examples-grounded-claim">open in catalog</a>#example-slices-core-ai-examples-grounded-claim</li>
+</ul>
+<pre><code class="language-turtle">ex:card-assistant a gmeow:ModelCard ;
+    gmeow:describesModel ex:assistant ;
+    gmeow:modelProvider &quot;Example Labs&quot; ;
+    gmeow:modelVersionTag &quot;assistant-2026-05-01&quot; ;
+    gmeow:modelContextWindow &quot;200000&quot;^^xsd:positiveInteger ;
+    gmeow:modelTrainingCutoff &quot;2026-01-31&quot;^^xsd:date .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-ModelCard/"><code>gmeow:ModelCard</code></a></p>
   </main>

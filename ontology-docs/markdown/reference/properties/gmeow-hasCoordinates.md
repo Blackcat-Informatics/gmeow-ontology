@@ -17,6 +17,42 @@ Relates a place to its geographic point coordinates. Flat shortcut for the commo
 
 Use [`gmeow:hasCoordinates`](gmeow-hasCoordinates.md) from [`gmeow:Place`](../classes/gmeow-Place.md) to [`gmeow:GeoCoordinates`](../classes/gmeow-GeoCoordinates.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: places as first-class located things, not address strings
+# . A containment hierarchy (country ⊃ region ⊃ city ⊃ site) carries
+# placeType, gazetteer coreference (authorityLink + skos:exactMatch, never
+# owl:sameAs — P5), and coordinates two ways: the flat gmeow:hasCoordinates for
+# the 80% case, and a reified gmeow:CoordinateObservation that makes the Principle
+# 11 reference frame EXPLICIT (a latitude is meaningless without the frame it is
+# expressed in) and carries the measurement's vantage, method, and confidence.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:edmonton a gmeow:Place ;
+    gmeow:name "Edmonton"@en ;
+    gmeow:placeType gmeow:placeTypeCity ;
+    gmeow:containedInPlace ex:alberta ;
+    gmeow:authorityLink wd:Q2096 ;
+    skos:exactMatch wd:Q2096 ;
+    # The flat coordinate shortcut: a GeoCoordinates point, no provenance needed.
+    gmeow:hasCoordinates ex:edmontonCoords .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Place`](../classes/gmeow-Place.md), [`gmeow:GeoCoordinates`](../classes/gmeow-GeoCoordinates.md)

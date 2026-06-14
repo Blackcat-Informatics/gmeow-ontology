@@ -17,6 +17,25 @@ Relates an entity (typically a [`gmeow:CreativeWork`](../classes/gmeow-CreativeW
 
 Use [`gmeow:hasRightsStatement`](gmeow-hasRightsStatement.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to [`gmeow:RightsStatement`](../classes/gmeow-RightsStatement.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# --- The asset, with the FLAT-first rights edges (the common case) plus a
+#     promoted RightsStatement because permissions/prohibitions/duties are needed.
+ex:dataset a gmeow:Dataset ;
+    gmeow:title "Coastal Bird Survey 2026"@en ;
+    gmeow:hasCopyright       ex:copyright ;
+    gmeow:hasLicense         ex:ccbync ;
+    gmeow:hasRightsStatement ex:rights .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md), [`gmeow:RightsStatement`](../classes/gmeow-RightsStatement.md)

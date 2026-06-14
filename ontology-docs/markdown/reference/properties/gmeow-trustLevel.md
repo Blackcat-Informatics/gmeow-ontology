@@ -17,6 +17,37 @@ The degree of owner-trust expressed: ultimate, full, marginal, or none.
 
 Use [`gmeow:trustLevel`](gmeow-trustLevel.md) from [`gmeow:TrustAssertion`](../classes/gmeow-TrustAssertion.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Web Of Trust
+
+- **Source:** [`slices/core/trust/examples/web-of-trust.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/trust/examples/web-of-trust.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-trust-examples-web-of-trust)#example-slices-core-trust-examples-web-of-trust
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the PGP web of trust . Trust is decentralized and
+# relational: agents gmeow:holdsKey cryptographic keys; one agent's
+# gmeow:Certification signs another's key (a key-signing, binding key↔identity);
+# and a gmeow:TrustAssertion records how much a trustor trusts a trustee AS AN
+# INTRODUCER (gmeow:trustLevel + gmeow:introducerDepth — how far transitive trust
+# may flow). gmeow:endorses is the lightweight, keyless vouch. No central
+# authority: trust is asserted pairwise and composed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/> .
+
+# --- Alice trusts Bob as a level-1 introducer (his certifications count for her).
+ex:trust a gmeow:TrustAssertion ;
+    gmeow:trustor         ex:alice ;
+    gmeow:trustee         ex:bob ;
+    gmeow:trustLevel      "full" ;
+    gmeow:introducerDepth 1 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:TrustAssertion`](../classes/gmeow-TrustAssertion.md)

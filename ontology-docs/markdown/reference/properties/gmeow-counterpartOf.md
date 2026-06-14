@@ -17,6 +17,23 @@ Relates two GMEOW entities that are recognisable counterparts across realms, fra
 
 Use [`gmeow:counterpartOf`](gmeow-counterpartOf.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to [`gmeow:Entity`](../classes/gmeow-Entity.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Authority Links
+
+- **Source:** [`slices/core/coreference/examples/authority-links.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/coreference/examples/authority-links.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-coreference-examples-authority-links)#example-slices-core-coreference-examples-authority-links
+
+```turtle
+# --- A field-robot software identity that is the SAME agent across contexts as
+#     the recorded author's account — a counterpart, not a sameAs merge.
+ex:fieldRobotIdentity a gmeow:SoftwareAgent ;
+    gmeow:name "lin-field-robot"@en ;
+    gmeow:counterpartOf ex:recordedAuthor .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md)

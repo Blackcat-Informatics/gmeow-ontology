@@ -17,6 +17,28 @@ An emotion as an intrinsic mode inhering in one agent (the [`Desire`](gmeow-Desi
 
 Use [`gmeow:Emotion`](gmeow-Emotion.md) as a specialized kind of [`gmeow:Entity`](gmeow-Entity.md), [`gufo:IntrinsicMode`](../../external/terms.md#gufo-intrinsicmode). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Two Critics
+
+- **Source:** [`slices/extensions/affect/examples/two-critics.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/affect/examples/two-critics.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-affect-examples-two-critics)#example-slices-extensions-affect-examples-two-critics
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+ex:awe a gmeow:Emotion ;
+    rdfs:label "the reader's awe"@en ;
+    gmeow:emotionBearer ex:reader ;
+    gmeow:emotionType gmeow:emotionFear , gmeow:emotionSurprise .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](gmeow-Entity.md)

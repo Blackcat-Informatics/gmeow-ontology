@@ -17,6 +17,20 @@ A described state of affairs that an agent may want, intend, or commit to bring 
 
 Use [`gmeow:Goal`](gmeow-Goal.md) as a specialized kind of [`gmeow:SocialObject`](gmeow-SocialObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:goal-answer-faithfully a gmeow:Goal ;
+    rdfs:label "answer facilities questions faithfully to the handbook"@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:SocialObject`](gmeow-SocialObject.md)

@@ -17,6 +17,32 @@ A sealed or undecodable region of a GTS segment, surfaced by the reader as a fir
 
 Use [`gmeow:OpaqueFrame`](gmeow-OpaqueFrame.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Dist Package
+
+- **Source:** [`slices/core/gts/examples/dist-package.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gts/examples/dist-package.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gts-examples-dist-package)#example-slices-core-gts-examples-dist-package
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+# A sealed frame: opacity is vantage-relative — transparent to its recipient.
+ex:gts-opaque-frame-001
+    a gmeow:OpaqueFrame ;
+    rdfs:label "sealed evidence attachment"@en ;
+    gmeow:opaqueFrameIn ex:gts-dist-segment-core ;
+    gmeow:opacityReason gmeow:opacityMissingKey ;
+    gmeow:sealedRecipient ex:agent-archivist-001 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

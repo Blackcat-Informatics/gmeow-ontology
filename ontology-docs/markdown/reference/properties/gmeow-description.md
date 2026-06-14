@@ -17,6 +17,48 @@ A free-text note or description about an entity — the unstructured NOTE field 
 
 Use [`gmeow:description`](gmeow-description.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Agent Sortals
+
+- **Source:** [`slices/core/entities/examples/agent-sortals.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/entities/examples/agent-sortals.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-entities-examples-agent-sortals)#example-slices-core-entities-examples-agent-sortals
+
+```turtle
+# --- Organization: the flat name/description tier. A structured web presence
+#     (gmeow:hasWebPage → a WEMI gmeow:WebPage) is shown in the documents example;
+#     here the flat tier carries it.
+ex:blackcat a gmeow:Organization ;
+    gmeow:name "Blackcat Informatics Inc."@en ;
+    gmeow:description "A small ontology and tooling consultancy."@en .
+
+# --- People: gmeow:Person, the identity-supplying sortal everything else anchors
+#     to. Flat names suffice for the example; a contested or multilingual name
+#     would promote to the names slice's reified PersonName.
+ex:mara a gmeow:Person ;
+    gmeow:name "Mara Okafor"@en ;
+    gmeow:description "Backend engineer; maintains the release pipeline."@en .
+```
+
+### Lillith Dataset
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-dataset)#example-slices-extensions-graphrag-examples-lillith-dataset
+
+```turtle
+ex:lillith-benchmark a gmeow:Dataset ;
+    rdfs:label "Lillith GraphRAG benchmark"@en ;
+    gmeow:title "Lillith GraphRAG benchmark"@en ;
+    gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
+    gmeow:hasPart ex:corpus-lillith ;
+    gmeow:hasLicense ex:lillith-license ;
+    gmeow:wasAttributedTo ex:blackcat ;
+    gmeow:datePublished "2026-06-12T00:00:00Z"^^xsd:dateTime ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md)

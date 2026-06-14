@@ -17,6 +17,27 @@ SLSA provenance attestation describing how a software artifact was produced, per
 
 Use [`gmeow:attestationTypeSLSAProvenance`](gmeow-attestationTypeSLSAProvenance.md) as a controlled value typed as [`gmeow:AttestationType`](../classes/gmeow-AttestationType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+# --- The attestation: the CI system vouches for the release as SLSA provenance.
+ex:slsaAttestation a gmeow:Attestation ;
+    gmeow:attester           ex:ciSystem ;
+    gmeow:attestedSubject    ex:release ;
+    gmeow:attestationType    gmeow:attestationTypeSLSAProvenance ;
+    gmeow:issuedAt           "2026-06-14T12:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:artifact ;
+    gmeow:hasSignature       ex:sig ;
+    gmeow:verificationResult ex:verifyResult .
+```
+
 ## Common Companion Terms
 
 [`gmeow:AttestationType`](../classes/gmeow-AttestationType.md)

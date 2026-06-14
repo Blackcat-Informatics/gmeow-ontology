@@ -900,6 +900,122 @@
   },
   {
     "keywords": [
+      "Developers recording extracted facts, chunks, and tools.",
+      "audit-ai-or-graph-rag",
+      "dcat",
+      "gmeow:Chunk",
+      "gmeow:Dataset",
+      "gmeow:EvidenceSpan",
+      "gmeow:ExtractedEntity",
+      "gmeow:usedModel",
+      "graph-rag-dataset-lineage",
+      "prov",
+      "schema",
+      "slices/core/ai/examples/grounded-claim.ttl",
+      "slices/extensions/agentic/examples/agent-trajectory.ttl",
+      "slices/extensions/graphrag/examples/lillith-dataset.ttl",
+      "slices/extensions/graphrag/examples/lillith-pipeline.ttl"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#audit-ai-or-graph-rag",
+    "summary": "Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them.",
+    "title": "Audit AI and Graph-RAG Pipelines"
+  },
+  {
+    "keywords": [
+      "Developers handling evidence, provenance, or disagreement.",
+      "contested-or-attributed-facts",
+      "crminf",
+      "gmeow:Attestation",
+      "gmeow:Evidence",
+      "gmeow:StandpointClaim",
+      "gmeow:accordingTo",
+      "gmeow:confidence",
+      "model-a-contested-claim",
+      "prov",
+      "slices/core/attestation/examples/software-release.ttl",
+      "slices/core/evidence/examples/notability-assessment.ttl",
+      "slices/core/provenance/examples/import-lineage.ttl",
+      "slices/core/standpoint/examples/contested-authorship.ttl",
+      "wikidata"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#model-a-contested-claim",
+    "summary": "Represent claims by vantage and evidence rather than overwriting facts into a single global truth slot.",
+    "title": "Model a Contested or Attributed Claim"
+  },
+  {
+    "keywords": [
+      "Developers importing contact, profile, or biography data.",
+      "foaf",
+      "gmeow:ContactPoint",
+      "gmeow:NameUsage",
+      "gmeow:Person",
+      "gmeow:PersonName",
+      "gmeow:displayable",
+      "model-a-person",
+      "person-names-and-display",
+      "schema",
+      "slices/core/contacts/examples/contact-points.ttl",
+      "slices/core/coreference/examples/authority-links.ttl",
+      "slices/core/entities/examples/agent-sortals.ttl",
+      "slices/core/names/examples/person-names.ttl",
+      "vcard",
+      "wikidata"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#model-a-person",
+    "summary": "Start with a person, add names and contact points, then keep authority links and display choices separate from identity.",
+    "title": "Model a Person Without Flattening Identity"
+  },
+  {
+    "keywords": [
+      "Developers projecting native GMEOW into web-facing JSON-LD.",
+      "documents-and-schema-org",
+      "events-and-participants",
+      "geo",
+      "gmeow:Document",
+      "gmeow:Event",
+      "gmeow:Organization",
+      "gmeow:Participation",
+      "gmeow:Place",
+      "org",
+      "prov",
+      "publish-web-structured-data",
+      "schema",
+      "slices/core/documents/examples/web-presence.ttl",
+      "slices/core/events/examples/wedding.ttl",
+      "slices/core/organization/examples/post-and-membership.ttl",
+      "slices/core/places/examples/located-place.ttl"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#publish-web-structured-data",
+    "summary": "Model documents, events, people, and organizations natively, then inspect which fields project cleanly to broad consumers.",
+    "title": "Publish Web Structured Data"
+  },
+  {
+    "keywords": [
+      "Developers distributing GMEOW snapshots or local docs.",
+      "dcat",
+      "gmeow:GTSDocument",
+      "gmeow:GTSProfile",
+      "gmeow:GTSSegment",
+      "gmeow:usesTransformCodec",
+      "offline-gts-distribution",
+      "ship-offline-gts-docs",
+      "slices/core/gts/examples/dist-package.ttl",
+      "slices/core/provenance/examples/import-lineage.ttl",
+      "slices/core/rights/examples/licensed-dataset.ttl",
+      "spdx",
+      "void"
+    ],
+    "kind": "learning-path",
+    "path": "learning-paths/index.html#ship-offline-gts-docs",
+    "summary": "Treat the distribution file, embedded docs, profiles, segments, codecs, and lineage as first-class graph facts.",
+    "title": "Ship Offline GTS Documentation"
+  },
+  {
+    "keywords": [
       "gmeow:GTSDocument",
       "gmeow:GTSProfile",
       "gmeow:GTSSegment",
@@ -1522,6 +1638,17 @@
     "slice": "places",
     "summary": "core slice with 1 examples",
     "title": "GMEOW Locations Module"
+  },
+  {
+    "keywords": [
+      "core",
+      "logic"
+    ],
+    "kind": "slice",
+    "path": "slices/logic/index.html",
+    "slice": "logic",
+    "summary": "core slice with 0 examples",
+    "title": "GMEOW Logic"
   },
   {
     "keywords": [

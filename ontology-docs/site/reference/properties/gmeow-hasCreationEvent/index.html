@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,29 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-Entity/"><code>gmeow:Entity</code></a> -&gt; <a href="../../classes/gmeow-Event/"><code>gmeow:Event</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:hasCreationEvent</code></a> from <a href="../../classes/gmeow-Entity/"><code>gmeow:Entity</code></a> to <a href="../../classes/gmeow-Event/"><code>gmeow:Event</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Dissolved Org</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/lifecycle/examples/dissolved-org.ttl"><code>slices/core/lifecycle/examples/dissolved-org.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-lifecycle-examples-dissolved-org">open in catalog</a>#example-slices-core-lifecycle-examples-dissolved-org</li>
+</ul>
+<pre><code class="language-turtle"># --- The dissolved company: still here, with its full lifecycle attached.
+#     Superseded AND no longer extant, so gmeow:displayable false suppresses it
+#     from default display — the record is retained, never deleted (P10).
+ex:meridian a gmeow:Organization ;
+    gmeow:name &quot;Meridian Systems Ltd.&quot;@en ;
+    gmeow:hasCreationEvent ex:founding ;
+    gmeow:hasDestructionEvent ex:dissolution ;
+    gmeow:existenceInterval ex:meridianLife ;
+    gmeow:supersededBy ex:apex ;
+    gmeow:displayable false .
+
+# --- The successor, still extant, that superseded Meridian.
+ex:apex a gmeow:Organization ;
+    gmeow:name &quot;Apex Systems Inc.&quot;@en ;
+    gmeow:hasCreationEvent ex:apexFounding .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Entity/"><code>gmeow:Entity</code></a>, <a href="../../classes/gmeow-Event/"><code>gmeow:Event</code></a></p>
 <h2>Projects To</h2>

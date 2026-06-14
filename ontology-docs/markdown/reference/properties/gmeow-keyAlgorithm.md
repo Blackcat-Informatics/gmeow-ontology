@@ -17,6 +17,23 @@ The key's algorithm (e.g. rsa, ed25519, secp256k1). Not functional (source-varia
 
 Use [`gmeow:keyAlgorithm`](gmeow-keyAlgorithm.md) from [`gmeow:CryptographicKey`](../classes/gmeow-CryptographicKey.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Web Of Trust
+
+- **Source:** [`slices/core/trust/examples/web-of-trust.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/trust/examples/web-of-trust.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-trust-examples-web-of-trust)#example-slices-core-trust-examples-web-of-trust
+
+```turtle
+ex:aliceKey a gmeow:CryptographicKey ;
+    gmeow:keyScheme    gmeow:keySchemePGP ;
+    gmeow:keyAlgorithm "ed25519" ;
+    gmeow:fingerprint  "ABCD 1234 EF56 7890 ABCD 1234 EF56 7890 ABCD 1234" ;
+    gmeow:keyId        "0xEF567890" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CryptographicKey`](../classes/gmeow-CryptographicKey.md)

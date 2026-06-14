@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -40,6 +41,34 @@
 <strong>Sub-property of:</strong> <a href="../gmeow-hasReferenceFrame/"><code>gmeow:hasReferenceFrame</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:hasTemporalFrame</code></a> from <a href="../../classes/gmeow-TimeInterval/"><code>gmeow:TimeInterval</code></a> to <a href="../../classes/gmeow-TemporalFrame/"><code>gmeow:TemporalFrame</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Intervals And Frames</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/temporal/examples/intervals-and-frames.ttl"><code>slices/core/temporal/examples/intervals-and-frames.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-temporal-examples-intervals-and-frames">open in catalog</a>#example-slices-core-temporal-examples-intervals-and-frames</li>
+</ul>
+<pre><code class="language-turtle">ex:talkInterval a gmeow:TimeInterval ;
+    gmeow:hasStartInstant ex:talkStart ;
+    gmeow:hasEndInstant ex:talkEnd ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:qaInterval a gmeow:TimeInterval ;
+    gmeow:hasStartInstant ex:qaStart ;
+    gmeow:hasEndInstant ex:qaEnd ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
+<h3>Dissolved Org</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/lifecycle/examples/dissolved-org.ttl"><code>slices/core/lifecycle/examples/dissolved-org.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-lifecycle-examples-dissolved-org">open in catalog</a>#example-slices-core-lifecycle-examples-dissolved-org</li>
+</ul>
+<pre><code class="language-turtle"># --- The existence interval (the lifespan), bounded by framed instants.
+ex:meridianLife a gmeow:TimeInterval ;
+    gmeow:hasStartInstant ex:lifeBegin ;
+    gmeow:hasEndInstant ex:lifeEnd ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-hasReferenceFrame/"><code>gmeow:hasReferenceFrame</code></a>, <a href="../../classes/gmeow-TimeInterval/"><code>gmeow:TimeInterval</code></a>, <a href="../../classes/gmeow-TemporalFrame/"><code>gmeow:TemporalFrame</code></a></p>
   </main>

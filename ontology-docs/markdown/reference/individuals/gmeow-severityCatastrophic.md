@@ -17,6 +17,36 @@ The catastrophic severity level — the failure that ends the system it grades.
 
 Use [`gmeow:severityCatastrophic`](gmeow-severityCatastrophic.md) as a controlled value typed as [`gmeow:SeverityLevel`](../classes/gmeow-SeverityLevel.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+ex:trustCollapse a gmeow:Cascade ;
+    rdfs:label "Trust Collapse"@en ;
+    gmeow:cascadeFirstLink ex:linkBetrayalToDissolution ;
+    gmeow:cascadeSeverity gmeow:severityCatastrophic .
+
+# The hazard at the source, and the norm-shaped barrier on the first link.
+ex:duoBond a gmeow:SocialObject ; rdfs:label "the bonded partnership"@en .
+ex:betrayalHazard a gmeow:Hazard ;
+    rdfs:label "betrayal exposure"@en ;
+    gmeow:hazardBearer ex:duoBond ;
+    gmeow:manifestedAsType ex:etBetrayal ;
+    gmeow:hazardSeverity gmeow:severityCatastrophic .
+```
+
 ## Common Companion Terms
 
 [`gmeow:SeverityLevel`](../classes/gmeow-SeverityLevel.md)

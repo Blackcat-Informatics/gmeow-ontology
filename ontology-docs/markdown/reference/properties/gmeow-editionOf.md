@@ -17,6 +17,22 @@ Relates a concrete edition, issue, or manifestation of a creative work to the st
 
 Use [`gmeow:editionOf`](gmeow-editionOf.md) from [`gmeow:CreativeWork`](../classes/gmeow-CreativeWork.md) to [`gmeow:CreativeWork`](../classes/gmeow-CreativeWork.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Authority Links
+
+- **Source:** [`slices/core/coreference/examples/authority-links.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/coreference/examples/authority-links.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-coreference-examples-authority-links)#example-slices-core-coreference-examples-authority-links
+
+```turtle
+ex:fieldNotesAnnotated a gmeow:CreativeWork ;
+    gmeow:title "Coastal Field Notes, annotated edition"@en ;
+    gmeow:editionOf ex:fieldNotes ;
+    gmeow:supersedes ex:fieldNotes .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CreativeWork`](../classes/gmeow-CreativeWork.md)

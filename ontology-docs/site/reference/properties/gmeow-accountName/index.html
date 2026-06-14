@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,27 @@
 <p><strong>Property shape:</strong> datatype property; <a href="../../classes/gmeow-OnlineAccount/"><code>gmeow:OnlineAccount</code></a> -&gt; <a href="http://www.w3.org/2000/01/rdf-schema#Literal"><code>rdfs:Literal</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:accountName</code></a> from <a href="../../classes/gmeow-OnlineAccount/"><code>gmeow:OnlineAccount</code></a> to <a href="http://www.w3.org/2000/01/rdf-schema#Literal"><code>rdfs:Literal</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Online Presence</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl"><code>slices/core/accounts/examples/online-presence.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-accounts-examples-online-presence">open in catalog</a>#example-slices-core-accounts-examples-online-presence</li>
+</ul>
+<pre><code class="language-turtle">ex:fediAccount a gmeow:OnlineAccount ;
+    gmeow:accountName            &quot;@dana@mastodon.social&quot; ;
+    gmeow:accountService         ex:mastodon ;
+    gmeow:accountServiceHomepage &lt;https://mastodon.social&gt; ;
+    gmeow:activityPubActor       &quot;https://mastodon.social/users/dana&quot;^^xsd:anyURI ;
+    gmeow:accountStatus          gmeow:accountStatusActive .
+
+# --- A serverless Nostr identity: the key IS the account, with a NIP-05 handle.
+ex:nostrAccount a gmeow:OnlineAccount ;
+    gmeow:accountName   &quot;dana&quot; ;
+    gmeow:nostrPubkey   &quot;npub1dana0exampleexampleexampleexampleexampleexampleexa&quot; ;
+    gmeow:nip05         &quot;dana@example.org&quot; ;
+    gmeow:accountStatus gmeow:accountStatusActive .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-OnlineAccount/"><code>gmeow:OnlineAccount</code></a></p>
 <h2>Projects To</h2>

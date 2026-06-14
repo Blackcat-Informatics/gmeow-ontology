@@ -17,6 +17,27 @@ A vector representation of an information object (usually a core [`gmeow:Chunk`]
 
 Use [`gmeow:Embedding`](gmeow-Embedding.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:embedding-7 a gmeow:Embedding ;
+    gmeow:embeddingOf ex:chunk-7 ;
+    gmeow:embeddingModel ex:embedder ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
+    gmeow:wasGeneratedBy ex:embed-run ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

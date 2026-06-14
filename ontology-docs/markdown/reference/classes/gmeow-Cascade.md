@@ -17,6 +17,28 @@ A NAMED chain of causal links — 'Trust Collapse: betrayal dissolves the bond, 
 
 Use [`gmeow:Cascade`](gmeow-Cascade.md) as a specialized kind of [`gmeow:SocialObject`](gmeow-SocialObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+ex:trustCollapse a gmeow:Cascade ;
+    rdfs:label "Trust Collapse"@en ;
+    gmeow:cascadeFirstLink ex:linkBetrayalToDissolution ;
+    gmeow:cascadeSeverity gmeow:severityCatastrophic .
+```
+
 ## Common Companion Terms
 
 [`gmeow:SocialObject`](gmeow-SocialObject.md)

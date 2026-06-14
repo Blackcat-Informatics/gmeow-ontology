@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,17 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-CryptographicSignature/"><code>gmeow:CryptographicSignature</code></a> -&gt; <a href="../../classes/gmeow-Agent/"><code>gmeow:Agent</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:signedBy</code></a> from <a href="../../classes/gmeow-CryptographicSignature/"><code>gmeow:CryptographicSignature</code></a> to <a href="../../classes/gmeow-Agent/"><code>gmeow:Agent</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Software Release</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl"><code>slices/core/attestation/examples/software-release.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-attestation-examples-software-release">open in catalog</a>#example-slices-core-attestation-examples-software-release</li>
+</ul>
+<pre><code class="language-turtle">ex:sig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm &quot;ecdsa-p256&quot; ;
+    gmeow:signedBy           ex:ciSystem .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-CryptographicSignature/"><code>gmeow:CryptographicSignature</code></a>, <a href="../../classes/gmeow-Agent/"><code>gmeow:Agent</code></a></p>
   </main>

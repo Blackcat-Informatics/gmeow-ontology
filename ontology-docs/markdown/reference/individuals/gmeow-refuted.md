@@ -17,6 +17,40 @@
 
 Use [`gmeow:refuted`](gmeow-refuted.md) as a controlled value typed as [`gmeow:StandpointModality`](../classes/gmeow-StandpointModality.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contested Authorship
+
+- **Source:** [`slices/core/standpoint/examples/contested-authorship.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/standpoint/examples/contested-authorship.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-standpoint-examples-contested-authorship)#example-slices-core-standpoint-examples-contested-authorship
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: contested claims coexist, none privileged (, P9). Two
+# scholars attribute the same play to different authors. Each attribution is a
+# reified gmeow:StandpointClaim (a kind of Observation) carrying its own
+# gmeow:vantage (whose standpoint), gmeow:observationResult (the claimed author),
+# and gmeow:claimModality (HOW the standpoint holds it). A third standpoint does
+# something flat models cannot express: it gmeow:refuted the Marlowe attribution
+# — an explicit DENIAL, distinct from mere silence. There is no "preferred"
+# author: the graph keeps every standpoint's stance side by side.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/> .
+
+# --- Claim 3: a stylometric panel REFUTES the Marlowe attribution — settled
+#     false, an explicit denial rather than silence. It coexists with claim 1.
+ex:refuteMarlowe a gmeow:StandpointClaim ;
+    gmeow:vantage ex:forensicPanel ;
+    gmeow:observedFeature ex:play ;
+    gmeow:observationResult ex:marlowe ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:claimModality gmeow:refuted .
+```
+
 ## Common Companion Terms
 
 [`gmeow:StandpointModality`](../classes/gmeow-StandpointModality.md)

@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,61 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-Entity/"><code>gmeow:Entity</code></a> -&gt; <a href="../../classes/gmeow-Activity/"><code>gmeow:Activity</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:wasGeneratedBy</code></a> from <a href="../../classes/gmeow-Entity/"><code>gmeow:Entity</code></a> to <a href="../../classes/gmeow-Activity/"><code>gmeow:Activity</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Import Lineage</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/provenance/examples/import-lineage.ttl"><code>slices/core/provenance/examples/import-lineage.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-provenance-examples-import-lineage">open in catalog</a>#example-slices-core-provenance-examples-import-lineage</li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: ingest lineage on the PROV triad . A machine-generated
+# summary records WHERE it came from (gmeow:wasDerivedFrom → the source), HOW it
+# was produced (gmeow:wasGeneratedBy → an Activity), and WHO ran it
+# (gmeow:wasAttributedTo → an Agent). The importer is a gmeow:SoftwareAgent that
+# self-records its own run — the producer of the provenance is inside it.
+# (How much to trust the derivation is gmeow:confidence — an annotation on the
+# derivation STATEMENT, carried in the RDF-1.2 statement layer rather than as an
+# A-box property on the individual, so it is out of scope for this flat example.)
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/provenance/&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+# --- The derived artefact: WHERE from, HOW made, and WHO by.
+ex:abstract a gmeow:Summary ;
+    gmeow:wasDerivedFrom  ex:sourcePaper ;
+    gmeow:wasGeneratedBy  ex:import ;
+    gmeow:wasAttributedTo ex:importer .
+</code></pre>
+<h3>Agent Trajectory</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl"><code>slices/extensions/agentic/examples/agent-trajectory.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-extensions-agentic-examples-agent-trajectory">open in catalog</a>#example-slices-extensions-agentic-examples-agent-trajectory</li>
+</ul>
+<pre><code class="language-turtle">@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+
+
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example : one agent turn as auditable provenance — a model
+# invocation requests two tool calls; the entity the second call produced
+# links BACK via gmeow:wasGeneratedBy (P5: no forward output property).
+# Large payloads ride as content digest literals (the verbatim-or-digest
+# doctrine); ordering is temporal (gmeow:atTime), not a TBox link.
+
+# The produced entity links BACK to the call that wrote it (P5).
+ex:note-2200 a gmeow:Document ;
+    rdfs:label &quot;stored memory note&quot;@en ;
+    gmeow:wasGeneratedBy ex:call-7-2 ;
+    gmeow:wasAttributedTo ex:assistant .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Entity/"><code>gmeow:Entity</code></a>, <a href="../../classes/gmeow-Activity/"><code>gmeow:Activity</code></a>, <a href="../../classes/gmeow-MeasuredValue/"><code>gmeow:MeasuredValue</code></a>, <a href="../../classes/gmeow-Quantity/"><code>gmeow:Quantity</code></a>, <a href="../../classes/gmeow-ScalarQuantity/"><code>gmeow:ScalarQuantity</code></a>, <a href="../gmeow-assertedAt/"><code>gmeow:assertedAt</code></a>, <a href="../gmeow-confidence/"><code>gmeow:confidence</code></a>, <a href="../gmeow-recordedNoLaterThan/"><code>gmeow:recordedNoLaterThan</code></a>, <a href="../gmeow-wasAttributedTo/"><code>gmeow:wasAttributedTo</code></a>, <a href="../gmeow-wasDerivedFrom/"><code>gmeow:wasDerivedFrom</code></a></p>
 <h2>Cross-Cutting Concerns</h2>

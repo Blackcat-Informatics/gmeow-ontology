@@ -17,6 +17,42 @@ A spatial measurement that assigns geographic coordinates or geometry to a place
 
 Use [`gmeow:CoordinateObservation`](gmeow-CoordinateObservation.md) as a specialized kind of [`gmeow:SpatialMeasurement`](gmeow-SpatialMeasurement.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: places as first-class located things, not address strings
+# . A containment hierarchy (country ⊃ region ⊃ city ⊃ site) carries
+# placeType, gazetteer coreference (authorityLink + skos:exactMatch, never
+# owl:sameAs — P5), and coordinates two ways: the flat gmeow:hasCoordinates for
+# the 80% case, and a reified gmeow:CoordinateObservation that makes the Principle
+# 11 reference frame EXPLICIT (a latitude is meaningless without the frame it is
+# expressed in) and carries the measurement's vantage, method, and confidence.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:officeGpsFix a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:officeSite ;
+    gmeow:vantage ex:surveyTeam ;
+    gmeow:observationMethod gmeow:methodGPS ;
+    gmeow:coordinateResult ex:officeCoords ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:confidence 0.95 ;
+    gmeow:assertedAt "2026-03-10T00:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:SpatialMeasurement`](gmeow-SpatialMeasurement.md)

@@ -17,6 +17,28 @@ The event of two persons entering into marriage.
 
 Use [`gmeow:eventTypeMarriage`](gmeow-eventTypeMarriage.md) as a controlled value typed as [`gmeow:EventType`](../classes/gmeow-EventType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wedding
+
+- **Source:** [`slices/core/events/examples/wedding.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/events/examples/wedding.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-events-examples-wedding)#example-slices-core-events-examples-wedding
+
+```turtle
+ex:wedding a gmeow:Event ;
+    rdfs:label "the marriage of Alex and Sam"@en ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:eventTime "2026-06-20T15:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventLocation ex:chapel ;
+    # Flat participation for the witnesses ONLY — no role/period/evidence needed.
+    # The principals and the officiant are instead reified below (with roles), so
+    # they are deliberately NOT repeated here: flat and reified never overlap.
+    gmeow:hasParticipant ex:witnessA , ex:witnessB .
+```
+
 ## Common Companion Terms
 
 [`gmeow:EventType`](../classes/gmeow-EventType.md)

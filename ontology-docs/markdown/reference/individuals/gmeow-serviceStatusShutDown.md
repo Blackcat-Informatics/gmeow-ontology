@@ -17,6 +17,23 @@ The service has ceased operation (its [`gmeow:serviceShutdownDate`](../propertie
 
 Use [`gmeow:serviceStatusShutDown`](gmeow-serviceStatusShutDown.md) as a controlled value typed as [`gmeow:ServiceStatus`](../classes/gmeow-ServiceStatus.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Online Presence
+
+- **Source:** [`slices/core/accounts/examples/online-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-accounts-examples-online-presence)#example-slices-core-accounts-examples-online-presence
+
+```turtle
+# --- P10: a shut-down service keeps its account as historical, never deleted.
+ex:defunct a gmeow:OnlineService ;
+    gmeow:name                "old.example.net"@en ;
+    gmeow:serviceStatus       gmeow:serviceStatusShutDown ;
+    gmeow:serviceShutdownDate "2023-06-30T00:00:00Z"^^xsd:dateTime .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ServiceStatus`](../classes/gmeow-ServiceStatus.md)

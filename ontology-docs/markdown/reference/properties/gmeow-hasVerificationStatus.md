@@ -17,6 +17,22 @@ The categorical outcome of a verification result. Non-functional: a single resul
 
 Use [`gmeow:hasVerificationStatus`](gmeow-hasVerificationStatus.md) from [`gmeow:VerificationResult`](../classes/gmeow-VerificationResult.md) to [`gmeow:VerificationStatus`](../classes/gmeow-VerificationStatus.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+# --- Verification is its own recorded act: the deploy gate checked the chain.
+ex:verifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy            ex:relyingParty .
+```
+
 ## Common Companion Terms
 
 [`gmeow:VerificationResult`](../classes/gmeow-VerificationResult.md), [`gmeow:VerificationStatus`](../classes/gmeow-VerificationStatus.md)

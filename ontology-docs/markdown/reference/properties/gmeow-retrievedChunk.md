@@ -17,6 +17,25 @@ A chunk this retrieval returned. Score, rank, and re-ranker attribution ride RDF
 
 Use [`gmeow:retrievedChunk`](gmeow-retrievedChunk.md) from [`gmeow:RetrievalEvent`](../classes/gmeow-RetrievalEvent.md) to [`gmeow:Chunk`](../classes/gmeow-Chunk.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+# --- Retrieval: why did the model see this passage?
+ex:retrieval-3 a gmeow:RetrievalEvent ;
+    gmeow:forQuery "who maintained the build system?" ;
+    gmeow:againstIndex ex:index-lillith ;
+    gmeow:retrievedChunk ex:chunk-7 ;
+    gmeow:atTime "2026-06-02T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:RetrievalEvent`](../classes/gmeow-RetrievalEvent.md), [`gmeow:Chunk`](../classes/gmeow-Chunk.md)

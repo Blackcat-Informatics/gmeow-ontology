@@ -17,6 +17,23 @@ A condensed account derived from a source information object (often machine-gene
 
 Use [`gmeow:Summary`](gmeow-Summary.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Import Lineage
+
+- **Source:** [`slices/core/provenance/examples/import-lineage.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/provenance/examples/import-lineage.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-provenance-examples-import-lineage)#example-slices-core-provenance-examples-import-lineage
+
+```turtle
+# --- The derived artefact: WHERE from, HOW made, and WHO by.
+ex:abstract a gmeow:Summary ;
+    gmeow:wasDerivedFrom  ex:sourcePaper ;
+    gmeow:wasGeneratedBy  ex:import ;
+    gmeow:wasAttributedTo ex:importer .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,23 @@
 <p><strong>Types:</strong> <a href="../../classes/gmeow-AttestationType/"><code>gmeow:AttestationType</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:attestationTypeSLSAProvenance</code></a> as a controlled value typed as <a href="../../classes/gmeow-AttestationType/"><code>gmeow:AttestationType</code></a>.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Software Release</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl"><code>slices/core/attestation/examples/software-release.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-attestation-examples-software-release">open in catalog</a>#example-slices-core-attestation-examples-software-release</li>
+</ul>
+<pre><code class="language-turtle"># --- The attestation: the CI system vouches for the release as SLSA provenance.
+ex:slsaAttestation a gmeow:Attestation ;
+    gmeow:attester           ex:ciSystem ;
+    gmeow:attestedSubject    ex:release ;
+    gmeow:attestationType    gmeow:attestationTypeSLSAProvenance ;
+    gmeow:issuedAt           &quot;2026-06-14T12:00:00Z&quot;^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:artifact ;
+    gmeow:hasSignature       ex:sig ;
+    gmeow:verificationResult ex:verifyResult .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-AttestationType/"><code>gmeow:AttestationType</code></a></p>
   </main>

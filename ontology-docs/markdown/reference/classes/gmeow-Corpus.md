@@ -17,6 +17,22 @@ An indexed collection of source information objects over which retrieval operate
 
 Use [`gmeow:Corpus`](gmeow-Corpus.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:corpus-lillith a gmeow:Corpus ;
+    rdfs:label "Lillith working corpus"@en ;
+    gmeow:corpusMember ex:mail-archive ;
+    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

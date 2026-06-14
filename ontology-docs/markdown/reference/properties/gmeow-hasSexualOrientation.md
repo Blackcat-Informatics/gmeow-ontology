@@ -17,6 +17,22 @@ Relates a person to a self-asserted sexual-orientation facet. Non-functional and
 
 Use [`gmeow:hasSexualOrientation`](gmeow-hasSexualOrientation.md) from [`gmeow:Person`](../classes/gmeow-Person.md) to [`gmeow:SexualOrientation`](../classes/gmeow-SexualOrientation.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Split Attraction
+
+- **Source:** [`slices/core/sexuality/examples/split-attraction.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/sexuality/examples/split-attraction.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-sexuality-examples-split-attraction)#example-slices-core-sexuality-examples-split-attraction
+
+```turtle
+ex:robin a gmeow:Person ;
+    gmeow:name "Robin"@en ;
+    gmeow:hasSexualOrientation   ex:sexual ;
+    gmeow:hasRomanticOrientation ex:romantic .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Person`](../classes/gmeow-Person.md), [`gmeow:SexualOrientation`](../classes/gmeow-SexualOrientation.md)

@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,24 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-OnlineService/"><code>gmeow:OnlineService</code></a> -&gt; <a href="../../classes/gmeow-ServiceStatus/"><code>gmeow:ServiceStatus</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:serviceStatus</code></a> from <a href="../../classes/gmeow-OnlineService/"><code>gmeow:OnlineService</code></a> to <a href="../../classes/gmeow-ServiceStatus/"><code>gmeow:ServiceStatus</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Online Presence</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl"><code>slices/core/accounts/examples/online-presence.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-accounts-examples-online-presence">open in catalog</a>#example-slices-core-accounts-examples-online-presence</li>
+</ul>
+<pre><code class="language-turtle"># --- A live service and a fediverse (ActivityPub) account on it.
+ex:mastodon a gmeow:OnlineService ;
+    gmeow:name          &quot;mastodon.social&quot;@en ;
+    gmeow:serviceStatus gmeow:serviceStatusLive .
+
+# --- P10: a shut-down service keeps its account as historical, never deleted.
+ex:defunct a gmeow:OnlineService ;
+    gmeow:name                &quot;old.example.net&quot;@en ;
+    gmeow:serviceStatus       gmeow:serviceStatusShutDown ;
+    gmeow:serviceShutdownDate &quot;2023-06-30T00:00:00Z&quot;^^xsd:dateTime .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-OnlineService/"><code>gmeow:OnlineService</code></a>, <a href="../../classes/gmeow-ServiceStatus/"><code>gmeow:ServiceStatus</code></a></p>
 <h2>Usage Advice</h2>

@@ -17,6 +17,21 @@ The algorithm used for a signature (e.g. rsa-sha256, ed25519).
 
 Use [`gmeow:signatureAlgorithm`](gmeow-signatureAlgorithm.md) from [`gmeow:CryptographicSignature`](../classes/gmeow-CryptographicSignature.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+ex:sig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ecdsa-p256" ;
+    gmeow:signedBy           ex:ciSystem .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CryptographicSignature`](../classes/gmeow-CryptographicSignature.md)

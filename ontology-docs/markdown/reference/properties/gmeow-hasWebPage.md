@@ -17,6 +17,24 @@ Relates an entity to a web page representing it — a homepage, a profile page, 
 
 Use [`gmeow:hasWebPage`](gmeow-hasWebPage.md) from [`gmeow:Entity`](../classes/gmeow-Entity.md) to [`gmeow:WebPage`](../classes/gmeow-WebPage.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Agent Sortals
+
+- **Source:** [`slices/core/entities/examples/agent-sortals.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/entities/examples/agent-sortals.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-entities-examples-agent-sortals)#example-slices-core-entities-examples-agent-sortals
+
+```turtle
+# --- Organization: the flat name/description tier. A structured web presence
+#     (gmeow:hasWebPage → a WEMI gmeow:WebPage) is shown in the documents example;
+#     here the flat tier carries it.
+ex:blackcat a gmeow:Organization ;
+    gmeow:name "Blackcat Informatics Inc."@en ;
+    gmeow:description "A small ontology and tooling consultancy."@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](../classes/gmeow-Entity.md), [`gmeow:WebPage`](../classes/gmeow-WebPage.md)

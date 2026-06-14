@@ -17,6 +17,25 @@ The country place type — a classification of a location by its function or for
 
 Use [`gmeow:placeTypeCountry`](gmeow-placeTypeCountry.md) as a controlled value typed as [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+# --- The containment spine: each place is a first-class Place, related by
+#     gmeow:containedInPlace, with gazetteer alignment by reference.
+ex:canada a gmeow:Place ;
+    gmeow:name "Canada"@en ;
+    gmeow:placeType gmeow:placeTypeCountry ;
+    gmeow:authorityLink wd:Q16 ;
+    skos:exactMatch wd:Q16 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md)

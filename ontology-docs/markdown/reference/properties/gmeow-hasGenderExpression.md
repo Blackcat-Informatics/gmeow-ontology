@@ -17,6 +17,23 @@ Relates a person to a self-asserted gender-expression facet. Non-functional and 
 
 Use [`gmeow:hasGenderExpression`](gmeow-hasGenderExpression.md) from [`gmeow:Person`](../classes/gmeow-Person.md) to [`gmeow:GenderExpression`](../classes/gmeow-GenderExpression.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Self Asserted Facets
+
+- **Source:** [`slices/core/gender/examples/self-asserted-facets.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gender/examples/self-asserted-facets.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gender-examples-self-asserted-facets)#example-slices-core-gender-examples-self-asserted-facets
+
+```turtle
+ex:robin a gmeow:Person ;
+    gmeow:name "Robin"@en ;
+    gmeow:hasGenderIdentity   ex:selfId , ex:registryId ;
+    gmeow:hasGenderExpression ex:expr ;
+    gmeow:sexAssignedAtBirth  gmeow:saabFemale .   # recorded datum — NOT identity
+```
+
 ## Common Companion Terms
 
 [`gmeow:Person`](../classes/gmeow-Person.md), [`gmeow:GenderExpression`](../classes/gmeow-GenderExpression.md)

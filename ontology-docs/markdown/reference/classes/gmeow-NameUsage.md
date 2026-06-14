@@ -17,6 +17,22 @@ A reified, context-dependent use of an appellation — an observation in the uni
 
 Use [`gmeow:NameUsage`](gmeow-NameUsage.md) as a specialized kind of [`gmeow:Observation`](gmeow-Observation.md), [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+ex:usageRobFriends a gmeow:NameUsage ;
+    gmeow:usageNamed ex:robin ;
+    gmeow:usageAppellation ex:nickRob ;
+    gmeow:usageRegister gmeow:registerIntimate .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Observation`](gmeow-Observation.md)

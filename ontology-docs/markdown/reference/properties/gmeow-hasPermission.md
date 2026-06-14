@@ -17,6 +17,23 @@ Relates a rights statement to a permission it grants (an [odrl:permission](http:
 
 Use [`gmeow:hasPermission`](gmeow-hasPermission.md) from [`gmeow:RightsStatement`](../classes/gmeow-RightsStatement.md) to [`gmeow:Permission`](../classes/gmeow-Permission.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# --- Promoted form: the deontic rules the flat edge cannot carry.
+ex:rights a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:dataset ;
+    gmeow:hasPermission  ex:permReproduce ;
+    gmeow:hasProhibition ex:prohCommercial .
+```
+
 ## Common Companion Terms
 
 [`gmeow:RightsStatement`](../classes/gmeow-RightsStatement.md), [`gmeow:Permission`](../classes/gmeow-Permission.md)

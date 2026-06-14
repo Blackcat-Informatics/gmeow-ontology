@@ -17,6 +17,38 @@ An optional pinpoint selector into the cited work — a page, text position, tex
 
 Use [`gmeow:viaSelector`](gmeow-viaSelector.md) from [`gmeow:CitationAct`](../classes/gmeow-CitationAct.md) to [`gmeow:Selector`](../classes/gmeow-Selector.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Citation Act
+
+- **Source:** [`slices/core/citations/examples/citation-act.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/citations/examples/citation-act.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-citations-examples-citation-act)#example-slices-core-citations-examples-citation-act
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: citation is flat-first, reified on demand (, P4 — the same
+# promotion pattern as rights). A bare gmeow:cites edge covers "A references B".
+# When the citation's INTENT and exact LOCATION matter, it is promoted to a
+# gmeow:CitationAct relator binding gmeow:citingEntity × gmeow:citedEntity ×
+# gmeow:citationIntent, pinned to a precise gmeow:Selector (page + verbatim quote)
+# via gmeow:viaSelector. gmeow:cites pairsWith gmeow:CitationAct: the flat edge
+# and its reification name the same fact at two levels of detail.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/citations/> .
+
+# --- The reified act: not just THAT it cites, but WHY (uses a method from it)
+#     and WHERE (the exact passage the method appears in).
+ex:cite1 a gmeow:CitationAct ;
+    gmeow:citingEntity   ex:myPaper ;
+    gmeow:citedEntity    ex:citedPaper ;
+    gmeow:citationIntent gmeow:intentUsesMethodIn ;
+    gmeow:viaSelector    ex:sel1 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CitationAct`](../classes/gmeow-CitationAct.md), [`gmeow:Selector`](../classes/gmeow-Selector.md)

@@ -17,6 +17,21 @@ A verbatim text quote from the cited work, expressed as a literal within a selec
 
 Use [`gmeow:selectorTextQuote`](gmeow-selectorTextQuote.md) from [`gmeow:Selector`](../classes/gmeow-Selector.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Citation Act
+
+- **Source:** [`slices/core/citations/examples/citation-act.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/citations/examples/citation-act.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-citations-examples-citation-act)#example-slices-core-citations-examples-citation-act
+
+```turtle
+ex:sel1 a gmeow:Selector ;
+    gmeow:selectorPage      "42" ;
+    gmeow:selectorTextQuote "the modified Exner equation for bed evolution" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Selector`](../classes/gmeow-Selector.md)

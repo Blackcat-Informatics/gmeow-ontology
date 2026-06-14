@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,19 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-RightsStatement/"><code>gmeow:RightsStatement</code></a> -&gt; <a href="../../classes/gmeow-Prohibition/"><code>gmeow:Prohibition</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:hasProhibition</code></a> from <a href="../../classes/gmeow-RightsStatement/"><code>gmeow:RightsStatement</code></a> to <a href="../../classes/gmeow-Prohibition/"><code>gmeow:Prohibition</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Licensed Dataset</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl"><code>slices/core/rights/examples/licensed-dataset.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-rights-examples-licensed-dataset">open in catalog</a>#example-slices-core-rights-examples-licensed-dataset</li>
+</ul>
+<pre><code class="language-turtle"># --- Promoted form: the deontic rules the flat edge cannot carry.
+ex:rights a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:dataset ;
+    gmeow:hasPermission  ex:permReproduce ;
+    gmeow:hasProhibition ex:prohCommercial .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-RightsStatement/"><code>gmeow:RightsStatement</code></a>, <a href="../../classes/gmeow-Prohibition/"><code>gmeow:Prohibition</code></a></p>
 <h2>Projects To</h2>

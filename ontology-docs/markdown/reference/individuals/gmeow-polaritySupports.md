@@ -17,6 +17,23 @@ The span entails or substantiates the claim.
 
 Use [`gmeow:polaritySupports`](gmeow-polaritySupports.md) as a controlled value typed as [`gmeow:SupportPolarity`](../classes/gmeow-SupportPolarity.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:span-close-2200 a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk ex:chunk-042 ;
+    gmeow:spanStart "310"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "366"^^xsd:nonNegativeInteger ;
+    gmeow:supportPolarity gmeow:polaritySupports .
+```
+
 ## Common Companion Terms
 
 [`gmeow:SupportPolarity`](../classes/gmeow-SupportPolarity.md)

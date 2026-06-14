@@ -17,6 +17,22 @@ The claim has successfully passed verification against the required policy and s
 
 Use [`gmeow:verificationStatusVerified`](gmeow-verificationStatusVerified.md) as a controlled value typed as [`gmeow:VerificationStatus`](../classes/gmeow-VerificationStatus.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+# --- Verification is its own recorded act: the deploy gate checked the chain.
+ex:verifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy            ex:relyingParty .
+```
+
 ## Common Companion Terms
 
 [`gmeow:VerificationStatus`](../classes/gmeow-VerificationStatus.md)

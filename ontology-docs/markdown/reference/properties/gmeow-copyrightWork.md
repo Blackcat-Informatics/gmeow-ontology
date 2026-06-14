@@ -17,6 +17,24 @@ The work a copyright protects. Functional: one copyright relator is about one wo
 
 Use [`gmeow:copyrightWork`](gmeow-copyrightWork.md) from [`gmeow:Copyright`](../classes/gmeow-Copyright.md) to [`gmeow:InformationObject`](../classes/gmeow-InformationObject.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# --- Flat copyright fact.
+ex:copyright a gmeow:Copyright ;
+    gmeow:copyrightWork   ex:dataset ;
+    gmeow:copyrightHolder ex:researcher ;
+    gmeow:copyrightYear   "2026"^^xsd:gYear ;
+    gmeow:copyrightStatus gmeow:copyrightStatusInCopyright .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Copyright`](../classes/gmeow-Copyright.md), [`gmeow:InformationObject`](../classes/gmeow-InformationObject.md)

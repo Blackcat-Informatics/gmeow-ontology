@@ -17,6 +17,26 @@ Flat type-level causal claim: events of the subject kind bring about events of t
 
 Use [`gmeow:typeCauses`](gmeow-typeCauses.md) from [`gmeow:EventType`](../classes/gmeow-EventType.md) to [`gmeow:EventType`](../classes/gmeow-EventType.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+# Flat 80% claims.
+ex:etBetrayal gmeow:typeCauses ex:etBondDissolution .
+```
+
 ## Common Companion Terms
 
 [`gmeow:EventType`](../classes/gmeow-EventType.md)

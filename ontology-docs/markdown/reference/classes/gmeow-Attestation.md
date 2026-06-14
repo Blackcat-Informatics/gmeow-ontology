@@ -17,6 +17,41 @@ A reified assertion envelope that an attester vouches for a claim, artifact, ide
 
 Use [`gmeow:Attestation`](gmeow-Attestation.md) as a specialized kind of [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a supply-chain attestation . A gmeow:Attestation binds an
+# gmeow:attester (who vouches) to an gmeow:attestedSubject (what is vouched for)
+# under an gmeow:attestationType drawn from the open vocabulary of real formats
+# (SLSA provenance, in-toto, DSSE, C2PA, verifiable credential, …). Here a CI
+# pipeline issues a SLSA-provenance attestation over a release bundle, carries
+# the signed artifact, and a relying party records a gmeow:VerificationResult —
+# the attestation is a claim; verifying it is a separate, recorded act.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The attestation: the CI system vouches for the release as SLSA provenance.
+ex:slsaAttestation a gmeow:Attestation ;
+    gmeow:attester           ex:ciSystem ;
+    gmeow:attestedSubject    ex:release ;
+    gmeow:attestationType    gmeow:attestationTypeSLSAProvenance ;
+    gmeow:issuedAt           "2026-06-14T12:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:artifact ;
+    gmeow:hasSignature       ex:sig ;
+    gmeow:verificationResult ex:verifyResult .
+```
+
 ## Projects To
 
 | Profile | External Targets |

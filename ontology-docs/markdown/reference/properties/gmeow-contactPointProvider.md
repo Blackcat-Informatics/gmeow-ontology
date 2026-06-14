@@ -17,6 +17,25 @@ The agent (typically an organization) that issues or scopes a contact point — 
 
 Use [`gmeow:contactPointProvider`](gmeow-contactPointProvider.md) from [`gmeow:ContactPoint`](../classes/gmeow-ContactPoint.md) to [`gmeow:Agent`](../classes/gmeow-Agent.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contact Points
+
+- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+
+```turtle
+# --- Reified email: typed, provider-scoped, and split into its parts.
+ex:workEmail a gmeow:EmailAddress ;
+    gmeow:addressValue         "dana@acme.example" ;
+    gmeow:localPart            "dana" ;
+    gmeow:domainPart           "acme.example" ;
+    gmeow:contactPointType     gmeow:contactPointTypeWork ;
+    gmeow:contactPointProvider ex:acme .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ContactPoint`](../classes/gmeow-ContactPoint.md), [`gmeow:Agent`](../classes/gmeow-Agent.md)

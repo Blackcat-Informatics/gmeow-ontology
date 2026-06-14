@@ -17,6 +17,24 @@ The [`gmeow:SexualOrientationValue`](../classes/gmeow-SexualOrientationValue.md)
 
 Use [`gmeow:sexualOrientationValue`](gmeow-sexualOrientationValue.md) from [`gmeow:SexualOrientation`](../classes/gmeow-SexualOrientation.md) to [`gmeow:SexualOrientationValue`](../classes/gmeow-SexualOrientationValue.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Split Attraction
+
+- **Source:** [`slices/core/sexuality/examples/split-attraction.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/sexuality/examples/split-attraction.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-sexuality-examples-split-attraction)#example-slices-core-sexuality-examples-split-attraction
+
+```turtle
+# --- Sexual orientation axis: asexual.
+ex:sexual a gmeow:SexualOrientation ;
+    gmeow:facetSubject           ex:robin ;
+    gmeow:facetVantage           ex:robin ;
+    gmeow:sexualOrientationValue gmeow:orientAsexual ;
+    gmeow:selfAsserted           true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:SexualOrientation`](../classes/gmeow-SexualOrientation.md), [`gmeow:SexualOrientationValue`](../classes/gmeow-SexualOrientationValue.md)

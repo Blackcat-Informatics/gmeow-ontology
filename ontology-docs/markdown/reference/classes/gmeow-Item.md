@@ -17,6 +17,21 @@ A single exemplar of a [`gmeow:Manifestation`](gmeow-Manifestation.md) — one c
 
 Use [`gmeow:Item`](gmeow-Item.md) as a specialized kind of [`gmeow:CreativeWork`](gmeow-CreativeWork.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wemi Novel
+
+- **Source:** [`slices/core/creative-works/examples/wemi-novel.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/creative-works/examples/wemi-novel.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-creative-works-examples-wemi-novel)#example-slices-core-creative-works-examples-wemi-novel
+
+```turtle
+# --- Item: one exemplar — a specific physical copy of the hardback.
+ex:libraryCopy a gmeow:Item ;
+    gmeow:exemplifies ex:hardback .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CreativeWork`](gmeow-CreativeWork.md)

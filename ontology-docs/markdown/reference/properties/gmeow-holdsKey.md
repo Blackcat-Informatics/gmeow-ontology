@@ -17,6 +17,35 @@ Relates an agent to a cryptographic key it holds. The period over which the agen
 
 Use [`gmeow:holdsKey`](gmeow-holdsKey.md) from [`gmeow:Agent`](../classes/gmeow-Agent.md) to [`gmeow:CryptographicKey`](../classes/gmeow-CryptographicKey.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Web Of Trust
+
+- **Source:** [`slices/core/trust/examples/web-of-trust.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/trust/examples/web-of-trust.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-trust-examples-web-of-trust)#example-slices-core-trust-examples-web-of-trust
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the PGP web of trust . Trust is decentralized and
+# relational: agents gmeow:holdsKey cryptographic keys; one agent's
+# gmeow:Certification signs another's key (a key-signing, binding key↔identity);
+# and a gmeow:TrustAssertion records how much a trustor trusts a trustee AS AN
+# INTRODUCER (gmeow:trustLevel + gmeow:introducerDepth — how far transitive trust
+# may flow). gmeow:endorses is the lightweight, keyless vouch. No central
+# authority: trust is asserted pairwise and composed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/> .
+
+ex:alice a gmeow:Person ;
+    gmeow:name     "Alice"@en ;
+    gmeow:holdsKey ex:aliceKey ;
+    gmeow:endorses ex:bob .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Agent`](../classes/gmeow-Agent.md), [`gmeow:CryptographicKey`](../classes/gmeow-CryptographicKey.md)

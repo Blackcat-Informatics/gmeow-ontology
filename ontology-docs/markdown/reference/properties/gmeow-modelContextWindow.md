@@ -17,6 +17,24 @@ The context-window size, in tokens, the card declares.
 
 Use [`gmeow:modelContextWindow`](gmeow-modelContextWindow.md) from [`gmeow:ModelCard`](../classes/gmeow-ModelCard.md) to [`xsd:positiveInteger`](http://www.w3.org/2001/XMLSchema#positiveInteger) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:card-assistant a gmeow:ModelCard ;
+    gmeow:describesModel ex:assistant ;
+    gmeow:modelProvider "Example Labs" ;
+    gmeow:modelVersionTag "assistant-2026-05-01" ;
+    gmeow:modelContextWindow "200000"^^xsd:positiveInteger ;
+    gmeow:modelTrainingCutoff "2026-01-31"^^xsd:date .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ModelCard`](../classes/gmeow-ModelCard.md)

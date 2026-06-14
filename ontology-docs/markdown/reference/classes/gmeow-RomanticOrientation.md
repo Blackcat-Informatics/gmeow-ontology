@@ -17,6 +17,24 @@ A person's SELF-ASSERTED romantic orientation — the pattern of their romantic 
 
 Use [`gmeow:RomanticOrientation`](gmeow-RomanticOrientation.md) as a specialized kind of [`gmeow:IdentityFacet`](gmeow-IdentityFacet.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Split Attraction
+
+- **Source:** [`slices/core/sexuality/examples/split-attraction.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/sexuality/examples/split-attraction.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-sexuality-examples-split-attraction)#example-slices-core-sexuality-examples-split-attraction
+
+```turtle
+# --- Romantic orientation axis: biromantic — independent of the sexual axis.
+ex:romantic a gmeow:RomanticOrientation ;
+    gmeow:facetSubject             ex:robin ;
+    gmeow:facetVantage             ex:robin ;
+    gmeow:romanticOrientationValue gmeow:romanticBiromantic ;
+    gmeow:selfAsserted             true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:IdentityFacet`](gmeow-IdentityFacet.md)

@@ -18,6 +18,37 @@ The principal subject a web page is primarily about — the one entity it repres
 
 Use [`gmeow:pagePrincipalSubject`](gmeow-pagePrincipalSubject.md) from [`gmeow:WebPage`](../classes/gmeow-WebPage.md) to [`gmeow:Entity`](../classes/gmeow-Entity.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Web Presence
+
+- **Source:** [`slices/core/documents/examples/web-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/documents/examples/web-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-documents-examples-web-presence)#example-slices-core-documents-examples-web-presence
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a web presence on the WEMI spine (, ). A WebSite and
+# its WebPages are concrete gmeow:Manifestations — so each embodies an Expression
+# that realizes a Work, the same four-tier backing every published artifact
+# carries. Pages belong to the site via gmeow:pageOfSite (⊑ partOf). The about
+# page names a person as its gmeow:pagePrincipalSubject (⊑ isAbout), which makes
+# it a gmeow:ProfilePage by INFERENCE — ProfilePage is a defined class (any
+# WebPage whose principal subject is an Agent), so no manual typing is needed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documents/> .
+
+# --- The about page: its principal subject is a person, so it IS a ProfilePage
+#     (≡ WebPage ⊓ ∃pagePrincipalSubject.Agent) without being typed as one.
+ex:aboutMara a gmeow:WebPage ;
+    gmeow:pageOfSite ex:site ;
+    gmeow:pagePrincipalSubject ex:mara ;
+    gmeow:embodies ex:siteContent .
+```
+
 ## Common Companion Terms
 
 [`gmeow:isAbout`](gmeow-isAbout.md), [`gmeow:WebPage`](../classes/gmeow-WebPage.md), [`gmeow:Entity`](../classes/gmeow-Entity.md)

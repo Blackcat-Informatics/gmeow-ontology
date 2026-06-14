@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,17 @@
 <p><strong>Subclass of:</strong> <a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:AttestationArtifact</code></a> as a specialized kind of <a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>. Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Software Release</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl"><code>slices/core/attestation/examples/software-release.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-attestation-examples-software-release">open in catalog</a>#example-slices-core-attestation-examples-software-release</li>
+</ul>
+<pre><code class="language-turtle">ex:artifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType &quot;application/vnd.in-toto+json&quot; ;
+    gmeow:contentDigest     &quot;sha256:def456abc1237890def456abc1237890def456abc1237890def456abc1237890&quot; .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a></p>
 <h2>External Equivalences</h2>

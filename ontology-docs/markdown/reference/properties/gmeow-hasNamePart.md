@@ -18,6 +18,24 @@ Relates an appellation to one of its reified, typed parts. Non-functional — a 
 
 Use [`gmeow:hasNamePart`](gmeow-hasNamePart.md) from [`gmeow:Appellation`](../classes/gmeow-Appellation.md) to [`gmeow:NamePart`](../classes/gmeow-NamePart.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+# --- The chosen legal name, decomposed into ordered parts (displayable).
+ex:nameChosen a gmeow:PersonName ;
+    gmeow:fullName "Robin Avery Chen"@en ;
+    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:displayable true ;
+    gmeow:hasNamePart ex:partGiven , ex:partMiddle , ex:partSurname .
+```
+
 ## Common Companion Terms
 
 [`gmeow:hasPart`](gmeow-hasPart.md), [`gmeow:Appellation`](../classes/gmeow-Appellation.md), [`gmeow:NamePart`](../classes/gmeow-NamePart.md)

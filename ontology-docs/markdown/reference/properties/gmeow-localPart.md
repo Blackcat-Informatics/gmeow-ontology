@@ -17,6 +17,25 @@ The local part of an email address.
 
 Use [`gmeow:localPart`](gmeow-localPart.md) from [`gmeow:EmailAddress`](../classes/gmeow-EmailAddress.md) to [`rdfs:Literal`](http://www.w3.org/2000/01/rdf-schema#Literal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contact Points
+
+- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+
+```turtle
+# --- Reified email: typed, provider-scoped, and split into its parts.
+ex:workEmail a gmeow:EmailAddress ;
+    gmeow:addressValue         "dana@acme.example" ;
+    gmeow:localPart            "dana" ;
+    gmeow:domainPart           "acme.example" ;
+    gmeow:contactPointType     gmeow:contactPointTypeWork ;
+    gmeow:contactPointProvider ex:acme .
+```
+
 ## Common Companion Terms
 
 [`gmeow:EmailAddress`](../classes/gmeow-EmailAddress.md)

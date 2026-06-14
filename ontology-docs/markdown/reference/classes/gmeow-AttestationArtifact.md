@@ -17,6 +17,21 @@ A concrete carrier of an attestation — in-toto JSON, SLSA provenance, W3C Veri
 
 Use [`gmeow:AttestationArtifact`](gmeow-AttestationArtifact.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+ex:artifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/vnd.in-toto+json" ;
+    gmeow:contentDigest     "sha256:def456abc1237890def456abc1237890def456abc1237890def456abc1237890" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

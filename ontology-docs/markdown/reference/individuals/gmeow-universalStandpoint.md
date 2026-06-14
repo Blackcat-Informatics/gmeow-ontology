@@ -17,6 +17,22 @@ The universal standpoint * — the top of the poset, admitting every precisifica
 
 Use [`gmeow:universalStandpoint`](gmeow-universalStandpoint.md) as a controlled value typed as [`gmeow:Standpoint`](../classes/gmeow-Standpoint.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contested Authorship
+
+- **Source:** [`slices/core/standpoint/examples/contested-authorship.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/standpoint/examples/contested-authorship.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-standpoint-examples-contested-authorship)#example-slices-core-standpoint-examples-contested-authorship
+
+```turtle
+# --- Standpoints: the scholarly positions from which each claim is held.
+ex:revisionists a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:orthodoxy a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:forensicPanel a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Standpoint`](../classes/gmeow-Standpoint.md)

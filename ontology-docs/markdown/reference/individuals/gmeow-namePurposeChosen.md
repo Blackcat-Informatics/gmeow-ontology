@@ -17,6 +17,24 @@ The chosen name purpose — a role that a particular appellation plays in the li
 
 Use [`gmeow:namePurposeChosen`](gmeow-namePurposeChosen.md) as a controlled value typed as [`gmeow:NamePurpose`](../classes/gmeow-NamePurpose.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+# --- The chosen legal name, decomposed into ordered parts (displayable).
+ex:nameChosen a gmeow:PersonName ;
+    gmeow:fullName "Robin Avery Chen"@en ;
+    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:displayable true ;
+    gmeow:hasNamePart ex:partGiven , ex:partMiddle , ex:partSurname .
+```
+
 ## Common Companion Terms
 
 [`gmeow:NamePurpose`](../classes/gmeow-NamePurpose.md)

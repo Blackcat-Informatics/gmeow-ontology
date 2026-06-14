@@ -17,6 +17,25 @@ The site place type — a classification of a location by its function or form i
 
 Use [`gmeow:placeTypeSite`](gmeow-placeTypeSite.md) as a controlled value typed as [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+# --- A surveyed site, with the reified observation form: the SAME place can
+#     carry competing measurements (different vantage/method/confidence), each in
+#     its explicit reference frame; none is privileged (P9).
+ex:officeSite a gmeow:Place ;
+    gmeow:name "Blackcat office site"@en ;
+    gmeow:placeType gmeow:placeTypeSite ;
+    gmeow:containedInPlace ex:edmonton .
+```
+
 ## Common Companion Terms
 
 [`gmeow:PlaceType`](../classes/gmeow-PlaceType.md)

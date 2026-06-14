@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,29 @@
 <p><strong>Subclass of:</strong> <a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>, <a href="../gmeow-NarrativeScope/"><code>gmeow:NarrativeScope</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:CreativeWork</code></a> as a specialized kind of <a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>, <a href="../gmeow-NarrativeScope/"><code>gmeow:NarrativeScope</code></a>. Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Software Release</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl"><code>slices/core/attestation/examples/software-release.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-attestation-examples-software-release">open in catalog</a>#example-slices-core-attestation-examples-software-release</li>
+</ul>
+<pre><code class="language-turtle">ex:release a gmeow:CreativeWork ;
+    gmeow:title         &quot;myapp 1.0.0 release bundle&quot;@en ;
+    gmeow:contentDigest &quot;sha256:abc123def4567890abc123def4567890abc123def4567890abc123def4567890&quot; .
+</code></pre>
+<h3>Citation Act</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/citations/examples/citation-act.ttl"><code>slices/core/citations/examples/citation-act.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-citations-examples-citation-act">open in catalog</a>#example-slices-core-citations-examples-citation-act</li>
+</ul>
+<pre><code class="language-turtle">ex:myPaper a gmeow:CreativeWork ;
+    gmeow:title &quot;On Coastal Erosion in Temperate Estuaries&quot;@en ;
+    gmeow:cites ex:citedPaper .
+
+ex:citedPaper a gmeow:CreativeWork ;
+    gmeow:title &quot;Sediment Transport Models&quot;@en .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>, <a href="../gmeow-NarrativeScope/"><code>gmeow:NarrativeScope</code></a></p>
 <h2>External Equivalences</h2>

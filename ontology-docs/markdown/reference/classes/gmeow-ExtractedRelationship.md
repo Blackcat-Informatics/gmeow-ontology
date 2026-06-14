@@ -17,6 +17,25 @@ A model-extracted relationship description between extracted-entity descriptions
 
 Use [`gmeow:ExtractedRelationship`](gmeow-ExtractedRelationship.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:rel-maintains a gmeow:ExtractedRelationship ;
+    rdfs:label "extracted: Mara maintains the build system"@en ;
+    gmeow:contentDigest "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33" ;
+    gmeow:relationshipSource ex:desc-mara ;
+    gmeow:relationshipTarget ex:desc-buildsys ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

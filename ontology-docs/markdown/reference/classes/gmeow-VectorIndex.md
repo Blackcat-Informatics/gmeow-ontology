@@ -17,6 +17,25 @@ A built retrieval structure over a corpus's embeddings — the artifact a [`Retr
 
 Use [`gmeow:VectorIndex`](gmeow-VectorIndex.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:index-lillith a gmeow:VectorIndex ;
+    gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
+    gmeow:indexesCorpus ex:corpus-lillith ;
+    gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:indexParameters "{\"M\": 16, \"efConstruction\": 200}" ;
+    gmeow:wasGeneratedBy ex:index-build .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

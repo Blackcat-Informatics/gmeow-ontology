@@ -17,6 +17,41 @@ A geographic location at any granularity — a country, region, city, thoroughfa
 
 Use [`gmeow:Place`](gmeow-Place.md) as a specialized kind of [`gmeow:Location`](gmeow-Location.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+# --- The containment spine: each place is a first-class Place, related by
+#     gmeow:containedInPlace, with gazetteer alignment by reference.
+ex:canada a gmeow:Place ;
+    gmeow:name "Canada"@en ;
+    gmeow:placeType gmeow:placeTypeCountry ;
+    gmeow:authorityLink wd:Q16 ;
+    skos:exactMatch wd:Q16 .
+
+ex:alberta a gmeow:Place ;
+    gmeow:name "Alberta"@en ;
+    gmeow:placeType gmeow:placeTypeRegion ;
+    gmeow:containedInPlace ex:canada ;
+    gmeow:authorityLink wd:Q1951 ;
+    skos:exactMatch wd:Q1951 .
+```
+
+### Wedding
+
+- **Source:** [`slices/core/events/examples/wedding.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/events/examples/wedding.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-events-examples-wedding)#example-slices-core-events-examples-wedding
+
+```turtle
+ex:chapel a gmeow:Place ; gmeow:name "Rosewood Chapel"@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Location`](gmeow-Location.md)

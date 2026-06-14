@@ -17,6 +17,27 @@ The kind(s) of an organization (one or more [`gmeow:OrganizationType`](../classe
 
 Use [`gmeow:organizationType`](gmeow-organizationType.md) from [`gmeow:Organization`](../classes/gmeow-Organization.md) to [`gmeow:OrganizationType`](../classes/gmeow-OrganizationType.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Post And Membership
+
+- **Source:** [`slices/core/organization/examples/post-and-membership.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/organization/examples/post-and-membership.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-organization-examples-post-and-membership)#example-slices-core-organization-examples-post-and-membership
+
+```turtle
+# --- The company and a structural sub-organization.
+ex:acme a gmeow:Organization ;
+    gmeow:name "Acme Robotics Inc."@en ;
+    gmeow:organizationType gmeow:organizationTypeCompany .
+
+ex:engineering a gmeow:Organization ;
+    gmeow:name "Engineering Division"@en ;
+    gmeow:organizationType gmeow:organizationTypeCompany ;
+    gmeow:subOrganizationOf ex:acme .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Organization`](../classes/gmeow-Organization.md), [`gmeow:OrganizationType`](../classes/gmeow-OrganizationType.md)

@@ -17,6 +17,52 @@ A reified participation of an entity in an event, in a role, over a period, on s
 
 Use [`gmeow:Participation`](gmeow-Participation.md) as a specialized kind of [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wedding
+
+- **Source:** [`slices/core/events/examples/wedding.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/events/examples/wedding.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-events-examples-wedding)#example-slices-core-events-examples-wedding
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an event on the four orthogonal axes . A wedding has a
+# TYPE (eventTypeMarriage), a temporal placement carried in an EXPLICIT frame
+# (P11: the instant is meaningless without its TemporalFrame), and a LOCATION —
+# three independent axes. The fourth axis is participation: most attendees ride
+# the flat gmeow:hasParticipant (the 80% case), but the principals and the
+# officiant are promoted to reified gmeow:Participation relators so their ROLES
+# are recorded — the reify-on-demand idiom shared with NameUsage.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Reified participations: the two principals and the officiant, with roles.
+#     A withdrawn or disputed role would coexist as another Participation
+#     (displayable false, or standpoint-indexed) — never overwritten (P9/P10).
+ex:partAlex a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:alex ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+```
+
+### Blame Deflection
+
+- **Source:** [`slices/core/deception/examples/blame-deflection.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/deception/examples/blame-deflection.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-deception-examples-blame-deflection)#example-slices-core-deception-examples-blame-deflection
+
+```turtle
+ex:deceiverRole a gmeow:Participation ;
+    gmeow:participationEvent ex:coverStory ;
+    gmeow:participationParticipant ex:spokesperson ;
+    gmeow:participationRole gmeow:roleDeceiver .
+```
+
 ## External Equivalences
 
 Equivalent or closely aligned targets: `prov`, `sem`

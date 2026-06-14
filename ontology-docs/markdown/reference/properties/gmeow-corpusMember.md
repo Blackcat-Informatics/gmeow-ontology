@@ -18,6 +18,22 @@ Relates a corpus to a source information object it collects. Non-functional: a s
 
 Use [`gmeow:corpusMember`](gmeow-corpusMember.md) from [`gmeow:Corpus`](../classes/gmeow-Corpus.md) to [`gmeow:InformationObject`](../classes/gmeow-InformationObject.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:corpus-lillith a gmeow:Corpus ;
+    rdfs:label "Lillith working corpus"@en ;
+    gmeow:corpusMember ex:mail-archive ;
+    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:hasPart`](gmeow-hasPart.md), [`gmeow:Corpus`](../classes/gmeow-Corpus.md), [`gmeow:InformationObject`](../classes/gmeow-InformationObject.md)

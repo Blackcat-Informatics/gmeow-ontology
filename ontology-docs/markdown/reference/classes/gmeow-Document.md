@@ -17,6 +17,42 @@ An abstract intellectual work of bounded textual or digital content — the conc
 
 Use [`gmeow:Document`](gmeow-Document.md) as a specialized kind of [`gmeow:Work`](gmeow-Work.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Agent Trajectory
+
+- **Source:** [`slices/extensions/agentic/examples/agent-trajectory.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/agentic/examples/agent-trajectory.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-agentic-examples-agent-trajectory)#example-slices-extensions-agentic-examples-agent-trajectory
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+# The produced entity links BACK to the call that wrote it (P5).
+ex:note-2200 a gmeow:Document ;
+    rdfs:label "stored memory note"@en ;
+    gmeow:wasGeneratedBy ex:call-7-2 ;
+    gmeow:wasAttributedTo ex:assistant .
+```
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+# --- The source and its retrieval segment (the spine's left half).
+ex:handbook a gmeow:Document ;
+    rdfs:label "facilities handbook, 2026 edition"@en ;
+    gmeow:contentDigest "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Work`](gmeow-Work.md)

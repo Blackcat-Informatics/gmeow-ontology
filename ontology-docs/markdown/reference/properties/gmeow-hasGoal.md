@@ -17,6 +17,23 @@ Flat shortcut: the agent holds this goal, commitment grade unspecified. The 80% 
 
 Use [`gmeow:hasGoal`](gmeow-hasGoal.md) from [`gmeow:Agent`](../classes/gmeow-Agent.md) to [`gmeow:Goal`](../classes/gmeow-Goal.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+# --- The model, its card, and the invocation (the provenance anchor).
+ex:assistant a gmeow:SoftwareAgent ;
+    rdfs:label "facilities assistant model"@en ;
+    # Teleology: the agent's goal, asserted like any attributed claim.
+    gmeow:hasGoal ex:goal-answer-faithfully .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Agent`](../classes/gmeow-Agent.md), [`gmeow:Goal`](../classes/gmeow-Goal.md)

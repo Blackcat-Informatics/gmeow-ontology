@@ -17,6 +17,24 @@ The androgynous gender expression style — a stylistic presentation of gender t
 
 Use [`gmeow:expressionAndrogynous`](gmeow-expressionAndrogynous.md) as a controlled value typed as [`gmeow:GenderExpressionStyle`](../classes/gmeow-GenderExpressionStyle.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Self Asserted Facets
+
+- **Source:** [`slices/core/gender/examples/self-asserted-facets.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gender/examples/self-asserted-facets.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gender-examples-self-asserted-facets)#example-slices-core-gender-examples-self-asserted-facets
+
+```turtle
+# --- Gender expression: a separate axis, never inferred from identity.
+ex:expr a gmeow:GenderExpression ;
+    gmeow:facetSubject    ex:robin ;
+    gmeow:facetVantage    ex:robin ;
+    gmeow:expressionValue gmeow:expressionAndrogynous ;
+    gmeow:selfAsserted    true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:GenderExpressionStyle`](../classes/gmeow-GenderExpressionStyle.md)

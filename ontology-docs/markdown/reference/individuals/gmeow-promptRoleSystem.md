@@ -17,6 +17,26 @@ The system-instruction role.
 
 Use [`gmeow:promptRoleSystem`](gmeow-promptRoleSystem.md) as a controlled value typed as [`gmeow:PromptRole`](../classes/gmeow-PromptRole.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:prompt-extract a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleSystem ;
+    gmeow:filledFrom ex:template-extract-v1 ;
+    gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" .
+
+ex:template-extract-v1 a gmeow:PromptTemplate ;
+    rdfs:label "claim-extraction template v1"@en ;
+    gmeow:promptRole gmeow:promptRoleSystem .
+```
+
 ## Common Companion Terms
 
 [`gmeow:PromptRole`](../classes/gmeow-PromptRole.md)

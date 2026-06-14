@@ -17,6 +17,24 @@ A prompt presented in this invocation. Non-functional: a chat invocation carries
 
 Use [`gmeow:hasPrompt`](gmeow-hasPrompt.md) from [`gmeow:ModelInvocation`](../classes/gmeow-ModelInvocation.md) to [`gmeow:Prompt`](../classes/gmeow-Prompt.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Grounded Claim
+
+- **Source:** [`slices/core/ai/examples/grounded-claim.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/ai/examples/grounded-claim.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-ai-examples-grounded-claim)#example-slices-core-ai-examples-grounded-claim
+
+```turtle
+ex:invocation-19 a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:assistant ;
+    gmeow:hasPrompt ex:prompt-extract ;
+    gmeow:samplingTemperature 0.0 ;
+    gmeow:atTime "2026-05-15T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ModelInvocation`](../classes/gmeow-ModelInvocation.md), [`gmeow:Prompt`](../classes/gmeow-Prompt.md)

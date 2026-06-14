@@ -18,6 +18,24 @@ The agent that holds a copyright ([schema:copyrightHolder](https://schema.org/co
 
 Use [`gmeow:copyrightHolder`](gmeow-copyrightHolder.md) from [`gmeow:Copyright`](../classes/gmeow-Copyright.md) to [`gmeow:Agent`](../classes/gmeow-Agent.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Licensed Dataset
+
+- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+
+```turtle
+# --- Flat copyright fact.
+ex:copyright a gmeow:Copyright ;
+    gmeow:copyrightWork   ex:dataset ;
+    gmeow:copyrightHolder ex:researcher ;
+    gmeow:copyrightYear   "2026"^^xsd:gYear ;
+    gmeow:copyrightStatus gmeow:copyrightStatusInCopyright .
+```
+
 ## Common Companion Terms
 
 [`gmeow:wasAttributedTo`](gmeow-wasAttributedTo.md), [`gmeow:Copyright`](../classes/gmeow-Copyright.md), [`gmeow:Agent`](../classes/gmeow-Agent.md)

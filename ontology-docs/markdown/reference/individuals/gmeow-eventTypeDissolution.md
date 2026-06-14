@@ -17,6 +17,24 @@ The formal dissolution of a structured entity — an organization, agreement, po
 
 Use [`gmeow:eventTypeDissolution`](gmeow-eventTypeDissolution.md) as a controlled value typed as [`gmeow:EventType`](../classes/gmeow-EventType.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Dissolved Org
+
+- **Source:** [`slices/core/lifecycle/examples/dissolved-org.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/lifecycle/examples/dissolved-org.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-lifecycle-examples-dissolved-org)#example-slices-core-lifecycle-examples-dissolved-org
+
+```turtle
+# --- Destruction: ONE occurrence carrying two co-equal eventType values.
+ex:dissolution a gmeow:Event ;
+    rdfs:label "dissolution of Meridian Systems"@en ;
+    gmeow:eventType gmeow:eventTypeDissolution , gmeow:eventTypeDestruction ;
+    gmeow:eventTime "2024-11-30T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:EventType`](../classes/gmeow-EventType.md)

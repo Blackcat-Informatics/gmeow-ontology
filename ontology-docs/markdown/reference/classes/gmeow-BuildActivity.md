@@ -17,6 +17,26 @@ A software build process that transforms source code into one or more distributi
 
 Use [`gmeow:BuildActivity`](gmeow-BuildActivity.md) as a specialized kind of [`gmeow:Activity`](gmeow-Activity.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Lillith Dataset
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-dataset.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-dataset)#example-slices-extensions-graphrag-examples-lillith-dataset
+
+```turtle
+ex:pipeline-run a gmeow:BuildActivity ;
+    rdfs:label "lillith benchmark pipeline run 2026-06-02"@en ;
+    gmeow:buildSource ex:pipeline-repo ;
+    gmeow:buildOutput ex:lillith-crate ;
+    gmeow:buildConfigUri "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml" ;
+    gmeow:hasParticipant ex:pipeline-runner ;
+    gmeow:eventTime "2026-06-02T08:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Activity`](gmeow-Activity.md)

@@ -17,6 +17,29 @@ The online service an account is held with. Functional — an account is on one 
 
 Use [`gmeow:accountService`](gmeow-accountService.md) from [`gmeow:OnlineAccount`](../classes/gmeow-OnlineAccount.md) to [`gmeow:OnlineService`](../classes/gmeow-OnlineService.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Online Presence
+
+- **Source:** [`slices/core/accounts/examples/online-presence.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/accounts/examples/online-presence.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-accounts-examples-online-presence)#example-slices-core-accounts-examples-online-presence
+
+```turtle
+ex:fediAccount a gmeow:OnlineAccount ;
+    gmeow:accountName            "@dana@mastodon.social" ;
+    gmeow:accountService         ex:mastodon ;
+    gmeow:accountServiceHomepage <https://mastodon.social> ;
+    gmeow:activityPubActor       "https://mastodon.social/users/dana"^^xsd:anyURI ;
+    gmeow:accountStatus          gmeow:accountStatusActive .
+
+ex:oldAccount a gmeow:OnlineAccount ;
+    gmeow:accountName   "dana_old" ;
+    gmeow:accountService ex:defunct ;
+    gmeow:accountStatus gmeow:accountStatusHistorical .
+```
+
 ## Common Companion Terms
 
 [`gmeow:OnlineAccount`](../classes/gmeow-OnlineAccount.md), [`gmeow:OnlineService`](../classes/gmeow-OnlineService.md)

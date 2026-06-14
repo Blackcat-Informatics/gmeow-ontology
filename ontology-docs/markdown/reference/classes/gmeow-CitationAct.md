@@ -17,6 +17,72 @@ A reified citation: a citing entity cites a cited entity with a typed intent, op
 
 Use [`gmeow:CitationAct`](gmeow-CitationAct.md) as a specialized kind of [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Citation Act
+
+- **Source:** [`slices/core/citations/examples/citation-act.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/citations/examples/citation-act.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-citations-examples-citation-act)#example-slices-core-citations-examples-citation-act
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: citation is flat-first, reified on demand (, P4 — the same
+# promotion pattern as rights). A bare gmeow:cites edge covers "A references B".
+# When the citation's INTENT and exact LOCATION matter, it is promoted to a
+# gmeow:CitationAct relator binding gmeow:citingEntity × gmeow:citedEntity ×
+# gmeow:citationIntent, pinned to a precise gmeow:Selector (page + verbatim quote)
+# via gmeow:viaSelector. gmeow:cites pairsWith gmeow:CitationAct: the flat edge
+# and its reification name the same fact at two levels of detail.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/citations/> .
+
+# --- The reified act: not just THAT it cites, but WHY (uses a method from it)
+#     and WHERE (the exact passage the method appears in).
+ex:cite1 a gmeow:CitationAct ;
+    gmeow:citingEntity   ex:myPaper ;
+    gmeow:citedEntity    ex:citedPaper ;
+    gmeow:citationIntent gmeow:intentUsesMethodIn ;
+    gmeow:viaSelector    ex:sel1 .
+```
+
+### Notability Assessment
+
+- **Source:** [`slices/core/evidence/examples/notability-assessment.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/evidence/examples/notability-assessment.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-evidence-examples-notability-assessment)#example-slices-core-evidence-examples-notability-assessment
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: grading citations as evidence . The evidence slice hangs
+# quality dimensions on a gmeow:CitationAct (from the citations slice): its
+# gmeow:hasEvidenceClass, gmeow:sourceTier (primary/secondary/tertiary),
+# gmeow:sourceIndependence and gmeow:coverageDepth together decide whether the
+# citation gmeow:supportsNotability. The Wikipedia-notability discrimination falls
+# straight out: independent + secondary + significant coverage SUPPORTS it; a
+# routine self-originated passing mention does NOT — same predicate, graded.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/evidence/> .
+
+# --- Strong evidence: an independent trade-press feature with depth → supports.
+#     The subject (citingEntity, generic Entity) is supported by the cited work
+#     (citedEntity, a CreativeWork): gmeow:intentSupports reads "the cited work
+#     supports the citing entity", and the evidence dimensions grade that support.
+ex:goodCite a gmeow:CitationAct ;
+    gmeow:citingEntity       ex:subject ;
+    gmeow:citedEntity        ex:feature ;
+    gmeow:citationIntent     gmeow:intentSupports ;
+    gmeow:hasEvidenceClass   gmeow:evidenceIndependentTradePress ;
+    gmeow:sourceTier         gmeow:sourceTierSecondary ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ;
+    gmeow:coverageDepth      gmeow:coverageDepthSignificantCoverage ;
+    gmeow:supportsNotability true .
+```
+
 ## External Equivalences
 
 Equivalent or closely aligned targets: `schema`

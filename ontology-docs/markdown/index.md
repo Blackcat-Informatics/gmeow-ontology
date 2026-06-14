@@ -7,11 +7,12 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - **Version:** `0.1.0`
 - **Namespace:** <https://blackcatinformatics.ca/gmeow/>
 - **Terms:** 593 classes, 1368 properties, 1954 individuals, 1 datatypes
-- **Slices:** 36 core, 24 extension
+- **Slices:** 37 core, 24 extension
 
 ## Start Here
 
 - [Getting Started](getting-started.md) for the five-minute adoption path.
+- [Learning Paths](learning-paths/index.md) for curated adoption journeys.
 - [Recipes](recipes/index.md) for task-first modelling walkthroughs.
 - [Examples](examples/index.md) for canonical slice-local Turtle examples.
 - [Cross-cutting concerns](concerns/index.md) for reusable ideas.
@@ -27,7 +28,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 
 ## Slices
 
-GMEOW is organized as 60 documented ontology slices. Start with [the slice index](slices/index.md) when you need module boundaries, dependency order, or guide prose.
+GMEOW is organized as 61 documented ontology slices. Start with [the slice index](slices/index.md) when you need module boundaries, dependency order, or guide prose.
 
 ## Reference
 

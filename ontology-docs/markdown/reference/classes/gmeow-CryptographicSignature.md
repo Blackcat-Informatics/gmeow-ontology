@@ -17,6 +17,21 @@ A cryptographic signature over a message or its headers, asserting origin and in
 
 Use [`gmeow:CryptographicSignature`](gmeow-CryptographicSignature.md) as a specialized kind of [`gmeow:InformationObject`](gmeow-InformationObject.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Software Release
+
+- **Source:** [`slices/core/attestation/examples/software-release.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/attestation/examples/software-release.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-attestation-examples-software-release)#example-slices-core-attestation-examples-software-release
+
+```turtle
+ex:sig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ecdsa-p256" ;
+    gmeow:signedBy           ex:ciSystem .
+```
+
 ## Common Companion Terms
 
 [`gmeow:InformationObject`](gmeow-InformationObject.md)

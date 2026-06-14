@@ -17,6 +17,26 @@ A geographic point expressed as latitude, longitude, and optional elevation.
 
 Use [`gmeow:GeoCoordinates`](gmeow-GeoCoordinates.md) as a specialized kind of [`gmeow:Entity`](gmeow-Entity.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Located Place
+
+- **Source:** [`slices/core/places/examples/located-place.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/places/examples/located-place.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-places-examples-located-place)#example-slices-core-places-examples-located-place
+
+```turtle
+ex:edmontonCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude "53.5461"^^xsd:decimal ;
+    gmeow:longitude "-113.4938"^^xsd:decimal .
+
+ex:officeCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude "53.5443"^^xsd:decimal ;
+    gmeow:longitude "-113.4909"^^xsd:decimal ;
+    gmeow:elevation "645.0"^^xsd:decimal .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](gmeow-Entity.md)

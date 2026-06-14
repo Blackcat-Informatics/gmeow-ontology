@@ -17,6 +17,29 @@ The source is a routine administrative filing, automated entry, or bulk-generate
 
 Use [`gmeow:coverageDepthRoutineFiling`](gmeow-coverageDepthRoutineFiling.md) as a controlled value typed as [`gmeow:CoverageDepth`](../classes/gmeow-CoverageDepth.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Notability Assessment
+
+- **Source:** [`slices/core/evidence/examples/notability-assessment.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/evidence/examples/notability-assessment.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-evidence-examples-notability-assessment)#example-slices-core-evidence-examples-notability-assessment
+
+```turtle
+# --- Weak evidence: the subject's own press release, a passing routine notice →
+#     same predicate, graded the other way: does NOT support notability.
+ex:weakCite a gmeow:CitationAct ;
+    gmeow:citingEntity       ex:subject ;
+    gmeow:citedEntity        ex:pressRelease ;
+    gmeow:citationIntent     gmeow:intentSupports ;
+    gmeow:hasEvidenceClass   gmeow:evidenceSelfControlledSite ;
+    gmeow:sourceTier         gmeow:sourceTierPrimary ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceSelfOrIssuerOriginated ;
+    gmeow:coverageDepth      gmeow:coverageDepthRoutineFiling ;
+    gmeow:supportsNotability false .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CoverageDepth`](../classes/gmeow-CoverageDepth.md)

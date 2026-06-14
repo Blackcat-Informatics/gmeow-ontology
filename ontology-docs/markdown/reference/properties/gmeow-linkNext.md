@@ -17,6 +17,31 @@ The next link in a cascade walk. NOT functional (a link may feed branches; a bra
 
 Use [`gmeow:linkNext`](gmeow-linkNext.md) from [`gmeow:CausalLink`](../classes/gmeow-CausalLink.md) to [`gmeow:CausalLink`](../classes/gmeow-CausalLink.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+# Reified where modality and mechanism matter.
+ex:linkBetrayalToDissolution a gmeow:CausalLink ;
+    gmeow:linkAntecedent ex:etBetrayal ;
+    gmeow:linkConsequent ex:etBondDissolution ;
+    gmeow:causalModality gmeow:causallyNecessitates ;
+    gmeow:linkMechanism "The bond is constituted by the oath; betrayal does not damage it, it unmakes it."@en ;
+    gmeow:linkNext ex:linkDissolutionToCollapse .
+```
+
 ## Common Companion Terms
 
 [`gmeow:CausalLink`](../classes/gmeow-CausalLink.md)

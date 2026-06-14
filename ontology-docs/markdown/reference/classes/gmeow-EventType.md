@@ -16,3 +16,25 @@ The kind of an event — a VALUE, never a [`gmeow:Event`](gmeow-Event.md) subcla
 ## Practical Pattern
 
 Use [`gmeow:EventType`](gmeow-EventType.md) as a specialized kind of [`gufo:QualityValue`](../../external/terms.md#gufo-qualityvalue). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
+
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Trust Collapse
+
+- **Source:** [`slices/extensions/risk/examples/trust-collapse.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/risk/examples/trust-collapse.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-risk-examples-trust-collapse)#example-slices-extensions-risk-examples-trust-collapse
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+# The three feared kinds — types, never instances.
+ex:etBetrayal a gmeow:EventType ; rdfs:label "trust betrayal (Shattered Oath)"@en .
+ex:etBondDissolution a gmeow:EventType ; rdfs:label "bond dissolution (Severed Thread)"@en .
+ex:etWillCollapse a gmeow:EventType ; rdfs:label "loss of the will to survive (Quiet Surrender)"@en .
+```

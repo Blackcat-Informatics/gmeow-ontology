@@ -17,6 +17,44 @@ The non binary gender — a gender identity value that an agent may self-assert 
 
 Use [`gmeow:genderNonBinary`](gmeow-genderNonBinary.md) as a controlled value typed as [`gmeow:Gender`](../classes/gmeow-Gender.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Self Asserted Facets
+
+- **Source:** [`slices/core/gender/examples/self-asserted-facets.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gender/examples/self-asserted-facets.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gender-examples-self-asserted-facets)#example-slices-core-gender-examples-self-asserted-facets
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: gender as reified, self-asserted, co-equal facets (, P9/P10).
+# Each axis is a reified gmeow:IdentityFacet (the NameUsage relator idiom), never a
+# flat enum column. Four tenets are visible here:
+#   • SELF-ASSERTION is the top authority — a self-asserted facet (selfAsserted
+#     true) outranks an external registry record (selfAsserted false), which is
+#     SUPPRESSED, never deleted (gmeow:displayable false, P10): kept for provenance,
+#     never leaked or displayed.
+#   • CO-EQUALITY — gender identity and gender expression are separate facets with
+#     no primary/preferred slot; expression is never inferred from identity.
+#   • SEX ≠ GENDER — gmeow:sexAssignedAtBirth is a RECORDED administrative datum,
+#     not an IdentityFacet, and implies nothing about identity or expression.
+#   • OPEN VOCABULARY — values are individuals (gmeow:genderNonBinary, …), never
+#     Person subclasses and never a forced enum.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/gender/> .
+
+# --- The self-asserted identity: subject is its own vantage; displayed.
+ex:selfId a gmeow:GenderIdentity ;
+    gmeow:facetSubject  ex:robin ;
+    gmeow:facetVantage  ex:robin ;
+    gmeow:genderValue   gmeow:genderNonBinary ;
+    gmeow:selfAsserted  true ;
+    gmeow:displayable   true .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Gender`](../classes/gmeow-Gender.md)

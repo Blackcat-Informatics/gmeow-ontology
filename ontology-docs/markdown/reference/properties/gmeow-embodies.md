@@ -17,6 +17,48 @@ Relates a [`Manifestation`](../classes/gmeow-Manifestation.md) to the [`Expressi
 
 Use [`gmeow:embodies`](gmeow-embodies.md) from [`gmeow:Manifestation`](../classes/gmeow-Manifestation.md) to [`gmeow:Expression`](../classes/gmeow-Expression.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Wemi Novel
+
+- **Source:** [`slices/core/creative-works/examples/wemi-novel.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/creative-works/examples/wemi-novel.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-creative-works-examples-wemi-novel)#example-slices-core-creative-works-examples-wemi-novel
+
+```turtle
+# --- Manifestations: two embodiments of the English Expression (print + digital).
+ex:hardback a gmeow:Manifestation ;
+    gmeow:embodies ex:englishText .
+
+ex:ebook a gmeow:Manifestation ;
+    gmeow:embodies ex:englishText .
+```
+
+### Two Critics
+
+- **Source:** [`slices/extensions/affect/examples/two-critics.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/affect/examples/two-critics.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-affect-examples-two-critics)#example-slices-extensions-affect-examples-two-critics
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+
+# The minimal WEMI spine the shapes demand (the gts example precedent).
+ex:novelWork a gmeow:Work ; rdfs:label "the appraised work"@en .
+ex:novelExpression a gmeow:Expression ;
+    rdfs:label "the appraised text"@en ;
+    gmeow:realizes ex:novelWork .
+ex:novel a gmeow:BookRelease ;
+    rdfs:label "the appraised release"@en ;
+    gmeow:embodies ex:novelExpression .
+ex:criticA a gmeow:Person ; rdfs:label "critic A"@en .
+ex:criticB a gmeow:Person ; rdfs:label "critic B"@en .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Manifestation`](../classes/gmeow-Manifestation.md), [`gmeow:Expression`](../classes/gmeow-Expression.md)

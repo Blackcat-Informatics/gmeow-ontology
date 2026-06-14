@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,19 @@
 <p><strong>Types:</strong> <a href="../../classes/gmeow-NamePurpose/"><code>gmeow:NamePurpose</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:namePurposeLegal</code></a> as a controlled value typed as <a href="../../classes/gmeow-NamePurpose/"><code>gmeow:NamePurpose</code></a>.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Person Names</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl"><code>slices/core/names/examples/person-names.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-names-examples-person-names">open in catalog</a>#example-slices-core-names-examples-person-names</li>
+</ul>
+<pre><code class="language-turtle"># --- A Han-script form, co-equal with the Latin one — no privileged &quot;main&quot; name.
+ex:nameHan a gmeow:PersonName ;
+    gmeow:fullName &quot;陳&quot;@und ;
+    gmeow:namePurpose gmeow:namePurposeLegal ;
+    gmeow:displayable true .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-NamePurpose/"><code>gmeow:NamePurpose</code></a></p>
   </main>

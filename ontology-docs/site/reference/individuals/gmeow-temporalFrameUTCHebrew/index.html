@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,20 @@
 <p><strong>Types:</strong> <a href="../../classes/gmeow-TemporalFrame/"><code>gmeow:TemporalFrame</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:temporalFrameUTCHebrew</code></a> as a controlled value typed as <a href="../../classes/gmeow-TemporalFrame/"><code>gmeow:TemporalFrame</code></a>.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Intervals And Frames</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/temporal/examples/intervals-and-frames.ttl"><code>slices/core/temporal/examples/intervals-and-frames.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-temporal-examples-intervals-and-frames">open in catalog</a>#example-slices-core-temporal-examples-intervals-and-frames</li>
+</ul>
+<pre><code class="language-turtle"># --- The SAME wall-clock moment as the talk's start, but read in the Hebrew
+#     civil-time frame: identical instant value, different interpreting frame —
+#     the frame, not the literal, names the calendar (P11).
+ex:talkStartHebrew a gmeow:Instant ;
+    gmeow:instantValue &quot;2026-09-14T13:00:00Z&quot;^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCHebrew .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-TemporalFrame/"><code>gmeow:TemporalFrame</code></a></p>
   </main>

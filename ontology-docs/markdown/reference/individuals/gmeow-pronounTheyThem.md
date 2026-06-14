@@ -17,6 +17,21 @@ The they/them pronoun set — a third-person pronoun paradigm used to refer to a
 
 Use [`gmeow:pronounTheyThem`](gmeow-pronounTheyThem.md) as a controlled value typed as [`gmeow:PronounSet`](../classes/gmeow-PronounSet.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Person Names
+
+- **Source:** [`slices/core/names/examples/person-names.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/names/examples/person-names.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-names-examples-person-names)#example-slices-core-names-examples-person-names
+
+```turtle
+ex:robin a gmeow:Person ;
+    gmeow:hasName ex:nameChosen , ex:nameDead , ex:nameHan , ex:nickRob ;
+    gmeow:hasPronounSet gmeow:pronounTheyThem .
+```
+
 ## Common Companion Terms
 
 [`gmeow:PronounSet`](../classes/gmeow-PronounSet.md)

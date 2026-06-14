@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,42 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-Manifestation/"><code>gmeow:Manifestation</code></a> -&gt; <a href="../../classes/gmeow-Expression/"><code>gmeow:Expression</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:embodies</code></a> from <a href="../../classes/gmeow-Manifestation/"><code>gmeow:Manifestation</code></a> to <a href="../../classes/gmeow-Expression/"><code>gmeow:Expression</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Wemi Novel</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/creative-works/examples/wemi-novel.ttl"><code>slices/core/creative-works/examples/wemi-novel.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-creative-works-examples-wemi-novel">open in catalog</a>#example-slices-core-creative-works-examples-wemi-novel</li>
+</ul>
+<pre><code class="language-turtle"># --- Manifestations: two embodiments of the English Expression (print + digital).
+ex:hardback a gmeow:Manifestation ;
+    gmeow:embodies ex:englishText .
+
+ex:ebook a gmeow:Manifestation ;
+    gmeow:embodies ex:englishText .
+</code></pre>
+<h3>Two Critics</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/affect/examples/two-critics.ttl"><code>slices/extensions/affect/examples/two-critics.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-extensions-affect-examples-two-critics">open in catalog</a>#example-slices-extensions-affect-examples-two-critics</li>
+</ul>
+<pre><code class="language-turtle">@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+
+
+
+# The minimal WEMI spine the shapes demand (the gts example precedent).
+ex:novelWork a gmeow:Work ; rdfs:label &quot;the appraised work&quot;@en .
+ex:novelExpression a gmeow:Expression ;
+    rdfs:label &quot;the appraised text&quot;@en ;
+    gmeow:realizes ex:novelWork .
+ex:novel a gmeow:BookRelease ;
+    rdfs:label &quot;the appraised release&quot;@en ;
+    gmeow:embodies ex:novelExpression .
+ex:criticA a gmeow:Person ; rdfs:label &quot;critic A&quot;@en .
+ex:criticB a gmeow:Person ; rdfs:label &quot;critic B&quot;@en .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Manifestation/"><code>gmeow:Manifestation</code></a>, <a href="../../classes/gmeow-Expression/"><code>gmeow:Expression</code></a></p>
 <h2>External Equivalences</h2>

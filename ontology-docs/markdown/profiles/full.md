@@ -2,7 +2,7 @@
 
 # full
 
-60 slices.
+61 slices.
 
 - [accessibility](../slices/accessibility.md) - GMEOW Accessibility Module
 - [accounts](../slices/accounts.md) - GMEOW Accounts Module
@@ -38,6 +38,7 @@
 - [languages](../slices/languages.md) - GMEOW Languages Module
 - [lexicon](../slices/lexicon.md) - GMEOW Lexicon Module
 - [lifecycle](../slices/lifecycle.md) - GMEOW Lifecycle Module
+- [logic](../slices/logic.md) - GMEOW Logic
 - [music](../slices/music.md) - GMEOW Music — frame-relative content, lossy notation projections
 - [names](../slices/names.md) - GMEOW Names Module
 - [narrative](../slices/narrative.md) - GMEOW Narrative Module

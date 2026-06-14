@@ -17,6 +17,68 @@ A seat or position that exists independently of who currently holds it — the C
 
 Use [`gmeow:Post`](gmeow-Post.md) as a specialized kind of [`gufo:FunctionalComplex`](../../external/terms.md#gufo-functionalcomplex). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Post And Membership
+
+- **Source:** [`slices/core/organization/examples/post-and-membership.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/organization/examples/post-and-membership.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-organization-examples-post-and-membership)#example-slices-core-organization-examples-post-and-membership
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the seat is not the sitter . GMEOW de-conflates the two
+# things surface vocabularies collapse into "CFO": the gmeow:Post (the seat, a
+# RoleMixin that exists whether or not anyone fills it) and the gmeow:Membership
+# (a person's tenure occupying it). The membership gmeow:fillsPost the post, so a
+# vacancy (a Post with no Membership) and a succession (two Memberships filling
+# one Post) are both expressible. organizationType is an open VALUE (a company is
+# a company by value, not by subclass), and subOrganizationOf decomposes the org
+# structurally — distinct from "is a member of".
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organization/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The CFO Post: the seat, defined independently of who holds it.
+ex:cfoPost a gmeow:Post ;
+    rdfs:label "Chief Financial Officer"@en ;
+    gmeow:postIn ex:acme .
+```
+
+### Contact Points
+
+- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: contact details are flat-first, reified on demand (, P4).
+# A bare gmeow:email / gmeow:telephone on the agent covers the common case. When
+# a contact point carries a TYPE (work vs personal), a PROVIDER, structured parts
+# or a postal frame, it is promoted to a reified gmeow:ContactPoint reached via
+# gmeow:hasContactPoint. A gmeow:PostalAddress is expressed in an explicit postal/
+# administrative REFERENCE FRAME (P11): its street/locality/region components are
+# coordinate values along that frame's axes — the as-written surface form, kept
+# distinct from the resolved geographic Place (gmeow:addressPlace).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/contacts/> .
+
+# --- Reified postal address: components are coordinates in the postal frame (P11).
+ex:homeAddress a gmeow:PostalAddress ;
+    gmeow:contactPointType   gmeow:contactPointTypePersonal ;
+    gmeow:postalAddressFrame gmeow:referenceFramePostalAddress ;
+    gmeow:streetAddress      "742 Evergreen Terrace" ;
+    gmeow:addressLocality    "Springfield" ;
+    gmeow:addressRegion      "Oregon" ;
+    gmeow:postalCode         "97403" ;
+    gmeow:countryCode        "US" .
+```
+
 ## Projects To
 
 | Profile | External Targets |

@@ -17,6 +17,41 @@ A contact point reachable by physical mail at a postal address. It is expressed 
 
 Use [`gmeow:PostalAddress`](gmeow-PostalAddress.md) as a specialized kind of [`gmeow:ContactPoint`](gmeow-ContactPoint.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Contact Points
+
+- **Source:** [`slices/core/contacts/examples/contact-points.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/contacts/examples/contact-points.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-contacts-examples-contact-points)#example-slices-core-contacts-examples-contact-points
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: contact details are flat-first, reified on demand (, P4).
+# A bare gmeow:email / gmeow:telephone on the agent covers the common case. When
+# a contact point carries a TYPE (work vs personal), a PROVIDER, structured parts
+# or a postal frame, it is promoted to a reified gmeow:ContactPoint reached via
+# gmeow:hasContactPoint. A gmeow:PostalAddress is expressed in an explicit postal/
+# administrative REFERENCE FRAME (P11): its street/locality/region components are
+# coordinate values along that frame's axes — the as-written surface form, kept
+# distinct from the resolved geographic Place (gmeow:addressPlace).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/contacts/> .
+
+# --- Reified postal address: components are coordinates in the postal frame (P11).
+ex:homeAddress a gmeow:PostalAddress ;
+    gmeow:contactPointType   gmeow:contactPointTypePersonal ;
+    gmeow:postalAddressFrame gmeow:referenceFramePostalAddress ;
+    gmeow:streetAddress      "742 Evergreen Terrace" ;
+    gmeow:addressLocality    "Springfield" ;
+    gmeow:addressRegion      "Oregon" ;
+    gmeow:postalCode         "97403" ;
+    gmeow:countryCode        "US" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ContactPoint`](gmeow-ContactPoint.md)

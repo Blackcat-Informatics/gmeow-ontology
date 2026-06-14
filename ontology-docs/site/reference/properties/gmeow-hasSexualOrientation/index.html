@@ -16,6 +16,7 @@
     <nav aria-label="Primary">
       <a href="../../../">Home</a>
       <a href="../../../getting-started/">Getting Started</a>
+      <a href="../../../learning-paths/">Learning Paths</a>
       <a href="../../../recipes/">Recipes</a>
       <a href="../../../examples/">Examples</a>
       <a href="../../../concerns/">Concerns</a>
@@ -39,6 +40,18 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-Person/"><code>gmeow:Person</code></a> -&gt; <a href="../../classes/gmeow-SexualOrientation/"><code>gmeow:SexualOrientation</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:hasSexualOrientation</code></a> from <a href="../../classes/gmeow-Person/"><code>gmeow:Person</code></a> to <a href="../../classes/gmeow-SexualOrientation/"><code>gmeow:SexualOrientation</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Split Attraction</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/sexuality/examples/split-attraction.ttl"><code>slices/core/sexuality/examples/split-attraction.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-sexuality-examples-split-attraction">open in catalog</a>#example-slices-core-sexuality-examples-split-attraction</li>
+</ul>
+<pre><code class="language-turtle">ex:robin a gmeow:Person ;
+    gmeow:name &quot;Robin&quot;@en ;
+    gmeow:hasSexualOrientation   ex:sexual ;
+    gmeow:hasRomanticOrientation ex:romantic .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Person/"><code>gmeow:Person</code></a>, <a href="../../classes/gmeow-SexualOrientation/"><code>gmeow:SexualOrientation</code></a></p>
   </main>

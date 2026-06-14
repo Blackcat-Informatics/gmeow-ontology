@@ -17,6 +17,30 @@ A single-file Graph Transport Substrate artifact ([`docs/GTS-SPEC.md`](https://g
 
 Use [`gmeow:GTSDocument`](gmeow-GTSDocument.md) as a specialized kind of [`gmeow:Manifestation`](gmeow-Manifestation.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Dist Package
+
+- **Source:** [`slices/core/gts/examples/dist-package.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/gts/examples/dist-package.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-gts-examples-dist-package)#example-slices-core-gts-examples-dist-package
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+
+
+ex:gts-dist-package-001
+    a gmeow:GTSDocument ;
+    rdfs:label "gmeow.gts — the dist snapshot, with a music extension appended"@en ;
+    gmeow:embodies ex:gmeow-ontology-expression-001 ;
+    gmeow:contentDigest "blake3:0e2f4b8a3c1d5e7f9a0b2c4d6e8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f" .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Manifestation`](gmeow-Manifestation.md), [`gmeow:GTSProfile`](gmeow-GTSProfile.md), [`gmeow:GTSSegment`](gmeow-GTSSegment.md)

@@ -12,6 +12,13 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - offline-gts-distribution: Describe Offline GTS Distribution; terms gmeow:GTSDocument, gmeow:GTSProfile, gmeow:GTSSegment
 - graph-rag-dataset-lineage: Model Graph-RAG Dataset Lineage; terms gmeow:Dataset, gmeow:Chunk, gmeow:ExtractedEntity, gmeow:EvidenceSpan
 
+## Learning Paths
+- model-a-person: Model a Person Without Flattening Identity; audience Developers importing contact, profile, or biography data.; terms gmeow:Person, gmeow:PersonName, gmeow:NameUsage, gmeow:ContactPoint, gmeow:displayable
+- model-a-contested-claim: Model a Contested or Attributed Claim; audience Developers handling evidence, provenance, or disagreement.; terms gmeow:StandpointClaim, gmeow:Evidence, gmeow:Attestation, gmeow:accordingTo, gmeow:confidence
+- publish-web-structured-data: Publish Web Structured Data; audience Developers projecting native GMEOW into web-facing JSON-LD.; terms gmeow:Document, gmeow:Event, gmeow:Participation, gmeow:Organization, gmeow:Place
+- ship-offline-gts-docs: Ship Offline GTS Documentation; audience Developers distributing GMEOW snapshots or local docs.; terms gmeow:GTSDocument, gmeow:GTSProfile, gmeow:GTSSegment, gmeow:usesTransformCodec
+- audit-ai-or-graph-rag: Audit AI and Graph-RAG Pipelines; audience Developers recording extracted facts, chunks, and tools.; terms gmeow:Dataset, gmeow:Chunk, gmeow:ExtractedEntity, gmeow:EvidenceSpan, gmeow:usedModel
+
 ## Slices
 - accessibility: GMEOW Accessibility Module; tier extension; profiles -
 - accounts: GMEOW Accounts Module; tier core; profiles -
@@ -47,6 +54,7 @@ A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that uni
 - languages: GMEOW Languages Module; tier extension; profiles -
 - lexicon: GMEOW Lexicon Module; tier extension; profiles -
 - lifecycle: GMEOW Lifecycle Module; tier core; profiles -
+- logic: GMEOW Logic; tier core; profiles -
 - music: GMEOW Music — frame-relative content, lossy notation projections; tier extension; profiles music
 - names: GMEOW Names Module; tier core; profiles memory
 - narrative: GMEOW Narrative Module; tier extension; profiles narrative

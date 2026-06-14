@@ -17,6 +17,61 @@ Relates a derived thing to the thing it was derived from — e.g. a text extract
 
 Use [`gmeow:wasDerivedFrom`](gmeow-wasDerivedFrom.md) when the definition matches the source fact. Prefer a narrower GMEOW term when one exists, and keep projection concerns in the mapping layer.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Import Lineage
+
+- **Source:** [`slices/core/provenance/examples/import-lineage.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/provenance/examples/import-lineage.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-provenance-examples-import-lineage)#example-slices-core-provenance-examples-import-lineage
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: ingest lineage on the PROV triad . A machine-generated
+# summary records WHERE it came from (gmeow:wasDerivedFrom → the source), HOW it
+# was produced (gmeow:wasGeneratedBy → an Activity), and WHO ran it
+# (gmeow:wasAttributedTo → an Agent). The importer is a gmeow:SoftwareAgent that
+# self-records its own run — the producer of the provenance is inside it.
+# (How much to trust the derivation is gmeow:confidence — an annotation on the
+# derivation STATEMENT, carried in the RDF-1.2 statement layer rather than as an
+# A-box property on the individual, so it is out of scope for this flat example.)
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/provenance/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The derived artefact: WHERE from, HOW made, and WHO by.
+ex:abstract a gmeow:Summary ;
+    gmeow:wasDerivedFrom  ex:sourcePaper ;
+    gmeow:wasGeneratedBy  ex:import ;
+    gmeow:wasAttributedTo ex:importer .
+```
+
+### Lillith Pipeline
+
+- **Source:** [`slices/extensions/graphrag/examples/lillith-pipeline.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/extensions/graphrag/examples/lillith-pipeline.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-extensions-graphrag-examples-lillith-pipeline)#example-slices-extensions-graphrag-examples-lillith-pipeline
+
+```turtle
+ex:embedding-7 a gmeow:Embedding ;
+    gmeow:embeddingOf ex:chunk-7 ;
+    gmeow:embeddingModel ex:embedder ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
+    gmeow:distanceMetric gmeow:distanceMetricCosine ;
+    gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
+    gmeow:wasGeneratedBy ex:embed-run ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" .
+
+ex:desc-mara a gmeow:ExtractedEntity ;
+    rdfs:label "extracted: 'Mara' (maintainer?)"@en ;
+    gmeow:contentDigest "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11" ;
+    gmeow:wasDerivedFrom ex:chunk-7 ;
+    gmeow:wasGeneratedBy ex:invocation-44 .
+```
+
 ## Common Companion Terms
 
 [`gmeow:MeasuredValue`](../classes/gmeow-MeasuredValue.md), [`gmeow:Quantity`](../classes/gmeow-Quantity.md), [`gmeow:ScalarQuantity`](../classes/gmeow-ScalarQuantity.md), [`gmeow:assertedAt`](gmeow-assertedAt.md), [`gmeow:confidence`](gmeow-confidence.md), [`gmeow:recordedNoLaterThan`](gmeow-recordedNoLaterThan.md), [`gmeow:wasAttributedTo`](gmeow-wasAttributedTo.md)
