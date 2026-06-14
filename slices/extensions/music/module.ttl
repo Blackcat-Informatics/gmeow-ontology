@@ -16,9 +16,10 @@
     rdfs:comment """Frame-relative musical content; every notation is a lossy projection.
 
 This module implements the music extension slice: pitch frames (issue #308),
-pitch collections and spelling (issue #309), musical time (issue #310), and the
-structure graph (issue #311): MusicalSegment, ToneEvent, Voice, PitchTrajectory,
-and SegmentTransformation. Bulk note-level data lives in GTS music-package
+pitch collections and spelling (issue #309), musical time (issue #310), the
+structure graph (issue #311), and performance events & participation (issue
+#313): PerformanceParticipation, performanceOf, InstrumentType, and the
+session/take/overdub fixture. Bulk note-level data lives in GTS music-package
 bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -3649,6 +3650,312 @@ gmeow:standpointTranscriberA
     a gmeow:Standpoint ;
     rdfs:label "transcriber A"@x-gmeow-english ;
     skos:definition "A transcriber standpoint used in the graphic-score fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# =========================================================================== #
+# PERFORMANCE EVENTS & PARTICIPATION — issue #313
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:PerformanceParticipation
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Participation ;
+    rdfs:label "Performance Participation"@x-gmeow-english ;
+    skos:definition "A reified participation in a musical event — a performance, recording session, take, overdub, rehearsal, or transmission. Adds music-specific details (instrument type, specific instrument item, configuration, part, technique) to the universal gmeow:Participation relator. Playing bass on take 3 is event involvement expressed here, not a third relator (Principles 4, 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:InstrumentType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Instrument Type"@x-gmeow-english ;
+    skos:definition "The kind of a musical instrument — piano, violin, drum kit, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Stub range for issue #314 (Instruments & configurations)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:InstrumentConfiguration
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Instrument Configuration"@x-gmeow-english ;
+    skos:definition "A configured instrument setup — instrument × modification × tuning frame × extended-technique arrangement. Minimal stub declared here as the range of gmeow:participationConfiguration; fully elaborated in issue #314 (Principle 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PlayingTechnique
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Playing Technique"@x-gmeow-english ;
+    skos:definition "A technique used to play or activate a musical instrument — arco, pizzicato, prepared piano, etc. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:performanceOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "performance of"@x-gmeow-english ;
+    skos:definition "Relates a musical performance event to the creative work it performs — typically an Expression interpreting a known version, or a Work directly for an improvised or oral rendition with no mediating fixed Expression. Non-functional: a medley may perform several works, and a work may be performed by many events."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:participationInstrument
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PerformanceParticipation ;
+    rdfs:range gmeow:InstrumentType ;
+    rdfs:label "participation instrument"@x-gmeow-english ;
+    skos:definition "The kind of instrument involved in this performance participation. One instrument type per PerformanceParticipation is recommended; mint one participation per instrument (SHACL advisory)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:participationInstrumentItem
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PerformanceParticipation ;
+    rdfs:range gmeow:Item ;
+    rdfs:label "participation instrument item"@x-gmeow-english ;
+    skos:definition "The specific physical instrument item used in this participation — the particular Stradivarius, the named drum kit, etc. Functional per relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:participationConfiguration
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PerformanceParticipation ;
+    rdfs:range gmeow:InstrumentConfiguration ;
+    rdfs:label "participation configuration"@x-gmeow-english ;
+    skos:definition "The instrument configuration used in this participation. Functional per relator. Range is the #314 stub class."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:participationPart
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PerformanceParticipation ;
+    rdfs:label "participation part"@x-gmeow-english ;
+    skos:definition "The musical part or role the participant performed — e.g. bass line, lead vocal, first violin. Range intentionally open (the tenurePosition precedent) so a part may be a segment, a voice, a named chair, or any other entity. Functional per relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:participationTechnique
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PerformanceParticipation ;
+    rdfs:range gmeow:PlayingTechnique ;
+    rdfs:label "participation technique"@x-gmeow-english ;
+    skos:definition "The playing technique used in this participation. Functional per relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — relator EL patterns
+# --------------------------------------------------------------------------- #
+
+gmeow:PerformanceParticipation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ;       owl:someValuesFrom gmeow:Event ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationRole ;        owl:someValuesFrom gmeow:ParticipantRole ] .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — InstrumentType (individuals, never subclasses)
+# --------------------------------------------------------------------------- #
+
+gmeow:instrumentTypePiano a gmeow:InstrumentType ;
+    rdfs:label "piano"@x-gmeow-english ;
+    skos:definition "A keyboard instrument in which strings are struck by hammers."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeViolin a gmeow:InstrumentType ;
+    rdfs:label "violin"@x-gmeow-english ;
+    skos:definition "A bowed string instrument with four strings tuned in fifths."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeDoubleBass a gmeow:InstrumentType ;
+    rdfs:label "double bass"@x-gmeow-english ;
+    skos:definition "The largest and lowest-pitched bowed string instrument in the modern symphony orchestra."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeDrumKit a gmeow:InstrumentType ;
+    rdfs:label "drum kit"@x-gmeow-english ;
+    skos:definition "A collection of drums, cymbals, and other percussion instruments played by a single drummer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeElectricGuitar a gmeow:InstrumentType ;
+    rdfs:label "electric guitar"@x-gmeow-english ;
+    skos:definition "A guitar that uses one or more pickups to convert string vibration into electrical signals."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — PlayingTechnique (individuals, never subclasses)
+# --------------------------------------------------------------------------- #
+
+gmeow:playingTechniqueArco a gmeow:PlayingTechnique ;
+    rdfs:label "arco"@x-gmeow-english ;
+    skos:definition "Playing a bowed string instrument with the bow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniquePizzicato a gmeow:PlayingTechnique ;
+    rdfs:label "pizzicato"@x-gmeow-english ;
+    skos:definition "Plucking the strings of a bowed string instrument rather than bowing them."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniquePreparedPiano a gmeow:PlayingTechnique ;
+    rdfs:label "prepared piano"@x-gmeow-english ;
+    skos:definition "A piano whose sound is altered by placing objects on or between the strings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# CREDIT DERIVATION — documented FnO projection rule (solver boundary, P12)
+# --------------------------------------------------------------------------- #
+
+gmeow:fnParticipationToContribution
+    a fno:Function ;
+    rdfs:label "participation to contribution"@x-gmeow-english ;
+    skos:definition "Derives a gmeow:Contribution on a resulting Recording from the gmeow:PerformanceParticipation cells of the event(s) that generated or contributed to it. A solver-layer projection rule, not an OWL chain (Principle 12). Full cataloguing lands with the projection toolchain (#319)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Recording session → takes → overdub → composite (stress case)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureSessionWork
+    a gmeow:MusicalWork ;
+    rdfs:label "session work fixture"@x-gmeow-english ;
+    skos:definition "A worked fixture demonstrating the session → takes → overdub → composite recording pattern."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionExpression
+    a gmeow:Expression ;
+    rdfs:label "session expression fixture"@x-gmeow-english ;
+    skos:definition "The Expression realized by the session work; embodied in every take, overdub, and the composite recording."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureSessionWork ;
+    gmeow:realizationMode gmeow:realizationModePerformed ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionEvent
+    a gmeow:Event ;
+    rdfs:label "fixture recording session event"@x-gmeow-english ;
+    skos:definition "The parent recording session event for the take/overdub fixture."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeRecordingSession ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2024-06-01T10:00:00Z"^^xsd:dateTime ;
+    gmeow:performanceOf gmeow:fixtureSessionWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionTake1Event
+    a gmeow:Event ;
+    rdfs:label "fixture take 1 event"@x-gmeow-english ;
+    skos:definition "First take event in the session fixture."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeTake ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2024-06-01T10:05:00Z"^^xsd:dateTime ;
+    gmeow:subEventOf gmeow:fixtureSessionEvent ;
+    gmeow:performanceOf gmeow:fixtureSessionWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionTake2Event
+    a gmeow:Event ;
+    rdfs:label "fixture take 2 event"@x-gmeow-english ;
+    skos:definition "Second take event in the session fixture."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeTake ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2024-06-01T10:12:00Z"^^xsd:dateTime ;
+    gmeow:subEventOf gmeow:fixtureSessionEvent ;
+    gmeow:meets gmeow:fixtureSessionTake1Event ;
+    gmeow:performanceOf gmeow:fixtureSessionWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionTake3Event
+    a gmeow:Event ;
+    rdfs:label "fixture take 3 event"@x-gmeow-english ;
+    skos:definition "Third take event in the session fixture; the target of the who-played-what competency query."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeTake ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2024-06-01T10:20:00Z"^^xsd:dateTime ;
+    gmeow:subEventOf gmeow:fixtureSessionEvent ;
+    gmeow:meets gmeow:fixtureSessionTake2Event ;
+    gmeow:performanceOf gmeow:fixtureSessionWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionOverdubEvent
+    a gmeow:Event ;
+    rdfs:label "fixture overdub event"@x-gmeow-english ;
+    skos:definition "An overdub event recorded after take 3 in the session fixture."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeOverdub ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2024-06-01T11:00:00Z"^^xsd:dateTime ;
+    gmeow:subEventOf gmeow:fixtureSessionEvent ;
+    gmeow:overlaps gmeow:fixtureSessionTake3Event ;
+    gmeow:performanceOf gmeow:fixtureSessionWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionTake1Recording
+    a gmeow:Recording ;
+    rdfs:label "fixture take 1 recording"@x-gmeow-english ;
+    skos:definition "Recording captured by take 1 in the session fixture."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureSessionExpression ;
+    gmeow:wasGeneratedBy gmeow:fixtureSessionTake1Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionTake2Recording
+    a gmeow:Recording ;
+    rdfs:label "fixture take 2 recording"@x-gmeow-english ;
+    skos:definition "Recording captured by take 2 in the session fixture."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureSessionExpression ;
+    gmeow:wasGeneratedBy gmeow:fixtureSessionTake2Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionTake3Recording
+    a gmeow:Recording ;
+    rdfs:label "fixture take 3 recording"@x-gmeow-english ;
+    skos:definition "Recording captured by take 3 in the session fixture."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureSessionExpression ;
+    gmeow:wasGeneratedBy gmeow:fixtureSessionTake3Event ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionOverdubRecording
+    a gmeow:Recording ;
+    rdfs:label "fixture overdub recording"@x-gmeow-english ;
+    skos:definition "Recording captured by the overdub event in the session fixture."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureSessionExpression ;
+    gmeow:wasGeneratedBy gmeow:fixtureSessionOverdubEvent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionComposite
+    a gmeow:Recording ;
+    rdfs:label "fixture composite recording"@x-gmeow-english ;
+    skos:definition "Composite recording derived from the take recordings and the overdub recording in the session fixture."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureSessionExpression ;
+    gmeow:wasDerivedFrom gmeow:fixtureSessionTake1Recording ;
+    gmeow:wasDerivedFrom gmeow:fixtureSessionTake2Recording ;
+    gmeow:wasDerivedFrom gmeow:fixtureSessionTake3Recording ;
+    gmeow:wasDerivedFrom gmeow:fixtureSessionOverdubRecording ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionBassist
+    a gmeow:Agent ;
+    rdfs:label "fixture session bassist"@x-gmeow-english ;
+    skos:definition "A placeholder agent representing the bassist in the session fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureSessionDrummer
+    a gmeow:Agent ;
+    rdfs:label "fixture session drummer"@x-gmeow-english ;
+    skos:definition "A placeholder agent representing the drummer in the session fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureTake3BassParticipation
+    a gmeow:PerformanceParticipation ;
+    rdfs:label "fixture take 3 bass participation"@x-gmeow-english ;
+    skos:definition "The bassist's participation on take 3 — the who-played-what-on-take-3 answer."@x-gmeow-english ;
+    gmeow:participationEvent gmeow:fixtureSessionTake3Event ;
+    gmeow:participationParticipant gmeow:fixtureSessionBassist ;
+    gmeow:participationRole gmeow:roleSessionMusician ;
+    gmeow:participationInstrument gmeow:instrumentTypeDoubleBass ;
+    gmeow:participationTechnique gmeow:playingTechniquePizzicato ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureTake3DrumParticipation
+    a gmeow:PerformanceParticipation ;
+    rdfs:label "fixture take 3 drum participation"@x-gmeow-english ;
+    skos:definition "The drummer's participation on take 3 in the session fixture."@x-gmeow-english ;
+    gmeow:participationEvent gmeow:fixtureSessionTake3Event ;
+    gmeow:participationParticipant gmeow:fixtureSessionDrummer ;
+    gmeow:participationRole gmeow:roleSessionMusician ;
+    gmeow:participationInstrument gmeow:instrumentTypeDrumKit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
