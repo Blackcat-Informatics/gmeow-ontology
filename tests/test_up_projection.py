@@ -13,21 +13,54 @@ from gmeow_tools.up_projection import build_lift_map, up_project
 
 GM = "https://blackcatinformatics.ca/gmeow/"
 SCHEMA = "https://schema.org/"
+DC = "http://purl.org/dc/elements/1.1/"
 
 
 def test_lift_map_is_unambiguous() -> None:
     """Every lift rule maps a target to exactly one gmeow term; many-to-one
-    down-images are held out as ambiguous, never guessed."""
+    down-images with no ranking winner are held out as ambiguous, never guessed."""
     lift = build_lift_map()
     assert len(lift.rules) > 200, "expected a substantial clean-reversal map"
     # rules and ambiguous are disjoint and each rule is a single gmeow IRI
     assert not (set(lift.rules) & set(lift.ambiguous))
     assert all(v.startswith(GM) for v in lift.rules.values())
-    # schema:name is the down-image of several gmeow name terms → ambiguous
-    assert SCHEMA + "name" in lift.ambiguous
-    assert SCHEMA + "name" not in lift.rules
+    # dc:date is the down-image of six peer gmeow date properties, no identity
+    # winner → genuinely ambiguous
+    assert DC + "date" in lift.ambiguous
+    assert DC + "date" not in lift.rules
     # a genuinely 1:1 term IS a rule
     assert lift.rules.get(SCHEMA + "conformsTo") == GM + "conformsTo"
+
+
+def test_identity_outranks_projection_collision() -> None:
+    """Preferred-up-target disambiguation (#451 stage 3): an exactMatch/equivalent
+    identity wins over a structural projection of a NARROWER gmeow term to the
+    same external target, so the target resolves cleanly instead of being held
+    out as ambiguous."""
+    lift = build_lift_map()
+    # schema:name ≡ gmeow:name (equivalentProperty); gmeow:fullName / hasPlaceName
+    # also project DOWN to schema:name but are narrower — identity wins
+    assert lift.rules.get(SCHEMA + "name") == GM + "name"
+    assert SCHEMA + "name" not in lift.ambiguous
+    # prov:Activity ≡ gmeow:Activity (equivalentClass); gmeow:BuildActivity is a
+    # subclass that also projects to prov:Activity — identity wins
+    assert lift.rules.get("http://www.w3.org/ns/prov#Activity") == GM + "Activity"
+    # a peer set with NO identity winner stays ambiguous (no fabrication): every
+    # rival of dc:date is a structural projection, none an identity
+    assert DC + "date" in lift.ambiguous
+    assert len(lift.ambiguous[DC + "date"]) == 6
+
+
+def test_up_project_recovers_identity_resolved_term() -> None:
+    """A round trip through an identity-resolved target recovers the gmeow term:
+    schema:name lifts back to gmeow:name (not the narrower gmeow:fullName)."""
+    src = Graph()
+    person = URIRef("https://ex.org/ada")
+    src.add((person, URIRef(SCHEMA + "name"), Literal("Ada Lovelace")))
+    up = up_project(src)
+    assert (person, URIRef(GM + "name"), Literal("Ada Lovelace")) in up.graph
+    assert (person, URIRef(GM + "fullName"), Literal("Ada Lovelace")) not in up.graph
+    assert "schema:name" not in up.ambiguous_terms
 
 
 def _down(fixture: str, profile: str) -> Graph:
@@ -135,29 +168,89 @@ def test_up_project_inverse_literal_object_is_skipped_not_a_gap() -> None:
 
 
 def test_up_project_does_not_guess_ambiguous_or_structural() -> None:
-    """Ambiguous (schema:name) and structural-only (minted) terms are reported,
-    never lifted — the no-fabrication discipline."""
-    up = up_project(_down("names.ttl", "schema-org"))
-    # schema:name is ambiguous; it must NOT appear as a gmeow lift, only reported
-    assert "schema:name" in up.ambiguous_terms
-    assert not any(str(p) == GM + "name" for _s, p, _o in up.graph), (
-        "must not invent a gmeow:name lift for the ambiguous schema:name"
-    )
-
-
-def test_lift_map_closematch_claims_are_distinct_and_confident() -> None:
-    """closeMatch claim rules carry a single gmeow term + a [0,1] confidence and
-    never overlap the clean / inverse / ambiguous layers (clean coverage wins)."""
+    """An ambiguous many-to-one term with no identity winner is reported, never
+    lifted — the no-fabrication discipline. schema:alternateName reverses to
+    gmeow:hasName / hasPlaceName (peers, no exactMatch), so it stays held out."""
     lift = build_lift_map()
-    assert len(lift.claim_rules) > 100, "expected a substantial closeMatch layer"
+    assert lift.ambiguous.get(SCHEMA + "alternateName") == {
+        GM + "hasName",
+        GM + "hasPlaceName",
+    }
+    up = up_project(_down("names.ttl", "schema-org"), lift)
+    # reported as ambiguous, and neither rival is invented as its lift
+    assert "schema:alternateName" in up.ambiguous_terms
+    assert SCHEMA + "alternateName" not in lift.rules
+
+
+def test_lift_map_claims_are_distinct_and_confident() -> None:
+    """Claim rules (closeMatch + generalizing <=) carry a single gmeow term and a
+    [0,1] confidence (or none, for a generalizing cell that supplied none), and
+    never overlap the fact / inverse / ambiguous layers (fact coverage wins)."""
+    lift = build_lift_map()
+    assert len(lift.claim_rules) > 100, "expected a substantial claim layer"
     assert not (set(lift.claim_rules) & set(lift.rules))
     assert not (set(lift.claim_rules) & set(lift.inverse_rules))
     assert not (set(lift.claim_rules) & set(lift.ambiguous))
     for gmeow, conf in lift.claim_rules.values():
         assert gmeow.startswith(GM)
-        assert 0.0 <= float(conf) <= 1.0
+        assert conf == "" or 0.0 <= float(conf) <= 1.0
     # schema:sender is a closeMatch of gmeow:from (not an equivalence)
     assert lift.claim_rules.get(SCHEMA + "sender") == (GM + "from", "0.9")
+
+
+def test_relation_aware_exact_is_fact_generalizing_is_claim() -> None:
+    """The EDOAL relation qualifier rules fact-vs-claim: an `=` structural cell
+    reverses as a fact, a `<=` (dumb-down) cell *infers* specificity so it lifts
+    as a claim, never asserted as fact. A many-to-one `<=` collapse stays
+    ambiguous (no source signal picks which narrow term)."""
+    lift = build_lift_map()
+    # schema:creator is a `<=` generalizing collapse → claim (gmeow:hasAuthor),
+    # NOT a fact rule (reversing it infers the author role)
+    assert lift.claim_rules.get(SCHEMA + "creator") == (GM + "hasAuthor", "0.9")
+    assert SCHEMA + "creator" not in lift.rules
+    # schema:conformsTo is an `=` exact identity → a fact rule
+    assert lift.rules.get(SCHEMA + "conformsTo") == GM + "conformsTo"
+    assert SCHEMA + "conformsTo" not in lift.claim_rules
+    # a coarse Dublin-Core term whose `<=` sources are several narrow gmeow
+    # terms is held out — never a phantom "ambiguous identity" and never guessed
+    assert DC + "date" in lift.ambiguous
+
+
+def test_up_project_generalizing_claim_without_confidence_is_valid() -> None:
+    """A `<=` cell that supplied no confidence still lifts as a claim — carrying
+    gmeow:mappedFrom but no gmeow:confidence — and stays SHACL-valid."""
+    from pyshacl import validate as shacl_validate
+
+    from gmeow_tools.config import STATEMENT_DSL_SHAPES_FILE
+
+    lift = build_lift_map()
+    # doap:license generalizes from gmeow:projectLicense with no curated confidence
+    gmeow, conf = lift.claim_rules["http://usefulinc.com/ns/doap#license"]
+    assert gmeow == GM + "projectLicense"
+    assert conf == ""  # no confidence on the cell
+    src = Graph()
+    src.add(
+        (
+            URIRef("https://ex.org/proj"),
+            URIRef("http://usefulinc.com/ns/doap#license"),
+            URIRef("https://ex.org/mit"),
+        )
+    )
+    up = up_project(src, lift)
+    assert up.claimed == 1
+    cell = next(up.graph.subjects(RDF.type, URIRef(GM + "StatementMetadata")))
+    # mappedFrom is present, confidence is absent (omitted, not an empty literal)
+    props = {
+        up.graph.value(a, URIRef(GM + "annProperty"))
+        for a in up.graph.objects(cell, URIRef(GM + "annotation"))
+    }
+    assert URIRef(GM + "mappedFrom") in props
+    assert URIRef(GM + "confidence") not in props
+    shapes = Graph().parse(STATEMENT_DSL_SHAPES_FILE, format="turtle")
+    conforms, _g, report = shacl_validate(
+        up.graph, shacl_graph=shapes, advanced=True, inference="none"
+    )
+    assert conforms, report
 
 
 def test_up_project_emits_provenance_stamped_claim_not_a_bare_fact() -> None:
