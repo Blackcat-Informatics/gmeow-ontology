@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: online accounts, decentralized identity, and P10 (#443). An
+# agent gmeow:holdsAccount one or more gmeow:OnlineAccounts, each on a
+# gmeow:OnlineService. Decentralized identities are first-class: a Mastodon
+# account carries its gmeow:activityPubActor URI, a Nostr account its
+# gmeow:nostrPubkey and gmeow:nip05 handle. P10 (suppression, never deletion):
+# when a service shuts down, its account is kept as gmeow:accountStatusHistorical
+# — the record persists, it is not erased.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accounts/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:dana a gmeow:Person ;
+    gmeow:name "Dana Reyes"@x-gmeow-english ;
+    gmeow:holdsAccount ex:fediAccount , ex:nostrAccount , ex:oldAccount .
+
+# --- A live service and a fediverse (ActivityPub) account on it.
+ex:mastodon a gmeow:OnlineService ;
+    gmeow:name          "mastodon.social"@x-gmeow-english ;
+    gmeow:serviceStatus gmeow:serviceStatusLive .
+
+ex:fediAccount a gmeow:OnlineAccount ;
+    gmeow:accountName            "@dana@mastodon.social" ;
+    gmeow:accountService         ex:mastodon ;
+    gmeow:accountServiceHomepage <https://mastodon.social> ;
+    gmeow:activityPubActor       "https://mastodon.social/users/dana"^^xsd:anyURI ;
+    gmeow:accountStatus          gmeow:accountStatusActive .
+
+# --- A serverless Nostr identity: the key IS the account, with a NIP-05 handle.
+ex:nostrAccount a gmeow:OnlineAccount ;
+    gmeow:accountName   "dana" ;
+    gmeow:nostrPubkey   "npub1dana0exampleexampleexampleexampleexampleexampleexa" ;
+    gmeow:nip05         "dana@example.org" ;
+    gmeow:accountStatus gmeow:accountStatusActive .
+
+# --- P10: a shut-down service keeps its account as historical, never deleted.
+ex:defunct a gmeow:OnlineService ;
+    gmeow:name                "old.example.net"@x-gmeow-english ;
+    gmeow:serviceStatus       gmeow:serviceStatusShutDown ;
+    gmeow:serviceShutdownDate "2023-06-30T00:00:00Z"^^xsd:dateTime .
+
+ex:oldAccount a gmeow:OnlineAccount ;
+    gmeow:accountName   "dana_old" ;
+    gmeow:accountService ex:defunct ;
+    gmeow:accountStatus gmeow:accountStatusHistorical .
