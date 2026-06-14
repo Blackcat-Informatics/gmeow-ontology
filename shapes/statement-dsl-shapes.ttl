@@ -79,9 +79,9 @@ gmeow:StatementMetadataShape
 # Annotation
 # --------------------------------------------------------------------------- #
 
-gmeow:AnnotationShape
+gmeow:StatementAnnotationShape
     a sh:NodeShape ;
-    rdfs:label "Annotation shape"@en ;
+    rdfs:label "Statement annotation shape"@en ;
     sh:targetSubjectsOf gmeow:annProperty ;
     sh:property [
         sh:path gmeow:annProperty ;
