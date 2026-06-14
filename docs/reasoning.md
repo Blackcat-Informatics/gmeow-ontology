@@ -90,12 +90,14 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
     axes (the closed-world counterpart of the OWL `AllDisjointClasses`, caught without a
     reasoner).
 
-- **ROBOT `verify`, release-grade, reasoned graph.** `make verify` reasons the merged ontology
-  (`--exclude-tautologies structural`, so trivial entailments like `X ⊑ owl:Thing` never trip a
-  query) and runs the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq` over the
-  **materialized** graph — the [OBO QC pattern](http://robot.obolibrary.org/): any returned row
-  is a violation. Unlike the pyshacl lane (asserted only), these see the reasoned closure, so
-  they catch problems that appear *after* inference. They currently assert:
+- **ROBOT `verify`, release-grade, reasoned graph.** `make verify` reuses the ELK-reasoned
+  graph already produced by `make reason` (`dist/gmeow-reasoned-elk.ttl`), avoiding a duplicate
+  reasoning pass. It runs the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq`
+  over the **materialized** graph — the [OBO QC pattern](http://robot.obolibrary.org/): any
+  returned row is a violation. The underlying reason step uses `--exclude-tautologies structural`,
+  so trivial entailments like `X ⊑ owl:Thing` never trip a query. Unlike the pyshacl lane
+  (asserted only), these see the reasoned closure, so they catch problems that appear *after*
+  inference. They currently assert:
   - every GMEOW class is punned with a gUFO meta-class (meta-grounding completeness);
   - each of the seven identity axes is a member of the disjointness matrix;
   - no class is a subclass — asserted **or inferred** — of two disjoint axes.

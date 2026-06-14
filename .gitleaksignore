@@ -1,0 +1,4 @@
+# Non-sensitive OpenPGP test keypair used by packages/gts/tests.
+# These fixtures replace live gpg-agent invocations and are not secrets.
+gts/tests/fixtures/test_key.sec.asc:private-key:1
+packages/gts/tests/fixtures/test_key.sec.asc:private-key:1

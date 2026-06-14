@@ -34,6 +34,13 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     return typer.Exit(code=code)
 
 
+_REASONED_INPUT_OPTION = typer.Option(
+    None,
+    "--reasoned-input",
+    help="Pre-computed reasoned ontology to query (skips a second reasoning pass).",
+)
+
+
 def _read_gts_or_fail(path: Path) -> gts.Graph:
     """Read a GTS file, converting I/O and parse errors into a CLI failure."""
     try:
@@ -78,6 +85,21 @@ def regenerate(
         None,
         help="Generator names to run (default: all in dependency order).",
     ),
+    jobs: int | None = typer.Option(
+        None,
+        "-j",
+        "--jobs",
+        help="Number of parallel workers (default: capped CPU count).",
+    ),
+    skip_unchanged: bool | None = typer.Option(
+        None,
+        "--skip-unchanged/--no-skip-unchanged",
+        help=(
+            "Skip generators whose inputs and implementation have not changed."
+            " Defaults to True when running all generators, False when a"
+            " specific generator is named."
+        ),
+    ),
 ) -> None:
     """Rebuild all checked-in generated artifacts from canonical sources.
 
@@ -107,8 +129,11 @@ def regenerate(
     from gmeow_tools.config import PROJECT_ROOT
     from gmeow_tools.generator import regenerate as _regenerate
 
-    results = _regenerate(names or None)
+    effective_skip = skip_unchanged if skip_unchanged is not None else (names is None)
+    results = _regenerate(names or None, jobs=jobs, skip_unchanged=effective_skip)
     for _name, report in results.items():
+        if report.skipped:
+            console.print(f"[blue]⏵[/blue] {_name} skipped (unchanged)")
         for path in report.written:
             console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
         if report.orphans:
@@ -130,6 +155,21 @@ def check_generated(
             "Generator names to exclude (e.g. --skip statements in a CI job "
             "without the Docker/Jena toolchain). A NEW generator is always "
             "included by default — exclusion is explicit, never wiring lag."
+        ),
+    ),
+    jobs: int | None = typer.Option(
+        None,
+        "-j",
+        "--jobs",
+        help="Number of parallel workers (default: capped CPU count).",
+    ),
+    skip_unchanged: bool | None = typer.Option(
+        None,
+        "--skip-unchanged/--no-skip-unchanged",
+        help=(
+            "Skip generators whose inputs and implementation have not changed."
+            " Defaults to True when checking all generators, False when a"
+            " specific generator is named."
         ),
     ),
 ) -> None:
@@ -166,10 +206,13 @@ def check_generated(
         if unknown:
             raise _fail(f"✗ --skip names not in the registry: {', '.join(unknown)}")
         selected = sorted(set(selected or registry()) - set(skip))
-    results = check_all(selected)
+    effective_skip = skip_unchanged if skip_unchanged is not None else (names is None)
+    results = check_all(selected, jobs=jobs, skip_unchanged=effective_skip)
     total_drift = 0
     total_orphans = 0
     for name, report in results.items():
+        if report.skipped:
+            console.print(f"[blue]⏵[/blue] {name} skipped (unchanged)")
         if report.drifted:
             total_drift += len(report.drifted)
             for rel in sorted(report.drifted):
@@ -367,6 +410,11 @@ def reason(
     full: bool = typer.Option(
         False, "--full", help="Build the reasoned closure (gmeow-full.ttl)."
     ),
+    exclude_tautologies: str | None = typer.Option(
+        None,
+        "--exclude-tautologies",
+        help="Exclude tautologies from the reasoned output (e.g. 'structural').",
+    ),
 ) -> None:
     """Merge the import closure, validate its OWL 2 profile, then reason."""
     from gmeow_tools import reason as reasoning
@@ -377,7 +425,7 @@ def reason(
         console.print("[green]✓ merged import closure[/green]")
         reasoning.validate_profile(profile)
         console.print(f"[green]✓ OWL 2 {profile} profile[/green]")
-        reasoning.reason(reasoner)
+        reasoning.reason(reasoner, exclude_tautologies=exclude_tautologies)
         console.print(f"[green]✓ {reasoner} consistency (no incoherence)[/green]")
         if full:
             out = reasoning.build_full()
@@ -404,6 +452,7 @@ def explain() -> None:
 @app.command()
 def verify(
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
+    reasoned_input: Path | None = _REASONED_INPUT_OPTION,
 ) -> None:
     """Run reasoned-graph negative tests (ROBOT verify over queries/verify/).
 
@@ -415,7 +464,7 @@ def verify(
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
     try:
-        reasoning.verify(reasoner=reasoner)
+        reasoning.verify(reasoner=reasoner, reasoned=reasoned_input)
     except ToolUnavailableError as exc:
         raise _fail(f"tool unavailable: {exc}", code=2) from exc
     except ToolExecutionError as exc:

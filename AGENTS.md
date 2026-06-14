@@ -39,8 +39,8 @@ make lint            # Run ruff check, ruff format --check, and mypy
 
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
-make regenerate      # Rebuild ALL committed generated artifacts (the #279 registry)
-make check-generated # Drift + orphan + internal-tag-leak check for every registered generator
+make regenerate      # Rebuild ALL committed generated artifacts (the #279 registry; parallel by default)
+make check-generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
 make constitution-check # Every principle has live enforcement (governance/constitution.ttl, #280)
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
 ```
@@ -81,7 +81,7 @@ make commit          # Run regenerate, stage the artifacts, and commit (default 
 make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ```
 
-`make regenerate` runs the registered generators in topological order. It refreshes everything under `generated/`:
+`make regenerate` runs the registered generators in topological order. Independent generators at the same topological level execute in parallel (default `-j` capped at the CPU count, with a memory-aware ceiling), and a source/output hash stamp cache under `.stamps/generators/` lets `regenerate` and `check-generated` skip generators whose inputs, implementation, and committed outputs have not changed. Override with `--no-skip-unchanged` or `-j 1` via the CLI if needed. It refreshes everything under `generated/`:
 
 * `generated/mappings/`, `generated/projections/`, `generated/queries/` — the `mappings` generator
 * `generated/statements/` — the `statements` generator (RDF 1.2 lead + OWL downcast)
@@ -98,10 +98,10 @@ make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ### Reasoning & Negative Tests
 
 ```bash
-make reason          # Check ELK consistency (Docker ROBOT)
+make reason          # Check ELK consistency (Docker ROBOT; writes dist/gmeow-reasoned-elk.ttl)
 make reason-hermit   # Full complete consistency check with HermiT (Docker)
 make explain         # Explain any unsatisfiable classes (HermiT, Docker)
-make verify          # Run reasoned-graph negative tests (SPARQL QC over queries/verify/)
+make verify          # Reuse dist/gmeow-reasoned-elk.ttl and run SPARQL QC (Docker)
 ```
 
 ### Testing & Verification
