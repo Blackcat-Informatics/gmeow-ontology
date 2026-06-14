@@ -70,6 +70,20 @@ gmeow:projectHomepage
     skos:definition "The homepage of a project (#413) — the doap:homepage / schema:url of a software project. Functional; range open (an IRI)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
 
+gmeow:bugDatabase
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:label "bug database"@x-gmeow-english ;
+    skos:definition "The issue/bug tracker of a software project — the doap:bug-database. Non-functional: a project may track issues in several places. Range open (an IRI)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
+
+gmeow:downloadPage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:label "download page"@x-gmeow-english ;
+    skos:definition "The download page of a software project — the doap:download-page. Non-functional. Range open (an IRI)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
+
 gmeow:programmingLanguage
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Project ;

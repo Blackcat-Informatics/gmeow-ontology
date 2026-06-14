@@ -188,10 +188,10 @@ gmeow:mapDoapHelper a gmeow:ProjectionMapping ;
 # The frozen DOAP enum cannot express unforeseen roles (Principle 9).
 
 # --- #34 phase 3 gap-fill: repository browse URL + maintenance status. ----- #
-# REFUSED (P5 — no source): doap:bug-database, doap:download-page — GMEOW's
-# software slice models no issue-tracker or download-page facet; minting
-# them would invent facts. (doap:category WAS refused here; the #34 backlog
-# audit found gmeow:hasTag is the genuine source — celled below.)
+# doap:bug-database / doap:download-page were once refused here (no source
+# facet); the #449 gap-cluster work added gmeow:bugDatabase / gmeow:downloadPage
+# to the software slice, so both are now celled below. (doap:category was also
+# refused; the #34 backlog audit found gmeow:hasTag is its genuine source.)
 
 gmeow:mapDoapBrowse a gmeow:ProjectionMapping ;
     rdfs:label "Repository webUrl → doap:browse"@x-gmeow-english ;
@@ -324,6 +324,23 @@ gmeow:mapDoapHomepage a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "dhProj" ; gmeow:predicate gmeow:projectHomepage ; gmeow:objectVar "dhUrl" ] ) ;
         gmeow:edoalSource gmeow:projectHomepage ] ;
     gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:homepage ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+# Genuine-gap cluster (#449 triage): software-project web-presence facets.
+gmeow:mapDoapBugDatabase a gmeow:ProjectionMapping ;
+    rdfs:label "bugDatabase → doap:bug-database"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dbProj" ; gmeow:value "dbUrl" ;
+        gmeow:atom ( [ gmeow:subjectVar "dbProj" ; gmeow:predicate gmeow:bugDatabase ; gmeow:objectVar "dbUrl" ] ) ;
+        gmeow:edoalSource gmeow:bugDatabase ] ;
+    gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:bug-database ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapDoapDownloadPage a gmeow:ProjectionMapping ;
+    rdfs:label "downloadPage → doap:download-page"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "dpProj" ; gmeow:value "dpUrl" ;
+        gmeow:atom ( [ gmeow:subjectVar "dpProj" ; gmeow:predicate gmeow:downloadPage ; gmeow:objectVar "dpUrl" ] ) ;
+        gmeow:edoalSource gmeow:downloadPage ] ;
+    gmeow:hasBinding [ gmeow:profile "doap" ; gmeow:toPredicate doap:download-page ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
 
 gmeow:mapDoapProgrammingLanguage a gmeow:ProjectionMapping ;
     rdfs:label "programmingLanguage → doap:programming-language (label)"@x-gmeow-english ;

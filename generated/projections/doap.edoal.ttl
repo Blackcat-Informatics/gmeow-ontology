@@ -18,6 +18,14 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "bugDatabase → doap:bug-database"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:bugDatabase ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri doap:bug-database ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "SoftwareProject hasTag → doap:category"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasTag ] ;
@@ -33,6 +41,14 @@
                     edoal:uri doap:created ] ;
             align:relation "=" ;
             edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "downloadPage → doap:download-page"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:downloadPage ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri doap:download-page ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "Repository(repoTypeGit) → doap:GitRepository"@en ;
             align:entity1 [ a edoal:Relation ;

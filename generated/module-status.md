@@ -25,10 +25,10 @@ Tier-2 uplift backlog.
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | full |
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | full |
 | deception | core | core | 4 | 2 | 10 | 0 | 1 | full |
-| documents | core | core | 7 | 22 | 33 | 0 | 1 | full |
+| documents | core | core | 7 | 22 | 35 | 0 | 1 | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 0 | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 0 | full |
-| entities | core | core | 7 | 4 | 3 | 0 | 1 | full |
+| entities | core | core | 7 | 4 | 4 | 0 | 1 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 0 | full |
 | expertise | core | core | 4 | 6 | 11 | 0 | 0 | full |
@@ -50,7 +50,7 @@ Tier-2 uplift backlog.
 | notation | extension | extensions | 4 | 5 | 9 | 0 | 0 | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 0 | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 0 | full |
-| organization | core | core | 4 | 12 | 38 | 0 | 1 | full |
+| organization | core | core | 4 | 12 | 39 | 0 | 1 | full |
 | places | core | core | 7 | 46 | 140 | 0 | 1 | full |
 | procedures | extension | extensions | 2 | 9 | 26 | 0 | 0 | full |
 | profiles | core | core | 3 | 1 | 4 | 0 | 0 | full |
@@ -61,7 +61,7 @@ Tier-2 uplift backlog.
 | sensory | extension | extensions | 3 | 4 | 6 | 0 | 0 | full |
 | sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 0 | full |
 | sexuality | core | core | 2 | 4 | 4 | 0 | 0 | full |
-| software | extension | extensions | 10 | 33 | 51 | 0 | 0 | full |
+| software | extension | extensions | 10 | 33 | 53 | 0 | 0 | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 0 | full |
 | standpoint | core | core | 3 | 3 | 7 | 0 | 1 | full |
 | tags | core | core | 2 | 3 | 11 | 0 | 0 | full |

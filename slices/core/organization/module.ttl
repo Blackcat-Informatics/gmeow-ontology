@@ -370,6 +370,17 @@ gmeow:acceptsCurrency
     skos:definition "Relates an organization to a currency it accepts for payment — a currency reference frame (a member of gmeow:frameRealmCurrency, e.g. gmeow:referenceFrameUSD), reusing the same first-class currency model as gmeow:accountCurrency rather than a flat code string. Non-functional: a business may accept several. Projects to schema:currenciesAccepted via the frame's gmeow:currencyCode."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
+gmeow:alumniOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "alumnus of"@x-gmeow-english ;
+    skos:definition "An organization — typically educational — a person is an alumnus/alumna of (schema:alumniOf; the inverse projects to schema:alumni). A past-affiliation relation; the structured period/role of the affiliation, when modelled, rides a gmeow:Membership. Non-functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+# (No gmeow:Brand: the brand concept is the pre-existing gmeow:Mark, already
+# projected to schema:Brand by gmeow:mapSchemaBrand.)
+
 # =========================================================================== #
 # Purpose — free text (solver-side, Principle 12).
 # =========================================================================== #
