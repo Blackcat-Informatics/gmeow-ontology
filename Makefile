@@ -97,13 +97,13 @@ crossref: ## Generate the CrossRef DOI deposit XML.
 
 docs: ontology-docs ## Alias for ontology-docs.
 
-ontology-docs: ## Generate the unified ontology-docs site.
-	$(GMEOW_DEV) regenerate ontology-docs
+ontology-docs: ## Generate the unified ontology-docs site into dist/ontology-docs.
+	$(GMEOW_DEV) docs
 
 docs-full: ontology-docs-full ## Alias for ontology-docs-full.
 
-ontology-docs-full: ## Generate ontology-docs including optional Docker stages.
-	uv run python -c "from gmeow_tools.ontology_docs import build_ontology_docs; from pathlib import Path; build_ontology_docs(Path('ontology-docs'))"
+ontology-docs-full: ## Generate ontology-docs including optional Docker stages into dist/ontology-docs.
+	uv run python -c "from gmeow_tools.config import PROJECT_ROOT; from gmeow_tools.ontology_docs import build_ontology_docs; build_ontology_docs(PROJECT_ROOT / 'dist' / 'ontology-docs')"
 
 quality: ## Run OOPS! pitfall scan (network, best-effort).
 	$(GMEOW_DEV) quality
@@ -180,10 +180,10 @@ commit: regenerate ## Regenerate artifacts, stage them, and commit.
 pull-images: ## Pre-pull the pinned Docker images (ROBOT, Jena).
 	bash scripts/pull-images.sh
 
-clean: ## Remove ephemeral build artifacts (preserves committed ontology-docs/).
+clean: ## Remove ephemeral build artifacts.
 	rm -rf dist docs/_generated .stamps
 	@echo "✓ cleaned"
 
-clean-docs: ## Remove the committed ontology-docs/ tree (regenerate with make ontology-docs).
-	rm -rf ontology-docs
-	@echo "✓ cleaned ontology-docs/"
+clean-docs: ## Remove generated ontology docs (regenerate with make ontology-docs).
+	rm -rf dist/ontology-docs ontology-docs
+	@echo "✓ cleaned ontology docs"

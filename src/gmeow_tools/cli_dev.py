@@ -1257,7 +1257,7 @@ def docs() -> None:
     from gmeow_tools.config import PROJECT_ROOT
     from gmeow_tools.ontology_docs import build_ontology_docs
 
-    out = PROJECT_ROOT / "ontology-docs"
+    out = PROJECT_ROOT / "dist" / "ontology-docs"
     build_ontology_docs(out)
     console.print(f"[green]✓[/green] ontology docs → {out}")
 

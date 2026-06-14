@@ -12,10 +12,9 @@ htmlcov/
 # Ephemeral build products (published on release, never committed).
 # Committed generated artifacts live under generated/ (#287) — one root,
 # every path owned by a registered generator.
-# Exception: ontology-docs/ is a committed generated site at the repository root
-# (#440) so it can be hosted directly (e.g. GitHub Pages).
 /dist/
 /docs/_generated/
+/ontology-docs/
 /llms.txt
 
 # Stamp files (compilation freshness tracking)
