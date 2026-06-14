@@ -9,7 +9,7 @@ Tier-2 uplift backlog.
 | slice | tier | group | deps | classes | props | individuals | examples | advice | guide |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | accessibility | extension | extensions | 2 | 3 | 6 | 0 | 0 | - | full |
-| accounts | core | core | 1 | 4 | 10 | 0 | 0 | 0/14 | full |
+| accounts | core | core | 1 | 4 | 10 | 0 | 1 | 0/14 | full |
 | affect | extension | extensions | 2 | 5 | 6 | 0 | 1 | - | full |
 | agentic | extension | extensions | 6 | 1 | 4 | 0 | 1 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 0 | - | full |
@@ -20,7 +20,7 @@ Tier-2 uplift backlog.
 | calendar | core | core | 4 | 14 | 26 | 0 | 0 | 0/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 0/16 | full |
 | connectivity | extension | extensions | 2 | 3 | 8 | 0 | 0 | - | full |
-| contacts | core | core | 6 | 9 | 26 | 0 | 0 | 0/35 | full |
+| contacts | core | core | 6 | 9 | 26 | 0 | 1 | 0/35 | full |
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 0/5 | full |
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 0/57 | full |
 | deception | core | core | 4 | 2 | 10 | 0 | 1 | 0/12 | full |
