@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the seat is not the sitter (#443). GMEOW de-conflates the two
+# things surface vocabularies collapse into "CFO": the gmeow:Post (the seat, a
+# RoleMixin that exists whether or not anyone fills it) and the gmeow:Membership
+# (a person's tenure occupying it). The membership gmeow:fillsPost the post, so a
+# vacancy (a Post with no Membership) and a succession (two Memberships filling
+# one Post) are both expressible. organizationType is an open VALUE (a company is
+# a company by value, not by subclass), and subOrganizationOf decomposes the org
+# structurally — distinct from "is a member of".
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organization/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The company and a structural sub-organization.
+ex:acme a gmeow:Organization ;
+    gmeow:name "Acme Robotics Inc." ;
+    gmeow:organizationType gmeow:organizationTypeCompany .
+
+ex:engineering a gmeow:Organization ;
+    gmeow:name "Engineering Division" ;
+    gmeow:organizationType gmeow:organizationTypeCompany ;
+    gmeow:subOrganizationOf ex:acme .
+
+# --- The CFO Post: the seat, defined independently of who holds it.
+ex:cfoPost a gmeow:Post ;
+    rdfs:label "Chief Financial Officer"@x-gmeow-english ;
+    gmeow:postIn ex:acme .
+
+# --- The person, and the Membership that fills the seat — the sitter, distinct
+#     from the chair. A later tenure would be ANOTHER Membership filling the same
+#     Post; a vacancy would leave the Post with no Membership at all.
+ex:dana a gmeow:Person ;
+    gmeow:name "Dana Reyes" .
+
+ex:danaTenure a gmeow:Membership ;
+    gmeow:membershipMember ex:dana ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:fillsPost ex:cfoPost .

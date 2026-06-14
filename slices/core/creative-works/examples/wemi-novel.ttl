@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the WEMI spine (#208, #443). One abstract Work is realized by
+# Expressions (the original text and a translation — distinct intellectual
+# realizations of the same work), each embodied by Manifestations (the hardback
+# and the ebook of the English text), each exemplified by Items (a specific
+# physical or licensed copy). The four tiers are kept distinct so a translation,
+# an edition, and a single library copy each sit at the right level — where
+# surface vocabularies collapse all four into one "book" record.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/creative-works/> .
+
+# --- Work: the abstract intellectual creation, independent of any text or copy.
+ex:novel a gmeow:Work ;
+    gmeow:title "The Lighthouse at World's End"@x-gmeow-english .
+
+# --- Expressions: two realizations of the one Work (P9-style co-equality — the
+#     translation is not a lesser version, just another Expression).
+ex:englishText a gmeow:Expression ;
+    gmeow:realizes ex:novel .
+
+ex:frenchText a gmeow:Expression ;
+    gmeow:realizes ex:novel .
+
+# --- Manifestations: two embodiments of the English Expression (print + digital).
+ex:hardback a gmeow:Manifestation ;
+    gmeow:embodies ex:englishText .
+
+ex:ebook a gmeow:Manifestation ;
+    gmeow:embodies ex:englishText .
+
+# --- Item: one exemplar — a specific physical copy of the hardback.
+ex:libraryCopy a gmeow:Item ;
+    gmeow:exemplifies ex:hardback .
