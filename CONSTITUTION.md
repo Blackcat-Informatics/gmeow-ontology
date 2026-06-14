@@ -42,6 +42,11 @@ remains OWL 2 DL because RDF 1.2 triple-terms are not OWL 2 DL — and GMEOW nev
 otherwise. The positioning must never overclaim: "RDF-1.2-first" means the metadata layer, not
 the ontology's logic.
 
+*Amended by Principle 17:* the logical core itself becomes RDF 1.2-native (`logic:`), with OWL 2
+DL retained as a *generated projection*. Until `logic:` lands, the OWL-2-DL-core scoping above
+describes the implemented state; the never-overclaim rule is unchanged and applies to `logic:` in
+full force.
+
 *Embodied in:* the authored `dsl/statements/` source; [`README.md`](./README.md) § RDF 1.2.
 *Tested by:* the `statements` generator drift gate (`gmeow check-generated`), the RDF 1.2
 round-trip tests.
@@ -133,6 +138,11 @@ afterthoughts — but they are *verification and hygiene*, not the value proposi
 catches modelling errors before any consumer sees them; no consumer is ever required to run one,
 or to know that we do (Principle 13). FAIR publication is pursued seriously as scholarly bridge
 and discoverability hygiene; the product it certifies is Principle 14's.
+
+*Amended by Principle 17:* once the native `logic:` solver lands it becomes the reasoning
+authority, and ELK / HermiT become secondary validators of the OWL projection (one fragment among
+several). The commitment that the reasoner is *our* QA and never the consumer's prerequisite is
+unchanged.
 
 **Documentation is a first-class artifact.** Every GMEOW-namespaced class, property, annotation
 property, datatype, individual, and ontology header must carry `rdfs:label`, `skos:definition`,
@@ -236,6 +246,12 @@ vector store) the ontology points to **by reference**. GMEOW models the *logic* 
 losslessly (the standpoint precedent — model it, don't collapse it); it never turns the
 triplestore into a calculator or bloats the TBox with derived geometry.
 
+*Scope under Principle 17:* the solver boundary still holds for **domain and numeric** computation
+— geo / datum transforms, RCC-8 / Allen composition, vector and SLAM updates stay in external
+engines by reference, exactly as above. What changes is *logical* expressivity: the reasoning logic
+(`logic:`) is Turing-complete, and "decidable and small" becomes a **projection/profile guarantee**
+rather than a property of the canonical core.
+
 *Embodied in:* the projection layer; the lossless standpoint projections; the solver boundary of
 the #42 locations epic. *Tested by:* the OWL 2 DL profile gate (ELK / HermiT) staying green as
 expressivity grows.
@@ -336,6 +352,54 @@ author exists, not before.
 *Embodied in:* the #287 slice architecture (`slices/<group>/<name>/` — the manifest is
 the sole tier truth); `slices/vocabulary.ttl`; the GTS `bundle` profile. *Tested by:* per-extension compile / reason / drift gates;
 the manifest consumer field, checked via the Principle→enforcement manifest (#280).
+
+## 17. The logic itself is canonical — OWL is a projection of it, not its ceiling
+
+> **The logical core is authored in a maximally expressive, RDF 1.2-native logic (`logic:`);
+> OWL, Datalog, SHACL, Prolog, N3, and the gUFO / BFO / DOLCE upper ontologies are generated
+> lossy projections of it. Decidability is a property of a projection or a declared profile —
+> never a cap on what the canonical model may say.**
+
+This is Principle 4 carried to its conclusion: the projection doctrine reaches past the statement
+layer and the surface vocabularies into the **TBox, the rule layer, and the foundational ontology**
+themselves. Principle 3 already anticipated it — the OWL form "recedes naturally as RDF-1.2-native
+reasoners and stores arrive"; `logic:` is that reasoner, and OWL 2 DL / EL become two projection
+profiles among many. GMEOW models the logic correctly once (Principle 1) and hands every weaker
+formalism a generated, drift-gated, loss-ledgered view (Principles 4, 7).
+
+`logic:` is deliberately **Turing-complete**: a computational substrate, not merely a description
+language. The halting problem is the accepted shadow of that choice, not a defect — managed
+honestly, never hidden: termination and tractability are **projection/profile guarantees** (a
+consumer buys decidability by projecting down or by certifying a profile), and when a budget is
+exhausted the solver returns `unknown` / `incomplete`, never a false answer. Expressivity is never
+overclaimed (the Principle 1 discipline applied to the logic): a triple term *groups* a statement,
+it does not assert it; `gmeow:confidence` is not a probability unless a mapping is declared; and
+procedural `cut` is not part of the canonical truth theory.
+
+The **foundation** follows the same doctrine. UFO⁺ is authored in `logic:`; **gUFO is its primary
+generated down-projection** (the OWL realization of the same UFO lineage), while BFO, DOLCE, and
+SUMO are generated **bridge views, not truth-preserving projections** — Principle 5's by-reference
+grounding, made explicit in the loss ledger. The OntoUML discipline that lived in external lint
+becomes **actual axioms**; the lints survive as projection-conformance tests over the gUFO downcast,
+so nothing is lost in the move from lint to logic.
+
+The native `logic:` solver is the **reasoning authority**; ELK, HermiT, and the Datalog / SHACL
+engines become **secondary validators of their projected fragments**. This supersedes the
+OWL-2-DL-core framing of Principles 2, 8, and 12 (annotated there). Correctness is **verified by
+construction** (Principle 7): a slow, correct Python oracle and a fast Rust core (oxigraph + Nemo +
+an embedded Prolog, bound by PyO3/wasm — the Principle 13 tool pattern, the #277 model) must pass
+**one shared, language-neutral conformance corpus** identically. The reasoner remains *our* quality
+assurance, never the consumer's prerequisite (Principle 13): the canon is maximal; the projections
+are what anyone else consumes.
+
+*Embodied in:* the GMEOW Logic design set
+([`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) and its semantics /
+runtime / migration / conformance siblings). *Tested by* (on landing): the logic conformance corpus
+(oracle ≡ engine, Principle 7), the `logic:` ↔ OWL round-trip isomorphism gate, and the
+foundation-conformance gate (the gUFO downcast passes `reasoning_lint.py` unchanged). This principle
+and its enforcement gates land **together with** the `logic:` implementation; until then it governs
+the design and ships as an amendment-in-the-open (see *Amending this Constitution*), with its
+machine-readable entry added to [`governance/constitution.ttl`](./governance/constitution.ttl).
 
 ---
 

@@ -1,0 +1,419 @@
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca> -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+# GMEOW Logic — Formal Semantics and Profiles
+
+> Status: formal-semantics specification for `logic:`. This is the **semantics** member of the
+> [GMEOW Logic document set](LOGIC.md#the-document-set). It defines the unified core, the
+> triple-term/assertion rules, the semantic profiles every rule set must declare, the modal and
+> world semantics, the foundation's operational semantics, and the decidability stance. Vision is
+> in [LOGIC.md](LOGIC.md); the engine that realizes these semantics is in
+> [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md).
+
+## The Unified Logic Core
+
+`logic:` is one coherent model in which the following coexist rather than compete.
+
+- **Open-world classification and closed-world constraints, co-resident.** Logical structure (what
+  follows) is evaluated open-world; constraints (what is ill-formed for a purpose) are evaluated
+  closed-world. A model declares which reading applies where, instead of being forced into one.
+  This unifies the OWL lane, the SHACL lane (`shapes/gmeow-shapes.ttl`, pySHACL), and the
+  ROBOT-verify negative-query lane (`queries/verify/*.rq`) into a single semantics.
+- **Monotonic and non-monotonic rules.** Datalog-style monotonic derivation *and* defeasible
+  defaults, negation-as-failure, and classical negation. Recursion is unrestricted. Existential
+  rules (tuple-generating dependencies) permit value invention. Which non-monotonic semantics
+  governs a rule set is **declared, not assumed** (see [Semantic profiles](#semantic-profiles)).
+- **Logic programming, Prolog-grade.** Unification, SLD-style backward goal resolution,
+  query-as-program, builtins, and generative/relational computation. The engine runs **both**
+  directions: forward materialization and classification *and* backward goal resolution. SPARQL
+  becomes a projection of goal resolution, not a separate paradigm. Procedural control — cut — is
+  *not* part of the canonical truth theory (see [Cut is procedural](#cut-is-procedural-not-canonical)).
+- **Contextual, temporal, modal, and probabilistic scope as first-class.** Every axiom or clause
+  may carry standpoint, valid time, asserted time, provenance, confidence, modality, and
+  disclosure/display state. These four quantitative axes are distinct and **not interchangeable**
+  (see [Confidence, probability, weight, evidence](#confidence-probability-weight-and-evidence)).
+  Temporal scope ties to the existing temporal query algebra (`gmeow temporal`).
+- **Paraconsistency.** A contradiction does not explode the model. Inconsistency is localized to
+  the worlds and scopes that disagree, witnessed explicitly, and reasoned around. The guarantee is
+  made at the *entailment relation*, not merely at storage (see
+  [Worlds and world-indexed entailment](#worlds-modality-and-counterfactuals)).
+- **Metalogic over triple terms.** RDF 1.2 triple terms make statements first-class objects, so
+  axioms reason about axioms, rules about rules, and claims about claims. Axiom identity and axiom
+  metadata are native, not encoded — but a triple term *names* a proposition; it does not assert it
+  (see [Triple terms, reifiers, and assertion](#triple-terms-reifiers-and-assertion)).
+
+These three concerns, which OWL tends to entangle, are kept distinct: **logical structure** (what
+follows from the canonical model), **validation** (what data is ill-formed for a target purpose),
+and **projection** (what weaker consumers can safely receive).
+
+## Canonical Model
+
+`logic:` resolves to `https://blackcatinformatics.ca/logic/`, declared once in the unified prefix
+registry (`src/gmeow_tools/config.py`, `PREFIXES`, alongside `gmeow` at `config.py:21-24`) so it
+propagates to every serializer and the JSON-LD context.
+
+The core authoring vocabulary includes:
+
+- classes, properties, individuals, datatypes, and annotations;
+- subclass, subproperty, equivalence, disjointness, inverse, transitive, symmetric, functional, and
+  property-chain constructs;
+- restrictions and quantification patterns projectable into OWL when possible;
+- **rules** (Horn clauses and beyond): heads, bodies, negation, recursion, existentials, builtins;
+- **RDF 1.2 triple-term forms** for axiom identity and axiom/rule metadata;
+- **contextual axiom scope**: standpoint, valid time, asserted time, provenance, confidence,
+  modality, disclosure;
+- **closed-world constraints** for validation and contradiction detection;
+- **loss metadata** for every generated compatibility projection.
+
+The RDF 1.2 triple-term forms are not invented here. They generalize the authoring model already
+proven for the ABox statement-metadata layer (`dsl/statements/vocabulary.ttl`):
+`gmeow:StatementMetadata` is one reified statement, the `(qSubject qPredicate qObject)` triad is the
+quoted triple, `gmeow:reifier` is the `rdf:reifies` subject, and the `gmeow:annotation` list is
+every metadata triple hung off the reifier (`dsl/statements/vocabulary.ttl:45-54`). `logic:` lifts
+that same form from statements-about-facts to axioms-and-rules-about-anything.
+
+### RDF 1.2 triple terms, precisely
+
+`logic:` targets **normative RDF 1.2**, and uses the term *RDF 1.2 triple terms* consistently —
+never "RDF-star," except when discussing lineage (the RDF-star community drafts that preceded RDF
+1.2). The distinction is operational, not pedantic: oxigraph, the storage engine, **dropped
+RDF-star support in favor of RDF 1.2**, and RDF 1.2 no longer admits triple terms in subject
+position. RDF 1.2 *Full* conformance supports graphs and datasets whose triples contain triple
+terms (in object position); *Basic* conformance excludes triple terms entirely. Symmetric or
+generalized forms that place triple terms in subject, predicate, or graph-name position are
+**non-standard extensions** that cause interoperability problems.
+
+Rule:
+
+> `logic:` MUST restrict canonical RDF output to normative **RDF 1.2 Full**. Any symmetric or
+> generalized use of triple terms outside normative positions is an **internal IR extension** and
+> MUST be downcast or rejected before emitting public RDF 1.2 artifacts.
+
+This strengthens the projection doctrine: normative RDF 1.2 Full is the canonical *interchange*
+surface; any more-general internal graph calculus is a **compiler concern**, not a standards
+ambiguity exposed to consumers.
+
+### Triple terms, reifiers, and assertion
+
+The single most bug-prone confusion in a triple-term logic is treating `<<( x rdf:type T )>>` as
+*both* a quoted object and an asserted fact. The rule that prevents it, stated early and normatively:
+
+> A triple term denotes a **proposition-shaped term**. It does **not**, by itself, assert the
+> embedded triple. Assertion, quotation, denial, refutation, provenance, confidence, and
+> world-indexed truth are all mediated by explicit `logic:` predicates.
+
+So a triple term gives **statement grouping** — the ability to name, quote, and annotate a
+statement — and nothing more. Modal force, epistemic stance, and truth-in-a-world come only from
+predicates over the reifier; they are never implicit in the quoting. This rule recurs wherever
+triple terms appear (the foundation's modal lowering, the worlds layer), and it is the reason the
+foundation needs explicit lowering rather than getting modality "for free."
+
+## Semantic profiles
+
+"Sound" is ambiguous until you answer "sound relative to which semantics?" Because `logic:` admits
+monotonic rules, negation-as-failure, well-founded and stable-model semantics, and procedural
+Prolog all at once, **every rule set MUST declare the semantic profile that governs it.** The
+profiles:
+
+| Profile | Semantics | Notes |
+|---|---|---|
+| `logic:PositiveHornProfile` | monotonic Horn rules | least-model; always terminating for the function-free fragment |
+| `logic:StratifiedNAFProfile` | negation-as-failure with stratification | unique perfect model; PTIME data complexity |
+| `logic:WellFoundedProfile` | well-founded semantics | three-valued; total, polynomial |
+| `logic:StableModelProfile` | answer-set / stable-model semantics | possibly multiple models; NP-hard |
+| `logic:ProceduralPrologProfile` | SLD, cut, builtins | operational, **not purely declarative** |
+| `logic:ProbabilisticProfile` | probabilistic inference over `logic:probability` | requires an independence or dependency model |
+
+A rule set with no declared profile is rejected by the compiler. Soundness, completeness, and the
+decidability class are all stated *relative to the declared profile* — a claim of "sound" outside a
+named profile is meaningless.
+
+### Cut is procedural, not canonical
+
+Cut is operational search control; it can change a program's answer set and makes explanations hard
+to treat as logical proofs. It therefore stays out of the canonical declarative semantics:
+
+> The canonical rule semantics is **cut-free**. `logic:cut` is permitted **only** in the
+> `ProceduralPrologProfile`, where it is treated as an operational search directive. Artifacts using
+> cut MUST NOT project as declarative rules without recording the loss in the projection report.
+
+This preserves Prolog-grade *computation* (in its own profile, where it belongs) without letting
+procedural pruning become part of the logic's truth theory or contaminate the faithful-by-
+construction explanation contract.
+
+### Confidence, probability, weight, and evidence
+
+A confidence score, an evidential warrant, a calibrated probability, and a solver ranking weight are
+**not interchangeable**, and a common failure mode of probabilistic knowledge graphs is treating
+arbitrary confidence metadata as if it were a probability model. `logic:` keeps four distinct
+predicates:
+
+| Predicate | Meaning |
+|---|---|
+| `logic:probability` | probabilistic fact/event semantics; requires an independence or dependency model |
+| `logic:confidence` | epistemic confidence assigned by a source or process |
+| `logic:weight` | a solver/ranking weight, not necessarily probabilistic |
+| `logic:evidenceStrength` | evidential support, provenance-derived (reuses the evidence-slice warrant axes) |
+
+The governing rules:
+
+> Probabilistic inference is available **only** in `logic:ProbabilisticProfile`. A `logic:confidence`
+> annotation MUST NOT be interpreted as a probability unless an explicit mapping to
+> `logic:probability` is declared.
+
+ProbLog-style inference is thus a *profile*, not a default reading of every confidence number.
+
+## Turing-Completeness, Decidability, and Termination
+
+**Turing-completeness is a design goal, not a side effect.** `logic:` is meant to compute, not
+merely classify — a general-purpose substrate in which any computable function is expressible as a
+logic program. Builtins, arithmetic, unrestricted recursion, value-inventing existential rules, and
+backward goal resolution are together Turing-complete, and that is the intent: the logic can express
+its own transformations, validations, and solver-layer computations — including, metacircularly, the
+rules that generate its own downcast projections.
+
+Turing-completeness entails undecidability and the halting problem, by Church and Turing. That is a
+theorem and the accepted shadow of a deliberately chosen capability, not a defect to be patched.
+`logic:` manages it the way the project manages every hard constraint: by making termination a
+**projection/profile property** and incompleteness **honest** rather than silent. Power at the
+center, guarantees at the edges.
+
+**Decidability is a projection guarantee, not a canonical-layer promise.** The canonical layer is
+maximally expressive and therefore only *semi-decidable*: consequences are enumerable, but the
+*absence* of a proof need not be decidable in finite time. The decidable, tractable systems are
+exactly the projections: OWL 2 EL (PTIME), OWL 2 DL (decidable, N2EXPTIME-complete), Datalog (PTIME
+data complexity, terminating because function-free over a finite domain), and the chase-terminating
+existential-rule fragments. "Decidability" joins "OWL-compatibility" as something a consumer **buys
+by projecting down**, recorded in the loss ledger.
+
+**Profiles certify decidable fragments statically.** Beyond the semantic profiles above, a model or
+slice may declare that it lives in a decidable, terminating fragment — DL-safe rules, stratified
+negation, weakly- or jointly-acyclic existential rules, guarded or sticky TGDs — and the compiler
+**statically certifies membership**, flagging violations exactly as `reasoning_lint.py` flags
+OntoUML anti-patterns today. Because termination is itself undecidable, certification uses
+*sufficient* acyclicity conditions, not a complete test — a known, accepted tradeoff. Inside a
+certified profile there is a hard termination and complexity guarantee; outside it, full
+expressivity and an explicit "no guarantee."
+
+**The canonical engine is sound-but-incomplete under an explicit budget.** Operationally the solver
+runs under stratified evaluation, tabling / SLG-style resolution, and a resource budget — the same
+idea as today's `_HERMIT_TIMEOUT` ceiling, generalized. When the budget is exhausted it returns
+**`unknown` / `incomplete`**, never a false answer. Soundness is total; completeness is relative to
+the budget and the fragment. Because `logic:` is open-world, paraconsistent, and provenance-carrying,
+budget exhaustion is a normal state, not a crash: the query returns the answers and witnesses found
+so far plus an explicit incompleteness marker, and unprovable-within-budget is **not** false.
+
+OWL 2 DL is decidable but N2EXPTIME-complete, and HermiT's ~15-minute cliff (#433) is the everyday
+face of "decidable but intractable." `logic:` does not hide that cost behind a silent timeout; it
+makes the decidability class, the fragment certification, and the budget boundary explicit,
+machine-readable, and tested.
+
+## The `logic:` Foundation (UFO⁺)
+
+A maximally expressive logic demands a foundational ontology authored *in that logic*, not imported
+from a weaker one. "gUFO" is *gentle* UFO — a deliberately lightweight OWL 2 realization that drops
+the modal distinctions and higher-order types of full UFO to stay inside OWL's decidable ceiling, so
+it embodies the very restraint `logic:` rejects. The foundational theory — **UFO⁺** — is authored
+canonically in the `logic:` namespace; gUFO becomes a generated down-projection (the rollout and the
+gUFO/BFO/DOLCE distinction are in
+[LOGIC-MIGRATION.md](LOGIC-MIGRATION.md#foundation-projection-and-discipline)).
+
+The foundational categories are `logic:` terms in the one namespace: `logic:Kind`, `logic:SubKind`,
+`logic:Phase`, `logic:Role`, `logic:Category`, `logic:Mixin`, `logic:RoleMixin`, `logic:PhaseMixin`,
+`logic:Relator`, `logic:Event`, `logic:Situation`, and relations such as `logic:rigidlyAppliesTo`,
+`logic:suppliesIdentity`, and `logic:mediates`. They obey the same naming discipline as the rest of
+GMEOW (Principle 9: no selector tokens) and the language-tag discipline (`@x-gmeow-english`).
+
+The payoff: the four OntoUML disciplines GMEOW enforces today live in `reasoning_lint.py` as
+**external Python checks**, because OWL and gUFO **cannot axiomatize them** — rigidity is modal,
+identity supply is second-order: `exactly_one_stereotype`; `identity_overlap` (**MixIden**,
+`reasoning_lint.py:149`); `anti_rigidity_discipline` (**MixRig/FreeRole**, `:180`);
+`relator_mediation` (**RelComp**, `:218`). In `logic:` these become **actual axioms**. The discipline
+moves *from lint to logic*; the lints survive as projection-conformance tests over the gUFO downcast.
+
+### Operational semantics: modality and identity supply
+
+Lifting these disciplines into axioms is only real if the solver knows how to *interpret* them. By
+the [triple-term/assertion rule](#triple-terms-reifiers-and-assertion), triple terms give statement
+grouping, not modal or second-order semantics; so `logic:rigidlyAppliesTo` and
+`logic:suppliesIdentity` are each given an explicit interpretation and **lowered** (compiled) onto
+machinery a rule engine already executes. UFO needs only a small, bounded set of patterns, so the
+lowering is tractable.
+
+**Modality is Kripke semantics realized by GMEOW's existing contextual index.** Every axiom is
+already relativized to standpoint, valid time, and modality; that index *is* the set of possible
+worlds. Predicates are world-relativized — `holds(w, type(x, T))` rather than bare `type(x, T)` — and
+the modal operators are the **standard translation** of modal logic into first-order logic over an
+explicit accessibility relation:
+
+- **Rigidity.** `logic:rigidlyAppliesTo(T)` lowers to the integrity constraint *for every individual
+  `x` and every pair of worlds `w`, `w'` in which `x` exists, if `x` is a `T` in `w` then `x` is a
+  `T` in `w'`*. A `Kind` is rigid; a `Role`/`Phase` is anti-rigid — the same constraint *negated*.
+  The solver needs no native ◻ operator: the compiler emits a universally quantified, world-indexed
+  rule evaluated by closure/counting over the world set.
+- **Boundedness.** Because the world set is the *finite, materialized* contextual index — not the
+  unbounded space of all logically possible worlds — evaluation is bounded universal quantification,
+  not full modal theorem proving.
+
+**Second-order identity supply is HiLog/F-logic reification, not native second-order logic.** Types
+are reified as first-order individuals (the OWL-punning move GMEOW already uses), so "quantifying
+over types" becomes first-order quantification over those individuals: `logic:suppliesIdentity(K, x)`
+is a first-order relation, and "every object instantiates exactly one ultimate sortal" is a
+first-order **counting constraint** over `instantiates(x, K) ∧ Kind(K)`. This is the Flora-2/Ergo
+lineage: syntactically second-order, semantically first-order, executable.
+
+**The lowering is specified by the lints it replaces.** Over the gUFO downcast the lowered rules must
+produce exactly the verdicts `reasoning_lint.py` yields today — the conformance suite is the
+specification of the lowering — and they additionally decide cases (cross-world rigidity, type-level
+identity) the lints cannot express.
+
+### Anti-rigidity needs a witness policy
+
+The anti-rigidity lowering says an anti-rigid `Role`/`Phase` requires a world of existence where the
+instance *lacks* the type. That is formally correct but operationally hazardous: if Stratum A uses
+only a finite materialized world set, many legitimate Role/Phase instances would fail merely because
+no counter-world has been materialized. A policy must be chosen:
+
+| Policy | Meaning | Tradeoff |
+|---|---|---|
+| Witness-required | anti-rigid instantiation is invalid unless a counter-world exists | strict but heavy |
+| Witness-obligation | the solver emits an obligation to construct or cite such a world | practical |
+| Schema-only anti-rigidity | anti-rigidity constrains the type hierarchy, not each token instance | closest to today's lint |
+| Profile-dependent | A/B use obligation; C may construct witnesses | most flexible |
+
+> **Default: witness-obligation.** Anti-rigid instantiation emits a discharge obligation rather than
+> failing; Stratum C may construct the witness world under budget (see
+> [Worlds](#worlds-modality-and-counterfactuals)). Strata A and B treat the obligation as satisfiable
+> on demand; a slice may opt into the stricter witness-required or the lighter schema-only policy and
+> declare which in its profile.
+
+## Worlds, Modality, and Counterfactuals
+
+Possible worlds, hypotheticals, and counterfactuals are not a fringe concern for a reasoning ontology
+built for AI work — they are the substance of slices GMEOW already ships: teleology (goal-worlds),
+norms (ought-worlds), deception (belief vs asserted worlds), risk (feared futures), fiction
+(representational worlds). The semantics make that apparatus explicit.
+
+### Worlds are reified, typed contexts
+
+A *world* in `logic:` is a **reified, named context**, the kind of object the ontology already
+creates. `gmeow:Standpoint` is a named perspective; `gmeow:NarrativeReferenceFrame` is a named
+in-universe canon. Truth is relativized by `gmeow:accordingTo`; worlds are ordered by
+`gmeow:sharpens` (a transitive poset topped by `gmeow:universalStandpoint`); modal force is
+`gmeow:standpointModality`, whose values already *are* the operators: `unequivocal` (□),
+`conceivable` (◇), `refuted` (□¬), plus `probable` and `bullshit`. The Kripke frame is in production:
+`accordingTo` is the world index, `sharpens` the accessibility relation, `standpointModality` the
+□/◇. `logic:` promotes this to a `logic:World` with a typed `logic:accessibleFrom` generalizing
+`sharpens`, and a world-type taxonomy (epistemic, doxastic, telic, deontic, alethic, representational,
+counterfactual).
+
+### Three strata, two already built
+
+**Stratum A — frame-indexed worlds (built, decidable).** A finite set of materialized named worlds,
+truth by `accordingTo`, accessibility by `sharpens`. Contested facts coexist without collapse —
+Crimea is `containedInPlace ex:russia` `conceivable` per one standpoint and `refuted` per
+international law, both first-class. Deception lives here: `gmeow:heldStandpoint` (belief-world) and
+`gmeow:projectedStandpoint` (asserted-world) are two claims whose gap *is* the deceptive act.
+
+**Stratum B — type-level / dispositional modality, the no-occurrence gate (built, decidable).** The
+risk slice's doctrine: *the counterfactual problem dissolves at the type level.* `gmeow:Hazard ⊑
+gufo:Disposition` is real whether or not it manifests; `gmeow:CausalLink`/`gmeow:Cascade` relate
+`EventType`s, never `Event`s; a `gmeow:Goal` is a *described* state (DOLCE Description-and-Situation)
+`gmeow:satisfiedBy` a Situation; a `gmeow:Norm` prescribes conduct *types*. The **no-occurrence
+gate** is an enforced invariant — the risk fixtures entail zero `Event` instances. Counterfactual
+*force* with no generative machinery, fully decidable.
+
+**Stratum C — generative counterfactual worlds (the frontier).** Genuine Lewis/Stalnaker
+counterfactuals: *if A had been, C would follow*, where the A-world must be **constructed**. This is
+what an AI agent does when it plans, models another mind (theory of mind = deception's held/projected
+run forward), or weighs a risk. The enabling reuses everything above: a counterfactual world is a
+**derived `logic:` frame** whose contents are *computed by a revision rule*, not asserted; the
+depiction seam `gmeow:sourceFor` generalizes to a counterfactual seam; world construction is a logic
+program (the Turing-complete payoff); and **closeness is declared data, not a fixed semantics**
+(Lewis comparative similarity = a generalized `sharpens` poset).
+
+### One typed-world catalogue
+
+| World-type | Slice | Accessibility / operator | Surface shortcut |
+|---|---|---|---|
+| Epistemic / perspectival | standpoint | `sharpens` poset; □/◇ via `standpointModality` | `accordingTo` |
+| Doxastic (belief) + assertoric | deception | held-frame vs projected-frame divergence | `heldStandpoint` / `projectedStandpoint` |
+| Telic (goal) | teleology | `satisfiedBy` (a Situation realizes the goal-world) | `hasGoal` |
+| Deontic (ought) | norms | issuer-relative ideal worlds; `deonticModality` | `violates` / `complies` |
+| Alethic / dispositional (feared) | risk | type-level branches; `causalModality`; no-occurrence gate | `typeCauses` |
+| Representational (fiction) | narrative | `sourceFor` depiction seam; in-frame `accordingTo` | `sourceFor` |
+| Affective stance (bias toward a world) | affect | vantage-indexed `Appraisal`; PAD valence | `Appraisal` |
+| Counterfactual (hypothesized) | `logic:` (new) | constructed by revision; closeness poset | `counterfactualOf` (new) |
+
+### Inconsistency across worlds, and world-indexed entailment
+
+Worlds quarantine contradiction, which is why paraconsistency is load-bearing here. The deceiver
+believes ¬P and asserts P; Sherlock is a detective in-frame and fictional out-of-frame; Crimea is
+Russian and not across standpoints. These are the data, not defects. But **named graphs alone only
+partition *data* — they do not by themselves give paraconsistent *semantics*.** The guarantee must be
+made at the inference relation:
+
+> All entailment is **world-indexed** unless a rule explicitly quantifies across worlds. There is
+> **no implicit dataset-union entailment mode** in the native solver. A contradiction in world `W1`
+> is not visible to world `W2` unless a cross-world rule names both graphs and carries its own
+> paraconsistent consequence relation.
+
+This turns the storage design (worlds as named graphs) into a *semantic* guarantee: a contradiction
+*across* worlds is never a contradiction *in* the model; only a contradiction *within a single world*
+is a witness-bearing inconsistency. `gmeow:refuted` already encodes settled-false-in-a-world as
+distinct from silence, and the three-axis orthogonality (`accordingTo` ⟂ `wasAttributedTo` ⟂
+`confidence`) keeps "which world holds it," "who reported it," and "how sure we are" from collapsing.
+
+### Deterministic revision: taming the AGM mutation explosion
+
+Stratum C computes AGM belief revision — minimally mutate a base world to admit `A`, then chase. The
+hazard is real: revision is **not uniquely determined**. Retracting facts to admit `A` in a
+tightly-linked graph can be done many ways (the multiple-maximal-consistent-subsets problem,
+exponential). Stalnaker assumes a single closest world; Lewis admits ties, and resolving a tie means
+quantifying over *all* closest worlds. Naive Stratum C is a branching bomb: one retracted fact
+("mitigation `X` failed") can break dozens of dependencies, each with several minimal repairs.
+
+`logic:` does not defuse this by computing the permutations. It takes the design's own clause
+literally — **closeness is declared data, not a fixed semantics** — and recognizes that the selection
+among minimal revisions is exactly AGM's **epistemic entrenchment** (Gärdenfors–Makinson: entrenchment
+orderings correspond to revision functions; a *total* order gives a unique, maxichoice revision). A
+declared entrenchment ordering yields a single revised world, with no branching.
+
+The **Deterministic Revision Profile** is the default, and the only mode Stratum C runs in unless a
+slice opts out:
+
+- **Ties are broken by declared type-level priority** — an entrenchment ordering for which `logic:`
+  already owns the vocabulary: norm precedence (`gmeow:overrides`, `gmeow:AuthorityLevel`'s
+  `absolute ≻ high ≻ medium ≻ conditional`, `gmeow:PrecedenceTenure`), risk grading
+  (`gmeow:moreSevereThan`, `causalModality`'s `necessitates ≻ promotes ≻ enables`), source warrant
+  (`gmeow:SourceTier` / `EvidenceClass`), and the `gmeow:sharpens` poset. The revision retracts the
+  *least entrenched* facts first; a total order picks exactly one world.
+- **A genuine tie is not enumerated.** If the order is partial and leaves two minimal revisions
+  incomparable, the solver does **not** branch — it returns `unknown` (ambiguous) within budget.
+- **Multi-world quantification is opt-in and budget-capped.** A slice that needs Lewis ties — `C` in
+  *every* closest `A`-world (skeptical) or in *some* (credulous) — may request it as a non-default
+  profile under a hard branch budget that degrades to `unknown` on exhaustion. Never the default,
+  never unbounded.
+
+This resolves a tension with Principle 9. The entrenchment ordering does **not** globally privilege
+any fact; it is **local to one revision, declared for one counterfactual**. The result is
+frame-relative — *"the closest `A`-world according to entrenchment `O`"* — itself a standpoint-indexed
+claim. A different declared closeness yields a different counterfactual, and the two **coexist** like
+any contested fact. Determinism per ordering; plurality across orderings.
+
+### Decidability across the strata
+
+Strata A and B are **certified-decidable profiles** — A because the world set is finite and
+materialized, B because the no-occurrence gate keeps everything type-level. Stratum C is generative
+and undecidable in general; it is enabled but governed — worlds are constructed **lazily per query**
+(only the closest-`A`-world the goal needs), under the resource budget, with certified profiles for
+the structured revision patterns the slices use (a lapsed mitigation, a single counterfactual
+antecedent, a one-step belief update). The no-occurrence gate is itself a reusable certified
+invariant: a profile may assert that a derivation introduces no token occurrences, keeping type-level
+counterfactual reasoning inside the decidable region.
+
+---
+
+*Works cited here — AGM revision, Lewis/Stalnaker counterfactuals, Church/Turing, HiLog, F-logic,
+the chase, well-founded and stable-model semantics — are listed in
+[LOGIC-REFERENCES.md](LOGIC-REFERENCES.md).*

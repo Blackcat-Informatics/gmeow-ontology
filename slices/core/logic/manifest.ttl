@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/logic>
+    a gmeow:Slice ;
+    rdfs:label "logic"@x-gmeow-english ;
+    skos:definition "The logic slice (core tier): the home of GMEOW Logic — the maximally expressive, RDF 1.2-native reasoning layer (`logic:`) of which OWL, Datalog, SHACL, Prolog, N3, and the gUFO/BFO/DOLCE upper ontologies are generated lossy projections (Principle 17). The normative design is the five-document set in `design/`; the `logic:` vocabulary, rules, solver, and generators are minted with implementation. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    dcterms:title "GMEOW Logic"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction. Pre-implementation, its consumer is the design set in `design/`."@x-gmeow-english .

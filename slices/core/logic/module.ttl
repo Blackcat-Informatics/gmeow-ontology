@@ -1,0 +1,23 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/logic>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Logic"@x-gmeow-english ;
+    skos:definition "The GMEOW Logic module — home of the `logic:` reasoning vocabulary. A minimal stub: the normative design is in `design/`, and the `logic:` terms, rules, profiles, and generators are minted when the engine lands (Principle 17). No terms are declared here yet, so the module adds no axioms to the reasoned core."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:comment "Stub module. The logic: namespace <https://blackcatinformatics.ca/logic/> is reserved here; its vocabulary (the unified core, semantic profiles, the foundation UFO⁺, world/modal terms) is specified in design/LOGIC-SEMANTICS.md and minted with implementation. Until then this slice contributes only its identity and tier (the manifest), not ontology terms."@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# No terms yet. The `logic:` vocabulary (logic:Kind, logic:Relator,
+# logic:rigidlyAppliesTo, logic:World, logic:counterfactualOf, the semantic
+# and decidability profiles, …) is specified in design/ and minted when the
+# native solver lands, together with its generators and conformance corpus
+# (Principle 17, amendment-in-the-open).
+# --------------------------------------------------------------------------- #
