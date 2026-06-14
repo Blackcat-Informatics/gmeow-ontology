@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the PGP web of trust (#443). Trust is decentralized and
+# relational: agents gmeow:holdKey cryptographic keys; one agent's
+# gmeow:Certification signs another's key (a key-signing, binding key↔identity);
+# and a gmeow:TrustAssertion records how much a trustor trusts a trustee AS AN
+# INTRODUCER (gmeow:trustLevel + gmeow:introducerDepth — how far transitive trust
+# may flow). gmeow:endorses is the lightweight, keyless vouch. No central
+# authority: trust is asserted pairwise and composed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/> .
+
+ex:alice a gmeow:Person ;
+    gmeow:name     "Alice"@x-gmeow-english ;
+    gmeow:holdsKey ex:aliceKey ;
+    gmeow:endorses ex:bob .
+
+ex:bob a gmeow:Person ;
+    gmeow:name     "Bob"@x-gmeow-english ;
+    gmeow:holdsKey ex:bobKey .
+
+ex:aliceKey a gmeow:CryptographicKey ;
+    gmeow:keyScheme    gmeow:keySchemePGP ;
+    gmeow:keyAlgorithm "ed25519" ;
+    gmeow:fingerprint  "ABCD 1234 EF56 7890 ABCD 1234 EF56 7890 ABCD 1234" ;
+    gmeow:keyId        "0xEF567890" .
+
+ex:bobKey a gmeow:CryptographicKey ;
+    gmeow:keyScheme   gmeow:keySchemePGP ;
+    gmeow:fingerprint "EF01 5678 ABCD 1234 EF01 5678 ABCD 1234 EF01 5678" .
+
+# --- Alice signs Bob's key, certifying the key↔identity binding.
+ex:cert a gmeow:Certification ;
+    gmeow:certifier         ex:alice ;
+    gmeow:certifiedKey      ex:bobKey ;
+    gmeow:certifiedIdentity ex:bob ;
+    gmeow:certificationLevel "positive" .
+
+# --- Alice trusts Bob as a level-1 introducer (his certifications count for her).
+ex:trust a gmeow:TrustAssertion ;
+    gmeow:trustor         ex:alice ;
+    gmeow:trustee         ex:bob ;
+    gmeow:trustLevel      "full" ;
+    gmeow:introducerDepth 1 .
