@@ -7,6 +7,7 @@
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix fno:     <https://w3id.org/function/ontology#> .
+@prefix mimo:    <http://www.mimo-db.eu/InstrumentsKeywords/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/music>
     a owl:Ontology ;
@@ -17,10 +18,11 @@
 
 This module implements the music extension slice: pitch frames (issue #308),
 pitch collections and spelling (issue #309), musical time (issue #310), the
-structure graph (issue #311), and performance events & participation (issue
-#313): PerformanceParticipation, performanceOf, InstrumentType, and the
-session/take/overdub fixture. Bulk note-level data lives in GTS music-package
-bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-english ;
+structure graph (issue #311), performance events & participation (issue #313),
+and instruments & configurations (issue #314): InstrumentType,
+InstrumentConfiguration, InstrumentModification, PlayingTechnique, and the
+Cage prepared-piano / drop-D guitar fixtures. Bulk note-level data lives in
+GTS music-package bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -3671,14 +3673,21 @@ gmeow:InstrumentType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Instrument Type"@x-gmeow-english ;
-    skos:definition "The kind of a musical instrument — piano, violin, drum kit, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Stub range for issue #314 (Instruments & configurations)."@x-gmeow-english ;
+    skos:definition "The kind of a musical instrument — piano, violin, drum kit, voice, etc. An open value vocabulary of individuals; never subclassed (Principle 9). Each individual may carry a Hornbostel–Sachs code (gmeow:hsNumber) and a MIMO exactMatch (Principle 5)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:InstrumentConfiguration
     a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:subClassOf gufo:Relator ;
     rdfs:label "Instrument Configuration"@x-gmeow-english ;
-    skos:definition "A configured instrument setup — instrument × modification × tuning frame × extended-technique arrangement. Minimal stub declared here as the range of gmeow:participationConfiguration; fully elaborated in issue #314 (Principle 4)."@x-gmeow-english ;
+    skos:definition "A configured instrument setup — a relator binding an instrument item or type, one or more modifications, a tuning frame, and an interval. The prepared-piano / drop-tuning answer (issue #314). A physical instrument and a software instrument are both first-class subjects; no new instrument-item class is minted (Principles 4, 9, 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:InstrumentModification
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Instrument Modification"@x-gmeow-english ;
+    skos:definition "A modification applied to an instrument in an InstrumentConfiguration — prepared, scordatura, capo, mute, electrified, extended range, etc. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:PlayingTechnique
@@ -3711,9 +3720,9 @@ gmeow:participationInstrument
 gmeow:participationInstrumentItem
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:PerformanceParticipation ;
-    rdfs:range gmeow:Item ;
+    rdfs:range gmeow:Entity ;
     rdfs:label "participation instrument item"@x-gmeow-english ;
-    skos:definition "The specific physical instrument item used in this participation — the particular Stradivarius, the named drum kit, etc. Functional per relator."@x-gmeow-english ;
+    skos:definition "The specific instrument item used in this participation — the particular 1959 Les Paul (a PhysicalObject), a synth plugin (an InformationObject), the named drum kit, etc. Ranges over Entity so that any item-kind can be named without minting a new class (issue #314; Principle 9). Functional per relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:participationConfiguration
@@ -3721,7 +3730,7 @@ gmeow:participationConfiguration
     rdfs:domain gmeow:PerformanceParticipation ;
     rdfs:range gmeow:InstrumentConfiguration ;
     rdfs:label "participation configuration"@x-gmeow-english ;
-    skos:definition "The instrument configuration used in this participation. Functional per relator. Range is the #314 stub class."@x-gmeow-english ;
+    skos:definition "The instrument configuration used in this participation. Functional per relator. Range elaborated in issue #314."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:participationPart
@@ -3740,6 +3749,62 @@ gmeow:participationTechnique
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
+# INSTRUMENT CONFIGURATION PROPERTIES — issue #314
+# --------------------------------------------------------------------------- #
+
+gmeow:configurationOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InstrumentConfiguration ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "configuration of"@x-gmeow-english ;
+    skos:definition "The specific instrument item this configuration applies to — a PhysicalObject (e.g. a 1959 Les Paul), an InformationObject (e.g. a synth plugin), or any other Entity. Functional per relator; use configurationInstrumentType when no specific item is named."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:configurationInstrumentType
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InstrumentConfiguration ;
+    rdfs:range gmeow:InstrumentType ;
+    rdfs:label "configuration instrument type"@x-gmeow-english ;
+    skos:definition "The kind of instrument this configuration applies to, when no specific item is named (e.g. drop-D electric guitar). Functional per relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:configurationModification
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InstrumentConfiguration ;
+    rdfs:range gmeow:InstrumentModification ;
+    rdfs:label "configuration modification"@x-gmeow-english ;
+    skos:definition "A modification applied in this configuration — prepared, scordatura, capo, mute, electrified, extended range, etc. Non-functional so that compound modifications (e.g. muted + electrified) can be asserted in one relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:configurationTuningFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InstrumentConfiguration ;
+    rdfs:range gmeow:TuningSystem ;
+    rdfs:label "configuration tuning frame"@x-gmeow-english ;
+    skos:definition "The tuning frame relative to which this configuration is expressed (Principle 11). Functional per relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:configurationInterval
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InstrumentConfiguration ;
+    rdfs:range gmeow:PitchInterval ;
+    rdfs:label "configuration interval"@x-gmeow-english ;
+    skos:definition "The interval that describes this configuration (e.g. the whole-step drop for drop-D). Functional per relator; optional because some modifications (prepared piano) alter timbre without a named interval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# INSTRUMENT TYPE ANCILLARY PROPERTIES — issue #314
+# --------------------------------------------------------------------------- #
+
+gmeow:hsNumber
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InstrumentType ;
+    rdfs:range xsd:string ;
+    rdfs:label "Hornbostel–Sachs number"@x-gmeow-english ;
+    skos:definition "The Hornbostel–Sachs classification number for this instrument type, as a literal string (e.g. \"314.122-4-8\" for piano). Optional; carried as a literal because HS codes are not quantitative values (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
 # AXIOMATIZED DOCTRINE — relator EL patterns
 # --------------------------------------------------------------------------- #
 
@@ -3748,6 +3813,10 @@ gmeow:PerformanceParticipation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:someValuesFrom gmeow:Entity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:participationRole ;        owl:someValuesFrom gmeow:ParticipantRole ] .
 
+gmeow:InstrumentConfiguration rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationModification ;       owl:someValuesFrom gmeow:InstrumentModification ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationTuningFrame ;       owl:someValuesFrom gmeow:TuningSystem ] .
+
 # --------------------------------------------------------------------------- #
 # VALUE VOCABULARY — InstrumentType (individuals, never subclasses)
 # --------------------------------------------------------------------------- #
@@ -3755,26 +3824,108 @@ gmeow:PerformanceParticipation rdfs:subClassOf
 gmeow:instrumentTypePiano a gmeow:InstrumentType ;
     rdfs:label "piano"@x-gmeow-english ;
     skos:definition "A keyboard instrument in which strings are struck by hammers."@x-gmeow-english ;
+    gmeow:hsNumber "314.122-4-8"^^xsd:string ;
+    skos:exactMatch mimo:2299 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:instrumentTypeViolin a gmeow:InstrumentType ;
     rdfs:label "violin"@x-gmeow-english ;
     skos:definition "A bowed string instrument with four strings tuned in fifths."@x-gmeow-english ;
+    gmeow:hsNumber "321.322-71"^^xsd:string ;
+    skos:exactMatch mimo:3678 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:instrumentTypeDoubleBass a gmeow:InstrumentType ;
     rdfs:label "double bass"@x-gmeow-english ;
     skos:definition "The largest and lowest-pitched bowed string instrument in the modern symphony orchestra."@x-gmeow-english ;
+    gmeow:hsNumber "321.322-8"^^xsd:string ;
+    skos:exactMatch mimo:3686 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:instrumentTypeDrumKit a gmeow:InstrumentType ;
     rdfs:label "drum kit"@x-gmeow-english ;
     skos:definition "A collection of drums, cymbals, and other percussion instruments played by a single drummer."@x-gmeow-english ;
+    skos:exactMatch mimo:2493 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:instrumentTypeElectricGuitar a gmeow:InstrumentType ;
     rdfs:label "electric guitar"@x-gmeow-english ;
     skos:definition "A guitar that uses one or more pickups to convert string vibration into electrical signals."@x-gmeow-english ;
+    gmeow:hsNumber "321.322-6"^^xsd:string ;
+    skos:exactMatch mimo:3236 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeVoice a gmeow:InstrumentType ;
+    rdfs:label "voice"@x-gmeow-english ;
+    skos:definition "The human voice as a musical instrument. No MIMO exactMatch exists for the voice as instrument; aligned where possible by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeSitar a gmeow:InstrumentType ;
+    rdfs:label "sitar"@x-gmeow-english ;
+    skos:definition "A plucked stringed instrument used in Hindustani classical music."@x-gmeow-english ;
+    skos:exactMatch mimo:3456 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeTabla a gmeow:InstrumentType ;
+    rdfs:label "tabla"@x-gmeow-english ;
+    skos:definition "A pair of twin hand drums used in Hindustani classical music."@x-gmeow-english ;
+    skos:exactMatch mimo:2899 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeModularSynth a gmeow:InstrumentType ;
+    rdfs:label "modular synthesizer"@x-gmeow-english ;
+    skos:definition "A synthesizer composed of separate modules connected by patch cables, often voltage-controlled."@x-gmeow-english ;
+    skos:exactMatch mimo:2321 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeTurntables a gmeow:InstrumentType ;
+    rdfs:label "turntables"@x-gmeow-english ;
+    skos:definition "A pair of phonograph turntables used as a musical instrument, especially in DJing and turntablism. No direct MIMO entry exists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeAdaptedGuitar a gmeow:InstrumentType ;
+    rdfs:label "adapted guitar"@x-gmeow-english ;
+    skos:definition "A guitar adapted for a non-standard tuning or playing technique, as in Harry Partch's instrumentarium. No direct MIMO entry exists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentTypeGamelan a gmeow:InstrumentType ;
+    rdfs:label "gamelan"@x-gmeow-english ;
+    skos:definition "An ensemble of percussion instruments from Indonesia, treated here as a single instrument-type for performance-credit purposes."@x-gmeow-english ;
+    skos:exactMatch mimo:2805 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — InstrumentModification (individuals, never subclasses)
+# --------------------------------------------------------------------------- #
+
+gmeow:instrumentModificationPrepared a gmeow:InstrumentModification ;
+    rdfs:label "prepared"@x-gmeow-english ;
+    skos:definition "The instrument is prepared — objects are inserted on or between sounding elements to alter timbre (e.g. Cage prepared piano)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentModificationScordatura a gmeow:InstrumentModification ;
+    rdfs:label "scordatura"@x-gmeow-english ;
+    skos:definition "The instrument is tuned away from its standard tuning (e.g. drop-D guitar, solo violin scordatura)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentModificationCapo a gmeow:InstrumentModification ;
+    rdfs:label "capo"@x-gmeow-english ;
+    skos:definition "A capo is placed on a stringed instrument, raising the open-string pitch."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentModificationMute a gmeow:InstrumentModification ;
+    rdfs:label "mute"@x-gmeow-english ;
+    skos:definition "A mute is applied to alter the timbre or volume of the instrument."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentModificationElectrified a gmeow:InstrumentModification ;
+    rdfs:label "electrified"@x-gmeow-english ;
+    skos:definition "The instrument is augmented with electronic pickups, amplification, or signal processing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:instrumentModificationExtendedRange a gmeow:InstrumentModification ;
+    rdfs:label "extended range"@x-gmeow-english ;
+    skos:definition "The instrument has additional strings, keys, or sounding elements beyond its conventional range."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
@@ -3791,9 +3942,49 @@ gmeow:playingTechniquePizzicato a gmeow:PlayingTechnique ;
     skos:definition "Plucking the strings of a bowed string instrument rather than bowing them."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
+gmeow:playingTechniqueColLegno a gmeow:PlayingTechnique ;
+    rdfs:label "col legno"@x-gmeow-english ;
+    skos:definition "Striking the strings with the wood of the bow rather than the hair."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
 gmeow:playingTechniquePreparedPiano a gmeow:PlayingTechnique ;
     rdfs:label "prepared piano"@x-gmeow-english ;
     skos:definition "A piano whose sound is altered by placing objects on or between the strings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniqueMultiphonics a gmeow:PlayingTechnique ;
+    rdfs:label "multiphonics"@x-gmeow-english ;
+    skos:definition "Producing two or more simultaneous pitches on a monophonic instrument, common in wind and string extended techniques."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniqueTapping a gmeow:PlayingTechnique ;
+    rdfs:label "tapping"@x-gmeow-english ;
+    skos:definition "Producing notes by tapping the fingerboard or strings, often on guitar or electric bass."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniqueSlap a gmeow:PlayingTechnique ;
+    rdfs:label "slap"@x-gmeow-english ;
+    skos:definition "A percussive string-playing technique in which the string is struck against the fingerboard."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniqueGrowl a gmeow:PlayingTechnique ;
+    rdfs:label "growl"@x-gmeow-english ;
+    skos:definition "A brass or woodwind timbre produced by growling or fluttering the vocal cords while playing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniqueKonnakol a gmeow:PlayingTechnique ;
+    rdfs:label "konnakol"@x-gmeow-english ;
+    skos:definition "Vocal syllables used to articulate and teach rhythmic patterns in South Indian music."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniqueBentNote a gmeow:PlayingTechnique ;
+    rdfs:label "bent note"@x-gmeow-english ;
+    skos:definition "A continuous pitch inflection from one pitch to another, common in blues, jazz, and many world-music traditions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:playingTechniqueHarmonics a gmeow:PlayingTechnique ;
+    rdfs:label "harmonics"@x-gmeow-english ;
+    skos:definition "A technique that emphasizes upper partials of a string or air column to produce flute-like overtones."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
@@ -3956,6 +4147,68 @@ gmeow:fixtureTake3DrumParticipation
     gmeow:participationParticipant gmeow:fixtureSessionDrummer ;
     gmeow:participationRole gmeow:roleSessionMusician ;
     gmeow:participationInstrument gmeow:instrumentTypeDrumKit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# =========================================================================== #
+# INSTRUMENT CONFIGURATION FIXTURES — issue #314
+# =========================================================================== #
+
+# A tablature-relative frame for a guitar tuned to drop-D. It is hosted by the
+# specific string/fret configuration rather than by an absolute pitch anchor.
+gmeow:tuningSystemGuitarDropD
+    a gmeow:TuningSystem ;
+    rdfs:label "guitar drop-D tablature frame"@x-gmeow-english ;
+    skos:definition "A tablature-relative tuning frame for a six-string guitar whose lowest string is tuned down a major second to D, used by the drop-D configuration fixture (issue #314)."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindTablatureRelative ;
+    gmeow:degreeCount "6"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# The interval of a major second down — the drop in drop-D (E → D, ratio 8/9).
+gmeow:pitchIntervalMajorSecondDown
+    a gmeow:PitchInterval ;
+    rdfs:label "major second down"@x-gmeow-english ;
+    skos:definition "A descending major second, the interval by which a standard guitar low E is dropped to D in drop-D tuning."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:ratioNumerator "8"^^xsd:integer ;
+    gmeow:ratioDenominator "9"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Cage prepared piano configuration: a piano prepared with objects between the
+# strings, altering timbre but not the 12-EDO tuning frame.
+gmeow:fixturePreparedPianoConfiguration
+    a gmeow:InstrumentConfiguration ;
+    rdfs:label "Cage prepared piano configuration"@x-gmeow-english ;
+    skos:definition "A prepared-piano configuration fixture: piano + prepared modification over the 12-EDO frame, no interval (timbre change, not tuning change)."@x-gmeow-english ;
+    gmeow:configurationInstrumentType gmeow:instrumentTypePiano ;
+    gmeow:configurationModification gmeow:instrumentModificationPrepared ;
+    gmeow:configurationTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Drop-D electric guitar configuration: a type-level configuration binding
+# electric guitar + scordatura + a tablature-relative frame + the drop interval.
+gmeow:fixtureDropDGuitarConfiguration
+    a gmeow:InstrumentConfiguration ;
+    rdfs:label "drop-D electric guitar configuration"@x-gmeow-english ;
+    skos:definition "A drop-D guitar configuration fixture: electric guitar + scordatura modification + tablature-relative drop-D frame + major-second-down interval."@x-gmeow-english ;
+    gmeow:configurationInstrumentType gmeow:instrumentTypeElectricGuitar ;
+    gmeow:configurationModification gmeow:instrumentModificationScordatura ;
+    gmeow:configurationTuningFrame gmeow:tuningSystemGuitarDropD ;
+    gmeow:configurationInterval gmeow:pitchIntervalMajorSecondDown ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# A specific physical instrument item participating in a performance, to
+# demonstrate that participationInstrumentItem now ranges over Entity.
+gmeow:fixture1959LesPaul
+    a gmeow:PhysicalObject ;
+    rdfs:label "1959 Les Paul fixture"@x-gmeow-english ;
+    skos:definition "A placeholder physical instrument item used to test the participationInstrumentItem Entity range (issue #314)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #

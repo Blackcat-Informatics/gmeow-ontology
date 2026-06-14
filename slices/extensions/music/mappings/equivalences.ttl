@@ -5,9 +5,11 @@
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 
 @prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
 @prefix mo: <http://purl.org/ontology/mo/> .
 @prefix schema: <https://schema.org/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix mimo: <http://www.mimo-db.eu/InstrumentsKeywords/> .
 
 # Music slice alignments.
 # Compiled to mappings/gmeow-music.sssom.tsv by `gmeow compile-mappings`.
@@ -328,4 +330,152 @@ gmeow:eqMu024 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:comment "schema.org performer — already bridged from the events slice; repeated here for the music alignment set." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Wikidata — instruments & configurations (issue #314)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMu025 a gmeow:TermEquivalence ;
+    rdfs:label "InstrumentType ↔ Wikidata Q34379"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW InstrumentType value vocabulary to Wikidata 'musical instrument' (Q34379)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:InstrumentType ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q34379 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'musical instrument' (Q34379) — the GMEOW sense is a value-vocabulary entry, not the physical object." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu026 a gmeow:TermEquivalence ;
+    rdfs:label "hsNumber ↔ Wikidata Q496327"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW hsNumber property to Wikidata 'Hornbostel–Sachs' (Q496327), the classification system the literal values name."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:hsNumber ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q496327 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'Hornbostel–Sachs' (Q496327) — the classification system named by hsNumber literals." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu027 a gmeow:TermEquivalence ;
+    rdfs:label "InstrumentType ↔ Wikidata Q26836418"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW InstrumentType value vocabulary to Wikidata 'MIMO's classification of musical instruments' (Q26836418)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:InstrumentType ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q26836418 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'MIMO's classification of musical instruments' (Q26836418) — per-seed MIMO exactMatches are carried directly on InstrumentType individuals." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu028 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypePiano ↔ MIMO 2299"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW piano instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypePiano ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject mimo:2299 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "MIMO 'Piano' (2299)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu029 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypeElectricGuitar ↔ MIMO 3236"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW electric guitar instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypeElectricGuitar ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject mimo:3236 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "MIMO 'Electric guitar' (3236)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu030 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypeDrumKit ↔ MIMO 2493"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW drum kit instrument type to the MIMO 'Drums' vocabulary entry."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypeDrumKit ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mimo:2493 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "MIMO 'Drums' (2493) — broader than the drum kit sense." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu031 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypeSitar ↔ MIMO 3456"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW sitar instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypeSitar ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject mimo:3456 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "MIMO 'Sitar' (3456)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu032 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypeTabla ↔ MIMO 2899"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW tabla instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypeTabla ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject mimo:2899 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "MIMO 'Tabla' (2899)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu033 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypeModularSynth ↔ MIMO 2321"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW modular synthesizer instrument type to the MIMO 'Synthesizer' vocabulary entry."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypeModularSynth ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mimo:2321 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "MIMO 'Synthesizer' (2321) — broader than modular synthesizer." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu034 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypeGamelan ↔ MIMO 2805"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW gamelan instrument type to the MIMO vocabulary entry."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypeGamelan ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject mimo:2805 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "MIMO 'Gamelan' (2805)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu035 a gmeow:TermEquivalence ;
+    rdfs:label "playingTechniquePreparedPiano ↔ Wikidata Q754186"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW prepared piano playing technique to Wikidata 'prepared piano' (Q754186)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:playingTechniquePreparedPiano ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q754186 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'prepared piano' (Q754186) — a playing technique and an instrument configuration." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu036 a gmeow:TermEquivalence ;
+    rdfs:label "instrumentTypeGamelan ↔ Wikidata Q194492"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW gamelan instrument type to Wikidata 'gamelan' (Q194492), the music/ensemble sense closest to the instrument-type usage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:instrumentTypeGamelan ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q194492 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'gamelan' (Q194492) — the music/ensemble sense; closest available for the instrument-type seed." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .

@@ -7,6 +7,7 @@
 # comment: "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)."
 # curie_map:
 #   gmeow: https://blackcatinformatics.ca/gmeow/
+#   mimo: http://www.mimo-db.eu/InstrumentsKeywords/
 #   mo: http://purl.org/ontology/mo/
 #   prov: http://www.w3.org/ns/prov#
 #   schema: https://schema.org/
@@ -15,6 +16,8 @@
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:DegreeOfFreedom	skos:closeMatch	wd:Q623715	semapv:ManualMappingCuration	0.8	Wikidata 'aleatoric music' (Q623715) — the GMEOW relator declares the same indeterminacy structurally.
+gmeow:InstrumentType	skos:closeMatch	wd:Q26836418	semapv:ManualMappingCuration	0.85	Wikidata 'MIMO's classification of musical instruments' (Q26836418) — per-seed MIMO exactMatches are carried directly on InstrumentType individuals.
+gmeow:InstrumentType	skos:closeMatch	wd:Q34379	semapv:ManualMappingCuration	0.9	Wikidata 'musical instrument' (Q34379) — the GMEOW sense is a value-vocabulary entry, not the physical object.
 gmeow:MetricStructure	skos:closeMatch	wd:Q155234	semapv:ManualMappingCuration	0.85	Wikidata 'time signature' (Q155234) — a CMN projection of the underlying MetricStructure.
 gmeow:PerformanceParticipation	skos:closeMatch	prov:Association	semapv:ManualMappingCuration	0.8	PROV-O Association is the generic qualified participation idiom.
 gmeow:PitchCollection	skos:closeMatch	wd:Q179651	semapv:ManualMappingCuration	0.9	Wikidata 'scale' (Q179651) — broader than the GMEOW collection view.
@@ -24,11 +27,21 @@ gmeow:TempoMap	skos:closeMatch	wd:Q189214	semapv:ManualMappingCuration	0.85	Wiki
 gmeow:TuningSystem	skos:closeMatch	wd:Q723441	semapv:ManualMappingCuration	0.9	Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view.
 gmeow:determinationDelegatedPerformer	skos:closeMatch	wd:Q1049625	semapv:ManualMappingCuration	0.8	Wikidata 'musical improvisation' (Q1049625) — improvisation is one form of performer-delegated determination.
 gmeow:eventTypeConcert	skos:closeMatch	wd:Q182832	semapv:ManualMappingCuration	0.95	Wikidata 'concert' (Q182832).
+gmeow:hsNumber	skos:closeMatch	wd:Q496327	semapv:ManualMappingCuration	0.85	Wikidata 'Hornbostel–Sachs' (Q496327) — the classification system named by hsNumber literals.
+gmeow:instrumentTypeDrumKit	skos:closeMatch	mimo:2493	semapv:ManualMappingCuration	0.85	MIMO 'Drums' (2493) — broader than the drum kit sense.
+gmeow:instrumentTypeElectricGuitar	skos:exactMatch	mimo:3236	semapv:ManualMappingCuration	0.95	MIMO 'Electric guitar' (3236).
+gmeow:instrumentTypeGamelan	skos:closeMatch	wd:Q194492	semapv:ManualMappingCuration	0.8	Wikidata 'gamelan' (Q194492) — the music/ensemble sense; closest available for the instrument-type seed.
+gmeow:instrumentTypeGamelan	skos:exactMatch	mimo:2805	semapv:ManualMappingCuration	0.9	MIMO 'Gamelan' (2805).
+gmeow:instrumentTypeModularSynth	skos:closeMatch	mimo:2321	semapv:ManualMappingCuration	0.85	MIMO 'Synthesizer' (2321) — broader than modular synthesizer.
+gmeow:instrumentTypePiano	skos:exactMatch	mimo:2299	semapv:ManualMappingCuration	0.95	MIMO 'Piano' (2299).
+gmeow:instrumentTypeSitar	skos:exactMatch	mimo:3456	semapv:ManualMappingCuration	0.95	MIMO 'Sitar' (3456).
+gmeow:instrumentTypeTabla	skos:exactMatch	mimo:2899	semapv:ManualMappingCuration	0.95	MIMO 'Tabla' (2899).
 gmeow:performanceOf	skos:closeMatch	mo:performance_of	semapv:ManualMappingCuration	0.75	Music Ontology mo:performance_of relates a performance event to the musical work performed.
 gmeow:performanceOf	skos:closeMatch	wd:P2550	semapv:ManualMappingCuration	0.85	Wikidata 'recording or performance of' (P2550) — the closest available property for performance→work linkage.
 gmeow:pitchCollectionKindMaqam	skos:closeMatch	wd:Q12826678	semapv:ManualMappingCuration	0.85	Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions.
 gmeow:pitchCollectionKindMode	skos:exactMatch	wd:Q731978	semapv:ManualMappingCuration	0.95	Wikidata 'mode (music)' (Q731978).
 gmeow:pitchCollectionKindRaga	skos:exactMatch	wd:Q216926	semapv:ManualMappingCuration	0.95	Wikidata 'raga' (Q216926).
+gmeow:playingTechniquePreparedPiano	skos:closeMatch	wd:Q754186	semapv:ManualMappingCuration	0.9	Wikidata 'prepared piano' (Q754186) — a playing technique and an instrument configuration.
 gmeow:polymeterPattern	skos:closeMatch	wd:Q2102956	semapv:ManualMappingCuration	0.8	Wikidata 'polymeter' (Q2102956) — in GMEOW polymeter is modelled as the concurrent MeterAssignment pattern, not as a class.
 gmeow:roleEnsembleMember	skos:relatedMatch	wd:Q2088357	semapv:ManualMappingCuration	0.75	Wikidata 'musical ensemble' (Q2088357) — the entity an ensemble member participates in.
 gmeow:rolePerformer	skos:closeMatch	schema:performer	semapv:ManualMappingCuration	0.85	schema.org performer — already bridged from the events slice; repeated here for the music alignment set.

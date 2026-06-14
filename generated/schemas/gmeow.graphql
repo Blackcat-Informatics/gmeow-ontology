@@ -1120,13 +1120,36 @@ enum IndexAlgorithmEnum
     indexAlgorithmIvf
   }
 
+enum InstrumentConfigurationEnum
+  {
+    fixtureDropDGuitarConfiguration
+    fixturePreparedPianoConfiguration
+  }
+
+enum InstrumentModificationEnum
+  {
+    instrumentModificationCapo
+    instrumentModificationElectrified
+    instrumentModificationExtendedRange
+    instrumentModificationMute
+    instrumentModificationPrepared
+    instrumentModificationScordatura
+  }
+
 enum InstrumentTypeEnum
   {
+    instrumentTypeAdaptedGuitar
     instrumentTypeDoubleBass
     instrumentTypeDrumKit
     instrumentTypeElectricGuitar
+    instrumentTypeGamelan
+    instrumentTypeModularSynth
     instrumentTypePiano
+    instrumentTypeSitar
+    instrumentTypeTabla
+    instrumentTypeTurntables
     instrumentTypeViolin
+    instrumentTypeVoice
   }
 
 enum InvitationStatusEnum
@@ -1845,6 +1868,11 @@ enum PhysicalCarrierTypeEnum
     carrierWood
   }
 
+enum PhysicalObjectEnum
+  {
+    fixture1959LesPaul
+  }
+
 enum PitchAnchorEnum
   {
     pitchAnchorA415
@@ -1918,6 +1946,7 @@ enum PitchCollectionMembershipEnum
 
 enum PitchIntervalEnum
   {
+    pitchIntervalMajorSecondDown
     pitchIntervalPerfectFifth
     pitchIntervalSeptimalComma
     pitchIntervalSyntonicComma
@@ -2008,8 +2037,16 @@ enum PlaceTypeEnum
 enum PlayingTechniqueEnum
   {
     playingTechniqueArco
+    playingTechniqueBentNote
+    playingTechniqueColLegno
+    playingTechniqueGrowl
+    playingTechniqueHarmonics
+    playingTechniqueKonnakol
+    playingTechniqueMultiphonics
     playingTechniquePizzicato
     playingTechniquePreparedPiano
+    playingTechniqueSlap
+    playingTechniqueTapping
   }
 
 enum PostingDirectionEnum
@@ -2837,6 +2874,7 @@ enum TuningSystemEnum
     tuningSystem24EDO
     tuningSystem31EDO
     tuningSystemBohlenPierce
+    tuningSystemGuitarDropD
     tuningSystemJustIntonation
     tuningSystemPartch43
     tuningSystemPelog
@@ -9523,63 +9561,20 @@ type Instant
 
 type InstrumentConfiguration
   {
-    acquireLicensePage: [String]
-    attributionText: [String]
-    attributionUrl: [String]
-    authorityLink: [String]
-    cites: [CreativeWork]
-    conditionsOfAccess: [String]
-    counterpartOf: [Entity]
-    depictedIn: [MediaObject]
-    description: [String]
-    existenceInterval: [TimeInterval]
-    hasAccessibilityNeed: [AccessibilityFacet]
-    hasAppellation: [Appellation]
-    hasAttestation: [Attestation]
-    hasCopyright: [Copyright]
-    hasCreationEvent: [Event]
-    hasDestructionEvent: [Event]
-    hasDirectReply: [Comment]
-    hasIdentifier: [Identifier]
-    hasLicense: [License]
-    hasLogo: [MediaObject]
-    hasPose: [Pose]
-    hasReply: [Comment]
-    hasRightsStatement: [RightsStatement]
-    hasSensoryObservation: [SensoryObservation]
-    hasSensoryQuantity: [SensoryQuantity]
-    hasSpatialMeasurement: [SpatialMeasurement]
-    hasStream: [Stream]
-    hasTag: [Tag]
-    hasTrademark: [Trademark]
-    hasVersion: [Entity]
-    hasVoice: [Voice]
-    hasWebPage: [WebPage]
-    isAbout: [Entity]
-    isAccessibleForFree: [Boolean]
-    isReferencedBy: [Entity]
-    isResultOf: [Observation]
-    locatedAt: [Location]
-    mediaType: String
-    mentionedIn: [Note]
-    name: [String]
-    ownedBy: [Agent]
-    provenance: [String]
-    proximity: [ProximityMeasurement]
-    references: [Entity]
-    storedIn: [StorageLocation]
-    supersededBy: [Entity]
-    supersedes: [Entity]
-    usageInfo: [String]
-    versionFingerprint: [String]
-    versionLabel: [String]
-    versionOf: Entity
-    wasAttributedTo: [Agent]
-    wasGeneratedBy: [Activity]
+    configurationInstrumentType: InstrumentType
+    configurationInterval: PitchInterval
+    configurationModification: [InstrumentModification]
+    configurationOf: Entity
+    configurationTuningFrame: TuningSystem
+  }
+
+type InstrumentModification
+  {
   }
 
 type InstrumentType
   {
+    hsNumber: String
   }
 
 type Intention
@@ -14435,7 +14430,7 @@ type PerformanceParticipation
     participationRole: [ParticipantRole]
     participationConfiguration: InstrumentConfiguration
     participationInstrument: [InstrumentType]
-    participationInstrumentItem: Item
+    participationInstrumentItem: Entity
     participationPart: String
     participationTechnique: PlayingTechnique
   }

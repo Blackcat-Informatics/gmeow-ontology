@@ -1250,3 +1250,72 @@ gmeow:PlayingTechniqueShape
         """ ;
         sh:message "PlayingTechnique must not be subclassed (Principle 9)." ;
     ] .
+
+# =========================================================================== #
+# INSTRUMENT CONFIGURATION SHAPES — issue #314
+# =========================================================================== #
+
+gmeow:InstrumentConfigurationShape
+    a sh:NodeShape ;
+    rdfs:label "Instrument configuration shape"@x-gmeow-english ;
+    skos:definition "An InstrumentConfiguration relator must declare at least one modification, at least one of configurationOf or configurationInstrumentType, at most one tuning frame, and at most one interval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:InstrumentConfiguration ;
+    sh:property [
+        sh:path gmeow:configurationModification ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An InstrumentConfiguration must declare at least one InstrumentModification." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:configurationOf ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one specific instrument item per InstrumentConfiguration." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:configurationInstrumentType ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one instrument type per InstrumentConfiguration." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:configurationTuningFrame ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one tuning frame per InstrumentConfiguration." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:configurationInterval ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "At most one interval per InstrumentConfiguration (functional interval)." ;
+    ] ;
+    sh:xone (
+        [ sh:property [ sh:path gmeow:configurationOf ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
+        [ sh:property [ sh:path gmeow:configurationInstrumentType ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
+    ) ;
+    sh:message "An InstrumentConfiguration must target at least one specific instrument item (configurationOf) or one instrument type (configurationInstrumentType)." .
+
+gmeow:InstrumentModificationShape
+    a sh:NodeShape ;
+    rdfs:label "Instrument modification shape"@x-gmeow-english ;
+    skos:definition "InstrumentModification is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:InstrumentModification ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "InstrumentModification must not be subclassed (Principle 9)." ;
+    ] .
