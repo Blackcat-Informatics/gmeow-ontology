@@ -24,13 +24,13 @@ ex:wedding a gmeow:Event ;
     # they are deliberately NOT repeated here: flat and reified never overlap.
     gmeow:hasParticipant ex:witnessA , ex:witnessB .
 
-ex:chapel a gmeow:Place ; gmeow:name "Rosewood Chapel" .
+ex:chapel a gmeow:Place ; gmeow:name "Rosewood Chapel"@x-gmeow-english .
 
-ex:alex a gmeow:Person ; gmeow:name "Alex Mercer" .
-ex:sam a gmeow:Person ; gmeow:name "Sam Okonkwo" .
-ex:officiant a gmeow:Person ; gmeow:name "Rev. Dana Pike" .
-ex:witnessA a gmeow:Person ; gmeow:name "Jordan Vance" .
-ex:witnessB a gmeow:Person ; gmeow:name "Priya Raman" .
+ex:alex a gmeow:Person ; gmeow:name "Alex Mercer"@x-gmeow-english .
+ex:sam a gmeow:Person ; gmeow:name "Sam Okonkwo"@x-gmeow-english .
+ex:officiant a gmeow:Person ; gmeow:name "Rev. Dana Pike"@x-gmeow-english .
+ex:witnessA a gmeow:Person ; gmeow:name "Jordan Vance"@x-gmeow-english .
+ex:witnessB a gmeow:Person ; gmeow:name "Priya Raman"@x-gmeow-english .
 
 # --- Reified participations: the two principals and the officiant, with roles.
 #     A withdrawn or disputed role would coexist as another Participation

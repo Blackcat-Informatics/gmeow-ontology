@@ -14,7 +14,7 @@
 # loss — the reason is the whole point of surfacing opacity (spec §7.6).
 gmeow:OpaqueFrameShape
     a sh:NodeShape ;
-    rdfs:label "OpaqueFrame well-formedness shape" ;
+    rdfs:label "OpaqueFrame well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:OpaqueFrame ;
     sh:property [
         sh:path gmeow:opacityReason ;
@@ -37,7 +37,7 @@ gmeow:OpaqueFrameShape
 # the audience must be stated for the description to be useful (spec §9.3).
 gmeow:SealedFrameRecipientShape
     a sh:NodeShape ;
-    rdfs:label "Sealed frame recipient shape" ;
+    rdfs:label "Sealed frame recipient shape"@x-gmeow-english ;
     sh:targetClass gmeow:OpaqueFrame ;
     sh:severity sh:Violation ;   # NodeShape-level so pyshacl honors it
     sh:sparql [
@@ -57,7 +57,7 @@ gmeow:SealedFrameRecipientShape
 # exactly one index, exactly one profile (spec §3.1, §13).
 gmeow:GTSSegmentShape
     a sh:NodeShape ;
-    rdfs:label "GTSSegment well-formedness shape" ;
+    rdfs:label "GTSSegment well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:GTSSegment ;
     sh:property [
         sh:path gmeow:gtsHeadId ;
@@ -90,7 +90,7 @@ gmeow:GTSSegmentShape
 # the original verbatim as a nested GTS blob instead (spec §12.1).
 gmeow:EvidenceCompactionShape
     a sh:NodeShape ;
-    rdfs:label "Evidence-profile compaction shape" ;
+    rdfs:label "Evidence-profile compaction shape"@x-gmeow-english ;
     sh:targetClass gmeow:GTSDocument ;
     sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
     sh:sparql [

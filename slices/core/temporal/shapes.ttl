@@ -14,7 +14,7 @@
 # position are optional). Functional at the frame, not global.
 gmeow:TemporalFrameShape
     a sh:NodeShape ;
-    rdfs:label "TemporalFrame well-formedness shape" ;
+    rdfs:label "TemporalFrame well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:TemporalFrame ;
     sh:property [
         sh:path gmeow:frameTimeScale ;
@@ -45,7 +45,7 @@ gmeow:TemporalFrameShape
 # (EDTF literal). It should also be linked to a TemporalFrame when non-default.
 gmeow:InstantShape
     a sh:NodeShape ;
-    rdfs:label "Instant well-formedness shape" ;
+    rdfs:label "Instant well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Instant ;
     sh:or (
         [ sh:path gmeow:instantValue ; sh:minCount 1 ; sh:datatype xsd:dateTime ]
@@ -57,7 +57,7 @@ gmeow:InstantShape
 # A NamedPeriod needs bounds (start+end) OR a temporal measurement.
 gmeow:NamedPeriodShape
     a sh:NodeShape ;
-    rdfs:label "NamedPeriod well-formedness shape" ;
+    rdfs:label "NamedPeriod well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:NamedPeriod ;
     sh:or (
         [

@@ -15,11 +15,11 @@
 
 # --- The company and a structural sub-organization.
 ex:acme a gmeow:Organization ;
-    gmeow:name "Acme Robotics Inc." ;
+    gmeow:name "Acme Robotics Inc."@x-gmeow-english ;
     gmeow:organizationType gmeow:organizationTypeCompany .
 
 ex:engineering a gmeow:Organization ;
-    gmeow:name "Engineering Division" ;
+    gmeow:name "Engineering Division"@x-gmeow-english ;
     gmeow:organizationType gmeow:organizationTypeCompany ;
     gmeow:subOrganizationOf ex:acme .
 
@@ -32,7 +32,7 @@ ex:cfoPost a gmeow:Post ;
 #     from the chair. A later tenure would be ANOTHER Membership filling the same
 #     Post; a vacancy would leave the Post with no Membership at all.
 ex:dana a gmeow:Person ;
-    gmeow:name "Dana Reyes" .
+    gmeow:name "Dana Reyes"@x-gmeow-english .
 
 ex:danaTenure a gmeow:Membership ;
     gmeow:membershipMember ex:dana ;

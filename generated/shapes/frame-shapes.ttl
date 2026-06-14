@@ -6,7 +6,7 @@
 
 gmeow:CharacterArcFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "CharacterArc frame-relativity shape (generated)" ;
+    rdfs:label "CharacterArc frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:CharacterArc ;
     sh:property [
         sh:path gmeow:arcFrame ;
@@ -19,7 +19,7 @@ gmeow:CharacterArcFrameRequirementShape
 
 gmeow:CoordinateMatrixFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "CoordinateMatrix frame-relativity shape (generated)" ;
+    rdfs:label "CoordinateMatrix frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:CoordinateMatrix ;
     sh:property [
         sh:path gmeow:coordinateMatrixFrame ;
@@ -32,7 +32,7 @@ gmeow:CoordinateMatrixFrameRequirementShape
 
 gmeow:EventFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Event frame-relativity shape (generated)" ;
+    rdfs:label "Event frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:Event ;
     sh:property [
         sh:path gmeow:eventTemporalFrame ;
@@ -45,7 +45,7 @@ gmeow:EventFrameRequirementShape
 
 gmeow:ExpressionFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Expression frame-relativity shape (generated)" ;
+    rdfs:label "Expression frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:Expression ;
     sh:property [
         sh:path gmeow:hasReferenceFrame ;
@@ -57,7 +57,7 @@ gmeow:ExpressionFrameRequirementShape
 
 gmeow:GeocodeFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Geocode frame-relativity shape (generated)" ;
+    rdfs:label "Geocode frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:Geocode ;
     sh:property [
         sh:path gmeow:geocodeFrame ;
@@ -70,7 +70,7 @@ gmeow:GeocodeFrameRequirementShape
 
 gmeow:InstantFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Instant frame-relativity shape (generated)" ;
+    rdfs:label "Instant frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:Instant ;
     sh:property [
         sh:path gmeow:inTemporalFrame ;
@@ -82,7 +82,7 @@ gmeow:InstantFrameRequirementShape
 
 gmeow:LocationStateFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "LocationState frame-relativity shape (generated)" ;
+    rdfs:label "LocationState frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:LocationState ;
     sh:property [
         sh:path gmeow:stateReferenceFrame ;
@@ -95,7 +95,7 @@ gmeow:LocationStateFrameRequirementShape
 
 gmeow:MediaObjectFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "MediaObject frame-relativity shape (generated)" ;
+    rdfs:label "MediaObject frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:MediaObject ;
     sh:property [
         sh:path gmeow:colourspace ;
@@ -107,7 +107,7 @@ gmeow:MediaObjectFrameRequirementShape
 
 gmeow:MonetaryAmountFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "MonetaryAmount frame-relativity shape (generated)" ;
+    rdfs:label "MonetaryAmount frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:MonetaryAmount ;
     sh:property [
         sh:path gmeow:currency ;
@@ -120,7 +120,7 @@ gmeow:MonetaryAmountFrameRequirementShape
 
 gmeow:MusicalTimeSpanFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "MusicalTimeSpan frame-relativity shape (generated)" ;
+    rdfs:label "MusicalTimeSpan frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:MusicalTimeSpan ;
     sh:property [
         sh:path gmeow:hasMusicalTimeFrame ;
@@ -133,7 +133,7 @@ gmeow:MusicalTimeSpanFrameRequirementShape
 
 gmeow:MythFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Myth frame-relativity shape (generated)" ;
+    rdfs:label "Myth frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:Myth ;
     sh:property [
         sh:path gmeow:mythFrame ;
@@ -146,7 +146,7 @@ gmeow:MythFrameRequirementShape
 
 gmeow:NarrativePositionFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "NarrativePosition frame-relativity shape (generated)" ;
+    rdfs:label "NarrativePosition frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:NarrativePosition ;
     sh:property [
         sh:path gmeow:positionFrame ;
@@ -159,7 +159,7 @@ gmeow:NarrativePositionFrameRequirementShape
 
 gmeow:NetworkAddressFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "NetworkAddress frame-relativity shape (generated)" ;
+    rdfs:label "NetworkAddress frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:NetworkAddress ;
     sh:property [
         sh:path gmeow:networkAddressFrame ;
@@ -172,7 +172,7 @@ gmeow:NetworkAddressFrameRequirementShape
 
 gmeow:PitchExpressionFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "PitchExpression frame-relativity shape (generated)" ;
+    rdfs:label "PitchExpression frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:PitchExpression ;
     sh:property [
         sh:path gmeow:hasTuningFrame ;
@@ -185,7 +185,7 @@ gmeow:PitchExpressionFrameRequirementShape
 
 gmeow:PitchIntervalFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "PitchInterval frame-relativity shape (generated)" ;
+    rdfs:label "PitchInterval frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:PitchInterval ;
     sh:property [
         sh:path gmeow:hasTuningFrame ;
@@ -198,7 +198,7 @@ gmeow:PitchIntervalFrameRequirementShape
 
 gmeow:PitchValueFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "PitchValue frame-relativity shape (generated)" ;
+    rdfs:label "PitchValue frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:PitchValue ;
     sh:property [
         sh:path gmeow:hasTuningFrame ;
@@ -211,7 +211,7 @@ gmeow:PitchValueFrameRequirementShape
 
 gmeow:PoseFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Pose frame-relativity shape (generated)" ;
+    rdfs:label "Pose frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:Pose ;
     sh:property [
         sh:path gmeow:poseFrame ;
@@ -224,7 +224,7 @@ gmeow:PoseFrameRequirementShape
 
 gmeow:PostalAddressFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "PostalAddress frame-relativity shape (generated)" ;
+    rdfs:label "PostalAddress frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:PostalAddress ;
     sh:property [
         sh:path gmeow:postalAddressFrame ;
@@ -237,7 +237,7 @@ gmeow:PostalAddressFrameRequirementShape
 
 gmeow:SequenceCoordinatesFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "SequenceCoordinates frame-relativity shape (generated)" ;
+    rdfs:label "SequenceCoordinates frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:SequenceCoordinates ;
     sh:property [
         sh:path gmeow:inReferenceAssembly ;
@@ -250,7 +250,7 @@ gmeow:SequenceCoordinatesFrameRequirementShape
 
 gmeow:SpatialCoordinatesFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "SpatialCoordinates frame-relativity shape (generated)" ;
+    rdfs:label "SpatialCoordinates frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:SpatialCoordinates ;
     sh:property [
         sh:path gmeow:coordinateFrame ;
@@ -263,7 +263,7 @@ gmeow:SpatialCoordinatesFrameRequirementShape
 
 gmeow:TimeIntervalFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "TimeInterval frame-relativity shape (generated)" ;
+    rdfs:label "TimeInterval frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:TimeInterval ;
     sh:property [
         sh:path gmeow:hasTemporalFrame ;
@@ -275,7 +275,7 @@ gmeow:TimeIntervalFrameRequirementShape
 
 gmeow:TrajectoryFrameRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Trajectory frame-relativity shape (generated)" ;
+    rdfs:label "Trajectory frame-relativity shape (generated)"@en ;
     sh:targetClass gmeow:Trajectory ;
     sh:property [
         sh:path gmeow:trajectoryReferenceFrame ;

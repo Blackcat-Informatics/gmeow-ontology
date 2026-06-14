@@ -17,7 +17,7 @@
 #     is asserted with confidence; the near one stays a CLOSE (not exact) match,
 #     so a downstream consumer can choose its own merge threshold.
 ex:recordedAuthor a gmeow:Person ;
-    gmeow:name "Lin Saito" ;
+    gmeow:name "Lin Saito"@x-gmeow-english ;
     gmeow:authorityLink <https://orcid.org/0000-0002-1825-0097> ,
                         <http://www.wikidata.org/entity/Q42> ;
     skos:exactMatch <https://orcid.org/0000-0002-1825-0097> ;
@@ -26,15 +26,15 @@ ex:recordedAuthor a gmeow:Person ;
 # --- A field-robot software identity that is the SAME agent across contexts as
 #     the recorded author's account — a counterpart, not a sameAs merge.
 ex:fieldRobotIdentity a gmeow:SoftwareAgent ;
-    gmeow:name "lin-field-robot" ;
+    gmeow:name "lin-field-robot"@x-gmeow-english ;
     gmeow:counterpartOf ex:recordedAuthor .
 
 # --- Intra-corpus coreference: a work, its annotated edition (a distinct record
 #     that is an edition OF the first and SUPERSEDES it for citation).
 ex:fieldNotes a gmeow:CreativeWork ;
-    gmeow:title "Coastal Field Notes" .
+    gmeow:title "Coastal Field Notes"@x-gmeow-english .
 
 ex:fieldNotesAnnotated a gmeow:CreativeWork ;
-    gmeow:title "Coastal Field Notes, annotated edition" ;
+    gmeow:title "Coastal Field Notes, annotated edition"@x-gmeow-english ;
     gmeow:editionOf ex:fieldNotes ;
     gmeow:supersedes ex:fieldNotes .

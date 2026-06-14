@@ -17,29 +17,29 @@
 #     (gmeow:hasWebPage → a WEMI gmeow:WebPage) is shown in the documents example;
 #     here the flat tier carries it.
 ex:blackcat a gmeow:Organization ;
-    gmeow:name "Blackcat Informatics Inc." ;
-    gmeow:description "A small ontology and tooling consultancy." .
+    gmeow:name "Blackcat Informatics Inc."@x-gmeow-english ;
+    gmeow:description "A small ontology and tooling consultancy."@x-gmeow-english .
 
 # --- People: gmeow:Person, the identity-supplying sortal everything else anchors
 #     to. Flat names suffice for the example; a contested or multilingual name
 #     would promote to the names slice's reified PersonName.
 ex:mara a gmeow:Person ;
-    gmeow:name "Mara Okafor" ;
-    gmeow:description "Backend engineer; maintains the release pipeline." .
+    gmeow:name "Mara Okafor"@x-gmeow-english ;
+    gmeow:description "Backend engineer; maintains the release pipeline."@x-gmeow-english .
 
 ex:tomas a gmeow:Person ;
-    gmeow:name "Tomáš Novák" .
+    gmeow:name "Tomáš Novák"@x-gmeow-english .
 
 # --- Group: a collection of agents treated as a unit WITHOUT the formal
 #     structure of an organization. Sub-organization decomposition would instead
 #     use gmeow:subOrganizationOf in the organization slice.
 ex:platformTeam a gmeow:Group ;
-    gmeow:name "Platform team" ;
-    gmeow:description "An informal cross-functional working group, not a legal sub-organization." .
+    gmeow:name "Platform team"@x-gmeow-english ;
+    gmeow:description "An informal cross-functional working group, not a legal sub-organization."@x-gmeow-english .
 
 # --- SoftwareAgent: a process acting on behalf of an organization. Disjoint with
 #     Person; the "acts on behalf of" delegation is a provenance-layer relation,
 #     not subclassing.
 ex:ciBot a gmeow:SoftwareAgent ;
-    gmeow:name "blackcat-ci" ;
-    gmeow:description "The CI build agent that runs Blackcat's release pipeline." .
+    gmeow:name "blackcat-ci"@x-gmeow-english ;
+    gmeow:description "The CI build agent that runs Blackcat's release pipeline."@x-gmeow-english .
