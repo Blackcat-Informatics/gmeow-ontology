@@ -55,6 +55,7 @@ def test_build_ontology_docs_creates_expected_tree(tmp_path: Path) -> None:
     assert (docs / "recipes" / "index.md").exists()
     assert (docs / "examples" / "index.md").exists()
     assert (docs / "recipes" / "person-names-and-display.md").exists()
+    assert (docs / "references" / "index.md").exists()
     assert (out / "site" / "search-index.json").exists()
     assert (out / "site" / "llms-docs.txt").exists()
     assert (docs / "search-index.json").exists()
@@ -106,6 +107,7 @@ def test_index_contains_ontology_header_and_slice_stats(tmp_path: Path) -> None:
     assert "Learning Paths" in index
     assert "Examples" in index
     assert "Adoption Targets" in index
+    assert "Bibliography" in index
     assert "Linkages" in index
     assert "## Reference" in index
     assert "## Distribution" in index
@@ -297,6 +299,28 @@ def test_adoption_target_pages_are_generated_from_linkages(tmp_path: Path) -> No
 
 
 @pytest.mark.ci_only
+def test_references_page_uses_generated_citation_ledger(tmp_path: Path) -> None:
+    out = tmp_path / "ontology-docs"
+    build_ontology_docs(out)
+
+    references = (out / "markdown" / "references" / "index.md").read_text(
+        encoding="utf-8"
+    )
+    html = (out / "site" / "references" / "index.html").read_text(encoding="utf-8")
+
+    assert "# References" in references
+    assert "metadata/references.ttl" in references
+    assert "generated/references/references.csl.json" in references
+    assert "generated/references/references.bib" in references
+    assert "# GMEOW Citation Ledger" not in references
+    assert "| Reference | Locator | Citation acts |" in references
+    assert "Schema.org" in references
+    assert "[link](http://qudt)" not in references
+    assert "[link](https://blackcatinformatics)" not in references
+    assert 'href="../references/"' in html
+
+
+@pytest.mark.ci_only
 def test_slice_design_docs_are_rendered_and_linked(tmp_path: Path) -> None:
     out = tmp_path / "ontology-docs"
     build_ontology_docs(out)
@@ -406,6 +430,7 @@ def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) 
     assert '"curie": "gmeow:PersonName"' in search_index
     assert '"kind": "learning-path"' in search_index
     assert '"kind": "adoption-target"' in search_index
+    assert '"kind": "references"' in search_index
     assert '"kind": "slice-design"' in search_index
     assert '"path": "learning-paths/index.html#model-a-person"' in search_index
     assert '"path": "adoption/schema/index.html"' in search_index
@@ -420,6 +445,9 @@ def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) 
     assert "person-names-and-display: Model Person Names" in llms_docs
     assert "model-a-person: Model a Person Without Flattening Identity" in llms_docs
     assert "schema: Schema.org; linkage rows" in llms_docs
+    assert "references: generated bibliography from metadata/references.ttl" in (
+        llms_docs
+    )
     assert "logic: Logic; source slices/core/logic/design/LOGIC.md" in llms_docs
     assert "slices/core/names/examples/person-names.ttl" in llms_docs
     assert "gmeow:PersonName" in llms_docs
@@ -460,6 +488,7 @@ def test_html_links_are_directory_index_safe(tmp_path: Path) -> None:
     assert 'href="learning-paths/"' in index
     assert 'href="examples/"' in index
     assert 'href="adoption/"' in index
+    assert 'href="references/"' in index
     assert "https://cdn.simplecss.org" not in index
 
     person = out / "site" / "reference" / "classes" / "gmeow-Person" / "index.html"
