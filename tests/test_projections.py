@@ -1286,3 +1286,44 @@ def test_projection_bcp47_retag_no_internal_tags() -> None:
                 and o.language.startswith("x-gmeow")
             ]
             assert not leaked, f"{profile}/{fixture} leaked internal tags: {leaked[:3]}"
+
+
+def test_schema_org_gap_clusters() -> None:
+    """#449 genuine-gap clusters: person + media facets project to schema.org."""
+    g = project_graph("schema-org", _fixture_store("gap-clusters.ttl"))
+    ex = "https://example.org/gap/"
+    ada, cam, clip = URIRef(ex + "ada"), URIRef(ex + "cambridge"), URIRef(ex + "clip")
+    assert (ada, URIRef(SCHEMA + "nationality"), URIRef(ex + "uk")) in g
+    assert (ada, URIRef(SCHEMA + "alumniOf"), cam) in g
+    # inverse: the org gains schema:alumni pointing at the person
+    assert (cam, URIRef(SCHEMA + "alumni"), ada) in g
+    assert (
+        clip,
+        URIRef(SCHEMA + "transcript"),
+        Literal("Hello, world.", lang="en"),
+    ) in g
+    assert (
+        clip,
+        URIRef(SCHEMA + "caption"),
+        Literal("An introductory clip", lang="en"),
+    ) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_doap_gap_clusters() -> None:
+    """#449 genuine-gap cluster: software-project web-presence facets → DOAP."""
+    g = project_graph("doap", _fixture_store("gap-clusters.ttl"))
+    ex = "https://example.org/gap/"
+    doap = "http://usefulinc.com/ns/doap#"
+    proj = URIRef(ex + "proj")
+    assert (
+        proj,
+        URIRef(doap + "bug-database"),
+        URIRef("https://github.com/example/gmeow/issues"),
+    ) in g
+    assert (
+        proj,
+        URIRef(doap + "download-page"),
+        URIRef("https://example.org/download"),
+    ) in g
+    _assert_no_gmeow_leakage(g)

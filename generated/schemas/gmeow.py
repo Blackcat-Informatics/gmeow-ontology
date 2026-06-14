@@ -21621,6 +21621,9 @@ class MediaObject(Manifestation):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Media Object'})
 
+    caption: Optional[list[str]] = Field(default=None, title="caption", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
+         'domain_of': ['MediaObject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/caption'} })
     captureDevice: Optional[list[PhysicalObject]] = Field(default=None, title="capture device", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
          'domain_of': ['MediaObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/captureDevice'} })
@@ -21648,6 +21651,9 @@ class MediaObject(Manifestation):
     pixelWidth: Optional[int] = Field(default=None, title="pixel width", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
          'domain_of': ['MediaObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/pixelWidth'} })
+    transcript: Optional[list[str]] = Field(default=None, title="transcript", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
+         'domain_of': ['MediaObject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/transcript'} })
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
@@ -29193,6 +29199,9 @@ class Person(Agent):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Person'})
 
+    alumniOf: Optional[list[Organization]] = Field(default=None, title="alumnus of", json_schema_extra = { "linkml_meta": {'domain': 'Person',
+         'domain_of': ['Person'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/alumniOf'} })
     hasAncestor: Optional[list[Person]] = Field(default=None, title="has ancestor", json_schema_extra = { "linkml_meta": {'domain': 'Person',
          'domain_of': ['Person'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAncestor'} })
@@ -29244,6 +29253,9 @@ class Person(Agent):
     intersexVariation: Optional[list[str]] = Field(default=None, title="intersex variation", json_schema_extra = { "linkml_meta": {'domain': 'Person',
          'domain_of': ['Person'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/intersexVariation'} })
+    nationality: Optional[list[Place]] = Field(default=None, title="nationality", json_schema_extra = { "linkml_meta": {'domain': 'Person',
+         'domain_of': ['Person'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/nationality'} })
     sexAssignedAtBirth: Optional[list[SexAssignedAtBirth]] = Field(default=None, title="sex assigned at birth", json_schema_extra = { "linkml_meta": {'domain': 'Person',
          'domain_of': ['Person'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/sexAssignedAtBirth'} })
@@ -32612,6 +32624,12 @@ class Project(Entity):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Project'})
 
+    bugDatabase: Optional[list[str]] = Field(default=None, title="bug database", json_schema_extra = { "linkml_meta": {'domain': 'Project',
+         'domain_of': ['Project'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/bugDatabase'} })
+    downloadPage: Optional[list[str]] = Field(default=None, title="download page", json_schema_extra = { "linkml_meta": {'domain': 'Project',
+         'domain_of': ['Project'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/downloadPage'} })
     governanceModel: Optional[list[GovernanceModel]] = Field(default=None, title="governance model", json_schema_extra = { "linkml_meta": {'domain': 'Project',
          'domain_of': ['Project'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/governanceModel'} })
@@ -42540,6 +42558,12 @@ class SoftwareProject(Project):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Software Project'})
 
+    bugDatabase: Optional[list[str]] = Field(default=None, title="bug database", json_schema_extra = { "linkml_meta": {'domain': 'Project',
+         'domain_of': ['Project'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/bugDatabase'} })
+    downloadPage: Optional[list[str]] = Field(default=None, title="download page", json_schema_extra = { "linkml_meta": {'domain': 'Project',
+         'domain_of': ['Project'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/downloadPage'} })
     governanceModel: Optional[list[GovernanceModel]] = Field(default=None, title="governance model", json_schema_extra = { "linkml_meta": {'domain': 'Project',
          'domain_of': ['Project'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/governanceModel'} })

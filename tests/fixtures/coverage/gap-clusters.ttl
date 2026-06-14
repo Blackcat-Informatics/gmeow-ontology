@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Genuine-gap clusters (#449 triage): person (nationality, alumniOf), media
+# (transcript, caption), and software-project (bugDatabase, downloadPage) facets.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/gap/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:ada a gmeow:Person ; rdfs:label "Ada"@x-gmeow-english ;
+    gmeow:nationality ex:uk ;
+    gmeow:alumniOf ex:cambridge .
+ex:uk a gmeow:Place ; rdfs:label "United Kingdom"@x-gmeow-english .
+ex:cambridge a gmeow:Organization ; rdfs:label "Cambridge"@x-gmeow-english .
+
+ex:clip a gmeow:MediaObject ; rdfs:label "a clip"@x-gmeow-english ;
+    gmeow:transcript "Hello, world."@x-gmeow-english ;
+    gmeow:caption "An introductory clip"@x-gmeow-english .
+
+ex:proj a gmeow:SoftwareProject ; rdfs:label "GMEOW"@x-gmeow-english ;
+    gmeow:bugDatabase <https://github.com/example/gmeow/issues> ;
+    gmeow:downloadPage <https://example.org/download> .
