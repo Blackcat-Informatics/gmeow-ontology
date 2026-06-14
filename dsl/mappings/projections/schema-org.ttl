@@ -1565,6 +1565,56 @@ gmeow:mapSchemaSubOrganization a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:subOrganization ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
         gmeow:lossyDrop "the inverse reading: the parent gains schema:subOrganization pointing at each child" ] .
 
+# --------------------------------------------------------------------------- #
+# Genuine-gap clusters (#449 triage): person / media / identity facets that
+# GMEOW now models — projected to their schema.org counterparts.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaNationality a gmeow:ProjectionMapping ;
+    rdfs:label "nationality → schema:nationality"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "natPerson" ; gmeow:value "natCountry" ;
+        gmeow:atom ( [ gmeow:subjectVar "natPerson" ; gmeow:predicate gmeow:nationality ; gmeow:objectVar "natCountry" ] ) ;
+        gmeow:edoalSource gmeow:nationality ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:nationality ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaAlumniOf a gmeow:ProjectionMapping ;
+    rdfs:label "alumniOf → schema:alumniOf"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "alPerson" ; gmeow:value "alOrg" ;
+        gmeow:atom ( [ gmeow:subjectVar "alPerson" ; gmeow:predicate gmeow:alumniOf ; gmeow:objectVar "alOrg" ] ) ;
+        gmeow:edoalSource gmeow:alumniOf ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:alumniOf ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaAlumni a gmeow:ProjectionMapping ;
+    rdfs:label "alumniOf → schema:alumni (inverse, org→person)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "alOrg" ; gmeow:value "alPerson" ;
+        gmeow:atom ( [ gmeow:subjectVar "alPerson" ; gmeow:predicate gmeow:alumniOf ; gmeow:objectVar "alOrg" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:alumni ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the inverse reading: the organization gains schema:alumni pointing at each alumnus" ] .
+
+# (schema:Brand is already projected from gmeow:Mark by gmeow:mapSchemaBrand;
+# no new brand cell here.)
+
+gmeow:mapSchemaTranscript a gmeow:ProjectionMapping ;
+    rdfs:label "transcript → schema:transcript"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "trMedia" ; gmeow:value "trText" ;
+        gmeow:atom ( [ gmeow:subjectVar "trMedia" ; gmeow:predicate gmeow:transcript ; gmeow:objectVar "trText" ] ) ;
+        gmeow:edoalSource gmeow:transcript ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:transcript ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaCaption a gmeow:ProjectionMapping ;
+    rdfs:label "caption → schema:caption"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cpMedia" ; gmeow:value "cpText" ;
+        gmeow:atom ( [ gmeow:subjectVar "cpMedia" ; gmeow:predicate gmeow:caption ; gmeow:objectVar "cpText" ] ) ;
+        gmeow:edoalSource gmeow:caption ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:caption ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
 gmeow:mapSchemaServiceDissolution a gmeow:ProjectionMapping ;
     rdfs:label "serviceShutdownDate → schema:dissolutionDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [
