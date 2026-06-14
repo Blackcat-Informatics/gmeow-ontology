@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: rights are flat-first, promoted on demand (#443, P4). The
+# common case is a single gmeow:hasLicense + gmeow:hasCopyright edge — no relator
+# needed. Only when the deontic RULES matter (who may do what, under which duty,
+# what is forbidden) is the flat form PROMOTED to a gmeow:RightsStatement bearing
+# the ODRL-superset trio: gmeow:Permission / gmeow:Prohibition / gmeow:Duty, each
+# over an open gmeow:RightsAction value. A licence is itself an Agreement, aligned
+# to CC/ODRL by reference (spdxLicenseId, licenseFamily) — never owl:sameAs (P5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/rights/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:researcher a gmeow:Person ; gmeow:name "Dr. Mara Okafor"@x-gmeow-english .
+
+# --- The asset, with the FLAT-first rights edges (the common case) plus a
+#     promoted RightsStatement because permissions/prohibitions/duties are needed.
+ex:dataset a gmeow:Dataset ;
+    gmeow:title "Coastal Bird Survey 2026"@x-gmeow-english ;
+    gmeow:hasCopyright       ex:copyright ;
+    gmeow:hasLicense         ex:ccbync ;
+    gmeow:hasRightsStatement ex:rights .
+
+# --- Flat copyright fact.
+ex:copyright a gmeow:Copyright ;
+    gmeow:copyrightWork   ex:dataset ;
+    gmeow:copyrightHolder ex:researcher ;
+    gmeow:copyrightYear   "2026"^^xsd:gYear ;
+    gmeow:copyrightStatus gmeow:copyrightStatusInCopyright .
+
+# --- The licence: an Agreement, aligned to CC by REFERENCE (P5), not equated.
+ex:ccbync a gmeow:License ;
+    rdfs:label          "CC BY-NC 4.0"@x-gmeow-english ;
+    gmeow:licensor      ex:researcher ;
+    gmeow:licensedWork  ex:dataset ;
+    gmeow:licenseFamily gmeow:licenseFamilyCC ;
+    gmeow:spdxLicenseId "CC-BY-NC-4.0" .
+
+# --- Promoted form: the deontic rules the flat edge cannot carry.
+ex:rights a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:dataset ;
+    gmeow:hasPermission  ex:permReproduce ;
+    gmeow:hasProhibition ex:prohCommercial .
+
+# --- Permission to reproduce, but only if the attribution DUTY is discharged.
+ex:permReproduce a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionReproduce ;
+    gmeow:hasDuty    ex:dutyAttribute .
+
+ex:dutyAttribute a gmeow:Duty ;
+    gmeow:ruleAction gmeow:actionAttribute .
+
+# --- Prohibition: no commercial use (the NC of CC BY-NC).
+ex:prohCommercial a gmeow:Prohibition ;
+    gmeow:ruleAction gmeow:actionCommercialize .
