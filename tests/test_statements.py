@@ -2,8 +2,8 @@
 
 The pure-Python tests (DSL parse, reifier minting, the invariants, the OWL emit,
 the no-preview-language gate, and the hard-fail-without-Jena contract) run
-anywhere. The Jena-backed round-trip / no-drift / lossless checks run through
-``gmeow statements-docker-check`` so Make/CI can schedule Docker outside pytest.
+anywhere. The Jena-backed round-trip / no-drift / lossless checks run through a
+repo-local script so Make/CI can schedule Docker outside pytest.
 """
 
 from __future__ import annotations
@@ -221,7 +221,7 @@ def test_rdf12_hard_fails_without_jena(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Jena-gated orchestration — mocked here, live in `gmeow statements-docker-check`
+# Jena-gated orchestration — mocked here, live in `scripts/statements_docker_check.py`
 # --------------------------------------------------------------------------- #
 
 

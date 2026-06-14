@@ -253,7 +253,7 @@ jobs:
           docker pull "$ROBOT_IMAGE"
 
       - name: Reasoning inconsistency + fixture-coherence cases (Docker)
-        run: uv run gmeow reasoning-cases
+        run: uv run python scripts/reasoning_cases.py
 
   statements:
     runs-on: ubuntu-latest
@@ -278,7 +278,7 @@ jobs:
           docker pull "$ROBOT_IMAGE"
 
       - name: RDF 1.2 round-trip / lossless / reasoning checks
-        run: uv run gmeow statements-docker-check
+        run: uv run python scripts/statements_docker_check.py
 
   statements-pyoxigraph:
     runs-on: ubuntu-latest

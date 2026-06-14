@@ -472,44 +472,6 @@ def verify(
     console.print("[green]✓ verify: no violations on the reasoned graph[/green]")
 
 
-@app.command(name="reasoning-cases")
-def reasoning_cases() -> None:
-    """Run Docker-backed reasoning inconsistency/coherence cases."""
-    from gmeow_tools.reasoning_cases import run_all
-    from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
-
-    try:
-        completed = run_all()
-    except ToolUnavailableError as exc:
-        raise _fail(f"tool unavailable: {exc}", code=2) from exc
-    except ToolExecutionError as exc:
-        raise _fail(f"reasoning case failed:\n{exc.output}") from exc
-    except AssertionError as exc:
-        raise _fail(f"reasoning case failed: {exc}") from exc
-    for name in completed:
-        console.print(f"[green]✓[/green] {name}")
-    console.print("[green]✓ reasoning cases passed[/green]")
-
-
-@app.command(name="statements-docker-check")
-def statements_docker_check() -> None:
-    """Run Jena/ROBOT-backed statement checks outside pytest."""
-    from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
-    from gmeow_tools.statements_docker_check import run_all
-
-    try:
-        completed = run_all()
-    except ToolUnavailableError as exc:
-        raise _fail(f"tool unavailable: {exc}", code=2) from exc
-    except ToolExecutionError as exc:
-        raise _fail(f"statement Docker check failed:\n{exc.output}") from exc
-    except AssertionError as exc:
-        raise _fail(f"statement Docker check failed: {exc}") from exc
-    for name in completed:
-        console.print(f"[green]✓[/green] {name}")
-    console.print("[green]✓ statement Docker checks passed[/green]")
-
-
 @app.command()
 def temporal(
     query: str = typer.Argument(..., help="TQL query name (e.g. timeline)."),

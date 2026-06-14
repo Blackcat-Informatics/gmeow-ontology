@@ -55,10 +55,10 @@ verify: reason ## Reasoned-graph negative tests (ROBOT verify over queries/verif
 	uv run gmeow verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
 reasoning-cases: ## HermiT/ELK inconsistency and fixture-coherence cases (Docker).
-	uv run gmeow reasoning-cases
+	uv run python scripts/reasoning_cases.py
 
 statements-docker-check: ## Jena/ROBOT-backed statement artifact and reasoning checks (Docker).
-	uv run gmeow statements-docker-check
+	uv run python scripts/statements_docker_check.py
 
 extract: ## Report import/extract policy for TARGET (refuses reference-only).
 	uv run gmeow extract --target $(TARGET)
@@ -145,7 +145,11 @@ check: ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in 
 	@echo "✓ all checks passed"
 
 check-docker: ## Optional local Docker gate: HermiT, reasoning cases, and Jena statements.
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) reason verify reason-hermit reasoning-cases statements-docker-check
+	$(MAKE) reason
+	uv run gmeow verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
+	$(MAKE) reason-hermit
+	$(MAKE) reasoning-cases
+	$(MAKE) statements-docker-check
 	@echo "✓ all Docker checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + regenerate + CrossRef deposit.

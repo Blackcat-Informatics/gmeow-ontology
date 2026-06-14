@@ -9,8 +9,8 @@ SHACL-validates split (Principle 8):
   ancestry, location-through-containment, sub-organization transitivity — fast,
   Docker-free, on every run. Each test loads the *real authored* module so it
   pins the shipped axioms, not a hand-built fixture.
-* The live HermiT/ROBOT inconsistency and fixture-coherence cases run through
-  ``gmeow reasoning-cases`` so Make/CI can schedule Docker outside pytest.
+* The live HermiT/ROBOT inconsistency and fixture-coherence cases run through a
+  repo-local script so Make/CI can schedule Docker outside pytest.
   This module keeps Docker-free coverage of the pure entailments and the
   reasoning-case orchestration.
 """
@@ -106,7 +106,7 @@ def test_proximity_measurement_is_a_measurement() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Negative & coherence orchestration — mocked here, live in `gmeow reasoning-cases`
+# Negative & coherence orchestration — mocked here, live in `scripts/reasoning_cases.py`
 # --------------------------------------------------------------------------- #
 
 
@@ -157,8 +157,9 @@ def test_two_kind_case_expects_inconsistency(
 
 
 def test_reasoning_cases_run_all_order(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The CLI lane keeps the intended Docker cases in one deterministic order."""
+    """The repo script lane keeps the intended Docker cases in one order."""
     calls: list[str] = []
+    monkeypatch.setattr(reasoning_cases, "merge_release", lambda *_a, **_kw: None)
     monkeypatch.setattr(
         reasoning_cases,
         "assert_two_axis_individual_is_inconsistent",

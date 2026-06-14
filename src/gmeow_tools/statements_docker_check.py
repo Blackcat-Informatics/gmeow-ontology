@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from rdflib import RDF, Graph
+from rdflib.namespace import OWL
+
 from gmeow_tools.config import STATEMENT_RDF12_FILE
 from gmeow_tools.generator import run
 from gmeow_tools.statement_compile import assert_lossless, emit_owl
@@ -36,7 +39,11 @@ def assert_committed_rdf12_round_trips_to_owl() -> None:
 def assert_lossless_gate_detects_a_dropped_annotation() -> None:
     """The lossless gate must report a deliberately removed annotation."""
     owl = emit_owl(load_statement_dsl())
-    dropped = next(t for t in owl if str(t[1]).endswith("/confidence"))
+    dropped = next((t for t in owl if str(t[1]).endswith("/confidence")), None)
+    if dropped is None:
+        raise AssertionError(
+            "negative control setup failed: no confidence annotation found"
+        )
     owl.remove(dropped)
     problems = assert_lossless(owl, STATEMENT_RDF12_FILE)
     if not problems or not any("confidence" in p for p in problems):
@@ -55,8 +62,8 @@ def assert_reason_consumes_generated_owl_downcast() -> None:
     from gmeow_tools import reason as reasoning
 
     merged = reasoning.merge_release()
-    text = merged.read_text(encoding="utf-8")
-    if "owl:Axiom" not in text:
+    merged_graph = Graph().parse(merged, format="turtle")
+    if not any(merged_graph.triples((None, RDF.type, OWL.Axiom))):
         raise AssertionError(
             "merged ontology did not include the statement OWL downcast"
         )

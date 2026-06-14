@@ -20,8 +20,6 @@ EX = Namespace("https://example.org/test/")
 
 def _is_consistent(extra: Graph, name: str, *, reasoner: str = "hermit") -> bool:
     """Return whether merged ontology plus ``extra`` is consistent."""
-    if not MERGED_FILE.exists():
-        merge_release(MERGED_FILE)
     graph = Graph()
     graph.parse(MERGED_FILE, format="turtle")
     graph += extra
@@ -78,6 +76,7 @@ def assert_worked_fixtures_stay_coherent_under_disjointness() -> None:
 
 def run_all() -> list[str]:
     """Run the Docker-backed reasoning cases and return completed case names."""
+    merge_release(MERGED_FILE)
     cases = [
         ("two-axis inconsistency", assert_two_axis_individual_is_inconsistent),
         ("two-kind inconsistency", assert_two_kind_individual_is_inconsistent),
