@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the split-attraction model (#443, P9). Sexual orientation and
+# romantic orientation are SEPARATE, mutually independent axes — each a reified,
+# self-asserted gmeow:IdentityFacet on the shared base. Because the axes never
+# collapse into one another, an asexual-biromantic person is directly expressible:
+# asexual sexual attraction AND biromantic romantic attraction, neither inferred
+# from the other nor from gender, expression, sex-assigned-at-birth, or address.
+# Values are open vocabularies of individuals; both facets are co-equal with no
+# preferred orientation, and self-assertion is the top authority.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sexuality/> .
+
+ex:robin a gmeow:Person ;
+    gmeow:name "Robin"@x-gmeow-english ;
+    gmeow:hasSexualOrientation   ex:sexual ;
+    gmeow:hasRomanticOrientation ex:romantic .
+
+# A facet is an Observation: gmeow:facetSubject is whose facet it is, and for a
+# self-asserted facet the gmeow:facetVantage is the person themselves (P9).
+
+# --- Sexual orientation axis: asexual.
+ex:sexual a gmeow:SexualOrientation ;
+    gmeow:facetSubject           ex:robin ;
+    gmeow:facetVantage           ex:robin ;
+    gmeow:sexualOrientationValue gmeow:orientAsexual ;
+    gmeow:selfAsserted           true .
+
+# --- Romantic orientation axis: biromantic — independent of the sexual axis.
+ex:romantic a gmeow:RomanticOrientation ;
+    gmeow:facetSubject             ex:robin ;
+    gmeow:facetVantage             ex:robin ;
+    gmeow:romanticOrientationValue gmeow:romanticBiromantic ;
+    gmeow:selfAsserted             true .
