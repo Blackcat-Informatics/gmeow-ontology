@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example: the PGP web of trust (#443). Trust is decentralized and
-# relational: agents gmeow:holdKey cryptographic keys; one agent's
+# relational: agents gmeow:holdsKey cryptographic keys; one agent's
 # gmeow:Certification signs another's key (a key-signing, binding key↔identity);
 # and a gmeow:TrustAssertion records how much a trustor trusts a trustee AS AN
 # INTRODUCER (gmeow:trustLevel + gmeow:introducerDepth — how far transitive trust
