@@ -1,0 +1,143 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/music/> .
+
+# =============================================================================
+# Music analysis statement-metadata cells — issue #315.
+#
+# Canonical RDF 1.2 / RDF* source for contested analytical claims.
+# Compiled by `gmeow compile-statements` (via `make regenerate`) to:
+#   * generated/statements/gmeow.rdf12.ttl
+#   * generated/statements/gmeow-statements.owl.ttl
+# =============================================================================
+
+# --------------------------------------------------------------------------- #
+# (1) & (2). Contested bar-17 meter: transcriber A says 7/8; transcriber B
+#    says a 4/4+3/8 compound structure. Neither wins — both are retained with
+#    standpoints.
+# --------------------------------------------------------------------------- #
+
+ex:claim-bar17-meter-7_8 a gmeow:StatementMetadata ;
+    rdfs:label "Bar 17 meter = 7/8 — transcriber A"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-bar17-meter-7_8 ;
+    gmeow:qSubject   ex:bar17 ;
+    gmeow:qPredicate gmeow:assignedMeter ;
+    gmeow:qObject    gmeow:metricStructure78 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-transcriber-a ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:unequivocal ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.85 ] .
+
+ex:claim-bar17-meter-4_4-plus-3_8 a gmeow:StatementMetadata ;
+    rdfs:label "Bar 17 meter = 4/4 + 3/8 — transcriber B"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-bar17-meter-4_4-plus-3_8 ;
+    gmeow:qSubject   ex:bar17 ;
+    gmeow:qPredicate gmeow:assignedMeter ;
+    gmeow:qObject    ex:metricStructure-4_4-plus-3_8 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-transcriber-b ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:unequivocal ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.80 ] .
+
+# --------------------------------------------------------------------------- #
+# (3). AI-inferred German-sixth chord label — machine-derived, never ground
+#    truth. Attribution is to the SoftwareAgent / model run.
+# --------------------------------------------------------------------------- #
+
+ex:claim-ai-german-sixth a gmeow:StatementMetadata ;
+    rdfs:label "AI-inferred German-sixth chord label, confidence 0.72"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-ai-german-sixth ;
+    gmeow:qSubject   gmeow:fixtureRomanNumeralClaim ;
+    gmeow:qPredicate gmeow:analysisResult ;
+    gmeow:qObject    gmeow:harmonicFunctionGermanSixth ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:unequivocal ] ,
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.72 ] ,
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:ai-chord-model-v3 ] ,
+        [ gmeow:annProperty gmeow:mappedFrom  ; gmeow:annValue ex:ai-chord-model-v3 ] ,
+        [ gmeow:annProperty gmeow:assertedAt  ; gmeow:annValue "2026-06-14T00:00:00Z"^^xsd:dateTime ] .
+
+# --------------------------------------------------------------------------- #
+# (4). Disputed Greensleeves/Henry VIII composer attribution:
+#    - musicological consensus: refuted (Henry VIII did not compose it).
+#    - popular tradition: conceivable.
+# --------------------------------------------------------------------------- #
+
+ex:claim-greensleeves-henry-viii a gmeow:StatementMetadata ;
+    rdfs:label "Greensleeves composed by Henry VIII — popular tradition"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-greensleeves-henry-viii ;
+    gmeow:qSubject   ex:greensleeves-work ;
+    gmeow:qPredicate gmeow:hasComposer ;
+    gmeow:qObject    ex:henry-viii ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-popular-tradition ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:conceivable ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.6 ] .
+
+ex:claim-greensleeves-anonymous a gmeow:StatementMetadata ;
+    rdfs:label "Greensleeves composer anonymous — musicological consensus"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-greensleeves-anonymous ;
+    gmeow:qSubject   ex:greensleeves-work ;
+    gmeow:qPredicate gmeow:hasComposer ;
+    gmeow:qObject    ex:anonymous-composer ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-musicological-consensus ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:unequivocal ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.95 ] .
+
+# --------------------------------------------------------------------------- #
+# (5). Contested key attribution on a spectralist excerpt:
+#    - tonal-frame analyst asserts a pitch centre.
+#    - spectral-frame analyst refutes the same key attribution.
+# --------------------------------------------------------------------------- #
+
+ex:claim-spectral-key-tonal a gmeow:StatementMetadata ;
+    rdfs:label "Spectral excerpt has tonal key centre E4 — tonal analyst"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-spectral-key-tonal ;
+    gmeow:qSubject   ex:spectral-key-claim ;
+    gmeow:qPredicate gmeow:analysisResult ;
+    gmeow:qObject    gmeow:pitchValue12EDOE4 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-tonal-analyst ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:probable ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.75 ] .
+
+ex:claim-spectral-key-refuted a gmeow:StatementMetadata ;
+    rdfs:label "Spectral excerpt has tonal key centre E4 — spectral-frame refutation"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-spectral-key-refuted ;
+    gmeow:qSubject   ex:spectral-key-claim ;
+    gmeow:qPredicate gmeow:analysisResult ;
+    gmeow:qObject    gmeow:pitchValue12EDOE4 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-spectral-analyst ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:refuted ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.9 ] .
+
+# --------------------------------------------------------------------------- #
+# Refuted-genre example: "we are not math rock" (band standpoint) coexisting
+# with critics' assertion.
+# --------------------------------------------------------------------------- #
+
+ex:claim-math-rock-critics a gmeow:StatementMetadata ;
+    rdfs:label "Fixture work is math rock — critics' standpoint"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-math-rock-critics ;
+    gmeow:qSubject   gmeow:fixtureMathRockWork ;
+    gmeow:qPredicate gmeow:hasGenre ;
+    gmeow:qObject    gmeow:genreMathRock ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-music-critics ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:unequivocal ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 0.9 ] .
+
+ex:claim-not-math-rock-band a gmeow:StatementMetadata ;
+    rdfs:label "Fixture work is not math rock — band's refutation"@x-gmeow-english ;
+    gmeow:reifier    ex:claim-not-math-rock-band ;
+    gmeow:qSubject   gmeow:fixtureMathRockWork ;
+    gmeow:qPredicate gmeow:hasGenre ;
+    gmeow:qObject    gmeow:genreMathRock ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-the-band ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:refuted ] ,
+        [ gmeow:annProperty gmeow:confidence         ; gmeow:annValue 1.0 ] .

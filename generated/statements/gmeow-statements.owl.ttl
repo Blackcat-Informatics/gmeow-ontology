@@ -786,6 +786,80 @@
     gmeow:validFrom "2026-06-07T10:00:00+00:00"^^xsd:dateTime ;
     gmeow:validUntil "2026-06-07T10:05:00+00:00"^^xsd:dateTime .
 
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-ai-german-sixth> a owl:Axiom ;
+    owl:annotatedProperty gmeow:analysisResult ;
+    owl:annotatedSource gmeow:fixtureRomanNumeralClaim ;
+    owl:annotatedTarget gmeow:harmonicFunctionGermanSixth ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/ai-chord-model-v3> ;
+    gmeow:assertedAt "2026-06-14T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.72 ;
+    gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/music/ai-chord-model-v3> ;
+    gmeow:standpointModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-bar17-meter-4_4-plus-3_8> a owl:Axiom ;
+    owl:annotatedProperty gmeow:assignedMeter ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/music/bar17> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/music/metricStructure-4_4-plus-3_8> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-transcriber-b> ;
+    gmeow:confidence 0.80 ;
+    gmeow:standpointModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-bar17-meter-7_8> a owl:Axiom ;
+    owl:annotatedProperty gmeow:assignedMeter ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/music/bar17> ;
+    owl:annotatedTarget gmeow:metricStructure78 ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-transcriber-a> ;
+    gmeow:confidence 0.85 ;
+    gmeow:standpointModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-greensleeves-anonymous> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasComposer ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/music/greensleeves-work> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/music/anonymous-composer> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-musicological-consensus> ;
+    gmeow:confidence 0.95 ;
+    gmeow:standpointModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-greensleeves-henry-viii> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasComposer ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/music/greensleeves-work> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/music/henry-viii> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-popular-tradition> ;
+    gmeow:confidence 0.6 ;
+    gmeow:standpointModality gmeow:conceivable .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-math-rock-critics> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasGenre ;
+    owl:annotatedSource gmeow:fixtureMathRockWork ;
+    owl:annotatedTarget gmeow:genreMathRock ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-music-critics> ;
+    gmeow:confidence 0.9 ;
+    gmeow:standpointModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-not-math-rock-band> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasGenre ;
+    owl:annotatedSource gmeow:fixtureMathRockWork ;
+    owl:annotatedTarget gmeow:genreMathRock ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-the-band> ;
+    gmeow:confidence 1.0 ;
+    gmeow:standpointModality gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-spectral-key-refuted> a owl:Axiom ;
+    owl:annotatedProperty gmeow:analysisResult ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/music/spectral-key-claim> ;
+    owl:annotatedTarget gmeow:pitchValue12EDOE4 ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-spectral-analyst> ;
+    gmeow:confidence 0.9 ;
+    gmeow:standpointModality gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-spectral-key-tonal> a owl:Axiom ;
+    owl:annotatedProperty gmeow:analysisResult ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/music/spectral-key-claim> ;
+    owl:annotatedTarget gmeow:pitchValue12EDOE4 ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-tonal-analyst> ;
+    gmeow:confidence 0.75 ;
+    gmeow:standpointModality gmeow:probable .
+
 <https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-acme> a owl:Axiom ;
     owl:annotatedProperty gmeow:trademarkHolder ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> ;
@@ -868,6 +942,8 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
 
+gmeow:fixtureRomanNumeralClaim gmeow:analysisResult gmeow:harmonicFunctionGermanSixth .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon> gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/narrative-frame-harry-potter> ;
     gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood .
 
@@ -880,8 +956,18 @@
 <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> gmeow:eventTime "1582-10-05T00:00:00+00:00"^^xsd:dateTime,
         "1582-10-15T00:00:00+00:00"^^xsd:dateTime .
 
+<https://blackcatinformatics.ca/gmeow/examples/music/bar17> gmeow:assignedMeter <https://blackcatinformatics.ca/gmeow/examples/music/metricStructure-4_4-plus-3_8>,
+        gmeow:metricStructure78 .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/greensleeves-work> gmeow:hasComposer <https://blackcatinformatics.ca/gmeow/examples/music/anonymous-composer>,
+        <https://blackcatinformatics.ca/gmeow/examples/music/henry-viii> .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/spectral-key-claim> gmeow:analysisResult gmeow:pitchValue12EDOE4 .
+
 <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/acme>,
         <https://blackcatinformatics.ca/gmeow/examples/rights/omega> .
+
+gmeow:fixtureMathRockWork gmeow:hasGenre gmeow:genreMathRock .
 
 <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> gmeow:eventType gmeow:eventTypeBullshit ;
     gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> ;
