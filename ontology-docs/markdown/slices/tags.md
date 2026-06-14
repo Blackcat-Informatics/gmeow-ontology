@@ -23,6 +23,60 @@ This slice owns 17 terms and contributes 30 mapping or projection rows. Use it w
 
 ![tags map](../diagrams/slices/tags.svg)
 
+## Examples
+
+### Folksonomy
+
+- **Source:** [`slices/core/tags/examples/folksonomy.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/tags/examples/folksonomy.ttl)
+- **GMEOW terms:** [`gmeow:CreativeWork`](../reference/classes/gmeow-CreativeWork.md), [`gmeow:Person`](../reference/classes/gmeow-Person.md), [`gmeow:Tag`](../reference/classes/gmeow-Tag.md), [`gmeow:TagScheme`](../reference/classes/gmeow-TagScheme.md), [`gmeow:Tagging`](../reference/classes/gmeow-Tagging.md), [`gmeow:broaderTag`](../reference/properties/gmeow-broaderTag.md), [`gmeow:hasTag`](../reference/properties/gmeow-hasTag.md), [`gmeow:name`](../reference/properties/gmeow-name.md), [`gmeow:narrowerTag`](../reference/properties/gmeow-narrowerTag.md), [`gmeow:relatedTag`](../reference/properties/gmeow-relatedTag.md)
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: tagging is flat-first, reified on demand (, P4). A bare
+# gmeow:hasTag covers "this is tagged X". Tags themselves form a SKOS-style poly-
+# hierarchy (gmeow:broaderTag / gmeow:narrowerTag / gmeow:relatedTag) inside a
+# gmeow:TagScheme. When the PROVENANCE of a tagging matters — who applied it, in
+# which scheme — it is promoted to a reified gmeow:Tagging relator binding tagger
+# × tagged × tag × scheme, so a contested or machine-applied tag is auditable.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- A scheme and a small tag hierarchy within it.
+ex:scheme a gmeow:TagScheme ; rdfs:label "Research topic keywords"@en .
+
+ex:tagAI a gmeow:Tag ;
+    rdfs:label      "artificial-intelligence"@en ;
+    gmeow:tagInScheme ex:scheme ;
+    gmeow:narrowerTag ex:tagML .
+
+ex:tagML a gmeow:Tag ;
+    rdfs:label      "machine-learning"@en ;
+    gmeow:tagInScheme ex:scheme ;
+    gmeow:broaderTag ex:tagAI ;
+    gmeow:relatedTag ex:tagNLP .
+
+ex:tagNLP a gmeow:Tag ;
+    rdfs:label      "natural-language-processing"@en ;
+    gmeow:tagInScheme ex:scheme .
+
+# --- Flat tagging: the common case.
+ex:paper a gmeow:CreativeWork ;
+    gmeow:title  "A Survey of Transformer Architectures"@en ;
+    gmeow:hasTag ex:tagML .
+
+# --- Reified Tagging: WHO applied a tag, and under which scheme — auditable.
+ex:alice a gmeow:Person ; gmeow:name "Alice"@en .
+
+ex:taggingNLP a gmeow:Tagging ;
+    gmeow:taggingTagged ex:paper ;
+    gmeow:taggingTag    ex:tagNLP ;
+    gmeow:taggingTagger ex:alice ;
+    gmeow:taggingScheme ex:scheme .
+```
+
 ## Terms
 
 ### Classes

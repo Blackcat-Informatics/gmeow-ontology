@@ -17,6 +17,22 @@ An entity whose nature is to carry information content: a document, dataset, sof
 
 Use [`gmeow:InformationObject`](gmeow-InformationObject.md) as a specialized kind of [`gmeow:Entity`](gmeow-Entity.md), [`gufo:Object`](../../external/terms.md#gufo-object). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Multilingual Document
+
+- **Source:** [`slices/core/language/examples/multilingual-document.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-language-examples-multilingual-document)#example-slices-core-language-examples-multilingual-document
+
+```turtle
+# --- A bilingual document: two co-equal languages, neither primary.
+ex:manual a gmeow:InformationObject ;
+    gmeow:title            "Installation Manual / インストールマニュアル"@en ;
+    gmeow:writtenInLanguage ex:english , ex:japanese .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Entity`](gmeow-Entity.md)

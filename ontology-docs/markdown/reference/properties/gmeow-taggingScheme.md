@@ -17,6 +17,23 @@ The tag scheme within which the tagging act is performed. Functional per relator
 
 Use [`gmeow:taggingScheme`](gmeow-taggingScheme.md) from [`gmeow:Tagging`](../classes/gmeow-Tagging.md) to [`gmeow:TagScheme`](../classes/gmeow-TagScheme.md) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Folksonomy
+
+- **Source:** [`slices/core/tags/examples/folksonomy.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/tags/examples/folksonomy.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-tags-examples-folksonomy)#example-slices-core-tags-examples-folksonomy
+
+```turtle
+ex:taggingNLP a gmeow:Tagging ;
+    gmeow:taggingTagged ex:paper ;
+    gmeow:taggingTag    ex:tagNLP ;
+    gmeow:taggingTagger ex:alice ;
+    gmeow:taggingScheme ex:scheme .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Tagging`](../classes/gmeow-Tagging.md), [`gmeow:TagScheme`](../classes/gmeow-TagScheme.md)
