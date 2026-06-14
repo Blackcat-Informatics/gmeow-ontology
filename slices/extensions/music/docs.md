@@ -10,8 +10,8 @@ five-layer music model described in the #306 EPIC:
 2. **Time** — `MusicalTimeFrame`; `TimeMapping` and `TempoMap`; `MetricStructure`,
    `MeterAssignment`, `MetricModulation`; `GrooveProfile`.
 3. **Structure** — `MusicalSegment` graph; `ToneEvent`; `Voice`; `SegmentTransformation`.
-4. **Performance** — `DegreeOfFreedom`; `TraversalConstraint`; `GenerativeProcess`;
-   `PerformanceParticipation`; `InstrumentConfiguration`.
+4. **Performance** — `DegreeOfFreedom`; `TraversalConstraint`; `PerformanceDecision`;
+   `GenerativeProcess`; `OrnamentProfile`.
 5. **Analysis** — `MusicAnalysisClaim` as standpoint-indexed observations against
    explicit theory frames.
 
@@ -118,6 +118,52 @@ payload (Principles 8, 12, 13).
 Seed fixtures: riff A → transposed riff A′ → re-accented riff A″ transformation
 chain; a C4 `ToneEvent`; a two-point C4→G4 glissando trajectory; and a bass
 `Voice`.
+
+## Performance: form, process, and indeterminacy (issue #312)
+
+### gmeow:DegreeOfFreedom
+
+A `gmeow:DegreeOfFreedom` is a relator that positively declares how one parameter
+of a `MusicalWork` or `Expression` is determined: fixed, constrained, free, or
+delegated to performer, environment, or process. Indeterminacy is not an absence;
+it is a declared status (Principles 9, 11, 12). Cage's 4′33″ is fully specified
+by a set of such cells: duration constrained, tacet fixed, sound content
+delegated to the environment, instrumentation free.
+
+### gmeow:TraversalConstraint
+
+A `gmeow:TraversalConstraint` is mobile form as data: fragments, allowed
+successor links (`gmeow:mayFollow`), selection rules, and termination rules.
+Graph reachability and termination are solver work; no transitive or chain axiom
+is ever asserted over `gmeow:mayFollow` (Principle 12). Stockhausen's
+*Klavierstück XI* is the seed fixture.
+
+### gmeow:PerformanceDecision
+
+A `gmeow:PerformanceDecision` records one documented traversal of a mobile form
+during a performance. Competing traversals of the same work coexist as distinct
+relators (Principle 9).
+
+### gmeow:GenerativeProcess
+
+A `gmeow:GenerativeProcess` is musical content that is itself a process —
+phasing, stochastic distribution, verbal score, rule set, or algorithm. The
+human-readable rule text is canonical; formal realization is delegated to a
+solver referenced by `gmeow:processFunction` (Principle 12). Seed fixtures:
+Reich-style phasing and Xenakis-style stochastic processes.
+
+### gmeow:OrnamentProfile
+
+A `gmeow:OrnamentProfile` is a named convention for ornamentation — a gamaka
+family, baroque agrément, jazz turn — bound to a `MusicalSegment` or `Voice`. It
+separates structural pitch membership from expressive execution, completing the
+raga/maqam model (Principles 9, 11). Seed fixture: Raga Yaman gamaka profile.
+
+### gmeow:mayFollow
+
+`gmeow:mayFollow` is a directed allowed-successor link between mobile-form
+fragments. It is plain data; reachability is computed by
+`gmeow:fnTraverseMobileForm`, never reasoned by the DL engine.
 
 ## Consumer
 

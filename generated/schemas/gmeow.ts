@@ -570,6 +570,17 @@ export enum DayOfWeekEnum {
     Wednesday = "dayWednesday",
 };
 
+export enum DegreeOfFreedomEnum {
+
+    number_4PRIME33DOUBLE_PRIME_duration_constrained = "dofFourThirtyThreeDuration",
+    number_4PRIME33DOUBLE_PRIME_instrumentation_free = "dofFourThirtyThreeInstrumentation",
+    number_4PRIME33DOUBLE_PRIME_sound_content_delegated_to_environment = "dofFourThirtyThreeSoundContent",
+    number_4PRIME33DOUBLE_PRIME_tacet_fixed = "dofFourThirtyThreeTacet",
+    graphic_score_duration_delegated_to_performer = "dofGraphicScoreDuration",
+    graphic_score_order_delegated_to_performer = "dofGraphicScoreOrder",
+    graphic_score_pitch_delegated_to_performer = "dofGraphicScorePitch",
+};
+
 export enum DeonticModalityEnum {
 
     obligation_LEFT_PARENTHESISmustRIGHT_PARENTHESIS = "deonticObligation",
@@ -637,6 +648,16 @@ export enum DeterminacyEnum {
     vague = "determinacyVague",
 };
 
+export enum DeterminationStatusEnum {
+
+    constrained = "determinationConstrained",
+    delegated_to_environment = "determinationDelegatedEnvironment",
+    delegated_to_performer = "determinationDelegatedPerformer",
+    delegated_to_process = "determinationDelegatedProcess",
+    fixed = "determinationFixed",
+    free = "determinationFree",
+};
+
 export enum DisclosurePolicyEnum {
 
     internal_only = "policyInternalOnly",
@@ -700,6 +721,12 @@ export enum EvaluationVerdictEnum {
     held = "verdictHeld",
     not_held = "verdictNotHeld",
     undetermined = "verdictUndetermined",
+};
+
+export enum EventEnum {
+
+    Klavierstück_XI_performance_traversal_1 = "fixtureKlavierstuckPerformanceOne",
+    Klavierstück_XI_performance_traversal_2 = "fixtureKlavierstuckPerformanceTwo",
 };
 
 export enum EventTypeEnum {
@@ -823,6 +850,13 @@ export enum ExemplarPolarityEnum {
     positive = "polarityPositive",
 };
 
+export enum ExpressionEnum {
+
+    graphic_score_expression = "fixtureGraphicScoreExpression",
+    graphic_score_CMN_transcription = "fixtureGraphicScoreTranscription",
+    Reich_style_phasing_realization = "fixtureReichPhasingExpression",
+};
+
 export enum ExpressionLanguageEnum {
 
     Cedar = "exprLangCedar",
@@ -924,6 +958,21 @@ export enum GenderExpressionStyleEnum {
     fluid = "expressionFluid",
     masculine = "expressionMasculine",
     neutral = "expressionNeutral",
+};
+
+export enum GenerativeProcessEnum {
+
+    Reich_style_phasing_process = "fixtureReichPhasingProcess",
+    Xenakis_style_stochastic_process = "fixtureXenakisStochasticProcess",
+};
+
+export enum GenerativeProcessKindEnum {
+
+    algorithmic = "generativeProcessKindAlgorithmic",
+    phasing = "generativeProcessKindPhasing",
+    rule_based = "generativeProcessKindRuleBased",
+    stochastic = "generativeProcessKindStochastic",
+    verbal_score = "generativeProcessKindVerbalScore",
 };
 
 export enum GeometryTypeEnum {
@@ -1401,8 +1450,27 @@ export enum MultipartTypeEnum {
     signed = "multipartTypeSigned",
 };
 
+export enum MusicalParameterEnum {
+
+    duration = "musicalParameterDuration",
+    dynamics = "musicalParameterDynamics",
+    instrumentation = "musicalParameterInstrumentation",
+    location = "musicalParameterLocation",
+    order = "musicalParameterOrder",
+    performer_count = "musicalParameterPerformerCount",
+    pitch = "musicalParameterPitch",
+    sound_content = "musicalParameterSoundContent",
+    tacet = "musicalParameterTacet",
+    tempo = "musicalParameterTempo",
+    timbre = "musicalParameterTimbre",
+};
+
 export enum MusicalSegmentEnum {
 
+    Klavierstück_XI_fragment_A = "fixtureKlavierstuckFragmentA",
+    Klavierstück_XI_fragment_B = "fixtureKlavierstuckFragmentB",
+    Klavierstück_XI_fragment_C = "fixtureKlavierstuckFragmentC",
+    Klavierstück_XI_fragment_D = "fixtureKlavierstuckFragmentD",
     riff_A = "fixtureStructureRiffA",
     riff_A_re_accented = "fixtureStructureRiffAReaccented",
     riff_A_transposed = "fixtureStructureRiffATransposed",
@@ -1425,6 +1493,10 @@ export enum MusicalTimeSpanEnum {
 
 export enum MusicalWorkEnum {
 
+    number_4PRIME33DOUBLE_PRIME = "fixtureFourThirtyThreeWork",
+    graphic_score_work_fixture = "fixtureGraphicScoreWork",
+    Klavierstück_XI = "fixtureKlavierstuckXIWork",
+    Reich_style_phasing_work = "fixtureReichPhasingWork",
     fixture_structure_work = "fixtureStructureWork",
 };
 
@@ -1635,6 +1707,20 @@ export enum OrganizationTypeEnum {
     nonprofit = "organizationTypeNonprofit",
 };
 
+export enum OrnamentProfileEnum {
+
+    Raga_Yaman_ornament_profile = "fixtureYamanOrnamentProfile",
+};
+
+export enum OrnamentProfileKindEnum {
+
+    baroque_agrément = "ornamentProfileKindBaroqueAgrement",
+    gamaka = "ornamentProfileKindGamaka",
+    grace_note = "ornamentProfileKindGraceNote",
+    jazz_turn = "ornamentProfileKindJazzTurn",
+    mordent = "ornamentProfileKindMordent",
+};
+
 export enum ParticipantRoleEnum {
 
     agent = "roleAgent",
@@ -1667,6 +1753,12 @@ export enum PaymentMethodEnum {
     cheque = "paymentMethodCheque",
     credit_card = "paymentMethodCreditCard",
     cryptocurrency = "paymentMethodCrypto",
+};
+
+export enum PerformanceDecisionEnum {
+
+    Klavierstück_XI_decision_1 = "fixtureKlavierstuckDecisionOne",
+    Klavierstück_XI_decision_2 = "fixtureKlavierstuckDecisionTwo",
 };
 
 export enum PeriodTypeEnum {
@@ -2257,6 +2349,11 @@ export enum SceneRelationTypeEnum {
     wearing = "sceneRelationWearing",
 };
 
+export enum ScoreEditionEnum {
+
+    graphic_score_visual_manifestation = "fixtureGraphicScoreVisual",
+};
+
 export enum ScriptRoleEnum {
 
     decorative = "scriptRoleDecorative",
@@ -2413,6 +2510,7 @@ export enum SpectrumEnum {
 export enum StandpointEnum {
 
     Arabic_maqam_theory = "standpointArabicTheory",
+    transcriber_A = "standpointTranscriberA",
     Turkish_makam_theory = "standpointTurkishTheory",
     universal_standpoint_LEFT_PARENTHESISASTERISKRIGHT_PARENTHESIS = "universalStandpoint",
 };
@@ -2655,6 +2753,11 @@ export enum TransliterationSchemeEnum {
     Wade_Giles_LEFT_PARENTHESISMandarin_RIGHTWARDS_ARROW_LatinRIGHT_PARENTHESIS = "schemeWadeGiles",
 };
 
+export enum TraversalConstraintEnum {
+
+    Klavierstück_XI_traversal_constraint = "fixtureKlavierstuckConstraint",
+};
+
 export enum TuningSystemEnum {
 
     number_12_tone_equal_temperament = "tuningSystem12EDO",
@@ -2731,6 +2834,7 @@ export enum VirtualLocationTypeEnum {
 export enum VoiceEnum {
 
     bass_voice = "fixtureStructureVoiceBass",
+    Raga_Yaman_demo_voice = "fixtureYamanVoice",
     drums_voice_placeholder = "voiceDrumsPlaceholder",
     guitar_voice_placeholder = "voiceGuitarPlaceholder",
 };
@@ -3692,6 +3796,17 @@ export interface DayOfWeek {
 
 
 
+export interface DegreeOfFreedom {
+    dofConstraintFunction?: string[],
+    dofConstraintText?: string,
+    dofExpression?: Expression,
+    dofParameter?: MusicalParameter,
+    dofStatus?: DeterminationStatus,
+    dofWork?: Work,
+}
+
+
+
 export interface DeonticModality {
 }
 
@@ -3729,6 +3844,11 @@ export interface Desire extends IntentionalMode {
 
 
 export interface Determinacy {
+}
+
+
+
+export interface DeterminationStatus {
 }
 
 
@@ -4228,6 +4348,20 @@ export interface GenderExpressionStyle {
 
 export interface GenderIdentity extends IdentityFacet {
     genderValue?: Gender,
+}
+
+
+
+export interface GenerativeProcess extends Entity {
+    processFunction?: string[],
+    processKind?: GenerativeProcessKind,
+    processParameter?: Entity[],
+    processRuleText?: string,
+}
+
+
+
+export interface GenerativeProcessKind {
 }
 
 
@@ -5036,7 +5170,13 @@ export interface MultipartType {
 
 
 
+export interface MusicalParameter {
+}
+
+
+
 export interface MusicalSegment extends ContentSegment {
+    mayFollow?: MusicalSegment[],
     segmentKind?: SegmentKind,
 }
 
@@ -5399,6 +5539,21 @@ export interface Orientation extends Entity {
 
 
 
+export interface OrnamentProfile extends Entity {
+    appliesToSegment?: MusicalSegment[],
+    appliesToVoice?: Voice[],
+    ornamentDescription?: string,
+    ornamentProfileKind?: OrnamentProfileKind,
+    ornamentReferenceFrame?: TuningSystem,
+}
+
+
+
+export interface OrnamentProfileKind {
+}
+
+
+
 export interface PGPSignature extends CryptographicSignature {
 }
 
@@ -5444,6 +5599,14 @@ export interface Payment extends FinancialTransaction {
 
 
 export interface PaymentMethod {
+}
+
+
+
+export interface PerformanceDecision {
+    decisionConstraint?: TraversalConstraint,
+    decisionPerformance?: Event,
+    decisionSequence?: string,
 }
 
 
@@ -6746,6 +6909,14 @@ export interface TransliterationScheme {
 export interface TransparencyLogEntry extends InformationObject {
     logEntryIndex?: number,
     logEntryUrl?: string[],
+}
+
+
+
+export interface TraversalConstraint extends InformationObject {
+    constraintAppliesTo?: Entity,
+    constraintFunction?: string[],
+    constraintText?: string,
 }
 
 

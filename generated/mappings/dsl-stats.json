@@ -30,7 +30,7 @@
   "gmeow-languages.sssom.tsv": 16,
   "gmeow-lexicon.sssom.tsv": 9,
   "gmeow-lifecycle.sssom.tsv": 8,
-  "gmeow-music.sssom.tsv": 16,
+  "gmeow-music.sssom.tsv": 18,
   "gmeow-names.sssom.tsv": 55,
   "gmeow-narrative.sssom.tsv": 14,
   "gmeow-norms.sssom.tsv": 2,
@@ -56,7 +56,7 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1647,
+ "equivalences": 1649,
  "functions": 38,
  "mapping_sets": 55,
  "projections": 510

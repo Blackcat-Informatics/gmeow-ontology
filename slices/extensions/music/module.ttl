@@ -1,10 +1,12 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
 @prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix fno:     <https://w3id.org/function/ontology#> .
 
 <https://blackcatinformatics.ca/gmeow/slices/music>
     a owl:Ontology ;
@@ -2953,8 +2955,701 @@ gmeow:fixtureStructureVoiceBass
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# PERFORMANCE — reserved for issue #313 / #312 (DegreeOfFreedom, ...)
+# PERFORMANCE — issue #312 (DegreeOfFreedom, TraversalConstraint,
+#                           GenerativeProcess, OrnamentProfile)
 # =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:DegreeOfFreedom
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Degree of Freedom"@x-gmeow-english ;
+    skos:definition "A reified relator that positively declares how a musical work or expression determines one musical parameter. Indeterminacy is not an absence; it is a declaration of status (fixed, constrained, free, or delegated). Each cell is {work/expression × parameter × determination status × optional constraint}; Cage's 4′33″ is fully specified by a set of such cells (Principles 9, 11, 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:MusicalParameter
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Musical Parameter"@x-gmeow-english ;
+    skos:definition "A dimension of musical content whose degree of determination a work or expression declares. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:DeterminationStatus
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Determination Status"@x-gmeow-english ;
+    skos:definition "The status of a musical parameter within a DegreeOfFreedom relator — fixed, constrained, free, or delegated to performer/environment/process. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:TraversalConstraint
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
+    rdfs:label "Traversal Constraint"@x-gmeow-english ;
+    skos:definition "Mobile form as data: a set of fragments, allowed-successor links (mayFollow), selection rules, and termination rules interpreted by a solver. Graph reachability and termination are solver work; no DL chain axiom is ever asserted over mayFollow (Principles 4, 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:PerformanceDecision
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Performance Decision"@x-gmeow-english ;
+    skos:definition "A reified relator recording one documented traversal of a mobile form during a performance — the performance event, the traversal constraint, and the chosen sequence of fragments. Competing traversals of the same work coexist as distinct PerformanceDecisions (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:GenerativeProcess
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Generative Process"@x-gmeow-english ;
+    skos:definition "A process that is itself musical content — phasing, stochastic distribution, verbal score, algorithmic rule set. The rule text is human-readable data; formal evaluation is delegated to a solver referenced by processFunction (Principles 4, 12). Realizations are linked by gmeow:wasGeneratedBy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:GenerativeProcessKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Generative Process Kind"@x-gmeow-english ;
+    skos:definition "The kind of a generative process — phasing, stochastic, verbal score, rule-based, algorithmic. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:OrnamentProfile
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Ornament Profile"@x-gmeow-english ;
+    skos:definition "A named convention for ornamentation — a gamaka family, a baroque agrément, a jazz turn — bound to segments or voices. Completes the raga/maqam model by separating structural pitch membership from expressive execution (Principles 9, 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:OrnamentProfileKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Ornament Profile Kind"@x-gmeow-english ;
+    skos:definition "The kind of ornament profile — gamaka family, baroque agrément, raga ornament, jazz turn, etc. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:dofWork
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:DegreeOfFreedom ;
+    rdfs:range gmeow:Work ;
+    rdfs:label "degree-of-freedom work"@x-gmeow-english ;
+    skos:definition "The Work whose parameter determination this DegreeOfFreedom declares. Exactly one of dofWork or dofExpression is required per relator; SHACL enforces the XOR (Principle 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofExpression
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:DegreeOfFreedom ;
+    rdfs:range gmeow:Expression ;
+    rdfs:label "degree-of-freedom expression"@x-gmeow-english ;
+    skos:definition "The Expression whose parameter determination this DegreeOfFreedom declares. Exactly one of dofWork or dofExpression is required per relator; SHACL enforces the XOR."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofParameter
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:DegreeOfFreedom ;
+    rdfs:range gmeow:MusicalParameter ;
+    rdfs:label "degree-of-freedom parameter"@x-gmeow-english ;
+    skos:definition "The musical parameter whose determination status is declared (pitch, duration, order, tempo, dynamics, timbre, instrumentation, performer count, sound content, location, tacet, etc.)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofStatus
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:DegreeOfFreedom ;
+    rdfs:range gmeow:DeterminationStatus ;
+    rdfs:label "degree-of-freedom status"@x-gmeow-english ;
+    skos:definition "The determination status of the parameter in this DegreeOfFreedom relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofConstraintFunction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DegreeOfFreedom ;
+    rdfs:range fno:Function ;
+    rdfs:label "degree-of-freedom constraint function"@x-gmeow-english ;
+    skos:definition "An optional FnO function reference that evaluates or validates the constraint text (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:mayFollow
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MusicalSegment ;
+    rdfs:range gmeow:MusicalSegment ;
+    rdfs:label "may follow"@x-gmeow-english ;
+    skos:definition "A directed allowed-successor link between mobile-form fragments. The fragment graph is data interpreted by fnTraverseMobileForm; no transitive, symmetric, or chain axiom is asserted (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:constraintAppliesTo
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TraversalConstraint ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "constraint applies to"@x-gmeow-english ;
+    skos:definition "The work, expression, or performance to which this TraversalConstraint applies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:constraintFunction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TraversalConstraint ;
+    rdfs:range fno:Function ;
+    rdfs:label "constraint function"@x-gmeow-english ;
+    skos:definition "An optional FnO function reference that interprets the selection and termination rules (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:decisionPerformance
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PerformanceDecision ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "decision performance"@x-gmeow-english ;
+    skos:definition "The performance event in which this traversal decision was made."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:decisionConstraint
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PerformanceDecision ;
+    rdfs:range gmeow:TraversalConstraint ;
+    rdfs:label "decision constraint"@x-gmeow-english ;
+    skos:definition "The TraversalConstraint whose rules this PerformanceDecision satisfies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:processKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:GenerativeProcess ;
+    rdfs:range gmeow:GenerativeProcessKind ;
+    rdfs:label "process kind"@x-gmeow-english ;
+    skos:definition "The kind of generative process (phasing, stochastic, verbal score, rule-based, algorithmic)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:processFunction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GenerativeProcess ;
+    rdfs:range fno:Function ;
+    rdfs:label "process function"@x-gmeow-english ;
+    skos:definition "An FnO function reference that realizes the process, e.g. fnRealizePhasing or fnRealizeStochasticProcess (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:processParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GenerativeProcess ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "process parameter"@x-gmeow-english ;
+    skos:definition "An input parameter to the generative process — a PitchInterval, TimeMapping, distribution description, or other entity. Non-functional: a process may have many parameters."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ornamentProfileKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:OrnamentProfile ;
+    rdfs:range gmeow:OrnamentProfileKind ;
+    rdfs:label "ornament profile kind"@x-gmeow-english ;
+    skos:definition "The kind of ornament profile (gamaka family, baroque agrément, etc.)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:appliesToSegment
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:OrnamentProfile ;
+    rdfs:range gmeow:MusicalSegment ;
+    rdfs:label "applies to segment"@x-gmeow-english ;
+    skos:definition "A MusicalSegment to which this ornament profile applies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:appliesToVoice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:OrnamentProfile ;
+    rdfs:range gmeow:Voice ;
+    rdfs:label "applies to voice"@x-gmeow-english ;
+    skos:definition "A Voice to which this ornament profile applies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ornamentReferenceFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:OrnamentProfile ;
+    rdfs:range gmeow:TuningSystem ;
+    rdfs:label "ornament reference frame"@x-gmeow-english ;
+    skos:definition "The tuning system relative to which the ornament profile's pitch gestures are expressed (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# ANNOTATION PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:dofConstraintText
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:DegreeOfFreedom ;
+    rdfs:label "degree-of-freedom constraint text"@x-gmeow-english ;
+    skos:definition "A human-readable statement of the constraint, boundary, or delegation contract for this parameter. Language-tagged; at most one value per language (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:constraintText
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:TraversalConstraint ;
+    rdfs:label "constraint text"@x-gmeow-english ;
+    skos:definition "Human-readable selection and termination rules for the mobile form. Language-tagged; at most one value per language (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:processRuleText
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:GenerativeProcess ;
+    rdfs:label "process rule text"@x-gmeow-english ;
+    skos:definition "A human-readable statement of the generative rule (e.g. 'two voices begin in unison; one accelerates by one beat every X measures until re-aligned'). Language-tagged; at most one value per language (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ornamentDescription
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:OrnamentProfile ;
+    rdfs:label "ornament description"@x-gmeow-english ;
+    skos:definition "A human-readable description of the ornament convention and its execution. Language-tagged; at most one value per language (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# DATATYPE PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:decisionSequence
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PerformanceDecision ;
+    rdfs:range xsd:string ;
+    rdfs:label "decision sequence"@x-gmeow-english ;
+    skos:definition "A human-readable record of the chosen fragment traversal order for one performance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — relator EL patterns
+# --------------------------------------------------------------------------- #
+
+gmeow:DegreeOfFreedom rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:dofParameter ; owl:someValuesFrom gmeow:MusicalParameter ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dofStatus ;     owl:someValuesFrom gmeow:DeterminationStatus ] .
+
+gmeow:PerformanceDecision rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:decisionPerformance ; owl:someValuesFrom gmeow:Event ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:decisionConstraint ; owl:someValuesFrom gmeow:TraversalConstraint ] .
+
+gmeow:GenerativeProcess rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:processKind ; owl:someValuesFrom gmeow:GenerativeProcessKind ] .
+
+gmeow:OrnamentProfile rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:ornamentProfileKind ; owl:someValuesFrom gmeow:OrnamentProfileKind ] .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — MusicalParameter
+# --------------------------------------------------------------------------- #
+
+gmeow:musicalParameterPitch a gmeow:MusicalParameter ;
+    rdfs:label "pitch"@x-gmeow-english ;
+    skos:definition "The pitch parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterDuration a gmeow:MusicalParameter ;
+    rdfs:label "duration"@x-gmeow-english ;
+    skos:definition "The duration parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterOrder a gmeow:MusicalParameter ;
+    rdfs:label "order"@x-gmeow-english ;
+    skos:definition "The ordering or sequence parameter of musical material."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterTempo a gmeow:MusicalParameter ;
+    rdfs:label "tempo"@x-gmeow-english ;
+    skos:definition "The tempo parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterDynamics a gmeow:MusicalParameter ;
+    rdfs:label "dynamics"@x-gmeow-english ;
+    skos:definition "The dynamics parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterTimbre a gmeow:MusicalParameter ;
+    rdfs:label "timbre"@x-gmeow-english ;
+    skos:definition "The timbre parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterInstrumentation a gmeow:MusicalParameter ;
+    rdfs:label "instrumentation"@x-gmeow-english ;
+    skos:definition "The instrumentation parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterPerformerCount a gmeow:MusicalParameter ;
+    rdfs:label "performer count"@x-gmeow-english ;
+    skos:definition "The number-of-performers parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterSoundContent a gmeow:MusicalParameter ;
+    rdfs:label "sound content"@x-gmeow-english ;
+    skos:definition "The sound-content parameter of a musical work or expression — what, if anything, is sounded."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterLocation a gmeow:MusicalParameter ;
+    rdfs:label "location"@x-gmeow-english ;
+    skos:definition "The spatial or environmental-location parameter of a musical work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:musicalParameterTacet a gmeow:MusicalParameter ;
+    rdfs:label "tacet"@x-gmeow-english ;
+    skos:definition "The tacet parameter — whether performers are explicitly silent. Used by the Cage 4′33″ fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — DeterminationStatus
+# --------------------------------------------------------------------------- #
+
+gmeow:determinationFixed a gmeow:DeterminationStatus ;
+    rdfs:label "fixed"@x-gmeow-english ;
+    skos:definition "The parameter is fully determined by the work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:determinationConstrained a gmeow:DeterminationStatus ;
+    rdfs:label "constrained"@x-gmeow-english ;
+    skos:definition "The parameter is bounded or shaped by a constraint, but not fully fixed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:determinationFree a gmeow:DeterminationStatus ;
+    rdfs:label "free"@x-gmeow-english ;
+    skos:definition "The parameter is left entirely to the performer or environment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:determinationDelegatedPerformer a gmeow:DeterminationStatus ;
+    rdfs:label "delegated to performer"@x-gmeow-english ;
+    skos:definition "The parameter is delegated to performer choice within the performance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:determinationDelegatedEnvironment a gmeow:DeterminationStatus ;
+    rdfs:label "delegated to environment"@x-gmeow-english ;
+    skos:definition "The parameter is delegated to the ambient environment — e.g. ambient sound as content in Cage 4′33″."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:determinationDelegatedProcess a gmeow:DeterminationStatus ;
+    rdfs:label "delegated to process"@x-gmeow-english ;
+    skos:definition "The parameter is delegated to a generative or algorithmic process."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — GenerativeProcessKind
+# --------------------------------------------------------------------------- #
+
+gmeow:generativeProcessKindPhasing a gmeow:GenerativeProcessKind ;
+    rdfs:label "phasing"@x-gmeow-english ;
+    skos:definition "A process in which two or more voices begin in unison and one gradually shifts in tempo or phase, as in Steve Reich (stress case 19)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:generativeProcessKindStochastic a gmeow:GenerativeProcessKind ;
+    rdfs:label "stochastic"@x-gmeow-english ;
+    skos:definition "A process governed by probability distributions, as in Iannis Xenakis (stress case 6)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:generativeProcessKindVerbalScore a gmeow:GenerativeProcessKind ;
+    rdfs:label "verbal score"@x-gmeow-english ;
+    skos:definition "A process described by verbal instructions rather than traditional notation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:generativeProcessKindRuleBased a gmeow:GenerativeProcessKind ;
+    rdfs:label "rule-based"@x-gmeow-english ;
+    skos:definition "A process defined by an explicit set of transformational rules."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:generativeProcessKindAlgorithmic a gmeow:GenerativeProcessKind ;
+    rdfs:label "algorithmic"@x-gmeow-english ;
+    skos:definition "A process realized by an algorithm or computer program."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — OrnamentProfileKind
+# --------------------------------------------------------------------------- #
+
+gmeow:ornamentProfileKindGamaka a gmeow:OrnamentProfileKind ;
+    rdfs:label "gamaka"@x-gmeow-english ;
+    skos:definition "A gamaka ornament family, used in South Asian raga performance (stress case 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ornamentProfileKindBaroqueAgrement a gmeow:OrnamentProfileKind ;
+    rdfs:label "baroque agrément"@x-gmeow-english ;
+    skos:definition "A French Baroque ornament sign and its realization convention."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ornamentProfileKindJazzTurn a gmeow:OrnamentProfileKind ;
+    rdfs:label "jazz turn"@x-gmeow-english ;
+    skos:definition "A jazz turn or ornament convention."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ornamentProfileKindMordent a gmeow:OrnamentProfileKind ;
+    rdfs:label "mordent"@x-gmeow-english ;
+    skos:definition "A rapid alternation between a pitch and its neighbor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ornamentProfileKindGraceNote a gmeow:OrnamentProfileKind ;
+    rdfs:label "grace note"@x-gmeow-english ;
+    skos:definition "A short unaccented note preceding a principal note."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Cage 4′33″ (stress case 3)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFourThirtyThreeWork
+    a gmeow:MusicalWork ;
+    rdfs:label "4′33″"@x-gmeow-english ;
+    skos:definition "John Cage's 4′33″ as a fixture: a fully specified work whose content is the ambient sound delegated by positive assertion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeDuration
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ duration constrained"@x-gmeow-english ;
+    skos:definition "The total duration of 4′33″ is constrained to three movements whose sum is canonically 4 minutes 33 seconds."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterDuration ;
+    gmeow:dofStatus gmeow:determinationConstrained ;
+    gmeow:dofConstraintText "Three movements; total duration fixed per realization, canonically 4′33″."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeTacet
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ tacet fixed"@x-gmeow-english ;
+    skos:definition "The performers of 4′33″ are explicitly silent throughout; tacet is fixed."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterTacet ;
+    gmeow:dofStatus gmeow:determinationFixed ;
+    gmeow:dofConstraintText "All performers remain silent for the duration of the work."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeSoundContent
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ sound content delegated to environment"@x-gmeow-english ;
+    skos:definition "The sound content of 4′33″ is delegated to the ambient environment; the work is not silent, but its sounding content is not specified by the composer."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterSoundContent ;
+    gmeow:dofStatus gmeow:determinationDelegatedEnvironment ;
+    gmeow:dofConstraintText "Environmental sounds occurring during the performance constitute the content."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeInstrumentation
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ instrumentation free"@x-gmeow-english ;
+    skos:definition "The instrumentation of 4′33″ is free — any instrument or combination may be used."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterInstrumentation ;
+    gmeow:dofStatus gmeow:determinationFree ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Stockhausen *Klavierstück XI* mobile form (stress case 4)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureKlavierstuckXIWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Klavierstück XI"@x-gmeow-english ;
+    skos:definition "Stockhausen's Klavierstück XI as a mobile-form fixture: fragments plus a traversal constraint."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckFragmentA
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment A"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckFragmentB
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment B"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckFragmentC
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment C"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckFragmentD
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment D"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckConstraint
+    a gmeow:TraversalConstraint ;
+    rdfs:label "Klavierstück XI traversal constraint"@x-gmeow-english ;
+    skos:definition "The mobile-form constraint for the Klavierstück XI fixture: choose any fragment that has not been played too often, respecting the mayFollow graph, and stop when a fragment has been reached three times."@x-gmeow-english ;
+    gmeow:constraintAppliesTo gmeow:fixtureKlavierstuckXIWork ;
+    gmeow:constraintText "Start at any fragment. Each next fragment may follow according to the mayFollow graph. A fragment that has been reached three times terminates the performance. The same fragment may not be chosen twice in immediate succession."@x-gmeow-english ;
+    gmeow:constraintFunction gmeow:fnTraverseMobileForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckFragmentA gmeow:mayFollow gmeow:fixtureKlavierstuckFragmentB .
+gmeow:fixtureKlavierstuckFragmentA gmeow:mayFollow gmeow:fixtureKlavierstuckFragmentC .
+gmeow:fixtureKlavierstuckFragmentB gmeow:mayFollow gmeow:fixtureKlavierstuckFragmentD .
+gmeow:fixtureKlavierstuckFragmentC gmeow:mayFollow gmeow:fixtureKlavierstuckFragmentB .
+gmeow:fixtureKlavierstuckFragmentD gmeow:mayFollow gmeow:fixtureKlavierstuckFragmentA .
+
+gmeow:fixtureKlavierstuckPerformanceOne
+    a gmeow:Event ;
+    rdfs:label "Klavierstück XI performance traversal 1"@x-gmeow-english ;
+    skos:definition "A documented performance of Klavierstück XI with traversal A → C → B → D."@x-gmeow-english ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "1956-01-01T00:00:00Z"^^xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckDecisionOne
+    a gmeow:PerformanceDecision ;
+    rdfs:label "Klavierstück XI decision 1"@x-gmeow-english ;
+    skos:definition "Documented traversal A → C → B → D for the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:decisionPerformance gmeow:fixtureKlavierstuckPerformanceOne ;
+    gmeow:decisionConstraint gmeow:fixtureKlavierstuckConstraint ;
+    gmeow:decisionSequence "A → C → B → D"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckPerformanceTwo
+    a gmeow:Event ;
+    rdfs:label "Klavierstück XI performance traversal 2"@x-gmeow-english ;
+    skos:definition "A documented performance of Klavierstück XI with traversal B → D → A → C."@x-gmeow-english ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "1956-01-02T00:00:00Z"^^xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKlavierstuckDecisionTwo
+    a gmeow:PerformanceDecision ;
+    rdfs:label "Klavierstück XI decision 2"@x-gmeow-english ;
+    skos:definition "Documented traversal B → D → A → C for the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:decisionPerformance gmeow:fixtureKlavierstuckPerformanceTwo ;
+    gmeow:decisionConstraint gmeow:fixtureKlavierstuckConstraint ;
+    gmeow:decisionSequence "B → D → A → C"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Reich-style phasing process (stress case 19)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureReichPhasingProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Reich-style phasing process"@x-gmeow-english ;
+    skos:definition "A generative process fixture: two voices begin in unison; one accelerates slightly until it has shifted by one beat, then locks."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindPhasing ;
+    gmeow:processRuleText "Two identical phrases are repeated; one voice gradually accelerates until it is one beat ahead of the other, then continues at the original tempo."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fnRealizePhasing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureReichPhasingExpression
+    a gmeow:Expression ;
+    rdfs:label "Reich-style phasing realization"@x-gmeow-english ;
+    skos:definition "One realization of the Reich-style phasing process, linked by provenance."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureReichPhasingWork ;
+    gmeow:wasGeneratedBy gmeow:fixtureReichPhasingProcess ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureReichPhasingWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Reich-style phasing work"@x-gmeow-english ;
+    skos:definition "A worked musical work fixture whose identity is the phasing process itself."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Xenakis-style stochastic process (stress case 6)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisStochasticProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Xenakis-style stochastic process"@x-gmeow-english ;
+    skos:definition "A generative process fixture governed by a probability distribution over pitch and time."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindStochastic ;
+    gmeow:processRuleText "Pitches and durations are drawn from a defined probability distribution; cloud density decreases over the span."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fnRealizeStochasticProcess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Ornament profile for Raga Yaman (stress case 12)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureYamanVoice
+    a gmeow:Voice ;
+    rdfs:label "Raga Yaman demo voice"@x-gmeow-english ;
+    skos:definition "A dedicated Voice carrier for the Raga Yaman ornament-profile fixture, isolated from the riff/transformation demo voices."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureYamanOrnamentProfile
+    a gmeow:OrnamentProfile ;
+    rdfs:label "Raga Yaman ornament profile"@x-gmeow-english ;
+    skos:definition "A gamaka ornament profile associated with Raga Yaman: meend between Ni and Sa, andolan on Ga."@x-gmeow-english ;
+    gmeow:ornamentProfileKind gmeow:ornamentProfileKindGamaka ;
+    gmeow:appliesToVoice gmeow:fixtureYamanVoice ;
+    gmeow:ornamentReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:ornamentDescription "Meend (glide) between Ni and Sa; andolan (oscillation) on Ga; characteristic Yaman phrase endings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Graphic score doctrine (stress case 8)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGraphicScoreWork
+    a gmeow:MusicalWork ;
+    rdfs:label "graphic score work fixture"@x-gmeow-english ;
+    skos:definition "A worked fixture demonstrating the graphic-score doctrine: the visual Manifestation is canonical; symbolic transcriptions are derived interpretations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGraphicScoreExpression
+    a gmeow:Expression ;
+    rdfs:label "graphic score expression"@x-gmeow-english ;
+    skos:definition "The Expression realized by the canonical visual graphic score."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureGraphicScoreWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGraphicScoreVisual
+    a gmeow:ScoreEdition ;
+    rdfs:label "graphic score visual manifestation"@x-gmeow-english ;
+    skos:definition "The canonical visual Manifestation of the graphic score fixture."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureGraphicScoreExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofGraphicScorePitch
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "graphic score pitch delegated to performer"@x-gmeow-english ;
+    skos:definition "Pitch is delegated to performer interpretation in the graphic score fixture."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureGraphicScoreWork ;
+    gmeow:dofParameter gmeow:musicalParameterPitch ;
+    gmeow:dofStatus gmeow:determinationDelegatedPerformer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofGraphicScoreDuration
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "graphic score duration delegated to performer"@x-gmeow-english ;
+    skos:definition "Duration is delegated to performer interpretation in the graphic score fixture."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureGraphicScoreWork ;
+    gmeow:dofParameter gmeow:musicalParameterDuration ;
+    gmeow:dofStatus gmeow:determinationDelegatedPerformer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofGraphicScoreOrder
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "graphic score order delegated to performer"@x-gmeow-english ;
+    skos:definition "Order is delegated to performer interpretation in the graphic score fixture."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureGraphicScoreWork ;
+    gmeow:dofParameter gmeow:musicalParameterOrder ;
+    gmeow:dofStatus gmeow:determinationDelegatedPerformer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGraphicScoreTranscription
+    a gmeow:Expression ;
+    rdfs:label "graphic score CMN transcription"@x-gmeow-english ;
+    skos:definition "A symbolic CMN transcription of the graphic score, explicitly a standpointed interpretation derived from the visual Manifestation."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureGraphicScoreWork ;
+    gmeow:wasDerivedFrom gmeow:fixtureGraphicScoreVisual ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:accordingTo gmeow:standpointTranscriberA ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:standpointTranscriberA
+    a gmeow:Standpoint ;
+    rdfs:label "transcriber A"@x-gmeow-english ;
+    skos:definition "A transcriber standpoint used in the graphic-score fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
 # ANALYSIS STANDPOINTS — reserved for issue #315 (MusicAnalysisClaim, ...)

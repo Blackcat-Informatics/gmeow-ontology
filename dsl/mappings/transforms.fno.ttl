@@ -404,3 +404,144 @@ gmeow:fnOutputGroovedSpan      a owl:AnnotationProperty ;
     skos:definition "FnO argument role: a MusicalTimeSpan output of fnApplyGroove."@x-gmeow-english ;
     rdfs:range gmeow:MusicalTimeSpan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --- Music / performance solver (issue #312) --------------------------------
+# Declarative function catalogue for form, process, indeterminacy, and ornament.
+# Executable implementations (Python/Rust/Go solvers) are issue #319.
+
+gmeow:fnTraverseMobileForm
+    a fno:Function ;
+    rdfs:label "traverse mobile form"@x-gmeow-english ;
+    dcterms:description "Interprets a TraversalConstraint and a starting fragment, returning a documented traversal sequence. Graph reachability and termination are solver-evaluated, never reasoner-asserted (Principle 12)."@x-gmeow-english ;
+    skos:definition "Interprets a TraversalConstraint and a starting fragment, returning a documented traversal sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pTraversalConstraint gmeow:pStartingFragment ) ;
+    fno:returns ( gmeow:oTraversalSequence ) ;
+    rdfs:seeAlso gmeow:TraversalConstraint .
+
+gmeow:fnRealizePhasing
+    a fno:Function ;
+    rdfs:label "realize phasing process"@x-gmeow-english ;
+    dcterms:description "Realizes a phasing GenerativeProcess over a MusicalTimeSpan, producing an Expression. The rule text is canonical; this function is the solver projection (Principle 12)."@x-gmeow-english ;
+    skos:definition "Realizes a phasing GenerativeProcess over a span, producing an Expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pGenerativeProcess gmeow:pRealizationSpan ) ;
+    fno:returns ( gmeow:oRealizedExpression ) ;
+    rdfs:seeAlso gmeow:GenerativeProcess .
+
+gmeow:fnRealizeStochasticProcess
+    a fno:Function ;
+    rdfs:label "realize stochastic process"@x-gmeow-english ;
+    dcterms:description "Realizes a stochastic GenerativeProcess over a MusicalTimeSpan, producing an Expression. Distribution parameters are read from the process node (Principle 12)."@x-gmeow-english ;
+    skos:definition "Realizes a stochastic GenerativeProcess over a span, producing an Expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pGenerativeProcess gmeow:pRealizationSpan ) ;
+    fno:returns ( gmeow:oRealizedExpression ) ;
+    rdfs:seeAlso gmeow:GenerativeProcess .
+
+gmeow:fnEvaluateTrajectory
+    a fno:Function ;
+    rdfs:label "evaluate pitch trajectory"@x-gmeow-english ;
+    dcterms:description "Evaluates a PitchTrajectory at a given rational time position, returning the interpolated PitchValue. Interpolation is solver-evaluated, never reasoner-asserted (Principle 12)."@x-gmeow-english ;
+    skos:definition "Evaluates a PitchTrajectory at a rational time position, returning the interpolated PitchValue."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pPitchTrajectory gmeow:pEvaluationTimeNumerator gmeow:pEvaluationTimeDenominator ) ;
+    fno:returns ( gmeow:oEvaluatedPitchValue ) ;
+    rdfs:seeAlso gmeow:PitchTrajectory .
+
+# Parameters / outputs (declarative; no bound executor)
+
+gmeow:pTraversalConstraint a fno:Parameter ; fno:predicate gmeow:fnInputTraversalConstraint ; fno:type gmeow:TraversalConstraint ; fno:required true ;
+    rdfs:label "traversal constraint input"@x-gmeow-english ;
+    skos:definition "The TraversalConstraint to interpret."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pStartingFragment    a fno:Parameter ; fno:predicate gmeow:fnInputStartingFragment ;    fno:type gmeow:MusicalSegment ;     fno:required true ;
+    rdfs:label "starting fragment input"@x-gmeow-english ;
+    skos:definition "The initial MusicalSegment from which to traverse the mobile form."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pGenerativeProcess   a fno:Parameter ; fno:predicate gmeow:fnInputGenerativeProcess ;   fno:type gmeow:GenerativeProcess ;  fno:required true ;
+    rdfs:label "generative process input"@x-gmeow-english ;
+    skos:definition "The GenerativeProcess to realize."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pRealizationSpan     a fno:Parameter ; fno:predicate gmeow:fnInputRealizationSpan ;     fno:type gmeow:MusicalTimeSpan ;    fno:required true ;
+    rdfs:label "realization span input"@x-gmeow-english ;
+    skos:definition "The MusicalTimeSpan over which to realize the generative process."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pPitchTrajectory     a fno:Parameter ; fno:predicate gmeow:fnInputPitchTrajectory ;     fno:type gmeow:PitchTrajectory ;    fno:required true ;
+    rdfs:label "pitch trajectory input"@x-gmeow-english ;
+    skos:definition "The PitchTrajectory to evaluate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pEvaluationTimeNumerator a fno:Parameter ; fno:predicate gmeow:fnInputEvaluationTimeNumerator ; fno:type xsd:integer ; fno:required true ;
+    rdfs:label "evaluation time numerator input"@x-gmeow-english ;
+    skos:definition "The numerator of the rational time position at which to evaluate the PitchTrajectory, expressed in the trajectory's MusicalTimeFrame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pEvaluationTimeDenominator a fno:Parameter ; fno:predicate gmeow:fnInputEvaluationTimeDenominator ; fno:type xsd:positiveInteger ; fno:required true ;
+    rdfs:label "evaluation time denominator input"@x-gmeow-english ;
+    skos:definition "The denominator of the rational time position at which to evaluate the PitchTrajectory, expressed in the trajectory's MusicalTimeFrame. Must be positive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:oTraversalSequence    a fno:Output ; fno:predicate gmeow:fnOutputTraversalSequence ;    fno:type xsd:string ;
+    rdfs:label "traversal sequence output"@x-gmeow-english ;
+    skos:definition "A documented traversal sequence produced by fnTraverseMobileForm."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oRealizedExpression   a fno:Output ; fno:predicate gmeow:fnOutputRealizedExpression ;   fno:type gmeow:Expression ;
+    rdfs:label "realized expression output"@x-gmeow-english ;
+    skos:definition "The Expression produced by realizing a GenerativeProcess."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oEvaluatedPitchValue  a fno:Output ; fno:predicate gmeow:fnOutputEvaluatedPitchValue ;  fno:type gmeow:PitchValue ;
+    rdfs:label "evaluated pitch value output"@x-gmeow-english ;
+    skos:definition "The PitchValue produced by evaluating a PitchTrajectory at a time position."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# Declarative argument-role properties for the performance functions.
+
+gmeow:fnInputTraversalConstraint a owl:AnnotationProperty ;
+    rdfs:label "input traversal constraint"@x-gmeow-english ;
+    skos:definition "FnO argument role: a TraversalConstraint input to fnTraverseMobileForm."@x-gmeow-english ;
+    rdfs:range gmeow:TraversalConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputStartingFragment a owl:AnnotationProperty ;
+    rdfs:label "input starting fragment"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalSegment input to fnTraverseMobileForm."@x-gmeow-english ;
+    rdfs:range gmeow:MusicalSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputGenerativeProcess a owl:AnnotationProperty ;
+    rdfs:label "input generative process"@x-gmeow-english ;
+    skos:definition "FnO argument role: a GenerativeProcess input to fnRealizePhasing or fnRealizeStochasticProcess."@x-gmeow-english ;
+    rdfs:range gmeow:GenerativeProcess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputRealizationSpan a owl:AnnotationProperty ;
+    rdfs:label "input realization span"@x-gmeow-english ;
+    skos:definition "FnO argument role: a MusicalTimeSpan input to a generative-process realization function."@x-gmeow-english ;
+    rdfs:range gmeow:MusicalTimeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputPitchTrajectory a owl:AnnotationProperty ;
+    rdfs:label "input pitch trajectory"@x-gmeow-english ;
+    skos:definition "FnO argument role: a PitchTrajectory input to fnEvaluateTrajectory."@x-gmeow-english ;
+    rdfs:range gmeow:PitchTrajectory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputEvaluationTimeNumerator a owl:AnnotationProperty ;
+    rdfs:label "input evaluation time numerator"@x-gmeow-english ;
+    skos:definition "FnO argument role: the numerator of a rational time-position input to fnEvaluateTrajectory."@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnInputEvaluationTimeDenominator a owl:AnnotationProperty ;
+    rdfs:label "input evaluation time denominator"@x-gmeow-english ;
+    skos:definition "FnO argument role: the denominator of a rational time-position input to fnEvaluateTrajectory. Must be positive."@x-gmeow-english ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputTraversalSequence a owl:AnnotationProperty ;
+    rdfs:label "output traversal sequence"@x-gmeow-english ;
+    skos:definition "FnO argument role: a traversal-sequence string output of fnTraverseMobileForm."@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputRealizedExpression a owl:AnnotationProperty ;
+    rdfs:label "output realized expression"@x-gmeow-english ;
+    skos:definition "FnO argument role: an Expression output of a generative-process realization function."@x-gmeow-english ;
+    rdfs:range gmeow:Expression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:fnOutputEvaluatedPitchValue a owl:AnnotationProperty ;
+    rdfs:label "output evaluated pitch value"@x-gmeow-english ;
+    skos:definition "FnO argument role: a PitchValue output of fnEvaluateTrajectory."@x-gmeow-english ;
+    rdfs:range gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .

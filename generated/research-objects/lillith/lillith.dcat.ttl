@@ -4,6 +4,7 @@
 
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix spdx: <http://spdx.org/rdf/terms#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -38,6 +39,8 @@
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/rel-maintains> prov:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/summary-infra> prov:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/graphrag/invocation-44> .
+
+gmeow:fixtureReichPhasingExpression prov:wasGeneratedBy gmeow:fixtureReichPhasingProcess .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith> a dcat:Dataset,
         dcat:Distribution ;
