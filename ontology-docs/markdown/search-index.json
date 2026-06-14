@@ -252,6 +252,56 @@
   },
   {
     "keywords": [
+      "gmeow:Agreement",
+      "gmeow:AgreementName",
+      "gmeow:Contract",
+      "gmeow:Membership",
+      "gmeow:Organization",
+      "gmeow:Person",
+      "gmeow:foundedOn",
+      "gmeow:fullName",
+      "gmeow:hasAgreementName",
+      "gmeow:hasParty",
+      "gmeow:membershipMember",
+      "gmeow:membershipOrganization",
+      "gmeow:name",
+      "gmeow:validFrom",
+      "slices/core/agreements/examples/employment-contract.ttl"
+    ],
+    "kind": "example",
+    "path": "examples/index.html#example-slices-core-agreements-examples-employment-contract",
+    "slice": "agreements",
+    "summary": "Canonical Turtle example for the agreements slice.",
+    "title": "Employment Contract"
+  },
+  {
+    "keywords": [
+      "gmeow:CreativeWork",
+      "gmeow:Person",
+      "gmeow:Tag",
+      "gmeow:TagScheme",
+      "gmeow:Tagging",
+      "gmeow:broaderTag",
+      "gmeow:hasTag",
+      "gmeow:name",
+      "gmeow:narrowerTag",
+      "gmeow:relatedTag",
+      "gmeow:tagInScheme",
+      "gmeow:taggingScheme",
+      "gmeow:taggingTag",
+      "gmeow:taggingTagged",
+      "gmeow:taggingTagger",
+      "gmeow:title",
+      "slices/core/tags/examples/folksonomy.ttl"
+    ],
+    "kind": "example",
+    "path": "examples/index.html#example-slices-core-tags-examples-folksonomy",
+    "slice": "tags",
+    "summary": "Canonical Turtle example for the tags slice.",
+    "title": "Folksonomy"
+  },
+  {
+    "keywords": [
       "gmeow:Chunk",
       "gmeow:Contradiction",
       "gmeow:Document",
@@ -533,6 +583,21 @@
     "slice": "places",
     "summary": "Canonical Turtle example for the places slice.",
     "title": "Located Place"
+  },
+  {
+    "keywords": [
+      "gmeow:InformationObject",
+      "gmeow:Language",
+      "gmeow:bcp47Tag",
+      "gmeow:title",
+      "gmeow:writtenInLanguage",
+      "slices/core/language/examples/multilingual-document.ttl"
+    ],
+    "kind": "example",
+    "path": "examples/index.html#example-slices-core-language-examples-multilingual-document",
+    "slice": "language",
+    "summary": "Canonical Turtle example for the language slice.",
+    "title": "Multilingual Document"
   },
   {
     "keywords": [
@@ -1178,7 +1243,7 @@
     "kind": "slice",
     "path": "slices/agreements/index.html",
     "slice": "agreements",
-    "summary": "core slice with 0 examples",
+    "summary": "core slice with 1 examples",
     "title": "GMEOW Agreements Module"
   },
   {
@@ -1569,7 +1634,7 @@
     "kind": "slice",
     "path": "slices/language/index.html",
     "slice": "language",
-    "summary": "core slice with 0 examples",
+    "summary": "core slice with 1 examples",
     "title": "GMEOW Language Core Module"
   },
   {
@@ -1983,7 +2048,7 @@
     "kind": "slice",
     "path": "slices/tags/index.html",
     "slice": "tags",
-    "summary": "core slice with 0 examples",
+    "summary": "core slice with 1 examples",
     "title": "GMEOW Tags Module"
   },
   {

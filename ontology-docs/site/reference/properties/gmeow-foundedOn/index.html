@@ -40,6 +40,34 @@
 <p><strong>Property shape:</strong> object property; <a href="../../../external/terms/#gufo-relator"><code>gufo:Relator</code></a> -&gt; <a href="../../classes/gmeow-Agreement/"><code>gmeow:Agreement</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:foundedOn</code></a> from <a href="../../../external/terms/#gufo-relator"><code>gufo:Relator</code></a> to <a href="../../classes/gmeow-Agreement/"><code>gmeow:Agreement</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Employment Contract</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl"><code>slices/core/agreements/examples/employment-contract.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-agreements-examples-employment-contract">open in catalog</a>#example-slices-core-agreements-examples-employment-contract</li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an agreement as a relator . A gmeow:Agreement (here a
+# gmeow:Contract, the legally-enforceable specialization) is a gufo:Relator that
+# binds its parties via gmeow:hasParty — the agreement IS the relationship, not a
+# property of either party. It bears a structured gmeow:AgreementName (an
+# Appellation, so multilingual co-equal titles are first-class). Other relators
+# can be gmeow:foundedOn it: the employment Membership below exists BECAUSE of the
+# contract, so its grounding is recorded rather than assumed.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/agreements/&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+# --- The employment Membership is FOUNDED ON the contract: it exists because of
+#     it, so the grounding relator points at the agreement rather than assuming it.
+ex:employment a gmeow:Membership ;
+    gmeow:membershipMember       ex:dana ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:foundedOn              ex:contract .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-Agreement/"><code>gmeow:Agreement</code></a></p>
   </main>

@@ -40,6 +40,31 @@
 <p><strong>Property shape:</strong> object property; <a href="../../classes/gmeow-InformationObject/"><code>gmeow:InformationObject</code></a> -&gt; <a href="../../classes/gmeow-Language/"><code>gmeow:Language</code></a></p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:writtenInLanguage</code></a> from <a href="../../classes/gmeow-InformationObject/"><code>gmeow:InformationObject</code></a> to <a href="../../classes/gmeow-Language/"><code>gmeow:Language</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Multilingual Document</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl"><code>slices/core/language/examples/multilingual-document.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-language-examples-multilingual-document">open in catalog</a>#example-slices-core-language-examples-multilingual-document</li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: language as a first-class entity . A gmeow:Language is a
+# reified individual carrying its gmeow:bcp47Tag — not a bare string column — so a
+# document can be gmeow:writtenInLanguage SEVERAL co-equal languages at once
+# (a bilingual manual), with no primary language privileged. The Language objects
+# are minted (there is no closed enum of languages); the document is an
+# InformationObject, the domain of gmeow:writtenInLanguage.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/language/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+
+# --- A bilingual document: two co-equal languages, neither primary.
+ex:manual a gmeow:InformationObject ;
+    gmeow:title            &quot;Installation Manual / インストールマニュアル&quot;@en ;
+    gmeow:writtenInLanguage ex:english , ex:japanese .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>, <a href="../../classes/gmeow-Language/"><code>gmeow:Language</code></a></p>
   </main>

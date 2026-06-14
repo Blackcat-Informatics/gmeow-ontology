@@ -47,6 +47,39 @@
 </ul>
 <h2>Local Map</h2>
 <p><img alt="language map" src="../../diagrams/slices/language.svg"></p>
+<h2>Examples</h2>
+<h3>Multilingual Document</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/language/examples/multilingual-document.ttl"><code>slices/core/language/examples/multilingual-document.ttl</code></a></li>
+<li><strong>GMEOW terms:</strong> <a href="../../reference/classes/gmeow-InformationObject/"><code>gmeow:InformationObject</code></a>, <a href="../../reference/classes/gmeow-Language/"><code>gmeow:Language</code></a>, <a href="../../reference/properties/gmeow-bcp47Tag/"><code>gmeow:bcp47Tag</code></a>, <a href="../../reference/properties/gmeow-title/"><code>gmeow:title</code></a>, <a href="../../reference/properties/gmeow-writtenInLanguage/"><code>gmeow:writtenInLanguage</code></a></li>
+</ul>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: language as a first-class entity . A gmeow:Language is a
+# reified individual carrying its gmeow:bcp47Tag — not a bare string column — so a
+# document can be gmeow:writtenInLanguage SEVERAL co-equal languages at once
+# (a bilingual manual), with no primary language privileged. The Language objects
+# are minted (there is no closed enum of languages); the document is an
+# InformationObject, the domain of gmeow:writtenInLanguage.
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/language/&gt; .
+@prefix rdfs:  &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+
+# --- Languages: first-class, BCP-47-tagged, minted as needed.
+ex:english a gmeow:Language ;
+    rdfs:label     &quot;English&quot;@en ;
+    gmeow:bcp47Tag &quot;en&quot; .
+
+ex:japanese a gmeow:Language ;
+    rdfs:label     &quot;Japanese&quot;@en ;
+    gmeow:bcp47Tag &quot;ja&quot; .
+
+# --- A bilingual document: two co-equal languages, neither primary.
+ex:manual a gmeow:InformationObject ;
+    gmeow:title            &quot;Installation Manual / インストールマニュアル&quot;@en ;
+    gmeow:writtenInLanguage ex:english , ex:japanese .
+</code></pre>
 <h2>Terms</h2>
 <h3>Classes</h3>
 <table>

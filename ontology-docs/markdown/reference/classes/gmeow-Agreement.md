@@ -16,3 +16,31 @@ A mutual understanding between two or more agents that creates obligations or ri
 ## Practical Pattern
 
 Use [`gmeow:Agreement`](gmeow-Agreement.md) as a specialized kind of [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
+
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Employment Contract
+
+- **Source:** [`slices/core/agreements/examples/employment-contract.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/agreements/examples/employment-contract.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-agreements-examples-employment-contract)#example-slices-core-agreements-examples-employment-contract
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an agreement as a relator . A gmeow:Agreement (here a
+# gmeow:Contract, the legally-enforceable specialization) is a gufo:Relator that
+# binds its parties via gmeow:hasParty — the agreement IS the relationship, not a
+# property of either party. It bears a structured gmeow:AgreementName (an
+# Appellation, so multilingual co-equal titles are first-class). Other relators
+# can be gmeow:foundedOn it: the employment Membership below exists BECAUSE of the
+# contract, so its grounding is recorded rather than assumed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agreements/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:contractName a gmeow:AgreementName ;
+    gmeow:fullName "Acme Robotics — Reyes Employment Agreement (2026)"@en .
+```
