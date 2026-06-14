@@ -666,12 +666,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://qudt",
-    "id": "qudt-e5c85f3f",
-    "title": "qudt",
-    "type": "webpage"
-  },
-  {
     "URL": "http://qudt.org/schema/qudt/",
     "id": "qudt-0ade1888",
     "title": "qudt.org/schema/qudt",
@@ -2133,12 +2127,6 @@
     "URL": "https://bioportal.bioontology.org/ontologies/SNOMEDCT?p=classes&conceptid=116154003",
     "id": "snomedct-p-classes-conceptid-116154003-1f26babe",
     "title": "bioportal.bioontology.org/ontologies/SNOMEDCT",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://blackcatinformatics",
-    "id": "blackcatinformatics-5f320108",
-    "title": "blackcatinformatics",
     "type": "webpage"
   },
   {

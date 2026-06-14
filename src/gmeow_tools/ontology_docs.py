@@ -38,6 +38,7 @@ from gmeow_tools.config import (
     ONTOLOGY_IRI,
     PREFIXES,
     PROJECT_ROOT,
+    REFERENCES_MD_FILE,
     SLICES_DIR,
     STATEMENT_RDF12_FILE,
 )
@@ -1900,6 +1901,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
       <a href="{prefix}slices/">Slices</a>
       <a href="{prefix}adoption/">Adoption</a>
       <a href="{prefix}linkages/">Linkages</a>
+      <a href="{prefix}references/">Bibliography</a>
       <a href="{prefix}reference/">Reference</a>
       <a href="{prefix}external/ontologies/">External</a>
       <a href="{prefix}statements/">RDF 1.2</a>
@@ -2289,6 +2291,8 @@ def _landing(model: DocsModel) -> Page:
         "- [Examples](examples/index.md) for canonical slice-local Turtle examples.",
         "- [Adoption Targets](adoption/index.md) for schema.org, PROV-O, "
         "Wikidata, and other projection surfaces.",
+        "- [Bibliography](references/index.md) for the generated bibliography "
+        "from the canonical citation ledger.",
         "- [Cross-cutting concerns](concerns/index.md) for reusable ideas.",
         "- [Slices](slices/index.md) for modular guide pages and dependency maps.",
         "- [Linkages](linkages/index.md) for SSSOM alignments and projection coverage.",
@@ -2733,6 +2737,45 @@ def _quality_page() -> Page:
         "",
     ]
     return Page(Path("quality") / "oops-report.md", "Quality Gates", "\n".join(lines))
+
+
+def _references_page() -> Page:
+    """Render the generated citation ledger bibliography."""
+    body = REFERENCES_MD_FILE.read_text(encoding="utf-8")
+    content = "\n".join(
+        line
+        for line in body.splitlines()
+        if not line.startswith("<!-- GENERATED")
+        and not line.startswith("<!-- Source hash:")
+        and line != "This bibliography is generated from `metadata/references.ttl`."
+        and "github.com/Blackcat-Informatics/gmeow-ontology" not in line
+    ).strip()
+    if content.startswith("# GMEOW Citation Ledger"):
+        content = content.removeprefix("# GMEOW Citation Ledger").lstrip()
+    lines = [
+        "# References",
+        "",
+        "This bibliography is generated from the canonical citation ledger at "
+        "`metadata/references.ttl`. The ontology-docs generator consumes the "
+        "`generated/references/references.md` projection rather than maintaining "
+        "a second bibliography.",
+        "",
+        "## Exports",
+        "",
+        "- [`generated/references/references.md`](https://github.com/"
+        "Blackcat-Informatics/gmeow-ontology/blob/main/generated/references/"
+        "references.md)",
+        "- [`generated/references/references.csl.json`](https://github.com/"
+        "Blackcat-Informatics/gmeow-ontology/blob/main/generated/references/"
+        "references.csl.json)",
+        "- [`generated/references/references.bib`](https://github.com/"
+        "Blackcat-Informatics/gmeow-ontology/blob/main/generated/references/"
+        "references.bib)",
+        "",
+        content,
+        "",
+    ]
+    return Page(Path("references") / "index.md", "References", "\n".join(lines))
 
 
 def _reference_index(model: DocsModel) -> Page:
@@ -3709,6 +3752,7 @@ def _all_pages(model: DocsModel) -> list[Page]:
         _learning_paths_index(model),
         _recipes_index(model),
         _examples_index(model),
+        _references_page(),
         _reference_index(model),
         *_adoption_pages(model),
         _linkages_page(model),
@@ -3928,7 +3972,21 @@ def _term_alias_html(term: DocTerm, href: str) -> str:
 
 def _search_index(model: DocsModel) -> list[dict[str, object]]:
     """Return a deterministic static search index."""
-    rows: list[dict[str, object]] = []
+    rows: list[dict[str, object]] = [
+        {
+            "kind": "references",
+            "title": "References",
+            "path": _site_rel_for_md(Path("references") / "index.md").as_posix(),
+            "summary": "Generated bibliography from metadata/references.ttl.",
+            "keywords": [
+                "bibliography",
+                "citation ledger",
+                "metadata/references.ttl",
+                "references.bib",
+                "references.csl.json",
+            ],
+        }
+    ]
     for term in model.terms:
         rows.append(
             {
@@ -4076,6 +4134,12 @@ def _llms_docs_text(model: DocsModel) -> str:
         links = _links_for_target(model, prefix)
         name = _external_targets().get(prefix, (prefix, "", "", ""))[0]
         lines.append(f"- {prefix}: {name}; linkage rows {len(links)}")
+    lines.extend(["", "## References"])
+    lines.append(
+        "- references: generated bibliography from metadata/references.ttl; "
+        "exports generated/references/references.md, references.csl.json, "
+        "references.bib"
+    )
     lines.extend(["", "## Slices"])
     for slice_entry in sorted(model.slices.values(), key=lambda s: s.name):
         lines.append(
@@ -4163,6 +4227,7 @@ class OntologyDocsGenerator(Generator):
         return [
             PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
             ONTOLOGY_DOCS_GRAPH_INPUT,
+            REFERENCES_MD_FILE,
             STATEMENT_RDF12_FILE,
             *sorted(MAPPING_DSL_DIR.rglob("*.ttl")),
             *iter_slice_mapping_files(),
