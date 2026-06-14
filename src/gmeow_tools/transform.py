@@ -217,9 +217,10 @@ def _serialize_outputs(
     list(pyoxigraph.parse(nq_text.encode(), format=pyoxigraph.RdfFormat.N_QUADS))
     written.append(nq_path)
 
-    # consumer-facing tiers only: retag x-gmeow-* → public BCP-47 (the base abox
-    # carries the canonical internal tags; project_graph already retagged the
-    # derived triples, this catches the base ones).
+    # consumer-facing tiers only: retag x-gmeow-* → public BCP-47 across the whole
+    # graph (base + derived together; idempotent for the derived triples
+    # project_graph already retagged). The canonical .gts/.nq keep the internal
+    # tags for round-trip fidelity.
     retag_graph(base_plus_derived)
 
     ttl_path = out_dir / "index.ttl"
