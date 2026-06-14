@@ -1,10 +1,9 @@
 """Tests for the RDF-1.2-first statement-metadata pipeline (issues #28, #29).
 
 The pure-Python tests (DSL parse, reifier minting, the invariants, the OWL emit,
-the no-preview-language gate, the hard-fail-without-Jena contract) run anywhere.
-The round-trip / no-drift / lossless tests need Apache Jena and are marked
-``docker`` + skipped when the pinned image is absent — but they are NOT silently
-passed: CI's dedicated Jena job runs them for real on every change.
+the no-preview-language gate, and the hard-fail-without-Jena contract) run
+anywhere. The Jena-backed round-trip / no-drift / lossless checks run through a
+repo-local script so Make/CI can schedule Docker outside pytest.
 """
 
 from __future__ import annotations
@@ -16,16 +15,14 @@ from rdflib import RDF, XSD, Literal, URIRef
 from rdflib.namespace import OWL
 from typer.testing import CliRunner
 
+from gmeow_tools import statements_docker_check
 from gmeow_tools.config import (
-    JENA_IMAGE,
     PREFIXES,
     PROJECT_ROOT,
     STATEMENT_RDF12_FILE,
 )
-from gmeow_tools.generator import run
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.runner import image_available
-from gmeow_tools.statement_compile import assert_lossless, emit_owl
+from gmeow_tools.statement_compile import emit_owl
 from gmeow_tools.statement_dsl import (
     Annotation,
     QuotedTriple,
@@ -37,9 +34,6 @@ from gmeow_tools.statement_dsl import (
 from gmeow_tools.statement_lint import statement_invariants
 
 GM = PREFIXES["gmeow"]
-requires_jena = pytest.mark.skipif(
-    not image_available(JENA_IMAGE), reason="pinned Jena image not present locally"
-)
 
 
 # --------------------------------------------------------------------------- #
@@ -227,61 +221,78 @@ def test_rdf12_hard_fails_without_jena(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Jena-gated: round-trip, no-drift, lossless (#28.1, #28.2, #29.2, #29.3)
+# Jena-gated orchestration — mocked here, live in `scripts/statements_docker_check.py`
 # --------------------------------------------------------------------------- #
 
 
-@pytest.mark.docker
-@requires_jena
-def test_committed_artifacts_match_dsl() -> None:
-    report = run("statements", check=True)
-    assert report.drifted == [], (
-        "committed statement artifacts are stale — run `gmeow regenerate`:\n  "
-        + "\n  ".join(report.drifted)
+def test_statement_docker_check_reports_drift(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Docker lane fails on stale or orphaned statement artifacts."""
+
+    class Report:
+        def __init__(self) -> None:
+            self.drifted = ["generated/statements/gmeow.rdf12.ttl"]
+            self.orphans: list[str] = []
+
+    monkeypatch.setattr(statements_docker_check, "run", lambda *_a, **_kw: Report())
+
+    with pytest.raises(AssertionError, match="stale"):
+        statements_docker_check.assert_committed_artifacts_match_dsl()
+
+
+def test_statement_docker_check_lossless_negative_control(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The Docker lane keeps the dropped-annotation negative control."""
+    monkeypatch.setattr(
+        statements_docker_check,
+        "assert_lossless",
+        lambda _owl, _path: ["OWL form has, RDF 1.2 lost: confidence"],
     )
-    assert report.orphans == [], (
-        "committed statement artifacts include orphaned generated files:\n  "
-        + "\n  ".join(report.orphans)
+
+    statements_docker_check.assert_lossless_gate_detects_a_dropped_annotation()
+
+
+def test_statement_docker_check_run_all_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The CLI lane keeps the intended Jena/ROBOT checks in order."""
+    calls: list[str] = []
+    monkeypatch.setattr(
+        statements_docker_check,
+        "assert_committed_artifacts_match_dsl",
+        lambda: calls.append("drift"),
+    )
+    monkeypatch.setattr(
+        statements_docker_check,
+        "assert_committed_rdf12_round_trips_to_owl",
+        lambda: calls.append("roundtrip"),
+    )
+    monkeypatch.setattr(
+        statements_docker_check,
+        "assert_lossless_gate_detects_a_dropped_annotation",
+        lambda: calls.append("negative"),
+    )
+    monkeypatch.setattr(
+        statements_docker_check,
+        "assert_committed_rdf12_uses_triple_term_syntax",
+        lambda: calls.append("syntax"),
+    )
+    monkeypatch.setattr(
+        statements_docker_check,
+        "assert_reason_consumes_generated_owl_downcast",
+        lambda: calls.append("reason"),
     )
 
+    completed = statements_docker_check.run_all()
 
-@pytest.mark.docker
-@requires_jena
-def test_committed_rdf12_round_trips_to_owl() -> None:
-    """The committed RDF 1.2 lead artifact, normalized back, equals the OWL form."""
-    owl = emit_owl(load_statement_dsl())
-    assert assert_lossless(owl, STATEMENT_RDF12_FILE) == []
-
-
-@pytest.mark.docker
-@requires_jena
-def test_lossless_gate_detects_a_dropped_annotation() -> None:
-    """The round-trip gate actually bites: a missing annotation is reported."""
-    owl = emit_owl(load_statement_dsl())
-    dropped = next(t for t in owl if str(t[1]) == GM + "confidence")
-    owl.remove(dropped)
-    problems = assert_lossless(owl, STATEMENT_RDF12_FILE)
-    assert problems and any("confidence" in p for p in problems)
-
-
-@pytest.mark.docker
-@requires_jena
-def test_committed_rdf12_uses_triple_term_syntax() -> None:
-    text = STATEMENT_RDF12_FILE.read_text(encoding="utf-8")
-    assert "rdf:reifies" in text and "<<(" in text
-
-
-@pytest.mark.docker
-@requires_jena
-def test_reason_consumes_generated_owl_downcast() -> None:
-    """Reasoning runs on the generated OWL form and stays OWL 2 DL + consistent."""
-    from gmeow_tools import reason as reasoning
-
-    merged = reasoning.merge_release()
-    text = merged.read_text(encoding="utf-8")
-    assert "owl:Axiom" in text  # the generated downcast was merged in
-    reasoning.validate_profile("DL", merged=merged)  # raises if not DL
-    reasoning.reason("ELK", merged=merged)  # raises if incoherent
+    assert calls == ["drift", "roundtrip", "negative", "syntax", "reason"]
+    assert completed == [
+        "statement artifact drift",
+        "RDF 1.2 round-trip",
+        "lossless gate negative control",
+        "RDF 1.2 triple-term syntax",
+        "OWL downcast reasoning",
+    ]
 
 
 def test_statement_rdf12_committed_under_repo_not_dist() -> None:
