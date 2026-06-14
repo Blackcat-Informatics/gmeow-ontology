@@ -27,6 +27,7 @@ from gmeow_tools.config import (
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_module_files
+from gmeow_tools.slices import iter_slice_example_files
 
 GMEOW = Namespace(NAMESPACE)
 GMEOW_MODULES = NAMESPACE + "modules/"
@@ -298,6 +299,33 @@ def test_coverage_fixtures_use_only_declared_terms(
     for name, bad in undeclared.items():
         messages.append(f"  {name}: {bad}")
     assert not undeclared, "Undeclared GMEOW terms in coverage fixtures:\n" + "\n".join(
+        messages
+    )
+
+
+def test_slice_examples_use_only_declared_terms(
+    declared_ontology_terms: set[str],
+) -> None:
+    """Slice worked examples must use only DECLARED GMEOW vocabulary terms.
+
+    SHACL does not catch an undeclared predicate — an unrecognized GMEOW IRI in
+    an example A-box trips no shape, so it sits inert and silently fails to link
+    anything (e.g. a typo'd ``gmeow:hasBeginInstant`` for ``gmeow:hasStartInstant``
+    leaves the interval's start instant unattached while still "validating").
+    This surface check, the example-side sibling of
+    :func:`test_coverage_fixtures_use_only_declared_terms`, fails closed on any
+    GMEOW term an example uses that the ontology never declares.
+    """
+    undeclared: dict[str, list[str]] = {}
+    for example_path in iter_slice_example_files():
+        example_graph = _parse_ttl(example_path)
+        terms = _gmeow_vocabulary_terms(example_graph)
+        bad = sorted(terms - declared_ontology_terms)
+        if bad:
+            undeclared[example_path.relative_to(PROJECT_ROOT).as_posix()] = bad
+
+    messages = [f"  {name}: {bad}" for name, bad in undeclared.items()]
+    assert not undeclared, "Undeclared GMEOW terms in slice examples:\n" + "\n".join(
         messages
     )
 
