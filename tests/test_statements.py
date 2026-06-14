@@ -212,7 +212,7 @@ def test_rdf12_hard_fails_without_jena(monkeypatch: pytest.MonkeyPatch) -> None:
     import gmeow_tools.runner as runner
 
     monkeypatch.setattr(runner, "image_available", lambda _image, **_kw: False)
-    from gmeow_tools.cli import app
+    from gmeow_tools.cli_dev import app
 
     result = CliRunner().invoke(app, ["regenerate", "statements"])
     assert result.exit_code != 0  # ToolUnavailableError → no degraded fallback

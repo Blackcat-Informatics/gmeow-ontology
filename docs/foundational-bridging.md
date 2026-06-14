@@ -121,8 +121,8 @@ BFO 2020 is stable (ISO standard), so the snapshot rarely changes. To refresh af
 release — or if the network freshness test ever fails:
 
 ```bash
-uv run gmeow refresh-target-axioms --target bfo   # re-vendors imports/targets/bfo.ttl
-uv run gmeow compile-mappings --check             # confirm no mapping drift
+uv run --package gmeow-dev gmeow-dev refresh-target-axioms --target bfo   # re-vendors imports/targets/bfo.ttl
+uv run --package gmeow-dev gmeow-dev check-generated mappings             # confirm no mapping drift
 uv run pytest tests/test_foundational_bridging.py # offline cell + IRI verification
 uv run pytest tests/test_foundational_bridging.py -m network  # vs live BFO
 git add imports/targets/bfo.ttl                   # commit the refreshed snapshot
@@ -140,14 +140,14 @@ exists*; the DSL is the source of truth for *what we claim*) and recompile.
    calibrated `confidence` and the BFO `objectLabel`, and explain non-obvious choices in
    `gmeow:comment`. **Verify the BFO IRI first** — `grep BFO_00000NN imports/targets/bfo.ttl`,
    or look it up at <https://ontobee.org/ontology/BFO>.
-2. Recompile and verify: `uv run gmeow compile-mappings && uv run gmeow compile-mappings --check`.
+2. Recompile and verify: `uv run --package gmeow-dev gmeow-dev regenerate mappings && uv run --package gmeow-dev gmeow-dev check-generated mappings`.
 3. If the cell is one a reader would expect to see asserted, add it to `EXPECTED_CELLS` in
    [`tests/test_foundational_bridging.py`](../tests/test_foundational_bridging.py) — the IRI +
    label are then verified automatically.
-4. Run the full alignment gate: `make compile-check && make lint-alignment && uv run pytest`.
+4. Run the full alignment gate: `make check-generated && make lint-alignment && uv run pytest`.
 
 Do **not** hand-edit `mappings/gmeow-foundational.sssom.tsv` — it is generated; the no-drift gate
-(`compile-mappings --check`) will reject hand edits.
+(`gmeow-dev check-generated mappings`) will reject hand edits.
 
 ### Extending to a new upper ontology
 

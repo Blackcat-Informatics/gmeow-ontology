@@ -130,7 +130,8 @@ def bootstrap() -> list[Path]:
                 prefixes,
                 "",
                 f"# Term equivalences for the {domain} domain (GMEOW source).",
-                f"# Compiled to mappings/{tsv.name} by `gmeow compile-mappings`.",
+                f"# Compiled to mappings/{tsv.name} by "
+                "`gmeow-dev regenerate mappings`.",
                 "",
                 "\n".join(set_lines),
                 "",
