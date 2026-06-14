@@ -49,6 +49,7 @@ def test_build_ontology_docs_creates_expected_tree(tmp_path: Path) -> None:
     assert (docs / "external" / "ontologies.md").exists()
     assert (docs / "external" / "terms.md").exists()
     assert (docs / "recipes" / "index.md").exists()
+    assert (docs / "examples" / "index.md").exists()
     assert (docs / "recipes" / "person-names-and-display.md").exists()
     assert (out / "site" / "search-index.json").exists()
     assert (out / "site" / "llms-docs.txt").exists()
@@ -98,6 +99,7 @@ def test_index_contains_ontology_header_and_slice_stats(tmp_path: Path) -> None:
     assert "Namespace:" in index
     assert "## Profiles" in index
     assert "## Slices" in index
+    assert "Examples" in index
     assert "Linkages" in index
     assert "## Reference" in index
     assert "## Distribution" in index
@@ -285,6 +287,24 @@ def test_recipes_and_examples_are_generated_from_slice_sources(tmp_path: Path) -
 
 
 @pytest.mark.ci_only
+def test_examples_catalog_links_slice_sources_and_terms(tmp_path: Path) -> None:
+    out = tmp_path / "ontology-docs"
+    build_ontology_docs(out)
+
+    examples = (out / "markdown" / "examples" / "index.md").read_text(encoding="utf-8")
+    html = (out / "site" / "examples" / "index.html").read_text(encoding="utf-8")
+
+    assert "# Examples" in examples
+    assert "slices/**/examples/*.ttl" in examples
+    assert "[names](../slices/names.md)" in examples
+    assert "person-names.ttl" in examples
+    assert "gmeow-PersonName.md" in examples
+    assert "github.com/Blackcat-Informatics/gmeow-ontology/blob/main/" in examples
+    assert 'href="../examples/"' in html
+    assert 'id="example-slices-core-names-examples-person-names"' in html
+
+
+@pytest.mark.ci_only
 def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) -> None:
     out = tmp_path / "ontology-docs"
     build_ontology_docs(out)
@@ -294,8 +314,14 @@ def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) 
 
     assert '"curie": "gmeow:PersonName"' in search_index
     assert '"recipe": "person-names-and-display"' in search_index
+    assert '"kind": "example"' in search_index
+    assert (
+        '"path": "examples/index.html#example-slices-core-names-examples-person-names"'
+        in search_index
+    )
     assert '"slice": "names"' in search_index
     assert "person-names-and-display: Model Person Names" in llms_docs
+    assert "slices/core/names/examples/person-names.ttl" in llms_docs
     assert "gmeow:PersonName" in llms_docs
 
 
@@ -331,6 +357,7 @@ def test_html_links_are_directory_index_safe(tmp_path: Path) -> None:
     assert 'href="favicon.svg"' in index
     assert 'href="assets/simple.css"' in index
     assert 'href="assets/gmeow.css"' in index
+    assert 'href="examples/"' in index
     assert "https://cdn.simplecss.org" not in index
 
     person = out / "site" / "reference" / "classes" / "gmeow-Person" / "index.html"
