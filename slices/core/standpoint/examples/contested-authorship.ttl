@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: contested claims coexist, none privileged (#443, P9). Two
+# scholars attribute the same play to different authors. Each attribution is a
+# reified gmeow:StandpointClaim (a kind of Observation) carrying its own
+# gmeow:vantage (whose standpoint), gmeow:observationResult (the claimed author),
+# and gmeow:claimModality (HOW the standpoint holds it). A third standpoint does
+# something flat models cannot express: it gmeow:refuted the Marlowe attribution
+# — an explicit DENIAL, distinct from mere silence. There is no "preferred"
+# author: the graph keeps every standpoint's stance side by side.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/> .
+
+ex:play a gmeow:CreativeWork ;
+    gmeow:title "The Contested Tragedy"@x-gmeow-english .
+
+ex:marlowe a gmeow:Person ; gmeow:name "Christopher Marlowe" .
+ex:shakespeare a gmeow:Person ; gmeow:name "William Shakespeare" .
+
+# --- Standpoints: the scholarly positions from which each claim is held.
+ex:revisionists a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:orthodoxy a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:forensicPanel a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- Claim 1: the revisionists hold (probably) that Marlowe wrote it.
+ex:claimMarlowe a gmeow:StandpointClaim ;
+    gmeow:vantage ex:revisionists ;
+    gmeow:observedFeature ex:play ;
+    gmeow:observationResult ex:marlowe ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:probable .
+
+# --- Claim 2: the orthodoxy holds (settled) that Shakespeare wrote it.
+ex:claimShakespeare a gmeow:StandpointClaim ;
+    gmeow:vantage ex:orthodoxy ;
+    gmeow:observedFeature ex:play ;
+    gmeow:observationResult ex:shakespeare ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal .
+
+# --- Claim 3: a stylometric panel REFUTES the Marlowe attribution — settled
+#     false, an explicit denial rather than silence. It coexists with claim 1.
+ex:refuteMarlowe a gmeow:StandpointClaim ;
+    gmeow:vantage ex:forensicPanel ;
+    gmeow:observedFeature ex:play ;
+    gmeow:observationResult ex:marlowe ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:claimModality gmeow:refuted .

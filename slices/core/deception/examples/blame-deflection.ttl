@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: deception is held ≠ projected (#212, #443). A spokesperson
+# privately BELIEVES an internal misconfiguration caused an outage, but publicly
+# PROJECTS that a third-party vendor did. The lie is a gmeow:Event linking the
+# two StandpointClaims: gmeow:heldStandpoint (the believed claim) and
+# gmeow:projectedStandpoint (the asserted-but-disbelieved one). Falsehood is not
+# an isFalse boolean — it is the projected claim carrying gmeow:claimVeridicality
+# gmeow:veridicalityUntrue. Nothing here needs a "deception class": ordinary
+# claims, an event type, and the held/projected gap do all the work.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The outage being explained, and the two candidate causes.
+ex:outage a gmeow:Event ;
+    rdfs:label "the March data outage"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeDestruction ;
+    gmeow:eventTime "2026-03-04T02:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:internalCause a gmeow:Person ; gmeow:name "the on-call engineer (internal)" .
+ex:vendor a gmeow:Organization ; gmeow:name "Northwind CDN (third party)" .
+
+ex:spokesperson a gmeow:Person ; gmeow:name "Comms lead" .
+
+# --- What the spokesperson privately HOLDS: the internal engineer caused it.
+ex:heldClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:spokesperson ;
+    gmeow:observedFeature ex:outage ;
+    gmeow:observationResult ex:internalCause ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal .
+
+# --- What the spokesperson publicly PROJECTS: the vendor caused it. Asserted
+#     unequivocally, but UNTRUE — the falsehood is a veridicality value on the
+#     claim, never an isFalse flag.
+ex:projectedClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:spokesperson ;
+    gmeow:observedFeature ex:outage ;
+    gmeow:observationResult ex:vendor ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+
+# --- The lie: an Event whose held and projected standpoints diverge. That gap
+#     IS the deception; the spokesperson is its participant in the deceiver role.
+ex:coverStory a gmeow:Event ;
+    rdfs:label "the public attribution to the vendor"@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeLie ;
+    gmeow:eventTime "2026-03-05T09:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:heldStandpoint ex:heldClaim ;
+    gmeow:projectedStandpoint ex:projectedClaim ;
+    gmeow:hasParticipant ex:spokesperson .
+
+ex:deceiverRole a gmeow:Participation ;
+    gmeow:participationEvent ex:coverStory ;
+    gmeow:participationParticipant ex:spokesperson ;
+    gmeow:participationRole gmeow:roleDeceiver .
