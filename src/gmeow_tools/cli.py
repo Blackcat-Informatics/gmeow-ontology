@@ -1061,6 +1061,61 @@ def up_project_cmd(
         err_console.print(f"[yellow]ambiguous[/yellow] {term} (x{n})")
 
 
+@app.command()
+def transpile(
+    source: Path = typer.Argument(  # noqa: B008
+        ..., help="A non-GMEOW source RDF file (Turtle) to transpile."
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None, "-o", "--out", help="Output directory (default dist/transpile/<stem>/)."
+    ),
+    profiles: str = typer.Option(
+        "all", "--profiles", help="Projection profiles for the maximal pass: all|name,…"
+    ),
+    floor: bool = typer.Option(
+        False,
+        "--floor",
+        help="Use the per-term floor instead of the context-aware descent.",
+    ),
+) -> None:
+    """Transpile consumer RDF → pure GMEOW → MAXIMAL multi-vocab (#448).
+
+    The full pipeline: up-project the source into pure GMEOW (the context-aware
+    descent), write that draft, then run MAXIMAL(G) = G + E(G) + P(G) over it —
+    the canonical base, its strong-equivalence saturation, and every projection
+    profile — into one fat, provenance-audited multi-vocabulary file family.
+    """
+    from gmeow_tools.projections import PROFILES
+    from gmeow_tools.transpile import transpile as run_transpile
+
+    names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
+    if names is not None:
+        unknown = sorted(set(names) - set(PROFILES))
+        if unknown:
+            raise _fail(f"unknown projection profile(s): {', '.join(unknown)}")
+    try:
+        result = run_transpile(source, out_dir=out, profiles=names, descend=not floor)
+    except (OSError, ValueError, SyntaxError) as exc:
+        raise _fail(str(exc)) from exc
+
+    err_console.print(
+        f"[green]lifted[/green] {result.lifted} facts · "
+        f"[cyan]claimed[/cyan] {result.claimed} inferred · "
+        f"[magenta]context[/magenta] {result.context_resolved} by-type · "
+        f"[yellow]gap[/yellow] {result.gap_terms} · "
+        f"[yellow]ambiguous[/yellow] {result.ambiguous_terms}",
+    )
+    err_console.print(
+        f"[green]maximal[/green] asserted {result.transform.asserted} · "
+        f"saturated {result.transform.saturated} · "
+        f"projected {result.transform.projected} · "
+        f"[dim]{result.transform.wall_clock_s:.1f}s[/dim]",
+    )
+    err_console.print(f"[green]draft[/green] {result.draft_path}")
+    for path in result.transform.written:
+        err_console.print(f"[green]wrote[/green] {path}")
+
+
 _EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")
 
 
