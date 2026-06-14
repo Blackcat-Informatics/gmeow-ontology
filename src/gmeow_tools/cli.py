@@ -897,7 +897,9 @@ def project(
     ),
     profile: str = typer.Option(
         "all",
-        help="Target profile: all|" + "|".join(sorted(_PROFILES)) + ".",
+        help="Target view/profile: all|maximal|gmeow|"
+        + "|".join(sorted(_PROFILES))
+        + ".",
     ),
     data: str = typer.Option(
         "", help="(deprecated alias for the positional source — a GMEOW data file)."
@@ -929,10 +931,10 @@ def project(
             console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
         return
 
-    if src.suffix == ".gts":
+    if src.suffix.lower() == ".gts":
         valid = set(PROFILES) | {GTS_VIEW_GMEOW, *GTS_VIEW_ALL}
         if profile not in valid:
-            raise _fail(f"unknown view: {profile} (vocab | gmeow | all)")
+            raise _fail(f"unknown view: {profile} (vocab | gmeow | all | maximal)")
         path = project_gts_subset(src, profile)
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
         return

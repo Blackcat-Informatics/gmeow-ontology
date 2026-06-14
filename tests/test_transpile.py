@@ -7,7 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, Literal, URIRef
+from rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.transpile import transpile
 
@@ -83,8 +83,13 @@ def test_project_gts_single_vocab_view(source_file: Path, tmp_path: Path) -> Non
     )
     index = Graph().parse(out / "index.ttl", format="turtle")
     fns = PREFIXES["foaf"]
+    # the FOAF subset = foaf-predicate statements + rdf:type-to-foaf-class. A
+    # clean vocab view is predicate-based; an object-only mention (a gmeow
+    # predicate pointing at a foaf IRI) is a gmeow statement, not a foaf one.
     foaf_in_max = {
-        t for t in index if str(t[1]).startswith(fns) or str(t[2]).startswith(fns)
+        (s, p, o)
+        for s, p, o in index
+        if str(p).startswith(fns) or (p == RDF.type and str(o).startswith(fns))
     }
     assert foaf_in_max <= set(foaf), "view must hold the full FOAF subset of maximal"
     assert all(not str(p).startswith(SCHEMA) for _s, p, _o in foaf), "no schema leak"

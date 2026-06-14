@@ -255,8 +255,15 @@ def gts_base_graph(gts_path: Path) -> Graph:
     reifies = pyoxigraph.NamedNode(_REIFIES)
     base = pyoxigraph.Store()
     for quad in parsed:
-        if quad.predicate == reifies or isinstance(quad.object, pyoxigraph.Triple):
-            continue  # a reifier row or a quoted triple-term, not a base triple
+        # drop reifier rows and any quad with a quoted triple-term endpoint
+        # (RDF-1.2 allows them in subject OR object; plain N-Triples / rdflib
+        # cannot represent either, so they are not asserted base triples)
+        if (
+            quad.predicate == reifies
+            or isinstance(quad.subject, pyoxigraph.Triple)
+            or isinstance(quad.object, pyoxigraph.Triple)
+        ):
+            continue
         base.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
     buf = io.BytesIO()
     base.dump(
