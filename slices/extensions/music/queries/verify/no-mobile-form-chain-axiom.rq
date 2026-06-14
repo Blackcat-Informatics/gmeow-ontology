@@ -1,0 +1,33 @@
+# ROBOT verify QC (#312) — mobile-form graph must never be DL-axiomatized.
+# gmeow:mayFollow must not be declared transitive, symmetric, or appear as the
+# subject or as a member of any owl:propertyChainAxiom. Any row is a FAILURE.
+
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?property ?violation WHERE {
+    {
+        VALUES ?property { gmeow:mayFollow }
+        ?property a owl:TransitiveProperty .
+        BIND("mayFollow declared transitive" AS ?violation)
+    }
+    UNION
+    {
+        VALUES ?property { gmeow:mayFollow }
+        ?property owl:propertyChainAxiom ?chain .
+        BIND("mayFollow has property chain axiom" AS ?violation)
+    }
+    UNION
+    {
+        VALUES ?property { gmeow:mayFollow }
+        ?property a owl:SymmetricProperty .
+        BIND("mayFollow declared symmetric" AS ?violation)
+    }
+    UNION
+    {
+        ?property owl:propertyChainAxiom ?chain .
+        ?chain rdf:rest*/rdf:first gmeow:mayFollow .
+        BIND(CONCAT(STR(?property), " chain contains mayFollow") AS ?violation)
+    }
+}

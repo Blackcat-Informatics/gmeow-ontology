@@ -218,3 +218,31 @@ gmeow:eqMu016 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "Wikidata 'tuplet' (Q2092296) — a tuplet is one kind of rational TimeMapping." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Wikidata — form, process & indeterminacy (issue #312)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMu017 a gmeow:TermEquivalence ;
+    rdfs:label "DegreeOfFreedom ↔ Wikidata Q623715"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW DegreeOfFreedom relator to Wikidata 'aleatoric music' (Q623715); the GMEOW construct is the structural declaration of the indeterminacy that aleatoric music denotes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:DegreeOfFreedom ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q623715 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'aleatoric music' (Q623715) — the GMEOW relator declares the same indeterminacy structurally." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu018 a gmeow:TermEquivalence ;
+    rdfs:label "determinationDelegatedPerformer ↔ Wikidata Q1049625"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW determinationDelegatedPerformer status to Wikidata 'musical improvisation' (Q1049625); improvisation is modeled as performer-delegated parameter determination."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:determinationDelegatedPerformer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1049625 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'musical improvisation' (Q1049625) — improvisation is one form of performer-delegated determination." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
