@@ -316,8 +316,10 @@ def test_slice_examples_use_only_declared_terms(
     :func:`test_coverage_fixtures_use_only_declared_terms`, fails closed on any
     GMEOW term an example uses that the ontology never declares.
     """
+    example_files = iter_slice_example_files()
+    assert example_files, "No slice example files found to validate!"
     undeclared: dict[str, list[str]] = {}
-    for example_path in iter_slice_example_files():
+    for example_path in example_files:
         example_graph = _parse_ttl(example_path)
         terms = _gmeow_vocabulary_terms(example_graph)
         bad = sorted(terms - declared_ontology_terms)
