@@ -17,6 +17,35 @@ Relates a quantitative value or measurement to its QUDT unit (by reference, neve
 
 Use [`gmeow:hasUnit`](gmeow-hasUnit.md) from `?` to [`qudt:Unit`](http://qudt.org/schema/qudt/Unit) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Temperature Reading
+
+- **Source:** [`slices/core/observations/examples/temperature-reading.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/observations/examples/temperature-reading.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-observations-examples-temperature-reading)#example-slices-core-observations-examples-temperature-reading
+
+```turtle
+# --- The result wrapper: value + unit + uncertainty, not a bare literal.
+ex:temp a gmeow:ScalarQuantity ;
+    gmeow:quantityValue       "22.5"^^xsd:decimal ;
+    gmeow:quantityUncertainty "0.1"^^xsd:decimal ;
+    gmeow:hasUnit             <http://qudt.org/vocab/unit/DEG_C> .
+```
+
+### Dataset Completeness
+
+- **Source:** [`slices/core/quality/examples/dataset-completeness.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/quality/examples/dataset-completeness.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-quality-examples-dataset-completeness)#example-slices-core-quality-examples-dataset-completeness
+
+```turtle
+# --- The result: a scalar percentage, unit-bundled like any measurement.
+ex:completeness a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "98.5"^^xsd:decimal ;
+    gmeow:hasUnit       <http://qudt.org/vocab/unit/PERCENT> .
+```
+
 ## Common Companion Terms
 
 [`gmeow:MeasuredValue`](../classes/gmeow-MeasuredValue.md), [`gmeow:Quantity`](../classes/gmeow-Quantity.md), [`gmeow:ScalarQuantity`](../classes/gmeow-ScalarQuantity.md), [`gmeow:hasDeterminacy`](gmeow-hasDeterminacy.md), [`gmeow:hasGranularity`](gmeow-hasGranularity.md), [`gmeow:hasReferenceFrame`](gmeow-hasReferenceFrame.md)
