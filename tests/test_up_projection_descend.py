@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from rdflib import RDF, Graph, Literal, URIRef
+from rdflib import RDF, BNode, Graph, Literal, URIRef
 from rdflib.term import Node
 
 from gmeow_tools.config import FIXTURES_DIR
@@ -71,6 +71,55 @@ def test_descent_rescues_a_floor_ambiguous_term() -> None:
     assert "schema:alternateName" in flat.ambiguous_terms  # floor holds it out
     assert "schema:alternateName" not in desc.ambiguous_terms  # descent resolves it
     assert (None, URIRef(GM + "qPredicate"), URIRef(GM + "hasName")) in desc.graph
+
+
+def test_multiatom_harvest_resolves_identifier_url_on_blank_node() -> None:
+    """A schema:PropertyValue/Identifier record (a blank node) lifts its legs to
+    the gmeow:Identifier structure: schema:url → gmeow:identifierUrl,
+    schema:value → gmeow:identifierValue, schema:propertyID → gmeow:identifierScheme,
+    all as bare structural FACTS (value-preserving template legs) — which a claim
+    could not do on a blank-node subject."""
+    node = BNode()
+    src = _src(
+        (node, RDF.type, URIRef(SCHEMA + "PropertyValue")),
+        (node, URIRef(SCHEMA + "value"), Literal("0000-0002-1825-0097")),
+        (node, URIRef(SCHEMA + "propertyID"), Literal("orcid")),
+        (node, URIRef(SCHEMA + "url"), URIRef("https://orcid.org/0000-0002-1825-0097")),
+    )
+    flat = up_project(src)
+    desc = up_project_descend(src)
+    # the floor holds schema:url ambiguous (no flat winner) and never resolves it
+    assert "schema:url" in flat.ambiguous_terms
+    # the descent emits the Identifier structure as bare facts on the blank node
+    assert (
+        node,
+        URIRef(GM + "identifierUrl"),
+        URIRef("https://orcid.org/0000-0002-1825-0097"),
+    ) in desc.graph
+    assert (
+        node,
+        URIRef(GM + "identifierValue"),
+        Literal("0000-0002-1825-0097"),
+    ) in desc.graph
+    assert (node, URIRef(GM + "identifierScheme"), Literal("orcid")) in desc.graph
+    assert "schema:url" not in desc.ambiguous_terms
+
+
+def test_multiatom_legs_resolve_as_facts_not_claims() -> None:
+    """Multi-atom template legs are value-preserving, so they resolve as facts
+    (not provenance-stamped claims) once the subject's type is confirmed."""
+    from gmeow_tools.up_projection_descend import _resolve
+
+    ctx = build_context()
+    for pred, gmeow in (
+        ("value", "identifierValue"),
+        ("propertyID", "identifierScheme"),
+        ("geo", "hasCoordinates"),
+    ):
+        subj_type = GM + ("Place" if pred == "geo" else "Identifier")
+        cand = _resolve(SCHEMA + pred, {subj_type}, ctx)
+        assert cand is not None and cand.gmeow == GM + gmeow
+        assert cand.relation == "=", f"{pred} should be a structural fact"
 
 
 def test_descent_defers_when_type_adds_no_signal() -> None:
