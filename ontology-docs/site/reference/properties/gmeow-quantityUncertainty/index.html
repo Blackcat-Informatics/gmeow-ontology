@@ -41,6 +41,19 @@
 <p><strong>Property shape:</strong> datatype property; <a href="../../classes/gmeow-ScalarQuantity/"><code>gmeow:ScalarQuantity</code></a> -&gt; <a href="http://www.w3.org/2001/XMLSchema#decimal"><code>xsd:decimal</code></a>; functional</p>
 <h2>Practical Pattern</h2>
 <p>Use <a href="./"><code>gmeow:quantityUncertainty</code></a> from <a href="../../classes/gmeow-ScalarQuantity/"><code>gmeow:ScalarQuantity</code></a> to <a href="http://www.w3.org/2001/XMLSchema#decimal"><code>xsd:decimal</code></a> when the relationship itself belongs in the native GMEOW graph.</p>
+<h2>Example Snippets</h2>
+<p>These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.</p>
+<h3>Temperature Reading</h3>
+<ul>
+<li><strong>Source:</strong> <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/observations/examples/temperature-reading.ttl"><code>slices/core/observations/examples/temperature-reading.ttl</code></a></li>
+<li><strong>Examples catalog:</strong> <a href="../../../examples/#example-slices-core-observations-examples-temperature-reading">open in catalog</a>#example-slices-core-observations-examples-temperature-reading</li>
+</ul>
+<pre><code class="language-turtle"># --- The result wrapper: value + unit + uncertainty, not a bare literal.
+ex:temp a gmeow:ScalarQuantity ;
+    gmeow:quantityValue       &quot;22.5&quot;^^xsd:decimal ;
+    gmeow:quantityUncertainty &quot;0.1&quot;^^xsd:decimal ;
+    gmeow:hasUnit             &lt;http://qudt.org/vocab/unit/DEG_C&gt; .
+</code></pre>
 <h2>Common Companion Terms</h2>
 <p><a href="../../classes/gmeow-ScalarQuantity/"><code>gmeow:ScalarQuantity</code></a></p>
 <h2>External Equivalences</h2>

@@ -59,6 +59,7 @@ These pages explain how GMEOW links to external vocabularies and projection surf
 | [WOT Schema](wot.md) (`wot`) | schema | 0 | 8 | `Unknown` | <http://xmlns.com/wot/0.1/> |
 | [cp](cp.md) (`cp`) | other | 0 | 7 | `Unknown` | <http://inspire.ec.europa.eu/ont/cp#> |
 | [FRBRcore](frbr.md) (`frbr`) | schema | 0 | 7 | `CC-BY-3.0` | <http://purl.org/vocab/frbr/core#> |
+| [mimo](mimo.md) (`mimo`) | other | 0 | 7 | `Unknown` | <http://www.mimo-db.eu/InstrumentsKeywords/> |
 | [PREMIS 3](premis.md) (`premis`) | schema | 0 | 7 | `CC-BY-4.0` | <http://www.loc.gov/premis/rdf/v3/> |
 | [QUDT](qudt.md) (`qudt`) | schema | 0 | 7 | `CC-BY-4.0` | <http://qudt.org/schema/qudt/> |
 | [REL (Relationship)](rel.md) (`rel`) | schema | 0 | 7 | `CC-BY-1.0` | <http://purl.org/vocab/relationship/> |

@@ -17,6 +17,38 @@ An observation that assigns a quantitative or qualitative value to a feature of 
 
 Use [`gmeow:Measurement`](gmeow-Measurement.md) as a specialized kind of [`gmeow:Observation`](gmeow-Observation.md). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Temperature Reading
+
+- **Source:** [`slices/core/observations/examples/temperature-reading.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/observations/examples/temperature-reading.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-observations-examples-temperature-reading)#example-slices-core-observations-examples-temperature-reading
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a measurement is a reified Observation (, P11). A
+# gmeow:Measurement records WHAT was observed (gmeow:observedFeature), HOW
+# (gmeow:observationMethod), and from WHERE (gmeow:vantage — the sensor). Its
+# result is NOT a bare number on the observation: the scalar lives in an
+# entity-valued gmeow:ScalarQuantity wrapper that bundles the value with its UNIT
+# and uncertainty, so a temperature is never asserted free-floating (P11 — every
+# value carries its frame). The unit is aligned to QUDT by reference (P5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The measurement: observed feature, method, vantage, and an entity result.
+ex:reading a gmeow:Measurement ;
+    gmeow:observedFeature   ex:room ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:vantage           ex:sensor ;
+    gmeow:observationResult ex:temp .
+```
+
 ## Common Companion Terms
 
 [`gmeow:Observation`](gmeow-Observation.md)

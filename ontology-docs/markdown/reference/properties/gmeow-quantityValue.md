@@ -17,6 +17,35 @@ The numeric value of a scalar quantity.
 
 Use [`gmeow:quantityValue`](gmeow-quantityValue.md) from [`gmeow:ScalarQuantity`](../classes/gmeow-ScalarQuantity.md) to [`xsd:decimal`](http://www.w3.org/2001/XMLSchema#decimal) when the relationship itself belongs in the native GMEOW graph.
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Temperature Reading
+
+- **Source:** [`slices/core/observations/examples/temperature-reading.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/observations/examples/temperature-reading.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-observations-examples-temperature-reading)#example-slices-core-observations-examples-temperature-reading
+
+```turtle
+# --- The result wrapper: value + unit + uncertainty, not a bare literal.
+ex:temp a gmeow:ScalarQuantity ;
+    gmeow:quantityValue       "22.5"^^xsd:decimal ;
+    gmeow:quantityUncertainty "0.1"^^xsd:decimal ;
+    gmeow:hasUnit             <http://qudt.org/vocab/unit/DEG_C> .
+```
+
+### Dataset Completeness
+
+- **Source:** [`slices/core/quality/examples/dataset-completeness.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/quality/examples/dataset-completeness.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-quality-examples-dataset-completeness)#example-slices-core-quality-examples-dataset-completeness
+
+```turtle
+# --- The result: a scalar percentage, unit-bundled like any measurement.
+ex:completeness a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "98.5"^^xsd:decimal ;
+    gmeow:hasUnit       <http://qudt.org/vocab/unit/PERCENT> .
+```
+
 ## Common Companion Terms
 
 [`gmeow:ScalarQuantity`](../classes/gmeow-ScalarQuantity.md)

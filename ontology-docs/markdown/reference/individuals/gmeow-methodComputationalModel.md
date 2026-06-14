@@ -21,6 +21,21 @@ Use [`gmeow:methodComputationalModel`](gmeow-methodComputationalModel.md) as a c
 
 These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
 
+### Dataset Completeness
+
+- **Source:** [`slices/core/quality/examples/dataset-completeness.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/quality/examples/dataset-completeness.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-quality-examples-dataset-completeness)#example-slices-core-quality-examples-dataset-completeness
+
+```turtle
+# --- The assessment: which entity, which dimension, by what method, from whom.
+ex:assessment a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:dataset ;
+    gmeow:qualityDimension  gmeow:qualityDimensionCompleteness ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:auditor ;
+    gmeow:observationResult ex:completeness .
+```
+
 ### Contested Authorship
 
 - **Source:** [`slices/core/standpoint/examples/contested-authorship.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/standpoint/examples/contested-authorship.ttl)

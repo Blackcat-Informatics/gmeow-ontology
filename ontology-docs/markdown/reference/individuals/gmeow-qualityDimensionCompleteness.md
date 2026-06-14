@@ -17,6 +17,25 @@ Presence or absence of features and their attributes, including commission (exce
 
 Use [`gmeow:qualityDimensionCompleteness`](gmeow-qualityDimensionCompleteness.md) as a controlled value typed as [`gmeow:QualityDimension`](../classes/gmeow-QualityDimension.md).
 
+## Example Snippets
+
+These snippets are generated from canonical slice examples and trimmed to the Turtle blocks where this term appears.
+
+### Dataset Completeness
+
+- **Source:** [`slices/core/quality/examples/dataset-completeness.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/quality/examples/dataset-completeness.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-quality-examples-dataset-completeness)#example-slices-core-quality-examples-dataset-completeness
+
+```turtle
+# --- The assessment: which entity, which dimension, by what method, from whom.
+ex:assessment a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:dataset ;
+    gmeow:qualityDimension  gmeow:qualityDimensionCompleteness ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:auditor ;
+    gmeow:observationResult ex:completeness .
+```
+
 ## Common Companion Terms
 
 [`gmeow:QualityDimension`](../classes/gmeow-QualityDimension.md)

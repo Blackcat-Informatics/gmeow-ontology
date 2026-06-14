@@ -51,19 +51,14 @@ ex:lillith-benchmark a gmeow:Dataset ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
 ```
 
-### Licensed Dataset
+### Dataset Completeness
 
-- **Source:** [`slices/core/rights/examples/licensed-dataset.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/rights/examples/licensed-dataset.ttl)
-- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-rights-examples-licensed-dataset)#example-slices-core-rights-examples-licensed-dataset
+- **Source:** [`slices/core/quality/examples/dataset-completeness.ttl`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/slices/core/quality/examples/dataset-completeness.ttl)
+- **Examples catalog:** [open in catalog](../../examples/index.md#example-slices-core-quality-examples-dataset-completeness)#example-slices-core-quality-examples-dataset-completeness
 
 ```turtle
-# --- The asset, with the FLAT-first rights edges (the common case) plus a
-#     promoted RightsStatement because permissions/prohibitions/duties are needed.
-ex:dataset a gmeow:Dataset ;
-    gmeow:title "Coastal Bird Survey 2026"@en ;
-    gmeow:hasCopyright       ex:copyright ;
-    gmeow:hasLicense         ex:ccbync ;
-    gmeow:hasRightsStatement ex:rights .
+ex:dataset a gmeow:Dataset ; gmeow:title "Coastal Bird Survey 2026"@en .
+ex:auditor a gmeow:Organization ; gmeow:name "Data Quality Audit Ltd."@en .
 ```
 
 ## Common Companion Terms
