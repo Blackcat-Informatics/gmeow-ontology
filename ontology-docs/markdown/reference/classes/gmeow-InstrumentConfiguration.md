@@ -7,16 +7,12 @@
 - **Category:** class
 - **Defined by:** [`gmeow:slices/music`](../../slices/music.md)
 
-A configured instrument setup — instrument × modification × tuning frame × extended-technique arrangement. Minimal stub declared here as the range of [`gmeow:participationConfiguration`](../properties/gmeow-participationConfiguration.md); fully elaborated in ([Principle 4](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-4)).
+A configured instrument setup — a relator binding an instrument item or type, one or more modifications, a tuning frame, and an interval. The prepared-piano / drop-tuning answer. A physical instrument and a software instrument are both first-class subjects; no new instrument-item class is minted (Principles 4, 9, 11).
 
 ## Structure
 
-**Subclass of:** [`gmeow:Entity`](gmeow-Entity.md), [`gufo:Object`](../../external/terms.md#gufo-object)
+**Subclass of:** [`gufo:Relator`](../../external/terms.md#gufo-relator)
 
 ## Practical Pattern
 
-Use [`gmeow:InstrumentConfiguration`](gmeow-InstrumentConfiguration.md) as a specialized kind of [`gmeow:Entity`](gmeow-Entity.md), [`gufo:Object`](../../external/terms.md#gufo-object). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.
-
-## Common Companion Terms
-
-[`gmeow:Entity`](gmeow-Entity.md)
+Use [`gmeow:InstrumentConfiguration`](gmeow-InstrumentConfiguration.md) as a specialized kind of [`gufo:Relator`](../../external/terms.md#gufo-relator). Add statement metadata or a standpoint when the assertion needs provenance, confidence, or vantage.

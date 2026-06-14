@@ -2,7 +2,7 @@
 
 # Classes
 
-593 documented classes.
+594 documented classes.
 
 | Term | Label | Defined By | Linkages |
 |---|---|---|---|
@@ -239,7 +239,8 @@
 | [`gmeow:InscriptionTransliteration`](gmeow-InscriptionTransliteration.md) | Inscription Transliteration | [`gmeow:slices/archaeological-evidence`](../../slices/archaeological-evidence.md) | 2 |
 | [`gmeow:Instant`](gmeow-Instant.md) | Instant | [`gmeow:slices/temporal`](../../slices/temporal.md) | 2 |
 | [`gmeow:InstrumentConfiguration`](gmeow-InstrumentConfiguration.md) | Instrument Configuration | [`gmeow:slices/music`](../../slices/music.md) | 0 |
-| [`gmeow:InstrumentType`](gmeow-InstrumentType.md) | Instrument Type | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:InstrumentModification`](gmeow-InstrumentModification.md) | Instrument Modification | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:InstrumentType`](gmeow-InstrumentType.md) | Instrument Type | [`gmeow:slices/music`](../../slices/music.md) | 2 |
 | [`gmeow:Intention`](gmeow-Intention.md) | Intention | [`gmeow:slices/teleology`](../../slices/teleology.md) | 0 |
 | [`gmeow:IntentionTenure`](gmeow-IntentionTenure.md) | Intention Tenure | [`gmeow:slices/teleology`](../../slices/teleology.md) | 0 |
 | [`gmeow:IntentionalMode`](gmeow-IntentionalMode.md) | Intentional Mode | [`gmeow:slices/teleology`](../../slices/teleology.md) | 0 |

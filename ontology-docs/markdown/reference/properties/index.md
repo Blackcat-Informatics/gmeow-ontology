@@ -2,7 +2,7 @@
 
 # Properties
 
-1368 documented properties.
+1374 documented properties.
 
 | Term | Label | Defined By | Linkages |
 |---|---|---|---|
@@ -198,6 +198,11 @@
 | [`gmeow:conditionsOfAccess`](gmeow-conditionsOfAccess.md) | conditions of access | [`gmeow:slices/rights`](../../slices/rights.md) | 5 |
 | [`gmeow:conferredByEvent`](gmeow-conferredByEvent.md) | conferred by event | [`gmeow:slices/names`](../../slices/names.md) | 0 |
 | [`gmeow:confidence`](gmeow-confidence.md) | confidence | [`gmeow:slices/provenance`](../../slices/provenance.md) | 0 |
+| [`gmeow:configurationInstrumentType`](gmeow-configurationInstrumentType.md) | configuration instrument type | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:configurationInterval`](gmeow-configurationInterval.md) | configuration interval | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:configurationModification`](gmeow-configurationModification.md) | configuration modification | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:configurationOf`](gmeow-configurationOf.md) | configuration of | [`gmeow:slices/music`](../../slices/music.md) | 0 |
+| [`gmeow:configurationTuningFrame`](gmeow-configurationTuningFrame.md) | configuration tuning frame | [`gmeow:slices/music`](../../slices/music.md) | 0 |
 | [`gmeow:confirmationDepth`](gmeow-confirmationDepth.md) | confirmation depth | [`gmeow:slices/attestation`](../../slices/attestation.md) | 0 |
 | [`gmeow:conflictStrategy`](gmeow-conflictStrategy.md) | conflict strategy | [`gmeow:slices/rights`](../../slices/rights.md) | 2 |
 | [`gmeow:conformsTo`](gmeow-conformsTo.md) | conforms to | [`gmeow:slices/creative-works`](../../slices/creative-works.md) | 5 |
@@ -635,6 +640,7 @@
 | [`gmeow:hopOrdinal`](gmeow-hopOrdinal.md) | hop ordinal | [`gmeow:slices/email`](../../slices/email.md) | 0 |
 | [`gmeow:hostedAt`](gmeow-hostedAt.md) | hosted at | [`gmeow:slices/software`](../../slices/software.md) | 0 |
 | [`gmeow:howToUse`](gmeow-howToUse.md) | how to use | [`gmeow:slices/kernel`](../../slices/kernel.md) | 0 |
+| [`gmeow:hsNumber`](gmeow-hsNumber.md) | Hornbostel–Sachs number | [`gmeow:slices/music`](../../slices/music.md) | 1 |
 | [`gmeow:iban`](gmeow-iban.md) | IBAN | [`gmeow:slices/finance`](../../slices/finance.md) | 1 |
 | [`gmeow:identifier`](gmeow-identifier.md) | identifier | [`gmeow:slices/documents`](../../slices/documents.md) | 9 |
 | [`gmeow:identifierScheme`](gmeow-identifierScheme.md) | identifier scheme | [`gmeow:slices/organization`](../../slices/organization.md) | 6 |

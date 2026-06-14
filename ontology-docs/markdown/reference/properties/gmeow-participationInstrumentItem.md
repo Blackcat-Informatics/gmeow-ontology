@@ -7,16 +7,16 @@
 - **Category:** property
 - **Defined by:** [`gmeow:slices/music`](../../slices/music.md)
 
-The specific physical instrument item used in this participation — the particular Stradivarius, the named drum kit, etc. Functional per relator.
+The specific instrument item used in this participation — the particular 1959 Les Paul (a [`PhysicalObject`](../classes/gmeow-PhysicalObject.md)), a synth plugin (an [`InformationObject`](../classes/gmeow-InformationObject.md)), the named drum kit, etc. Ranges over [`Entity`](../classes/gmeow-Entity.md) so that any item-kind can be named without minting a new class (; [Principle 9](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md#principle-9)). Functional per relator.
 
 ## Structure
 
-**Property shape:** object property; [`gmeow:PerformanceParticipation`](../classes/gmeow-PerformanceParticipation.md) -> [`gmeow:Item`](../classes/gmeow-Item.md); functional
+**Property shape:** object property; [`gmeow:PerformanceParticipation`](../classes/gmeow-PerformanceParticipation.md) -> [`gmeow:Entity`](../classes/gmeow-Entity.md); functional
 
 ## Practical Pattern
 
-Use [`gmeow:participationInstrumentItem`](gmeow-participationInstrumentItem.md) from [`gmeow:PerformanceParticipation`](../classes/gmeow-PerformanceParticipation.md) to [`gmeow:Item`](../classes/gmeow-Item.md) when the relationship itself belongs in the native GMEOW graph.
+Use [`gmeow:participationInstrumentItem`](gmeow-participationInstrumentItem.md) from [`gmeow:PerformanceParticipation`](../classes/gmeow-PerformanceParticipation.md) to [`gmeow:Entity`](../classes/gmeow-Entity.md) when the relationship itself belongs in the native GMEOW graph.
 
 ## Common Companion Terms
 
-[`gmeow:PerformanceParticipation`](../classes/gmeow-PerformanceParticipation.md), [`gmeow:Item`](../classes/gmeow-Item.md)
+[`gmeow:PerformanceParticipation`](../classes/gmeow-PerformanceParticipation.md), [`gmeow:Entity`](../classes/gmeow-Entity.md)

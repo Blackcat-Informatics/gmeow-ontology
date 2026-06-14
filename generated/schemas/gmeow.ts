@@ -1120,13 +1120,37 @@ export enum IndexAlgorithmEnum {
     IVF = "indexAlgorithmIvf",
 };
 
+export enum InstrumentConfigurationEnum {
+
+    number_1959_Les_Paul_stage_configuration = "fixture1959LesPaulConfiguration",
+    drop_D_electric_guitar_configuration = "fixtureDropDGuitarConfiguration",
+    Cage_prepared_piano_configuration = "fixturePreparedPianoConfiguration",
+};
+
+export enum InstrumentModificationEnum {
+
+    capo = "instrumentModificationCapo",
+    electrified = "instrumentModificationElectrified",
+    extended_range = "instrumentModificationExtendedRange",
+    mute = "instrumentModificationMute",
+    prepared = "instrumentModificationPrepared",
+    scordatura = "instrumentModificationScordatura",
+};
+
 export enum InstrumentTypeEnum {
 
+    adapted_guitar = "instrumentTypeAdaptedGuitar",
     double_bass = "instrumentTypeDoubleBass",
     drum_kit = "instrumentTypeDrumKit",
     electric_guitar = "instrumentTypeElectricGuitar",
+    gamelan = "instrumentTypeGamelan",
+    modular_synthesizer = "instrumentTypeModularSynth",
     piano = "instrumentTypePiano",
+    sitar = "instrumentTypeSitar",
+    tabla = "instrumentTypeTabla",
+    turntables = "instrumentTypeTurntables",
     violin = "instrumentTypeViolin",
+    voice = "instrumentTypeVoice",
 };
 
 export enum InvitationStatusEnum {
@@ -1845,6 +1869,11 @@ export enum PhysicalCarrierTypeEnum {
     wood = "carrierWood",
 };
 
+export enum PhysicalObjectEnum {
+
+    number_1959_Les_Paul_fixture = "fixture1959LesPaul",
+};
+
 export enum PitchAnchorEnum {
 
     A415_Baroque_anchor = "pitchAnchorA415",
@@ -1918,6 +1947,7 @@ export enum PitchCollectionMembershipEnum {
 
 export enum PitchIntervalEnum {
 
+    major_second_down = "pitchIntervalMajorSecondDown",
     perfect_fifth = "pitchIntervalPerfectFifth",
     septimal_comma = "pitchIntervalSeptimalComma",
     syntonic_comma = "pitchIntervalSyntonicComma",
@@ -2008,8 +2038,16 @@ export enum PlaceTypeEnum {
 export enum PlayingTechniqueEnum {
 
     arco = "playingTechniqueArco",
+    bent_note = "playingTechniqueBentNote",
+    col_legno = "playingTechniqueColLegno",
+    growl = "playingTechniqueGrowl",
+    harmonics = "playingTechniqueHarmonics",
+    konnakol = "playingTechniqueKonnakol",
+    multiphonics = "playingTechniqueMultiphonics",
     pizzicato = "playingTechniquePizzicato",
     prepared_piano = "playingTechniquePreparedPiano",
+    slap = "playingTechniqueSlap",
+    tapping = "playingTechniqueTapping",
 };
 
 export enum PostingDirectionEnum {
@@ -2837,6 +2875,7 @@ export enum TuningSystemEnum {
     number_24_tone_equal_temperament = "tuningSystem24EDO",
     number_31_tone_equal_temperament = "tuningSystem31EDO",
     Bohlen_Pierce = "tuningSystemBohlenPierce",
+    guitar_drop_D_tablature_frame = "tuningSystemGuitarDropD",
     just_intonation_lattice = "tuningSystemJustIntonation",
     Partch_43_tone_just_intonation = "tuningSystemPartch43",
     pelog = "tuningSystemPelog",
@@ -4657,12 +4696,23 @@ export interface Instant {
 
 
 
-export interface InstrumentConfiguration extends Entity {
+export interface InstrumentConfiguration {
+    configurationInstrumentType?: InstrumentType,
+    configurationInterval?: PitchInterval,
+    configurationModification?: InstrumentModification[],
+    configurationOf?: Entity,
+    configurationTuningFrame?: TuningSystem,
+}
+
+
+
+export interface InstrumentModification {
 }
 
 
 
 export interface InstrumentType {
+    hsNumber?: string,
 }
 
 
@@ -5702,7 +5752,7 @@ export interface PerformanceDecision {
 export interface PerformanceParticipation extends Participation {
     participationConfiguration?: InstrumentConfiguration,
     participationInstrument?: InstrumentType[],
-    participationInstrumentItem?: Item,
+    participationInstrumentItem?: Entity,
     participationPart?: string,
     participationTechnique?: PlayingTechnique,
 }
