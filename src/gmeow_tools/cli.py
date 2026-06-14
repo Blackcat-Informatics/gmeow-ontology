@@ -1000,11 +1000,13 @@ def up_project_cmd(
         None, "-o", "--out", help="Write the GMEOW lift here (default: stdout Turtle)."
     ),
 ) -> None:
-    """Lift a consumer-vocabulary RDF file UP into pure GMEOW (clean-reversal, #451).
+    """Lift a consumer-vocabulary RDF file UP into pure GMEOW (#451).
 
-    Rewrites each term that has a mechanically-invertible alignment rule to its
-    GMEOW counterpart; terms with no clean rule, or whose reverse is ambiguous
-    (a many-to-one down-image), are reported and left out — never guessed.
+    Rewrites each term with a mechanically-invertible alignment rule to its GMEOW
+    counterpart as a fact; a ``skos:closeMatch`` term is lifted as a provenance-
+    stamped ``gmeow:StatementMetadata`` claim (confidence + mappedFrom) rather
+    than a bare fact. Terms with no rule, or whose reverse is ambiguous (a
+    many-to-one down-image), are reported and left out — never guessed.
     """
     from rdflib import Graph
 
@@ -1029,10 +1031,13 @@ def up_project_cmd(
         # output pipes cleanly; all diagnostics go to stderr.
         typer.echo(result.graph.serialize(format="turtle"))
     err_console.print(
-        f"[green]lifted[/green] {result.lifted} triples · "
+        f"[green]lifted[/green] {result.lifted} facts · "
+        f"[cyan]claimed[/cyan] {result.claimed} closeMatch · "
         f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
         f"[yellow]ambiguous[/yellow] {len(result.ambiguous_terms)} terms",
     )
+    for term, n in sorted(result.claim_terms.items()):
+        err_console.print(f"[cyan]claimed[/cyan] {term} (x{n})")
     for term, n in sorted(result.gap_terms.items()):
         err_console.print(f"[yellow]gap[/yellow] {term} (x{n})")
     for term, n in sorted(result.ambiguous_terms.items()):

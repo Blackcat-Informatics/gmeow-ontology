@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from rdflib import RDF, BNode, Graph, Literal, URIRef
+from rdflib import RDF, XSD, BNode, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
 from gmeow_tools.config import FIXTURES_DIR
@@ -143,6 +143,144 @@ def test_up_project_does_not_guess_ambiguous_or_structural() -> None:
     assert not any(str(p) == GM + "name" for _s, p, _o in up.graph), (
         "must not invent a gmeow:name lift for the ambiguous schema:name"
     )
+
+
+def test_lift_map_closematch_claims_are_distinct_and_confident() -> None:
+    """closeMatch claim rules carry a single gmeow term + a [0,1] confidence and
+    never overlap the clean / inverse / ambiguous layers (clean coverage wins)."""
+    lift = build_lift_map()
+    assert len(lift.claim_rules) > 100, "expected a substantial closeMatch layer"
+    assert not (set(lift.claim_rules) & set(lift.rules))
+    assert not (set(lift.claim_rules) & set(lift.inverse_rules))
+    assert not (set(lift.claim_rules) & set(lift.ambiguous))
+    for gmeow, conf in lift.claim_rules.values():
+        assert gmeow.startswith(GM)
+        assert 0.0 <= float(conf) <= 1.0
+    # schema:sender is a closeMatch of gmeow:from (not an equivalence)
+    assert lift.claim_rules.get(SCHEMA + "sender") == (GM + "from", "0.9")
+
+
+def test_up_project_emits_provenance_stamped_claim_not_a_bare_fact() -> None:
+    """A closeMatch term lifts to a gmeow:StatementMetadata claim quoting the
+    inferred triple, stamped with confidence + mappedFrom — and the bare gmeow
+    triple is NEVER asserted directly (closeMatch is close, not equal)."""
+    msg, alice = URIRef("https://ex.org/msg"), URIRef("https://ex.org/alice")
+    src = Graph()
+    src.add((msg, URIRef(SCHEMA + "sender"), alice))
+    up = up_project(src)
+    assert up.claimed == 1
+    assert "schema:sender" in up.claim_terms
+
+    # the inferred edge is NOT asserted as a plain fact
+    assert (msg, URIRef(GM + "from"), alice) not in up.graph
+
+    # exactly one StatementMetadata cell, quoting (msg gmeow:from alice)
+    cells = list(up.graph.subjects(RDF.type, URIRef(GM + "StatementMetadata")))
+    assert len(cells) == 1
+    cell = cells[0]
+    assert up.graph.value(cell, URIRef(GM + "qSubject")) == msg
+    assert up.graph.value(cell, URIRef(GM + "qPredicate")) == URIRef(GM + "from")
+    assert up.graph.value(cell, URIRef(GM + "qObject")) == alice
+    # stamped with the curated confidence and the source term it was mapped from
+    anns = {
+        (
+            up.graph.value(a, URIRef(GM + "annProperty")),
+            up.graph.value(a, URIRef(GM + "annValue")),
+        )
+        for a in up.graph.objects(cell, URIRef(GM + "annotation"))
+    }
+    assert (URIRef(GM + "confidence"), Literal("0.9", datatype=XSD.decimal)) in anns
+    assert (URIRef(GM + "mappedFrom"), URIRef(SCHEMA + "sender")) in anns
+
+
+def test_up_project_claim_literal_object_uses_qobjectliteral() -> None:
+    """A closeMatch whose object is a literal quotes it via gmeow:qObjectLiteral,
+    so the StatementMetadata stays shape-valid (qObject is IRI-only)."""
+    lift = build_lift_map()
+    # find a closeMatch claim target that takes a literal value in real data
+    target = SCHEMA + "softwareVersion"  # gmeow:modelVersionTag, datatype-valued
+    assert target in lift.claim_rules
+    src = Graph()
+    src.add((URIRef("https://ex.org/app"), URIRef(target), Literal("1.2.3")))
+    up = up_project(src, lift)
+    assert up.claimed == 1
+    cell = next(up.graph.subjects(RDF.type, URIRef(GM + "StatementMetadata")))
+    assert up.graph.value(cell, URIRef(GM + "qObjectLiteral")) == Literal("1.2.3")
+    assert up.graph.value(cell, URIRef(GM + "qObject")) is None
+
+
+def test_up_project_claims_are_shacl_valid() -> None:
+    """Every emitted claim satisfies the StatementMetadata SHACL shape — the
+    output is well-formed GMEOW, not just GMEOW-namespaced.
+
+    Validated against the statement-DSL shapes *in isolation* (as the DSL
+    validator does), not the merged shapes graph: the merged graph fuses the two
+    same-IRI ``gmeow:AnnotationShape`` definitions (statement-DSL's annProperty
+    one and the web-annotation one), a collision that never occurs in production.
+    """
+    from pyshacl import validate as shacl_validate
+
+    from gmeow_tools.config import STATEMENT_DSL_SHAPES_FILE
+
+    src = Graph()
+    a = URIRef("https://ex.org/a")
+    ver = URIRef(SCHEMA + "softwareVersion")
+    src.add((URIRef("https://ex.org/msg"), URIRef(SCHEMA + "sender"), a))
+    src.add((URIRef("https://ex.org/app"), ver, Literal("9")))
+    up = up_project(src)
+    assert up.claimed == 2
+    shapes = Graph().parse(STATEMENT_DSL_SHAPES_FILE, format="turtle")
+    conforms, _report_graph, report_text = shacl_validate(
+        up.graph, shacl_graph=shapes, advanced=True, inference="none"
+    )
+    assert conforms, report_text
+
+
+def test_up_project_claim_skips_blank_node_endpoints() -> None:
+    """A closeMatch triple with a blank-node subject/object is unquotable under
+    the StatementMetadata shape (IRI endpoints only), so it is skipped — a rule
+    exists, so it is NOT counted as a gap."""
+    lift = build_lift_map()
+    src = Graph()
+    # blank-node subject under a closeMatch predicate
+    src.add((BNode(), URIRef(SCHEMA + "sender"), URIRef("https://ex.org/a")))
+    up = up_project(src, lift)
+    assert up.claimed == 0
+    assert len(up.graph) == 0
+    assert "schema:sender" not in up.gap_terms
+    assert "schema:sender" not in up.ambiguous_terms
+
+
+def test_up_project_class_claim_skips_blank_node_subject() -> None:
+    """A class closeMatch on a blank-node subject is unquotable (qSubject is
+    IRI-only), so it is skipped — a rule exists, so it is NOT a gap (parity with
+    the property-claim blank-node skip)."""
+    lift = build_lift_map()
+    # find a closeMatch claim target that is a class (lifts via rdf:type)
+    target = SCHEMA + "Offer"  # gmeow:Offering, a class closeMatch
+    assert target in lift.claim_rules
+    src = Graph()
+    src.add((BNode(), RDF.type, URIRef(target)))
+    up = up_project(src, lift)
+    assert up.claimed == 0
+    assert len(up.graph) == 0
+    assert "schema:Offer" not in up.gap_terms
+    assert "schema:Offer" not in up.ambiguous_terms
+
+
+def test_decimal_confidence_rejects_non_decimal_lexical_forms() -> None:
+    """Confidence must be a finite [0,1] value in xsd:decimal lexical form — the
+    raw string is emitted as an xsd:decimal literal, so exponent / NaN / out-of-
+    range forms (valid float, invalid decimal) are rejected, not silently kept."""
+    from decimal import Decimal
+
+    from gmeow_tools.up_projection import _decimal_confidence
+
+    assert _decimal_confidence("0.9") == Decimal("0.9")
+    assert _decimal_confidence("1") == Decimal("1")
+    assert _decimal_confidence("0") == Decimal("0")
+    for bad in ("1e-1", "1E-1", "NaN", "Infinity", "-0.1", "1.5", "abc", ""):
+        assert _decimal_confidence(bad) is None, bad
 
 
 def test_up_project_empty_graph_raises() -> None:
