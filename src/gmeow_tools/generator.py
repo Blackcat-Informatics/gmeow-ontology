@@ -545,7 +545,13 @@ def _write_stamp(name: str, input_hash: str, output_hash: str) -> None:
 
 def _output_hash(gen: Generator) -> str:
     """Hash of the generator's committed outputs (used to detect hand edits)."""
-    return source_hash(gen.outputs)
+    files: list[Path] = []
+    for out in gen.outputs:
+        if out.is_dir():
+            files.extend(p for p in sorted(out.rglob("*")) if p.is_file())
+        else:
+            files.append(out)
+    return source_hash(files)
 
 
 def _stamp_matches(gen: Generator, stamp: dict[str, str]) -> bool:
@@ -561,7 +567,12 @@ def _find_orphans_from_outputs(gen: Generator) -> list[str]:
     Used when a generator is skipped because its inputs are unchanged. We cannot
     compare against a staging tree (no render happened), but we can still flag
     generated files in the output directories that are not declared outputs.
+
+    Directory outputs are skipped here; a full render is required to detect
+    orphans inside a recursively-declared directory tree.
     """
+    if getattr(gen, "is_directory_output", False):
+        return []
     declared = {out.resolve() for out in gen.outputs}
     output_dirs = {out.parent.resolve() for out in gen.outputs}
     orphans: list[str] = []
