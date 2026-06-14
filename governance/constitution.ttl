@@ -237,6 +237,16 @@ meta:tests-claim-pattern a meta:TestSuite ;
     meta:artifact "tests/test_audit.py", "tests/test_evals.py",
         "tests/fixtures/coverage/hallucination-kg.ttl" .
 
+meta:practice-logic-design a meta:Practice ;
+    rdfs:label "GMEOW Logic design set — amendment-in-the-open (Principle 17, pre-implementation)" ;
+    rdfs:comment "Practice-only enforcement: Principle 17 governs the design while `logic:` is unimplemented, so it surfaces as a warning (never silently). On landing, this is replaced by the logic conformance corpus (oracle ≡ engine), the logic↔OWL round-trip gate, and the foundation-conformance gate."@en ;
+    meta:artifact "slices/core/logic/design/LOGIC.md",
+        "slices/core/logic/design/LOGIC-SEMANTICS.md",
+        "slices/core/logic/design/LOGIC-RUNTIME.md",
+        "slices/core/logic/design/LOGIC-MIGRATION.md",
+        "slices/core/logic/design/LOGIC-CONFORMANCE.md",
+        "slices/core/logic/design/LOGIC-REFERENCES.md" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -328,3 +338,8 @@ meta:Principle16 a meta:Principle ;
     meta:number 16 ;
     meta:title "A small core; everything else a published extension" ;
     meta:enforcedBy meta:gate-core-profile, meta:tests-slices .
+
+meta:Principle17 a meta:Principle ;
+    meta:number 17 ;
+    meta:title "The logic itself is canonical — OWL is a projection of it, not its ceiling" ;
+    meta:enforcedBy meta:practice-logic-design .

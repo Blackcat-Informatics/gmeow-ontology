@@ -139,5 +139,6 @@ skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/external,t
 # opNe (the not-equal expression operator in the mapping DSL algebra),
 # ser (Rust serde/ciborium module path `ciborium::ser`),
 # Beng (ISO 15924 script code for Bengali), fo (ISO 639-1 Faroese),
-# te (ISO 639-1 Telugu).
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te"
+# te (ISO 639-1 Telugu), intensional (the IDB term in logic/databases, opp. of
+# extensional), Hendler / Pease (author surnames in the logic references).
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,hendler,pease"
