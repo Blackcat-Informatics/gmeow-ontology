@@ -10,16 +10,16 @@
 # contract, so its grounding is recorded rather than assumed.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agreements/> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:acme a gmeow:Organization ; gmeow:name "Acme Robotics Inc."@x-gmeow-english .
 ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
 
 # --- The contract: a relator binding the two parties, bearing a formal name.
+#     (Validity bounds — gmeow:validFrom/validUntil — are statement-level RDF-1.2
+#     annotations, carried in the statement layer rather than as A-box triples.)
 ex:contract a gmeow:Contract ;
     gmeow:hasParty         ex:acme , ex:dana ;
-    gmeow:hasAgreementName ex:contractName ;
-    gmeow:validFrom        "2026-01-15T00:00:00Z"^^xsd:dateTime .
+    gmeow:hasAgreementName ex:contractName .
 
 ex:contractName a gmeow:AgreementName ;
     gmeow:fullName "Acme Robotics — Reyes Employment Agreement (2026)"@x-gmeow-english .
