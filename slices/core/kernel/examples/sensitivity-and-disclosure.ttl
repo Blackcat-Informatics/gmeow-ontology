@@ -35,4 +35,5 @@ ex:bioNote a gmeow:InformationObject ;
     gmeow:partOf              ex:dossier ;
     gmeow:hasSensitivity      gmeow:sensitivityPublic ;
     gmeow:hasDisclosurePolicy gmeow:policyPublicSafe ;
-    gmeow:eligibleForConsumer gmeow:consumerPublicSite .
+    gmeow:eligibleForConsumer gmeow:consumerPublicSite ;
+    gmeow:hasDeterminacy      gmeow:determinacyCrisp .
