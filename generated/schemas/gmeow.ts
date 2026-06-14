@@ -79,6 +79,17 @@ export enum ArcTypeEnum {
     redemption = "arcTypeRedemption",
 };
 
+export enum ArticulationKindEnum {
+
+    accent = "articulationAccent",
+    harmonic = "articulationHarmonic",
+    legato = "articulationLegato",
+    marcato = "articulationMarcato",
+    pizzicato = "articulationPizzicato",
+    staccato = "articulationStaccato",
+    tenuto = "articulationTenuto",
+};
+
 export enum AssetTypeEnum {
 
     bond = "assetTypeBond",
@@ -643,6 +654,18 @@ export enum DistanceMetricEnum {
     euclidean = "distanceMetricEuclidean",
 };
 
+export enum DynamicsValueEnum {
+
+    forte = "dynamicsF",
+    fortissimo = "dynamicsFf",
+    fortississimo = "dynamicsFff",
+    mezzo_forte = "dynamicsMf",
+    mezzo_piano = "dynamicsMp",
+    piano = "dynamicsP",
+    pianissimo = "dynamicsPp",
+    pianississimo = "dynamicsPpp",
+};
+
 export enum EmotionTypeEnum {
 
     anger = "emotionAnger",
@@ -670,8 +693,6 @@ export enum EntityEnum {
 
     polymeter_pattern = "polymeterPattern",
     raw_root_data_source = "procedureIngestionRawRoot",
-    drums_voice_placeholder = "voiceDrumsPlaceholder",
-    guitar_voice_placeholder = "voiceGuitarPlaceholder",
 };
 
 export enum EvaluationVerdictEnum {
@@ -1380,6 +1401,13 @@ export enum MultipartTypeEnum {
     signed = "multipartTypeSigned",
 };
 
+export enum MusicalSegmentEnum {
+
+    riff_A = "fixtureStructureRiffA",
+    riff_A_re_accented = "fixtureStructureRiffAReaccented",
+    riff_A_transposed = "fixtureStructureRiffATransposed",
+};
+
 export enum MusicalTimeFrameEnum {
 
     common_musical_time_frame = "musicalTimeFrameCommon",
@@ -1393,6 +1421,11 @@ export enum MusicalTimeSpanEnum {
     bar_three_span = "musicalTimeSpanBarThree",
     bar_two_span = "musicalTimeSpanBarTwo",
     whole_section_span = "musicalTimeSpanWholeSection",
+};
+
+export enum MusicalWorkEnum {
+
+    fixture_structure_work = "fixtureStructureWork",
 };
 
 export enum NamePartTypeEnum {
@@ -1760,6 +1793,24 @@ export enum PitchSpellingSystemEnum {
     sargam = "pitchSpellingSystemSargam",
 };
 
+export enum PitchTrajectoryEnum {
+
+    fixture_glissando_trajectory = "fixtureStructureGlissando",
+};
+
+export enum PitchTrajectoryControlPointEnum {
+
+    glissando_start_C4 = "fixtureStructureGlissPointC4",
+    glissando_end_G4 = "fixtureStructureGlissPointG4",
+};
+
+export enum PitchTrajectoryInterpolationKindEnum {
+
+    exponential = "interpolationExponential",
+    linear_cents = "interpolationLinearCents",
+    stochastic_by_reference = "interpolationStochasticByReference",
+};
+
 export enum PitchValueEnum {
 
     number_12_EDO_A4 = "pitchValue12EDOA4",
@@ -1783,6 +1834,8 @@ export enum PitchValueEnum {
     number_24_EDO_E_half_flat_4 = "pitchValue24EDOEHalfFlat4",
     number_24_EDO_F4 = "pitchValue24EDOF4",
     number_24_EDO_G4 = "pitchValue24EDOG4",
+    C4_fixture_pitch_value = "pitchValueC4Fixture",
+    G4_fixture_pitch_value = "pitchValueG4Fixture",
     just_intonation_7SOLIDUS4 = "pitchValueJI7Over4",
 };
 
@@ -2216,6 +2269,27 @@ export enum ScriptRoleEnum {
     transliteration_SOLIDUS_romanization = "scriptRoleTransliteration",
 };
 
+export enum SegmentKindEnum {
+
+    cell = "segmentKindCell",
+    color = "segmentKindColor",
+    drone = "segmentKindDrone",
+    fragment = "segmentKindFragment",
+    loop = "segmentKindLoop",
+    motif = "segmentKindMotif",
+    phrase = "segmentKindPhrase",
+    riff = "segmentKindRiff",
+    section = "segmentKindSection",
+    talea = "segmentKindTalea",
+    tone_event_container = "segmentKindToneEventContainer",
+};
+
+export enum SegmentTransformationEnum {
+
+    riff_A_transposed_RIGHTWARDS_ARROW_riff_A_re_accented = "fixtureStructureReaccentuation",
+    riff_A_RIGHTWARDS_ARROW_riff_A_transposed = "fixtureStructureTransposition",
+};
+
 export enum SelectorTypeEnum {
 
     COCO_RLE_mask = "selectorTypeCocoRleMask",
@@ -2504,6 +2578,11 @@ export enum TimeScaleEnum {
     Coordinated_Universal_Time_LEFT_PARENTHESISUTCRIGHT_PARENTHESIS = "timeScaleUTC",
 };
 
+export enum ToneEventEnum {
+
+    fixture_tone_event_C4 = "fixtureStructureToneEventC4",
+};
+
 export enum TrademarkStatusEnum {
 
     cancelled = "trademarkStatusCancelled",
@@ -2541,6 +2620,23 @@ export enum TransformCodecEnum {
     identity_codec = "codecIdentity",
     lzma2_codec = "codecLzma2",
     zstd_codec = "codecZstd",
+};
+
+export enum TransformationTypeEnum {
+
+    augmentation = "transformAugmentation",
+    diminution = "transformDiminution",
+    inversion = "transformInversion",
+    octave_displacement = "transformOctaveDisplacement",
+    ornamentation = "transformOrnamentation",
+    phase_shift = "transformPhaseShift",
+    quotation = "transformQuotation",
+    reaccentuation = "transformReaccentuation",
+    reduction = "transformReduction",
+    retrograde = "transformRetrograde",
+    spectral_compression = "transformSpectralCompression",
+    timbre_reorchestration = "transformTimbreReorchestration",
+    transposition = "transformTransposition",
 };
 
 export enum TransliterationSchemeEnum {
@@ -2630,6 +2726,13 @@ export enum VirtualLocationTypeEnum {
     video_conference = "virtualLocationTypeVideoConference",
     virtual_event_space = "virtualLocationTypeVirtualEventSpace",
     website = "virtualLocationTypeWebsite",
+};
+
+export enum VoiceEnum {
+
+    bass_voice = "fixtureStructureVoiceBass",
+    drums_voice_placeholder = "voiceDrumsPlaceholder",
+    guitar_voice_placeholder = "voiceGuitarPlaceholder",
 };
 
 export enum WalletSchemeEnum {
@@ -2822,6 +2925,11 @@ export interface ArchaeologicalFindContext {
 
 
 export interface Article extends Work {
+}
+
+
+
+export interface ArticulationKind {
 }
 
 
@@ -3664,6 +3772,11 @@ export interface Duty extends Rule {
 
 
 
+export interface DynamicsValue {
+}
+
+
+
 export interface EmailAddress extends ContactPoint {
     addressValue?: string,
     deliversToAccount?: OnlineAccount[],
@@ -3788,6 +3901,7 @@ export interface Entity {
     hasTag?: Tag[],
     hasTrademark?: Trademark[],
     hasVersion?: Entity[],
+    hasVoice?: Voice[],
     hasWebPage?: WebPage[],
     isAbout?: Entity[],
     isAccessibleForFree?: boolean[],
@@ -4920,6 +5034,12 @@ export interface MultipartType {
 
 
 
+export interface MusicalSegment extends ContentSegment {
+    segmentKind?: SegmentKind,
+}
+
+
+
 export interface MusicalTimeFrame extends ReferenceFrame {
 }
 
@@ -5439,6 +5559,29 @@ export interface PitchSpelling {
 
 
 export interface PitchSpellingSystem extends InformationObject {
+}
+
+
+
+export interface PitchTrajectory extends Entity {
+    interpolationKind?: PitchTrajectoryInterpolationKind,
+    trajectoryControlPoint?: PitchTrajectoryControlPoint[],
+}
+
+
+
+export interface PitchTrajectoryControlPoint extends Entity {
+    controlPointOfTrajectory?: PitchTrajectory,
+    controlPointOrder?: number,
+    controlPointPitch?: PitchValue,
+    controlPointTimeFrame?: MusicalTimeFrame,
+    controlPointTimePositionDenominator?: number,
+    controlPointTimePositionNumerator?: number,
+}
+
+
+
+export interface PitchTrajectoryInterpolationKind {
 }
 
 
@@ -5989,6 +6132,20 @@ export interface ScriptRole {
 
 
 
+export interface SegmentKind {
+}
+
+
+
+export interface SegmentTransformation {
+    transformationParameter?: Entity,
+    transformationSource?: MusicalSegment,
+    transformationTarget?: MusicalSegment,
+    transformationType?: TransformationType,
+}
+
+
+
 export interface Selector extends EvidenceSpan {
     selectorLocator?: string[],
     selectorPage?: string[],
@@ -6403,7 +6560,6 @@ export interface TempoMapKind {
 export interface TempoMapSegment extends Entity {
     segmentMapRatioDenominator?: number,
     segmentMapRatioNumerator?: number,
-    segmentSpan?: MusicalTimeSpan,
     segmentTempoMapKind?: TempoMapKind,
     tempoMapSegmentOf?: TempoMap,
 }
@@ -6445,6 +6601,11 @@ export interface TextExtraction extends Document {
 
 export interface Thread extends InformationObject {
     threadSubject?: string[],
+}
+
+
+
+export interface TimbreDescriptor extends Entity {
 }
 
 
@@ -6508,6 +6669,17 @@ export interface TimeZone extends Entity {
 
 
 
+export interface ToneEvent extends MusicalSegment {
+    toneEventArticulation?: ArticulationKind,
+    toneEventDynamics?: DynamicsValue,
+    toneEventIsUnpitched?: boolean,
+    toneEventPitchTrajectory?: PitchTrajectory,
+    toneEventPitchValue?: PitchValue,
+    toneEventTimbre?: TimbreDescriptor,
+}
+
+
+
 export interface ToolCall extends Activity {
     calledByInvocation?: ModelInvocation,
     toolArguments?: string,
@@ -6551,6 +6723,11 @@ export interface TransactionType {
 
 export interface TransformCodec {
     codecClass?: CodecClass,
+}
+
+
+
+export interface TransformationType {
 }
 
 
@@ -6680,6 +6857,15 @@ export interface VirtualLocation extends Location {
 
 
 export interface VirtualLocationType {
+}
+
+
+
+export interface Voice extends Entity {
+    voiceMetricStructure?: MetricStructure,
+    voiceOf?: Entity[],
+    voiceTimeFrame?: MusicalTimeFrame,
+    voiceTuningFrame?: TuningSystem,
 }
 
 

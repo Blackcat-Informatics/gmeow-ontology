@@ -79,6 +79,17 @@ enum ArcTypeEnum
     arcTypeRedemption
   }
 
+enum ArticulationKindEnum
+  {
+    articulationAccent
+    articulationHarmonic
+    articulationLegato
+    articulationMarcato
+    articulationPizzicato
+    articulationStaccato
+    articulationTenuto
+  }
+
 enum AssetTypeEnum
   {
     assetTypeBond
@@ -643,6 +654,18 @@ enum DistanceMetricEnum
     distanceMetricEuclidean
   }
 
+enum DynamicsValueEnum
+  {
+    dynamicsF
+    dynamicsFf
+    dynamicsFff
+    dynamicsMf
+    dynamicsMp
+    dynamicsP
+    dynamicsPp
+    dynamicsPpp
+  }
+
 enum EmotionTypeEnum
   {
     emotionAnger
@@ -670,8 +693,6 @@ enum EntityEnum
   {
     polymeterPattern
     procedureIngestionRawRoot
-    voiceDrumsPlaceholder
-    voiceGuitarPlaceholder
   }
 
 enum EvaluationVerdictEnum
@@ -1380,6 +1401,13 @@ enum MultipartTypeEnum
     multipartTypeSigned
   }
 
+enum MusicalSegmentEnum
+  {
+    fixtureStructureRiffA
+    fixtureStructureRiffAReaccented
+    fixtureStructureRiffATransposed
+  }
+
 enum MusicalTimeFrameEnum
   {
     musicalTimeFrameCommon
@@ -1393,6 +1421,11 @@ enum MusicalTimeSpanEnum
     musicalTimeSpanBarThree
     musicalTimeSpanBarTwo
     musicalTimeSpanWholeSection
+  }
+
+enum MusicalWorkEnum
+  {
+    fixtureStructureWork
   }
 
 enum NamedPeriodEnum
@@ -1760,6 +1793,24 @@ enum PitchSpellingSystemEnum
     pitchSpellingSystemSargam
   }
 
+enum PitchTrajectoryControlPointEnum
+  {
+    fixtureStructureGlissPointC4
+    fixtureStructureGlissPointG4
+  }
+
+enum PitchTrajectoryEnum
+  {
+    fixtureStructureGlissando
+  }
+
+enum PitchTrajectoryInterpolationKindEnum
+  {
+    interpolationExponential
+    interpolationLinearCents
+    interpolationStochasticByReference
+  }
+
 enum PitchValueEnum
   {
     pitchValue12EDOA4
@@ -1783,6 +1834,8 @@ enum PitchValueEnum
     pitchValue24EDOEHalfFlat4
     pitchValue24EDOF4
     pitchValue24EDOG4
+    pitchValueC4Fixture
+    pitchValueG4Fixture
     pitchValueJI7Over4
   }
 
@@ -2208,6 +2261,27 @@ enum ScriptRoleEnum
     scriptRoleTransliteration
   }
 
+enum SegmentKindEnum
+  {
+    segmentKindCell
+    segmentKindColor
+    segmentKindDrone
+    segmentKindFragment
+    segmentKindLoop
+    segmentKindMotif
+    segmentKindPhrase
+    segmentKindRiff
+    segmentKindSection
+    segmentKindTalea
+    segmentKindToneEventContainer
+  }
+
+enum SegmentTransformationEnum
+  {
+    fixtureStructureReaccentuation
+    fixtureStructureTransposition
+  }
+
 enum SelectorTypeEnum
   {
     selectorTypeCocoRleMask
@@ -2504,6 +2578,11 @@ enum TimeScaleEnum
     timeScaleUTC
   }
 
+enum ToneEventEnum
+  {
+    fixtureStructureToneEventC4
+  }
+
 enum TrademarkStatusEnum
   {
     trademarkStatusCancelled
@@ -2530,6 +2609,23 @@ enum TransactionTypeEnum
     transactionTypeRefund
     transactionTypeTransfer
     transactionTypeWithdrawal
+  }
+
+enum TransformationTypeEnum
+  {
+    transformAugmentation
+    transformDiminution
+    transformInversion
+    transformOctaveDisplacement
+    transformOrnamentation
+    transformPhaseShift
+    transformQuotation
+    transformReaccentuation
+    transformReduction
+    transformRetrograde
+    transformSpectralCompression
+    transformTimbreReorchestration
+    transformTransposition
   }
 
 enum TransformCodecEnum
@@ -2630,6 +2726,13 @@ enum VirtualLocationTypeEnum
     virtualLocationTypeVideoConference
     virtualLocationTypeVirtualEventSpace
     virtualLocationTypeWebsite
+  }
+
+enum VoiceEnum
+  {
+    fixtureStructureVoiceBass
+    voiceDrumsPlaceholder
+    voiceGuitarPlaceholder
   }
 
 enum WalletSchemeEnum
@@ -2909,6 +3012,7 @@ type Article
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -2984,6 +3088,10 @@ type Article
     realizedThrough: [Expression]
   }
 
+type ArticulationKind
+  {
+  }
+
 type Assessment
   {
     credibilityScore: [Float]
@@ -3034,6 +3142,7 @@ type Asset
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3104,6 +3213,7 @@ type Attachment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3184,6 +3294,7 @@ type AttestationArtifact
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3252,6 +3363,7 @@ type AuthenticationResult
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3314,6 +3426,7 @@ type AuthorIdentity
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3402,6 +3515,7 @@ type BiologicalSequenceLocation
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3477,6 +3591,7 @@ type Blob
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3536,6 +3651,7 @@ type Block
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3597,6 +3713,7 @@ type BlockchainAccount
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3653,6 +3770,7 @@ type BlockchainNetwork
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3710,6 +3828,7 @@ type BodyPart
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3774,6 +3893,7 @@ type BodyValue
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3841,6 +3961,7 @@ type BookRelease
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -3947,6 +4068,7 @@ type Branch
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4089,6 +4211,7 @@ type CadastralReference
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4189,6 +4312,7 @@ type Cascade
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4268,6 +4392,7 @@ type CelestialLocation
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4360,6 +4485,7 @@ type CharacterArc
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4424,6 +4550,7 @@ type Chunk
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4561,6 +4688,7 @@ type Collection
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4672,6 +4800,7 @@ type Comment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4807,6 +4936,7 @@ type Community
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4868,6 +4998,7 @@ type CommunitySummary
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -4945,6 +5076,7 @@ type Condition
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5023,6 +5155,7 @@ type ConditionExpression
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5084,6 +5217,7 @@ type ConditionGroup
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5148,6 +5282,7 @@ type ConditionParameter
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5253,6 +5388,7 @@ type ContentSegment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5403,6 +5539,7 @@ type Corpus
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5481,6 +5618,7 @@ type CreativeWork
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5600,6 +5738,7 @@ type Credential
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5658,6 +5797,7 @@ type Criterion
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5725,6 +5865,7 @@ type CriterionPole
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5784,6 +5925,7 @@ type CryptographicKey
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5849,6 +5991,7 @@ type CryptographicSignature
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5914,6 +6057,7 @@ type CryptoWallet
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -5983,6 +6127,7 @@ type DataFeed
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6097,6 +6242,7 @@ type Dataset
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6247,6 +6393,7 @@ type Diff
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6316,6 +6463,7 @@ type Distribution
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6376,6 +6524,7 @@ type DKIMSignature
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6441,6 +6590,7 @@ type Document
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6548,6 +6698,7 @@ type Duration
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6605,6 +6756,7 @@ type Duty
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6638,6 +6790,10 @@ type Duty
     ruleConsequence: [Duty]
     ruleConstraint: [Constraint]
     ruleTarget: Entity
+  }
+
+type DynamicsValue
+  {
   }
 
 type EmailAddress
@@ -6682,6 +6838,7 @@ type EmailMessage
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6796,6 +6953,7 @@ type EmailPatchDiff
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6860,6 +7018,7 @@ type Embedding
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -6951,6 +7110,7 @@ type Entity
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7094,6 +7254,7 @@ type EventSeries
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7164,6 +7325,7 @@ type EvidenceSpan
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7314,6 +7476,7 @@ type Expression
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7424,6 +7587,7 @@ type ExtractedEntity
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7483,6 +7647,7 @@ type ExtractedRelationship
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7544,6 +7709,7 @@ type Family
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7600,6 +7766,7 @@ type FeedPosting
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7726,6 +7893,7 @@ type FinancialAccount
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7849,6 +8017,7 @@ type ForgePlatform
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -7905,6 +8074,7 @@ type FormalLanguage
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8008,6 +8178,7 @@ type Genre
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8067,6 +8238,7 @@ type Geocode
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8131,6 +8303,7 @@ type GeoCoordinates
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8190,6 +8363,7 @@ type Geometry
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8254,6 +8428,7 @@ type Goal
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8329,6 +8504,7 @@ type GrooveProfile
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8393,6 +8569,7 @@ type Group
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8504,6 +8681,7 @@ type GTSDocument
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8615,6 +8793,7 @@ type GTSSegment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8777,6 +8956,7 @@ type ImageRegion
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8895,6 +9075,7 @@ type InformationObject
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -8954,6 +9135,7 @@ type InlinePart
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9018,6 +9200,7 @@ type Inscription
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9112,6 +9295,7 @@ type IntentionalMoment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9187,6 +9371,7 @@ type Invoice
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9303,6 +9488,7 @@ type Issue
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9362,6 +9548,7 @@ type Item
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9549,6 +9736,7 @@ type Language
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9755,6 +9943,7 @@ type LanguageVariety
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9829,6 +10018,7 @@ type LanguageVersion
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -9897,6 +10087,7 @@ type LedgerAccount
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10018,6 +10209,7 @@ type LedgerTransaction
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10082,6 +10274,7 @@ type LexicalForm
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10149,6 +10342,7 @@ type LexicalItem
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10278,6 +10472,7 @@ type LiteraryWork
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10385,6 +10580,7 @@ type Location
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10459,6 +10655,7 @@ type LocationState
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10527,6 +10724,7 @@ type Mailbox
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10602,6 +10800,7 @@ type MailingList
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10665,6 +10864,7 @@ type Manifestation
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10775,6 +10975,7 @@ type Mark
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10839,6 +11040,7 @@ type MeasuredValue
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -10909,6 +11111,7 @@ type MediaObject
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11052,6 +11255,7 @@ type MentalReferenceFrame
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11176,6 +11380,7 @@ type MergeRequest
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11235,6 +11440,7 @@ type Message
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11312,6 +11518,7 @@ type MessageHeader
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11404,6 +11611,7 @@ type MetricGroup
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11476,6 +11684,7 @@ type MetricStructure
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11545,6 +11754,7 @@ type ModelCard
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11665,6 +11875,7 @@ type MonetaryAmount
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11723,6 +11934,7 @@ type Motif
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11785,6 +11997,7 @@ type MultipartBodyPart
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11822,6 +12035,71 @@ type MultipartType
   {
   }
 
+type MusicalSegment
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    narrates: [String]
+    segmentIndex: Int
+    segmentOf: [Entity]
+    segmentType: ContentSegmentType
+    segmentKind: SegmentKind
+  }
+
 type MusicalTimeFrame
   {
     acquireLicensePage: [String]
@@ -11854,6 +12132,7 @@ type MusicalTimeFrame
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11924,6 +12203,7 @@ type MusicalTimeSpan
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -11985,6 +12265,7 @@ type MusicalWork
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12092,6 +12373,7 @@ type Myth
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12152,6 +12434,7 @@ type NamedPeriod
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12213,6 +12496,7 @@ type NamePart
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12322,6 +12606,7 @@ type NarrativePosition
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12381,6 +12666,7 @@ type NarrativeReferenceFrame
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12443,6 +12729,7 @@ type NarrativeScope
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12503,6 +12790,7 @@ type NarrativeTimeFrame
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12576,6 +12864,7 @@ type NetworkAddress
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12639,6 +12928,7 @@ type Norm
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12701,6 +12991,7 @@ type NormativeSystem
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12758,6 +13049,7 @@ type NotationSystem
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12832,6 +13124,7 @@ type Note
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -12991,6 +13284,7 @@ type Occupation
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13048,6 +13342,7 @@ type Offering
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13108,6 +13403,7 @@ type OnlineAccount
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13175,6 +13471,7 @@ type OnlineService
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13240,6 +13537,7 @@ type OpaqueFrame
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13302,6 +13600,7 @@ type OpeningHoursSpecification
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13428,6 +13727,7 @@ type Orientation
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13494,6 +13794,7 @@ type Package
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13574,6 +13875,7 @@ type Patent
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13743,6 +14045,7 @@ type Permission
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13873,6 +14176,7 @@ type PGPSignature
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -13942,6 +14246,7 @@ type PhysicalObject
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14000,6 +14305,7 @@ type PitchAnchor
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14059,6 +14365,7 @@ type PitchCollection
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14134,6 +14441,7 @@ type PitchExpression
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14194,6 +14502,7 @@ type PitchInterval
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14261,6 +14570,7 @@ type PitchSpellingSystem
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14286,6 +14596,132 @@ type PitchSpellingSystem
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: [String]
     writtenInLanguage: [Language]
+  }
+
+type PitchTrajectory
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    interpolationKind: PitchTrajectoryInterpolationKind
+    trajectoryControlPoint: [PitchTrajectoryControlPoint]
+  }
+
+type PitchTrajectoryControlPoint
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    controlPointOfTrajectory: PitchTrajectory
+    controlPointOrder: Int
+    controlPointPitch: PitchValue
+    controlPointTimeFrame: MusicalTimeFrame
+    controlPointTimePositionDenominator: Int
+    controlPointTimePositionNumerator: Int
+  }
+
+type PitchTrajectoryInterpolationKind
+  {
   }
 
 type PitchValue
@@ -14320,6 +14756,7 @@ type PitchValue
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14381,6 +14818,7 @@ type Place
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14496,6 +14934,7 @@ type Pose
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14595,6 +15034,7 @@ type PrivacyNotice
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14654,6 +15094,7 @@ type Procedure
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14722,6 +15163,7 @@ type ProcedureStep
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14810,6 +15252,7 @@ type Profile
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14872,6 +15315,7 @@ type ProfilePage
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -14980,6 +15424,7 @@ type ProgrammingLanguage
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15048,6 +15493,7 @@ type Prohibition
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15115,6 +15561,7 @@ type Project
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15183,6 +15630,7 @@ type Prompt
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15248,6 +15696,7 @@ type PromptTemplate
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15309,6 +15758,7 @@ type PronounSet
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15460,6 +15910,7 @@ type Quantity
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15516,6 +15967,7 @@ type ReadingOrder
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15577,6 +16029,7 @@ type Recording
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15683,6 +16136,7 @@ type RecurrenceRule
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15743,6 +16197,7 @@ type Ref
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15803,6 +16258,7 @@ type ReferenceFrame
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15873,6 +16329,7 @@ type ReferencePosition
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -15929,6 +16386,7 @@ type RegionSelector
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16074,6 +16532,7 @@ type Reminder
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16137,6 +16596,7 @@ type Repository
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16259,6 +16719,7 @@ type Review
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16347,6 +16808,7 @@ type RiskFactor
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16424,6 +16886,7 @@ type Route
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16493,6 +16956,7 @@ type Rubric
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16556,6 +17020,7 @@ type Rule
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16623,6 +17088,7 @@ type ScalarQuantity
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16701,6 +17167,7 @@ type ScoreAnchor
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16764,6 +17231,7 @@ type ScoreEdition
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16870,6 +17338,7 @@ type ScoreScale
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -16922,6 +17391,18 @@ type ScriptRole
   {
   }
 
+type SegmentKind
+  {
+  }
+
+type SegmentTransformation
+  {
+    transformationParameter: Entity
+    transformationSource: MusicalSegment
+    transformationTarget: MusicalSegment
+    transformationType: TransformationType
+  }
+
 type Selector
   {
     acquireLicensePage: [String]
@@ -16954,6 +17435,7 @@ type Selector
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17056,6 +17538,7 @@ type SensorPlatform
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17113,6 +17596,7 @@ type SensoryEnvironment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17214,6 +17698,7 @@ type SensoryQuantity
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17270,6 +17755,7 @@ type SequenceCoordinates
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17330,6 +17816,7 @@ type SequenceFeature
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17392,6 +17879,7 @@ type SerialInstallment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17498,6 +17986,7 @@ type SerialWork
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17605,6 +18094,7 @@ type Service
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17712,6 +18202,7 @@ type ServiceOffering
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17804,6 +18295,7 @@ type Skill
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17873,6 +18365,7 @@ type SmartContract
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17930,6 +18423,7 @@ type SMIMESignature
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -17995,6 +18489,7 @@ type SocialObject
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18088,6 +18583,7 @@ type SoftwareProduct
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18195,6 +18691,7 @@ type SoftwareProject
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18259,6 +18756,7 @@ type SourceDirectory
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18318,6 +18816,7 @@ type SourceFile
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18381,6 +18880,7 @@ type SourceNode
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18440,6 +18940,7 @@ type SourceRole
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18547,6 +19048,7 @@ type SourceTree
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18623,6 +19125,7 @@ type SpatialBin
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18710,6 +19213,7 @@ type SpatialCoordinates
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18782,6 +19286,7 @@ type Spectrum
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18841,6 +19346,7 @@ type Standpoint
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -18938,6 +19444,7 @@ type StorageLocation
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19024,6 +19531,7 @@ type Stream
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19085,6 +19593,7 @@ type StyleGuide
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19145,6 +19654,7 @@ type Summary
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19208,6 +19718,7 @@ type SymbolicSystem
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19272,6 +19783,7 @@ type Tag
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19344,6 +19856,7 @@ type TagScheme
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19467,6 +19980,7 @@ type TempoMap
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19536,6 +20050,7 @@ type TempoMapSegment
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19560,7 +20075,6 @@ type TempoMapSegment
     wasGeneratedBy: [Activity]
     segmentMapRatioDenominator: Int
     segmentMapRatioNumerator: Int
-    segmentSpan: MusicalTimeSpan
     segmentTempoMapKind: TempoMapKind
     tempoMapSegmentOf: TempoMap
   }
@@ -19597,6 +20111,7 @@ type TemporalFrame
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19697,6 +20212,7 @@ type TextExtraction
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19804,6 +20320,7 @@ type Thread
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19830,6 +20347,63 @@ type Thread
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     threadSubject: [String]
+  }
+
+type TimbreDescriptor
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
   }
 
 type TimeInterval
@@ -19886,6 +20460,7 @@ type TimeMapping
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -19955,6 +20530,7 @@ type TimeScale
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20016,6 +20592,7 @@ type TimeZone
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20039,6 +20616,77 @@ type TimeZone
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     timeZoneIanaId: String
+  }
+
+type ToneEvent
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    narrates: [String]
+    segmentIndex: Int
+    segmentOf: [Entity]
+    segmentType: ContentSegmentType
+    segmentKind: SegmentKind
+    toneEventArticulation: ArticulationKind
+    toneEventDynamics: DynamicsValue
+    toneEventIsUnpitched: Boolean
+    toneEventPitchTrajectory: PitchTrajectory
+    toneEventPitchValue: PitchValue
+    toneEventTimbre: TimbreDescriptor
   }
 
 type ToolCall
@@ -20140,6 +20788,7 @@ type Trajectory
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20172,6 +20821,10 @@ type TransactionStatus
   }
 
 type TransactionType
+  {
+  }
+
+type TransformationType
   {
   }
 
@@ -20216,6 +20869,7 @@ type TransparencyLogEntry
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20277,6 +20931,7 @@ type TreeEntry
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20348,6 +21003,7 @@ type TuningSystem
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20464,6 +21120,7 @@ type VectorIndex
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20577,6 +21234,7 @@ type VerificationResult
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20670,6 +21328,7 @@ type VersionSet
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20729,6 +21388,7 @@ type VirtualLocation
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20779,6 +21439,67 @@ type VirtualLocationType
   {
   }
 
+type Voice
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    voiceMetricStructure: MetricStructure
+    voiceOf: [Entity]
+    voiceTimeFrame: MusicalTimeFrame
+    voiceTuningFrame: TuningSystem
+  }
+
 type WalletScheme
   {
   }
@@ -20815,6 +21536,7 @@ type WebPage
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -20923,6 +21645,7 @@ type WebSite
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -21029,6 +21752,7 @@ type Work
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
@@ -21136,6 +21860,7 @@ type WritingSystem
     hasTag: [Tag]
     hasTrademark: [Trademark]
     hasVersion: [Entity]
+    hasVoice: [Voice]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: [Boolean]
