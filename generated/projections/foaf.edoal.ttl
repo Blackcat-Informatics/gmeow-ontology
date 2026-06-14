@@ -101,6 +101,14 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
         [ a align:Cell ;
+            rdfs:label "telephone → foaf:phone (tel: resource)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:telephone ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:phone ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Place with coordinates → wgs84:SpatialThing (lat/long, no WKT)"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:Place ] ;
