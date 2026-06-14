@@ -8,10 +8,17 @@
 > every prior formalism (OWL, RDFS, SHACL, Datalog, Prolog, N3, SPARQL, and the gUFO/BFO/DOLCE upper
 > ontologies) is a *generated lossy projection* — Constitution **Principle 17**.
 
-This slice is the home of **GMEOW Logic (`logic:`)**. It is a deliberately minimal stub today: the
-`logic:` vocabulary, rules, solver, and generators are minted with implementation. What exists now is
-the **normative design**, the manifest (slice identity and tier), and a stub module that reserves the
-`logic:` namespace without adding axioms to the reasoned core.
+This slice is the home of **GMEOW Logic (`logic:`)**. The `logic:` namespace is registered and the
+**foundation vocabulary is now minted**: the UFO⁺ sorts
+(`Kind`/`SubKind`/`Phase`/`Role`/`Category`/`Mixin`/`RoleMixin`/`PhaseMixin`/`Relator`/`Event`/`Situation`),
+the foundation relations (`rigidlyAppliesTo`/`suppliesIdentity`/`mediates`), the semantic profiles
+(`PositiveHornProfile`, `StratifiedNAFProfile`, `WellFoundedProfile`, `StableModelProfile`,
+`ProceduralPrologProfile`, `ProbabilisticProfile`), the world/modal terms
+(`World`/`accessibleFrom`/`counterfactualOf`), the quantitative axes
+(`probability`/`confidence`/`weight`/`evidenceStrength`), and the preservation-polarity vocabulary
+(`PreservationKind`/`preservationKind`/`complexityClass` and their named individuals) are all declared
+as **bare standalone terms that add no axioms to the reasoned core**. The rules, solver, generators,
+runtime, and full conformance corpus remain deferred to later rungs of the Logic EPIC.
 
 ## The design set
 
@@ -42,8 +49,9 @@ implemented against rather than only read:
 
 ## Status
 
-Pre-implementation. This slice currently declares no `logic:` terms; the stub keeps the reasoned core
-unchanged. The vocabulary, generators, solver, conformance corpus, and the matching enforcement gates
-in [`governance/constitution.ttl`](../../../governance/constitution.ttl) land together with the
-implementation, as the amendment-in-the-open that Principle 17 describes. Until then, Principle 17 is
-enforced by design-review practice and surfaces as a warning, never silently.
+Foundation vocabulary minted; implementation deferred. The `logic:` namespace and the foundational
+surface — 37 bare term declarations — have landed. The reasoned core is unchanged because the minted
+terms carry no axioms. The solver, generators, runtime, full conformance corpus, and the matching
+enforcement gates in [`governance/constitution.ttl`](../../../governance/constitution.ttl) land in
+later rungs of the Logic EPIC. Until then, Principle 17 is enforced by design-review practice and
+surfaces as a warning, never silently.
