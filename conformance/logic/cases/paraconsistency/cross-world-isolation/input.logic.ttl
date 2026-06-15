@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: paraconsistency/cross-world-isolation
+# AC: paraconsistency — contradictory facts confined to separate worlds (no explosion).
+#
+# DECISION (b): This case scopes to cross-world coexistence only.
+#
+# Two named-graph worlds each assert a contradictory severity for CrimePenalty:
+#   world-alpha: CrimePenalty severity High  => derives JurisdictionStrict
+#   world-beta:  CrimePenalty severity Low   => derives JurisdictionLenient
+#
+# The v1 monotonic Horn oracle has no negation and therefore cannot observe the
+# inter-world contradiction. Each world is internally consistent. After
+# materialization, the contradiction is CONFINED to separate named graphs — no
+# explosion, no cross-world contamination.
+#
+# witnesses = {} always in v1: within-world contradiction witnessing requires
+# StratifiedNAF / paraconsistency engine, deferred to issue #504.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/paraconsistency/cross-world-isolation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema
+ex:NormativeFact a logic:Kind .
+ex:Severity      a logic:Kind .
+
+# Rule: High severity => JurisdictionStrict classification
+ex:ruleHighSeverity a logic:Rule ;
+    logic:provenance ex:ruleHighSeverity ;
+    logic:head [
+        rdf:subject   "?P" ;
+        rdf:predicate rdf:type ;
+        rdf:object    ex:JurisdictionStrict
+    ] ;
+    logic:body [
+        rdf:subject   "?P" ;
+        rdf:predicate ex:severity ;
+        rdf:object    ex:High
+    ] .
+
+# Rule: Low severity => JurisdictionLenient classification
+ex:ruleLowSeverity a logic:Rule ;
+    logic:provenance ex:ruleLowSeverity ;
+    logic:head [
+        rdf:subject   "?P" ;
+        rdf:predicate rdf:type ;
+        rdf:object    ex:JurisdictionLenient
+    ] ;
+    logic:body [
+        rdf:subject   "?P" ;
+        rdf:predicate ex:severity ;
+        rdf:object    ex:Low
+    ] .

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: worlds-A/contested-standpoint
+# AC: worlds-A — contested fact coexists across two named-graph worlds.
+#
+# A Crimea-style territorial claim: world-ukraine asserts Ukraine holds
+# sovereignty; world-russia asserts Russia holds sovereignty. A rule derives
+# TerritorialClaimant for whoever asserts sovereignty over Crimea, firing
+# independently in each world. The expected materialized.nq must contain
+# BOTH derivations with NO cross-world leakage — neither world's claimant
+# appears in the other world.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/worlds-A/contested-standpoint/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: sort declarations used by the projection back-ends
+ex:TerritorialClaimant a logic:Kind .
+ex:State               a logic:Kind .
+
+# Rule: any entity that asserts sovereignty over Crimea is a TerritorialClaimant.
+# The rule fires inside each world independently; no cross-world union occurs.
+ex:ruleSovereigntyClaimant a logic:Rule ;
+    logic:provenance ex:ruleSovereigntyClaimant ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate rdf:type ;
+        rdf:object    ex:TerritorialClaimant
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:assertsSovereigntyOver ;
+        rdf:object    ex:Crimea
+    ] .

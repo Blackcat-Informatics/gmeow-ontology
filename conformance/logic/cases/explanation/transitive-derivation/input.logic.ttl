@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: explanation/transitive-derivation
+# AC: explanation — faithfulness gate passes for transitively derived fact.
+#
+# A three-term subOf chain: A subOf B, B subOf C in world-main.
+# The transitivity rule derives A subOf C. The explanation for this derived
+# quad must cite ONLY IRIs present in the proof trace: the rule IRI, the
+# reifier IRIs for both premises, the term IRIs A, B, C, and subOf.
+# The runner's assert_explanation_faithful gate must pass for every quad.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/explanation/transitive-derivation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: three Kinds in a linear subOf hierarchy
+ex:A a logic:Kind .
+ex:B a logic:Kind .
+ex:C a logic:Kind .
+
+# Rule: transitivity of ex:subOf
+# ?X subOf ?Y  AND  ?Y subOf ?Z  =>  ?X subOf ?Z
+ex:ruleTransitiveSubOf a logic:Rule ;
+    logic:provenance ex:ruleTransitiveSubOf ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:subOf ;
+        rdf:object    "?Z"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:subOf ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:subOf ;
+        rdf:object    "?Z"
+    ] .

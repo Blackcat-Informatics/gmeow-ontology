@@ -415,7 +415,9 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
 
     Args:
         case_dir: Path to the conformance case directory.  Must contain
-            ``input.logic.ttl`` and ``profile.json``.
+            ``input.logic.ttl`` and ``profile.json``.  If ``input.nq`` is
+            also present it is loaded as the world-fact ConjunctiveGraph
+            (one named graph per world) before the chase runs.
         mode: Engine/fragment mode selector.  Only ``"native"`` is supported
             in the v1 monotonic oracle; passing any other value raises
             :class:`RunnerError`.
@@ -482,11 +484,24 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         )
 
     # Build the input ConjunctiveGraph for the materializer.
-    # The v1 projection cases do not carry named-graph worlds in the source;
-    # they carry only a flat Turtle program.  We materialize with an empty
-    # ConjunctiveGraph so the chase runs over the axioms in the program's rule
-    # list (zero asserted quads → zero derived quads, projections still work).
+    # Projection-only cases carry no named-graph worlds (flat Turtle program);
+    # world-indexed cases (worlds-A, worlds-B, paraconsistency, explanation)
+    # supply facts as ``input.nq`` (N-Quads, one named graph per world).
+    # If ``input.nq`` is absent the chase runs over an empty graph (zero
+    # asserted quads → zero derived quads; projections still work unchanged).
     input_graph: ConjunctiveGraph = ConjunctiveGraph()
+    input_nq_path = case_dir / "input.nq"
+    if input_nq_path.exists():
+        try:
+            nq_text = input_nq_path.read_text(encoding="utf-8")
+            if nq_text.strip():
+                import io as _io
+
+                input_graph.parse(_io.StringIO(nq_text), format="nquads")
+        except Exception as exc:
+            raise RunnerError(
+                f"Case {case_dir.name}: cannot parse input.nq: {exc}"
+            ) from exc
 
     # Materialize
     try:
@@ -679,9 +694,18 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
 
         for target_name, filename in rdf_targets.items():
             expected_path = proj_expected / filename
-            if not expected_path.exists():
-                continue
             pr = proj_by_target.get(target_name)
+            if not expected_path.exists():
+                # A missing golden is a hard failure when the runner produced a
+                # non-trivial graph for this target.  Silent skipping would leave
+                # projections untested (verification-honesty violation).
+                if pr is not None and pr.graph is not None:
+                    diffs.append(
+                        f"[{case_id}] projection {target_name}: golden "
+                        f"{filename} is missing from expected/projections/ — "
+                        f"run `gmeow-dev conformance --update` to generate it"
+                    )
+                continue
             if pr is None or pr.graph is None:
                 diffs.append(f"[{case_id}] projection {target_name}: no graph produced")
                 continue
@@ -723,8 +747,8 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
                 )
             else:
                 json_diffs = compare_canonical_json(
-                    outputs.projections.ledger_json,
-                    expected_ledger,  # type: ignore[arg-type]
+                    outputs.projections.ledger_json,  # type: ignore[arg-type]
+                    expected_ledger,
                 )
                 for d in json_diffs:
                     diffs.append(f"[{case_id}] preservation-ledger: {d}")

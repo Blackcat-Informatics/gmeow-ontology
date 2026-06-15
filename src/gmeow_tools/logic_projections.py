@@ -930,8 +930,20 @@ def project_canonical_rdf12(
         _counter[0] += 1
         return f"_{_counter[0]:06d}"
 
+    # Rule-structural predicates (logic:head, logic:body) are encoded in the
+    # proper logic:Rule node structure below.  Emitting them from the axiom
+    # list would duplicate blank-node objects that cannot survive a
+    # serialize→re-parse round-trip with stable IDs, breaking isomorphism.
+    rule_struct_preds: frozenset[str] = frozenset(
+        {LOGIC_NAMESPACE + "head", LOGIC_NAMESPACE + "body"}
+    )
+
     # Emit axioms
     for axiom in sorted(program.axioms, key=lambda a: a._sort_key()):
+        # Skip rule-structural predicates — they are re-emitted as proper
+        # logic:Rule node triples in the rules section below.
+        if axiom.predicate in rule_struct_preds:
+            continue
         subj = URIRef(axiom.subject)
         pred = URIRef(axiom.predicate)
         if axiom.obj_is_literal:
@@ -1001,7 +1013,14 @@ def project_canonical_rdf12(
         head_node = URIRef(LOGIC_NAMESPACE + "rule/" + rule_id + "/head")
         g.add((rule_node, LOGIC.head, head_node))
         g.add((head_node, RDF.type, RDF.Statement))
-        g.add((head_node, RDF.subject, URIRef(head.subject)))
+        # Variables (e.g. "?X") must be emitted as plain-string Literals to
+        # match the form the frontend parsed them from (rdf:subject "?X").
+        # Emitting them as URIRef would produce a relative IRI that rdflib
+        # resolves against the file base on re-read, breaking round-trip iso.
+        if head.subject.startswith("?"):
+            g.add((head_node, RDF.subject, Literal(head.subject)))
+        else:
+            g.add((head_node, RDF.subject, URIRef(head.subject)))
         g.add((head_node, RDF.predicate, URIRef(head.predicate)))
         if head.obj_is_literal:
             g.add((head_node, RDF.object, Literal(head.obj)))
@@ -1013,7 +1032,11 @@ def project_canonical_rdf12(
             body_node = URIRef(LOGIC_NAMESPACE + f"rule/{rule_id}/body/{i:04d}")
             g.add((rule_node, LOGIC.body, body_node))
             g.add((body_node, RDF.type, RDF.Statement))
-            g.add((body_node, RDF.subject, URIRef(body_atom.subject)))
+            # Same variable-as-Literal treatment for body subject.
+            if body_atom.subject.startswith("?"):
+                g.add((body_node, RDF.subject, Literal(body_atom.subject)))
+            else:
+                g.add((body_node, RDF.subject, URIRef(body_atom.subject)))
             g.add((body_node, RDF.predicate, URIRef(body_atom.predicate)))
             if body_atom.obj_is_literal:
                 g.add((body_node, RDF.object, Literal(body_atom.obj)))

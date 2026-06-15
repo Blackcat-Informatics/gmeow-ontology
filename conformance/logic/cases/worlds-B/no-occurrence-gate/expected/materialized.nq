@@ -1,0 +1,4 @@
+<https://example.org/worlds-B/no-occurrence-gate/Fire> <https://example.org/worlds-B/no-occurrence-gate/typeCauses> <https://example.org/worlds-B/no-occurrence-gate/Damage> <https://example.org/worlds-B/no-occurrence-gate/world-risk-A> .
+<https://example.org/worlds-B/no-occurrence-gate/Overload> <https://example.org/worlds-B/no-occurrence-gate/typeCauses> <https://example.org/worlds-B/no-occurrence-gate/Failure> <https://example.org/worlds-B/no-occurrence-gate/world-risk-B> .
+<https://example.org/worlds-B/no-occurrence-gate/Smoke> <https://example.org/worlds-B/no-occurrence-gate/typeCauses> <https://example.org/worlds-B/no-occurrence-gate/Damage> <https://example.org/worlds-B/no-occurrence-gate/world-risk-A> .
+<https://example.org/worlds-B/no-occurrence-gate/Smoke> <https://example.org/worlds-B/no-occurrence-gate/typeCauses> <https://example.org/worlds-B/no-occurrence-gate/Fire> <https://example.org/worlds-B/no-occurrence-gate/world-risk-A> .
