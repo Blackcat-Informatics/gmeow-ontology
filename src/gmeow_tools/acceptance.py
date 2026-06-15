@@ -59,17 +59,30 @@ if TYPE_CHECKING:
     from rdflib.term import Node
 
 #: Namespaces that may appear in the pure-GMEOW draft besides GMEOW itself: the
-#: structural RDF/RDFS/OWL terms the claim reification and typing use, plus SKOS
-#: — the concept-identity layer GMEOW emits as skos:exactMatch / skos:closeMatch
-#: bridges (the QID concept bridge, #553), the SKOS analogue of the owl:sameAs /
-#: owl:equivalentClass identity links already allowed here. These are GMEOW's own
-#: identity assertions, not consumer-vocab residue.
+#: structural RDF/RDFS/OWL terms the claim reification and typing use.
 _STRUCTURAL_NS: tuple[str, ...] = (
     NAMESPACE,
     str(RDF),
     str(RDFS),
     str(OWL),
-    str(SKOS),
+)
+
+#: Individual non-GMEOW predicates that are nonetheless structural — GMEOW's own
+#: concept-identity bridges (the QID concept bridge, #553), the SKOS analogue of
+#: the owl:sameAs / owl:equivalentClass identity links already allowed via OWL.
+#: Scoped to the SKOS *mapping* relations only — NOT the whole skos: namespace —
+#: so annotation/concept terms (skos:prefLabel, skos:broader, skos:Concept, …)
+#: still count as genuine consumer-vocab residue if they ever leak in.
+_STRUCTURAL_PREDICATES: frozenset[str] = frozenset(
+    str(p)
+    for p in (
+        SKOS.exactMatch,
+        SKOS.closeMatch,
+        SKOS.broadMatch,
+        SKOS.narrowMatch,
+        SKOS.relatedMatch,
+        SKOS.mappingRelation,
+    )
 )
 
 #: The consumer vocabularies whose own definition is vendored under
@@ -185,7 +198,11 @@ def _gate_pure_gmeow(draft: Graph) -> GateResult:
     """Gate 1: the up-projected draft contains only GMEOW + structural terms."""
     foreign: dict[str, int] = {}
     for _s, p, o in draft:
-        if p != RDF.type and not str(p).startswith(_STRUCTURAL_NS):
+        if (
+            p != RDF.type
+            and not str(p).startswith(_STRUCTURAL_NS)
+            and str(p) not in _STRUCTURAL_PREDICATES
+        ):
             key = _vocab_of(p) or str(p)
             foreign[key] = foreign.get(key, 0) + 1
         if (
