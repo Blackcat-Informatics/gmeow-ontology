@@ -322,3 +322,127 @@ def test_materialize_inference_input_quads_still_present() -> None:
     assert mammal_animal in sco_pairs, (
         "Input quad Mammal→Animal missing from derived result"
     )
+
+
+# ── AC#6: real provenance on derived quads ────────────────────────────────────
+
+_ASSERT_RULE_IRI = "https://blackcatinformatics.ca/logic/assert"
+_ANON_RULE_IRI = "https://blackcatinformatics.ca/logic/rule/anonymous"
+
+# Named-rule variant: uses #[name("...")] so rule_iri flows through as the IRI.
+_NAMED_RULE_IRI = "https://blackcatinformatics.ca/logic/rules/subClassOf-transitivity"
+_NAMED_TRANSITIVITY_RULES = f"""\
+#[name("{_NAMED_RULE_IRI}")]
+<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-
+    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),
+    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .
+"""
+
+
+def test_derived_quad_has_nonempty_source_quad_ids() -> None:
+    """Task 4 AC: derived quad must carry non-empty source_quad_ids (real antecedents).
+
+    The Dog→Animal transitive closure fact is derived from Dog→Mammal and
+    Mammal→Animal.  Its source_quad_ids must be non-empty, identifying those
+    antecedent quads by their reifier IRIs.
+    """
+    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
+    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
+
+    # Find the derived Dog→Animal transitive quad (not in input).
+    derived = [
+        r
+        for r in result
+        if r["predicate"] == sco_pred
+        and r["subject"] == "<http://example.org/Dog>"
+        and r["object"] == "<http://example.org/Animal>"
+    ]
+    assert len(derived) == 1, (
+        f"Expected exactly one Dog→Animal derived quad, got {len(derived)}"
+    )
+    dog_animal = derived[0]
+
+    # The derived quad must have real antecedents.
+    assert isinstance(dog_animal["source_quad_ids"], list), (
+        "source_quad_ids must be a list"
+    )
+    assert len(dog_animal["source_quad_ids"]) > 0, (
+        f"Derived Dog→Animal quad has empty source_quad_ids — "
+        f"real provenance antecedents were not populated.\n"
+        f"Full quad: {dog_animal!r}"
+    )
+    # Every source IRI must be a non-empty string (reifier IRI format).
+    for src in dog_animal["source_quad_ids"]:
+        assert isinstance(src, str) and src, (
+            f"source_quad_ids entry is not a non-empty string: {src!r}"
+        )
+
+
+def test_derived_quad_rule_iri_is_not_assert_sentinel() -> None:
+    """Task 4 AC: derived quads must carry the firing rule IRI, not logic:assert.
+
+    Asserted (EDB) facts carry rule_iri = logic:assert.  A derived (IDB) quad
+    — like Dog→Animal — must carry a different rule_iri (the fired rule).
+    """
+    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
+    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
+
+    derived = [
+        r
+        for r in result
+        if r["predicate"] == sco_pred
+        and r["subject"] == "<http://example.org/Dog>"
+        and r["object"] == "<http://example.org/Animal>"
+    ]
+    assert len(derived) == 1, (
+        f"Expected exactly one Dog→Animal derived quad, got {len(derived)}"
+    )
+    dog_animal = derived[0]
+
+    assert dog_animal["rule_iri"] != _ASSERT_RULE_IRI, (
+        f"Derived quad must NOT carry rule_iri=logic:assert — "
+        f"got {dog_animal['rule_iri']!r} (assert sentinel means the quad was "
+        f"treated as asserted rather than derived)"
+    )
+
+
+def test_named_rule_iri_flows_through_to_derived_quad() -> None:
+    """Task 4 AC: when a rule carries #[name('iri')], that IRI appears in rule_iri.
+
+    Uses _NAMED_TRANSITIVITY_RULES which emits the rule name as a full IRI.
+    The derived Dog→Animal quad must carry exactly that IRI as its rule_iri.
+    """
+    result = gmeow_logic.materialize(_NAMED_TRANSITIVITY_RULES, _CHAIN_NQUADS)
+    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
+
+    derived = [
+        r
+        for r in result
+        if r["predicate"] == sco_pred
+        and r["subject"] == "<http://example.org/Dog>"
+        and r["object"] == "<http://example.org/Animal>"
+    ]
+    assert len(derived) == 1, (
+        f"Expected exactly one Dog→Animal derived quad, got {len(derived)}"
+    )
+    dog_animal = derived[0]
+
+    assert dog_animal["rule_iri"] == _NAMED_RULE_IRI, (
+        f"Named-rule IRI did not flow through to derived quad.\n"
+        f"Expected: {_NAMED_RULE_IRI!r}\n"
+        f"Got:      {dog_animal['rule_iri']!r}"
+    )
+
+
+def test_asserted_quads_carry_assert_sentinel_rule_iri() -> None:
+    """Asserted (EDB) quads must carry rule_iri = logic:assert.
+
+    This is the complement of the derived-quad test: input facts must be tagged
+    with the assert sentinel, not with a logic rule IRI.
+    """
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        assert quad_dict["rule_iri"] == _ASSERT_RULE_IRI, (
+            f"quad[{i}]: asserted quad should carry rule_iri={_ASSERT_RULE_IRI!r}, "
+            f"got {quad_dict['rule_iri']!r}"
+        )

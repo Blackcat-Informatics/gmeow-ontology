@@ -1223,6 +1223,15 @@ def project_nemo(
 
             body_parts.append(f"{bp}({bs}, {bo}, ?C{idx})")
 
+        # Emit rule name annotation so Nemo's trace API can recover the rule IRI.
+        # The name is the rule's provenance IRI (from scope.provenance), or the
+        # anonymous fallback.  Nemo parses `#[name("...")]` as a rule attribute.
+        rule_name_iri = str(rule.scope.provenance or f"{LOGIC_NAMESPACE}rule/anonymous")
+        # Escape double-quotes in the IRI (IRIs don't normally contain them, but
+        # be defensive to avoid Nemo parse errors).
+        rule_name_escaped = rule_name_iri.replace("\\", "\\\\").replace('"', '\\"')
+        lines.append(f'#[name("{rule_name_escaped}")]')
+
         if body_parts:
             body_str = ",\n    ".join(body_parts)
             lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C) :-")

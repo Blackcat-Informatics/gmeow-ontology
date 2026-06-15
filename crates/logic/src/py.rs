@@ -11,18 +11,24 @@
 //! `lib.rs` is platform-correct, not an optionality toggle: there are zero
 //! degraded fallbacks and zero feature flags controlling this.
 //!
-//! # Nemo wire-up (issue #501 Task 3b)
+//! # Nemo wire-up (issue #501 Task 4)
 //!
-//! `materialize` now drives the full Nemo chase:
+//! `materialize` now drives the full Nemo chase WITH real proof-trace provenance:
 //!
 //! 1. Parse input N-Quads into an oxigraph `Store`.
 //! 2. Encode each quad as a Nemo IRI-predicate ground fact:
 //!    `<predicate_iri>(<subject_iri>, <object_term>, "world_iri").`
 //! 3. Concatenate the caller-supplied `.rls` rule text.
-//! 4. Run `run_chase` (GIL released) → `Vec<ChaseRow>`.
-//! 5. Decode each `ChaseRow` with exactly 3 columns back to an oxigraph quad,
-//!    attaching derivation metadata.
-//! 6. Return the quads as Python dicts.
+//! 4. Run `run_chase` (GIL released) → `Vec<ChaseRowWithProvenance>`.
+//! 5. Decode each ternary `ChaseRowWithProvenance` back to an oxigraph quad.
+//! 6. Compute real provenance using `mint_reifier` / `mint_derivation_id`:
+//!    - Asserted (EDB) quads: `rule_iri = logic:assert`,
+//!      `source_quad_ids = [self_reifier]`,
+//!      `derivation_id = mint_derivation_id(assert_rule, [self_reifier])`
+//!    - Derived (IDB) quads: `rule_iri` from the firing rule's name (set via
+//!      `#[name("...")]` in the `.rls` source), antecedent reifiers from the
+//!      immediate premise ChaseRows.
+//! 7. Return the quads as Python dicts.
 //!
 //! # Encode / decode contract
 //!
@@ -30,7 +36,7 @@
 //! predicate field (Nemo strips the angle brackets for us).
 //!
 //! **Subject**: always a `NamedNode`.  Blank nodes are Skolemized to
-//! `https://blackcatinformatics.ca/skolem/{sha1_hex(bnode_id_utf8)}`.
+//! `{NAMESPACE}skolem/{sha1_hex(bnode_id_utf8)}`.
 //!
 //! **Object**: `NamedNode` → `<iri>`; blank node → Skolem IRI; plain literal →
 //! `"value"`; typed literal → `"value"^^<datatype>`; language literal →
@@ -51,21 +57,19 @@ use oxigraph::model::{GraphName, Literal, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 use sha1::{Digest, Sha1};
 
-use crate::nemo_engine::run_chase;
+use crate::nemo_engine::{run_chase, ChaseRow, ChaseRowWithProvenance};
+use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
 use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 /// The IRI used for the semantic/decidability profile.
-const ASSERTED_PROFILE: &str = "http://logic.gmeow.example/profile/MonotonicDatalogProfile";
-
-/// The rule IRI used for chase-derived quads.
-const CHASE_DERIVED_RULE: &str = "http://logic.gmeow.example/rule/chase-derived";
+const ASSERTED_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
 
 /// Prefix for Skolem IRIs derived from blank-node identifiers.
 ///
 /// Matches the Python oracle: `{NAMESPACE}skolem/{sha1_hex(bnode_id_utf8)}`.
-const SKOLEM_PREFIX: &str = "https://blackcatinformatics.ca/skolem/";
+const SKOLEM_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/skolem/";
 
 // ── Skolemization ─────────────────────────────────────────────────────────────
 
@@ -252,6 +256,50 @@ fn split_nemo_literal_content(s: &str) -> Result<(&str, &str), String> {
     Err(decode_err("unterminated literal", s))
 }
 
+// ── Provenance helpers ────────────────────────────────────────────────────────
+
+/// Compute the reifier IRI for a decoded quad's (S, P, O) triple.
+///
+/// Uses [`crate::provenance::mint_reifier`] on the already-decoded oxigraph
+/// terms so the result is byte-identical to the Python oracle.
+fn reifier_for_quad(subject: &Term, predicate: &NamedNode, object: &Term) -> String {
+    mint_reifier(subject, predicate, object)
+}
+
+/// Compute the reifier IRI for an antecedent ChaseRow.
+///
+/// Decodes the Nemo display-form row (ternary: S, O, world) back to oxigraph
+/// terms and calls `mint_reifier`.  Returns `None` if decode fails.
+fn reifier_for_antecedent_row(row: &ChaseRow) -> Option<String> {
+    if row.values.len() != 3 {
+        return None;
+    }
+    // predicate: raw IRI string
+    let pred_nn = NamedNode::new(&row.predicate).ok()?;
+    // subject: IRI
+    let subj_iri = decode_iri_term(&row.values[0]).ok()?;
+    let subj_nn = NamedNode::new(&subj_iri).ok()?;
+    let subj_term = Term::NamedNode(subj_nn);
+    // object: any term
+    let obj_term = decode_nemo_term(&row.values[1]).ok()?;
+
+    Some(mint_reifier(&subj_term, &pred_nn, &obj_term))
+}
+
+/// Determine the `rule_iri` for a derived quad's provenance record.
+///
+/// If the trace extracted a rule name (set via `#[name("...")]` in the `.rls`
+/// source), that name is used directly as the rule IRI — `project_nemo` encodes
+/// the rule IRI as the rule name.
+///
+/// Fallback: `logic:rule/anonymous` for unnamed rules.
+fn rule_iri_from_name(rule_name: Option<&str>) -> String {
+    match rule_name {
+        Some(name) if !name.is_empty() => name.to_owned(),
+        _ => format!("{}rule/anonymous", LOGIC_NAMESPACE),
+    }
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /// Convert a [`DerivedQuad`] to a Python dict with all metadata fields.
@@ -298,6 +346,13 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<PyObject> 
 /// Nemo returns EDB predicates in `derived_predicates()`).  Each dict carries
 /// the full seam metadata: graph, subject, predicate, object, graph_component,
 /// derivation_id, rule_iri, source_quad_ids, profile, budget_status.
+///
+/// Provenance is real — not stubs:
+/// - Asserted (EDB) quads carry `rule_iri = logic:assert`,
+///   `source_quad_ids = [self_reifier]`, and a content-addressed `derivation_id`.
+/// - Derived (IDB) quads carry the firing rule's IRI (from `#[name("...")]`),
+///   `source_quad_ids` of the immediate antecedents, and a content-addressed
+///   `derivation_id`.
 ///
 /// An empty (or whitespace-only) `input` returns an empty list immediately
 /// without invoking the chase.
@@ -353,14 +408,17 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
     };
 
     // ── 4. Run the Nemo chase (GIL released) ─────────────────────────────────
-    let rows = py
+    let rows_with_prov: Vec<ChaseRowWithProvenance> = py
         .allow_threads(|| run_chase(rls))
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("chase error: {e}")))?;
 
-    // ── 5. Decode ChaseRows → DerivedQuads ───────────────────────────────────
+    // ── 5. Decode ChaseRows → DerivedQuads with real provenance ──────────────
     let mut derived_quads: Vec<DerivedQuad> = Vec::new();
 
-    for (idx, row) in rows.iter().enumerate() {
+    for (idx, rwp) in rows_with_prov.iter().enumerate() {
+        let row = &rwp.row;
+        let prov = &rwp.provenance;
+
         // We only handle ternary (arity-3) predicates — the gmeow-logic encoding.
         if row.values.len() != 3 {
             continue;
@@ -400,8 +458,27 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
             ))
         })?;
 
-        let derivation_id =
-            DerivationId(format!("http://logic.gmeow.example/derivation/chase/{idx}"));
+        // ── Real provenance computation ───────────────────────────────────────
+        let self_reifier = reifier_for_quad(&subject_term, &predicate_nn, &object_term);
+
+        let (rule_iri, source_quad_ids, derivation_id) = if prov.is_edb {
+            // Asserted (EDB) fact: logic:assert sentinel, self-reifier as source.
+            let rule = ASSERT_RULE_IRI.to_owned();
+            let sources = vec![self_reifier.clone()];
+            let deriv = mint_derivation_id(&rule, &[self_reifier.as_str()]);
+            (rule, sources, deriv)
+        } else {
+            // Derived (IDB) fact: rule IRI from the rule name, antecedents as sources.
+            let rule = rule_iri_from_name(prov.rule_name.as_deref());
+            let sources: Vec<String> = prov
+                .antecedent_rows
+                .iter()
+                .filter_map(reifier_for_antecedent_row)
+                .collect();
+            let source_refs: Vec<&str> = sources.iter().map(|s| s.as_str()).collect();
+            let deriv = mint_derivation_id(&rule, &source_refs);
+            (rule, sources, deriv)
+        };
 
         let dq = DerivedQuad {
             graph: graph_nn.clone(),
@@ -409,9 +486,9 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
             predicate: predicate_nn,
             object: object_term,
             graph_component: graph_nn,
-            derivation_id,
-            rule_iri: CHASE_DERIVED_RULE.to_owned(),
-            source_quad_ids: vec![],
+            derivation_id: DerivationId(derivation_id),
+            rule_iri,
+            source_quad_ids,
             profile: ASSERTED_PROFILE.to_owned(),
             budget_status: BudgetStatus::Ok,
         };
@@ -441,6 +518,7 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::provenance::term_n3;
 
     // ── sha1_hex ──────────────────────────────────────────────────────────────
 
@@ -590,5 +668,29 @@ mod tests {
             Term::Literal(l) => assert_eq!(l.value(), "3.14"),
             other => panic!("expected Literal, got {other:?}"),
         }
+    }
+
+    // ── reifier_for_quad ──────────────────────────────────────────────────────
+
+    #[test]
+    fn reifier_for_quad_golden_1() {
+        // Matches golden-1 from determinism-goldens.json
+        let s = Term::NamedNode(NamedNode::new("http://example.org/a").unwrap());
+        let p = NamedNode::new("http://example.org/related").unwrap();
+        let o = Term::NamedNode(NamedNode::new("http://example.org/b").unwrap());
+        let got = reifier_for_quad(&s, &p, &o);
+        assert_eq!(
+            got,
+            "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"
+        );
+    }
+
+    // ── term_n3 reexport from provenance ─────────────────────────────────────
+
+    #[test]
+    fn term_n3_iri_for_quad_object() {
+        let nn = NamedNode::new("http://example.org/Foo").unwrap();
+        let term = Term::NamedNode(nn);
+        assert_eq!(term_n3(&term), "<http://example.org/Foo>");
     }
 }
