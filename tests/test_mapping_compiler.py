@@ -31,14 +31,7 @@ FNOM = Namespace(PREFIXES["fnom"])
 ALIGN = Namespace(PREFIXES["align"])
 EDOAL = Namespace(PREFIXES["edoal"])
 
-_DETERMINISTIC_EDOAL_PROFILES = (
-    "schema-org",
-    "foaf",
-    "vcard",
-    "geosparql",
-    "ical",
-    "owl-time",
-)
+_DETERMINISTIC_EDOAL_PROFILES = tuple(sorted(_PROFILES))
 
 
 def test_dsl_parses() -> None:
