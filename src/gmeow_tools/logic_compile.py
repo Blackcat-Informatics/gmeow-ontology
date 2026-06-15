@@ -74,7 +74,7 @@ def _rel_str(path: Path) -> str:
 
 @register
 class LogicGenerator(Generator):
-    """Compile slices/core/logic/module.ttl → 7 generated logic artifacts."""
+    """Compile slices/core/logic/module.ttl → 8 generated logic artifacts."""
 
     name: str = "logic"
     #: Internal x-gmeow-* tags are canonical; they survive the leak gate (#287).
@@ -100,7 +100,7 @@ class LogicGenerator(Generator):
         ]
 
     def render(self, staging: Path) -> None:
-        """Parse the logic: source and write all 7 artifacts into *staging*.
+        """Parse the logic: source and write all 8 artifacts into *staging*.
 
         The overclaim gate (:func:`~.logic_projections.assert_no_overclaim`) is
         invoked inside each projection function — any overclaim raises
@@ -140,7 +140,7 @@ class LogicGenerator(Generator):
         nemo_path = _staged(LOGIC_NEMO_FILE)
         report_path = _staged(LOGIC_REPORT_FILE)
 
-        # --- Run all 7 back-ends (overclaim gate fires inside each) ------
+        # --- Run all 8 back-ends (overclaim gate fires inside each) ------
         try:
             r_dl = project_owl_dl(program, path=owl_dl_path)
             r_el = project_owl_el(program, path=owl_el_path)
