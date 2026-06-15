@@ -72,7 +72,7 @@ func decodeOne(codec *Codec, data []byte) ([]byte, error) {
 			return nil, &Error{Failed: true, Detail: fmt.Sprintf("gzip decode failed: %v", err)}
 		}
 		return out, nil
-	case "zstd":
+	case "zstd", "zstd-rsyncable":
 		r, err := getZstdDecoder()
 		if err != nil {
 			return nil, &Error{Failed: true, Detail: fmt.Sprintf("zstd decoder init failed: %v", err)}

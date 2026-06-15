@@ -47,13 +47,35 @@ fn decode_one(codec: &Codec, data: &[u8]) -> Result<Vec<u8>, CodecError> {
                 .map_err(|e| CodecError::Failed(format!("gzip decode failed: {e}")))?;
             Ok(out)
         }
-        "zstd" => {
-            let mut dec = ruzstd::decoding::StreamingDecoder::new(data)
-                .map_err(|e| CodecError::Failed(format!("zstd decode failed: {e}")))?;
-            let mut out = Vec::new();
-            dec.read_to_end(&mut out)
-                .map_err(|e| CodecError::Failed(format!("zstd decode failed: {e}")))?;
-            Ok(out)
+        "zstd" | "zstd-rsyncable" => {
+            // ruzstd's StreamingDecoder only handles a single zstd frame.
+            // zstd-rsyncable concatenates independent frames (one per block),
+            // so use FrameDecoder::decode_all_to_vec, which loops over frames
+            // while input remains (see ruzstd src/decoding/frame_decoder.rs).
+            let mut decoder = ruzstd::decoding::FrameDecoder::new();
+            // Start with a generous expansion factor and allow bounded growth.
+            const MAX_ZSTD_DECODED_SIZE: usize = 16 * 1024 * 1024;
+            let max_capacity = data
+                .len()
+                .saturating_mul(4)
+                .clamp(4096, MAX_ZSTD_DECODED_SIZE);
+            let mut capacity = max_capacity;
+            loop {
+                let mut out = Vec::with_capacity(capacity);
+                match decoder.decode_all_to_vec(data, &mut out) {
+                    Ok(()) => return Ok(out),
+                    Err(ruzstd::decoding::errors::FrameDecoderError::TargetTooSmall) => {
+                        if capacity >= max_capacity {
+                            return Err(CodecError::Failed(
+                                "zstd decode failed: decompressed size exceeds safety bound".into(),
+                            ));
+                        }
+                        capacity = (capacity * 2).min(max_capacity);
+                        continue;
+                    }
+                    Err(e) => return Err(CodecError::Failed(format!("zstd decode failed: {e}"))),
+                }
+            }
         }
         other => Err(CodecError::Unavailable {
             reason: "unknown-codec",
@@ -72,4 +94,37 @@ pub fn decode_chain(chain: &[Codec], data: &[u8]) -> Result<Vec<u8>, CodecError>
         current = decode_one(codec, &current)?;
     }
     Ok(current)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn zstd_rsyncable_decodes_concatenated_frames() {
+        // Build a multi-frame zstd stream that mirrors zstd-rsyncable output.
+        let block1 = b"first block of rsyncable data ";
+        let block2 = b"second block of rsyncable data";
+        let mut encoded = ruzstd::encoding::compress_to_vec(
+            &block1[..],
+            ruzstd::encoding::CompressionLevel::Uncompressed,
+        );
+        encoded.extend(ruzstd::encoding::compress_to_vec(
+            &block2[..],
+            ruzstd::encoding::CompressionLevel::Uncompressed,
+        ));
+
+        let decoded = decode_one(
+            &Codec {
+                name: "zstd-rsyncable".into(),
+                cls: "compress".into(),
+            },
+            &encoded,
+        )
+        .expect("multi-frame zstd must decode");
+
+        let mut expected = block1.to_vec();
+        expected.extend_from_slice(block2);
+        assert_eq!(decoded, expected);
+    }
 }

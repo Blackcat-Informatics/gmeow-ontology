@@ -1381,7 +1381,7 @@ def gts_info(
     (cheap because the embedded transport key is folded into the first meta
     frame).  Use ``--no-verify`` to inspect a damaged or partially trusted file.
     """
-    from gts.verify import verify_file
+    from gts.verify import format_fingerprint, verify_file
 
     path = file or _default_gts_file()
     graph = _read_gts_or_fail(path)
@@ -1401,9 +1401,13 @@ def gts_info(
             )
             if result.fingerprint:
                 console.print(
-                    f"transport key: [bold]{result.fingerprint}[/bold]  "
-                    f"{result.emojihash}"
+                    f"transport key: [bold]"
+                    f"{format_fingerprint(result.fingerprint)}[/bold]"
                 )
+            if result.emojihash:
+                console.print(f"emoji hash:    {result.emojihash}")
+            if result.emojihash_labels:
+                console.print(f"emoji labels:  {result.emojihash_labels}")
         else:
             console.print("signatures: none")
         for err in result.errors:
@@ -1432,7 +1436,7 @@ def gts_verify(
     used.  Pass ``--trusted-key`` to verify against a key obtained out of band
     (e.g. the release key published in the repository).
     """
-    from gts.verify import verify_file
+    from gts.verify import format_fingerprint, verify_file
 
     path = file or _default_gts_file()
     try:
@@ -1451,9 +1455,13 @@ def gts_verify(
         raise _fail(f"verification failed: {exc}") from exc
 
     if result.fingerprint:
-        console.print(f"transport key: [bold]{result.fingerprint}[/bold]")
+        console.print(
+            f"transport key: [bold]{format_fingerprint(result.fingerprint)}[/bold]"
+        )
         if result.emojihash:
-            console.print(f"emojihash:     {result.emojihash}")
+            console.print(f"emoji hash:    {result.emojihash}")
+        if result.emojihash_labels:
+            console.print(f"emoji labels:  {result.emojihash_labels}")
         if result.randomart:
             console.print(result.randomart)
     console.print(
@@ -1768,6 +1776,219 @@ def create_docs_cmd(
     except (OSError, ValueError) as exc:
         raise _fail(f"cannot create docs tree: {exc}") from exc
     console.print(f"[green]✓[/green] docs tree → {directory}")
+
+
+logic_app = typer.Typer(
+    name="logic",
+    help="Logic compiler: logic: source → IR → generated artifacts.",
+    no_args_is_help=True,
+)
+app.add_typer(logic_app, name="logic")
+
+_LOGIC_MODES = (
+    "owl-dl",
+    "owl-el",
+    "datalog",
+    "n3",
+    "gufo",
+    "canonical-rdf12",
+    "report",
+)
+
+
+@logic_app.command("compile")
+def logic_compile(
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help=(
+            "Drift-check the committed artifacts without writing "
+            "(exit non-zero on drift)."
+        ),
+    ),
+    mode: str | None = typer.Option(
+        None,
+        "--mode",
+        help=(
+            "Emit / inspect only the named back-end: "
+            + "|".join(_LOGIC_MODES)
+            + " (default: all 7 outputs)."
+        ),
+    ),
+) -> None:
+    """Compile logic: vocabulary → IR → canonical artifact + projections.
+
+    Without flags: renders all 7 artifacts to their committed paths under
+    ``generated/``.  With ``--check``: proves committed artifacts are not
+    drifted (same as ``gmeow check-generated logic``) without writing.
+    With ``--mode``: restricts the render or check to a single back-end.
+
+    The overclaim gate blocks any emit that claims ExactPreservation while
+    dropping content (CONSTITUTION Principle 7 / LOGIC-CONFORMANCE.md).
+    """
+    from gmeow_tools import logic_compile as _lc  # noqa: F401  (register side effect)
+    from gmeow_tools.config import PROJECT_ROOT as _PROJECT_ROOT
+    from gmeow_tools.generator import registry as _registry
+    from gmeow_tools.generator import run
+    from gmeow_tools.logic_compile import (
+        LOGIC_DATALOG_FILE,
+        LOGIC_GUFO_FILE,
+        LOGIC_N3_FILE,
+        LOGIC_OWL_DL_FILE,
+        LOGIC_OWL_EL_FILE,
+        LOGIC_RDF12_FILE,
+        LOGIC_REPORT_FILE,
+        LOGIC_SOURCE_FILE,
+    )
+    from gmeow_tools.logic_frontend import parse_logic_source
+    from gmeow_tools.logic_projections import (
+        OverclaimError,
+        build_projection_report,
+        project_canonical_rdf12,
+        project_datalog,
+        project_gufo,
+        project_n3,
+        project_owl_dl,
+        project_owl_el,
+    )
+    from gmeow_tools.mapping_dsl import CompileError
+
+    if mode is not None and mode not in _LOGIC_MODES:
+        raise _fail(f"✗ unknown --mode {mode!r} (valid: {', '.join(_LOGIC_MODES)})")
+
+    # --check with no --mode: use the framework's drift gate directly.
+    if check and mode is None:
+        report = run("logic", check=True)
+        if report.drifted:
+            for rel in sorted(report.drifted):
+                err_console.print(f"[red]drift[/red] {rel}")
+            raise _fail(
+                f"✗ {len(report.drifted)} logic artifact(s) out of date — "
+                "run `gmeow logic compile`"
+            )
+        console.print(
+            "[green]✓ logic: committed artifacts match source (no drift)[/green]"
+        )
+        return
+
+    # --mode only (no --check or with --check): parse and emit / inspect one back-end.
+    if mode is not None:
+        _mode_to_file = {
+            "owl-dl": LOGIC_OWL_DL_FILE,
+            "owl-el": LOGIC_OWL_EL_FILE,
+            "datalog": LOGIC_DATALOG_FILE,
+            "n3": LOGIC_N3_FILE,
+            "gufo": LOGIC_GUFO_FILE,
+            "canonical-rdf12": LOGIC_RDF12_FILE,
+            "report": LOGIC_REPORT_FILE,
+        }
+        _mode_to_fn = {
+            "owl-dl": project_owl_dl,
+            "owl-el": project_owl_el,
+            "datalog": project_datalog,
+            "n3": project_n3,
+            "gufo": project_gufo,
+            "canonical-rdf12": project_canonical_rdf12,
+        }
+
+        if not LOGIC_SOURCE_FILE.exists():
+            raise _fail(
+                f"✗ logic: source not found: {LOGIC_SOURCE_FILE}\n"
+                "Is the repo checkout complete?"
+            )
+
+        try:
+            program, diagnostics = parse_logic_source(LOGIC_SOURCE_FILE)
+        except Exception as exc:
+            raise _fail(f"✗ logic: parse failed: {exc}") from exc
+
+        for diag in diagnostics:
+            err_console.print(
+                f"[yellow]{diag.severity}[/yellow] [{diag.code}] {diag.message}"
+            )
+
+        target_file = _mode_to_file[mode]
+
+        if mode == "report":
+            # Report requires all projections — run them all, write only report.
+            try:
+                r_dl = project_owl_dl(program)
+                r_el = project_owl_el(program)
+                r_dl_r = project_datalog(program)
+                r_n3 = project_n3(program)
+                r_gufo = project_gufo(program)
+                r_rdf12 = project_canonical_rdf12(program)
+                report_fn = build_projection_report
+                result = report_fn(program, [r_dl, r_el, r_dl_r, r_n3, r_gufo, r_rdf12])
+            except (OverclaimError, CompileError) as exc:
+                raise _fail(f"✗ {exc}") from exc
+
+            _report_banner = (
+                "# GENERATED by `gmeow logic compile` — DO NOT EDIT.\n"
+                "# Preservation loss ledger for all logic: projections.\n"
+            )
+            from gmeow_tools.logic_projections import _serialize_graph
+
+            if check:
+                # Compare fresh content with committed
+                import tempfile
+
+                with tempfile.NamedTemporaryFile(suffix=".ttl", delete=False) as tf:
+                    tmp_path = Path(tf.name)
+                _text = _serialize_graph(result, _report_banner)
+                tmp_path.write_text(_text, encoding="utf-8")
+                gen = _registry()["logic"]
+                drifts = gen.compare(tmp_path, target_file)
+                tmp_path.unlink(missing_ok=True)
+                if drifts:
+                    for d in drifts:
+                        err_console.print(f"[red]drift[/red] {d}")
+                    raise _fail("✗ --mode report: committed artifact drifted")
+                console.print("[green]✓ --mode report: no drift[/green]")
+            else:
+                target_file.parent.mkdir(parents=True, exist_ok=True)
+                _text = _serialize_graph(result, _report_banner)
+                target_file.write_text(_text, encoding="utf-8")
+                _rel = target_file.relative_to(_PROJECT_ROOT)
+                console.print(f"[green]✓[/green] {_rel}")
+            return
+
+        # Single non-report mode
+        proj_fn = _mode_to_fn[mode]
+        try:
+            if check:
+                import tempfile
+
+                _sfx = ".ttl" if mode not in ("datalog", "n3") else f".{mode}"
+                with tempfile.NamedTemporaryFile(suffix=_sfx, delete=False) as tf:
+                    tmp_path = Path(tf.name)
+                _proj_result = proj_fn(program, path=tmp_path)
+                del _proj_result  # result only needed for side-effect (file write)
+                gen = _registry()["logic"]
+                drifts = gen.compare(tmp_path, target_file)
+                tmp_path.unlink(missing_ok=True)
+                if drifts:
+                    for d in drifts:
+                        err_console.print(f"[red]drift[/red] {d}")
+                    raise _fail(f"✗ --mode {mode}: committed artifact drifted")
+                console.print(f"[green]✓ --mode {mode}: no drift[/green]")
+            else:
+                _proj_result = proj_fn(program, path=target_file)
+                del _proj_result  # result only needed for side-effect (file write)
+                _rel = target_file.relative_to(_PROJECT_ROOT)
+                console.print(f"[green]✓[/green] {_rel}")
+        except (OverclaimError, CompileError) as exc:
+            raise _fail(f"✗ {exc}") from exc
+        return
+
+    # Default: full render of all 7 outputs via the generator framework.
+    report = run("logic", check=False)
+    for path in report.written:
+        console.print(f"[green]✓[/green] {path.relative_to(_PROJECT_ROOT)}")
+    if report.orphans:
+        for orphan in report.orphans:
+            err_console.print(f"[yellow]orphan[/yellow] {orphan}")
+    console.print("[green]✓ logic: artifacts compiled[/green]")
 
 
 if __name__ == "__main__":  # pragma: no cover

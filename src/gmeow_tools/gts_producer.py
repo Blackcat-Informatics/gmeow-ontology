@@ -25,6 +25,7 @@ from rdflib import BNode, Dataset, Graph, Literal, URIRef
 
 from gts import Signer
 from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
+from gts.wire import canonical
 from gts.writer import Writer, term_to_wire
 
 if TYPE_CHECKING:
@@ -316,6 +317,7 @@ class _Builder:
         doc_blobs: list[tuple[bytes, str, str]] | None = None,
         signer: Signer | None = None,
         public_key_armor: str | None = None,
+        rsyncable_threshold: int = 65536,
     ) -> bytes:
         """Emit a single ``dist`` snapshot frame from the accumulated tables.
 
@@ -329,10 +331,14 @@ class _Builder:
         If ``signer`` and ``public_key_armor`` are supplied, a ``meta`` frame
         carrying the file's transport key is emitted first and signed along
         with every subsequent frame.
+
+        ``rsyncable_threshold`` (#513): payloads larger than this many bytes
+        are compressed with ``zstd-rsyncable`` instead of ``zstd``, improving
+        rsync/Git delta compression at a small size cost.
         """
         if (signer is None) != (public_key_armor is None):
             raise ValueError("signer and public_key_armor must be supplied together")
-        chain = ["zstd"] if transform is None else transform
+        base_chain = ["zstd"] if transform is None else transform
         terms, quads, reifies, annot = self._canonical_tables()
         writer = Writer(profile=profile, signer=signer)
         if signer is not None:
@@ -344,10 +350,19 @@ class _Builder:
                     }
                 }
             )
+
+        def choose_transform(payload_bytes: bytes) -> list[str]:
+            """Use zstd-rsyncable for large payloads to improve delta compression."""
+            if base_chain == ["zstd"] and len(payload_bytes) > rsyncable_threshold:
+                return ["zstd-rsyncable"]
+            return list(base_chain)
+
         for data, media_type, rep in sorted(
             doc_blobs or [], key=lambda row: (row[2], row[0])
         ):
-            writer.add_blob(data, mt=media_type, rep=rep, transform=list(chain))
+            writer.add_blob(
+                data, mt=media_type, rep=rep, transform=choose_transform(data)
+            )
         snapshot: dict[str, object] = {
             "terms": [term_to_wire(t) for t in terms],
             "quads": [
@@ -358,7 +373,10 @@ class _Builder:
             snapshot["reifies"] = {rid: list(spo) for rid, spo in reifies.items()}
         if annot:
             snapshot["annot"] = [list(row) for row in annot]
-        writer.add_frame("snapshot", payload=snapshot, transform=chain)
+        snapshot_bytes = canonical(snapshot)
+        writer.add_frame(
+            "snapshot", payload=snapshot, transform=choose_transform(snapshot_bytes)
+        )
         return writer.to_bytes()
 
 
@@ -432,6 +450,7 @@ def compile_gts(
     doc_blobs: list[tuple[bytes, str, str]] | None = None,
     signer: Signer | None = None,
     public_key_armor: str | None = None,
+    rsyncable_threshold: int = 65536,
 ) -> bytes:
     """Compile the statement-complete, byte-deterministic ``dist`` GTS snapshot.
 
@@ -446,6 +465,9 @@ def compile_gts(
 
     If ``signer`` and ``public_key_armor`` are supplied, the snapshot is signed
     and the armored transport public key is embedded in the first ``meta`` frame.
+
+    ``rsyncable_threshold`` (#513): payloads larger than this many bytes are
+    compressed with ``zstd-rsyncable`` instead of ``zstd``.
 
     Raises:
         FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
@@ -476,4 +498,5 @@ def compile_gts(
         doc_blobs=doc_blobs,
         signer=signer,
         public_key_armor=public_key_armor,
+        rsyncable_threshold=rsyncable_threshold,
     )

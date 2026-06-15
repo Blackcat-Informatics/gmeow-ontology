@@ -13,6 +13,7 @@ into an opaque node (§7.6, §8.3).
 from __future__ import annotations
 
 import gzip
+import io
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
@@ -51,11 +52,30 @@ DEFAULT_CATALOG: dict[int, Codec] = {
     0: Codec("identity", "encode"),
     1: Codec("gzip", "compress"),
     2: Codec("zstd", "compress"),
+    3: Codec("zstd-rsyncable", "compress"),
     7: Codec("cose-encrypt0", "encrypt"),
 }
 
 _ZSTD_C = zstandard.ZstdCompressor()
 _ZSTD_D = zstandard.ZstdDecompressor()
+
+#: Uncompressed block size for the zstd-rsyncable codec. Each block is an
+#: independent zstd frame so that a local change only affects that block.
+_RSYNCABLE_BLOCK_SIZE = 65536
+
+
+def _encode_zstd_rsyncable(data: bytes) -> bytes:
+    """Compress with periodic state resets for rsync/Git friendliness.
+
+    Each block is compressed as an independent zstd frame and concatenated.
+    A change inside one block therefore only affects that block's compressed
+    bytes, keeping rsync/Git deltas small.
+    """
+    out = io.BytesIO()
+    view = memoryview(data)
+    for i in range(0, len(data), _RSYNCABLE_BLOCK_SIZE):
+        out.write(_ZSTD_C.compress(view[i : i + _RSYNCABLE_BLOCK_SIZE]))
+    return out.getvalue()
 
 
 def _encode_one(name: str, data: bytes) -> bytes:
@@ -66,8 +86,22 @@ def _encode_one(name: str, data: bytes) -> bytes:
         return gzip.compress(data)
     if name == "zstd":
         return _ZSTD_C.compress(data)
+    if name == "zstd-rsyncable":
+        return _encode_zstd_rsyncable(data)
     msg = f"writer cannot encode with codec {name!r}"
     raise CodecUnavailableError("unknown-codec", msg)
+
+
+def _decode_zstd(data: bytes) -> bytes:
+    """Decompress zstd bytes, including rsyncable streams with flush blocks."""
+    out = io.BytesIO()
+    with _ZSTD_D.stream_reader(io.BytesIO(data)) as reader:
+        while True:
+            chunk = reader.read(131072)
+            if not chunk:
+                break
+            out.write(chunk)
+    return out.getvalue()
 
 
 def _decode_one(codec: Codec, data: bytes) -> bytes:
@@ -80,8 +114,8 @@ def _decode_one(codec: Codec, data: bytes) -> bytes:
         return data
     if codec.name == "gzip":
         return gzip.decompress(data)
-    if codec.name == "zstd":
-        return _ZSTD_D.decompress(data)
+    if codec.name in ("zstd", "zstd-rsyncable"):
+        return _decode_zstd(data)
     raise CodecUnavailableError("unknown-codec", f"unknown codec {codec.name!r}")
 
 

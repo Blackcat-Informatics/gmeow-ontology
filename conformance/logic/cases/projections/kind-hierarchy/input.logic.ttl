@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: kind-hierarchy
+# Exercises basic sort projection: a 3-level Kind/SubKind hierarchy with a
+# RigidSortal (SubKind) and a Role, plus a subClassOf chain.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/kind-hierarchy/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Sorts
+ex:Animal   a logic:Kind .
+ex:Mammal   a logic:SubKind .
+ex:Dog      a logic:SubKind .
+ex:Pet      a logic:Role .
+
+# Subsumption chain: Dog → Mammal → Animal
+ex:Dog    logic:subClassOf ex:Mammal .
+ex:Mammal logic:subClassOf ex:Animal .
+
+# Role applies to the Kind
+ex:Pet logic:subClassOf ex:Animal .

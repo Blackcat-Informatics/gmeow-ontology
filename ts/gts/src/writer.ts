@@ -14,6 +14,7 @@ const Catalog: Record<number, CatalogEntry> = {
     0: { name: "identity", cls: "encode" },
     1: { name: "gzip", cls: "compress" },
     2: { name: "zstd", cls: "compress" },
+    3: { name: "zstd-rsyncable", cls: "compress" },
     7: { name: "cose-encrypt0", cls: "encrypt" },
 };
 
