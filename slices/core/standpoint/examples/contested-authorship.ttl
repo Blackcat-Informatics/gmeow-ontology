@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: contested claims coexist, none privileged (#443, P9). Two
+# Worked example: contested claims coexist, none privileged ( P9). Two
 # scholars attribute the same play to different authors. Each attribution is a
 # reified gmeow:StandpointClaim (a kind of Observation) carrying its own
 # gmeow:vantage (whose standpoint), gmeow:observationResult (the claimed author),

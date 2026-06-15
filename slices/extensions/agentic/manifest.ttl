@@ -21,4 +21,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/sources> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:sliceConsumer "Project Lillith's agentic mode (#390, P15): tool-call trajectories audited in the same provenance graph as the agent's claims. First live producer: the gmeow memory MCP triad records its own store/revise calls as ToolCall provenance. DELIBERATELY THIN: growth requires a new consumer; the size budget is recorded in docs.md."@x-gmeow-english .
+    gmeow:sliceConsumer "Project Lillith's agentic mode ( P15): tool-call trajectories audited in the same provenance graph as the agent's claims. First live producer: the gmeow memory MCP triad records its own store/revise calls as ToolCall provenance. DELIBERATELY THIN: growth requires a new consumer; the size budget is recorded in docs.md."@x-gmeow-english.

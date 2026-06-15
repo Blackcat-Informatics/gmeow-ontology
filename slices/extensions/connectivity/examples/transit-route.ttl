@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: connectivity is one graph machinery for every domain (#443). A
+# Worked example: connectivity is one graph machinery for every domain. A
 # gmeow:Route runs from gmeow:routeStart through gmeow:routeVia stops to
 # gmeow:routeEnd, tagged with a gmeow:routeKind — and that kind is an open
 # vocabulary spanning transit, walking, flight, citation, dependency and social

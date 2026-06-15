@@ -4,7 +4,7 @@
 # Places — every locus names its frame
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/places` · **tier: core**
-> The Location-as-reference-frame engine (issue #42): one frame discipline from latitude to chromosome, currency to C-space.
+> The Location-as-reference-frame engine: one frame discipline from latitude to chromosome, currency to C-space.
 
 A coordinate without its frame is a bare number, and GMEOW forbids bare numbers
 (Principle 11). This slice carries that discipline to its logical end: **the reference frame
@@ -15,7 +15,7 @@ and metric vocabularies rather than parallel class hierarchies. Granularity is a
 never a subclass: country, room, star, and SNP are all first-class, QID-bearing entities
 chained by containment.
 
-Contested geography gets the standpoint treatment (issue #51), not a dispute mechanism:
+Contested geography gets the standpoint treatment, not a dispute mechanism:
 a Crimea-class sovereignty conflict is two `gmeow:accordingTo`-annotated
 `gmeow:containedInPlace` statements; an endonym/exonym conflict is two co-equal place
 namings. There is **no `preferredJurisdiction` and no `primaryName`** — competing claims
@@ -55,7 +55,7 @@ ICRS, FK5, Galactic — per Principle 11.
 
 ### gmeow:BiologicalSequenceLocation
 
-Issue #90: a sequence feature (gene, exon, SNP, CDS) is a locus in a versioned reference
+biological-sequence design: a sequence feature (gene, exon, SNP, CDS) is a locus in a versioned reference
 assembly treated as a linear 1-D frame. It bears `gmeow:SequenceCoordinates` with explicit
 start, end, and strand; the kind is the open `gmeow:sequenceFeatureType` (aligned by
 reference to Sequence Ontology). FALDO positions map directly; liftover between assemblies is
@@ -105,7 +105,7 @@ confidence, and standpoint when the bare value is not enough (Principle 3).
 
 `gmeow:containedInPlace` is the transitive nesting spine (room ⊂ building ⊂ city ⊂ country),
 inverse `gmeow:containsPlace`; closure is solver work, not asserted triples. Alternative
-geocodes (#91 — Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) are
+geocodes (geocoding design — Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) are
 `gmeow:Geocode` strings in an explicit `gmeow:geocodeFrame` attached by `gmeow:hasGeocode`;
 conversion to WGS84 is solver-layer.
 
@@ -114,14 +114,14 @@ conversion to WGS84 is solver-layer.
 ### gmeow:JurisdictionTenure · gmeow:ContainmentTenure
 
 The flat transitive containment is the 80% case; promote to these `gmeow:TimeScopedRelation`
-SubKinds (#82) when period, standpoint, or contestation matters. Contested sovereignty is
+SubKinds (time-scoped place design) when period, standpoint, or contestation matters. Contested sovereignty is
 multiple co-existing, confidence-weighted, standpoint-indexed JurisdictionTenures, never a
 single winner (Principle 9). Both carry their interval via `gmeow:duringInterval` (temporal
 slice).
 
 ### gmeow:RegulatoryOverlay · gmeow:overlayType
 
-Legal overlays beyond sovereignty (#103/#93) — zoning, protected areas, restricted airspace,
+Legal overlays beyond sovereignty (regulatory-overlay design/vertical/maritime/aviation-zone design) — zoning, protected areas, restricted airspace,
 maritime and aviation zones, NOTAMs — as reified situations binding a place
 (`gmeow:overlayPlace`), an authority (`gmeow:overlayAuthority`), an open `gmeow:overlayType`,
 and an optional `gmeow:overlayRegulation` RightsStatement for the deontic rules. 3D bounds are
@@ -129,7 +129,7 @@ frame-relative ScalarQuantities in explicit vertical frames; contested overlays 
 
 ### gmeow:LandTenure · gmeow:CadastralReference
 
-The cadastral realm (#92, LADM/INSPIRE): ownership, lease, easement, mortgage, usufruct as
+The cadastral realm (cadastral design, LADM/INSPIRE): ownership, lease, easement, mortgage, usufruct as
 `gmeow:LandTenure` situations binding a place, a party, a rights statement, and an open
 `gmeow:tenureType`; structured identifiers (folio, title, lot, parcel ID) as
 `gmeow:CadastralReference`. Contested titles coexist; lapsed tenures keep their record with

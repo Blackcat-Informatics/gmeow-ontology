@@ -23,4 +23,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/trust> ;
-    gmeow:sliceConsumer "The mail corpus (#141): the dogfooded message model over core contacts/accounts."@x-gmeow-english .
+    gmeow:sliceConsumer "The mail corpus: the dogfooded message model over core contacts/accounts."@x-gmeow-english.

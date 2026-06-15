@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Competency (#267): evidence-profile GTS documents and the agents whose
+# Competency (GTS transport design): evidence-profile GTS documents and the agents whose
 # transport attestations cover their segments (chain-of-custody view).
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 SELECT ?document ?segment ?headId ?attester WHERE {

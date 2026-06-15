@@ -8,7 +8,7 @@
 @prefix oa:     <http://www.w3.org/ns/oa#> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
 
-# Term equivalences for the data-quality layer (issue #99) — GMEOW authoring
+# Term equivalences for the data-quality layer — GMEOW authoring
 # source. Compiled to mappings/gmeow-quality.sssom.tsv by `gmeow compile-mappings`.
 # Aligns W3C DQV, GeoDCAT-AP quality annotations, and PROV-O lineage by reference.
 # ISO 19157 dimensions have no canonical RDF namespace; they are documented as
@@ -25,7 +25,7 @@ gmeow:mapsetQuality a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-quality.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/quality" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Data-quality layer alignments (#99) — ISO 19157 dimensions + lineage, bridged to W3C DQV and GeoDCAT-AP by reference.
+    gmeow:setComment """Data-quality layer alignments — ISO 19157 dimensions + lineage, bridged to W3C DQV and GeoDCAT-AP by reference.
         FORMAL GROUNDING: gmeow:QualityAssessment is a gufo:SubKind of gmeow:Observation, reusing the universal claim construct. gmeow:QualityDimension is a gufo:AbstractIndividualType / QualityValue — an open value vocabulary of individuals (never subclasses). There is no 'primary' or 'preferred' dimension (Principle 9).
         DQV FLATTENING: DQV introduces dqv:Metric between QualityMeasurement and Dimension. GMEOW flattens this (qualityDimension points directly to QualityDimension) because metric-specific metadata (thresholds, algorithms) are solver-layer concerns (Principle 12). The projection layer can expand to the full DQV chain when needed.
         ISO 19157 STATUS: ISO 19157:2013 defines completeness, logical consistency, positional accuracy, temporal accuracy, and thematic accuracy. No canonical RDF namespace exists for these dimensions; the mapping set documents their correspondence to GMEOW value individuals in the comment below. GeoDCAT-AP (http://data.europa.eu/r5r/) provides dcat:qualityAnnotation as the RDF-aligned pathway to ISO 19115/19157 quality and lineage concepts.""" ;

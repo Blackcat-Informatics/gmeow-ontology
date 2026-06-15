@@ -8,7 +8,7 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # =========================================================================== #
-# Temporal kernel data shapes (#67)
+# Temporal kernel data shapes
 # =========================================================================== #
 
 # A TemporalFrame must carry exactly one TimeScale (calendar and reference
@@ -16,7 +16,7 @@
 gmeow:TemporalFrameShape
     a sh:NodeShape ;
     rdfs:label "TemporalFrame well-formedness shape"@x-gmeow-english ;
-    skos:definition "Closed-world well-formedness for a TemporalFrame: it must carry exactly one gmeow:frameTimeScale, plus the gmeow:frameRealm and gmeow:frameKind inherited from ReferenceFrame. These are functional at the frame, not globally; calendar and reference position remain optional (#67)."@x-gmeow-english ;
+    skos:definition "Closed-world well-formedness for a TemporalFrame: it must carry exactly one gmeow:frameTimeScale, plus the gmeow:frameRealm and gmeow:frameKind inherited from ReferenceFrame. These are functional at the frame, not globally; calendar and reference position remain optional."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     sh:targetClass gmeow:TemporalFrame ;
     sh:property [
@@ -49,7 +49,7 @@ gmeow:TemporalFrameShape
 gmeow:InstantShape
     a sh:NodeShape ;
     rdfs:label "Instant well-formedness shape"@x-gmeow-english ;
-    skos:definition "An Instant must anchor to a value: at least one of gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (an EDTF literal for imprecise or partial dates). A point in time with no stated value is not an Instant (#67)."@x-gmeow-english ;
+    skos:definition "An Instant must anchor to a value: at least one of gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (an EDTF literal for imprecise or partial dates). A point in time with no stated value is not an Instant."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     sh:targetClass gmeow:Instant ;
     sh:or (
@@ -63,7 +63,7 @@ gmeow:InstantShape
 gmeow:NamedPeriodShape
     a sh:NodeShape ;
     rdfs:label "NamedPeriod well-formedness shape"@x-gmeow-english ;
-    skos:definition "A NamedPeriod must be bounded: either both gmeow:periodStart and gmeow:periodEnd (as Instants) or at least one gmeow:hasTemporalMeasurement. A named stretch of time with neither bounds nor a measured duration is underspecified (#67)."@x-gmeow-english ;
+    skos:definition "A NamedPeriod must be bounded: either both gmeow:periodStart and gmeow:periodEnd (as Instants) or at least one gmeow:hasTemporalMeasurement. A named stretch of time with neither bounds nor a measured duration is underspecified."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     sh:targetClass gmeow:NamedPeriod ;
     sh:or (

@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Narrative Module"@x-gmeow-english ;
     skos:definition "The GMEOW Narrative Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
-    rdfs:comment """Narrative reference frames and creative-work sourcing. Part of the #42 Location-as-reference-frame epic.
+    rdfs:comment """Narrative reference frames and creative-work sourcing. Part of the Location-as-reference-frame design.
 
 DOCTRINE.
   * A NarrativeReferenceFrame is a ReferenceFrame (canon supplies coordinate topology for in-universe locations, dates, and events) and functionally serves as the standpoint under which in-universe claims hold true, without subclassing gmeow:Standpoint (gUFO MixIden enforces exactly-one-Kind inheritance).
@@ -218,7 +218,7 @@ gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@x-gmeow-englis
 
 # =========================================================================== #
 # MYTH — socially-sustained narrative whose currency is independent of truth-value
-# (issue #214, Deception EPIC #212)
+# (the design, Deception design context)
 # =========================================================================== #
 gmeow:arcTypeRecovery rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
@@ -271,11 +271,11 @@ gmeow:affectedConsumerSurface
     rdfs:domain gmeow:Myth ;
     rdfs:range gmeow:ProjectionContext ;
     rdfs:label "affected consumer surface"@x-gmeow-english ;
-    skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary (#225)."@x-gmeow-english ;
+    skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 # =========================================================================== #
-# NARRATIVE TIME — story-time & discourse-time frames (issue #359, EPIC #358)
+# NARRATIVE TIME — story-time & discourse-time frames (narrative-position axis, design context)
 #
 # DOCTRINE: the chapter sequence is the syuzhet projection of frame-relative
 # story content. Discourse time (the order of telling: segment ordinals,
@@ -289,7 +289,7 @@ gmeow:affectedConsumerSurface
 # layer — never global facts. Discourse↔story mappings (the flashback
 # structure itself) are expressed as coexisting positions of one event in
 # both frames; a reified mapping construct is deliberately deferred to
-# coordinate with the music extension's TimeMapping (#306) so the repo grows
+# coordinate with the music extension's TimeMapping (music design) so the repo grows
 # one frame-mapping idiom, not two.
 # =========================================================================== #
 
@@ -376,18 +376,18 @@ gmeow:atNarrativePosition
     a owl:ObjectProperty ;
     rdfs:range gmeow:NarrativePosition ;
     rdfs:label "at narrative position"@x-gmeow-english ;
-    skos:definition "Anchors a thing — a content segment, a diegetic event, an arc sample, a motif occurrence — to a narrative position. Domain-free: the narration seam (#360), arc samples (#361), and motif occurrences (#363) all reuse this one anchor. NOT functional, and deliberately so: the same diegetic event carries coexisting positions in a discourse frame and a story frame, and their disagreement is the flashback made queryable rather than a contradiction (Principle 9)."@x-gmeow-english ;
+    skos:definition "Anchors a thing — a content segment, a diegetic event, an arc sample, a motif occurrence — to a narrative position. Domain-free: the narration seam (narration seam), arc samples (arc samples), and motif occurrences (motifs) all reuse this one anchor. NOT functional, and deliberately so: the same diegetic event carries coexisting positions in a discourse frame and a story frame, and their disagreement is the flashback made queryable rather than a contradiction (Principle 9)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 # =========================================================================== #
-# THE NARRATION SEAM (issue #360, EPIC #358)
+# THE NARRATION SEAM (narration seam, design context)
 #
 # NOnt's reference function: the relation between the carrying text and the
 # story it tells — neither mereology (a narrated event is not part of a
 # chapter) nor participation (a chapter does not take part in a betrayal).
 # "Chapter 31 narrates event E; character C is narrated in segment S."
 #
-# EFFICIENCY DOCTRINE (codified, CI-gated in the consumer child #364): the
+# EFFICIENCY DOCTRINE (codified, CI-gated in the consumer child narrative consumer child): the
 # foundation corpus carries 38,413 character-segment links + 23,962 narrated
 # events + 12,354 appearances. Flat quads by default (one statement per
 # link); promote to a reified gmeow:NarrationUsage ONLY when mode, vantage, or
@@ -400,7 +400,7 @@ gmeow:atNarrativePosition
 # nothing here asserts real-world occurrence, and the events module's
 # Participation machinery is reused untouched for who-did-what IN the story.
 # Unreliable narration is where narration mode meets the deception module
-# (#212): a narration usage whose mode misleads is narrator-level held≠projected —
+#: a narration usage whose mode misleads is narrator-level held≠projected —
 # documented bridge, no axiom coupling.
 # =========================================================================== #
 
@@ -452,7 +452,7 @@ gmeow:NarrationMode
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Narration Mode"@x-gmeow-english ;
-    skos:definition "HOW a segment carries its content — an OPEN value vocabulary (individuals, never subclasses) seeded with the diegetic-level ladder: narrated (direct), mentioned (referenced without narration), flashback (narrated out of story order), dream (framed as a character's dream), hypothetical (framed as possibility), unreliable (narrator credibility in question — the deception-module boundary, #212: documented bridge, no axiom coupling)."@x-gmeow-english ;
+    skos:definition "HOW a segment carries its content — an OPEN value vocabulary (individuals, never subclasses) seeded with the diegetic-level ladder: narrated (direct), mentioned (referenced without narration), flashback (narrated out of story order), dream (framed as a character's dream), hypothetical (framed as possibility), unreliable (narrator credibility in question — the deception-module boundary,: documented bridge, no axiom coupling)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:narrationDirect     a gmeow:NarrationMode ; rdfs:label "narrated"@x-gmeow-english ;
@@ -462,7 +462,7 @@ gmeow:narrationMentioned    a gmeow:NarrationMode ; rdfs:label "mentioned"@x-gme
     skos:definition "The segment references the content without narrating it (reported, recalled, alluded to)."@x-gmeow-english .
 gmeow:narrationMentioned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 gmeow:narrationFlashback    a gmeow:NarrationMode ; rdfs:label "flashback"@x-gmeow-english ;
-    skos:definition "The segment narrates content from earlier in story time than its discourse position — the two-axes disagreement (#359) made a mode."@x-gmeow-english .
+    skos:definition "The segment narrates content from earlier in story time than its discourse position — the two-axes disagreement (narrative-position axis) made a mode."@x-gmeow-english.
 gmeow:narrationFlashback rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 gmeow:narrationDream        a gmeow:NarrationMode ; rdfs:label "dream"@x-gmeow-english ;
     skos:definition "The segment frames the content as a character's dream or vision — diegesis one level down."@x-gmeow-english .
@@ -471,7 +471,7 @@ gmeow:narrationHypothetical a gmeow:NarrationMode ; rdfs:label "hypothetical"@x-
     skos:definition "The segment frames the content as possibility, counterfactual, or speculation within the story."@x-gmeow-english .
 gmeow:narrationHypothetical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 gmeow:narrationUnreliable   a gmeow:NarrationMode ; rdfs:label "unreliable"@x-gmeow-english ;
-    skos:definition "The narrator's credibility for this content is in question — the seam's boundary with the deception module (#212): narrator-level held ≠ projected, asserted by a critic's vantage through the statement layer. Documented bridge; no axiom coupling."@x-gmeow-english .
+    skos:definition "The narrator's credibility for this content is in question — the seam's boundary with the deception module: narrator-level held ≠ projected, asserted by a critic's vantage through the statement layer. Documented bridge; no axiom coupling."@x-gmeow-english.
 gmeow:narrationUnreliable rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:narrationMode
@@ -483,22 +483,22 @@ gmeow:narrationMode
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 # =========================================================================== #
-# THE NARRATIVE INTERIOR — arcs, roles, motifs (issues #361 / #362 / #363,
-# EPIC #358)
+# THE NARRATIVE INTERIOR — arcs, roles, motifs (arc samples / scoped roles / motifs,
+# design context)
 #
 # The remaining interior of the fiction, anchored to what already exists:
-# arc samples observe characters AT narrative positions (#359); motif
-# occurrences ride the narration seam (#360); narrative roles are
+# arc samples observe characters AT narrative positions (narrative-position axis); motif
+# occurrences ride the narration seam (narration seam); narrative roles are
 # interpretive relators with scope. Every reading here is vantage-indexed
 # (P9): who the protagonist is, what a character felt in chapter 31, and
 # whether a string is a motif are claims by someone, coexisting with rivals.
 # Character-as-exemplar composes from the rubrics facility's
-# gmeow:exemplarSubject (#353) with ZERO new machinery — fixtures
+# gmeow:exemplarSubject with ZERO new machinery — fixtures
 # demonstrate it; no axiom here references a norms-slice IRI (P16).
 # =========================================================================== #
 
 # --------------------------------------------------------------------------- #
-# Arc samples (#361) — the music PitchTrajectory move: an arc is sampled
+# Arc samples (arc samples) — the music PitchTrajectory move: an arc is sampled
 # control points in a frame, not prose
 # --------------------------------------------------------------------------- #
 
@@ -506,7 +506,7 @@ gmeow:ArcSample
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation ;
     rdfs:label "Arc Sample"@x-gmeow-english ;
-    skos:definition "One reading of a character's state at a narrative position — an observation: vantage = the analyzing model or critic, subject = the frame-scoped character, position = a NarrativePosition (#359; discourse-time by default, story-time samples legal and distinct), state = an emotion-type or analogous value by IRI (the affect slice's EmotionType when loaded, EmotionML category IRIs otherwise — soft reference, never dependency). Two analyzers disagreeing about chapter 31 are two coexisting cells (Principle 9). The existing gmeow:CharacterArc is the integrating whole: samples attach via gmeow:arcSample ⊑ gmeow:hasPart, and an arc with no samples stays valid (book-level-only analyses)."@x-gmeow-english ;
+    skos:definition "One reading of a character's state at a narrative position — an observation: vantage = the analyzing model or critic, subject = the frame-scoped character, position = a NarrativePosition (narrative-position axis; discourse-time by default, story-time samples legal and distinct), state = an emotion-type or analogous value by IRI (the affect slice's EmotionType when loaded, EmotionML category IRIs otherwise — soft reference, never dependency). Two analyzers disagreeing about chapter 31 are two coexisting cells (Principle 9). The existing gmeow:CharacterArc is the integrating whole: samples attach via gmeow:arcSample ⊑ gmeow:hasPart, and an arc with no samples stays valid (book-level-only analyses)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:sampleSubject
@@ -514,7 +514,7 @@ gmeow:sampleSubject
     rdfs:subPropertyOf gmeow:observedFeature ;
     rdfs:domain gmeow:ArcSample ;
     rdfs:label "sample subject"@x-gmeow-english ;
-    skos:definition "The frame-scoped character (or other diegetic entity) this sample reads (⊑ observedFeature, the #69 bridge idiom). Range intentionally open. Functional: one sample, one subject."@x-gmeow-english ;
+    skos:definition "The frame-scoped character (or other diegetic entity) this sample reads (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one sample, one subject."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:samplePosition
@@ -522,7 +522,7 @@ gmeow:samplePosition
     rdfs:domain gmeow:ArcSample ;
     rdfs:range gmeow:NarrativePosition ;
     rdfs:label "sample position"@x-gmeow-english ;
-    skos:definition "WHERE in the narrative this sample reads — a frame-carried NarrativePosition (#359), never a bare index. Functional and mandatory (SHACL): a sample without a position is not a sample."@x-gmeow-english ;
+    skos:definition "WHERE in the narrative this sample reads — a frame-carried NarrativePosition (narrative-position axis), never a bare index. Functional and mandatory (SHACL): a sample without a position is not a sample."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:sampleState
@@ -536,7 +536,7 @@ gmeow:developmentSignalText
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:ArcSample ;
     rdfs:label "development signal (text)"@x-gmeow-english ;
-    skos:definition "Prose evidence the analyzer cited for this reading. NOT functional and range-open (localizable prose, the #376 convention)."@x-gmeow-english ;
+    skos:definition "Prose evidence the analyzer cited for this reading. NOT functional and range-open (localizable prose, the localizable-prose convention)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:developmentSignalEvent
@@ -544,7 +544,7 @@ gmeow:developmentSignalEvent
     rdfs:domain gmeow:ArcSample ;
     rdfs:range gmeow:Event ;
     rdfs:label "development signal (event)"@x-gmeow-english ;
-    skos:definition "A diegetic event the analyzer cited for this reading — an ordinary gmeow:Event claims-scoped accordingTo its narrative frame (existing doctrine), typically also narrated by the position's segment (#360). NOT functional."@x-gmeow-english ;
+    skos:definition "A diegetic event the analyzer cited for this reading — an ordinary gmeow:Event claims-scoped accordingTo its narrative frame (existing doctrine), typically also narrated by the position's segment (narration seam). NOT functional."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:arcSample
@@ -557,7 +557,7 @@ gmeow:arcSample
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 # --------------------------------------------------------------------------- #
-# Narrative roles (#362) — dramatis personae as interpretive, scoped relators
+# Narrative roles (scoped roles) — dramatis personae as interpretive, scoped relators
 # --------------------------------------------------------------------------- #
 
 gmeow:NarrativeRole
@@ -580,7 +580,7 @@ gmeow:roleFoil         a gmeow:NarrativeRole ; rdfs:label "foil"@x-gmeow-english
     skos:definition "The foil role — a contrast figure for another character."@x-gmeow-english .
 gmeow:roleFoil rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 gmeow:roleNarrator     a gmeow:NarrativeRole ; rdfs:label "narrator"@x-gmeow-english ;
-    skos:definition "The narrator role — the telling voice (its reliability is the #360 narrationUnreliable axis, not a role variant)."@x-gmeow-english .
+    skos:definition "The narrator role — the telling voice (its reliability is the narration seam narrationUnreliable axis, not a role variant)."@x-gmeow-english.
 gmeow:roleNarrator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 gmeow:roleConfidant    a gmeow:NarrativeRole ; rdfs:label "confidant"@x-gmeow-english ;
     skos:definition "The confidant role."@x-gmeow-english .
@@ -644,14 +644,14 @@ gmeow:ContentSegment rdfs:subClassOf gmeow:NarrativeScope .
 gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:NarrativeScope .
 
 # --------------------------------------------------------------------------- #
-# Motifs (#363) — thematic tags with identity; occurrences ride the seam
+# Motifs (motifs) — thematic tags with identity; occurrences ride the seam
 # --------------------------------------------------------------------------- #
 
 gmeow:Motif
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:SocialObject ;
     rdfs:label "Motif"@x-gmeow-english ;
-    skos:definition "An identity-bearing recurring narrative unit — a theme, leitmotif, symbol, running gag, tale type, or trope ('Melisande's Game', 'the Cassiline vow'). NOT a folksonomy string: a motif carries aliases (names module Appellations), a kind, frame-scoped claims, and occurrences riding the narration seam (gmeow:motifOccursIn ⊑ gmeow:narratedIn, #360 — inheriting the flat-by-default efficiency discipline). Motif-hood is itself interpretive: one vantage's tag is another's motif, and both readings coexist (Principle 9). Cross-work identity goes through gmeow:counterpartOf or a shared registry anchor (Thompson Motif Index, ATU — alignment window), NEVER string equality. The tags module remains the right home for uncurated labels; the promotion heuristic (tag → motif when recurrence and identity emerge, recorded as an Activity with provenance) lives in docs."@x-gmeow-english ;
+    skos:definition "An identity-bearing recurring narrative unit — a theme, leitmotif, symbol, running gag, tale type, or trope ('Melisande's Game', 'the Cassiline vow'). NOT a folksonomy string: a motif carries aliases (names module Appellations), a kind, frame-scoped claims, and occurrences riding the narration seam (gmeow:motifOccursIn ⊑ gmeow:narratedIn, narration seam — inheriting the flat-by-default efficiency discipline). Motif-hood is itself interpretive: one vantage's tag is another's motif, and both readings coexist (Principle 9). Cross-work identity goes through gmeow:counterpartOf or a shared registry anchor (Thompson Motif Index, ATU — alignment window), NEVER string equality. The tags module remains the right home for uncurated labels; the promotion heuristic (tag → motif when recurrence and identity emerge, recorded as an Activity with provenance) lives in docs."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
 gmeow:MotifKind
@@ -694,10 +694,10 @@ gmeow:motifOccursIn
     rdfs:domain gmeow:Motif ;
     rdfs:range gmeow:ContentSegment ;
     rdfs:label "motif occurs in"@x-gmeow-english ;
-    skos:definition "An occurrence of the motif in a carrying segment — the narration seam reused (⊑ gmeow:narratedIn, #360), inheriting the efficiency discipline: flat by default, promoted to a NarrationUsage only when a vantage disputes the occurrence or a mode matters. NOT functional: 16,002 corpus tag-instances become occurrence edges."@x-gmeow-english ;
+    skos:definition "An occurrence of the motif in a carrying segment — the narration seam reused (⊑ gmeow:narratedIn, narration seam), inheriting the efficiency discipline: flat by default, promoted to a NarrationUsage only when a vantage disputes the occurrence or a mode matters. NOT functional: 16,002 corpus tag-instances become occurrence edges."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:narrates gmeow:pairsWith gmeow:NarrationUsage .
 gmeow:hasNarrativeRole gmeow:pairsWith gmeow:RoleInNarrative .
 gmeow:motifOccursIn gmeow:pairsWith gmeow:NarrationUsage .

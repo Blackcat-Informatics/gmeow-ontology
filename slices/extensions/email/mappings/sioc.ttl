@@ -6,10 +6,10 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sioc:  <http://rdfs.org/sioc/ns#> .
 
-# Projection mappings: GMEOW → SIOC (#34 phase 3). Email is the original
+# Projection mappings: GMEOW → SIOC (PROV activity alignment phase 3). Email is the original
 # online-community content GMEOW models — a message is a sioc:Post, a thread is
 # a sioc:Container, threading and authorship flatten to SIOC's reply/creator
-# edges. The former forum/blog/ActivityPub partiality is now RESOLVED (#412):
+# edges. The former forum/blog/ActivityPub partiality is now RESOLVED (MoveAction projection):
 # gmeow:FeedPosting (documents) carries social/blog/microblog posts as
 # sioc:Post, with shares as sioc:links_to — see the syndicated-postings block
 # at the foot of this file.
@@ -89,7 +89,7 @@ gmeow:mapSiocUserAccount a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "sacct" ; gmeow:tPred sioc:account_of ; gmeow:tObj "sagent" ] ) ] .
 
 
-# --- #34 backlog audit: topic/name/link have real sources after all. ------ #
+# --- PROV activity alignment backlog audit: topic/name/link have real sources after all. ------ #
 
 gmeow:mapSiocTopic a gmeow:ProjectionMapping ;
     rdfs:label "message isAbout → sioc:topic"@x-gmeow-english ;
@@ -120,7 +120,7 @@ gmeow:mapSiocLink a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "sioc" ; gmeow:toPredicate sioc:link ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
 
 # --------------------------------------------------------------------------- #
-# Syndicated postings (#412) — the consumer the partial above was waiting on.
+# Syndicated postings (MoveAction projection) — the consumer the partial above was waiting on.
 # A gmeow:FeedPosting (documents slice) is online-community content too: a
 # social/blog/microblog post IS a sioc:Post, and a share/repost is sioc:links_to.
 # This RESOLVES the declared SIOC partiality (email is no longer the only

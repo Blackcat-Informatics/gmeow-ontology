@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
-    gmeow:sliceConsumer "The citation/credit dogfood (#211): CITATION.cff projection, slice manifests, scholarly credit."@x-gmeow-english .
+    gmeow:sliceConsumer "The citation/credit dogfood (source/claim refactor): CITATION.cff projection, slice manifests, scholarly credit."@x-gmeow-english.

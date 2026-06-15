@@ -16,12 +16,12 @@ or provenance matters. Career *events* (hiring, promotion, transfer, resignation
 termination) are value individuals in the universal `EventType` vocabulary, never
 subclasses (Principle 9).
 
-The standpoint doctrine (issue #51) applies with full force: disputed tenure, rival role
+The standpoint doctrine applies with full force: disputed tenure, rival role
 claims, and contested terminations are standpoint-indexed claims that **coexist**, none
 privileged (Principle 9) — two `accordingTo`-annotated `memberOf` triples, or two reified
 `Employment` relators each carrying `gmeow:accordingTo`. There is no employment-specific
 dispute mechanism, no `primaryEmployment`, no `preferredJob` — only the cross-cutting
-issue #43 facility. A withdrawn employment record sets `gmeow:displayable false`, never
+standpoint facility. A withdrawn employment record sets `gmeow:displayable false`, never
 deletion (Principle 10). Its Principle-15 consumer, declared in the manifest:
 **CV/employment claims over organization and agreements, and the mail corpus's
 signatures** — a signature block ("Jane Doe, Senior Engineer, Acme") is exactly one

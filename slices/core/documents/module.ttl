@@ -18,7 +18,7 @@ gmeow:CreativeWork
     a owl:Class, gufo:Category ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Creative Work"@x-gmeow-english ;
-    skos:definition "The abstract umbrella category for intellectual and artistic creations in the WEMI spine — a Work, Expression, Manifestation, or Item. Formerly a flat gufo:Kind (pre-#208); now a Category so that the four tiers with distinct identity criteria can each be a gufo:Kind beneath it."@x-gmeow-english ;
+    skos:definition "The abstract umbrella category for intellectual and artistic creations in the WEMI spine — a Work, Expression, Manifestation, or Item. Formerly a flat gufo:Kind (pre-WEMI spine); now a Category so that the four tiers with distinct identity criteria can each be a gufo:Kind beneath it."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:Document
@@ -64,7 +64,7 @@ gmeow:SerialWork
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --------------------------------------------------------------------------- #
-# Syndicated content (#412): a FeedPosting is a short-form work published to a feed
+# Syndicated content (MoveAction projection): a FeedPosting is a short-form work published to a feed
 # or platform — a social-media post, a blog entry, a microblog. Its kind is an
 # OPEN value (postingKind: social / blog / microblog / …), never a subclass
 # (P9). Postings quote other content (gmeow:quotesContent) and share/repost it
@@ -166,7 +166,7 @@ gmeow:WebPage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --------------------------------------------------------------------------- #
-# Web-presence model (#410): a WebSite is the published collection; WebPages
+# Web-presence model: a WebSite is the published collection; WebPages
 # belong to it (gmeow:pageOfSite ⊑ partOf) and a page may name its principal
 # subject (gmeow:pagePrincipalSubject ⊑ isAbout). A ProfilePage is a DEFINED class —
 # any WebPage whose principal subject is an Agent — so schema:ProfilePage,
@@ -219,7 +219,7 @@ gmeow:mediaType
     rdfs:domain gmeow:Entity ;
     rdfs:range rdfs:Literal ;
     rdfs:label "media type"@x-gmeow-english ;
-    skos:definition "The IANA media (MIME) type of an artifact — 'text/plain', 'application/pdf', 'image/avif'. Universal: an email body part, a Manifestation, a Distribution all carry one. Projects to schema:encodingFormat. (Generalised from the email slice, #410.)"@x-gmeow-english ;
+    skos:definition "The IANA media (MIME) type of an artifact — 'text/plain', 'application/pdf', 'image/avif'. Universal: an email body part, a Manifestation, a Distribution all carry one. Projects to schema:encodingFormat. (Generalised from the email slice,.)"@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:contentLanguage
@@ -359,7 +359,7 @@ gmeow:segmentTypeFrontMatter a gmeow:ContentSegmentType ; rdfs:label "front matt
 gmeow:segmentTypeFrontMatter rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 gmeow:segmentTypeBackMatter  a gmeow:ContentSegmentType ; rdfs:label "back matter"@x-gmeow-english ;  skos:definition "Supplementary material at the end of a book — appendix, bibliography, index."@x-gmeow-english .
 
-# --- DC date refinements (issue #60) --------------------------------------- #
+# --- DC date refinements --------------------------------------- #
 gmeow:segmentTypeBackMatter rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:dateCreated
@@ -402,7 +402,7 @@ gmeow:dateSubmitted
     skos:definition "The date a creative work was submitted for review or publication."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
-# --- DC description refinements (issue #60) -------------------------------- #
+# --- DC description refinements -------------------------------- #
 
 gmeow:abstract
     a owl:DatatypeProperty ;
@@ -420,7 +420,7 @@ gmeow:tableOfContents
     skos:definition "A list of subunits of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
-# --- DC bibliographic refinements (issue #60) ------------------------------ #
+# --- DC bibliographic refinements ------------------------------ #
 
 gmeow:bibliographicCitation
     a owl:DatatypeProperty ;
@@ -438,7 +438,7 @@ gmeow:extent
     skos:definition "The size or duration of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
-# --- Image technical metadata (issue #22) ---------------------------------- #
+# --- Image technical metadata ---------------------------------- #
 # Domain is gmeow:MediaObject (image, audio, video). These properties are
 # harmless on audio/video; pixel dimensions apply to video frames too.
 
@@ -506,7 +506,7 @@ gmeow:Service
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # =========================================================================== #
-# FLAT DEPICTION (from the images module — #287 dependency surgery)
+# FLAT DdesignTION (from the images module — slice-dependency doctrine dependency refactor)
 # The slim depiction foundation lives in core beside gmeow:MediaObject: any
 # entity (a contact, a place) can carry a binary depiction with zero image
 # machinery. The images extension provides the high-fidelity model

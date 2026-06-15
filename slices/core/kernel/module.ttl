@@ -71,7 +71,7 @@ gmeow:SocialObject
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Universal mereology — the broad part/whole spine (#76).
+# Universal mereology — the broad part/whole spine.
 #
 # Domain-specific properties keep their exact meanings (geographic containment,
 # organizational departments, event decomposition, name parts, MIME parts, ...).
@@ -98,7 +98,7 @@ gmeow:hasPart
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Granularity / level-of-detail — the universal resolution axis (#79).
+# Granularity / level-of-detail — the universal resolution axis (spatial-resolution axis).
 #
 # Every value has a resolution (a date known to the year; a place to the city).
 # Granularity is an explicit, queryable facet — "no silent precision" — and the
@@ -132,7 +132,7 @@ gmeow:hasGranularity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Disclosure control by projection — the coarsen operation (#72, CONSTITUTION P10).
+# Disclosure control by projection — the coarsen operation (coarsening operation, CONSTITUTION P10).
 #
 # Suppression (gmeow:displayable false → withhold) and generalization
 # (gmeow:coarsenTo → emit a coarser value) are one mechanism: withhold OR coarsen
@@ -140,7 +140,7 @@ gmeow:hasGranularity
 # the part/whole spine (gmeow:generalizesVia, default gmeow:partOf) up to the
 # target gmeow:GranularityLevel; any geometry/geomask math stays in the solver
 # layer (P12). The access/consent trigger is layered on this by the privacy
-# facility (#73), which reuses the same control with a consent guard.
+# facility (privacy classification vocabulary), which reuses the same control with a consent guard.
 # --------------------------------------------------------------------------- #
 
 gmeow:coarsenTo
@@ -157,7 +157,7 @@ gmeow:generalizesVia
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Compliance-by-construction annotations (#278). These three carry no logical
+# Compliance-by-construction annotations. These three carry no logical
 # semantics — they DECLARE which invariants the toolchain must generate, so a
 # new module is enforced automatically rather than by authorial discipline.
 # --------------------------------------------------------------------------- #
@@ -165,19 +165,19 @@ gmeow:generalizesVia
 gmeow:coequalFacet
     a owl:AnnotationProperty ;
     rdfs:label "co-equal facet"@x-gmeow-english ;
-    skos:definition "Marks a property as one co-equal identity-facet axis among peers (CONSTITUTION P9, #281). Every property annotated coequalFacet true is held orthogonal to every other by the generated reasoning lint: its range is its own (distinct from every other axis), no rdfs:subPropertyOf or owl:equivalentProperty bridge may connect two axes, none may be owl:FunctionalProperty (a single locked value invites exactly the owl:sameAs collapse Principle 5 forbids), and all axis ranges must be jointly declared owl:AllDisjointClasses. A new annotated axis receives Principle 9 enforcement by construction."@x-gmeow-english ;
+    skos:definition "Marks a property as one co-equal identity-facet axis among peers (CONSTITUTION P9, co-equal facet lint). Every property annotated coequalFacet true is held orthogonal to every other by the generated reasoning lint: its range is its own (distinct from every other axis), no rdfs:subPropertyOf or owl:equivalentProperty bridge may connect two axes, none may be owl:FunctionalProperty (a single locked value invites exactly the owl:sameAs collapse Principle 5 forbids), and all axis ranges must be jointly declared owl:AllDisjointClasses. A new annotated axis receives Principle 9 enforcement by construction."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:namingNote
     a owl:AnnotationProperty ;
     rdfs:label "naming note"@x-gmeow-english ;
-    skos:definition "An explicit justification for a term local name that the primary/preferred/default/main naming lint (CONSTITUTION P9, #281) would otherwise reject. Legitimate value-vocabulary uses exist — gmeow:scriptRolePrimary names a linguistic reality (one co-equal value among seven), gmeow:sourceTierPrimary is the standard bibliographic axis — and this annotation records that judgment so the lint enforces it instead of relying on audit-time discretion. A term carrying namingNote must still never be a selector that privileges one co-equal claim over another."@x-gmeow-english ;
+    skos:definition "An explicit justification for a term local name that the primary/preferred/default/main naming lint (CONSTITUTION P9, co-equal facet lint) would otherwise reject. Legitimate value-vocabulary uses exist — gmeow:scriptRolePrimary names a linguistic reality (one co-equal value among seven), gmeow:sourceTierPrimary is the standard bibliographic axis — and this annotation records that judgment so the lint enforces it instead of relying on audit-time discretion. A term carrying namingNote must still never be a selector that privileges one co-equal claim over another."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:requiresFrame
     a owl:AnnotationProperty ;
     rdfs:label "requires frame"@x-gmeow-english ;
-    skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, #283): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:frameRequirementSeverity \"warning\" to downgrade from violation."@x-gmeow-english ;
+    skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, frame-relativity gate): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:frameRequirementSeverity \"warning\" to downgrade from violation."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:frameRequirementSeverity
@@ -189,7 +189,7 @@ gmeow:frameRequirementSeverity
 gmeow:coarsenGuarded
     a owl:AnnotationProperty ;
     rdfs:label "coarsen guarded"@x-gmeow-english ;
-    skos:definition "Marks a property as PRECISION-BEARING for disclosure control (#282, CONSTITUTION P10): when a projection branch reads this property of a subject, the mapping compiler injects a guard so the subject's precise values never pass a gmeow:coarsenTo mark — the coarse form is published only by a profile's explicit coarsening branch. Ontology-derived, never a hand list: annotating a new precise-value property extends every generated projection's guards on the next regenerate."@x-gmeow-english ;
+    skos:definition "Marks a property as PRECISION-BEARING for disclosure control (precision guard, CONSTITUTION P10): when a projection branch reads this property of a subject, the mapping compiler injects a guard so the subject's precise values never pass a gmeow:coarsenTo mark — the coarse form is published only by a profile's explicit coarsening branch. Ontology-derived, never a hand list: annotating a new precise-value property extends every generated projection's guards on the next regenerate."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:frameCardinality
@@ -199,7 +199,7 @@ gmeow:frameCardinality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Determinacy — universal ontic-uncertainty vocabulary (#71).
+# Determinacy — universal ontic-uncertainty vocabulary.
 #
 # Ontic indeterminacy (how inherently defined a value is) is held distinct from
 # epistemic confidence (how sure we are). A value may be crisp, vague, fuzzy,
@@ -237,7 +237,7 @@ gmeow:determinacyProbabilistic skos:definition "The probabilistic determinacy �
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 # --------------------------------------------------------------------------- #
-# Sensitivity — universal privacy-classification vocabulary (#73, PRIV-GEN).
+# Sensitivity — universal privacy-classification vocabulary (privacy classification vocabulary, PRIV-GEN).
 #
 # Every value may carry a sensitivity level that drives disclosure control
 # (coarsenTo / displayable) at projection time under a consent guard (P10).
@@ -273,7 +273,7 @@ gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensit
 gmeow:sensitivitySensitivePersonal skos:definition "The sensitive personal sensitivity level — information about a person whose disclosure carries elevated risk and may be subject to legal protection or consent guards."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Consumer Projection Context — the audience / consumer axis (#225).
+# Consumer Projection Context — the audience / consumer axis.
 #
 # Every value or claim may name the projection consumers it is eligible for.
 # This is the *who* layer of disclosure control: which downstream consumers
@@ -316,21 +316,21 @@ gmeow:consumerFoafExport          a gmeow:ProjectionContext ; rdfs:label "FOAF e
 gmeow:consumerResearchQueue       a gmeow:ProjectionContext ; rdfs:label "research queue"@x-gmeow-english ;       skos:definition "The consumer is a human-curated research or verification queue."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Disclosure Policy — the access-classification axis (#225).
+# Disclosure Policy — the access-classification axis.
 #
 # Every value or claim may carry a disclosure policy that classifies its
 # suitability for public release. This is the *what* layer: internal-only,
 # sensitive, public-careful, public-safe, never-public, or public-only-with-
 # independent-source. It layers over the existing sensitivity/coarsen/suppress
-# machinery (#72/#73) and pairs with the evidence module's sourceIndependence
-# (#224) for the conditional case.
+# machinery (coarsening operation/privacy classification vocabulary) and pairs with the evidence module's sourceIndependence
+# for the conditional case.
 # --------------------------------------------------------------------------- #
 
 gmeow:DisclosurePolicy
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Disclosure Policy"@x-gmeow-english ;
-    skos:definition "The disclosure posture of a value or claim — an open value vocabulary of individuals (never subclasses) classifying whether and under what conditions the fact may be projected to consumers. The *what* layer of disclosure control: internalOnly, sensitive, publicCareful, publicSafe, neverPublic, or publicOnlyWithIndependentSource. Orthogonal to sensitivity, determinacy, confidence, and granularity (Principle 9). The conditional case (publicOnlyWithIndependentSource) is resolved against the evidence module's sourceIndependence axis (#224) in the solver layer (P12)."@x-gmeow-english ;
+    skos:definition "The disclosure posture of a value or claim — an open value vocabulary of individuals (never subclasses) classifying whether and under what conditions the fact may be projected to consumers. The *what* layer of disclosure control: internalOnly, sensitive, publicCareful, publicSafe, neverPublic, or publicOnlyWithIndependentSource. Orthogonal to sensitivity, determinacy, confidence, and granularity (Principle 9). The conditional case (publicOnlyWithIndependentSource) is resolved against the evidence module's sourceIndependence axis in the solver layer (P12)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:hasDisclosurePolicy
@@ -349,10 +349,10 @@ gmeow:policyNeverPublic                    a gmeow:DisclosurePolicy ; rdfs:label
 gmeow:policyPublicOnlyWithIndependentSource  a gmeow:DisclosurePolicy ; rdfs:label "public only with independent source"@x-gmeow-english ;  skos:definition "The fact may be projected to public consumers ONLY when supported by an editorially independent source (resolved against gmeow:sourceIndependence in the solver layer, P12)."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Documentation doctrine — docs ship WITH the ontology (#325).
+# Documentation doctrine — docs ship WITH the ontology.
 #
 # Three tiers (CONSTITUTION P4 applied to documentation): Tier 1 — term docs
-# are canonical in the graph (rdfs:label + skos:definition gated since #221;
+# are canonical in the graph (rdfs:label + skos:definition gated since annotation-completeness gate;
 # skos:scopeNote use-when/avoid-when and skos:example worked micro-examples
 # extend them, graded by the completeness gate). Tier 2 — narrative guides
 # are canonical markdown per slice (docs.md), structurally bound: every
@@ -369,7 +369,7 @@ gmeow:policyPublicOnlyWithIndependentSource  a gmeow:DisclosurePolicy ; rdfs:lab
 gmeow:markdown
     a rdfs:Datatype ;
     rdfs:label "markdown"@x-gmeow-english ;
-    skos:definition "The CommonMark literal datatype — documentation content carried in the graph is CommonMark, typed with this datatype so the convention is machine-visible (#325). Used ONLY in annotation literals (scope notes, examples, guide content), never in logical axioms, so the OWL 2 DL profile is untouched. HTML or SGML subsets are explicitly rejected: one markup convention, visible in the data."@x-gmeow-english ;
+    skos:definition "The CommonMark literal datatype — documentation content carried in the graph is CommonMark, typed with this datatype so the convention is machine-visible. Used ONLY in annotation literals (scope notes, examples, guide content), never in logical axioms, so the OWL 2 DL profile is untouched. HTML or SGML subsets are explicitly rejected: one markup convention, visible in the data."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:pairsWith
@@ -415,7 +415,7 @@ gmeow:avoidForConsumer
 gmeow:guideBlob
     a owl:AnnotationProperty ;
     rdfs:label "guide blob"@x-gmeow-english ;
-    skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide as embedded in a GTS package (#325): the guide rides the same file as the ontology, sub-profiled per slice, and a consumer resolves guide ↔ slice from the graph itself. The value is the blob digest string; the docs-in-sync invariant (every guide anchor resolves to a live term) is enforced by the package build, so the linkage is trustworthy from the hash chain alone (Principle 7)."@x-gmeow-english ;
+    skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide as embedded in a GTS package: the guide rides the same file as the ontology, sub-profiled per slice, and a consumer resolves guide ↔ slice from the graph itself. The value is the blob digest string; the docs-in-sync invariant (every guide anchor resolves to a live term) is enforced by the package build, so the linkage is trustworthy from the hash chain alone (Principle 7)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:DocumentationConcern
@@ -481,7 +481,7 @@ gmeow:hasSensitivity gmeow:docsConcern gmeow:concernDisclosure .
 gmeow:hasUnit gmeow:docsConcern gmeow:concernFrames .
 
 # --------------------------------------------------------------------------- #
-# Aboutness — the universal mention/use axis (#349, EPIC #348).
+# Aboutness — the universal mention/use axis ( goal hierarchy design).
 #
 # What a carrier *does* with its content: describes it (mention — reports,
 # quotes, depicts, analyzes) or enacts it (use — performs, demands,
@@ -516,7 +516,7 @@ gmeow:aboutnessEnacts    a gmeow:AboutnessMode ; rdfs:label "enacts"@x-gmeow-eng
 gmeow:aboutnessEnacts skos:definition "The enacting (use) aboutness mode — the carrier performs, demands, exemplifies, or embodies its subject rather than merely reporting it. A style guide whose prose IS the voice it teaches; a covenant text that demands the trust it names. Fiction is the licensed case where enactment co-occurs with non-assertion (deception module bridge)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Units — cross-cutting unit linkage for measurements (#67).
+# Units — cross-cutting unit linkage for measurements.
 #
 # Domain-free object property pointing to QUDT by reference. Temporal
 # measurements, spatial coordinates, and any other quantitative value can use
@@ -531,7 +531,7 @@ gmeow:hasUnit
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
-# Universal connectivity — the traversable-link spine (#80, CONN-GEN).
+# Universal connectivity — the traversable-link spine (connectivity spine, CONN-GEN).
 #
 # Domain-specific properties keep their exact meanings (spatial network links,
 # social acquaintance, kinship bonds, citation edges, software dependencies).

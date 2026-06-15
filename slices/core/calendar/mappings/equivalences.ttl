@@ -8,7 +8,7 @@
 @prefix wd:     <http://www.wikidata.org/entity/> .
 @prefix wdt:    <http://www.wikidata.org/prop/direct/> .
 
-# Term equivalences for the calendar and scheduling slice (#62).
+# Term equivalences for the calendar and scheduling slice (calendar and scheduling design).
 # Compiled to mappings/gmeow-calendar.sssom.tsv by `gmeow compile-mappings`.
 
 # --------------------------------------------------------------------------- #
@@ -19,7 +19,7 @@ gmeow:mapsetCalendar a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-calendar.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/calendar" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Calendar and scheduling alignments (#62) — gmeow:Calendar, gmeow:EventSchedule, gmeow:EventInvitation, gmeow:Availability, gmeow:Reminder, gmeow:Task, gmeow:TimeZone and their value vocabularies, aligned to iCalendar (RFC 5545/5546), schema.org Schedule/EventSeries, and Wikidata by reference.
+    gmeow:setComment """Calendar and scheduling alignments (calendar and scheduling design) — gmeow:Calendar, gmeow:EventSchedule, gmeow:EventInvitation, gmeow:Availability, gmeow:Reminder, gmeow:Task, gmeow:TimeZone and their value vocabularies, aligned to iCalendar (RFC 5545/5546), schema.org Schedule/EventSeries, and Wikidata by reference.
         VALUE VOCABULARIES: InvitationStatus, RsvpStatus, AvailabilityStatus, ReminderAction, TaskStatus, ExceptionType are gufo:QualityValue individuals, aligned to external classes/enums with skos:closeMatch (Principle 9 — no overtyping).
         SCHEDULE ≠ OCCURRENCE: an EventSchedule generates Event occurrences; it is not the occurrence itself.""" .
 

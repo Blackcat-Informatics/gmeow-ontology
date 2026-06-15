@@ -16,7 +16,7 @@ to promote to when intent, selector, provenance, or standpoint must be recorded.
 vocabulary (Principle 9 — individuals, never subclasses), and the *where* is a
 `gmeow:Selector` — a pinpoint that specializes the evidence-span mechanism rather than
 reinventing it. This is also the most aggressively dogfooded slice in GMEOW: the
-project's own credit model and CITATION.cff projection ride this machinery (issue #211).
+project's own credit model and CITATION.cff projection ride this machinery (source/claim refactor).
 
 The rubrics facility (extensions/norms) extends the relator rather than forking it:
 `gmeow:Exemplar` is a SubKind of `gmeow:CitationAct` — a citation with polarity that
@@ -59,8 +59,8 @@ its own Principle-5 alignments. A new intent is a fresh individual, never a subc
 
 The pinpoint into the cited work: page (`gmeow:selectorPage`), character position,
 verbatim quote, or generic locator. Non-functional — one citation may span several
-pages. `Selector` is a specialization of `gmeow:EvidenceSpan` (issue #55) and is reused
-by the annotation target span (issue #63); it replaces the retired `gmeow:Citation`
+pages. `Selector` is a specialization of `gmeow:EvidenceSpan` (EvidenceSpan audit machinery) and is reused
+by the annotation target span (annotation target span); it replaces the retired `gmeow:Citation`
 class that collided with scholarly citation.
 
 ## Credit and source-hood
@@ -70,7 +70,7 @@ class that collided with scholarly citation.
 The weight of a contribution — an open value vocabulary (Principle 9) characterizing
 the universal `gmeow:Contribution` relator: `gmeow:degreeLead`, `gmeow:degreeEqual`,
 `gmeow:degreeSupporting` as seeds, CRediT-shaped, projected to CITATION.cff and
-CrossRef contributor metadata (issue #211).
+CrossRef contributor metadata (source/claim refactor).
 
 ### gmeow:SourceRole
 
@@ -82,7 +82,7 @@ the named handle for the rare case that needs one. Nothing is a source by kind.
 ### gmeow:references · gmeow:isReferencedBy
 
 The generic flat Entity→Entity reference pair, gathered here by the dependency surgery
-of issue #287: one definition serves RFC 5322 message threading and bibliographic
+of slice-dependency doctrine: one definition serves RFC 5322 message threading and bibliographic
 referencing alike. The flat-first companion of the typed machinery above — promote when
 kind, locus, or standpoint matters.
 
@@ -93,10 +93,10 @@ solver-layer computations (Principle 12): the slice records the acts; it never a
 derived metrics as facts. CiTO, CRediT, PROV-O, and PAV remain bridges by reference,
 never axiom imports (Principle 5); the rubrics-facility projections (EARL, DQV,
 schema.org Rating) arrive free through `Exemplar ⊑ CitationAct` and are deferred to the
-compiler-arc window (issue #353).
+compiler-arc window.
 
 ## Dependencies
 
 Depends on `kernel`, `documents` (the CreativeWork range), and `evidence` (the
 EvidenceSpan that Selector specializes). Consumed by the citation/credit dogfood
-(issue #211), slice manifests, and the norms extension's Exemplar.
+(source/claim refactor), slice manifests, and the norms extension's Exemplar.

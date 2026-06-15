@@ -13,7 +13,7 @@ gmeow:mapsetNorms a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-norms.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/norms" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Assessment/rubric alignments to schema.org's review cluster (#34): the Assessment relator is per-review — its vantage is the review author — so the schema review idiom carries coexisting verdicts faithfully (Principle 9)." .
+    gmeow:setComment "Assessment/rubric alignments to schema.org's review cluster (PROV activity alignment): the Assessment relator is per-review — its vantage is the review author — so the schema review idiom carries coexisting verdicts faithfully (Principle 9).".
 
 gmeow:eqNorms001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:assessmentTarget ;
@@ -21,7 +21,7 @@ gmeow:eqNorms001 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:itemReviewed ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the assessed target is what a schema review reviews; closeMatch — itemReviewed scopes to Review acts where assessmentTarget covers any scored observation (#34: declares the per-review ClaimReview projection)" ;
+    gmeow:comment "the assessed target is what a schema review reviews; closeMatch — itemReviewed scopes to Review acts where assessmentTarget covers any scored observation (PROV activity alignment: declares the per-review ClaimReview projection)";
     gmeow:sssomFile "gmeow-norms.sssom.tsv" .
 
 gmeow:eqNorms002 a gmeow:TermEquivalence ;
@@ -30,5 +30,5 @@ gmeow:eqNorms002 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:ratingValue ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the score literal as schema's rating value; closeMatch — ratingValue rides a Rating node where the score sits on the Assessment (#34)" ;
+    gmeow:comment "the score literal as schema's rating value; closeMatch — ratingValue rides a Rating node where the score sits on the Assessment (PROV activity alignment)";
     gmeow:sssomFile "gmeow-norms.sssom.tsv" .

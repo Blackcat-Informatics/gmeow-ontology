@@ -108,7 +108,7 @@ gmeow:mappedFrom
     skos:definition "The source property a claim was derived from during ingestion, recorded for mapping-step audit."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
 
-# --- DC provenance (issue #60) --------------------------------------------- #
+# --- DC provenance --------------------------------------------- #
 
 gmeow:provenance
     a owl:DatatypeProperty ;

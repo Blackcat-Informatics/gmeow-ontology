@@ -184,3 +184,97 @@
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
     gmeow:citedEntity <http://www.w3.org/2002/12/cal/icaltzd#> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
+
+# =========================================================================== #
+# PROJECT / REPOSITORY — dogfood the software slice's five-facet model
+# =========================================================================== #
+
+:project
+    a gmeow:SoftwareProject ;
+    rdfs:label "GMEOW ontology project"@x-gmeow-english ;
+    skos:definition "The Blackcat Informatics software and ontology publication project that develops, publishes, and maintains GMEOW."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:projectHomepage <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:bugDatabase <https://github.com/Blackcat-Informatics/gmeow-ontology/issues> ;
+    gmeow:downloadPage <https://github.com/Blackcat-Informatics/gmeow-ontology/releases> ;
+    gmeow:hasRepository :repository ;
+    gmeow:maintenanceStatus gmeow:statusActive ;
+    gmeow:governanceModel gmeow:governanceCorporate ;
+    gmeow:projectLicense :license-apache-2 ;
+    gmeow:hasLogo :logo-svg .
+
+:license-apache-2
+    a gmeow:License ;
+    rdfs:label "Apache License 2.0"@x-gmeow-english ;
+    skos:definition "The Apache License 2.0 license used for GMEOW tooling code and repository-maintenance software."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:licensor <https://blackcatinformatics.ca/#bii> ;
+    gmeow:licenseFamily gmeow:licenseFamilyPermissive ;
+    gmeow:spdxLicenseId "Apache-2.0" ;
+    gmeow:spdxLicenseName "Apache License 2.0" ;
+    dcterms:identifier <https://spdx.org/licenses/Apache-2.0> .
+
+:repository
+    a gmeow:Repository ;
+    rdfs:label "GMEOW ontology repository"@x-gmeow-english ;
+    skos:definition "The Git repository that carries the authored ontology sources, mapping DSLs, statement DSLs, examples, tests, generators, and documentation sources for GMEOW."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:cloneUrl "https://github.com/Blackcat-Informatics/gmeow-ontology.git" ;
+    gmeow:webUrl "https://github.com/Blackcat-Informatics/gmeow-ontology" .
+
+# =========================================================================== #
+# BRAND ASSETS — logo and social preview as first-class media objects
+# =========================================================================== #
+
+<https://blackcatinformatics.ca/gmeow>
+    gmeow:hasLogo :logo-svg .
+
+:brand-note
+    a gmeow:Document ;
+    rdfs:label "GMEOW brand note"@x-gmeow-english ;
+    skos:definition "The repository note that documents the GMEOW brand positioning, color tokens, logo assets, and social-preview publishing workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:sourceLocation "docs/BRAND.md" ;
+    gmeow:isAbout :project ;
+    gmeow:isAbout :logo-svg ;
+    gmeow:isAbout :social-preview-svg ;
+    gmeow:isAbout :social-preview-png ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+:logo-svg
+    a gmeow:MediaObject ;
+    rdfs:label "GMEOW logo SVG"@x-gmeow-english ;
+    skos:definition "The canonical GMEOW logo: a black cat holding a linked knowledge graph. It is the emblematic logo for the ontology and project, not a depiction of them."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:mediaType "image/svg+xml" ;
+    gmeow:sourceLocation "docs/gmeow-logo.svg" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+:social-preview-svg
+    a gmeow:MediaObject ;
+    rdfs:label "GMEOW social preview SVG"@x-gmeow-english ;
+    skos:definition "The editable SVG source for the GMEOW repository social preview card."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:mediaType "image/svg+xml" ;
+    gmeow:pixelWidth "1280"^^xsd:nonNegativeInteger ;
+    gmeow:pixelHeight "640"^^xsd:nonNegativeInteger ;
+    gmeow:hasPart :logo-svg ;
+    gmeow:sourceLocation "docs/social-preview.svg" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+:social-preview-png
+    a gmeow:MediaObject ;
+    rdfs:label "GMEOW social preview PNG"@x-gmeow-english ;
+    skos:definition "The rendered PNG social preview card uploaded through GitHub repository settings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:mediaType "image/png" ;
+    gmeow:pixelWidth "1280"^^xsd:nonNegativeInteger ;
+    gmeow:pixelHeight "640"^^xsd:nonNegativeInteger ;
+    gmeow:wasDerivedFrom :social-preview-svg ;
+    gmeow:sourceLocation "docs/social-preview.png" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+<https://blackcatinformatics.ca/gmeow/self>
+    skos:definition "The authored self-description graph for GMEOW publication, project, repository, credit, citation, and brand metadata."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> .

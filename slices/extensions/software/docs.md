@@ -14,7 +14,7 @@ contribution comes from creative-works' `Contribution` relator (the flat `gmeow:
 property is *removed* — Principle 6, greenfield: the inferior element does not survive its
 replacement), events and provenance from their own slices, attestation and signatures from
 the trust stack. The Principle-15 consumer is **the five-facet software model
-(issue #231): git-as-provenance, verifiable releases — and this repository itself**, which
+(five-facet software model): git-as-provenance, verifiable releases — and this repository itself**, which
 the slice describes when GMEOW dogfoods its own citation and release chain.
 
 ## Facet 1 — the endeavour
@@ -82,7 +82,7 @@ event that produced it.
 
 ### gmeow:BuildActivity
 
-The verifiable-release chain (issue #233): a build consumes `gmeow:buildSource` (commit or
+The verifiable-release chain (verifiable-release chain): a build consumes `gmeow:buildSource` (commit or
 repository) and produces `gmeow:buildOutput` distributions, performed by a `gmeow:Builder`
 (a `SoftwareAgent` — GitHub Actions, Jenkins, a local make). Integrity claims ride on
 attestations via `gmeow:hasSLSALevel` (open `SLSALevel` vocabulary, levels 1–4);
@@ -91,7 +91,7 @@ never redeclared.
 
 ### gmeow:AuthorIdentity
 
-Immutable history vs current identity (issue #234): the raw git bytes (`Name <email>`,
+Immutable history vs current identity (immutable-history author identity): the raw git bytes (`Name <email>`,
 via `gmeow:authorIdentityString`) recorded by `commitAuthorIdentity` /
 `commitCommitterIdentity`, linked to the present self-asserted agent through
 `gmeow:canonicalizedIdentity`. Old and new identities are co-equal standpoints, never
@@ -108,7 +108,7 @@ git object model, Software Heritage (Content/Directory/Revision/Origin), ForgeFe
 PROV-O, and the DOAP downcast. Depends on `attestation`, `kernel`, `creative-works`,
 `entities`, `events`, `language`, `names`, `provenance`, `rights`, and `tags`.
 
-## Project homepage and language (#413)
+## Project homepage and language (project homepage and language)
 
 ### gmeow:projectHomepage · gmeow:programmingLanguage
 

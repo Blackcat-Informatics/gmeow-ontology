@@ -19,7 +19,7 @@ beyond doubt (high warrant) while establishing no notability at all
 DataCite, nanopublications, and WP:GNG (Principle 5).
 
 On the claim spine (Source → Chunk → EvidenceSpan → Claim, Principle 14) this slice owns
-the **EvidenceSpan** anchor — the issue #55 link from a claim back into the exact span of
+the **EvidenceSpan** anchor — the EvidenceSpan audit machinery link from a claim back into the exact span of
 its source — and the warrant facets that ride on each citation edge. Weak evidence is
 recorded, never deleted: rumour-tier claims are suppressed by projection (Principle 10),
 and every eligibility decision is the solver's, not the reasoner's (Principle 12).
@@ -30,10 +30,10 @@ and every eligibility decision is the solver's, not the reasoner's (Principle 12
 
 An anchored target span within a resource — text quote, character position, fragment
 identifier, page, or generic locator. Generalised from the citation-selector model to
-serve both evidentiary claims (issues #54/#55) and annotation targets (issue #63): the
+serve both evidentiary claims (GraphRAG provenance design/EvidenceSpan audit machinery) and annotation targets (annotation target span): the
 citations slice's `Selector` specialises it, the notes slice's annotation targets reuse
 it, and no second selector model is ever minted (Principle 4). Re-homed to core in the
-issue #287 dependency surgery because the spine anchor *is* core evidence machinery.
+slice-dependency doctrine dependency refactor because the spine anchor *is* core evidence machinery.
 
 ## Axis A — evidential warrant
 
@@ -97,5 +97,5 @@ solver policy (Principle 12). The graph records the facets; the consumer's polic
 ## Dependencies
 
 Depends on `citations` (the `CitationAct` the facets attach to) and `kernel`. Consumed by
-the claim spine's EvidenceSpan (issue #55), citation warrant in every sourced slice, and
+the claim spine's EvidenceSpan (EvidenceSpan audit machinery), citation warrant in every sourced slice, and
 the deception analyses' evidence grading.

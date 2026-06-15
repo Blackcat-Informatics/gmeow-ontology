@@ -1,4 +1,4 @@
-"""TQL — the Temporal Query Language toolkit (#41 temporal deepening).
+"""TQL — the Temporal Query Language toolkit (event/temporal design temporal deepening).
 
 The queries are a temporal algebra in standard SPARQL 1.1: Allen-relation property-
 path closures (no materializing reasoner), the event timeline, interval overlap, and
@@ -104,7 +104,7 @@ def test_overlapping_window_matches_crisp_point_and_fuzzy() -> None:
 
 def test_bitemporal_four_clocks_returns_standpoint_indexed_claims() -> None:
     """Over the contested fixture: a claim valid at 1895 and asserted by 2020 is
-    returned with its standpoint, and coexisting frames are NOT collapsed (#43).
+    returned with its standpoint, and coexisting frames remain separate.
     """
     rows = run_temporal_query(
         "bitemporal",

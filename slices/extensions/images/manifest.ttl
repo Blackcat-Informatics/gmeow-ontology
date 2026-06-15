@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:sliceConsumer "High-fidelity depiction (regions, scene graphs) atop core MediaObject; the gmeow-image CLI (#326)."@x-gmeow-english .
+    gmeow:sliceConsumer "High-fidelity depiction (regions, scene graphs) atop core MediaObject; the gmeow-image CLI (CLI roll-up design)."@x-gmeow-english.

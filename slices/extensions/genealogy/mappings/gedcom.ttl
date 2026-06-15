@@ -6,7 +6,7 @@
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#> .
 
-# Projection mappings: GMEOW genealogy → SWAP GEDCOM (#34 phase 3). The
+# Projection mappings: GMEOW genealogy → SWAP GEDCOM (PROV activity alignment phase 3). The
 # genealogy-exchange view: persons as gedcom:Individual, families, minted
 # gedcom:Marriage nodes from CoupleRelationship relators, person-level
 # kinship rows. Every kinship cell drops standpoint/accordingTo provenance —
@@ -175,7 +175,7 @@ gmeow:mapGedcomSexUVariation a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "gsexuv" ; gmeow:tPred gedcom:sex ; gmeow:tObj "gsexuvVal" ] ) ] .
 
 
-# --- The family-anchored rows (gmeow:withinFamily, #34 audit verdicts). --- #
+# --- The family-anchored rows (gmeow:withinFamily, PROV activity alignment audit verdicts). --- #
 
 gmeow:mapGedcomChildIn a gmeow:ProjectionMapping ;
     rdfs:label "family-anchored parent-child relationship → gedcom:childIn"@x-gmeow-english ;
@@ -208,7 +208,7 @@ gmeow:mapGedcomFamilyMarriage a gmeow:ProjectionMapping ;
         gmeow:profile "gedcom" ; gmeow:toPredicate gedcom:marriage ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:templateAtoms ( [ gmeow:tSubj "gfmFam" ; gmeow:tPred gedcom:marriage ; gmeow:tObj "gfmMarriage" ] ) ] .
 
-# --- husband/wife: the clean-configuration rule (#34 audit verdict). ------ #
+# --- husband/wife: the clean-configuration rule (PROV activity alignment audit verdict). ------ #
 # Emits ONLY when both partners carry clean documentary saab data (one M,
 # one F); the suppressWhen guards kill the cell on ANY ambiguity, leaving
 # the symmetric spouseIn rows from mapGedcomMarriage.
@@ -245,7 +245,7 @@ gmeow:mapGedcomHusbandWife a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "ghwMarriage" ; gmeow:tPred gedcom:husband ; gmeow:tObj "ghwHim" ]
             [ gmeow:tSubj "ghwMarriage" ; gmeow:tPred gedcom:wife ; gmeow:tObj "ghwHer" ] ) ] .
 
-# Marriage date + place (#413): the couple's marriage gmeow:Event sources
+# Marriage date + place (project homepage and language): the couple's marriage gmeow:Event sources
 # gedcom:date / gedcom:place on the SAME minted <couple>-marriage node.
 gmeow:mapGedcomMarriageDate a gmeow:ProjectionMapping ;
     rdfs:label "couple marriage event → gedcom:date / gedcom:place"@x-gmeow-english ;

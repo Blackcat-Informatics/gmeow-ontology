@@ -2,7 +2,7 @@
 
 ## Goal
 
-Every published `gmeow-full.gts` snapshot is cryptographically signed so that
+Every published `gmeow.gts` snapshot is cryptographically signed so that
 consumers can verify its integrity and authenticate its origin.  The signing
 system is intentionally simple and offline-first:
 
@@ -35,16 +35,16 @@ system is intentionally simple and offline-first:
 
 ```bash
 # Default: verify against the embedded transport key
-gmeow verify dist/gmeow-full.gts
+gmeow verify dist/gmeow.gts
 
 # Pin to the repository's public release key
-gmeow verify dist/gmeow-full.gts --trusted-key keys/gmeow-release-key.asc
+gmeow verify dist/gmeow.gts --trusted-key keys/gmeow-release-key.asc
 
 # Inspect file metadata without running signature verification
-gmeow gts info --no-verify dist/gmeow-full.gts
+gmeow gts info --no-verify dist/gmeow.gts
 
 # Extract the embedded public key for manual WoT checks
-gmeow gts extract-key dist/gmeow-full.gts -o /tmp/embedded.asc
+gmeow gts extract-key dist/gmeow.gts -o /tmp/embedded.asc
 ```
 
 ## Current release key
@@ -76,11 +76,11 @@ sign the snapshot before uploading artifacts:
 - run: uv run --package gmeow-dev gmeow-dev gts compile-full \
          --sign-key /tmp/gpg/signing-key.asc \
          --public-key keys/gmeow-release-key.asc \
-         -o generated/dist/gmeow-full.gts
-- run: uv run gmeow verify generated/dist/gmeow-full.gts
+         -o generated/dist/gmeow.gts
+- run: uv run gmeow verify generated/dist/gmeow.gts
 ```
 
-The committed `generated/dist/gmeow-full.gts` remains **unsigned**; only the
+The committed `generated/dist/gmeow.gts` remains **unsigned**; only the
 release artifacts are signed.
 
 ## Key rotation

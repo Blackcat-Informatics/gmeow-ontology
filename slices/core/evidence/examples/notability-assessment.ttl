@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: grading citations as evidence (#443). The evidence slice hangs
+# Worked example: grading citations as evidence. The evidence slice hangs
 # quality dimensions on a gmeow:CitationAct (from the citations slice): its
 # gmeow:hasEvidenceClass, gmeow:sourceTier (primary/secondary/tertiary),
 # gmeow:sourceIndependence and gmeow:coverageDepth together decide whether the

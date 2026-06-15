@@ -11,7 +11,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, NAMESPACE
+from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE
 from gmeow_tools.export import Term, collect_terms, fold_meta
 from gmeow_tools.gts_views import FoldView
 from gts import read
@@ -21,7 +21,7 @@ mcp = FastMCP("gmeow")
 
 def _view() -> FoldView:
     """Load the bundled GTS snapshot into a fold view."""
-    return FoldView(read(GTS_FULL_SNAPSHOT_FILE.read_bytes()))
+    return FoldView(read(GTS_SNAPSHOT_FILE.read_bytes()))
 
 
 def _terms() -> list[Term]:

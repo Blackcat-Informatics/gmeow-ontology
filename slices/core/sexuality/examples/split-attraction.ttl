@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: the split-attraction model (#443, P9). Sexual orientation and
+# Worked example: the split-attraction model ( P9). Sexual orientation and
 # romantic orientation are SEPARATE, mutually independent axes — each a reified,
 # self-asserted gmeow:IdentityFacet on the shared base. Because the axes never
 # collapse into one another, an asexual-biromantic person is directly expressible:

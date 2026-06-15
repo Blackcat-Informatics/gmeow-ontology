@@ -13,7 +13,7 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
-# Universal authority/coreference links (#74, CONSTITUTION Principle 5).
+# Universal authority/coreference links (authority/coreference links, CONSTITUTION Principle 5).
 #
 # The stable entity is the GMEOW node itself. External records are authority
 # references attached with gmeow:authorityLink plus an explicit SKOS match

@@ -8,7 +8,7 @@
 @prefix wd:     <http://www.wikidata.org/entity/> .
 @prefix wdt:    <http://www.wikidata.org/prop/direct/> .
 
-# Term equivalences for the universal lifecycle slice (#81) — GMEOW authoring source.
+# Term equivalences for the universal lifecycle slice (person event design) — GMEOW authoring source.
 # Compiled to mappings/gmeow-lifecycle.sssom.tsv by `gmeow compile-mappings`.
 # Alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
 # The lifecycle event types (creation, destruction, supersession, dissolution) are
@@ -19,7 +19,7 @@ gmeow:mapsetLifecycle a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lifecycle" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Universal-lifecycle alignments (#81) — gmeow:hasCreationEvent / gmeow:hasDestructionEvent / gmeow:existenceInterval / gmeow:supersededBy / gmeow:supersedes, plus the open gmeow:EventType value additions (creation, destruction, supersession, dissolution), aligned to PROV-O, CIDOC-CRM and Wikidata BY REFERENCE.
+    gmeow:setComment """Universal-lifecycle alignments (person event design) — gmeow:hasCreationEvent / gmeow:hasDestructionEvent / gmeow:existenceInterval / gmeow:supersededBy / gmeow:supersedes, plus the open gmeow:EventType value additions (creation, destruction, supersession, dissolution), aligned to PROV-O, CIDOC-CRM and Wikidata BY REFERENCE.
         EVENT TYPES: value individuals aligned to external classes with skos:closeMatch (a value-to-class correspondence), mirroring placeType / Gender / ParticipantRole.
         PROV-O: hasCreationEvent generalizes prov:wasGeneratedBy from entities to any endurant; hasDestructionEvent generalizes prov:wasInvalidatedBy.
         CIDOC-CRM: the event types align to E63 Beginning of Existence, E64 End of Existence, and E81 Transformation.

@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Sensory Environment Module"@x-gmeow-english ;
     skos:definition "The GMEOW Sensory Environment Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
-    rdfs:comment """Ambient perceivable conditions at a Location×time. Measured conditions are expressed as CoordinateMatrix values in measurement reference frames (colourspace, audio spectrum, thermal, air-quality). Perceived conditions are standpoint-indexed values in MentalReferenceFrames. Part of the #42 Location-as-reference-frame epic. Consumes OBS + #43 + R6. Putative."""@x-gmeow-english ;
+    rdfs:comment """Ambient perceivable conditions at a Location×time. Measured conditions are expressed as CoordinateMatrix values in measurement reference frames (colourspace, audio spectrum, thermal, air-quality). Perceived conditions are standpoint-indexed values in MentalReferenceFrames. Part of the Location-as-reference-frame design. Consumes OBS + standpoint facility + R6. Putative."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

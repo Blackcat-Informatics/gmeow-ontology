@@ -8,13 +8,13 @@
 
 Genealogy is the discipline of *contested evidence*, and the slice models it that way. A
 kinship claim is an observation — a claim-from-a-vantage in the universal stack
-(issue #69) — not a brute fact. The standpoint doctrine (issue #51) governs everything
+(observation-spine bridge) — not a brute fact. The standpoint doctrine governs everything
 contested: disputed parentage, conflicting birth/death dates, competing civil vs parish
 records are standpoint-indexed claims that **coexist**, none privileged (Principle 9). A
 contested parentage is two `accordingTo`-annotated `hasParent` triples, or two reified
 `ParentChildRelationship` instances each carrying `gmeow:accordingTo`. There is no
 genealogy-specific dispute mechanism, no `preferredParent`, no `primaryKinship` — only
-the cross-cutting issue #43 facility. A withdrawn claim sets `gmeow:displayable false`,
+the cross-cutting standpoint facility. A withdrawn claim sets `gmeow:displayable false`,
 never deletion (Principle 10).
 
 Equally important is what the slice does *not* own. Life events belong to the universal
@@ -35,14 +35,14 @@ The root reified kinship relator — simultaneously a `gmeow:Observation` and a
 `gufo:Relator`: a relationship *is* a claim from a vantage, able to bear its own events,
 dates, sources, and standpoint-indexed sub-claims. The participants are co-observed
 features (`relationshipParent`/`relationshipChild`/`hasPartner` are `observedFeature`
-sub-properties — the issue #287 bridge declared here, so the observation spine never
+sub-properties — the slice-dependency doctrine bridge declared here, so the observation spine never
 knows the slice).
 
 ### gmeow:ParentChildRelationship
 
 The parent-child relator, typed by nature via its four subkinds. Relator mediation is
 axiomatized (EL `someValuesFrom`: a parent and a child exist) so ELK sees the structure;
-closed-world cardinality is SHACL's (issue #39).
+closed-world cardinality is SHACL's (SHACL closure gate).
 
 ### gmeow:BiologicalParentChild · gmeow:AdoptiveParentChild · gmeow:StepParentChild · gmeow:FosterParentChild
 
@@ -76,7 +76,7 @@ The flat shortcuts, mutually inverse, deliberately non-functional: contested par
 claims from multiple sources coexist as `accordingTo`-annotated statements (Principle 9).
 `hasMother`/`hasFather` specialize `hasParent`. Both are sub-properties of
 `gmeow:connectsTo` — kinship bonds are traversable links in the universal graph layer
-(issue #80), safely, because `connectsTo` is neither symmetric nor transitive.
+(connectivity spine), safely, because `connectsTo` is neither symmetric nor transitive.
 
 ### gmeow:hasSpouse · gmeow:hasSibling
 
@@ -85,7 +85,7 @@ the connectivity spine imposes nothing back.
 
 ### gmeow:hasAncestor · gmeow:hasDescendant
 
-The derived closure (issue #38, phase 2 of the reasoning-depth epic issue #35):
+The derived closure (relator-mediation doctrine, phase 2 of the reasoning-depth design):
 `hasAncestor` is transitive with `hasParent` as a sub-property, so the reasoner *entails*
 the full ancestor closure that was never asserted; `hasDescendant` adds the DL inverse
 (HermiT-complete). Both are non-simple (transitive) and are deliberately kept out of
@@ -106,7 +106,7 @@ Depends on `kernel`, `entities` (Person, Group), and `observations` (the Observa
 spine the relators sit on). Leans on events, names, gender, and connectivity by
 convention — each contribution declared in the slice that owns it.
 
-## Couple events (#413)
+## Couple events (project homepage and language)
 
 ### gmeow:hasCoupleEvent
 

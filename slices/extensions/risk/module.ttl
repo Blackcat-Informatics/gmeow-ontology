@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/risk>
     a owl:Ontology ;
     rdfs:label "GMEOW Risk Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Risk Module — hazards, type-level causation, cascades, and mitigations (issue #354, EPIC #348)."@x-gmeow-english ;
+    skos:definition "The GMEOW Risk Module — hazards, type-level causation, cascades, and mitigations."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:comment """Hazards, type-level causation, cascades, and mitigations — counterfactual causal structure without counterfactual machinery.
 
@@ -17,9 +17,9 @@ DOCTRINE.
   * THE COUNTERFACTUAL PROBLEM DISSOLVES AT THE TYPE LEVEL: cascades relate event TYPES, never event instances — nothing in this slice asserts that anything occurred, and the no-occurrence gate makes that executable (loading the full fixture set entails zero gmeow:Event instances from this slice's terms). 'Trust betrayal dissolves the bond' is a claim about kinds of events; the catastrophe it warns of need never have happened. PROV lineage and CRM influence are token-level; OBO RO is the rare type-level causation vocabulary — that asymmetry is why this slice exists.
   * CAUSAL LINKS ARE CLAIMS LIKE ANY OTHER: standpoint-indexed and confidence-bearing through the statement layer. Two risk analysts disagreeing about whether T1 promotes T2 are two coexisting claims (Principle 9). Cascade propagation, probability composition, and simulation are solver work over the recorded links (Principle 12); gmeow:linkStrength is solver INPUT, never solver output written back as assertion.
   * FIRST gufo:Disposition USE IN GMEOW: a Hazard is a bearer's disposition toward harm, manifested (when it manifests at all) as events of a feared type. Inherence is asserted with GMEOW's own gmeow:hazardBearer (Principle 5: gufo:inheresIn is the alignment target, not the asserted axiom).
-  * MITIGATION CROSSES TO DEONTICS BY OPEN RANGE: a Mitigation binds a measure — a gmeow:Norm (norms extension) or a Procedure (procedures extension) — to what it counters. The measure range is intentionally open (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling.
+  * MITIGATION CROSSES TO DEONTICS BY OPEN RANGE: a Mitigation binds a measure — a gmeow:Norm or a Procedure (procedures extension) — to what it counters. The measure range is intentionally open (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling.
   * SEVERITY IS AN ORDERED VOCABULARY (the kernel GranularityLevel pattern — catastrophic ≻ severe ≻ moderate ≻ minor, gmeow:moreSevereThan transitive ON LEVELS ONLY), anchored terminologically to ISO 31000 / IEC 60812 in docs, never in axioms.
-  * ALIGNMENTS DEFERRED to the compiler-arc window: OBO RO causal properties (linkage-only, BFO lineage), MITRE D3FEND (countermeasure ↔ Mitigation), STIX 2.1/ATT&CK, UCO, ConceptNet/ATOMIC rows; projections to bowtie JSON, FMEA CSV, STIX bundles each with declared-loss manifests. Target list fixed in #354."""@x-gmeow-english ;
+  * ALIGNMENTS DEFERRED to the compiler-arc window: OBO RO causal properties (linkage-only, BFO lineage), MITRE D3FEND (countermeasure ↔ Mitigation), STIX 2.1/ATT&CK, UCO, ConceptNet/ATOMIC rows; projections to bowtie JSON, FMEA CSV, STIX bundles each with declared-loss manifests. Target list fixed in the alignment ledger."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -144,7 +144,7 @@ gmeow:linkMechanism
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:label "link mechanism"@x-gmeow-english ;
-    skos:definition "How the causation works — prose. NOT functional and range-open (localizable prose, the #376 lesson): one mechanism account per language tag."@x-gmeow-english ;
+    skos:definition "How the causation works — prose. NOT functional and range-open (localizable prose, the localizable-prose convention lesson): one mechanism account per language tag."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:linkStrength
@@ -152,7 +152,7 @@ gmeow:linkStrength
     rdfs:domain gmeow:CausalLink ;
     rdfs:range xsd:decimal ;
     rdfs:label "link strength"@x-gmeow-english ;
-    skos:definition "A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional (PR #385 review): strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing owl:sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention)."@x-gmeow-english ;
+    skos:definition "A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional design review: strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing owl:sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 # =========================================================================== #
@@ -218,7 +218,7 @@ gmeow:cascadeSeverity
     rdfs:domain gmeow:Cascade ;
     rdfs:range gmeow:SeverityLevel ;
     rdfs:label "cascade severity"@x-gmeow-english ;
-    skos:definition "The cascade's graded severity — according to whoever grades it (statement-layer indexed). NOT functional (PR #385 review): grading is evaluative and source-variable; divergent grades coexist through the statement layer, and single-valuedness per base graph is SHACL's job (the hasAuthorityLevel convention). Mandatory: an ungraded cascade is just a story."@x-gmeow-english ;
+    skos:definition "The cascade's graded severity — according to whoever grades it (statement-layer indexed). NOT functional design review: grading is evaluative and source-variable; divergent grades coexist through the statement layer, and single-valuedness per base graph is SHACL's job (the hasAuthorityLevel convention). Mandatory: an ungraded cascade is just a story."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:hazardSeverity
@@ -226,7 +226,7 @@ gmeow:hazardSeverity
     rdfs:domain gmeow:Hazard ;
     rdfs:range gmeow:SeverityLevel ;
     rdfs:label "hazard severity"@x-gmeow-english ;
-    skos:definition "The hazard's graded severity, when graded standalone (a hazard feeding a cascade usually inherits attention from the cascade's grade). NOT functional (PR #385 review — evaluative, source-variable; the hasAuthorityLevel convention); optional, at most one per base graph (SHACL)."@x-gmeow-english ;
+    skos:definition "The hazard's graded severity, when graded standalone (a hazard feeding a cascade usually inherits attention from the cascade's grade). NOT functional (design review — evaluative, source-variable; the hasAuthorityLevel convention); optional, at most one per base graph (SHACL)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 # =========================================================================== #
@@ -246,7 +246,7 @@ gmeow:Mitigation
         [ a owl:Restriction ; owl:onProperty gmeow:mitigationMeasure ;  owl:someValuesFrom owl:Thing ] ,
         [ a owl:Restriction ; owl:onProperty gmeow:mitigationCounters ; owl:someValuesFrom owl:Thing ] ;
     rdfs:label "Mitigation"@x-gmeow-english ;
-    skos:definition "A reified countermeasure binding: a measure — a gmeow:Norm (norms extension) or a Procedure (procedures extension) — set against a causal link or hazard it counters. The measure range is intentionally OPEN (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling. The D3FEND countermeasure and bowtie barrier map here at alignment time. Whether a mitigation WORKED is a vantage-indexed claim, never an entailment."@x-gmeow-english ;
+    skos:definition "A reified countermeasure binding: a measure — a gmeow:Norm or a Procedure (procedures extension) — set against a causal link or hazard it counters. The measure range is intentionally OPEN (the tenurePosition precedent, fourth use): the P16 DAG rule bars extension→extension dependencies, and the open range lets the deontic and procedural worlds plug in without axiom coupling. The D3FEND countermeasure and bowtie barrier map here at alignment time. Whether a mitigation WORKED is a vantage-indexed claim, never an entailment."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
 gmeow:mitigationMeasure
@@ -286,8 +286,8 @@ gmeow:mitigationStatus
     rdfs:domain gmeow:Mitigation ;
     rdfs:range gmeow:MitigationStatus ;
     rdfs:label "mitigation status"@x-gmeow-english ;
-    skos:definition "The mitigation's lifecycle status. NOT functional (PR #385 review): lifecycle is mutable and source-variable — status-over-time rides validFrom/validUntil on the statement, and single-valuedness per base graph is SHACL's job. Open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
+    skos:definition "The mitigation's lifecycle status. NOT functional design review: lifecycle is mutable and source-variable — status-over-time rides validFrom/validUntil on the statement, and single-valuedness per base graph is SHACL's job. Open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:typeCauses gmeow:pairsWith gmeow:CausalLink .

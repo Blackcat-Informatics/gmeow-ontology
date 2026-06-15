@@ -5,7 +5,7 @@
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/affect` · **tier: extension**
 
-Emotions and appraisals (#356, EPIC #348) — **the thinnest slice in the
+Emotions and appraisals (the affect design) — **the thinnest slice in the
 repo, by commitment**.
 
 ## The thinness budget
@@ -40,4 +40,4 @@ declined with a pointer here.
 MFOEM rows (linkage-only — BFO lineage), EmotionML vocabulary IRIs,
 WordNet-Affect closeMatch rows; the W3C EmotionML projection with declared
 loss (vantage collapses to EmotionML's single-annotator model — flagged
-loudly). Target list fixed in issue #356.
+loudly). Target list fixed in the alignment ledger.

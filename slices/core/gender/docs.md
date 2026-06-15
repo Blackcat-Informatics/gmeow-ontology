@@ -34,7 +34,7 @@ a person is *addressed*, never what they *are*. Sex ≠ gender: sex-at-birth is 
 administrative datum, not an identity. Nothing infers expression from identity, orientation
 from gender, or anything from anything. The disjointness is a reasoner **theorem**
 (`owl:AllDisjointClasses` over both the facet classes and their value spaces, OWL 2
-EL-visible — issue #38); the bridge-*absence* half, which OWL cannot say, stays a
+EL-visible — relator-mediation doctrine); the bridge-*absence* half, which OWL cannot say, stays a
 closed-world lint (`tests/test_identity_orthogonality.py`).
 
 ## The facet base
@@ -42,7 +42,7 @@ closed-world lint (`tests/test_identity_orthogonality.py`).
 ### gmeow:IdentityFacet
 
 The shared root: a reified, self-asserted claim about an aspect of a person's identity — a
-`gufo:Relator` *and* a `gmeow:Observation` in the universal claim stack (issue #69),
+`gufo:Relator` *and* a `gmeow:Observation` in the universal claim stack (observation-spine bridge),
 mediating the person (`facetSubject`) and an open identity value, with the asserting agent
 as `facetVantage`. Carries the optional `validFrom`/`validUntil` clocks and the
 `gmeow:displayable` control. The sexuality slice's two orientation facets subclass this same
@@ -113,7 +113,7 @@ ex:facetPrior a gmeow:GenderIdentity ;         # superseded — suppressed, kept
 ## Boundaries, solver, and alignment
 
 Closed-world cardinality ("exactly one value per facet", "exactly one subject") is
-deliberately **not** OWL — it is SHACL's job (phase 3, issue #39), keeping the reasoned core
+deliberately **not** OWL — it is SHACL's job (phase 3, SHACL closure gate), keeping the reasoned core
 EL-friendly (Principle 12's boundary discipline: the ontology states the relata, the gates
 check the counts). Alignment is lossy by design: GSSO, Homosaurus, Wikidata, schema.org,
 FOAF and HL7/FHIR mappings live in `mappings/gmeow-gender.sssom.tsv`, and flat targets like

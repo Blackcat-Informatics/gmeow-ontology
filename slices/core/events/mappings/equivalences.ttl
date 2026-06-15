@@ -18,7 +18,7 @@
 @prefix wd:     <http://www.wikidata.org/entity/> .
 @prefix wdt:    <http://www.wikidata.org/prop/direct/> .
 
-# Term equivalences for the universal events slice (#41) — GMEOW authoring source.
+# Term equivalences for the universal events slice (event/temporal design) — GMEOW authoring source.
 # Compiled to mappings/gmeow-events.sssom.tsv by `gmeow compile-mappings`. All
 # alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
 # Event types and participant roles are VALUE individuals (gufo:QualityValue), so
@@ -29,11 +29,11 @@ gmeow:mapsetEvents a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/events" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Universal-event alignments (#41) — gmeow:Event + the gmeow:Participation relator + the open gmeow:eventType / gmeow:ParticipantRole / gmeow:TemporalPrecision value vocabularies + the Allen temporal-relation algebra + Duration / RecurrenceRule, supersetting schema.org Event, CIDOC-CRM E5/E7, OWL-Time, the Time Event Ontology (TEO), ISO-TimeML (TLINK/TIMEX3/EVENT), PROV-O, iCalendar, LODE, SEM, BIO / GEDCOM X (the life-event types) and Wikidata BY REFERENCE.
+    gmeow:setComment """Universal-event alignments (event/temporal design) — gmeow:Event + the gmeow:Participation relator + the open gmeow:eventType / gmeow:ParticipantRole / gmeow:TemporalPrecision value vocabularies + the Allen temporal-relation algebra + Duration / RecurrenceRule, supersetting schema.org Event, CIDOC-CRM E5/E7, OWL-Time, the Time Event Ontology (TEO), ISO-TimeML (TLINK/TIMEX3/EVENT), PROV-O, iCalendar, LODE, SEM, BIO / GEDCOM X (the life-event types) and Wikidata BY REFERENCE.
         VALUE VOCABULARIES: eventType / participationRole individuals are gufo:QualityValue values, aligned to external classes, fact-types and role-properties with skos:closeMatch (a value-to-class/property correspondence), mirroring placeType. An unforeseen type/role is a fresh individual, never a new class or subproperty (Principle 9 — no overtyping, no role-subproperty proliferation).
         REIFIED PARTICIPATION: gmeow:Participation is the NameUsage relator idiom; it carries role / period / confidence / provenance / standpoint that schema.org's flat attendee/performer/organizer and OWL-Time's participation-free interval algebra cannot. The flat gmeow:hasParticipant covers the 80% case and projects to the flat targets.
         TEMPORAL RELATIONS: the 13 Allen interval relations relate gmeow:Event occurrences directly (the ISO-TimeML TLINK / TEO event-event idiom), aligned to OWL-Time interval* (relatedMatch — OWL-Time relates the intervals) and TEO (closeMatch — TEO is BFO-grounded like GMEOW). ISO-TimeML is an XML scheme with no canonical RDF namespace, so its TLINK/TIMEX3/EVENT relType/type/tense/aspect STRING enums are documented as value correspondences (see the inline table), not IRI-aligned; its OWL realization IS OWL-Time, aligned here.
-        CONTESTED FACTS: a disputed type, role, date or location is several coexisting gmeow:accordingTo-indexed claims (standpoint module, #43), never one slot to win; there is no preferredRank / primaryClaim.
+        CONTESTED FACTS: a disputed type, role, date or location is several coexisting gmeow:accordingTo-indexed claims (standpoint module, standpoint facility), never one slot to win; there is no preferredRank / primaryClaim.
         CANONICAL (no faithful external term): gmeow:temporalPrecision and gmeow:earliestStart / latestEnd fuzzy bounds (related only to CRM E52 P82a/P82b begin/end-of bounds and TEO hasApproximation).""" .
 
 # --------------------------------------------------------------------------- #
@@ -525,7 +525,7 @@ gmeow:eqEvents054 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
 # Remaining GEDCOM X fact types (restoring full parity: every event-type value
-# that GEDCOM X names is aligned, as the pre-#41 genealogy model had them).
+# that GEDCOM X names is aligned, as the pre-event/temporal design genealogy model had them).
 gmeow:eqEvents055 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:eventTypeBurial ;
     gmeow:alignPredicate skos:closeMatch ;
@@ -877,7 +877,7 @@ gmeow:eqEvents091 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
 # =========================================================================== #
-# TEMPORAL RELATIONS — Allen's interval algebra (#41 temporal deepening).
+# TEMPORAL RELATIONS — Allen's interval algebra (event/temporal design temporal deepening).
 # Each gmeow event-event Allen relation aligns to OWL-Time's interval* relation
 # (relatedMatch — OWL-Time relates the INTERVALS, GMEOW the events that bear
 # them) and to the Time Event Ontology (TEO, closeMatch — TEO relates events
@@ -1237,7 +1237,7 @@ gmeow:eqEvents127 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
 # =========================================================================== #
-# Spacetime / Trajectory linkage (#106) — moving events and 4D spacetime slices
+# Spacetime / Trajectory linkage — moving events and 4D spacetime slices
 # =========================================================================== #
 
 gmeow:eqEvents128 a gmeow:TermEquivalence ;
@@ -1271,7 +1271,7 @@ gmeow:eqEvents130 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Issue #128 — ObservationalActivity and observation linkage.
+# observation-linkage design — ObservationalActivity and observation linkage.
 # --------------------------------------------------------------------------- #
 
 gmeow:eqEvents131 a gmeow:TermEquivalence ;
@@ -1334,7 +1334,7 @@ gmeow:eqEvents138 a gmeow:TermEquivalence ;
     gmeow:alignObject prov:wasAssociatedWith ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "an event's agent participants are PROV's associated agents; gmeow scopes to any Event where PROV scopes to Activities — exactMatch on the shared activity use (#34 phase 2)" ;
+    gmeow:comment "an event's agent participants are PROV's associated agents; gmeow scopes to any Event where PROV scopes to Activities — exactMatch on the shared activity use (PROV activity alignment phase 2)";
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
 gmeow:eqEvents139 a gmeow:TermEquivalence ;
@@ -1343,7 +1343,7 @@ gmeow:eqEvents139 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:fromLocation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema scopes fromLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (#412)" ;
+    gmeow:comment "schema scopes fromLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (MoveAction projection)";
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
 gmeow:eqEvents140 a gmeow:TermEquivalence ;
@@ -1352,7 +1352,7 @@ gmeow:eqEvents140 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:toLocation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema scopes toLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (#412)" ;
+    gmeow:comment "schema scopes toLocation to MoveAction/TransferAction; gmeow scopes to any movement-shaped Event — closeMatch, with the MoveAction typing handled by the projection cell (MoveAction projection)";
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
 gmeow:eqEvents141 a gmeow:TermEquivalence ;
@@ -1361,5 +1361,5 @@ gmeow:eqEvents141 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:MoveAction ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "a migration-typed event is schema's MoveAction shape; the projection types ANY endpoint-bearing event as MoveAction structurally (value-to-class convention, #412)" ;
+    gmeow:comment "a migration-typed event is schema's MoveAction shape; the projection types ANY endpoint-bearing event as MoveAction structurally (value-to-class convention, MoveAction projection)";
     gmeow:sssomFile "gmeow-events.sssom.tsv" .

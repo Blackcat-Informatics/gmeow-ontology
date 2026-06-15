@@ -1,4 +1,4 @@
-"""Tests for temporal measurement and dating methods (issue #67)."""
+"""Tests for temporal measurement and dating methods."""
 
 from __future__ import annotations
 

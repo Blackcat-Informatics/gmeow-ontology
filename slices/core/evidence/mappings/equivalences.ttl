@@ -23,7 +23,7 @@ gmeow:mapsetEvidence a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/evidence" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Evidence and source-typing alignments (#224).
+    gmeow:setComment """Evidence and source-typing alignments.
         CRMinf: EvidenceClass aligns to I2 Belief (the warranted claim) and I5 Inference Making (the evidential process).
         PROV-O: CitationAct aligns to prov:Entity; hasEvidenceClass aligns loosely to prov:wasDerivedFrom (PROV-O has no explicit warrant-typing property).
         schema.org: CitationAct aligns to schema:citation; supportsNotability aligns loosely to schema:Claim (schema:Claim has appearance/evidence facets).

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example (#390): one agent turn as auditable provenance — a model
+# Worked example: one agent turn as auditable provenance — a model
 # invocation requests two tool calls; the entity the second call produced
 # links BACK via gmeow:wasGeneratedBy (P5: no forward output property).
 # Large payloads ride as content digest literals (the verbatim-or-digest

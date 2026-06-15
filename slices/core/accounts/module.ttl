@@ -62,7 +62,7 @@ gmeow:nip05
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
 
 # --------------------------------------------------------------------------- #
-# Online-presence history (#417, #411): the SERVICE an account is held with,
+# Online-presence history: the SERVICE an account is held with,
 # its liveness, the account's own status, and the service homepage. A retired
 # account or a shut-down service is RETAINED with status + dates, never deleted
 # (P10). Flat-first: a service's shutdown is the flat gmeow:serviceShutdownDate;

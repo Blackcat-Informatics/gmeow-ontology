@@ -15,7 +15,7 @@ a location may honestly carry *both* a feature and a barrier for the same facet 
 the front entrance, stairs at the side). The flat shortcuts cover the 80 % case; promote to
 a reified `AccessibilityAssertion` when provenance, confidence, temporal scope, or
 suppression matter (Principle 10: suppression is `displayable false`, never deletion).
-The slice is part of the issue #42 Location-as-reference-frame epic.
+The slice is part of the the design Location-as-reference-frame design.
 
 Its Principle-15 consumer, declared in the manifest: **accessibility facets over places and
 routes, and the schema.org accessibility projection** — every term here either drives
@@ -88,5 +88,5 @@ OWL core only models the inputs.
 
 Depends on `kernel` and `places` (the `Location` domain of the shortcuts). Sibling to
 `connectivity` — mutually independent extensions joined only at the solver layer and at
-`routeKindAccessible` (issue #287 surgery keeps that value individual beside its value
+`routeKindAccessible` (slice-dependency doctrine refactor keeps that value individual beside its value
 class, in connectivity).

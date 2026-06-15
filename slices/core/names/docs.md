@@ -262,7 +262,7 @@ The only flat name term retained is `gmeow:name` — the simple `rdfs:label` tie
 entities that don't need the full naming apparatus (it carries no precedence over
 an entity's other names).
 
-## Place naming — `hasPlaceName`, `PlaceNaming`, endonym/exonym (issue #105)
+## Place naming — `hasPlaceName`, `PlaceNaming`, endonym/exonym (place-naming design)
 
 A place's names are not a flat literal. A `gmeow:Place` bears co-equal
 `gmeow:PlaceName` toponyms via **`gmeow:hasPlaceName`** (the place-scoped
@@ -299,7 +299,7 @@ joint or competing authorities coexist with no privileged claimant (Principle 9)
 `fnSelectExonym` emits exonyms as `schema:alternateName`; historical/superseded and
 competing-standpoint names are dropped (documented lossy drops).
 
-## Cross-cutting multilingual labels — Organization, CreativeWork, Agreement, Software (issue #97)
+## Cross-cutting multilingual labels — Organization, CreativeWork, Agreement, Software (multilingual-label design)
 
 The Appellation pattern is not limited to persons and places. Every realm that bears names gets the same multilingual, anti-colonial machinery:
 

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: gender as reified, self-asserted, co-equal facets (#443, P9/P10).
+# Worked example: gender as reified, self-asserted, co-equal facets ( P9/P10).
 # Each axis is a reified gmeow:IdentityFacet (the NameUsage relator idiom), never a
 # flat enum column. Four tenets are visible here:
 #   • SELF-ASSERTION is the top authority — a self-asserted facet (selfAsserted
