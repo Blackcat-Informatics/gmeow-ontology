@@ -37,6 +37,8 @@ PREFIX schema: <https://schema.org/>
 PREFIX gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#>
 PREFIX doap: <http://usefulinc.com/ns/doap#>
 PREFIX sioc: <http://rdfs.org/sioc/ns#>
+PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
 """
 
 #: Flat type rewrites (source class → gmeow class) the per-term lift misses
@@ -55,7 +57,22 @@ _PRED_REWRITES: tuple[tuple[str, str], ...] = (
     ("sioc:has_creator", "gmeow:from"),
     ("sioc:topic", "gmeow:isAbout"),
     ("sioc:link", "gmeow:sourceLocation"),
+    ("time:hasTime", "gmeow:eventTime"),
+    ("doap:repository", "gmeow:hasRepository"),
+    ("doap:browse", "gmeow:webUrl"),
+    ("dcterms:rights", "gmeow:copyrightNotice"),
 )
+
+#: The object of these source predicates is typed as a gmeow class (so the
+#: down-cell that requires the type fires) — e.g. a doap:repository node IS a
+#: gmeow:Repository, which doap:browse → gmeow:webUrl then needs.
+_OBJECT_TYPES: tuple[tuple[str, str], ...] = (("doap:repository", "gmeow:Repository"),)
+
+
+def _object_type_query(src_pred: str, gmeow_type: str) -> str:
+    return f"""{_PREFIXES}
+CONSTRUCT {{ ?o rdf:type {gmeow_type} . }} WHERE {{ ?s {src_pred} ?o . }}"""
+
 
 #: Inverse predicate rewrites: source ``s P o`` → ``o gmeow:Q s`` (the down-cell
 #: emits the source as the inverse of the gmeow edge).
@@ -249,6 +266,7 @@ def _reverse_queries() -> list[str]:
         + [_type_rewrite_query(s, g) for s, g in _TYPE_REWRITES]
         + [_pred_rewrite_query(s, g) for s, g in _PRED_REWRITES]
         + [_inverse_rewrite_query(s, g) for s, g in _INVERSE_REWRITES]
+        + [_object_type_query(s, g) for s, g in _OBJECT_TYPES]
     )
 
 
