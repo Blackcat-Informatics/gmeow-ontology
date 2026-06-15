@@ -13,15 +13,17 @@ from pathlib import Path
 import pytest
 from rdflib import RDF, XSD, Literal, URIRef
 from rdflib.namespace import OWL
-from typer.testing import CliRunner
 
 from gmeow_tools import statements_docker_check
 from gmeow_tools.config import (
     PREFIXES,
     PROJECT_ROOT,
+    STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.rdf12 import project_owl_to_rdf12
+from gmeow_tools.runner import ToolUnavailableError
 from gmeow_tools.statement_compile import emit_owl
 from gmeow_tools.statement_dsl import (
     Annotation,
@@ -208,16 +210,16 @@ def test_no_preview_language_remains() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_rdf12_hard_fails_without_jena(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_rdf12_hard_fails_without_jena(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     import gmeow_tools.runner as runner
 
+    monkeypatch.setattr(runner, "docker_available", lambda **_kw: True)
     monkeypatch.setattr(runner, "image_available", lambda _image, **_kw: False)
-    from gmeow_tools.cli_dev import app
 
-    result = CliRunner().invoke(app, ["regenerate", "statements"])
-    assert result.exit_code != 0  # ToolUnavailableError → no degraded fallback
-    assert result.exception is not None
-    assert "ToolUnavailableError" in type(result.exception).__name__
+    with pytest.raises(ToolUnavailableError, match="Docker image not present locally"):
+        project_owl_to_rdf12(STATEMENT_OWL_FILE, tmp_path / "gmeow.rdf12.ttl")
 
 
 # --------------------------------------------------------------------------- #

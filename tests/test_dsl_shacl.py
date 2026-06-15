@@ -1,8 +1,10 @@
 """Tests for RDF-native SHACL validation of the mapping and statement DSL sources.
 
-Each test confirms that malformed DSL cells yield structured SHACL diagnostics
-(focus node, path, message, source file) before the Python graph-walkers
-produce their own errors.
+These pytest cases confirm that malformed DSL cells yield structured SHACL
+diagnostics (focus node, path, message, source file) before the Python
+graph-walkers produce their own errors. The real-source positive SHACL gate
+lives in ``make validate`` / the CI ontology job, so pytest does not repeat the
+full mapping DSL validation on its hot path.
 """
 
 from __future__ import annotations
@@ -60,14 +62,6 @@ class TestMappingDslShacl:
         assert "source=" in msg
         assert "alignSubject" in msg
 
-    def test_valid_mapping_dsl_passes_shacl(self) -> None:
-        """The real mapping DSL must pass SHACL validation without exception."""
-        # load_dsl defaults to MAPPING_DSL_DIR — if this raises, the real DSL
-        # is non-conformant to the new shapes (a bug in the shapes, not the DSL).
-        dsl = load_dsl()
-        assert len(dsl.equivalences) > 0
-        assert len(dsl.projections) > 0
-
 
 class TestStatementDslShacl:
     def test_malformed_statement_shacl_diagnostic(self, tmp_path: Path) -> None:
@@ -81,8 +75,3 @@ class TestStatementDslShacl:
         assert "msg=" in msg
         assert "source=" in msg
         assert "qObject" in msg or "qObjectLiteral" in msg
-
-    def test_valid_statement_dsl_passes_shacl(self) -> None:
-        """The real statement DSL must pass SHACL validation without exception."""
-        dsl = load_statement_dsl()
-        assert len(dsl.cells) > 0
