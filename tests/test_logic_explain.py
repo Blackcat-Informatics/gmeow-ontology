@@ -552,3 +552,319 @@ class TestExplainErrorCases:
         )
         with pytest.raises(ExplainError):
             explain(result, foreign_quad)
+
+
+# --------------------------------------------------------------------------- #
+# Regression tests: Gap 3 — literal-object quads (issue #501)
+# --------------------------------------------------------------------------- #
+
+
+_HAS_LABEL = URIRef("http://www.w3.org/2000/01/rdf-schema#label")
+_W_LIT = URIRef("http://world/LiteralTest")
+
+
+def _make_literal_object_result() -> MaterializationResult:
+    """Materialize a graph that contains a literal-object quad.
+
+    Input: Dog rdfs:label "Dog"@en (in _W_LIT)
+    No rules — the result contains only the one asserted quad with a literal obj.
+    This is the minimal case that triggered the crash in _build_reifier_index
+    when it called _n3_to_term on a literal N3 string.
+    """
+    from gmeow_tools.logic_ir import (
+        LogicProfile,
+        LogicProgram,
+        SemanticProfileId,
+    )
+
+    program = LogicProgram(
+        axioms=(),
+        rules=(),
+        profiles=(LogicProfile(profile_id=SemanticProfileId.POSITIVE_HORN),),
+    )
+    cg: ConjunctiveGraph = ConjunctiveGraph()
+    named_graph = cg.get_context(_W_LIT)
+    named_graph.add((_DOG, _HAS_LABEL, Literal("Dog", lang="en")))
+    return materialize_program(program, cg)
+
+
+class TestLiteralObjectQuad:
+    """Regression tests for Gap 3: explain() must not crash on literal-object quads."""
+
+    def test_materialize_produces_literal_quad(self) -> None:
+        """Sanity: the materializer produces the literal-object asserted quad."""
+        result = _make_literal_object_result()
+        lit_n3 = Literal("Dog", lang="en").n3()
+        dq = _find_derived_quad(result, str(_DOG), lit_n3)
+        assert dq.obj == lit_n3
+
+    def test_explain_does_not_crash_on_literal_object(self) -> None:
+        """explain() must succeed (not raise) when the target has a literal object.
+
+        Previously _build_reifier_index called _n3_to_term(dq.obj) which raised
+        ExplainError for any literal-valued object.  After the fix it uses
+        _reifier_from_quad(dq) which handles literals correctly.
+        """
+        result = _make_literal_object_result()
+        lit_n3 = Literal("Dog", lang="en").n3()
+        target = _find_derived_quad(result, str(_DOG), lit_n3)
+        expl = explain(result, target)
+        assert isinstance(expl, Explanation)
+
+    def test_literal_object_step_is_asserted(self) -> None:
+        """The single asserted quad with a literal object must appear as is_asserted."""
+        result = _make_literal_object_result()
+        lit_n3 = Literal("Dog", lang="en").n3()
+        target = _find_derived_quad(result, str(_DOG), lit_n3)
+        expl = explain(result, target)
+        assert expl.step_skeleton[0].is_asserted
+
+    def test_literal_object_faithfulness_passes(self) -> None:
+        """assert_explanation_faithful() must pass for a literal-object explanation."""
+        result = _make_literal_object_result()
+        lit_n3 = Literal("Dog", lang="en").n3()
+        target = _find_derived_quad(result, str(_DOG), lit_n3)
+        expl = explain(result, target)
+        # Must not raise
+        assert_explanation_faithful(expl, result)
+
+    def test_literal_object_not_in_term_iris(self) -> None:
+        """Literal objects must NOT appear in term_iris (only IRI objects do)."""
+        result = _make_literal_object_result()
+        lit_n3 = Literal("Dog", lang="en").n3()
+        target = _find_derived_quad(result, str(_DOG), lit_n3)
+        expl = explain(result, target)
+        for step in expl.step_skeleton:
+            for iri in step.term_iris:
+                # No IRI should embed the literal string
+                assert '"Dog"' not in iri
+
+    def test_subject_and_predicate_in_cited_iris(self) -> None:
+        """Subject and predicate IRIs must still be in cited_iris for literal quads."""
+        result = _make_literal_object_result()
+        lit_n3 = Literal("Dog", lang="en").n3()
+        target = _find_derived_quad(result, str(_DOG), lit_n3)
+        expl = explain(result, target)
+        assert str(_DOG) in expl.cited_iris
+        assert str(_HAS_LABEL) in expl.cited_iris
+
+
+# --------------------------------------------------------------------------- #
+# Regression tests: Gap 3b — world-scoped reifier index (issue #501)
+# --------------------------------------------------------------------------- #
+
+_W_A = URIRef("http://world/Alpha")
+_W_B = URIRef("http://world/Beta")
+
+
+def _make_two_world_result() -> MaterializationResult:
+    """Materialize a two-world scenario where the SAME (S,P,O) appears in both.
+
+    World A: Dog ⊑ Mammal (asserted), Mammal ⊑ Animal (asserted)
+             → Dog ⊑ Animal (DERIVED by transitivity rule)
+    World B: Dog ⊑ Animal (asserted directly — same triple, different provenance)
+
+    Before the fix, keying the reifier index by reifier alone meant that the
+    derived Dog⊑Animal in world A and the asserted Dog⊑Animal in world B shared
+    one index slot, so antecedent resolution could return the wrong DerivedQuad.
+    After the fix, (world_iri, reifier) keys disambiguate them correctly.
+    """
+    cg: ConjunctiveGraph = ConjunctiveGraph()
+    # World A
+    ctx_a = cg.get_context(_W_A)
+    ctx_a.add((_DOG, _SUB_CLASS_OF, _MAMMAL))
+    ctx_a.add((_MAMMAL, _SUB_CLASS_OF, _ANIMAL))
+    # World B — same terminal triple, but asserted directly
+    ctx_b = cg.get_context(_W_B)
+    ctx_b.add((_DOG, _SUB_CLASS_OF, _ANIMAL))
+    return materialize_program(_sub_class_of_transitivity_program(), cg)
+
+
+class TestTwoWorldReifierIndex:
+    """Regression tests for Gap 3b: antecedents must resolve in the correct world."""
+
+    def test_both_worlds_have_dog_animal(self) -> None:
+        """Both worlds produce a Dog⊑Animal quad but with different provenance."""
+        result = _make_two_world_result()
+        animal_n3 = _ANIMAL.n3()
+        quads_by_graph: dict[str, DerivedQuad] = {}
+        for dq in result.quads:
+            if dq.subject == str(_DOG) and dq.obj == animal_n3:
+                quads_by_graph[dq.graph] = dq
+        assert str(_W_A) in quads_by_graph, "World A must have Dog⊑Animal"
+        assert str(_W_B) in quads_by_graph, "World B must have Dog⊑Animal"
+
+    def test_world_a_quad_is_derived(self) -> None:
+        """In world A, Dog⊑Animal must be derived (by the transitivity rule)."""
+        result = _make_two_world_result()
+        animal_n3 = _ANIMAL.n3()
+        for dq in result.quads:
+            if (
+                dq.subject == str(_DOG)
+                and dq.obj == animal_n3
+                and dq.graph == str(_W_A)
+            ):
+                assert dq.rule_iri == _TRANSITIVITY_RULE_IRI
+                return
+        pytest.fail("No Dog⊑Animal quad found in world A")
+
+    def test_world_b_quad_is_asserted(self) -> None:
+        """In world B, Dog⊑Animal must be asserted (no rule applied)."""
+        result = _make_two_world_result()
+        animal_n3 = _ANIMAL.n3()
+        for dq in result.quads:
+            if (
+                dq.subject == str(_DOG)
+                and dq.obj == animal_n3
+                and dq.graph == str(_W_B)
+            ):
+                assert dq.rule_iri == "https://blackcatinformatics.ca/logic/assert"
+                return
+        pytest.fail("No Dog⊑Animal quad found in world B")
+
+    def test_explain_world_a_derived_quad_faithful(self) -> None:
+        """explain() on the DERIVED quad in world A must be faithful.
+
+        This confirms antecedents (Dog⊑Mammal, Mammal⊑Animal) are resolved
+        from world A, not collapsed with the asserted quad in world B.
+        """
+        result = _make_two_world_result()
+        animal_n3 = _ANIMAL.n3()
+        target_a: DerivedQuad | None = None
+        for dq in result.quads:
+            if (
+                dq.subject == str(_DOG)
+                and dq.obj == animal_n3
+                and dq.graph == str(_W_A)
+            ):
+                target_a = dq
+                break
+        assert target_a is not None
+        expl = explain(result, target_a)
+        assert not expl.step_skeleton[0].is_asserted, (
+            "Top step in world A must be derived (transitivity rule)"
+        )
+        assert_explanation_faithful(expl, result)
+
+    def test_explain_world_b_asserted_quad_faithful(self) -> None:
+        """explain() on the ASSERTED quad in world B must be faithful.
+
+        World B has only the one asserted fact; its explanation must not
+        pull in antecedents from world A.
+        """
+        result = _make_two_world_result()
+        animal_n3 = _ANIMAL.n3()
+        target_b: DerivedQuad | None = None
+        for dq in result.quads:
+            if (
+                dq.subject == str(_DOG)
+                and dq.obj == animal_n3
+                and dq.graph == str(_W_B)
+            ):
+                target_b = dq
+                break
+        assert target_b is not None
+        expl = explain(result, target_b)
+        assert expl.step_skeleton[0].is_asserted, "Top step in world B must be asserted"
+        assert_explanation_faithful(expl, result)
+
+    def test_world_a_explanation_contains_antecedent_steps(self) -> None:
+        """The derived quad in world A must cite its two antecedent asserted facts."""
+        result = _make_two_world_result()
+        animal_n3 = _ANIMAL.n3()
+        for dq in result.quads:
+            if (
+                dq.subject == str(_DOG)
+                and dq.obj == animal_n3
+                and dq.graph == str(_W_A)
+            ):
+                expl = explain(result, dq)
+                # Step skeleton must include Mammal as an intermediate node
+                subjects = {step.subject_iri for step in expl.step_skeleton}
+                assert str(_MAMMAL) in subjects, (
+                    "Explanation for world A derived quad must include Mammal step"
+                )
+                return
+        pytest.fail("No derived Dog⊑Animal found in world A")
+
+    def test_world_b_explanation_has_only_one_step(self) -> None:
+        """The asserted quad in world B has no antecedents beyond itself."""
+        result = _make_two_world_result()
+        animal_n3 = _ANIMAL.n3()
+        for dq in result.quads:
+            if (
+                dq.subject == str(_DOG)
+                and dq.obj == animal_n3
+                and dq.graph == str(_W_B)
+            ):
+                expl = explain(result, dq)
+                assert len(expl.step_skeleton) == 1, (
+                    "World B asserted quad must produce exactly one step "
+                    f"(no antecedents), got {len(expl.step_skeleton)}"
+                )
+                return
+        pytest.fail("No asserted Dog⊑Animal found in world B")
+
+
+# --------------------------------------------------------------------------- #
+# Regression tests: Gap 5 — graph/world IRIs in faithfulness gate (issue #501)
+# --------------------------------------------------------------------------- #
+
+
+class TestGraphIriInFaithfulnessGate:
+    """Regression tests for Gap 5: graph_iri and world_iri must be in the
+    proof-trace IRI set so as_markdown() citations are faithfulness-checked."""
+
+    def test_world_iri_in_cited_iris(self) -> None:
+        """world_iri must appear in cited_iris (it is cited in as_markdown())."""
+        result = _make_dog_mammal_animal_result()
+        target = _find_derived_quad(result, str(_DOG), _ANIMAL.n3())
+        expl = explain(result, target)
+        assert expl.world_iri in expl.cited_iris, (
+            f"world_iri {expl.world_iri!r} must be in cited_iris"
+        )
+
+    def test_step_graph_iris_in_cited_iris(self) -> None:
+        """Every step's graph_iri must appear in cited_iris."""
+        result = _make_dog_mammal_animal_result()
+        target = _find_derived_quad(result, str(_DOG), _ANIMAL.n3())
+        expl = explain(result, target)
+        for step in expl.step_skeleton:
+            assert step.graph_iri in expl.cited_iris, (
+                f"Step graph_iri {step.graph_iri!r} must be in cited_iris "
+                f"(step derivation_id={step.derivation_id!r})"
+            )
+
+    def test_hallucinated_world_iri_fails_faithfulness(self) -> None:
+        """Injecting a foreign world_iri into the explanation raises FaithfulnessError.
+
+        This verifies that the faithfulness gate actually CHECKS world_iri —
+        a world IRI not in the proof trace must be caught.
+        """
+        result = _make_dog_mammal_animal_result()
+        target = _find_derived_quad(result, str(_DOG), _ANIMAL.n3())
+        expl = explain(result, target)
+
+        foreign_world = "http://world/HALLUCINATED_WORLD_IRI"
+        hallucinated = Explanation(
+            target_derivation_id=expl.target_derivation_id,
+            target_quad_reifier=expl.target_quad_reifier,
+            world_iri=foreign_world,
+            step_skeleton=expl.step_skeleton,
+            cited_iris=expl.cited_iris | {foreign_world},
+            prose_lines=expl.prose_lines,
+        )
+        with pytest.raises(FaithfulnessError) as exc_info:
+            assert_explanation_faithful(hallucinated, result)
+        assert "HALLUCINATED_WORLD_IRI" in exc_info.value.cited_iri
+
+    def test_markdown_world_iri_in_cited_iris(self) -> None:
+        """The world_iri cited in as_markdown() prose must be in cited_iris."""
+        result = _make_dog_mammal_animal_result()
+        target = _find_derived_quad(result, str(_DOG), _ANIMAL.n3())
+        expl = explain(result, target)
+        md = expl.as_markdown()
+        # as_markdown() cites world_iri on the "**World:**" line
+        assert expl.world_iri in md
+        # And it must be in cited_iris so faithfulness covers it
+        assert expl.world_iri in expl.cited_iris

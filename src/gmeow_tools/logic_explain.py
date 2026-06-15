@@ -53,7 +53,6 @@ from rdflib import Graph, URIRef
 from gmeow_tools.logic_materialize import (
     DerivedQuad,
     MaterializationResult,
-    quad_reifier_iri,
 )
 
 # --------------------------------------------------------------------------- #
@@ -222,43 +221,38 @@ class Explanation:
 # --------------------------------------------------------------------------- #
 
 
-def _build_reifier_index(result: MaterializationResult) -> dict[str, DerivedQuad]:
-    """Build a lookup index from reifier IRI to DerivedQuad.
+def _build_reifier_index(
+    result: MaterializationResult,
+) -> dict[tuple[str, str], DerivedQuad]:
+    """Build a lookup index from (graph IRI, reifier IRI) to DerivedQuad.
 
     The reifier IRI for a DerivedQuad is computed from its (subject, predicate,
-    obj) fields using :func:`~gmeow_tools.logic_materialize.quad_reifier_iri`.
-    This is the same recipe as in the materializer — same SHA-1, same namespace.
+    obj) fields using :func:`_reifier_from_quad`, which handles both IRI and
+    literal objects.  Keying by ``(dq.graph, reifier)`` ensures that identical
+    (S, P, O) triples appearing in two different named graphs do not collide and
+    antecedents always resolve from the correct world.
 
     Args:
         result: The MaterializationResult from the forward chase.
 
     Returns:
-        A dict mapping reifier IRI string to the corresponding DerivedQuad.
-        If two quads in different worlds have the same (S, P, O), they share
-        the same reifier IRI (by design — the reifier is content-addressed on
-        the triple, not the quad).  We keep the last one encountered, which is
-        deterministic because the input is sorted.
+        A dict mapping ``(graph_iri, reifier_iri)`` to the corresponding
+        DerivedQuad.
 
     Raises:
         ExplainError: If a quad's subject or predicate is not a valid IRI string
             (should not happen after Skolemization in the materializer).
     """
-    index: dict[str, DerivedQuad] = {}
+    index: dict[tuple[str, str], DerivedQuad] = {}
     for dq in result.quads:
         try:
-            reifier = quad_reifier_iri(
-                URIRef(dq.subject),
-                URIRef(dq.predicate),
-                # obj is in N3 form; quad_reifier_iri uses the rdflib term
-                # directly — reconstruct it.
-                _n3_to_term(dq.obj),
-            )
+            reifier = _reifier_from_quad(dq)
         except Exception as exc:
             raise ExplainError(
                 f"Cannot compute reifier for quad "
                 f"({dq.subject!r}, {dq.predicate!r}, {dq.obj!r}): {exc}"
             ) from exc
-        index[reifier] = dq
+        index[(dq.graph, reifier)] = dq
     return index
 
 
@@ -354,9 +348,10 @@ def _collect_term_iris(dq: DerivedQuad) -> tuple[str, ...]:
 
 def _reconstruct_derivation_tree(
     target_reifier: str,
-    reifier_index: dict[str, DerivedQuad],
+    graph_iri: str,
+    reifier_index: dict[tuple[str, str], DerivedQuad],
     depth: int = 0,
-    visited: frozenset[str] | None = None,
+    visited: frozenset[tuple[str, str]] | None = None,
 ) -> list[ExplanationStep]:
     """Recursively reconstruct the derivation tree for a target quad.
 
@@ -364,42 +359,52 @@ def _reconstruct_derivation_tree(
     until reaching asserted facts (``rule_iri == logic:assert``).  Cycles are
     detected via the ``visited`` set.
 
+    Antecedent quads are resolved within the same named graph (world) as the
+    parent quad, so identical (S, P, O) triples in two different worlds never
+    collide.
+
     The returned list is in depth-first order: the target quad's step appears
     first (depth 0), then each antecedent subtree.  Within each level, steps
     are ordered lexicographically by their ``quad_reifier`` for determinism.
 
     Args:
         target_reifier: The reifier IRI of the quad to explain.
-        reifier_index: Mapping from reifier IRI to DerivedQuad.
+        graph_iri: The named-graph IRI (world) to resolve the reifier within.
+        reifier_index: Mapping from ``(graph_iri, reifier_iri)`` to DerivedQuad.
         depth: Current depth in the tree (0 = target).
-        visited: Set of reifier IRIs already visited (cycle guard).
+        visited: Set of ``(graph_iri, reifier_iri)`` pairs already visited
+            (cycle guard).
 
     Returns:
         A list of :class:`ExplanationStep` in depth-first traversal order.
 
     Raises:
-        ExplainError: If ``target_reifier`` is not in ``reifier_index`` or if
-            a cycle is detected.
+        ExplainError: If ``target_reifier`` is not in ``reifier_index`` for the
+            given world, or if a cycle is detected.
     """
     if visited is None:
-        visited = frozenset()
+        visited = frozenset[tuple[str, str]]()
 
-    if target_reifier not in reifier_index:
+    lookup_key = (graph_iri, target_reifier)
+
+    if lookup_key not in reifier_index:
         raise ExplainError(
-            f"Cannot resolve reifier IRI <{target_reifier}> to a DerivedQuad. "
+            f"Cannot resolve reifier IRI <{target_reifier}> in world "
+            f"<{graph_iri}> to a DerivedQuad. "
             "This IRI appears in source_quad_ids but has no corresponding quad "
             "in the MaterializationResult. Ensure the result is complete and "
             "that the target quad is in the same world as its antecedents."
         )
 
-    if target_reifier in visited:
+    if lookup_key in visited:
         raise ExplainError(
-            f"Cycle detected in derivation graph at reifier <{target_reifier}>. "
+            f"Cycle detected in derivation graph at reifier <{target_reifier}> "
+            f"in world <{graph_iri}>. "
             "The proof trace must be a DAG (directed acyclic graph)."
         )
 
-    visited = visited | {target_reifier}
-    dq = reifier_index[target_reifier]
+    visited = visited | {lookup_key}
+    dq = reifier_index[lookup_key]
     is_asserted = dq.rule_iri == _ASSERT_RULE_IRI
 
     # Collect antecedent reifier IRIs, excluding the self-reference that
@@ -408,12 +413,13 @@ def _reconstruct_derivation_tree(
         src for src in dq.source_quad_ids if src != target_reifier
     )
 
-    # Recursively resolve antecedents first (building source_step_ids)
+    # Recursively resolve antecedents first (building source_step_ids).
+    # Antecedents are always in the same named graph as their parent.
     child_steps: list[ExplanationStep] = []
     source_step_ids: list[str] = []
     for src_reifier in antecedent_reifiers:
         sub_steps = _reconstruct_derivation_tree(
-            src_reifier, reifier_index, depth + 1, visited
+            src_reifier, graph_iri, reifier_index, depth + 1, visited
         )
         child_steps.extend(sub_steps)
         if sub_steps:
@@ -536,29 +542,39 @@ def _term_definition(iri: str, graph: Graph | None) -> str:
 
 def _build_proof_trace_iris(
     steps: list[ExplanationStep],
+    world_iri: str,
 ) -> frozenset[str]:
     """Collect all IRIs reachable in the derivation tree (for the faithfulness gate).
 
     Includes:
+    * world_iri (the named graph of the explanation target)
     * derivation_id of each step
     * rule_iri of each step
     * quad_reifier of each step
+    * graph_iri of each step (named graph the quad lives in)
     * subject_iri, predicate_iri, and object IRI (if IRI) of each step
     * source_step_ids (derivation IDs of antecedents)
 
+    The ``world_iri`` and per-step ``graph_iri`` values are cited by
+    :meth:`~Explanation.as_markdown` and must therefore be present in the
+    faithfulness-checked set.
+
     Args:
         steps: All steps from :func:`_reconstruct_derivation_tree`.
+        world_iri: The named-graph IRI of the explanation target (cited in the
+            Markdown header).
 
     Returns:
         A frozenset of all IRI strings in the proof trace.
     """
-    iris: set[str] = set()
+    iris: set[str] = {world_iri}
     for step in steps:
         iris.add(step.derivation_id)
         iris.add(step.rule_iri)
         iris.add(step.quad_reifier)
         iris.add(step.subject_iri)
         iris.add(step.predicate_iri)
+        iris.add(step.graph_iri)
         obj = step.obj_n3
         if obj.startswith("<") and obj.endswith(">"):
             iris.add(obj[1:-1])
@@ -603,24 +619,24 @@ def explain(
         ExplainError: If the target quad cannot be found in the result or the
             derivation tree cannot be reconstructed.
     """
-    # Build the reifier index: reifier IRI → DerivedQuad
+    # Build the reifier index: (graph IRI, reifier IRI) → DerivedQuad
     reifier_index = _build_reifier_index(result)
 
     # Compute the target quad's reifier IRI
     target_reifier = _reifier_from_quad(target)
 
-    if target_reifier not in reifier_index:
+    if (target.graph, target_reifier) not in reifier_index:
         raise ExplainError(
-            f"Target quad reifier <{target_reifier}> is not in the "
-            "MaterializationResult.  The target DerivedQuad must be a member "
-            "of result.quads."
+            f"Target quad reifier <{target_reifier}> in world <{target.graph}> "
+            "is not in the MaterializationResult.  The target DerivedQuad must "
+            "be a member of result.quads."
         )
 
-    # Reconstruct the derivation tree
-    steps = _reconstruct_derivation_tree(target_reifier, reifier_index)
+    # Reconstruct the derivation tree (world-scoped)
+    steps = _reconstruct_derivation_tree(target_reifier, target.graph, reifier_index)
 
     # Build cited-IRI skeleton (the conformance surface)
-    cited_iris = _build_proof_trace_iris(steps)
+    cited_iris = _build_proof_trace_iris(steps, target.graph)
 
     # Render prose lines
     prose_lines_nested = [_prose_for_step(step, onto_graph) for step in steps]
@@ -666,9 +682,15 @@ def assert_explanation_faithful(
         FaithfulnessError: If any cited IRI is outside the proof trace.
     """
     # Build the full proof-trace IRI set from the result
-    # (all reachable IRIs across the entire materialization)
+    # (all reachable IRIs across the entire materialization).
+    # Include every per-quad graph IRI (dq.graph) because as_markdown() cites
+    # each step's graph_iri and the explanation's world_iri — both must be
+    # present in this result-derived set for the faithfulness check to cover them.
+    # NOTE: do NOT pre-seed with explanation.world_iri; if it is not derivable
+    # from result.quads, the check below must reject it.
     full_trace_iris: set[str] = set()
     for dq in result.quads:
+        full_trace_iris.add(dq.graph)
         full_trace_iris.add(dq.derivation_id)
         full_trace_iris.add(dq.rule_iri)
         full_trace_iris.add(_reifier_from_quad(dq))
