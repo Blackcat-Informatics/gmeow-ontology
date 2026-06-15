@@ -21,7 +21,7 @@ pub fn eval(store: &Store, focus: &Term, path: &Path) -> Vec<Term> {
     let mut nodes = eval_inner(store, focus, path);
     // Dedup preserving first-occurrence order.
     let mut seen = std::collections::HashSet::new();
-    nodes.retain(|t| seen.insert(t.to_string()));
+    nodes.retain(|t| seen.insert(t.clone()));
     nodes
 }
 
@@ -82,16 +82,15 @@ fn eval_inner(store: &Store, focus: &Term, path: &Path) -> Vec<Term> {
                         .filter_map(|q| q.ok().map(|q| Term::from(q.subject)))
                         .collect();
                     let mut seen = std::collections::HashSet::new();
-                    subjects.retain(|t| seen.insert(t.to_string()));
+                    subjects.retain(|t| seen.insert(t.clone()));
                     subjects
                 };
-                let focus_str = focus.to_string();
                 all_subjects
                     .into_iter()
                     .filter(|candidate| {
                         eval_inner(store, candidate, inner_path)
                             .iter()
-                            .any(|v| v.to_string() == focus_str)
+                            .any(|v| v == focus)
                     })
                     .collect()
             }
