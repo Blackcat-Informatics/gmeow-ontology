@@ -12,8 +12,8 @@ the CLI razor: `gmeow` does not need a repo, `gmeow-dev` does.
 
 Each input group rides as a deterministic tar blob keyed by a representation label
 (the `docs:`-archive precedent), except the two merged graphs, which ride as single
-Turtle blobs. The repo path stays the dev fast-path; the bundle is the shipped path.
-The loaders try the repo first and fall back here when the source tree is absent.
+canonical N-Triples blobs. The repo path stays the dev fast-path; the bundle is the
+shipped path. The loaders try the repo first, falling back here when no source tree.
 
 Read side only — the generator (`gts_full_gen`) builds the blobs.
 """
@@ -31,10 +31,8 @@ from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, ONTOLOGY_FILE
 REP_MAPPINGS = "mappings-archive"  # tar of generated/mappings/*.sssom.tsv
 REP_QUERIES = "queries-archive"  # tar of generated/queries/*.rq
 REP_CELLS = "cells-archive"  # tar of the cell/projection TTL sources (repo-rel paths)
-REP_MERGED_IMPORTS = (
-    "merged:imports"  # turtle of load_merged_graph(include_imports=True)
-)
-REP_MERGED_NOIMPORTS = "merged:noimports"  # turtle of include_imports=False
+REP_MERGED_IMPORTS = "merged:imports"  # N-Triples of load_merged_graph(imports=True)
+REP_MERGED_NOIMPORTS = "merged:noimports"  # N-Triples of include_imports=False
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 
 
@@ -129,7 +127,7 @@ def bundled_cells_under(prefix: str) -> dict[str, bytes]:
 
 
 def bundled_merged_ttl(*, include_imports: bool) -> bytes | None:
-    """The folded merged-ontology Turtle (with or without imports), or ``None``."""
+    """The folded merged-ontology N-Triples (with or without imports), or ``None``."""
     rep = REP_MERGED_IMPORTS if include_imports else REP_MERGED_NOIMPORTS
     return _blob_by_rep(rep)
 

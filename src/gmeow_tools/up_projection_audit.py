@@ -226,21 +226,20 @@ def classify_sssom(subj: str, pred: str, obj: str) -> tuple[str, str, str]:
 def sssom_best_buckets() -> dict[str, str]:
     """Target IRI → best up-bucket across all SSSOM cells (projection targets)."""
     best: dict[str, str] = {}
-    for path in sorted(MAPPINGS_DIR.glob("*.sssom.tsv")):
-        for row in _read_sssom(path):
-            bucket, _gmeow, target = classify_sssom(
-                row["subject_id"], row["predicate_id"], row["object_id"]
-            )
-            # a non-gmeow↔gmeow row contributes no up-bucket; skip it so its
-            # rank-0 bucket can't mask a real down-only classification → false GAP
-            if bucket == "both-or-neither-gmeow":
-                continue
-            iri = _to_iri(target)
-            if not _in_projection_ns(iri):
-                continue
-            cur = best.get(iri)
-            if cur is None or _SSSOM_RANK.get(bucket, 0) > _SSSOM_RANK.get(cur, 0):
-                best[iri] = bucket
+    for row in iter_sssom_records():  # repo OR bundle (#bundle — never undercounts)
+        bucket, _gmeow, target = classify_sssom(
+            row["subject_id"], row["predicate_id"], row["object_id"]
+        )
+        # a non-gmeow↔gmeow row contributes no up-bucket; skip it so its
+        # rank-0 bucket can't mask a real down-only classification → false GAP
+        if bucket == "both-or-neither-gmeow":
+            continue
+        iri = _to_iri(target)
+        if not _in_projection_ns(iri):
+            continue
+        cur = best.get(iri)
+        if cur is None or _SSSOM_RANK.get(bucket, 0) > _SSSOM_RANK.get(cur, 0):
+            best[iri] = bucket
     return best
 
 

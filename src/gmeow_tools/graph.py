@@ -69,11 +69,11 @@ def _build_merged_graph(include_imports: bool) -> Graph:
         # folded into the bundle (#bundle — the CLI razor: gmeow needs no repo).
         from gmeow_tools.bundle import bundled_merged_ttl
 
-        ttl = bundled_merged_ttl(include_imports=include_imports)
-        if ttl is None:
+        nt = bundled_merged_ttl(include_imports=include_imports)
+        if nt is None:
             raise FileNotFoundError(f"root ontology not found: {ONTOLOGY_FILE}")
         merged = Graph()
-        merged.parse(data=ttl, format="turtle")
+        merged.parse(data=nt, format="nt")  # blob is canonical N-Triples
         bind_prefixes(merged)
         return merged
     merged = Graph()

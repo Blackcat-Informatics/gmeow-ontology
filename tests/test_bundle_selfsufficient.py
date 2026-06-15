@@ -25,19 +25,17 @@ import sys, json, tempfile
 from pathlib import Path
 
 if sys.argv[1] == "wheel":
+    # Patch the config constants at the SOURCE before importing any consumer
+    # module. Python caches modules, so every later `from gmeow_tools.config
+    # import <PATH>` binds the blinded value — no need to chase each module's copy.
+    import gmeow_tools.config as cfg
+
     GONE = Path("/nonexistent/gmeow-wheel-sim")
-    import gmeow_tools.graph as gmod
-    import gmeow_tools.bundle as bun
-    import gmeow_tools.up_projection_audit as audit
-    import gmeow_tools.projections as proj
-    import gmeow_tools.saturate as sat
-    gmod.ONTOLOGY_FILE = GONE / "ontology/gmeow.ttl"
-    bun.ONTOLOGY_FILE = GONE / "ontology/gmeow.ttl"
-    audit.MAPPINGS_DIR = GONE / "generated/mappings"
-    audit.MAPPING_DSL_DIR = GONE / "dsl/mappings"
-    audit.SLICES_DIR = GONE / "slices"
-    proj.PROJECTION_QUERY_DIR = GONE / "generated/queries"
-    sat.MAPPING_DSL_DIR = GONE / "dsl/mappings"
+    cfg.ONTOLOGY_FILE = GONE / "ontology/gmeow.ttl"
+    cfg.MAPPINGS_DIR = GONE / "generated/mappings"
+    cfg.MAPPING_DSL_DIR = GONE / "dsl/mappings"
+    cfg.SLICES_DIR = GONE / "slices"
+    cfg.PROJECTION_QUERY_DIR = GONE / "generated/queries"
 
 from rdflib import Graph, Literal, URIRef
 from gmeow_tools.transpile import transpile_graph
