@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/epistemics>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Epistemics Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Epistemics Module — propositional epistemic relations: an agent's attitudes toward propositions/claims (belief, doubt, suspension, pragmatic acceptance, and non-factive knowledge-that)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:comment """The propositional companion to the cognition slice (objectual, agent to entity): epistemics relates an agent to a PROPOSITION, not to an entity.
+
+DOCTRINE.
+  * Keystone: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes — knowledge is justified, standpoint-true belief held from a vantage, and there is NO factive knows. Asserting knowsThat materialises believes; the reverse never holds; neither commits global truth. The reasoner never promotes justified-true-belief to knowledge — that verdict (and its Gettier defeaters) is solver work (Principle 12).
+  * No truth bit: there is no isTrue, no truth datatype, no factivity axiom anywhere. Truth-per-frame rides the standpoint modality (gmeow:standpointModality on a flattened statement, gmeow:claimModality on a reified StandpointClaim), reused from the standpoint slice, never re-minted (Principle 6).
+  * Flat-first (Principle 4 / Principle 13): the believes / doubts / suspendsJudgementOn / accepts / knowsThat spine is the cheap 80% surface with an OPEN range (point at any reified statement or claim). The reified tier (a DoxasticState, credence, justification) and the mental-moment grounding land in sibling children, not here.
+  * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot subproperty an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
+  * Acceptance is not belief: gmeow:accepts is pragmatic (a premise taken on for argument) and entails neither belief nor truth (Principle 1)."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Propositional content — the truth-apt object of a doxastic attitude. Sibling
+# of gmeow:Goal (teleology): both are SocialObjects describing a state of
+# affairs; they differ in DIRECTION OF FIT, never by subsumption.
+# =========================================================================== #
+
+gmeow:Proposition
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    rdfs:label "Proposition"@x-gmeow-english ;
+    skos:definition "A truth-apt content — a described state of affairs that can be held true or false, the object of a doxastic attitude (gmeow:believes, gmeow:knowsThat). Existing by social convention like every description, it is a gmeow:SocialObject. A Proposition asserts nothing by itself: that an agent holds it, and with what modality, is a vantage-indexed claim (Principle 9). It is the doxastic sibling of gmeow:Goal (teleology): a belief and a goal may share the SAME proposition but differ in direction of fit — a belief has mind-to-world fit (it aims to be true to the world), a goal has world-to-mind fit (it aims to make the world true to it)."@x-gmeow-english ;
+    skos:scopeNote "Direction-of-fit bridge (documentation only — no axiom, no teleology dependency): belief --mind-to-world--> Proposition <--world-to-mind-- Goal. There is deliberately NO gmeow:Goal rdfs:subClassOf gmeow:Proposition; subsumption would erase the direction-of-fit distinction, so the link stays by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+# =========================================================================== #
+# The flat doxastic spine — agent to proposition attitudes (Principle 4).
+# Domain gmeow:Agent; range OPEN (the standpoint tenurePosition / observations
+# observedFeature precedent), so the 80% case points cheaply at any reified
+# statement or claim (Principle 13). Typed content (range gmeow:Proposition)
+# arrives only at the reified tier (doxasticContent, sibling child #560).
+# =========================================================================== #
+
+gmeow:believes
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "believes"@x-gmeow-english ;
+    skos:definition "An agent holds a proposition to be true — the base doxastic attitude. Range is intentionally OPEN: the object may be a gmeow:Proposition, a reified statement, or any claim the agent holds (the five-minute-gate shortcut, Principle 13); the typed content link arrives at the reified doxastic state in a sibling child. Non-functional — an agent holds many beliefs, and contested beliefs coexist (Principle 9). How strongly, and from whose vantage, rides gmeow:standpointModality and gmeow:accordingTo on the statement, never a truth bit here."@x-gmeow-english ;
+    skos:scopeNote "believes is documented — not axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot rdfs:subPropertyOf an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). Realised in the projection layer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+gmeow:doubts
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "doubts"@x-gmeow-english ;
+    skos:definition "An agent holds a proposition in doubt — a low-credence, unsettled doxastic attitude: weaker than believing, and distinct from settled disbelief (a refuted gmeow:standpointModality on the statement). Range OPEN, like gmeow:believes. Non-functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+gmeow:suspendsJudgementOn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "suspends judgement on"@x-gmeow-english ;
+    skos:definition "An agent neither believes nor disbelieves a proposition — a third, agnostic doxastic stance (withholding), distinct from doubt (a leaning) and from silence (no recorded attitude). Range OPEN. Non-functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+gmeow:accepts
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "accepts"@x-gmeow-english ;
+    skos:definition "An agent pragmatically accepts a proposition — takes it on as a working premise for reasoning or action — WITHOUT thereby believing it true. Acceptance is the stance behind 'assume for the sake of argument' and policy defaults; it entails NEITHER belief NOR truth, and is deliberately not a subproperty of gmeow:believes. Range OPEN. Non-functional. Most prior ontologies conflate acceptance with belief; GMEOW keeps them distinct (Principle 1)."@x-gmeow-english ;
+    skos:scopeNote "accepts is not a subproperty of believes and entails no truth: a premise accepted for argument is neither believed nor asserted true."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+gmeow:knowsThat
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:believes ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "knows that"@x-gmeow-english ;
+    skos:definition "An agent knows that a proposition holds — justified, standpoint-true belief held from a vantage. THE KEYSTONE: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes, so asserting knowsThat materialises believes (knowledge entails belief); the reverse never holds. knowsThat is NON-FACTIVE: it carries no truth commitment and no isTrue axiom — it is a vantage-indexed CLAIM that (belief and truth-per-frame and justification) holds, never a global verdict. The reasoner never promotes justified-true-belief to knowledge; that judgement, and any Gettier defeater, is solver work (Principle 12). Range OPEN, like gmeow:believes. Justification grounds land in a sibling child."@x-gmeow-english ;
+    skos:scopeNote "No factive knows: unlike SUMO/CYC knows, asserting gmeow:knowsThat commits the proposition true in NO global model — truth is per-frame (gmeow:standpointModality / gmeow:claimModality, standpoint slice). The only entailment is the safe one: knowsThat implies believes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
