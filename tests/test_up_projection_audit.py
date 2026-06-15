@@ -65,9 +65,9 @@ def test_real_data_baseline_is_sane() -> None:
     # cells or GMEOW coverage genuinely change.
     by_name = {f.name: f for f in report.files}
     assert (by_name["bii"].liftable, by_name["bii"].total) == (213, 264)
-    assert (by_name["paudley"].liftable, by_name["paudley"].total) == (263, 327)
-    assert (report.liftable, report.total) == (476, 591)
-    assert len(report.gaps) == 75
+    assert (by_name["paudley"].liftable, by_name["paudley"].total) == (266, 327)
+    assert (report.liftable, report.total) == (479, 591)
+    assert len(report.gaps) == 72
     # gaps are de-duplicated and sorted across the corpus
     assert report.gaps == sorted(set(report.gaps))
     # the markdown renders with the headline + a gap section

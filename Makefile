@@ -16,7 +16,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
-        coverage acceptance crossref constitution-check compliance-report audit evals-score \
+        coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         logic-build logic-test logic-py logic-wasm conformance \
         shacl-build shacl-test shacl-py
 
@@ -123,7 +123,10 @@ check-generated: ## Drift + orphan check for all registered generators.
 constitution-check: ## Every constitutional principle must have live enforcement (#280).
 	$(GMEOW_DEV) constitution-check
 
-compliance-report: ## Run in-process gates, emit dist/compliance-report.ttl (#285).
+compliance-report: ## Emit dist/compliance-report.ttl from gates already run by make check/CI (#285).
+	$(GMEOW_DEV) compliance-report --from-passing-check
+
+compliance-report-full: ## Run in-process gates, emit dist/compliance-report.ttl (#285).
 	$(GMEOW_DEV) compliance-report
 
 audit: ## Claim audit gates over the worked fixture (#55): ungrounded/contradicted/stale.
@@ -191,7 +194,7 @@ release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + regen
 	$(GMEOW_DEV) regenerate
 	$(GMEOW_DEV) reason --reasoner hermit --full
 	$(GMEOW_DEV) build
-	$(GMEOW_DEV) compliance-report
+	$(MAKE) compliance-report-full
 	$(GMEOW_DEV) crossref
 
 regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.

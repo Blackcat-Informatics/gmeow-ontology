@@ -170,6 +170,35 @@ def _denied_cells() -> set[tuple[str, str, str]]:
     }
 
 
+def _materialize_claims(abox: Graph) -> Graph:
+    """The quoted triples of every ``gmeow:StatementMetadata`` reifier, as a graph.
+
+    A closeMatch / generalizing up-projection lifts its edge into a refutable
+    CLAIM — a ``StatementMetadata`` cell quoting ``(qSubject, qPredicate,
+    qObject|qObjectLiteral)`` — never an asserted fact. This re-exposes those
+    quoted triples so the down-projection can round-trip them back to the source's
+    own vocabulary (#552, option 1). The result is projection INPUT only; it is
+    never asserted into the output base, so the claim stays a claim.
+    """
+    from rdflib import RDF
+
+    sm = URIRef(NAMESPACE + "StatementMetadata")
+    q_subj = URIRef(NAMESPACE + "qSubject")
+    q_pred = URIRef(NAMESPACE + "qPredicate")
+    q_obj = URIRef(NAMESPACE + "qObject")
+    q_obj_lit = URIRef(NAMESPACE + "qObjectLiteral")
+    out = Graph()
+    for cell in abox.subjects(RDF.type, sm):
+        s = abox.value(cell, q_subj)
+        p = abox.value(cell, q_pred)
+        o = abox.value(cell, q_obj)
+        if o is None:
+            o = abox.value(cell, q_obj_lit)
+        if s is not None and p is not None and o is not None:
+            out.add((s, p, o))
+    return out
+
+
 def _projection_derived(
     abox: Graph,
     onto: Graph,
@@ -192,7 +221,17 @@ def _projection_derived(
     from gmeow_tools import sparql
     from gmeow_tools.projections import project_graph
 
-    store = sparql.store_with(include_imports=False, extra_triples=abox)
+    # P(G) runs over G PLUS the materialized claim layer (#552, option 1): a
+    # closeMatch / generalizing up-lift parks its edge in a refutable claim rather
+    # than asserting it, so the claimed gmeow term is absent from G and the
+    # down-projection produces nothing for it. But the SOURCE asserted the vocab
+    # term it was lifted from, so re-projecting that quoted triple back DOWN to the
+    # source's own vocabulary is a FAITHFUL round trip — we hand back what came in.
+    # The claims feed the projection INPUT only; they are never added to the output
+    # base, so the gmeow term itself stays a claim (its closeMatch provenance lives
+    # in the .gts), while the round-tripped target triple is asserted in index.ttl.
+    projection_input = abox + _materialize_claims(abox)
+    store = sparql.store_with(include_imports=False, extra_triples=projection_input)
     onto_subjects = set(onto.subjects())
     derived: dict[tuple[Node, Node, Node], set[tuple[URIRef, Node]]] = {}
     for name in profiles:

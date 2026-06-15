@@ -227,3 +227,46 @@ gmeow:mapFoafPhone a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "foaf" ; gmeow:toPredicate foaf:phone ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:lossyDrop "the phone literal is minted into a tel: URI to match foaf:phone's resource range" ] .
+
+gmeow:mapFoafMbox a gmeow:ProjectionMapping ;
+    rdfs:label "contact-point email address → foaf:mbox"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fmAgent" ; gmeow:value "fmAddr" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "fmAgent" ; gmeow:predicate gmeow:hasContactPoint ; gmeow:objectVar "fmAddr" ]
+            [ gmeow:subjectVar "fmAddr" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:EmailAddress ] ) ;
+        gmeow:edoalSource gmeow:hasContactPoint ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:mbox ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "contact-point usage context and validity drop; the bare mbox edge survives" ] .
+
+gmeow:mapFoafTitle a gmeow:ProjectionMapping ;
+    rdfs:label "membership role label → foaf:title (job/honorific title)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ftMember" ; gmeow:value "ftTitle" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ftM" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Membership ]
+            [ gmeow:subjectVar "ftM" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "ftMember" ]
+            [ gmeow:subjectVar "ftM" ; gmeow:predicate gmeow:hasRole ; gmeow:objectVar "ftRole" ]
+            [ gmeow:subjectVar "ftRole" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( rdfs:label gmeow:name ) ] ;
+              gmeow:objectVar "ftTitle" ] ) ;
+        gmeow:edoalSource gmeow:hasRole ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:title ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the membership's organization, period and compensation drop; the bare title string survives" ] .
+
+gmeow:mapFoafDepiction a gmeow:ProjectionMapping ;
+    rdfs:label "depicting MediaObject → foaf:depiction (entity → image)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fdEnt" ; gmeow:value "fdImg" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "fdImg" ; gmeow:predicate gmeow:depicts ; gmeow:objectVar "fdEnt" ]
+            [ gmeow:subjectVar "fdImg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "fdImg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:depicts ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:edoalTarget foaf:depiction ; gmeow:edoalTargetKind "property" ;
+        gmeow:lossyDrop "the depiction's context/period/audience drop; the entity gains foaf:depiction pointing at the depicting MediaObject" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "fdEnt" ; gmeow:tPred foaf:depiction ; gmeow:tObj "fdImg" ] ) ] .
