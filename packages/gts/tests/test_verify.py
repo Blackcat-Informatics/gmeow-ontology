@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from gts import read
 from gts.crypto import Signer
-from gts.verify import extract_transport_key, verify_file
+from gts.verify import extract_transport_key, format_fingerprint, verify_file
 from gts.writer import Writer
 
 if TYPE_CHECKING:
@@ -57,6 +57,7 @@ def test_verify_signed_file_with_embedded_key() -> None:
     assert result.invalid == 0
     assert result.unverified == 0
     assert result.emojihash is not None
+    assert result.emojihash_labels is not None
     assert result.randomart is not None
 
 
@@ -67,6 +68,15 @@ def test_verify_with_trusted_key() -> None:
     result = verify_file(data, armored_key=pub, require_signatures=True)
     assert result.ok, result.errors
     assert result.kid == fingerprint
+
+
+def test_format_fingerprint_groups_openpgp_hex() -> None:
+    """OpenPGP fingerprints display in copyable four-hex chunks."""
+    _pub, _sec, fingerprint = _load_fixture_keypair()
+    assert (
+        format_fingerprint(fingerprint)
+        == "93F3 2F9F 1439 F0FB A266 331B 6F47 3209 2D74 7581"
+    )
 
 
 def test_verify_unsigned_file_is_ok_when_not_required() -> None:

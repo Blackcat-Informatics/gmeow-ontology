@@ -150,7 +150,7 @@ def verify(
     ),
 ) -> None:
     """Verify the bundled GTS signatures and source-free ontology checks."""
-    from gts.verify import verify_file
+    from gts.verify import format_fingerprint, verify_file
 
     path = file or _default_gts_file()
     data = _read_bytes_or_fail(path)
@@ -180,9 +180,11 @@ def verify(
         f"{signature.invalid} invalid, {signature.unverified} unverified",
     )
     if signature.fingerprint:
-        sig_table.add_row("transport key", signature.fingerprint)
+        sig_table.add_row("transport key", format_fingerprint(signature.fingerprint))
     if signature.emojihash:
-        sig_table.add_row("emojihash", signature.emojihash)
+        sig_table.add_row("emoji hash", signature.emojihash)
+    if signature.emojihash_labels:
+        sig_table.add_row("emoji labels", signature.emojihash_labels)
     console.print(Panel(sig_table, title="GTS Signature Verification"))
     if signature.randomart:
         console.print(signature.randomart)
@@ -414,7 +416,7 @@ def gts_info(
     ),
 ) -> None:
     """Summarise a GTS file and any signature diagnostics."""
-    from gts.verify import verify_file
+    from gts.verify import format_fingerprint, verify_file
 
     path = file or _default_gts_file()
     graph = _read_gts_or_fail(path)
@@ -434,9 +436,13 @@ def gts_info(
             )
             if result.fingerprint:
                 console.print(
-                    f"transport key: [bold]{result.fingerprint}[/bold] "
-                    f"{result.emojihash or ''}"
+                    f"transport key: [bold]"
+                    f"{format_fingerprint(result.fingerprint)}[/bold]"
                 )
+            if result.emojihash:
+                console.print(f"emoji hash:    {result.emojihash}")
+            if result.emojihash_labels:
+                console.print(f"emoji labels:  {result.emojihash_labels}")
         else:
             console.print("signatures: none")
         for err in result.errors:
@@ -460,7 +466,7 @@ def gts_verify(
     ),
 ) -> None:
     """Verify every embedded COSE signature against the transport key."""
-    from gts.verify import verify_file
+    from gts.verify import format_fingerprint, verify_file
 
     path = file or _default_gts_file()
     data = _read_bytes_or_fail(path)
@@ -472,9 +478,13 @@ def gts_verify(
             raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
     result = verify_file(data, armored_key=armored, require_signatures=True)
     if result.fingerprint:
-        console.print(f"transport key: [bold]{result.fingerprint}[/bold]")
+        console.print(
+            f"transport key: [bold]{format_fingerprint(result.fingerprint)}[/bold]"
+        )
         if result.emojihash:
-            console.print(f"emojihash:     {result.emojihash}")
+            console.print(f"emoji hash:    {result.emojihash}")
+        if result.emojihash_labels:
+            console.print(f"emoji labels:  {result.emojihash_labels}")
         if result.randomart:
             console.print(result.randomart)
     console.print(

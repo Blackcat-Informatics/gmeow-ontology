@@ -22,10 +22,12 @@ from dataclasses import dataclass, field
 from cryptography.hazmat.primitives import serialization
 
 from gts.crypto import InMemoryKeys, KeyProvider
-from gts.emojihash import emojihash, randomart
+from gts.emojihash import emojihash, emojihash_labels, randomart
 from gts.model import Diagnostic, Graph
 from gts.openpgp import load_public_key, public_key_fingerprint
 from gts.reader import read
+
+_HEX = frozenset("0123456789ABCDEF")
 
 
 @dataclass
@@ -36,6 +38,7 @@ class VerificationResult:
     kid: str | None = None
     fingerprint: str | None = None
     emojihash: str | None = None
+    emojihash_labels: str | None = None
     randomart: str | None = None
     frames: int = 0
     signed: int = 0
@@ -44,6 +47,14 @@ class VerificationResult:
     unverified: int = 0
     errors: list[str] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
+
+
+def format_fingerprint(fingerprint: str) -> str:
+    """Return an OpenPGP fingerprint grouped for human comparison."""
+    compact = fingerprint.replace(" ", "").upper()
+    if not compact or any(ch not in _HEX for ch in compact):
+        return fingerprint
+    return " ".join(compact[idx : idx + 4] for idx in range(0, len(compact), 4))
 
 
 def extract_transport_key(graph: Graph) -> dict[str, str] | None:
@@ -164,6 +175,9 @@ def verify_file(
         kid=kid,
         fingerprint=fingerprint,
         emojihash=emojihash(public_raw) if public_raw is not None else None,
+        emojihash_labels=emojihash_labels(public_raw)
+        if public_raw is not None
+        else None,
         randomart=randomart(public_raw, label="GTS transport")
         if public_raw is not None
         else None,
