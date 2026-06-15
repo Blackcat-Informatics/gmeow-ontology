@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: employment specializes membership (#443). A gmeow:Employment is
+# a gmeow:Membership (the person is a member of the employer), refined with the
+# facets a job adds: an open gmeow:employmentType (full-time / contract / intern /
+# volunteer …), a gmeow:employmentSeniority, the gmeow:employmentOccupation it
+# realizes, and its gmeow:employmentInterval. The seat-vs-sitter discipline from
+# the organization slice still holds — this is the SITTER's tenure, distinct from
+# any Post it may fill.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/employment/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
+ex:acme a gmeow:Organization ; gmeow:name "Acme Robotics Inc."@x-gmeow-english .
+
+ex:engineer a gmeow:Occupation ; rdfs:label "Software Engineer"@x-gmeow-english .
+
+# --- The employment: a membership of Acme, refined with employment facets.
+ex:job a gmeow:Employment ;
+    gmeow:membershipMember       ex:dana ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:employmentType         gmeow:employmentTypeFullTime ;
+    gmeow:employmentSeniority    gmeow:senioritySenior ;
+    gmeow:employmentOccupation   ex:engineer .

@@ -26,14 +26,14 @@ Tier-2 uplift backlog.
 | deception | core | core | 4 | 2 | 10 | 0 | 1 | 0/12 | full |
 | documents | core | core | 7 | 22 | 35 | 0 | 1 | 0/57 | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 0 | - | full |
-| employment | extension | extensions | 5 | 3 | 6 | 0 | 0 | - | full |
+| employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 0/8 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 0/10 | full |
 | expertise | core | core | 4 | 6 | 11 | 0 | 1 | 0/17 | full |
 | finance | extension | extensions | 9 | 21 | 38 | 0 | 0 | - | full |
 | gender | core | core | 5 | 6 | 7 | 0 | 1 | 0/13 | full |
-| genealogy | extension | extensions | 3 | 8 | 13 | 0 | 0 | - | full |
+| genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 0/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 0 | - | full |
