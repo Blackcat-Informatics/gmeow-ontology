@@ -309,7 +309,15 @@ def _structural_pairs() -> tuple[dict[str, set[str]], dict[str, dict[str, str]]]
 def _value_mapped_pairs() -> dict[tuple[str, str], tuple[str, str]]:
     """Invert ``whenValue`` cells into value-lift rules.
 
-    Returns ``(target predicate, literal) → (gmeow predicate, gmeow value)``.
+    Returns ``(target predicate, literal LEXEME) → (gmeow predicate, gmeow value)``.
+    The literal is keyed by its lexical form, NOT its rdflib ``Literal`` term: a
+    ``whenValue`` cell maps a controlled documentary CODE (GEDCOM SEX ``"M"``,
+    ``doap:status "active"``) whose identity is the lexeme. Source data routinely
+    tags the code (``gedcom:sex "M"@en``) or types it (``xsd:string``); every such
+    form denotes the same code and MUST lift, so a term-identity key would silently
+    drop legitimate data. A genuinely ambiguous code — one lexeme several cells map
+    to *different* gmeow values — is held out by the single-candidate filter below,
+    so lexical keying cannot mislift.
     A value-mapped down-cell emits a FIXED literal for a FIXED gmeow value
     individual — ``sexAssignedAtBirth saabMale → gedcom:sex "M"``,
     ``maintenanceStatus statusActive → doap:status "active"``. Its shape is a
@@ -353,7 +361,9 @@ def _value_mapped_pairs() -> dict[tuple[str, str], tuple[str, str]]:
             mint = mints[0]
             bind_var = graph.value(mint, GM.bindVar)
             bind_expr = graph.value(mint, GM.bindExpr)
-            if bind_var is None or bind_expr is None:
+            # a value rule keys on the minted LITERAL; a non-literal bind
+            # expression (a computed IRI, a function) is not a value mapping
+            if bind_var is None or not isinstance(bind_expr, Literal):
                 continue
             for binding in graph.objects(cell, GM.hasBinding):
                 tas = list(_template_atoms(graph, binding))
@@ -676,10 +686,15 @@ def _lift_edge(acc: _Acc, s: Node, p: Node, o: Node, lift: LiftMap) -> None:
     if not isinstance(p, URIRef):
         return
     key = str(p)
-    if isinstance(o, Literal) and (key, str(o)) in lift.value_rules:
-        # a documentary value literal (gedcom:sex "M", doap:status "active") lifts
-        # to its gmeow value individual — a fact, never a guess (whenValue inverse)
-        gmeow_pred, gmeow_val = lift.value_rules[(key, str(o))]
+    if (
+        isinstance(o, Literal)
+        and (rule := lift.value_rules.get((key, str(o)))) is not None
+    ):
+        # a documentary value CODE (gedcom:sex "M", doap:status "active") lifts to
+        # its gmeow value individual — a fact, never a guess (whenValue inverse).
+        # Keyed on the lexeme so a tagged/typed code (`"M"@en`, `xsd:string`) still
+        # lifts; ambiguous lexemes are already held out of value_rules.
+        gmeow_pred, gmeow_val = rule
         acc.fact(s, URIRef(gmeow_pred), URIRef(gmeow_val))
         return
     if key in lift.rules:
