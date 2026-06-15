@@ -1,0 +1,74 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a flashback IS a disagreement between two time frames (#443,
+# #358, P9). Narrative time has two co-equal axes, neither the truth of the other:
+# DISCOURSE time (syuzhet — the order of telling, owned by the telling work) and
+# STORY time (fabula — the order of happening, owned by a continuity). Each is a
+# gmeow:NarrativeTimeFrame (a ReferenceFrame). The same diegetic event carries a
+# gmeow:NarrativePosition in EACH frame; when its discourse ordinal and story
+# ordinal disagree, that disagreement is precisely the flashback — made queryable
+# rather than contradictory. Here the protagonist's birth happens first in the
+# story (ordinal 0) but is told only in chapter 5 (discourse ordinal 5).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/narrative/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The telling work and the continuity it narrates.
+ex:novel a gmeow:CreativeWork ; gmeow:title "The Lighthouse at World's End"@x-gmeow-english .
+
+# Narrative frames are ReferenceFrames; they share one ordinal axis (1-D, scalar).
+ex:narrativeOrder a gmeow:Axis ; rdfs:label "narrative ordinal"@x-gmeow-english .
+
+# --- The continuity (story world) — a NarrativeReferenceFrame.
+ex:canon a gmeow:NarrativeReferenceFrame ;
+    rdfs:label          "Lighthouse Saga continuity"@x-gmeow-english ;
+    gmeow:frameRealm    gmeow:frameRealmNarrative ;
+    gmeow:hasAxis       ex:narrativeOrder ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind     gmeow:frameKindNarrative ;
+    gmeow:requiresHost  false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+
+# --- DISCOURSE-time frame: the order of telling, owned by the novel.
+ex:discourseFrame a gmeow:NarrativeTimeFrame ;
+    rdfs:label           "telling order of the novel"@x-gmeow-english ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
+    gmeow:discourseTimeOf ex:novel ;
+    gmeow:frameRealm     gmeow:frameRealmNarrative ;
+    gmeow:hasAxis        ex:narrativeOrder ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind      gmeow:frameKindNarrative ;
+    gmeow:requiresHost   false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+
+# --- STORY-time frame: the order of happening, owned by the continuity.
+ex:storyFrame a gmeow:NarrativeTimeFrame ;
+    rdfs:label           "in-universe chronology"@x-gmeow-english ;
+    gmeow:narrativeTimeAxis gmeow:axisStoryTime ;
+    gmeow:storyTimeOf    ex:canon ;
+    gmeow:frameRealm     gmeow:frameRealmNarrative ;
+    gmeow:hasAxis        ex:narrativeOrder ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind      gmeow:frameKindNarrative ;
+    gmeow:requiresHost   false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+
+# --- The diegetic event, placed in BOTH frames — the disagreement is the flashback.
+ex:protagonistBirth a gmeow:Event ;
+    rdfs:label            "the protagonist's birth"@x-gmeow-english ;
+    gmeow:eventType       gmeow:eventTypeBirth ;
+    gmeow:atNarrativePosition ex:posTold , ex:posHappened .
+
+# Told late: chapter 5 (discourse ordinal 5).
+ex:posTold a gmeow:NarrativePosition ;
+    gmeow:positionFrame   ex:discourseFrame ;
+    gmeow:positionOrdinal "5"^^xsd:integer ;
+    gmeow:positionLabel   "Chapter 5 (flashback)" .
+
+# Happened first: story ordinal 0.
+ex:posHappened a gmeow:NarrativePosition ;
+    gmeow:positionFrame   ex:storyFrame ;
+    gmeow:positionOrdinal "0"^^xsd:integer ;
+    gmeow:positionLabel   "Year 0 — the beginning of the saga" .
