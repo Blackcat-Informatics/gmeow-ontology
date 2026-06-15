@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
@@ -33,6 +34,7 @@ from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gts import read
 from gts.model import TermKind
+from gts.wire import iter_items, unwrap_header
 
 EX = "https://example.org/"
 
@@ -48,6 +50,28 @@ def _build_snapshot() -> bytes:
     from gmeow_tools.gts_gen import build_snapshot_bytes
 
     return build_snapshot_bytes()
+
+
+def _frame_codecs(data: bytes) -> list[tuple[str, list[str]]]:
+    items, torn = iter_items(data)
+    assert torn is None
+    header = unwrap_header(items[0][1])
+    raw_catalog = header.get("cat")
+    assert isinstance(raw_catalog, Mapping)
+    catalog: dict[int, str] = {}
+    for cid, entry in raw_catalog.items():
+        assert isinstance(cid, int)
+        assert isinstance(entry, Mapping)
+        name = entry.get("name")
+        assert isinstance(name, str)
+        catalog[cid] = name
+    frames: list[tuple[str, list[str]]] = []
+    for _offset, item in items[1:]:
+        assert isinstance(item, dict)
+        frames.append(
+            (str(item["t"]), [str(catalog[cid]) for cid in item.get("x", [])])
+        )
+    return frames
 
 
 def test_double_build_is_byte_identical() -> None:
@@ -84,6 +108,15 @@ def test_committed_snapshot_matches_a_fresh_build() -> None:
     """The committed artifact reproduces from sources (the drift gate's claim)."""
     assert GTS_SNAPSHOT_FILE.exists(), "run `gmeow regenerate gts`"
     assert _build_snapshot() == GTS_SNAPSHOT_FILE.read_bytes()
+
+
+def test_committed_snapshot_uses_rsyncable_frames() -> None:
+    """The committed bundle's large frames are delta-friendly."""
+    frames = _frame_codecs(GTS_SNAPSHOT_FILE.read_bytes())
+    assert ("snapshot", ["zstd-rsyncable"]) in frames
+    assert any(
+        frame == "blob" and codecs == ["zstd-rsyncable"] for frame, codecs in frames
+    )
 
 
 def test_snapshot_partitions_sources_into_named_graphs() -> None:
