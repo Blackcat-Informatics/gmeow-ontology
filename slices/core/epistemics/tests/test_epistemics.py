@@ -59,10 +59,23 @@ def test_proposition_is_a_social_object() -> None:
     assert (_t("Proposition"), RDFS.subClassOf, _t("SocialObject")) in g
 
 
-def test_no_factivity_no_truth_bit() -> None:
-    """No isTrue/truth term anywhere, and knowsThat smuggles in no range/factivity."""
+def test_spine_properties_are_not_functional() -> None:
+    """The doxastic spine is non-functional — an agent holds many attitudes and
+    contested ones coexist (Principle 9); no spine property is declared
+    owl:FunctionalProperty (the no-functional-declaration invariant, #559)."""
     g = _graph()
-    assert (_t("isTrue"), None, None) not in g
+    for prop in _SPINE:
+        assert (_t(prop), RDF.type, OWL.FunctionalProperty) not in g
+
+
+def test_no_factivity_no_truth_bit() -> None:
+    """No isTrue/truth term in ANY triple position, and knowsThat smuggles in no
+    range/factivity."""
+    g = _graph()
+    is_true = _t("isTrue")
+    assert (is_true, None, None) not in g
+    assert (None, is_true, None) not in g
+    assert (None, None, is_true) not in g
     assert (_t("knowsThat"), RDFS.range, None) not in g
 
 
