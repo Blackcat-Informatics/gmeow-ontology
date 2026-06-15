@@ -139,15 +139,16 @@ _TARGET_META: dict[str, tuple[PreservationKind, str, tuple[str, ...]]] = {
         "N/A (identity serialization)",
         (),
     ),
+    # Nemo encoding notes (NOT drops — these are identity-preserving serialization
+    # decisions visible in the .rls text but not content losses):
+    #   • IRI arguments use Nemo angle-bracket syntax <iri> (full IRI identity kept).
+    #   • The arity-3 context slot uses the string constant "default" for unscoped
+    #     axioms or the modality value string for scoped axioms (semantics unchanged).
+    # The Nemo round-trip passes oracle≡engine parity; nothing is actually dropped.
     "nemo": (
         PreservationKind.EXACT,
         "PTIME/datalog",
-        (
-            "predicate names and IRI arguments encoded as Nemo <iri> constants "
-            "(angle-bracket syntax preserves full IRI identity, not local names)",
-            "context (third arity slot) encoded as Nemo string constant "
-            '"default" for unscoped axioms or modality value for scoped axioms',
-        ),
+        (),
     ),
 }
 
@@ -1181,9 +1182,10 @@ def project_nemo(
     PositiveHornProfile query class — the engine's chase *must* match the
     oracle (Principle 7).
 
-    The structural ``lossy_drops`` notes record encoding decisions (IRI vs
-    string ctx) that do not change the semantics but are visible in the
-    serialized form.
+    The encoding decisions (IRI angle-bracket syntax for IRIs, ``"default"``
+    string constant for the context slot) do not change the semantics and are
+    therefore NOT recorded as ``lossy_drops`` — they are identity-preserving
+    serialization details documented in the ``_TARGET_META`` comment.
 
     Args:
         program: The compiled logic program.

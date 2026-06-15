@@ -33,10 +33,7 @@
   },
   "nemo": {
     "complexity": "PTIME/datalog",
-    "lossy_drops": [
-      "predicate names and IRI arguments encoded as Nemo <iri> constants (angle-bracket syntax preserves full IRI identity, not local names)",
-      "context (third arity slot) encoded as Nemo string constant \"default\" for unscoped axioms or modality value for scoped axioms"
-    ],
+    "lossy_drops": [],
     "preservation": "ExactPreservation"
   },
   "owl-dl": {
