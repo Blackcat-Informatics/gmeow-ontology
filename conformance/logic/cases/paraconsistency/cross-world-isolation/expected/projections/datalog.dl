@@ -5,16 +5,16 @@
 type("https://example.org/paraconsistency/cross-world-isolation/NormativeFact", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/paraconsistency/cross-world-isolation/Severity", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity", "n3c279a3eeead4d738aacbe9fabf3c993b2", "default").
-head("https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity", "n3c279a3eeead4d738aacbe9fabf3c993b1", "default").
+body("https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity", "n5cbca189447c4a1d8d594c0d0dd9dbd1b2", "default").
+head("https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity", "n5cbca189447c4a1d8d594c0d0dd9dbd1b1", "default").
 provenance("https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity", "https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity", "default").
 type("https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity", "n3c279a3eeead4d738aacbe9fabf3c993b4", "default").
-head("https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity", "n3c279a3eeead4d738aacbe9fabf3c993b3", "default").
+body("https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity", "n5cbca189447c4a1d8d594c0d0dd9dbd1b4", "default").
+head("https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity", "n5cbca189447c4a1d8d594c0d0dd9dbd1b3", "default").
 provenance("https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity", "https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity", "default").
 
 % === Rules ===
-type("?P", "https://example.org/paraconsistency/cross-world-isolation/JurisdictionLenient", C) :-
-    severity("?P", "https://example.org/paraconsistency/cross-world-isolation/Low", C0).
-type("?P", "https://example.org/paraconsistency/cross-world-isolation/JurisdictionStrict", C) :-
-    severity("?P", "https://example.org/paraconsistency/cross-world-isolation/High", C0).
+type(?P, "https://example.org/paraconsistency/cross-world-isolation/JurisdictionLenient", ?C) :-
+    severity(?P, "https://example.org/paraconsistency/cross-world-isolation/Low", ?C).
+type(?P, "https://example.org/paraconsistency/cross-world-isolation/JurisdictionStrict", ?C) :-
+    severity(?P, "https://example.org/paraconsistency/cross-world-isolation/High", ?C).

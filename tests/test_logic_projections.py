@@ -920,8 +920,10 @@ def test_nemo_rule_emitted_correctly() -> None:
     result = project_nemo(prog)
     # A rule must appear (contains ':-')
     assert ":-" in result.content
-    # Variables must use the ?VarName Nemo convention
-    assert "?C" in result.content
+    # Variables must use the ?VarName Nemo convention. The shared world-context
+    # variable is emitted as ?W (fresh w.r.t. the rule's own variables), so it
+    # appears even for a rule whose logical terms are all ground IRIs.
+    assert "?W" in result.content
 
 
 def test_nemo_fact_predicates_are_valid_iris() -> None:

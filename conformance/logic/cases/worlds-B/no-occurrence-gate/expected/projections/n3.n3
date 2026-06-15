@@ -11,10 +11,10 @@
 # === Axioms ===
 <https://example.org/worlds-B/no-occurrence-gate/EventType> a <https://blackcatinformatics.ca/logic/Kind> .
 <https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> a <https://blackcatinformatics.ca/logic/Rule> .
-<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> <https://blackcatinformatics.ca/logic/body> <n03797ddbc7d64f90889b2280ca55f8eeb2> .
-<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> <https://blackcatinformatics.ca/logic/body> <n03797ddbc7d64f90889b2280ca55f8eeb3> .
-<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> <https://blackcatinformatics.ca/logic/head> <n03797ddbc7d64f90889b2280ca55f8eeb1> .
+<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> <https://blackcatinformatics.ca/logic/body> <n18ae972596ee44a3a1c6b3c748c58bfdb2> .
+<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> <https://blackcatinformatics.ca/logic/body> <n18ae972596ee44a3a1c6b3c748c58bfdb3> .
+<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> <https://blackcatinformatics.ca/logic/head> <n18ae972596ee44a3a1c6b3c748c58bfdb1> .
 <https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> <https://blackcatinformatics.ca/logic/provenance> <https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation> .
 
 # === Rules ===
-{ <?A> <https://example.org/worlds-B/no-occurrence-gate/typeCauses> '?B' . <?B> <https://example.org/worlds-B/no-occurrence-gate/typeCauses> '?C' . } log:implies { <?A> <https://example.org/worlds-B/no-occurrence-gate/typeCauses> '?C' . } .
+{ ?A <https://example.org/worlds-B/no-occurrence-gate/typeCauses> ?B . ?B <https://example.org/worlds-B/no-occurrence-gate/typeCauses> ?C . } log:implies { ?A <https://example.org/worlds-B/no-occurrence-gate/typeCauses> ?C . } .

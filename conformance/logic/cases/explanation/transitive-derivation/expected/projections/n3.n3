@@ -13,10 +13,10 @@
 <https://example.org/explanation/transitive-derivation/B> a <https://blackcatinformatics.ca/logic/Kind> .
 <https://example.org/explanation/transitive-derivation/C> a <https://blackcatinformatics.ca/logic/Kind> .
 <https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> a <https://blackcatinformatics.ca/logic/Rule> .
-<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> <https://blackcatinformatics.ca/logic/body> <n35d2762434de46c6af5f44f216c0ea5fb2> .
-<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> <https://blackcatinformatics.ca/logic/body> <n35d2762434de46c6af5f44f216c0ea5fb3> .
-<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> <https://blackcatinformatics.ca/logic/head> <n35d2762434de46c6af5f44f216c0ea5fb1> .
+<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> <https://blackcatinformatics.ca/logic/body> <n0905218859ea4f68ac1e6889931ff417b2> .
+<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> <https://blackcatinformatics.ca/logic/body> <n0905218859ea4f68ac1e6889931ff417b3> .
+<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> <https://blackcatinformatics.ca/logic/head> <n0905218859ea4f68ac1e6889931ff417b1> .
 <https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> <https://blackcatinformatics.ca/logic/provenance> <https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf> .
 
 # === Rules ===
-{ <?X> <https://example.org/explanation/transitive-derivation/subOf> '?Y' . <?Y> <https://example.org/explanation/transitive-derivation/subOf> '?Z' . } log:implies { <?X> <https://example.org/explanation/transitive-derivation/subOf> '?Z' . } .
+{ ?X <https://example.org/explanation/transitive-derivation/subOf> ?Y . ?Y <https://example.org/explanation/transitive-derivation/subOf> ?Z . } log:implies { ?X <https://example.org/explanation/transitive-derivation/subOf> ?Z . } .

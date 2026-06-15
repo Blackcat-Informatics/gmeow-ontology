@@ -4,12 +4,12 @@
 % === Ground facts (axioms) ===
 type("https://example.org/worlds-B/no-occurrence-gate/EventType", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "n03797ddbc7d64f90889b2280ca55f8eeb2", "default").
-body("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "n03797ddbc7d64f90889b2280ca55f8eeb3", "default").
-head("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "n03797ddbc7d64f90889b2280ca55f8eeb1", "default").
+body("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "n18ae972596ee44a3a1c6b3c748c58bfdb2", "default").
+body("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "n18ae972596ee44a3a1c6b3c748c58bfdb3", "default").
+head("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "n18ae972596ee44a3a1c6b3c748c58bfdb1", "default").
 provenance("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation", "default").
 
 % === Rules ===
-typeCauses("?A", '?C', C) :-
-    typeCauses("?A", '?B', C0),
-    typeCauses("?B", '?C', C1).
+typeCauses(?A, ?C, ?C1) :-
+    typeCauses(?A, ?B, ?C1),
+    typeCauses(?B, ?C, ?C1).
