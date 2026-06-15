@@ -52,10 +52,11 @@ gmeow:SkillProficiency
 
 gmeow:hasSkill
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:knowsAbout ;
     rdfs:domain gmeow:Agent ;
     rdfs:range gmeow:Skill ;
     rdfs:label "has skill"@x-gmeow-english ;
-    skos:definition "Relates an agent to a skill it possesses. Non-functional — an agent may have many skills. The leveled, scaled detail is carried by the reified gmeow:SkillProficiency."@x-gmeow-english ;
+    skos:definition "Relates an agent to a skill it possesses. Non-functional — an agent may have many skills. The leveled, scaled detail is carried by the reified gmeow:SkillProficiency. Sub-property of gmeow:knowsAbout (cognition slice): having a skill in a subject entails knowing about it — the can-do axis touches the knows axis at this one rung, but not at understanding or mastery (Principle 9, the axes stay orthogonal)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
 
 gmeow:hasOccupation

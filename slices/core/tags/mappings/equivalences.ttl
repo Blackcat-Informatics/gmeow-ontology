@@ -23,19 +23,20 @@ gmeow:mapsetTags a gmeow:MappingSet ;
 
 gmeow:eqTags001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Tag ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject skos:Concept ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "A GMEOW Tag is an open value-vocabulary individual, structurally close to a skos:Concept" ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "A GMEOW Tag IS a skos:Concept — an information-object value identified by its IRI, surfaced by a label. The Tagging RELATOR (provenance/confidence/scope) is the close-but-distinct construct, not the Tag itself; so the Tag class reverses as an asserted fact, not a refutable claim." ;
     gmeow:sssomFile "gmeow-tags.sssom.tsv" .
 
 gmeow:eqTags002 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:TagScheme ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject skos:ConceptScheme ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "A GMEOW TagScheme IS a skos:ConceptScheme — the namespace bucket for tags/concepts; class identity, parallels eqTags001." ;
     gmeow:sssomFile "gmeow-tags.sssom.tsv" .
 
 gmeow:eqTags003 a gmeow:TermEquivalence ;
@@ -57,10 +58,11 @@ gmeow:eqTags004 a gmeow:TermEquivalence ;
 
 gmeow:eqTags005 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:tagInScheme ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject skos:inScheme ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
+    gmeow:comment "Scheme membership IS skos:inScheme — a tag/concept belongs to a scheme; no transitivity caveat (unlike broaderTag), so this reverses as an asserted fact." ;
     gmeow:sssomFile "gmeow-tags.sssom.tsv" .
 
 # Tag synonym (alternate label) → skos:altLabel is a projection-layer construct,

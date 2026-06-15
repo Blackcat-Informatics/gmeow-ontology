@@ -98,6 +98,7 @@ _PROFILES = (
     "spdx",
     "ontolex",
     "web-annotation",
+    "skos",
     "activitystreams",
     "markdown",
     "bot",

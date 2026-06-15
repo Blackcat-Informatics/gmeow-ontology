@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/cognition>
+    a gmeow:Slice ;
+    rdfs:label "cognition"@x-gmeow-english ;
+    skos:definition "The cognition slice of the GMEOW ontology (core tier): GMEOW Cognition Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    dcterms:title "GMEOW Cognition Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:sliceConsumer "The transpiler's expertise up-projection: schema:knowsAbout lifts to the asserted gmeow:knowsAbout level of the knowledge spectrum, preserving the QID-anchored subject (the agent-memory flagship records what an agent knows across sessions — Principle 14). Minimal core: the four-level knowledge spectrum; belief/justification epistemics land in the sibling epistemics slice."@x-gmeow-english .

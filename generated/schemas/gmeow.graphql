@@ -3199,6 +3199,7 @@ type Agent
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -3206,6 +3207,8 @@ type Agent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -3214,6 +3217,7 @@ type Agent
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type AggregationFunction
@@ -4503,6 +4507,7 @@ type Builder
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -4510,6 +4515,8 @@ type Builder
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -4518,6 +4525,7 @@ type Builder
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type CadastralReference
@@ -14144,6 +14152,7 @@ type Organization
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -14151,6 +14160,8 @@ type Organization
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -14159,6 +14170,7 @@ type Organization
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
     acceptsCurrency: [ReferenceFrame]
     acceptsPaymentMethod: [PaymentMethod]
     foundedBy: [Agent]
@@ -14670,6 +14682,7 @@ type Person
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -14677,6 +14690,8 @@ type Person
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -14685,6 +14700,7 @@ type Person
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
     alumniOf: [Organization]
     hasAncestor: [Person]
     hasChild: [Person]
@@ -18085,6 +18101,7 @@ type Sensor
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -18092,6 +18109,8 @@ type Sensor
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -18100,6 +18119,7 @@ type Sensor
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type SensorPlatform
@@ -19122,6 +19142,7 @@ type SoftwareAgent
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -19129,6 +19150,8 @@ type SoftwareAgent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -19137,6 +19160,7 @@ type SoftwareAgent
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type SoftwareName

@@ -613,6 +613,35 @@ def test_logo_projection_schema_and_foaf() -> None:
     _assert_no_gmeow_leakage(gf)
 
 
+def test_skos_projection_tag_concept_hierarchy() -> None:
+    """A gmeow:Tag projects to a skos:Concept (prefLabel, broader, inScheme) and a
+    gmeow:TagScheme to a skos:ConceptScheme; a displayable-false tag is suppressed."""
+    skos = "http://www.w3.org/2004/02/skos/core#"
+    g = Graph()
+    g.parse(
+        data="""
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        gmeow:tagLamp a gmeow:Tag ; rdfs:label "LAMP" ;
+            gmeow:broaderTag gmeow:tagStack ; gmeow:tagInScheme gmeow:tech .
+        gmeow:tagStack a gmeow:Tag ; rdfs:label "Stack" .
+        gmeow:tech a gmeow:TagScheme .
+        gmeow:hidden a gmeow:Tag ; rdfs:label "secret" ; gmeow:displayable false .
+        """,
+        format="turtle",
+    )
+    out = project_graph("skos", g)
+    lamp = URIRef(GMEOW + "tagLamp")
+    assert (lamp, RDF.type, URIRef(skos + "Concept")) in out
+    assert (lamp, URIRef(skos + "prefLabel"), Literal("LAMP")) in out
+    assert (lamp, URIRef(skos + "broader"), URIRef(GMEOW + "tagStack")) in out
+    assert (lamp, URIRef(skos + "inScheme"), URIRef(GMEOW + "tech")) in out
+    assert (URIRef(GMEOW + "tech"), RDF.type, URIRef(skos + "ConceptScheme")) in out
+    # displayable false → never projected (P10)
+    assert (URIRef(GMEOW + "hidden"), RDF.type, URIRef(skos + "Concept")) not in out
+    _assert_no_gmeow_leakage(out)
+
+
 def test_gedcom_projection() -> None:
     """Minted Marriage + symmetric spouseIn; sex ONLY from the saab datum."""
     g = project_graph("gedcom", _fixture_store("genealogy.ttl"))

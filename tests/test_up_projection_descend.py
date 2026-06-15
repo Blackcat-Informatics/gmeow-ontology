@@ -8,11 +8,18 @@ from rdflib import RDF, BNode, Graph, Literal, URIRef
 from rdflib.term import Node
 
 from gmeow_tools.config import FIXTURES_DIR
-from gmeow_tools.up_projection import up_project
+from gmeow_tools.up_projection import (
+    _ADOPTED_PREDICATES,
+    _NORMALIZED_PREDICATES,
+    up_project,
+)
 from gmeow_tools.up_projection_descend import build_context, up_project_descend
 
 GM = "https://blackcatinformatics.ca/gmeow/"
 SCHEMA = "https://schema.org/"
+#: Non-gmeow predicates GMEOW adopts/normalizes directly — pure GMEOW includes
+#: these by design (skos:exactMatch/closeMatch coreference + rdfs:label).
+_ADOPTED_PREDS = set(_ADOPTED_PREDICATES) | set(_NORMALIZED_PREDICATES.values())
 
 
 def _src(*triples: tuple[Node, Node, Node]) -> Graph:
@@ -164,7 +171,9 @@ def test_descent_output_is_pure_gmeow() -> None:
     src = Graph().parse(path, format="turtle")
     desc = up_project_descend(src)
     for _s, p, o in desc.graph:
-        assert str(p).startswith(GM) or p == RDF.type, f"non-gmeow predicate {p}"
+        assert str(p).startswith(GM) or p == RDF.type or str(p) in _ADOPTED_PREDS, (
+            f"non-gmeow predicate {p}"
+        )
         if p == RDF.type and isinstance(o, URIRef):
             assert str(o).startswith(GM), f"non-gmeow type {o}"
 

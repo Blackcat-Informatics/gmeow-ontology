@@ -46,7 +46,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
-from rdflib import RDF, XSD, BNode, Graph, Literal, Namespace, URIRef
+from rdflib import RDF, RDFS, XSD, BNode, Graph, Literal, Namespace, URIRef
 from rdflib.term import Node
 
 from gmeow_tools.language_tags import retag_graph_to_internal
@@ -64,6 +64,7 @@ from gmeow_tools.up_projection_audit import (
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 
 _SKOS = "http://www.w3.org/2004/02/skos/core#"
+_RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label"
 #: External predicates GMEOW adopts and uses DIRECTLY (registry/authority
 #: coreference, asserted "with skos:exactMatch and gmeow:authorityLink"). A source
 #: carrying them is already GMEOW-expressible, so the up-projection lifts them to
@@ -71,6 +72,114 @@ _SKOS = "http://www.w3.org/2004/02/skos/core#"
 _ADOPTED_PREDICATES: frozenset[str] = frozenset(
     {_SKOS + "exactMatch", _SKOS + "closeMatch"}
 )
+#: External label sub-properties GMEOW NORMALIZES to its single label predicate.
+#: GMEOW canonicalizes every label to ``rdfs:label`` (the tags slice: "GMEOW uses
+#: rdfs:label for all labels"); ``skos:prefLabel``/``skos:altLabel`` are declared
+#: ``rdfs:subPropertyOf rdfs:label`` by the SKOS spec, so a value carried by either
+#: IS an ``rdfs:label`` value (sound subproperty entailment, not a guess). The lift
+#: rewrites the predicate to ``rdfs:label`` as a FACT; the *preferred/alternate*
+#: distinction is a projection-layer concern re-applied on the way down (a Tag's
+#: ``rdfs:label`` projects back to ``skos:prefLabel`` in the scoped tags cell), so
+#: the up-direction does not need it. Global rewrite is safe: every label-bearing
+#: subject genuinely has an ``rdfs:label``.
+_NORMALIZED_PREDICATES: dict[str, str] = {
+    _SKOS + "prefLabel": _RDFS_LABEL,
+    _SKOS + "altLabel": _RDFS_LABEL,
+}
+
+#: The authority namespace whose IRIs are first-class identity anchors — the
+#: bridge. Wikidata is the recommended hub (the coreference module); a QID is only
+#: meaningful when it is *in* the alignment, so a tag is "anchored" by carrying a
+#: wikidata IRI as its own identity OR via skos:exactMatch / gmeow:authorityLink.
+_AUTHORITY_NS = "http://www.wikidata.org/entity/"
+_SKOS_EXACT = URIRef(_SKOS + "exactMatch")
+
+#: Consumer predicates whose STRING value *names a concept* and should resolve to
+#: the QID-anchored Tag the data already entails (#34, the QID-bridge decision).
+#: Keyword/category tags and the programming-language properties: a keyword or an
+#: implementation language IS a tag of the subject, so they unify on gmeow:hasTag
+#: (range gmeow:Tag). isAbout is disjoint from hasTag and "written in PHP" is not
+#: aboutness, so hasTag is the correct uniform target. The match is case-folded
+#: exact against the anchored tag's label — never fuzzy, never inferred from a
+#: bare string with no curated QID behind it.
+_CONCEPT_REFERENCE_PREDICATES: frozenset[str] = frozenset(
+    {
+        "https://schema.org/keywords",
+        "https://schema.org/programmingLanguage",
+        "http://usefulinc.com/ns/doap#programming-language",
+        "http://usefulinc.com/ns/doap#category",
+    }
+)
+
+
+def _normalize_label(text: str) -> str:
+    """Case-fold and collapse internal whitespace — the case-folded-exact key.
+
+    ``"php"`` and ``"PHP"`` are the same token in different surface form, so they
+    must collide; ``"Web  Services"`` and ``"Web Services"`` likewise. This is the
+    *only* slack allowed — no substring, stemming, or disambiguator stripping; an
+    exact token match against a curated QID, nothing looser.
+    """
+    return " ".join(text.split()).casefold()
+
+
+def _qid_anchored_label_index(lifted: Graph) -> dict[str, URIRef]:
+    """Map each normalized label to the unique QID-anchored ``gmeow:Tag`` it names.
+
+    A Tag is *anchored* when its own IRI is a wikidata entity, or it carries a
+    ``skos:exactMatch`` / ``gmeow:authorityLink`` to one — i.e. a curated bridge
+    exists. Only anchored Tags are resolution targets: matching a string against
+    such a tag is a sound, network-free coreference; matching a bare local concept
+    would be the guess the doctrine forbids. A normalized label shared by two
+    *distinct* anchored Tags is genuinely ambiguous and excluded — never guessed.
+    """
+    anchored: set[URIRef] = set()
+    for tag in lifted.subjects(RDF.type, GM.Tag):
+        if not isinstance(tag, URIRef):
+            continue
+        if str(tag).startswith(_AUTHORITY_NS) or any(
+            str(o).startswith(_AUTHORITY_NS)
+            for pred in (_SKOS_EXACT, GM.authorityLink)
+            for o in lifted.objects(tag, pred)
+        ):
+            anchored.add(tag)
+    by_label: dict[str, set[URIRef]] = defaultdict(set)
+    for tag in anchored:
+        for lbl in lifted.objects(tag, RDFS.label):
+            if isinstance(lbl, Literal):
+                by_label[_normalize_label(str(lbl))].add(tag)
+    return {norm: next(iter(tags)) for norm, tags in by_label.items() if len(tags) == 1}
+
+
+def resolve_concept_references(source: Graph, lifted: Graph) -> dict[str, int]:
+    """Link string keyword/language values to the QID-anchored concept they name.
+
+    The implicit half of the bridge (#34): where the source states a coreference
+    (``sameAs``/``exactMatch`` to a QID) the lift already preserves it; where the
+    coreference is only *entailed* — a ``"php"`` keyword and ``wd:Q59`` are the
+    same thing, unlinked — this pass asserts it. For every concept-referencing
+    string value whose case-folded form matches an anchored tag's label, it adds
+    ``subject gmeow:hasTag tag`` to ``lifted``, promoting an orphaned string to the
+    high-fidelity entity reference. Returns ``source-predicate qname → count`` of
+    edges added (empty when nothing anchored or nothing matched).
+    """
+    index = _qid_anchored_label_index(lifted)
+    if not index:
+        return {}
+    from gmeow_tools.up_projection_audit import _canon_qname
+
+    terms: dict[str, int] = defaultdict(int)
+    for s, p, o in source:
+        if str(p) not in _CONCEPT_REFERENCE_PREDICATES or not isinstance(o, Literal):
+            continue
+        if not isinstance(s, URIRef | BNode):
+            continue
+        tag = index.get(_normalize_label(str(o)))
+        if tag is None or (s, GM.hasTag, tag) in lifted:
+            continue
+        lifted.add((s, GM.hasTag, tag))
+        terms[_canon_qname(str(p))] += 1
+    return dict(terms)
 
 
 def _sssom_clean_pairs() -> dict[str, set[str]]:
@@ -259,6 +368,10 @@ class LiftMap:
     # closeMatch targets: lift with a provenance-stamped claim, not a bare fact.
     # target IRI → (gmeow IRI, curated confidence string)
     claim_rules: dict[str, tuple[str, str]] = field(default_factory=dict)
+    # gmeow IRIs declared owl:ObjectProperty — a rule whose target is one of these
+    # cannot assert a literal object (it would be ill-typed), so a literal lifts as
+    # a claim instead (see _lift_edge).
+    object_properties: frozenset[str] = field(default_factory=frozenset)
 
 
 def build_lift_map() -> LiftMap:
@@ -350,11 +463,32 @@ def build_lift_map() -> LiftMap:
     for adopted in _ADOPTED_PREDICATES:
         rules.setdefault(adopted, adopted)
 
+    # SKOS label sub-properties normalize to rdfs:label (sound subproperty
+    # entailment — see _NORMALIZED_PREDICATES). setdefault, so a genuine alignment
+    # cell for the same source predicate, if one is ever authored, still wins.
+    for source, gmeow_label in _NORMALIZED_PREDICATES.items():
+        rules.setdefault(source, gmeow_label)
+
+    # Object properties can't carry a literal object; a rule targeting one lifts a
+    # literal as a claim, not an ill-typed fact (see _lift_edge). Derived from the
+    # merged ontology, never hand-listed.
+    from rdflib import OWL
+
+    from gmeow_tools.graph import shared_merged_graph
+
+    merged = shared_merged_graph(include_imports=False)
+    object_properties = frozenset(
+        str(s)
+        for s in merged.subjects(RDF.type, OWL.ObjectProperty)
+        if isinstance(s, URIRef)
+    )
+
     return LiftMap(
         rules=rules,
         ambiguous=ambiguous,
         inverse_rules=inverse_rules,
         claim_rules=claim_rules,
+        object_properties=object_properties,
     )
 
 
@@ -378,6 +512,10 @@ class UpProjection:
     # claimed); 0 for the flat up_project, set by up_project_descend
     context_resolved: int = 0
     context_terms: dict[str, int] = field(default_factory=dict)
+    # gmeow:hasTag edges added by the QID-bridge pass (resolve_concept_references):
+    # orphaned keyword/language strings promoted to their anchored concept entity
+    tag_resolved: int = 0
+    tag_resolved_terms: dict[str, int] = field(default_factory=dict)
 
 
 def _emit_claim(
@@ -466,7 +604,19 @@ def _lift_edge(acc: _Acc, s: Node, p: Node, o: Node, lift: LiftMap) -> None:
         return
     key = str(p)
     if key in lift.rules:
-        acc.fact(s, URIRef(lift.rules[key]), o)
+        target = lift.rules[key]
+        if isinstance(o, Literal) and target in lift.object_properties:
+            # The source used a polymorphic (Text|Thing) predicate — e.g.
+            # schema:knowsAbout — with a TEXT value where the gmeow term is an
+            # OBJECT property expecting an entity. Asserting it would be an
+            # ill-typed object-property-with-literal edge (OWL-DL invalid), so it
+            # lifts as a claim instead: the literal sits safely in qObjectLiteral,
+            # honest and well-formed, never fabricated as an entity edge. The IRI
+            # case (the common one) still asserts cleanly below.
+            if isinstance(s, URIRef):
+                acc.claim(s, URIRef(target), o, URIRef(key), "")
+            return
+        acc.fact(s, URIRef(target), o)
     elif key in lift.inverse_rules:
         # a rule exists — this is not a gap. A literal object is skipped (it
         # cannot become a subject after the swap), not accounted.
@@ -503,6 +653,7 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     acc.out.bind("gmeow", GM)
     for s, p, o in source:
         _lift_edge(acc, s, p, o, lift)
+    tag_terms = resolve_concept_references(source, acc.out)
     retag_graph_to_internal(acc.out)
     return UpProjection(
         graph=acc.out,
@@ -511,4 +662,6 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
         ambiguous_terms=dict(acc.ambig),
         claimed=acc.claimed,
         claim_terms=dict(acc.claims),
+        tag_resolved=sum(tag_terms.values()),
+        tag_resolved_terms=tag_terms,
     )

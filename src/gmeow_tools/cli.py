@@ -389,6 +389,7 @@ def transpile(
         f"[green]lifted[/green] {result.lifted} facts · "
         f"[cyan]claimed[/cyan] {result.claimed} inferred · "
         f"[magenta]context[/magenta] {result.context_resolved} by-type · "
+        f"[blue]bridged[/blue] {result.tag_resolved} QID-tag · "
         f"[yellow]gap[/yellow] {result.gap_terms} · "
         f"[yellow]ambiguous[/yellow] {result.ambiguous_terms}",
     )

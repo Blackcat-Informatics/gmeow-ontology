@@ -3157,6 +3157,7 @@ export interface Agent {
     hasAgreement?: Agreement[],
     hasContactPoint?: ContactPoint[],
     hasGoal?: Goal[],
+    hasMastered?: Entity[],
     hasMet?: Agent[],
     hasSkill?: Skill[],
     hasUsed?: Entity[],
@@ -3164,6 +3165,8 @@ export interface Agent {
     holdsAccount?: OnlineAccount[],
     holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
+    isAwareOf?: Entity[],
+    knowsAbout?: Entity[],
     knowsLanguage?: Language[],
     mailmapEntry?: string[],
     makesOffer?: Offering[],
@@ -3172,6 +3175,7 @@ export interface Agent {
     ownerOf?: Entity[],
     slogan?: string[],
     telephone?: string[],
+    understands?: Entity[],
 }
 
 

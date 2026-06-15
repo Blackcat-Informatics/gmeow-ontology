@@ -18,9 +18,9 @@
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Tag	skos:closeMatch	moat:Tag	semapv:ManualMappingCuration	0.8	MOAT distinguishes tag string from meaning URI; GMEOW's Tag IRI IS the meaning, with labels for synonyms
 gmeow:Tag	skos:closeMatch	schema:DefinedTerm	semapv:ManualMappingCuration	0.9	
-gmeow:Tag	skos:closeMatch	skos:Concept	semapv:ManualMappingCuration	0.9	A GMEOW Tag is an open value-vocabulary individual, structurally close to a skos:Concept
+gmeow:Tag	skos:exactMatch	skos:Concept	semapv:ManualMappingCuration	0.95	A GMEOW Tag IS a skos:Concept — an information-object value identified by its IRI, surfaced by a label. The Tagging RELATOR (provenance/confidence/scope) is the close-but-distinct construct, not the Tag itself; so the Tag class reverses as an asserted fact, not a refutable claim.
 gmeow:TagScheme	skos:closeMatch	schema:DefinedTermSet	semapv:ManualMappingCuration	0.9	
-gmeow:TagScheme	skos:closeMatch	skos:ConceptScheme	semapv:ManualMappingCuration	0.9	
+gmeow:TagScheme	skos:exactMatch	skos:ConceptScheme	semapv:ManualMappingCuration	0.95	A GMEOW TagScheme IS a skos:ConceptScheme — the namespace bucket for tags/concepts; class identity, parallels eqTags001.
 gmeow:Tagging	skos:closeMatch	oa:Annotation	semapv:ManualMappingCuration	0.85	GMEOW Tagging is a relator with provenance/confidence/temporal scope; oa:Annotation is a flatter annotation body — closeMatch, not exactMatch
 gmeow:Tagging	skos:closeMatch	tags:Tagging	semapv:ManualMappingCuration	0.85	Newman's Tag Ontology — GMEOW Tagging carries the same tripartite structure (tagger, resource, tag) with added provenance/confidence/temporal scope
 gmeow:broaderTag	skos:closeMatch	skos:broader	semapv:ManualMappingCuration	0.95	GMEOW broaderTag is transitive; skos:broader is the direct link (skos:broaderTransitive is transitive) — closeMatch, not exactMatch
@@ -29,6 +29,6 @@ gmeow:isAbout	skos:closeMatch	dcterms:subject	semapv:ManualMappingCuration	0.9
 gmeow:isAbout	skos:closeMatch	foaf:topic	semapv:ManualMappingCuration	0.85	
 gmeow:isAbout	skos:closeMatch	schema:about	semapv:ManualMappingCuration	0.9	
 gmeow:relatedTag	skos:closeMatch	skos:related	semapv:ManualMappingCuration	0.95	
-gmeow:tagInScheme	skos:closeMatch	skos:inScheme	semapv:ManualMappingCuration	0.95	
+gmeow:tagInScheme	skos:exactMatch	skos:inScheme	semapv:ManualMappingCuration	0.95	Scheme membership IS skos:inScheme — a tag/concept belongs to a scheme; no transitivity caveat (unlike broaderTag), so this reverses as an asserted fact.
 gmeow:taggingTag	skos:closeMatch	oa:hasBody	semapv:ManualMappingCuration	0.85	The tag is the body of the annotation; lossy — oa:hasBody may also be a textual body, a SpecificResource, etc.
 gmeow:taggingTagged	skos:closeMatch	oa:hasTarget	semapv:ManualMappingCuration	0.9	

@@ -19,6 +19,7 @@ Tier-2 uplift backlog.
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 0/44 | full |
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 0/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 0/16 | full |
+| cognition | core | core | 1 | 0 | 4 | 0 | 1 | 0/4 | full |
 | connectivity | extension | extensions | 2 | 3 | 8 | 0 | 0 | - | full |
 | contacts | core | core | 6 | 9 | 26 | 0 | 1 | 0/35 | full |
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 0/5 | full |
@@ -30,7 +31,7 @@ Tier-2 uplift backlog.
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 0/8 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 0/10 | full |
-| expertise | core | core | 4 | 6 | 11 | 0 | 1 | 0/17 | full |
+| expertise | core | core | 5 | 6 | 11 | 0 | 1 | 0/17 | full |
 | finance | extension | extensions | 9 | 21 | 38 | 0 | 1 | - | full |
 | gender | core | core | 5 | 6 | 7 | 0 | 1 | 0/13 | full |
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
@@ -70,4 +71,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
-**61 slices** · documentation: 61 full guides, 0 stubs remaining (#325); advisory coverage: 3/1078 core class/property terms (#471).
+**62 slices** · documentation: 62 full guides, 0 stubs remaining (#325); advisory coverage: 3/1082 core class/property terms (#471).

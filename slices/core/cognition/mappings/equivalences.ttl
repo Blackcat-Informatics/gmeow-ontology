@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+
+# Term equivalences for the cognition domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-cognition.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetCognition a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/cognition" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Cognition alignments — the knowledge spectrum. schema.org offers a single flat knowsAbout; GMEOW's four-level spectrum down-collapses to it (lossy), and a bare schema:knowsAbout lifts to the eponymous gmeow:knowsAbout level (its honest floor — depth is never inferred from a flat edge)." .
+
+# schema:knowsAbout IS the gmeow:knowsAbout level of the spectrum: an agent has
+# knowledge of a subject. exactMatch (not closeMatch) so a source schema:knowsAbout
+# lifts to an ASSERTED gmeow:knowsAbout fact (the QID-anchored subject preserved),
+# outranking the narrower gmeow:hasSkill→schema:knowsAbout projection collision.
+gmeow:eqCognition001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:knowsAbout ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject schema:knowsAbout ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "schema:knowsAbout — an agent's knowledge of a subject — is exactly the gmeow:knowsAbout level of the four-level knowledge spectrum; the finer levels (understands, hasMastered) are GMEOW enrichment that down-collapses to this flat target." ;
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
