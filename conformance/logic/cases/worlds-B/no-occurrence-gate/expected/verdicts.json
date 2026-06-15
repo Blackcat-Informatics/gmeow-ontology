@@ -1,0 +1,10 @@
+{
+  "https://example.org/worlds-B/no-occurrence-gate/world-risk-A": {
+    "quads": 3,
+    "status": "consistent"
+  },
+  "https://example.org/worlds-B/no-occurrence-gate/world-risk-B": {
+    "quads": 1,
+    "status": "consistent"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "https://example.org/worlds-A/contested-standpoint/world-russia": {
+    "quads": 2,
+    "status": "consistent"
+  },
+  "https://example.org/worlds-A/contested-standpoint/world-ukraine": {
+    "quads": 2,
+    "status": "consistent"
+  }
+}
