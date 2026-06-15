@@ -124,6 +124,21 @@ def test_knows_about_lifts_entity_as_fact_text_as_claim() -> None:
     )
 
 
+def test_value_mapped_inversion_lifts_documentary_literal() -> None:
+    """A whenValue down-cell read backwards: a documentary value literal lifts to
+    its gmeow value individual as a FACT (gedcom:sex "M" → sexAssignedAtBirth
+    saabMale). An ambiguous literal (GEDCOM "U", several sources) does not lift."""
+    gedcom = "http://www.w3.org/2000/10/swap/pim/gedcom#"
+    p = URIRef("https://ex/person")
+    src = Graph()
+    src.add((p, URIRef(gedcom + "sex"), Literal("M")))
+    src.add((p, URIRef(gedcom + "sex"), Literal("U")))  # ambiguous → no lift
+    out = up_project(src).graph
+    assert (p, URIRef(GM + "sexAssignedAtBirth"), URIRef(GM + "saabMale")) in out
+    # "U" is irreversible (saabUnknown vs intersex degrade) → never guessed
+    assert len(list(out.triples((p, URIRef(GM + "sexAssignedAtBirth"), None)))) == 1
+
+
 def test_identity_outranks_projection_collision() -> None:
     """Preferred-up-target disambiguation (#451 stage 3): an exactMatch/equivalent
     identity wins over a structural projection of a NARROWER gmeow term to the
