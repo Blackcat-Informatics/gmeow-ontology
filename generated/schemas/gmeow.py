@@ -118,6 +118,7 @@ class AestheticQualityEnum(str, Enum):
 
 
 class AgentEnum(str, Enum):
+    fixture_analyst_A = "fixtureAnalystA"
     fixture_session_bassist = "fixtureSessionBassist"
     fixture_session_drummer = "fixtureSessionDrummer"
 
@@ -130,6 +131,18 @@ class AggregationFunctionEnum(str, Enum):
     maximum = "aggMaximum"
     minimum = "aggMinimum"
     sum = "aggSum"
+
+
+class AnalysisPropertyEnum(str, Enum):
+    form_function = "analysisPropertyFormFunction"
+    groove = "analysisPropertyGroove"
+    harmony_label = "analysisPropertyHarmonyLabel"
+    key = "analysisPropertyKey"
+    meter = "analysisPropertyMeter"
+    mode = "analysisPropertyMode"
+    motif_identity = "analysisPropertyMotifIdentity"
+    schema = "analysisPropertySchema"
+    tuning_identification = "analysisPropertyTuningIdentification"
 
 
 class AnnotationMotivationEnum(str, Enum):
@@ -278,6 +291,7 @@ class AxisEnum(str, Enum):
     momentum_Y = "axisMomentumY"
     momentum_Z = "axisMomentumZ"
     month = "axisMonth"
+    music_analysis_axis = "axisMusicAnalysis"
     pitch_axis = "axisPitch"
     Plus_Code_cell = "axisPlusCode"
     port_number_axis = "axisPortNumber"
@@ -931,7 +945,23 @@ class FinancialAccountTypeEnum(str, Enum):
     wallet = "accountTypeWallet"
 
 
+class FormFunctionEnum(str, Enum):
+    ālāp = "formFunctionAlap"
+    bridge = "formFunctionBridge"
+    chorus = "formFunctionChorus"
+    development = "formFunctionDevelopment"
+    drop = "formFunctionDrop"
+    exposition = "formFunctionExposition"
+    gat = "formFunctionGat"
+    intro = "formFunctionIntro"
+    outro = "formFunctionOutro"
+    recapitulation = "formFunctionRecapitulation"
+    riff = "formFunctionRiff"
+    verse = "formFunctionVerse"
+
+
 class FrameKindEnum(str, Enum):
+    analytical = "frameKindAnalytical"
     cartesian = "frameKindCartesian"
     configuration_space = "frameKindConfigurationSpace"
     cylindrical = "frameKindCylindrical"
@@ -960,6 +990,7 @@ class FrameRealmEnum(str, Enum):
     linguistic = "frameRealmLinguistic"
     mathematical_SOLIDUS_n_D = "frameRealmMathematical"
     measurement = "frameRealmMeasurement"
+    music_analysis = "frameRealmMusicAnalysis"
     musical_pitch = "frameRealmMusicalPitch"
     musical_time = "frameRealmMusicalTime"
     narrative_SOLIDUS_fictional = "frameRealmNarrative"
@@ -1014,6 +1045,22 @@ class GenerativeProcessKindEnum(str, Enum):
     rule_based = "generativeProcessKindRuleBased"
     stochastic = "generativeProcessKindStochastic"
     verbal_score = "generativeProcessKindVerbalScore"
+
+
+class GenreEnum(str, Enum):
+    blues = "genreBlues"
+    classical = "genreClassical"
+    disco = "genreDisco"
+    electronic = "genreElectronic"
+    funk = "genreFunk"
+    fusion = "genreFusion"
+    hip_hop = "genreHipHop"
+    jazz = "genreJazz"
+    math_rock = "genreMathRock"
+    post_rock = "genrePostRock"
+    progressive_rock = "genreProgressiveRock"
+    rock = "genreRock"
+    soul = "genreSoul"
 
 
 class GeometryTypeEnum(str, Enum):
@@ -1074,6 +1121,17 @@ class GroupOperatorEnum(str, Enum):
     all_of_LEFT_PARENTHESISandRIGHT_PARENTHESIS = "operatorAll"
     any_of_LEFT_PARENTHESISorRIGHT_PARENTHESIS = "operatorAny"
     none_of_LEFT_PARENTHESISnotRIGHT_PARENTHESIS = "operatorNone"
+
+
+class HarmonicFunctionEnum(str, Enum):
+    dominant = "harmonicFunctionDominant"
+    German_sixth = "harmonicFunctionGermanSixth"
+    leading_tone = "harmonicFunctionLeadingTone"
+    mediant = "harmonicFunctionMediant"
+    subdominant = "harmonicFunctionSubdominant"
+    submediant = "harmonicFunctionSubmediant"
+    supertonic = "harmonicFunctionSupertonic"
+    tonic = "harmonicFunctionTonic"
 
 
 class HonorificEnum(str, Enum):
@@ -1478,6 +1536,10 @@ class MultipartTypeEnum(str, Enum):
     signed = "multipartTypeSigned"
 
 
+class MusicAnalysisClaimEnum(str, Enum):
+    fixture_Roman_numeral_dominant_claim = "fixtureRomanNumeralClaim"
+
+
 class MusicalParameterEnum(str, Enum):
     duration = "musicalParameterDuration"
     dynamics = "musicalParameterDynamics"
@@ -1519,6 +1581,7 @@ class MusicalWorkEnum(str, Enum):
     number_4PRIME33DOUBLE_PRIME = "fixtureFourThirtyThreeWork"
     graphic_score_work_fixture = "fixtureGraphicScoreWork"
     Klavierstück_XI = "fixtureKlavierstuckXIWork"
+    fixture_math_rock_work = "fixtureMathRockWork"
     Reich_style_phasing_work = "fixtureReichPhasingWork"
     session_work_fixture = "fixtureSessionWork"
     fixture_structure_work = "fixtureStructureWork"
@@ -1625,6 +1688,14 @@ class NarrativeRoleEnum(str, Enum):
 class NarrativeTimeAxisEnum(str, Enum):
     discourse_time_LEFT_PARENTHESISsyuzhetRIGHT_PARENTHESIS = "axisDiscourseTime"
     story_time_LEFT_PARENTHESISfabulaRIGHT_PARENTHESIS = "axisStoryTime"
+
+
+class NeoRiemannianOperationEnum(str, Enum):
+    leading_tone_exchange_LEFT_PARENTHESISLRIGHT_PARENTHESIS = "neoRiemannianL"
+    Nebenverwandt_LEFT_PARENTHESISNRIGHT_PARENTHESIS = "neoRiemannianN"
+    parallel_LEFT_PARENTHESISPRIGHT_PARENTHESIS = "neoRiemannianP"
+    relative_LEFT_PARENTHESISRRIGHT_PARENTHESIS = "neoRiemannianR"
+    slide_LEFT_PARENTHESISSRIGHT_PARENTHESIS = "neoRiemannianS"
 
 
 class NetworkAddressTypeEnum(str, Enum):
@@ -2182,6 +2253,15 @@ class ReferenceFrameEnum(str, Enum):
     Virtual_Platform_Reference_Frame = "referenceFrameVirtualPlatform"
     WGS_84_Geodetic_Reference_Frame = "referenceFrameWGS84"
     what3words_Reference_Frame = "referenceFrameWhat3Words"
+    AI_model_analysis_frame = "theoryFrameAIModel"
+    corpus_statistical_analysis_frame = "theoryFrameCorpusStatistical"
+    maqam_theory_frame = "theoryFrameMaqamTheory"
+    pathet_frame = "theoryFramePathet"
+    pitch_class_set_analysis_frame = "theoryFramePitchClassSet"
+    raga_grammar_frame = "theoryFrameRagaGrammar"
+    Roman_numeral_analysis_frame = "theoryFrameRomanNumeral"
+    Schenkerian_analysis_frame = "theoryFrameSchenkerian"
+    transformational_analysis_frame = "theoryFrameTransformational"
 
 
 class RegisterEnum(str, Enum):
@@ -2349,6 +2429,12 @@ class SceneRelationTypeEnum(str, Enum):
     same_as = "sceneRelationSameAs"
     touching = "sceneRelationTouching"
     wearing = "sceneRelationWearing"
+
+
+class SchenkerLevelEnum(str, Enum):
+    background = "schenkerLevelBackground"
+    foreground = "schenkerLevelForeground"
+    middleground = "schenkerLevelMiddleground"
 
 
 class ScoreEditionEnum(str, Enum):
@@ -2956,6 +3042,14 @@ class Agreement(ConfiguredBaseModel):
     hasParty: Optional[list[Agent]] = Field(default=None, title="has party", json_schema_extra = { "linkml_meta": {'domain': 'Agreement',
          'domain_of': ['Agreement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasParty'} })
+
+
+class AnalysisProperty(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/AnalysisProperty',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Analysis Property'})
+
+    pass
 
 
 class Annotation(ConfiguredBaseModel):
@@ -6669,6 +6763,14 @@ class ForgePlatform(Entity):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
+class FormFunction(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/FormFunction',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Form Function'})
+
+    pass
+
+
 class FrameKind(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/FrameKind',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -8153,6 +8255,14 @@ class GroupOperator(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/GroupOperator',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Group Operator'})
+
+    pass
+
+
+class HarmonicFunction(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/HarmonicFunction',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Harmonic Function'})
 
     pass
 
@@ -26208,6 +26318,14 @@ class NarrativeTimeAxis(ConfiguredBaseModel):
     pass
 
 
+class NeoRiemannianOperation(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/NeoRiemannianOperation',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Neo-Riemannian Operation'})
+
+    pass
+
+
 class NetworkAddress(Entity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/NetworkAddress',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -27369,6 +27487,55 @@ class MemoryItem(Observation):
     memoryOf: Optional[list[Agent]] = Field(default=None, title="memory of", json_schema_extra = { "linkml_meta": {'domain': 'MemoryItem',
          'domain_of': ['MemoryItem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/memoryOf'} })
+    credibilityScore: Optional[list[Decimal]] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
+    facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
+    facetVantage: Optional[list[Agent]] = Field(default=None, title="facet vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetVantage'} })
+    observationEvent: Optional[list[Event]] = Field(default=None, title="observation event", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationEvent'} })
+    observationMethod: Optional[ObservationMethod] = Field(default=None, title="observation method", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationMethod'} })
+    observationResult: Optional[list[Entity]] = Field(default=None, title="observation result", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationResult'} })
+    observationType: Optional[list[ObservationType]] = Field(default=None, title="observation type", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationType'} })
+    observedFeature: Optional[list[str]] = Field(default=None, title="observed feature", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observedFeature'} })
+    perceptionEnvironment: Optional[SensoryEnvironment] = Field(default=None, title="perception environment", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/perceptionEnvironment'} })
+    vantage: Optional[list[Entity]] = Field(default=None, title="vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/vantage'} })
+
+
+class MusicAnalysisClaim(Observation):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Music Analysis Claim'})
+
+    analysisFrame: Optional[ReferenceFrame] = Field(default=None, title="analysis frame", json_schema_extra = { "linkml_meta": {'domain': 'MusicAnalysisClaim',
+         'domain_of': ['MusicAnalysisClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/analysisFrame'} })
+    analysisProperty: Optional[AnalysisProperty] = Field(default=None, title="analysis property", json_schema_extra = { "linkml_meta": {'domain': 'MusicAnalysisClaim',
+         'domain_of': ['MusicAnalysisClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/analysisProperty'} })
+    analysisResult: Optional[str] = Field(default=None, title="analysis result", json_schema_extra = { "linkml_meta": {'domain': 'MusicAnalysisClaim',
+         'domain_of': ['MusicAnalysisClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/analysisResult'} })
+    analysisTarget: Optional[str] = Field(default=None, title="analysis target", json_schema_extra = { "linkml_meta": {'domain': 'MusicAnalysisClaim',
+         'domain_of': ['MusicAnalysisClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/analysisTarget'} })
     credibilityScore: Optional[list[Decimal]] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
@@ -39233,6 +39400,14 @@ class ScheduleException(ConfiguredBaseModel):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exceptionType'} })
 
 
+class SchenkerLevel(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SchenkerLevel',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Schenker Level'})
+
+    pass
+
+
 class ScoreAnchor(InformationObject):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ScoreAnchor',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -41719,6 +41894,14 @@ class ServiceType(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ServiceType',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Service Type'})
+
+    pass
+
+
+class SetClassLabel(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SetClassLabel',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Set Class Label'})
 
     pass
 
@@ -58357,6 +58540,7 @@ AestheticQuality.model_rebuild()
 Agent.model_rebuild()
 AggregationFunction.model_rebuild()
 Agreement.model_rebuild()
+AnalysisProperty.model_rebuild()
 Annotation.model_rebuild()
 AnnotationMotivation.model_rebuild()
 Appellation.model_rebuild()
@@ -58467,6 +58651,7 @@ Filename.model_rebuild()
 FinancialAccountType.model_rebuild()
 FinancialTransaction.model_rebuild()
 ForgePlatform.model_rebuild()
+FormFunction.model_rebuild()
 FrameKind.model_rebuild()
 FrameRealm.model_rebuild()
 GTSCompaction.model_rebuild()
@@ -58488,6 +58673,7 @@ GrooveProfileKind.model_rebuild()
 Group.model_rebuild()
 Family.model_rebuild()
 GroupOperator.model_rebuild()
+HarmonicFunction.model_rebuild()
 Hazard.model_rebuild()
 Highlight.model_rebuild()
 Holding.model_rebuild()
@@ -58646,6 +58832,7 @@ NarrativeRole.model_rebuild()
 NarrativeScope.model_rebuild()
 NarrativeReferenceFrame.model_rebuild()
 NarrativeTimeAxis.model_rebuild()
+NeoRiemannianOperation.model_rebuild()
 NetworkAddress.model_rebuild()
 NetworkAddressType.model_rebuild()
 Norm.model_rebuild()
@@ -58663,6 +58850,7 @@ ConditionEvaluation.model_rebuild()
 Measurement.model_rebuild()
 Capacity.model_rebuild()
 MemoryItem.model_rebuild()
+MusicAnalysisClaim.model_rebuild()
 ObservationMethod.model_rebuild()
 ObservationType.model_rebuild()
 ObservationalActivity.model_rebuild()
@@ -58785,6 +58973,7 @@ ScalarQuantity.model_rebuild()
 SceneGraphEdge.model_rebuild()
 SceneRelationType.model_rebuild()
 ScheduleException.model_rebuild()
+SchenkerLevel.model_rebuild()
 ScoreAnchor.model_rebuild()
 ScoreEdition.model_rebuild()
 ScoreScale.model_rebuild()
@@ -58809,6 +58998,7 @@ SerialInstallment.model_rebuild()
 ServiceOffering.model_rebuild()
 ServiceStatus.model_rebuild()
 ServiceType.model_rebuild()
+SetClassLabel.model_rebuild()
 SeverityLevel.model_rebuild()
 SexAssignedAtBirth.model_rebuild()
 SexualOrientation.model_rebuild()

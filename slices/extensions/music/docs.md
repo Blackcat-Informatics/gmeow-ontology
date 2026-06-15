@@ -238,6 +238,45 @@ Another open value vocabulary carried on `PerformanceParticipation`: arco, pizzi
 - **Cage prepared piano**: piano + prepared + 12-EDO frame, no interval (timbre change, not tuning change).
 - **Drop-D electric guitar**: electric guitar + scordatura + a `tablatureRelative` drop-D frame + a major-second-down interval.
 
+## Analysis standpoints & genre doctrine (issue #315)
+
+### gmeow:MusicAnalysisClaim
+
+A `gmeow:MusicAnalysisClaim` is a `gufo:SubKind` of the universal
+`gmeow:Observation` relator. It bundles `{analysisTarget, analysisProperty,
+analysisResult, analyst-vantage, theory-frame}` and inherits confidence and
+displayable from Observation; determinacy comes from the theory frame itself
+(Principles 9, 11, 14). The theory frame is a first-class `gmeow:ReferenceFrame`
+individual (Roman-numeral, Schenkerian, pc-set, maqam-theory, raga-grammar,
+pathet, transformational, corpus-statistical, AI-model); it is orthogonal to
+the analyst vantage: two analysts in the same frame can disagree, while one
+analyst working in two frames is not disagreeing with herself.
+
+### Open value vocabularies
+
+`AnalysisProperty`, `FormFunction`, `HarmonicFunction`,
+`NeoRiemannianOperation`, `SetClassLabel`, and `SchenkerLevel` are open value
+vocabularies of individuals (Principle 9). They carry no subclasses; new
+analytical terms are added as new individuals.
+
+### Genre doctrine
+
+`gmeow:Genre` is defined in `slices/core/creative-works/module.ttl`
+(issue #307). The music slice seeds common genres and records lineage with
+`gmeow:wasDerivedFrom` — fusion genres and scene splits are derivation links,
+not a subclass taxonomy. A genre may be refuted from a standpoint
+(`standpointModality gmeow:refuted`) while asserted from another; both claims
+coexist and neither is privileged (Principles 9, 10).
+
+### External alignment
+
+The music extension slice bridges `gmeow:Genre` to the MusicBrainz genre
+namespace and the Discogs style namespace by reference only (Principle 5). The
+Wikidata Q188451 bridge for `gmeow:Genre` already lives in the core
+`slices/core/creative-works/mappings/equivalences.ttl`; the music slice keeps
+those additional music-specific external dependencies out of core
+(Principle 16).
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.

@@ -16,7 +16,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
-        coverage crossref constitution-check compliance-report audit evals-score
+        coverage acceptance crossref constitution-check compliance-report audit evals-score
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -91,6 +91,9 @@ wikidata-audit: ## Audit fixtures and modules for Wikidata misuse (offline).
 
 coverage: ## Report how much of the vendored entity slice GMEOW covers.
 	$(GMEOW_DEV) coverage --gaps
+
+acceptance: ## Score the full transpile against the real external/ snapshots (#450).
+	$(GMEOW_DEV) acceptance
 
 crossref: ## Generate the CrossRef DOI deposit XML.
 	$(GMEOW_DEV) crossref

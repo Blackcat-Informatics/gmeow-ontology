@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: relator-mediation (legacy OWL/gUFO form)
+# Equivalent constructs to input.logic.ttl using owl:* and gufo: vocabulary.
+
+@prefix gufo:  <http://purl.org/nemo/gufo#> .
+@prefix ex:    <https://example.org/relator-mediation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Sorts via gUFO stereotypes
+ex:Person       a gufo:Kind .
+ex:Organization a gufo:Kind .
+ex:Employment   a gufo:Relator .
+
+# Roles for the relation ends
+ex:employs    a gufo:Role .
+ex:employs    rdfs:domain ex:Employment .
+ex:employs    rdfs:range  ex:Person .
+
+ex:employedBy a gufo:Role .
+ex:employedBy rdfs:domain ex:Employment .
+ex:employedBy rdfs:range  ex:Organization .
+
+# inverseOf
+ex:employs owl:inverseOf ex:employedBy .

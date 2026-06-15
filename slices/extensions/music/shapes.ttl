@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# SHACL validation shapes for the Music extension slice (issues #308, #310, #311, #312, #313, #314).
+# SHACL validation shapes for the Music extension slice (issues #308, #310, #311, #312, #313, #314, #315).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
@@ -1318,4 +1318,68 @@ gmeow:InstrumentModificationShape
             }
         """ ;
         sh:message "InstrumentModification must not be subclassed (Principle 9)." ;
+    ] .
+
+# =========================================================================== #
+# ANALYSIS STANDPOINTS — issue #315 SHACL shapes
+# =========================================================================== #
+
+gmeow:MusicAnalysisClaimShape
+    a sh:NodeShape ;
+    rdfs:label "Music analysis claim shape"@x-gmeow-english ;
+    skos:definition "A MusicAnalysisClaim must name exactly one target, property, result, analyst vantage, and theory frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:MusicAnalysisClaim ;
+    sh:property [
+        sh:path gmeow:analysisTarget ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicAnalysisClaim must have exactly one analysisTarget." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:analysisProperty ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:AnalysisProperty ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicAnalysisClaim must have exactly one analysisProperty drawn from AnalysisProperty." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:analysisResult ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicAnalysisClaim must have exactly one analysisResult." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicAnalysisClaim must have exactly one analyst vantage (gmeow:vantage)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:analysisFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:ReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A MusicAnalysisClaim must be relative to exactly one theory frame (gmeow:analysisFrame) — a frame-relative claim without a frame is ill-formed (Principle 11)." ;
+    ] .
+
+gmeow:GenreNoSubclassShape
+    a sh:NodeShape ;
+    rdfs:label "Genre no-subclass shape"@x-gmeow-english ;
+    skos:definition "Genre is a value vocabulary / first-class Kind; no subclasses are allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:Genre ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "Genre must not be subclassed (Principle 9)." ;
     ] .

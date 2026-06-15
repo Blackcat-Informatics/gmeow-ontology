@@ -39,6 +39,7 @@ export enum AestheticQualityEnum {
 
 export enum AgentEnum {
 
+    fixture_analyst_A = "fixtureAnalystA",
     fixture_session_bassist = "fixtureSessionBassist",
     fixture_session_drummer = "fixtureSessionDrummer",
 };
@@ -52,6 +53,19 @@ export enum AggregationFunctionEnum {
     maximum = "aggMaximum",
     minimum = "aggMinimum",
     sum = "aggSum",
+};
+
+export enum AnalysisPropertyEnum {
+
+    form_function = "analysisPropertyFormFunction",
+    groove = "analysisPropertyGroove",
+    harmony_label = "analysisPropertyHarmonyLabel",
+    key = "analysisPropertyKey",
+    meter = "analysisPropertyMeter",
+    mode = "analysisPropertyMode",
+    motif_identity = "analysisPropertyMotifIdentity",
+    schema = "analysisPropertySchema",
+    tuning_identification = "analysisPropertyTuningIdentification",
 };
 
 export enum AnnotationMotivationEnum {
@@ -209,6 +223,7 @@ export enum AxisEnum {
     momentum_Y = "axisMomentumY",
     momentum_Z = "axisMomentumZ",
     month = "axisMonth",
+    music_analysis_axis = "axisMusicAnalysis",
     pitch_axis = "axisPitch",
     Plus_Code_cell = "axisPlusCode",
     port_number_axis = "axisPortNumber",
@@ -916,8 +931,25 @@ export enum FinancialAccountTypeEnum {
     wallet = "accountTypeWallet",
 };
 
+export enum FormFunctionEnum {
+
+    ālāp = "formFunctionAlap",
+    bridge = "formFunctionBridge",
+    chorus = "formFunctionChorus",
+    development = "formFunctionDevelopment",
+    drop = "formFunctionDrop",
+    exposition = "formFunctionExposition",
+    gat = "formFunctionGat",
+    intro = "formFunctionIntro",
+    outro = "formFunctionOutro",
+    recapitulation = "formFunctionRecapitulation",
+    riff = "formFunctionRiff",
+    verse = "formFunctionVerse",
+};
+
 export enum FrameKindEnum {
 
+    analytical = "frameKindAnalytical",
     cartesian = "frameKindCartesian",
     configuration_space = "frameKindConfigurationSpace",
     cylindrical = "frameKindCylindrical",
@@ -947,6 +979,7 @@ export enum FrameRealmEnum {
     linguistic = "frameRealmLinguistic",
     mathematical_SOLIDUS_n_D = "frameRealmMathematical",
     measurement = "frameRealmMeasurement",
+    music_analysis = "frameRealmMusicAnalysis",
     musical_pitch = "frameRealmMusicalPitch",
     musical_time = "frameRealmMusicalTime",
     narrative_SOLIDUS_fictional = "frameRealmNarrative",
@@ -1006,6 +1039,23 @@ export enum GenerativeProcessKindEnum {
     rule_based = "generativeProcessKindRuleBased",
     stochastic = "generativeProcessKindStochastic",
     verbal_score = "generativeProcessKindVerbalScore",
+};
+
+export enum GenreEnum {
+
+    blues = "genreBlues",
+    classical = "genreClassical",
+    disco = "genreDisco",
+    electronic = "genreElectronic",
+    funk = "genreFunk",
+    fusion = "genreFusion",
+    hip_hop = "genreHipHop",
+    jazz = "genreJazz",
+    math_rock = "genreMathRock",
+    post_rock = "genrePostRock",
+    progressive_rock = "genreProgressiveRock",
+    rock = "genreRock",
+    soul = "genreSoul",
 };
 
 export enum GeometryTypeEnum {
@@ -1074,6 +1124,18 @@ export enum GroupOperatorEnum {
     all_of_LEFT_PARENTHESISandRIGHT_PARENTHESIS = "operatorAll",
     any_of_LEFT_PARENTHESISorRIGHT_PARENTHESIS = "operatorAny",
     none_of_LEFT_PARENTHESISnotRIGHT_PARENTHESIS = "operatorNone",
+};
+
+export enum HarmonicFunctionEnum {
+
+    dominant = "harmonicFunctionDominant",
+    German_sixth = "harmonicFunctionGermanSixth",
+    leading_tone = "harmonicFunctionLeadingTone",
+    mediant = "harmonicFunctionMediant",
+    subdominant = "harmonicFunctionSubdominant",
+    submediant = "harmonicFunctionSubmediant",
+    supertonic = "harmonicFunctionSupertonic",
+    tonic = "harmonicFunctionTonic",
 };
 
 export enum HonorificEnum {
@@ -1516,6 +1578,11 @@ export enum MultipartTypeEnum {
     signed = "multipartTypeSigned",
 };
 
+export enum MusicAnalysisClaimEnum {
+
+    fixture_Roman_numeral_dominant_claim = "fixtureRomanNumeralClaim",
+};
+
 export enum MusicalParameterEnum {
 
     duration = "musicalParameterDuration",
@@ -1562,6 +1629,7 @@ export enum MusicalWorkEnum {
     number_4PRIME33DOUBLE_PRIME = "fixtureFourThirtyThreeWork",
     graphic_score_work_fixture = "fixtureGraphicScoreWork",
     Klavierstück_XI = "fixtureKlavierstuckXIWork",
+    fixture_math_rock_work = "fixtureMathRockWork",
     Reich_style_phasing_work = "fixtureReichPhasingWork",
     session_work_fixture = "fixtureSessionWork",
     fixture_structure_work = "fixtureStructureWork",
@@ -1676,6 +1744,15 @@ export enum NarrativeTimeAxisEnum {
 
     discourse_time_LEFT_PARENTHESISsyuzhetRIGHT_PARENTHESIS = "axisDiscourseTime",
     story_time_LEFT_PARENTHESISfabulaRIGHT_PARENTHESIS = "axisStoryTime",
+};
+
+export enum NeoRiemannianOperationEnum {
+
+    leading_tone_exchange_LEFT_PARENTHESISLRIGHT_PARENTHESIS = "neoRiemannianL",
+    Nebenverwandt_LEFT_PARENTHESISNRIGHT_PARENTHESIS = "neoRiemannianN",
+    parallel_LEFT_PARENTHESISPRIGHT_PARENTHESIS = "neoRiemannianP",
+    relative_LEFT_PARENTHESISRRIGHT_PARENTHESIS = "neoRiemannianR",
+    slide_LEFT_PARENTHESISSRIGHT_PARENTHESIS = "neoRiemannianS",
 };
 
 export enum NetworkAddressTypeEnum {
@@ -2279,6 +2356,15 @@ export enum ReferenceFrameEnum {
     Virtual_Platform_Reference_Frame = "referenceFrameVirtualPlatform",
     WGS_84_Geodetic_Reference_Frame = "referenceFrameWGS84",
     what3words_Reference_Frame = "referenceFrameWhat3Words",
+    AI_model_analysis_frame = "theoryFrameAIModel",
+    corpus_statistical_analysis_frame = "theoryFrameCorpusStatistical",
+    maqam_theory_frame = "theoryFrameMaqamTheory",
+    pathet_frame = "theoryFramePathet",
+    pitch_class_set_analysis_frame = "theoryFramePitchClassSet",
+    raga_grammar_frame = "theoryFrameRagaGrammar",
+    Roman_numeral_analysis_frame = "theoryFrameRomanNumeral",
+    Schenkerian_analysis_frame = "theoryFrameSchenkerian",
+    transformational_analysis_frame = "theoryFrameTransformational",
 };
 
 export enum RegisterEnum {
@@ -2457,6 +2543,13 @@ export enum SceneRelationTypeEnum {
     same_as = "sceneRelationSameAs",
     touching = "sceneRelationTouching",
     wearing = "sceneRelationWearing",
+};
+
+export enum SchenkerLevelEnum {
+
+    background = "schenkerLevelBackground",
+    foreground = "schenkerLevelForeground",
+    middleground = "schenkerLevelMiddleground",
 };
 
 export enum ScoreEditionEnum {
@@ -3069,6 +3162,11 @@ export interface Agreement {
 
 
 export interface AgreementName extends Appellation {
+}
+
+
+
+export interface AnalysisProperty {
 }
 
 
@@ -4401,6 +4499,11 @@ export interface ForgePlatform extends Entity {
 
 
 
+export interface FormFunction {
+}
+
+
+
 export interface FormalLanguage extends Language {
 }
 
@@ -4571,6 +4674,11 @@ export interface Group extends Entity {
 
 
 export interface GroupOperator {
+}
+
+
+
+export interface HarmonicFunction {
 }
 
 
@@ -5308,6 +5416,15 @@ export interface MultipartType {
 
 
 
+export interface MusicAnalysisClaim extends Observation {
+    analysisFrame?: ReferenceFrame,
+    analysisProperty?: AnalysisProperty,
+    analysisResult?: string,
+    analysisTarget?: string,
+}
+
+
+
 export interface MusicalParameter {
 }
 
@@ -5456,6 +5573,11 @@ export interface NarrativeTimeFrame extends ReferenceFrame {
     discourseTimeOf?: CreativeWork,
     narrativeTimeAxis?: NarrativeTimeAxis,
     storyTimeOf?: NarrativeReferenceFrame,
+}
+
+
+
+export interface NeoRiemannianOperation {
 }
 
 
@@ -6418,6 +6540,11 @@ export interface ScheduleException {
 
 
 
+export interface SchenkerLevel {
+}
+
+
+
 export interface ScoreAnchor extends InformationObject {
     anchorExemplar?: Exemplar[],
     anchorMeaning?: string[],
@@ -6586,6 +6713,11 @@ export interface ServiceStatus {
 
 
 export interface ServiceType {
+}
+
+
+
+export interface SetClassLabel {
 }
 
 

@@ -39,6 +39,7 @@ enum AestheticQualityEnum
 
 enum AgentEnum
   {
+    fixtureAnalystA
     fixtureSessionBassist
     fixtureSessionDrummer
   }
@@ -52,6 +53,19 @@ enum AggregationFunctionEnum
     aggMaximum
     aggMinimum
     aggSum
+  }
+
+enum AnalysisPropertyEnum
+  {
+    analysisPropertyFormFunction
+    analysisPropertyGroove
+    analysisPropertyHarmonyLabel
+    analysisPropertyKey
+    analysisPropertyMeter
+    analysisPropertyMode
+    analysisPropertyMotifIdentity
+    analysisPropertySchema
+    analysisPropertyTuningIdentification
   }
 
 enum AnnotationMotivationEnum
@@ -209,6 +223,7 @@ enum AxisEnum
     axisMomentumY
     axisMomentumZ
     axisMonth
+    axisMusicAnalysis
     axisPitch
     axisPlusCode
     axisPortNumber
@@ -916,8 +931,25 @@ enum FinancialAccountTypeEnum
     accountTypeWallet
   }
 
+enum FormFunctionEnum
+  {
+    formFunctionAlap
+    formFunctionBridge
+    formFunctionChorus
+    formFunctionDevelopment
+    formFunctionDrop
+    formFunctionExposition
+    formFunctionGat
+    formFunctionIntro
+    formFunctionOutro
+    formFunctionRecapitulation
+    formFunctionRiff
+    formFunctionVerse
+  }
+
 enum FrameKindEnum
   {
+    frameKindAnalytical
     frameKindCartesian
     frameKindConfigurationSpace
     frameKindCylindrical
@@ -947,6 +979,7 @@ enum FrameRealmEnum
     frameRealmLinguistic
     frameRealmMathematical
     frameRealmMeasurement
+    frameRealmMusicAnalysis
     frameRealmMusicalPitch
     frameRealmMusicalTime
     frameRealmNarrative
@@ -995,6 +1028,23 @@ enum GenerativeProcessKindEnum
     generativeProcessKindRuleBased
     generativeProcessKindStochastic
     generativeProcessKindVerbalScore
+  }
+
+enum GenreEnum
+  {
+    genreBlues
+    genreClassical
+    genreDisco
+    genreElectronic
+    genreFunk
+    genreFusion
+    genreHipHop
+    genreJazz
+    genreMathRock
+    genrePostRock
+    genreProgressiveRock
+    genreRock
+    genreSoul
   }
 
 enum GeometryTypeEnum
@@ -1074,6 +1124,18 @@ enum GTSProfileEnum
     gtsProfileGeneric
     gtsProfileImage
     gtsProfileOpaque
+  }
+
+enum HarmonicFunctionEnum
+  {
+    harmonicFunctionDominant
+    harmonicFunctionGermanSixth
+    harmonicFunctionLeadingTone
+    harmonicFunctionMediant
+    harmonicFunctionSubdominant
+    harmonicFunctionSubmediant
+    harmonicFunctionSupertonic
+    harmonicFunctionTonic
   }
 
 enum HonorificClassEnum
@@ -1562,9 +1624,15 @@ enum MusicalWorkEnum
     fixtureFourThirtyThreeWork
     fixtureGraphicScoreWork
     fixtureKlavierstuckXIWork
+    fixtureMathRockWork
     fixtureReichPhasingWork
     fixtureSessionWork
     fixtureStructureWork
+  }
+
+enum MusicAnalysisClaimEnum
+  {
+    fixtureRomanNumeralClaim
   }
 
 enum NamedPeriodEnum
@@ -1676,6 +1744,15 @@ enum NarrativeTimeAxisEnum
   {
     axisDiscourseTime
     axisStoryTime
+  }
+
+enum NeoRiemannianOperationEnum
+  {
+    neoRiemannianL
+    neoRiemannianN
+    neoRiemannianP
+    neoRiemannianR
+    neoRiemannianS
   }
 
 enum NetworkAddressTypeEnum
@@ -2279,6 +2356,15 @@ enum ReferenceFrameEnum
     referenceFrameVirtualPlatform
     referenceFrameWGS84
     referenceFrameWhat3Words
+    theoryFrameAIModel
+    theoryFrameCorpusStatistical
+    theoryFrameMaqamTheory
+    theoryFramePathet
+    theoryFramePitchClassSet
+    theoryFrameRagaGrammar
+    theoryFrameRomanNumeral
+    theoryFrameSchenkerian
+    theoryFrameTransformational
   }
 
 enum RegisterEnum
@@ -2449,6 +2535,13 @@ enum SceneRelationTypeEnum
     sceneRelationSameAs
     sceneRelationTouching
     sceneRelationWearing
+  }
+
+enum SchenkerLevelEnum
+  {
+    schenkerLevelBackground
+    schenkerLevelForeground
+    schenkerLevelMiddleground
   }
 
 enum ScoreEditionEnum
@@ -3116,6 +3209,10 @@ type AgreementName
     nameScript: [String]
     romanization: [String]
     transliterationScheme: [TransliterationScheme]
+  }
+
+type AnalysisProperty
+  {
   }
 
 type Annotation
@@ -8351,6 +8448,10 @@ type FormalLanguage
     usesWritingSystem: [WritingSystem]
   }
 
+type FormFunction
+  {
+  }
+
 type FosterParentChild
   {
     withinFamily: [Family]
@@ -9177,6 +9278,10 @@ type GTSSegment
     gtsSegmentIndex: Int
     gtsSegmentOf: GTSDocument
     usesTransformCodec: [TransformCodec]
+  }
+
+type HarmonicFunction
+  {
   }
 
 type Hazard
@@ -12680,6 +12785,24 @@ type MusicalWork
     realizedThrough: [Expression]
   }
 
+type MusicAnalysisClaim
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    vantage: [Entity]
+    analysisFrame: ReferenceFrame
+    analysisProperty: AnalysisProperty
+    analysisResult: String
+    analysisTarget: String
+  }
+
 type Myth
   {
     acquireLicensePage: [String]
@@ -13169,6 +13292,10 @@ type NarrativeTimeFrame
     discourseTimeOf: CreativeWork
     narrativeTimeAxis: NarrativeTimeAxis
     storyTimeOf: NarrativeReferenceFrame
+  }
+
+type NeoRiemannianOperation
+  {
   }
 
 type NetworkAddress
@@ -17573,6 +17700,10 @@ type ScheduleException
     exceptionType: ExceptionType
   }
 
+type SchenkerLevel
+  {
+  }
+
 type ScoreAnchor
   {
     acquireLicensePage: [String]
@@ -18671,6 +18802,10 @@ type ServiceStatus
   }
 
 type ServiceType
+  {
+  }
+
+type SetClassLabel
   {
   }
 
