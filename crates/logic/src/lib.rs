@@ -12,3 +12,9 @@
 pub mod seam;
 pub mod store;
 pub mod versioning;
+
+// PyO3 Python bindings — native targets only.
+// pyo3 physically cannot link into a wasm binary (the CPython C extension ABI
+// is unavailable on wasm32); this cfg is platform-correct, not optionality.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod py;
