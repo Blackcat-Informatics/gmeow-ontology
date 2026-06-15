@@ -1,0 +1,6 @@
+{
+  "https://example.org/explanation/transitive-derivation/world-main": {
+    "quads": 3,
+    "status": "consistent"
+  }
+}

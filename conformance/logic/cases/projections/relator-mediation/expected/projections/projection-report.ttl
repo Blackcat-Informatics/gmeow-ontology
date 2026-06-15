@@ -11,6 +11,7 @@ logic:projection-report a logic:ProjectionReport ;
         <https://blackcatinformatics.ca/logic/target/datalog>,
         <https://blackcatinformatics.ca/logic/target/gufo>,
         <https://blackcatinformatics.ca/logic/target/n3>,
+        <https://blackcatinformatics.ca/logic/target/nemo>,
         <https://blackcatinformatics.ca/logic/target/owl-dl>,
         <https://blackcatinformatics.ca/logic/target/owl-el> ;
     logic:profileCount 0 ;
@@ -49,6 +50,11 @@ logic:projection-report a logic:ProjectionReport ;
         "modal context encoded as quoted graph arguments (may overgenerate)" ;
     logic:complexityClass "semi-decidable" ;
     logic:preservationKind logic:CompleteOverApproximation .
+
+<https://blackcatinformatics.ca/logic/target/nemo> a logic:ProjectionTarget ;
+    rdfs:label "nemo" ;
+    logic:complexityClass "PTIME/datalog" ;
+    logic:preservationKind logic:ExactPreservation .
 
 <https://blackcatinformatics.ca/logic/target/owl-dl> a logic:ProjectionTarget ;
     rdfs:label "owl-dl" ;

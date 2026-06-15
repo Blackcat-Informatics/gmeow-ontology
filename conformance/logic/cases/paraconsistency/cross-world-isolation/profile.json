@@ -1,0 +1,6 @@
+{
+  "semantic_profile": "PositiveHornProfile",
+  "world_types": ["deontic"],
+  "mode": "native",
+  "expected_decidability_class": "decidable"
+}

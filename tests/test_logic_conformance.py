@@ -45,6 +45,7 @@ from gmeow_tools.logic_projections import (
     project_datalog,
     project_gufo,
     project_n3,
+    project_nemo,
     project_owl_dl,
     project_owl_el,
 )
@@ -146,15 +147,16 @@ def test_projection_conformance(case_dir: Path) -> None:
     program, _diagnostics = parse_logic_source(input_path)
     assert len(program.axioms) > 0, f"{case_name}: input.logic.ttl produced no axioms"
 
-    # ---- Run all 6 projection back-ends ------------------------------------
+    # ---- Run all 7 projection back-ends ------------------------------------
     r_dl = project_owl_dl(program)
     r_el = project_owl_el(program)
     r_datalog = project_datalog(program)
     r_n3 = project_n3(program)
     r_gufo = project_gufo(program)
     r_rdf12 = project_canonical_rdf12(program)
+    r_nemo = project_nemo(program)
 
-    all_projections = [r_dl, r_el, r_datalog, r_n3, r_gufo, r_rdf12]
+    all_projections = [r_dl, r_el, r_datalog, r_n3, r_gufo, r_rdf12, r_nemo]
 
     # ---- RDF-target isomorphism checks -------------------------------------
     for result in [r_dl, r_el, r_gufo, r_rdf12]:
@@ -180,6 +182,13 @@ def test_projection_conformance(case_dir: Path) -> None:
     n3_golden = (expected_dir / "n3.n3").read_text(encoding="utf-8")
     assert _text_normalize(r_n3.content) == _text_normalize(n3_golden), (
         f"{case_name}: n3.n3 output does not match golden"
+    )
+
+    nemo_golden_path = expected_dir / "nemo.rls"
+    assert nemo_golden_path.exists(), f"{case_name}: missing golden file nemo.rls"
+    nemo_golden = nemo_golden_path.read_text(encoding="utf-8")
+    assert _text_normalize(r_nemo.content) == _text_normalize(nemo_golden), (
+        f"{case_name}: nemo.rls output does not match golden"
     )
 
     # ---- Preservation ledger -----------------------------------------------

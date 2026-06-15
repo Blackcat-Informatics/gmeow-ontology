@@ -9,6 +9,7 @@
 //!
 //! Nemo-based rule evaluation and PyO3 bindings arrive in later tasks.
 
+pub mod provenance;
 pub mod seam;
 pub mod store;
 pub mod versioning;

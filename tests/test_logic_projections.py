@@ -47,6 +47,7 @@ from gmeow_tools.logic_projections import (
     project_datalog,
     project_gufo,
     project_n3,
+    project_nemo,
     project_owl_dl,
     project_owl_el,
 )
@@ -153,6 +154,7 @@ def _all_projections(program: LogicProgram) -> list[ProjectionResult]:
         project_n3(program),
         project_gufo(program),
         project_canonical_rdf12(program),
+        project_nemo(program),
     ]
 
 
@@ -347,6 +349,7 @@ def test_canonical_rdf12_contains_rules() -> None:
         ("n3", PreservationKind.COMPLETE_OVER, "semi-decidable"),
         ("gufo", PreservationKind.VALIDATION_ONLY, "PTIME"),
         ("canonical-rdf12", PreservationKind.EXACT, "N/A"),
+        ("nemo", PreservationKind.EXACT, "PTIME"),
     ],
 )
 def test_target_meta_preservation_kind(
@@ -377,8 +380,8 @@ def test_report_contains_all_targets() -> None:
         if str(p) == str(LOGIC.hasProjection)
         # hasProjection's object is the target IRI; label is on that node
     }
-    # Six targets should all appear
-    assert len(target_labels) == 6
+    # Seven targets should all appear (6 original + nemo)
+    assert len(target_labels) == 7
 
 
 def test_report_preservation_kind_in_graph() -> None:
@@ -797,3 +800,194 @@ def test_datalog_unscoped_axiom_uses_default_context() -> None:
     assert '"default"' in result.content, (
         "Expected 'default' as context argument for unscoped facts"
     )
+
+
+# --------------------------------------------------------------------------- #
+# project_nemo: focused unit tests (Task 2 — issue #501)
+# --------------------------------------------------------------------------- #
+
+
+def test_nemo_deterministic() -> None:
+    """project_nemo: two runs on the same program produce identical bytes."""
+    prog = _minimal_program()
+    r1 = project_nemo(prog)
+    r2 = project_nemo(prog)
+    assert r1.content == r2.content
+
+
+def test_nemo_target_name() -> None:
+    """project_nemo: result.target is 'nemo'."""
+    prog = _minimal_program()
+    result = project_nemo(prog)
+    assert result.target == "nemo"
+
+
+def test_nemo_no_graph() -> None:
+    """project_nemo: result.graph is None (text-only target)."""
+    prog = _minimal_program()
+    result = project_nemo(prog)
+    assert result.graph is None
+
+
+def test_nemo_preservation_exact() -> None:
+    """project_nemo declares ExactPreservation (Horn/Datalog PTIME)."""
+    prog = _minimal_program()
+    result = project_nemo(prog)
+    assert result.preservation == PreservationKind.EXACT
+
+
+def test_nemo_complexity_ptime() -> None:
+    """project_nemo declares PTIME/datalog complexity."""
+    prog = _minimal_program()
+    result = project_nemo(prog)
+    assert result.complexity.startswith("PTIME")
+
+
+def test_nemo_iri_syntax() -> None:
+    """project_nemo encodes IRI arguments as <iri> (angle-bracket Nemo syntax)."""
+    prog = _minimal_program()
+    result = project_nemo(prog)
+    # IRIs must appear as <...> not as "..."
+    assert "<https://example.org/test/Person>" in result.content
+    # Must NOT appear as double-quoted IRI strings (that is the Datalog encoding)
+    assert '"https://example.org/test/Person"' not in result.content
+
+
+def test_nemo_context_string_syntax() -> None:
+    """project_nemo encodes context as a double-quoted Nemo string constant."""
+    prog = _minimal_program()
+    result = project_nemo(prog)
+    assert '"default"' in result.content
+
+
+def test_nemo_scoped_axiom_uses_modality_context() -> None:
+    """Scoped axioms carry the modality value as the context string."""
+    prog = _program_mixed_scope()
+    result = project_nemo(prog)
+    # The epistemic-scoped subClassOf must appear with "epistemic" context
+    assert '"epistemic"' in result.content
+
+
+def test_nemo_unscoped_axiom_uses_default_context() -> None:
+    """Unscoped axioms carry the 'default' string as the context argument."""
+    prog = _program_mixed_scope()
+    result = project_nemo(prog)
+    assert '"default"' in result.content
+
+
+def test_nemo_uniform_arity_for_mixed_scope_program() -> None:
+    """project_nemo: every predicate appears at exactly arity 3 (no mixed arity).
+
+    Mirrors the Datalog arity-regression test but for Nemo IRI-predicate syntax.
+    Predicates are now emitted as ``<full_iri>(...)`` so the regex must match
+    the angle-bracket IRI form.
+    """
+    import re
+
+    prog = _program_mixed_scope()
+    result = project_nemo(prog)
+
+    # Match IRI-predicate facts: <http://...>(arg, arg, arg).
+    fact_pattern = re.compile(r"^<([^>]+)>\s*\(([^)]+)\)\s*\.$")
+    arity_map: dict[str, set[int]] = {}
+    for line in result.content.splitlines():
+        line = line.strip()
+        if not line or line.startswith("%") or ":-" in line:
+            continue
+        m = fact_pattern.match(line)
+        if not m:
+            continue
+        pred = m.group(1)  # the full IRI (no angle brackets)
+        # Count top-level commas (IRIs may not contain commas, so naive split works)
+        arity = m.group(2).count(",") + 1
+        arity_map.setdefault(pred, set()).add(arity)
+
+    # At least some facts must have been parsed
+    assert arity_map, (
+        "project_nemo emitted no IRI-predicate facts for mixed-scope program"
+    )
+
+    multi_arity = {p: a for p, a in arity_map.items() if len(a) > 1}
+    assert not multi_arity, (
+        "project_nemo emitted mixed arity for predicates: "
+        + ", ".join(f"{p}={sorted(a)}" for p, a in multi_arity.items())
+    )
+
+
+def test_nemo_rule_emitted_correctly() -> None:
+    """project_nemo emits rules with :- and Nemo ?VarName variables."""
+    prog = _program_with_rule()
+    result = project_nemo(prog)
+    # A rule must appear (contains ':-')
+    assert ":-" in result.content
+    # Variables must use the ?VarName Nemo convention. The shared world-context
+    # variable is emitted as ?W (fresh w.r.t. the rule's own variables), so it
+    # appears even for a rule whose logical terms are all ground IRIs.
+    assert "?W" in result.content
+
+
+def test_nemo_fact_predicates_are_valid_iris() -> None:
+    """project_nemo emits full IRI-form predicate names (not local names).
+
+    Principle 7 parity at the IRI level: the Nemo back-end uses full IRIs as
+    predicate names (``<http://...>`` form) so they are unambiguous and can be
+    decoded back to RDF predicates without namespace context.  The Datalog
+    back-end uses local names; the two formats differ by design.
+    """
+    import re
+
+    prog = _minimal_program()
+    r_nemo = project_nemo(prog)
+
+    # Extract full IRIs from IRI-predicate facts: <iri>(
+    iri_pat = re.compile(r"^<([^>]+)>\s*\(", re.MULTILINE)
+    nemo_iris = {m.group(1) for m in iri_pat.finditer(r_nemo.content)}
+
+    assert nemo_iris, "project_nemo emitted no IRI-predicate facts"
+    for iri in nemo_iris:
+        assert iri.startswith("http://") or iri.startswith("https://"), (
+            f"Nemo predicate is not a valid HTTP IRI: {iri!r}"
+        )
+
+
+def test_nemo_literal_in_output() -> None:
+    """project_nemo: literal-valued axiom objects use double-quoted string."""
+    scoped = LogicAxiom(
+        subject=str(EX.Thing),
+        predicate=_LOGIC_SUBCLS,
+        obj="some literal value",
+        obj_is_literal=True,
+    )
+    prog = LogicProgram(axioms=(scoped,), rules=(), profiles=())
+    result = project_nemo(prog)
+    assert '"some literal value"' in result.content
+
+
+def test_nemo_writes_path(tmp_path: Path) -> None:
+    """project_nemo writes the .rls text to path when given."""
+    prog = _minimal_program()
+    out = tmp_path / "gmeow.rls"
+    project_nemo(prog, path=out)
+    assert out.exists()
+    assert out.stat().st_size > 0
+    content = out.read_text(encoding="utf-8")
+    assert content.startswith("% GENERATED")
+
+
+def test_nemo_safety_violation_raises() -> None:
+    """project_nemo raises ValueError on a rule with unbound head variable."""
+    # Head contains ?Y but body only binds ?X — safety violation
+    head = LogicAxiom(
+        subject="?X",
+        predicate=_LOGIC_SUBCLS,
+        obj="?Y",  # unbound — not in body
+    )
+    body = LogicAxiom(
+        subject="?X",
+        predicate=_RDF_TYPE,
+        obj=_LOGIC_KIND,
+    )
+    rule = LogicRule(head=head, body=(body,))
+    prog = LogicProgram(axioms=(), rules=(rule,), profiles=())
+    with pytest.raises(ValueError, match="safety violation"):
+        project_nemo(prog)

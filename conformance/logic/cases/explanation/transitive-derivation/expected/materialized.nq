@@ -1,0 +1,3 @@
+<https://example.org/explanation/transitive-derivation/A> <https://example.org/explanation/transitive-derivation/subOf> <https://example.org/explanation/transitive-derivation/B> <https://example.org/explanation/transitive-derivation/world-main> .
+<https://example.org/explanation/transitive-derivation/A> <https://example.org/explanation/transitive-derivation/subOf> <https://example.org/explanation/transitive-derivation/C> <https://example.org/explanation/transitive-derivation/world-main> .
+<https://example.org/explanation/transitive-derivation/B> <https://example.org/explanation/transitive-derivation/subOf> <https://example.org/explanation/transitive-derivation/C> <https://example.org/explanation/transitive-derivation/world-main> .

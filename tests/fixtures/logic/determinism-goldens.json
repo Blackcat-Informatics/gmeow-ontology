@@ -1,0 +1,80 @@
+{
+  "_comment": "Authoritative determinism goldens for the logic v1 monotonic core (issue #501, Task 1). These values were produced by the Python oracle and are normative — the Rust engine (Task 4) must reproduce every IRI byte-for-byte.",
+  "_recipe_reifier": "sha1(s.n3() + ' ' + p.n3() + ' ' + o.n3()) → {NAMESPACE}reifier/{digest}",
+  "_recipe_derivation": "sha1(rule_iri + '\\n' + '\\n'.join(sorted(source_reifier_iris))) → {NAMESPACE}derivation/{digest}",
+  "_n3_rules": [
+    "IRI: <iri>",
+    "lang literal: \"lex\"@lang  (lang subtag lowercased by rdflib)",
+    "typed literal: \"lex\"^^<dt>  (xsd:string / rdf:langString datatype ELIDED)",
+    "xsd:decimal: \"1.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>  (not elided)",
+    "NO numeric normalization — lexical form preserved verbatim"
+  ],
+  "quad_reifier_goldens": [
+    {
+      "_id": "golden-1-iri-triple",
+      "_description": "Three plain IRI terms",
+      "subject": "http://example.org/a",
+      "predicate": "http://example.org/related",
+      "object": "http://example.org/b",
+      "object_is_literal": false,
+      "n3_canonical": "<http://example.org/a> <http://example.org/related> <http://example.org/b>",
+      "reifier_iri": "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"
+    },
+    {
+      "_id": "golden-2-lang-literal",
+      "_description": "Language-tagged literal object (rdflib lowercases lang tag)",
+      "subject": "http://example.org/x",
+      "predicate": "http://www.w3.org/2000/01/rdf-schema#label",
+      "object": "hello",
+      "object_lang": "en",
+      "object_is_literal": true,
+      "n3_canonical": "<http://example.org/x> <http://www.w3.org/2000/01/rdf-schema#label> \"hello\"@en",
+      "reifier_iri": "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064"
+    },
+    {
+      "_id": "golden-3-xsd-decimal",
+      "_description": "xsd:decimal literal — datatype is NOT elided (only xsd:string and rdf:langString are elided)",
+      "subject": "http://example.org/m",
+      "predicate": "http://example.org/value",
+      "object": "1.0",
+      "object_datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+      "object_is_literal": true,
+      "n3_canonical": "<http://example.org/m> <http://example.org/value> \"1.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>",
+      "reifier_iri": "https://blackcatinformatics.ca/gmeow/reifier/efbda8fbbb765e64c7f8ca2d690489a1ba70e569"
+    },
+    {
+      "_id": "golden-4-plain-string",
+      "_description": "Plain string literal — xsd:string datatype ELIDED by rdflib .n3()",
+      "subject": "http://example.org/n",
+      "predicate": "http://example.org/name",
+      "object": "plain string",
+      "object_datatype": "http://www.w3.org/2001/XMLSchema#string",
+      "object_is_literal": true,
+      "n3_canonical": "<http://example.org/n> <http://example.org/name> \"plain string\"",
+      "reifier_iri": "https://blackcatinformatics.ca/gmeow/reifier/784c486d79b869539405a3f90f21126477b07f26"
+    }
+  ],
+  "derivation_id_goldens": [
+    {
+      "_id": "golden-5-two-sources",
+      "_description": "Rule firing with two antecedent sources (order-independent: sorted before hashing)",
+      "rule_iri": "https://blackcatinformatics.ca/logic/rules/transitivity",
+      "source_reifier_iris": [
+        "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
+        "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064"
+      ],
+      "payload_before_hash": "https://blackcatinformatics.ca/logic/rules/transitivity\nhttps://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a\nhttps://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064",
+      "derivation_iri": "https://blackcatinformatics.ca/gmeow/derivation/e1379d93fd46357cc6a3be9e057528bb0d589f68"
+    },
+    {
+      "_id": "golden-6-assert-sentinel",
+      "_description": "Assert-sentinel derivation: rule=logic:assert, source=the quad's own reifier (golden-1)",
+      "rule_iri": "https://blackcatinformatics.ca/logic/assert",
+      "source_reifier_iris": [
+        "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"
+      ],
+      "payload_before_hash": "https://blackcatinformatics.ca/logic/assert\nhttps://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
+      "derivation_iri": "https://blackcatinformatics.ca/gmeow/derivation/5dd2eeebb9812618b81b5053f662c0756c57b2e6"
+    }
+  ]
+}

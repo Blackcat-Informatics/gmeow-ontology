@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: worlds-B/no-occurrence-gate
+# AC: worlds-B — type-level causal structure with ZERO token gufo:Event instances.
+#
+# EventType individuals (Smoke, Fire, Damage, Overload, Failure) are TYPE-LEVEL
+# entities — they represent event KINDS, not event TOKEN occurrences. The
+# typeCauses property links these kinds at the type level. A transitivity rule
+# closes the type-level causal graph.
+#
+# No rdf:type gufo:Event assertion ever appears in input or derived facts.
+# The no-occurrence gate (Stratum B) must pass: EXACTLY ZERO token Event
+# instances in the materialized output.
+#
+# world-risk-A: Smoke → Fire → Damage (transitivity derives Smoke → Damage)
+# world-risk-B: Overload → Failure (no transitivity applicable, single hop)
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/worlds-B/no-occurrence-gate/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: EventType is a type-level Kind (NOT gufo:Event token instances)
+ex:EventType a logic:Kind .
+
+# Rule: transitivity of type-level causation.
+# ?A typeCauses ?B  AND  ?B typeCauses ?C  =>  ?A typeCauses ?C
+# This derives type-level causal links — never a rdf:type gufo:Event triple.
+ex:ruleTransitiveCausation a logic:Rule ;
+    logic:provenance ex:ruleTransitiveCausation ;
+    logic:head [
+        rdf:subject   "?A" ;
+        rdf:predicate ex:typeCauses ;
+        rdf:object    "?C"
+    ] ;
+    logic:body [
+        rdf:subject   "?A" ;
+        rdf:predicate ex:typeCauses ;
+        rdf:object    "?B"
+    ] ;
+    logic:body [
+        rdf:subject   "?B" ;
+        rdf:predicate ex:typeCauses ;
+        rdf:object    "?C"
+    ] .

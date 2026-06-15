@@ -1,0 +1,10 @@
+{
+  "https://example.org/paraconsistency/cross-world-isolation/world-alpha": {
+    "quads": 2,
+    "status": "consistent"
+  },
+  "https://example.org/paraconsistency/cross-world-isolation/world-beta": {
+    "quads": 2,
+    "status": "consistent"
+  }
+}
