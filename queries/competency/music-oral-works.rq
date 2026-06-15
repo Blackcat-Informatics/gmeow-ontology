@@ -1,0 +1,29 @@
+# Competency question 6 (Music EPIC #306): MusicalWorks with no notated
+# Expression but at least three performances.
+#
+# Expected fixture binding: gmeow:fixtureOralRagaYamanWork
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?work (COUNT(DISTINCT ?expression) AS ?performanceCount)
+WHERE {
+    ?work a gmeow:MusicalWork .
+    ?expression a gmeow:Expression ;
+                gmeow:realizes ?work ;
+                gmeow:realizationMode ?mode .
+    FILTER (?mode IN (
+        gmeow:realizationModePerformed,
+        gmeow:realizationModeImprovised,
+        gmeow:realizationModeOral
+    ))
+
+    # Ensure no notated Expression exists for the same work.
+    FILTER NOT EXISTS {
+        ?notatedExpression a gmeow:Expression ;
+                           gmeow:realizes ?work ;
+                           gmeow:realizationMode gmeow:realizationModeNotated .
+    }
+}
+GROUP BY ?work
+HAVING (COUNT(DISTINCT ?expression) >= 3)
+ORDER BY ?work
