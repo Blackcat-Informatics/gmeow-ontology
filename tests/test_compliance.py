@@ -95,7 +95,9 @@ def test_prior_gate_evidence_mode_marks_runnable_gates_passed() -> None:
     ]
     assert runnable_enforcements
     for enforcement_iri in runnable_enforcements:
-        for result in graph.subjects(META.enforcement, enforcement_iri):
+        results = list(graph.subjects(META.enforcement, enforcement_iri))
+        assert results, f"missing compliance result for {enforcement_iri}"
+        for result in results:
             assert (result, META.status, Literal("passed")) in graph
             assert (result, META.errorCount, Literal(0)) in graph
             assert (result, META.warningCount, None) not in graph

@@ -31,6 +31,8 @@ FNOM = Namespace(PREFIXES["fnom"])
 ALIGN = Namespace(PREFIXES["align"])
 EDOAL = Namespace(PREFIXES["edoal"])
 
+_DETERMINISTIC_EDOAL_PROFILES = tuple(sorted(_PROFILES))
+
 
 def test_dsl_parses() -> None:
     """Validate the mapping DSL structurally — exact counts live elsewhere.
@@ -82,6 +84,24 @@ def test_dsl_parses() -> None:
 
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
     assert profiles == set(_PROFILES)
+
+
+@pytest.mark.parametrize("profile", _DETERMINISTIC_EDOAL_PROFILES)
+def test_edoal_serialization_is_deterministic(profile: str) -> None:
+    """Issue #36: two compiles must emit byte-identical EDOAL."""
+    dsl = load_dsl()
+    first = emit_edoal(dsl, profile).serialize(format="turtle")
+    second = emit_edoal(dsl, profile).serialize(format="turtle")
+    assert first == second, f"{profile} EDOAL serialization is non-deterministic"
+
+
+def test_fno_serialization_is_deterministic() -> None:
+    """Issue #36: the FnO transform catalog must serialize byte-identically too."""
+    dsl = load_dsl()
+    onto = load_merged_graph(include_imports=False)
+    first = emit_fno(dsl, onto).serialize(format="turtle")
+    second = emit_fno(dsl, onto).serialize(format="turtle")
+    assert first == second, "FnO serialization is non-deterministic"
 
 
 def test_fno_type_derived_from_ontology_range() -> None:

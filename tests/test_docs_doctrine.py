@@ -321,6 +321,32 @@ def test_compile_gts_embeds_doc_blobs_round_trip() -> None:
     assert digest in to_nquads(package)
 
 
+def test_snapshot_generator_tracks_gts_codec_inputs() -> None:
+    """Codec/writer changes must invalidate the committed GTS snapshot cache."""
+    from gmeow_tools import gts_gen
+    from gmeow_tools.config import PROJECT_ROOT
+
+    generator = gts_gen.GtsSnapshotGenerator  # @register left an instance here
+    paths = {
+        path.resolve().relative_to(PROJECT_ROOT).as_posix()
+        for path in generator.implementation_paths  # type: ignore[attr-defined]
+    }
+
+    assert "uv.lock" in paths
+    assert "packages/gts/pyproject.toml" in paths
+    assert "packages/gts/src/gts/codec.py" in paths
+    assert "packages/gts/src/gts/writer.py" in paths
+    assert "packages/gts/src/gts/wire.py" in paths
+    assert "src/gmeow_tools/config.py" in paths
+    assert "src/gmeow_tools/graph.py" in paths
+    assert "src/gmeow_tools/gts_producer.py" in paths
+    assert "src/gmeow_tools/ontology_docs.py" in paths
+    assert "src/gmeow_tools/self_desc.py" in paths
+    assert "src/gmeow_tools/slices.py" in paths
+    assert "src/gmeow_tools/transform.py" in paths
+    assert "src/gmeow_tools/validate.py" in paths
+
+
 def test_snapshot_generator_fails_on_bad_anchor(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

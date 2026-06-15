@@ -58,7 +58,7 @@ meta:gate-statements a meta:Gate ;
 
 meta:tests-statements a meta:TestSuite ;
     rdfs:label "RDF 1.2 round-trip tests"@x-gmeow-english ;
-    meta:artifact "tests/test_statements.py", "tests/test_compile_no_drift.py" .
+    meta:artifact "tests/test_mapping_compiler.py", "tests/test_statements.py" .
 
 meta:gate-rdf12-codec a meta:Gate ;
     rdfs:label "OWL ↔ RDF 1.2 codec (generated↔generated downcast)"@x-gmeow-english ;
