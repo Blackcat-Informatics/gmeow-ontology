@@ -46,7 +46,7 @@ Tier-2 uplift backlog.
 | music | extension | extensions | 11 | 59 | 126 | 0 | 0 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 2/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 0 | - | full |
-| norms | extension | extensions | 10 | 25 | 56 | 0 | 0 | - | full |
+| norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |
 | notation | extension | extensions | 4 | 5 | 9 | 0 | 1 | - | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 1 | 0/30 | full |
@@ -59,7 +59,7 @@ Tier-2 uplift backlog.
 | rights | core | core | 4 | 22 | 48 | 0 | 1 | 0/70 | full |
 | risk | extension | extensions | 2 | 8 | 19 | 0 | 1 | - | full |
 | sensory | extension | extensions | 3 | 4 | 6 | 0 | 1 | - | full |
-| sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 0 | - | full |
+| sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 1 | - | full |
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 0/8 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 0/3 | full |
