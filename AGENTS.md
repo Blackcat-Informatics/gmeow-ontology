@@ -28,6 +28,17 @@ Every design decision, code modification, and schema change is governed by the t
 
 The repository uses Python (`uv`) and Docker (for Java tools like ROBOT, WIDOCO, and Jena). Always use the following `make` targets to run operations:
 
+### The CLI razor — `gmeow` vs `gmeow-dev` (#517)
+
+There are two CLIs, and a single razor decides where a command belongs:
+
+> **`gmeow` does not need a repo; `gmeow-dev` does.**
+
+* **`gmeow`** ([src/gmeow_tools/cli.py](./src/gmeow_tools/cli.py)) is the public, PyPI-facing surface. Every command must work from the installed wheel alone — backed by the bundled `generated/dist/gmeow-full.gts` snapshot — with **no source checkout, Docker, generator inputs, or repo-local query trees**. Transpiling a user's own RDF, describing a term, verifying the bundle: consumer operations, so `gmeow`.
+* **`gmeow-dev`** ([src/gmeow_tools/cli_dev.py](./src/gmeow_tools/cli_dev.py)) is repository maintenance. It may read anything in the tree — `dsl/`, `generated/`, `imports/`, `tests/fixtures/` — because it only ever runs inside a checkout. Regenerating artifacts, scoring coverage against the dev corpus, refreshing vendored snapshots: developer operations, so `gmeow-dev`.
+
+When adding a command, ask the razor first. If it needs a repo path that the wheel does not bundle, it is `gmeow-dev` — or the data it needs must first be bundled so it can be `gmeow`.
+
 ### Environment & Formatting
 
 ```bash
