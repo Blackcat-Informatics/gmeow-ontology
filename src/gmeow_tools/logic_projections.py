@@ -1339,6 +1339,20 @@ def project_nemo(
             # Zero-body rule: head-only (ground fact, no context variable needed).
             # Emit as a ground fact with a "default" context constant — a rule
             # with a head variable but no body is always unsafe in Nemo.
+            #
+            # The "default" context here is identical to the context used for
+            # unscoped ground axioms emitted above.  This is NOT a divergence
+            # from the oracle:
+            # - The IR safety check above (head_vars - body_vars) already
+            #   raises ValueError for unsafe zero-body rules with head variables.
+            # - Ground zero-body rules (both head terms are IRIs/literals, no
+            #   variables) are thus equivalent to plain axioms, and "default" is
+            #   the correct encoding for unscoped facts in the Nemo projection.
+            # - The oracle (logic_materialize._chase_world) runs zero-body rules
+            #   once per world with an empty binding set, which is semantically
+            #   equivalent to asserting a ground fact in that world.
+            # - No current conformance case exercises a zero-body rule; if one
+            #   is added, the gate covers both paths identically.
             lines.append(f'{head_pred}({head_subj_nemo}, {head_obj_nemo}, "default").')
 
     content = "\n".join(lines) + "\n"
