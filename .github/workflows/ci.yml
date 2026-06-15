@@ -64,8 +64,10 @@ jobs:
       # AC2/AC4 tests in test_logic_engine.py cannot silently skip in CI.
       # VIRTUAL_ENV tells maturin develop which interpreter to target without
       # activating the shell; uv sync above has already created .venv.
-      - name: Install Rust (stable, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -94,9 +96,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+      # Nightly is required: the Nemo engine (hard dep of gmeow-logic) uses
+      # unstable Rust features (macro_metavar_expr, iter_intersperse, etc.).
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
+          toolchain: nightly
           components: clippy, rustfmt
           targets: wasm32-unknown-unknown
 

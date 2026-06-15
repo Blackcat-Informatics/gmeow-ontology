@@ -49,6 +49,12 @@ Nemo-based rule materialization and PyO3/wasm bindings arrive in later tasks.
 
 ## Build
 
+> **Toolchain requirement:** nightly Rust is required. The `nemo` engine (a
+> hard dependency) uses unstable features (`macro_metavar_expr`,
+> `iter_intersperse`, `slice_swap_unchecked`) that are not available on stable.
+> The repo ships a `rust-toolchain.toml` at the root that pins the channel to
+> `nightly`; `cargo` and `rustup` pick this up automatically.
+
 ```bash
 cargo build -p gmeow-logic
 ```

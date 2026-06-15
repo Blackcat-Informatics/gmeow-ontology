@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+# Nightly Rust is required because the `nemo` engine (a hard dependency of
+# gmeow-logic) uses unstable features: macro_metavar_expr, iter_intersperse,
+# and slice_swap_unchecked.  There is no fallback — nemo does not compile on
+# stable.  Floating nightly is chosen so CI always picks up fixes without
+# pinning churn; if a specific nightly breaks the build, pin it here.
+# Tracking issues: #499, PR #531 (logic-engine-scaffold).
+[toolchain]
+channel = "nightly"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]
