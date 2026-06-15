@@ -173,12 +173,10 @@ export class Writer {
     }
 
     addBlob(data: Uint8Array, mt?: string, rep?: string): Uint8Array {
-        let pub: Map<unknown, unknown> | undefined;
-        if (mt || rep) {
-            pub = new Map<unknown, unknown>();
-            if (mt) pub.set("mt", mt);
-            if (rep) pub.set("rep", rep);
-        }
+        const pub = new Map<unknown, unknown>();
+        pub.set("digest", wire.digestStr(data));
+        if (mt) pub.set("mt", mt);
+        if (rep) pub.set("rep", rep);
         return this.addFrame("blob", undefined, data, undefined, pub);
     }
 

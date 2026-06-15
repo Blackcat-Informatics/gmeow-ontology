@@ -220,15 +220,14 @@ func (w *Writer) AddAnnot(rows []model.Triple3) []byte {
 
 // AddBlob appends an inline blob frame; metadata goes in "pub" (§12).
 func (w *Writer) AddBlob(data []byte, mt, rep string) []byte {
-	pub := map[interface{}]interface{}{}
+	pub := map[interface{}]interface{}{
+		"digest": wire.DigestStr(data),
+	}
 	if mt != "" {
 		pub["mt"] = mt
 	}
 	if rep != "" {
 		pub["rep"] = rep
-	}
-	if len(pub) == 0 {
-		return w.AddFrame("blob", nil, data, nil, nil)
 	}
 	return w.AddFrame("blob", nil, data, nil, pub)
 }

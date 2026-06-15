@@ -21,6 +21,7 @@ from gts.wire import (
     VERSION,
     canonical,
     content_id,
+    digest_str,
     header_id,
 )
 
@@ -247,13 +248,17 @@ class Writer:
         rep: str | None = None,
         transform: list[str] | None = None,
     ) -> bytes:
-        """Append an inline ``blob`` frame; metadata goes in ``pub`` (§12)."""
-        pub: dict[str, object] = {}
+        """Append an inline ``blob`` frame; metadata goes in ``pub`` (§12).
+
+        The decoded content digest is included in ``pub.digest`` so the reader
+        can address the blob lazily without decompressing the frame first.
+        """
+        pub: dict[str, object] = {"digest": digest_str(data)}
         if mt is not None:
             pub["mt"] = mt
         if rep is not None:
             pub["rep"] = rep
-        return self.add_frame("blob", raw=data, transform=transform, pub=pub or None)
+        return self.add_frame("blob", raw=data, transform=transform, pub=pub)
 
     def add_meta(self, meta: dict[str, object]) -> bytes:
         """Append a ``meta`` frame."""
