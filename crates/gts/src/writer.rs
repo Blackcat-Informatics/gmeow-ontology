@@ -264,14 +264,14 @@ impl Writer {
 
     /// Append an inline `blob` frame; metadata goes in `pub` (§12).
     pub fn add_blob(&mut self, data: &[u8], mt: Option<&str>, rep: Option<&str>) -> Vec<u8> {
-        let mut pub_entries: Vec<(Value, Value)> = Vec::new();
+        let mut pub_entries: Vec<(Value, Value)> = vec![("digest".into(), digest_str(data).into())];
         if let Some(m) = mt {
             pub_entries.push(("mt".into(), m.into()));
         }
         if let Some(r) = rep {
             pub_entries.push(("rep".into(), r.into()));
         }
-        let pub_meta = (!pub_entries.is_empty()).then_some(Value::Map(pub_entries));
+        let pub_meta = Some(Value::Map(pub_entries));
         self.add_frame("blob", None, Some(data.to_vec()), None, pub_meta)
     }
 

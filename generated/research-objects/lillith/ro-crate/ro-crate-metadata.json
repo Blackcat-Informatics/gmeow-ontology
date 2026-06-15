@@ -56,7 +56,7 @@
         }
       ],
       "mainEntity": {
-        "@id": "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml"
+        "@id": "https://example.org/lillith-pipeline/blob/main/ci/workflows/benchmark.yml"
       }
     },
     {
@@ -174,7 +174,7 @@
       "name": "lillith pipeline runner"
     },
     {
-      "@id": "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml",
+      "@id": "https://example.org/lillith-pipeline/blob/main/ci/workflows/benchmark.yml",
       "@type": [
         "File",
         "SoftwareSourceCode",
@@ -242,7 +242,7 @@
       "@type": "CreateAction",
       "name": "lillith benchmark pipeline run 2026-06-02",
       "instrument": {
-        "@id": "https://github.com/blackcat-informatics/lillith-pipeline/blob/main/.github/workflows/benchmark.yml"
+        "@id": "https://example.org/lillith-pipeline/blob/main/ci/workflows/benchmark.yml"
       },
       "agent": {
         "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-runner"
