@@ -188,7 +188,7 @@ def test_transpile_cli_reads_stdin(tmp_path: Path) -> None:
     naming the draft from the 'stdin' stem."""
     from typer.testing import CliRunner
 
-    from gmeow_tools.cli_dev import app
+    from gmeow_tools.cli import app  # transpile is a consumer command now (PR-B)
 
     out = tmp_path / "out"
     result = CliRunner().invoke(
@@ -200,6 +200,28 @@ def test_transpile_cli_reads_stdin(tmp_path: Path) -> None:
     assert (out / "stdin.gmeow.ttl").exists()
     assert (out / "index.ttl").exists()
     assert (out / "stdin.gts").exists()
+
+
+def test_project_cli_projects_a_gmeow_data_file(tmp_path: Path) -> None:
+    """`gmeow project <data.ttl> --profile <vocab>` is a consumer command (PR-B):
+    it runs the per-profile CONSTRUCT on a user's GMEOW data, from the bundle."""
+    from typer.testing import CliRunner
+
+    from gmeow_tools.cli import app
+
+    data = tmp_path / "ada.ttl"
+    data.write_text(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n"
+        "@prefix ex: <https://ex.org/> .\n"
+        'ex:ada a gmeow:Person ; gmeow:name "Ada" .\n',
+        encoding="utf-8",
+    )
+    out = tmp_path / "proj"
+    result = CliRunner().invoke(
+        app, ["project", str(data), "--profile", "foaf", "-o", str(out)]
+    )
+    assert result.exit_code == 0, result.output
+    assert (out / "gmeow-ada-foaf.ttl").exists()
 
 
 def test_transform_graph_matches_transform_file(tmp_path: Path) -> None:
