@@ -49,17 +49,16 @@ from decimal import Decimal, InvalidOperation
 from rdflib import RDF, XSD, BNode, Graph, Literal, Namespace, URIRef
 from rdflib.term import Node
 
-from gmeow_tools.config import MAPPINGS_DIR
 from gmeow_tools.language_tags import retag_graph_to_internal
 from gmeow_tools.up_projection_audit import (
     _canon_qname,
     _in_projection_ns,
-    _projection_files,
     _rdf_list,
-    _read_sssom,
     _template_atoms,
     _to_iri,
     classify_sssom,
+    iter_projection_graphs,
+    iter_sssom_records,
 )
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
@@ -68,16 +67,15 @@ GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 def _sssom_clean_pairs() -> dict[str, set[str]]:
     """Target IRI → set of gmeow IRIs from clean-reversible SSSOM cells."""
     pairs: dict[str, set[str]] = defaultdict(set)
-    for path in sorted(MAPPINGS_DIR.glob("*.sssom.tsv")):
-        for row in _read_sssom(path):
-            bucket, gmeow, target = classify_sssom(
-                row["subject_id"], row["predicate_id"], row["object_id"]
-            )
-            if bucket != "clean-reversible":
-                continue
-            tiri = _to_iri(target)
-            if _in_projection_ns(tiri):
-                pairs[tiri].add(_to_iri(gmeow))
+    for row in iter_sssom_records():
+        bucket, gmeow, target = classify_sssom(
+            row["subject_id"], row["predicate_id"], row["object_id"]
+        )
+        if bucket != "clean-reversible":
+            continue
+        tiri = _to_iri(target)
+        if _in_projection_ns(tiri):
+            pairs[tiri].add(_to_iri(gmeow))
     return pairs
 
 
@@ -94,24 +92,23 @@ def _sssom_closematch_pairs() -> dict[str, dict[str, str]]:
     sound confidence loses the very metadata that makes the lift honest.
     """
     pairs: dict[str, dict[str, str]] = defaultdict(dict)
-    for path in sorted(MAPPINGS_DIR.glob("*.sssom.tsv")):
-        for row in _read_sssom(path):
-            bucket, gmeow, target = classify_sssom(
-                row["subject_id"], row["predicate_id"], row["object_id"]
-            )
-            if bucket != "liftable-with-claim":
-                continue
-            conf = row.get("confidence", "").strip()
-            conf_val = _decimal_confidence(conf)
-            if conf_val is None:
-                continue
-            tiri = _to_iri(target)
-            if not _in_projection_ns(tiri):
-                continue
-            giri = _to_iri(gmeow)
-            prev = pairs[tiri].get(giri)
-            if prev is None or conf_val > Decimal(prev):  # higher confidence wins
-                pairs[tiri][giri] = conf
+    for row in iter_sssom_records():
+        bucket, gmeow, target = classify_sssom(
+            row["subject_id"], row["predicate_id"], row["object_id"]
+        )
+        if bucket != "liftable-with-claim":
+            continue
+        conf = row.get("confidence", "").strip()
+        conf_val = _decimal_confidence(conf)
+        if conf_val is None:
+            continue
+        tiri = _to_iri(target)
+        if not _in_projection_ns(tiri):
+            continue
+        giri = _to_iri(gmeow)
+        prev = pairs[tiri].get(giri)
+        if prev is None or conf_val > Decimal(prev):  # higher confidence wins
+            pairs[tiri][giri] = conf
     return pairs
 
 
@@ -154,8 +151,7 @@ def _structural_pairs() -> tuple[dict[str, set[str]], dict[str, dict[str, str]]]
     """
     exact: dict[str, set[str]] = defaultdict(set)
     generalizing: dict[str, dict[str, str]] = defaultdict(dict)
-    for path in _projection_files():
-        graph = Graph().parse(path, format="turtle")
+    for graph in iter_projection_graphs():
         for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
             pattern = graph.value(cell, GM.hasMappingPattern)
             if pattern is None:
@@ -203,8 +199,7 @@ def _edoalpath_pairs() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     """
     direct: dict[str, set[str]] = defaultdict(set)
     inverse: dict[str, set[str]] = defaultdict(set)
-    for path in _projection_files():
-        graph = Graph().parse(path, format="turtle")
+    for graph in iter_projection_graphs():
         for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
             pattern = graph.value(cell, GM.hasMappingPattern)
             if pattern is None or not any(graph.objects(pattern, GM.edoalPath)):

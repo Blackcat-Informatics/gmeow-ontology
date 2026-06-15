@@ -45,15 +45,30 @@ type _OxTerm = (
 
 
 def _load_base(store: pyoxigraph.Store, include_imports: bool) -> None:
-    """Load the merged-ontology Turtle sources into *store*.
+    """Load the merged-ontology sources into *store*.
 
     The Turtle sources are loaded **directly** (pyoxigraph parses them natively)
     rather than via an rdflib N-Triples hand-off: an rdflib→N-Triples→pyoxigraph
     round-trip silently breaks blank-node RDF collections (``owl:members`` lists),
     whereas a direct Turtle load preserves them.
+
+    On a wheel-only install (no source tree) there are no Turtle files, so the
+    merged graph folded into the bundle is loaded instead (#bundle — the CLI
+    razor: gmeow needs no repo). The folded form is *canonical* N-Triples, where
+    the collection blank nodes survive the round trip (they are content-addressed,
+    not rewritten away), so the projections match the repo path exactly.
     """
-    for path in iter_source_files(include_imports=include_imports):
-        store.load(path=str(path), format=_TURTLE)
+    from gmeow_tools.bundle import repo_sources_present
+
+    if repo_sources_present():
+        for path in iter_source_files(include_imports=include_imports):
+            store.load(path=str(path), format=_TURTLE)
+        return
+    from gmeow_tools.bundle import bundled_merged_ttl
+
+    nt = bundled_merged_ttl(include_imports=include_imports)
+    if nt is not None:
+        store.load(nt, format=_NT)
 
 
 @lru_cache(maxsize=2)
