@@ -64,6 +64,30 @@ def test_round_trip_gate_is_a_scoreboard_never_blocks() -> None:
     assert result.metrics["recall_pct"] == 50.0
 
 
+def test_round_trip_keeps_distinct_languages_distinct() -> None:
+    """A wrong-language round trip is a MISS, not a false recovery.
+
+    Normalization folds an internal ``x-gmeow-*`` tag to its public BCP-47 form
+    (the lossless retag) but must NOT collapse *different* languages: a source
+    ``@en`` name that comes back ``@fr`` is a real failure the gate must surface.
+    """
+    a = URIRef("https://ex.org/a")
+    source = Graph()
+    source.add((a, URIRef(FOAF + "name"), Literal("Ada", lang="en")))
+    # output carries the same text under a DIFFERENT language — not a recovery
+    wrong_lang = Graph()
+    wrong_lang.add((a, URIRef(FOAF + "name"), Literal("Ada", lang="fr")))
+    assert _gate_round_trip(source, wrong_lang).metrics["recall_pct"] == 0.0
+    # the matching public tag IS a recovery
+    right_lang = Graph()
+    right_lang.add((a, URIRef(FOAF + "name"), Literal("Ada", lang="en")))
+    assert _gate_round_trip(source, right_lang).metrics["recall_pct"] == 100.0
+    # an internal x-gmeow-english tag folds to en and still matches
+    internal = Graph()
+    internal.add((a, URIRef(FOAF + "name"), Literal("Ada", lang="x-gmeow-english")))
+    assert _gate_round_trip(source, internal).metrics["recall_pct"] == 100.0
+
+
 def test_round_trip_excludes_external_linkage_from_headline() -> None:
     """owl:sameAs to the outside world is external linkage — out of the headline."""
     source = Graph()

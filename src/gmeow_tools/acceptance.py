@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import tempfile
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -50,6 +51,7 @@ from gmeow_tools.config import (
     NAMESPACE,
     PREFIXES,
 )
+from gmeow_tools.language_tags import retag_literal
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -139,12 +141,14 @@ def _triple_vocab(s: Node, p: Node, o: Node) -> str | None:
 def _normalize(s: Node, p: Node, o: Node) -> tuple[Node, Node, Node]:
     """Normalize a triple for round-trip comparison.
 
-    Language tags are folded to their bare lexical form (the up/down retag is a
-    known, lossless re-tagging, not a content change) so ``@en`` and
-    ``@x-gmeow-english`` compare equal.
+    An internal ``@x-gmeow-*`` tag is folded to its public BCP-47 form — the
+    up/down retag is a known, lossless re-tagging — so ``@x-gmeow-english`` and
+    ``@en`` compare equal. Distinct *languages* stay distinct: ``@en`` and ``@fr``
+    must NOT collapse, or a mistranslated / wrong-tagged round trip would be
+    silently scored as recovered.
     """
     if isinstance(o, Literal) and o.language:
-        o = Literal(str(o))
+        o = retag_literal(o)
     return (s, p, o)
 
 
@@ -177,7 +181,8 @@ def _gate_pure_gmeow(draft: Graph) -> GateResult:
     foreign: dict[str, int] = {}
     for _s, p, o in draft:
         if p != RDF.type and not str(p).startswith(_STRUCTURAL_NS):
-            foreign[_vocab_of(p) or str(p)] = foreign.get(_vocab_of(p) or str(p), 0) + 1
+            key = _vocab_of(p) or str(p)
+            foreign[key] = foreign.get(key, 0) + 1
         if (
             p == RDF.type
             and isinstance(o, URIRef)
@@ -273,6 +278,7 @@ def _emitted_terms_by_vocab(output: Graph) -> dict[str, set[URIRef]]:
     return terms
 
 
+@cache
 def _known_terms(prefix: str) -> set[URIRef] | None:
     """Every IRI attested anywhere in a vocabulary's vendored definition.
 
@@ -298,6 +304,7 @@ def _known_terms(prefix: str) -> set[URIRef] | None:
     return known
 
 
+@cache
 def _generate_range_shapes(prefix: str) -> Graph | None:
     """SHACL node-shapes generated from a vocabulary's own ``rdfs:range`` axioms.
 
