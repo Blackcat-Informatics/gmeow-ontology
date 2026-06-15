@@ -33,6 +33,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/email" uri="slices/extensions/email/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/employment" uri="slices/extensions/employment/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/entities" uri="slices/core/entities/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/epistemics" uri="slices/core/epistemics/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/events" uri="slices/core/events/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/evidence" uri="slices/core/evidence/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/expertise" uri="slices/core/expertise/module.ttl"/>
