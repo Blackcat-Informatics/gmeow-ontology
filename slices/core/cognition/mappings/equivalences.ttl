@@ -13,7 +13,7 @@ gmeow:mapsetCognition a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/cognition" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Cognition alignments — the knowledge spectrum. schema.org offers a single flat knowsAbout; GMEOW's four-level spectrum down-collapses to it (lossy), and a bare schema:knowsAbout lifts to the eponymous gmeow:knowsAbout level (its honest floor — depth is never inferred from a flat edge)." .
+    gmeow:setComment "Cognition alignments — the knowledge spectrum and its reified tier. schema.org offers a single flat knowsAbout; GMEOW's four-level spectrum down-collapses to it (lossy), and a bare schema:knowsAbout lifts to the eponymous gmeow:knowsAbout level (its honest floor — depth is never inferred from a flat edge). The reified gmeow:KnowledgeProficiency reads its depth on a gmeow:ProficiencyScale: the native gmeow:scaleKnowledgeDepth (the four gmeow:KnowledgeLevel ordinals) is the default, while Bloom's revised taxonomy (gmeow:scaleBloomRevised), SOLO (gmeow:scaleSOLO), and Dreyfus (gmeow:scaleDreyfus, languages) are reusable alternates — NO canonical framework is enforced (Principle 6). The cross-framework band correspondence is the documented alignment ledger in docs.md, never an OWL axiom (cognition ⊥ expertise; the knows-axis and the can-do axis are never silently bridged, Principle 9)." .
 
 # schema:knowsAbout IS the gmeow:knowsAbout level of the spectrum: an agent has
 # knowledge of a subject. exactMatch (not closeMatch) so a source schema:knowsAbout

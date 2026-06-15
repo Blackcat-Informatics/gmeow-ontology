@@ -239,3 +239,29 @@ gmeow:remembers
 # never bridged by axiom (Principle 9).
 gmeow:attendsTo skos:scopeNote "Boundary: attention/interest (cognition) ⊥ intention (teleology). attendsTo / interestedIn / curiousAbout are attentional-affective pulls toward a subject; a teleology:Desire/Intention is a goal-directed conative mode aimed at a state of affairs. No owl:subPropertyOf or owl:disjointWith ties them — the separation is conceptual, enforced by review (Principle 9)."@x-gmeow-english .
 gmeow:remembers skos:scopeNote "Boundary: objectual gmeow:remembers (a remembered subject) ⊥ propositional gmeow:MemoryItem (a remembered claim, ai slice). The link is a documented bridge through gmeow:memoryOf, not an axiom; cognition asserts no dependency on the ai slice (Principle 9)."@x-gmeow-english .
+
+# =========================================================================== #
+# PROFICIENCY SCALES — the native knowledge-depth axis and its alternates.
+# A gmeow:KnowledgeProficiency carries both a gmeow:KnowledgeLevel (the ordinal
+# depth) and a gmeow:ProficiencyScale (the framework it is read against). The
+# native scale is the four-level depth axis; Bloom's revised taxonomy, SOLO, and
+# Dreyfus (gmeow:scaleDreyfus, declared in the languages extension) are alternate
+# frameworks reused via the same gmeow:ProficiencyScale class — NO canonical
+# framework is enforced (Principle 6). The cross-scale correspondence is recorded
+# in the alignment ledger (mappings/equivalences.ttl), never as an OWL axiom.
+# =========================================================================== #
+
+gmeow:scaleKnowledgeDepth a gmeow:ProficiencyScale ;
+    rdfs:label "knowledge depth"@x-gmeow-english ;
+    skos:definition "The native knowledge-depth scale: the framework on which the four ordinal gmeow:KnowledgeLevel values (knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered) are read. The default gmeow:knowledgeProficiencyScale when a proficiency is stated in GMEOW's own terms rather than an external taxonomy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:scaleBloomRevised a gmeow:ProficiencyScale ;
+    rdfs:label "Bloom's revised taxonomy"@x-gmeow-english ;
+    skos:definition "An alternate knowledge-depth framework — Anderson & Krathwohl's revised Bloom's taxonomy (remember ≺ understand ≺ apply ≺ analyze ≺ evaluate ≺ create). Reused as a gmeow:ProficiencyScale; its correspondence to the native gmeow:KnowledgeLevel axis is recorded (softly) in the alignment ledger, not axiomatised."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:scaleSOLO a gmeow:ProficiencyScale ;
+    rdfs:label "SOLO taxonomy"@x-gmeow-english ;
+    skos:definition "An alternate knowledge-depth framework — Biggs & Collis's Structure of Observed Learning Outcomes (prestructural ≺ unistructural ≺ multistructural ≺ relational ≺ extended-abstract). Reused as a gmeow:ProficiencyScale; correspondence to the native axis lives in the alignment ledger, not as an axiom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
