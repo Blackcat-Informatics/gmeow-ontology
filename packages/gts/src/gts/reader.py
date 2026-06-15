@@ -28,6 +28,7 @@ from gts.model import (
     Term,
     TermKind,
     Triple,
+    _LazyBlobEntry,
 )
 from gts.stream import DIGEST as STREAM_DIGEST
 from gts.wire import (
@@ -45,6 +46,19 @@ _KINDS = {int(k) for k in TermKind}
 def _as_int(x: object) -> int | None:
     """Coerce a value to a non-negative ``int`` (rejecting ``bool``), else ``None``."""
     return x if isinstance(x, int) and not isinstance(x, bool) and x >= 0 else None
+
+
+def _pub_digest(value: object) -> str | None:
+    """Normalise a ``pub.digest`` value to the ``blake3:<hex>`` string form.
+
+    Accepts the string form used throughout the Python/Rust/Go tooling, or a
+    raw 32-byte byte string from a strict CDDL writer.
+    """
+    if isinstance(value, str):
+        return value if value.startswith("blake3:") else f"blake3:{value}"
+    if isinstance(value, bytes) and len(value) == 32:
+        return f"blake3:{value.hex()}"
+    return None
 
 
 def term_from_wire(d: Mapping[str, object]) -> Term:
@@ -130,8 +144,20 @@ class _Folder:
         caught and degraded to a ``damaged`` opaque node — the reader never raises.
         """
         ftype = str(frame.get("t", ""))
+        # Blob frames are deferred: we keep the wire bytes compressed and only
+        # decode on first access to g.blobs[digest]. This bypasses the generic
+        # payload() path so term-only reads never pay for blob decompression.
+        if ftype == "blob":
+            try:
+                self._h_blob_frame(frame, index)
+            except Exception as exc:  # malformed payload structure
+                self._opaque(frame, ftype, "damaged")
+                self.g.diagnostics.append(
+                    Diagnostic("DamagedFrame", f"fold failed: {exc}", index)
+                )
+            return
         try:
-            payload = self.payload(frame, blob=ftype == "blob")
+            payload = self.payload(frame, blob=False)
         except CodecUnavailableError as exc:
             self._opaque(frame, ftype, exc.reason)
             self.g.diagnostics.append(
@@ -265,17 +291,97 @@ class _Folder:
                 continue
             self.g.annotations.append((r, p, v))
 
-    def _h_blob(self, payload: object, frame: Mapping[str, object], index: int) -> None:
-        if isinstance(payload, bytes):
-            digest = digest_str(payload)
-            self.g.blobs[digest] = payload
-            pub = frame.get("pub")
-            if isinstance(pub, Mapping):
-                self.g.blob_meta[digest] = {str(k): v for k, v in pub.items()}
-            # Layout bookkeeping (§3.3): was this delivery presaged by a
-            # stream:digest description in an earlier frame?
-            self.blob_events.append((index, digest, digest in self.described))
-        # else: external blob — bytes live elsewhere, referenced by "pub".digest (§12).
+    def _h_blob_frame(self, frame: Mapping[str, object], index: int) -> None:
+        """Fold a ``blob`` frame, deferring decompression until the bytes are read.
+
+        The content digest is taken from ``pub.digest`` when present; otherwise we
+        fall back to eager decoding and compute the digest from the decoded bytes.
+        Encrypted blobs (or blobs using an unknown codec) degrade to opaque nodes
+        exactly as before.
+        """
+        d = frame.get("d")
+        x = frame.get("x")
+        pub = frame.get("pub")
+        pub_meta: dict[str, object] | None = (
+            {str(k): v for k, v in pub.items()} if isinstance(pub, Mapping) else None
+        )
+
+        # Resolve the codec chain so we can decide whether laziness is safe.
+        chain: list[Codec] = []
+        if isinstance(x, list) and x:
+            try:
+                chain = self._resolve_codecs(x)
+            except CodecUnavailableError as exc:
+                self._opaque(frame, "blob", exc.reason)
+                self.g.diagnostics.append(
+                    Diagnostic(_REASON_DIAG[exc.reason], str(exc), index)
+                )
+                return
+
+        # If any codec is encrypt-class, we must decode now (we either have the
+        # keys and can decrypt, or payload() will degrade to missing-key).
+        if any(c.cls == "encrypt" for c in chain):
+            try:
+                payload = self.payload(frame, blob=True)
+            except CodecUnavailableError as exc:
+                self._opaque(frame, "blob", exc.reason)
+                self.g.diagnostics.append(
+                    Diagnostic(_REASON_DIAG[exc.reason], str(exc), index)
+                )
+                return
+            except Exception as exc:
+                self._opaque(frame, "blob", "damaged")
+                self.g.diagnostics.append(
+                    Diagnostic("DamagedFrame", f"payload decode failed: {exc}", index)
+                )
+                return
+            if isinstance(payload, bytes):
+                digest = digest_str(payload)
+                self.g.blobs[digest] = payload
+                if pub_meta is not None:
+                    self.g.blob_meta[digest] = pub_meta
+                self.blob_events.append((index, digest, digest in self.described))
+            return
+
+        # Determine the content-address key and store the bytes. If the writer
+        # announced the decoded digest in pub.digest we can stay lazy; otherwise
+        # decode once to learn the key (and the decoded bytes).
+        declared_digest = (
+            _pub_digest(pub_meta.get("digest")) if pub_meta is not None else None
+        )
+        if declared_digest is not None:
+            digest = declared_digest
+            if isinstance(d, bytes):
+                if chain:
+                    self.g.blobs[digest] = _LazyBlobEntry(raw=d, chain=chain)
+                else:
+                    self.g.blobs[digest] = d
+        else:
+            # No declared digest and no inline bytes => external blob.
+            if not isinstance(d, bytes):
+                return
+            try:
+                decoded = self.payload(frame, blob=True)
+            except CodecUnavailableError as exc:
+                self._opaque(frame, "blob", exc.reason)
+                self.g.diagnostics.append(
+                    Diagnostic(_REASON_DIAG[exc.reason], str(exc), index)
+                )
+                return
+            except Exception as exc:
+                self._opaque(frame, "blob", "damaged")
+                self.g.diagnostics.append(
+                    Diagnostic("DamagedFrame", f"payload decode failed: {exc}", index)
+                )
+                return
+            if not isinstance(decoded, bytes):
+                return
+            digest = digest_str(decoded)
+            self.g.blobs[digest] = decoded
+
+        if pub_meta is not None:
+            self.g.blob_meta[digest] = pub_meta
+        self.blob_events.append((index, digest, digest in self.described))
 
     def _h_meta(self, payload: object, _f: Mapping[str, object], _index: int) -> None:
         if isinstance(payload, Mapping):
@@ -461,7 +567,6 @@ _HANDLERS = {
     "quads": _Folder._h_quads,
     "reifies": _Folder._h_reifies,
     "annot": _Folder._h_annot,
-    "blob": _Folder._h_blob,
     "meta": _Folder._h_meta,
     "suppress": _Folder._h_suppress,
     "snapshot": _Folder._h_snapshot,
