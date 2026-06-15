@@ -334,7 +334,7 @@ gmeow:notationSystemOf
     rdfs:domain gmeow:NotationProjectionProfile ;
     rdfs:range gmeow:NotationSystem ;
     rdfs:label "notation system of"@x-gmeow-english ;
-    skos:definition "The notation system that this projection profile describes. Functional: one profile per notation system."@x-gmeow-english ;
+    skos:definition "The notation system that this projection profile describes. Functional: one notation system per projection profile."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
 
 gmeow:hasNotationProjectionProfile

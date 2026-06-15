@@ -21,12 +21,14 @@ gmeow:NotationProjectionProfileShape
         sh:path gmeow:notationSystemOf ;
         sh:minCount 1 ; sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
+        sh:class gmeow:NotationSystem ;
         sh:severity sh:Violation ;
         sh:message "A NotationProjectionProfile must describe exactly one NotationSystem." ;
     ] ;
     sh:property [
         sh:path gmeow:projectionFunction ;
         sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A NotationProjectionProfile must reference at least one FnO projection function (Principle 12)." ;
     ] ;

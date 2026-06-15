@@ -5287,7 +5287,15 @@ gmeow:profileCMNStaff
     skos:definition "Projection profile for Western staff notation: represents 12-EDO pitch, rational metric time, order, tempo, dynamics, instrumentation, and performer count; loses microtiming, timbre, non-12-EDO tuning frames, traversal constraints, spectral derivation, continuous trajectories, spatial/sound context."@x-gmeow-english ;
     gmeow:notationSystemOf gmeow:notationCMNStaff ;
     gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
-    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:declaredLoss
+        gmeow:lossDropsMicrotiming,
+        gmeow:lossDropsSpatialSoundContext,
+        gmeow:lossDropsSpectralDerivation,
+        gmeow:lossDropsTimbre,
+        gmeow:lossDropsTraversalConstraints,
+        gmeow:lossDropsTuningFrame,
+        gmeow:lossSymbolizesContinuousTrajectory,
+        gmeow:lossQuantizesPitchTo12Edo ;
     gmeow:projectionFunction gmeow:fnProjectToCMN ;
     gmeow:profileDescriptor
         gmeow:notationSystemOf ,

@@ -10,196 +10,224 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-gmeow:fnApplyTransformation a fno:Function ;
+gmeow:fnApplyTransformation a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "apply segment transformation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Applies a SegmentTransformation (transposition, augmentation, retrograde, etc.) to a MusicalSegment, returning a derived segment."@en ;
     fno:expects ( gmeow:paramTransformationSource gmeow:paramTransformationType gmeow:paramTransformationParameter ) ;
     fno:returns ( gmeow:outApplyTransformation ) .
 
-gmeow:fnArgumentAcceptability a fno:Function ;
+gmeow:fnArgumentAcceptability a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "argument acceptability → score"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects an argument's acceptability to a numerical score. Solver-layer computation (Principle 12), referencing AIF (Argument Interchange Format). Lossy: the full argument structure is dropped."@en ;
     fno:expects ( gmeow:paramArgumentAcceptability ) ;
     fno:returns ( gmeow:outArgumentAcceptability ) .
 
-gmeow:fnCredibilityScore a fno:Function ;
+gmeow:fnCredibilityScore a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "credibility → score"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects a credibility assessment to a numerical score. Solver-layer computation (Principle 12). Lossy: the full evidentiary basis is dropped."@en ;
     fno:expects ( gmeow:paramCredibilityScore ) ;
     fno:returns ( gmeow:outCredibilityScore ) .
 
-gmeow:fnDeceptionCueScore a fno:Function ;
+gmeow:fnDeceptionCueScore a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "deception cue → cue score"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects a deception cue observation to a numerical cue score. The scoring and weighting of cues is solver-layer (Principle 12). Lossy: the full observation metadata is dropped."@en ;
     fno:expects ( gmeow:paramDeceptionCue ) ;
     fno:returns ( gmeow:outDeceptionCueScore ) .
 
-gmeow:fnImplicatesInContext a fno:Function ;
+gmeow:fnImplicatesInContext a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "implicates → contextual implication text"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects an event's implicature relation to a contextual implication text. The paltering mechanism — a literally true statement that misleadingly implies a false conclusion. Lossy: the full implicature chain is collapsed to a single text string."@en ;
     fno:expects ( gmeow:paramImplicates ) ;
     fno:returns ( gmeow:outImplicatesInContext ) .
 
-gmeow:fnMaximViolationType a fno:Function ;
+gmeow:fnMaximViolationType a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "maxim violation → violation type label"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects a maxim violation to a violation type label. Solver-layer computation (Principle 12). Lossy: the full conversational context is dropped."@en ;
     fno:expects ( gmeow:paramMaximViolationType ) ;
     fno:returns ( gmeow:outMaximViolationType ) .
 
-gmeow:fnParsePitchName a fno:Function ;
+gmeow:fnParsePitchName a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "parse pitch name to frame-relative value"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Parses a spelled pitch name in a given PitchSpellingSystem and TuningSystem into a frame-relative PitchValue."@en ;
     fno:expects ( gmeow:paramSpelledName gmeow:paramSpellingSystem ) ;
     fno:returns ( gmeow:outParsePitchName ) .
 
-gmeow:fnProjectToABC a fno:Function ;
+gmeow:fnProjectToABC a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to ABC notation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to ABC notation. Lossy: monophonic bias, nonstandard microtone extensions."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToABC ) .
 
-gmeow:fnProjectToByzantineNeume a fno:Function ;
+gmeow:fnProjectToByzantineNeume a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to Byzantine neume notation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative melodic content to Byzantine neumatic notation."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToByzantineNeume ) .
 
-gmeow:fnProjectToCMN a fno:Function ;
+gmeow:fnProjectToCMN a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to CMN staff notation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to Common Music Notation staff notation. Lossy: quantizes pitch to 12-EDO, time to rational grid, drops microtiming/timbre/tuning-frame/trajectory."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToCMN ) .
 
-gmeow:fnProjectToGraphic a fno:Function ;
+gmeow:fnProjectToGraphic a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to graphic notation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to a graphic score image or instruction set. Near-total loss in the symbolic direction; the visual artifact is canonical in the image direction."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToGraphic ) .
 
-gmeow:fnProjectToHEJI a fno:Function ;
+gmeow:fnProjectToHEJI a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to HEJI"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative just-intonation pitch content to Helmholtz-Ellis JI Pitch Notation."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToHEJI ) .
 
-gmeow:fnProjectToJianpu a fno:Function ;
+gmeow:fnProjectToJianpu a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to Jianpu"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative pitch content to Jianpu numbered notation."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToJianpu ) .
 
-gmeow:fnProjectToJohnstonJI a fno:Function ;
+gmeow:fnProjectToJohnstonJI a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to Johnston JI notation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative just-intonation pitch content to Ben Johnston staff notation."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToJohnstonJI ) .
 
-gmeow:fnProjectToKern a fno:Function ;
+gmeow:fnProjectToKern a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to Humdrum **kern"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to Humdrum **kern. Lossy: 12-TET letter pitch, no tuning-frame declaration."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToKern ) .
 
-gmeow:fnProjectToKlavarskribo a fno:Function ;
+gmeow:fnProjectToKlavarskribo a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to Klavarskribo"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative pitch/duration content to Klavarskribo vertical keyboard notation."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToKlavarskribo ) .
 
-gmeow:fnProjectToLilyPond a fno:Function ;
+gmeow:fnProjectToLilyPond a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to LilyPond"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to LilyPond source. Program-not-data: layout macros are lost when read back as data."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToLilyPond ) .
 
-gmeow:fnProjectToMEI a fno:Function ;
+gmeow:fnProjectToMEI a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to MEI"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to MEI. Lossy: att.tuning limited to named temperaments, JI lattices → cents approximations, mobile form via editorial markup only."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToMEI ) .
 
-gmeow:fnProjectToMIDI a fno:Function ;
+gmeow:fnProjectToMIDI a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to MIDI"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to MIDI bytes. Lossy: no notation semantics, enharmonics, rests, tuplet structure, or work identity."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToMIDI ) .
 
-gmeow:fnProjectToMensural a fno:Function ;
+gmeow:fnProjectToMensural a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to mensural notation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to mensural notation with proportions and coloration. A CMN transcription of ars subtilior is a lossy, standpointed projection."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToMensural ) .
 
-gmeow:fnProjectToMusicXML a fno:Function ;
+gmeow:fnProjectToMusicXML a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to MusicXML"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative musical content to MusicXML 4.0. Lossy: microtones via bare decimal alter, polymeter via hacks, no mobile form."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToMusicXML ) .
 
-gmeow:fnProjectToSagittal a fno:Function ;
+gmeow:fnProjectToSagittal a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to Sagittal notation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative microtonal pitch content to Sagittal accidental notation."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToSagittal ) .
 
-gmeow:fnProjectToSargam a fno:Function ;
+gmeow:fnProjectToSargam a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to Sargam"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative pitch content to Sargam solfege notation."@en ;
     fno:expects ( gmeow:paramProjectableExpression ) ;
     fno:returns ( gmeow:outProjectToSargam ) .
 
-gmeow:fnProjectToScl a fno:Function ;
+gmeow:fnProjectToScl a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project tuning to Scala .scl"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders a TuningSystem to a Scala .scl pitch-class list. Lossy: comma/prime-limit theory and keyboard mapping context."@en ;
     fno:expects ( gmeow:paramHasTuningFrame ) ;
     fno:returns ( gmeow:outProjectToScl ) .
 
-gmeow:fnProjectToTablature a fno:Function ;
+gmeow:fnProjectToTablature a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "project expression to tablature"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders frame-relative pitch/duration content to instrument-specific finger/fret/string tablature. Lossy: abstracts pitch to instrument position."@en ;
     fno:expects ( gmeow:paramProjectableExpression gmeow:paramConfigurationInstrumentType ) ;
     fno:returns ( gmeow:outProjectToTablature ) .
 
-gmeow:fnPropagationMutationDistance a fno:Function ;
+gmeow:fnPropagationMutationDistance a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "propagation mutation distance → integer"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects the mutation distance of a propagated deceptive claim to an integer count. Measures how many hops/transmissions before the claim mutates. Solver-layer computation (Principle 12)."@en ;
     fno:expects ( gmeow:paramPropagationMutationDistance ) ;
     fno:returns ( gmeow:outPropagationMutationDistance ) .
 
-gmeow:fnSpellPitch a fno:Function ;
+gmeow:fnSpellPitch a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "spell pitch value in a notation system"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Renders a frame-relative PitchValue as a note name / symbol in a given PitchSpellingSystem (e.g. C♯4, Sa, +7). Enharmonic peers are co-equal outputs (Principle 9)."@en ;
     fno:expects ( gmeow:paramHasTuningFrame gmeow:paramSpellingSystem ) ;
     fno:returns ( gmeow:outSpellPitch ) .
 
-gmeow:fnStandpointDivergence a fno:Function ;
+gmeow:fnStandpointDivergence a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "held + projected standpoint → divergence text"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Computes the divergence between a held standpoint and a projected standpoint as a human-readable text. Lossy: the full semantic content of each standpoint is collapsed to a single divergence description."@en ;
@@ -211,161 +239,184 @@ gmeow:fnStandpointDivergence a fno:Function ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "GENERATED by `gmeow regenerate` (mappings) from mapping-dsl/ — DO NOT EDIT."@en .
 
-gmeow:fnCoarsenToGranularity a fno:Function ;
+gmeow:fnCoarsenToGranularity a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "coarsen coordinates to the enclosing region (generalization, P10)"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     skos:definition "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;
     fno:expects ( gmeow:paramCoarsenTo gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outCoarsenToGranularity ) .
 
-gmeow:fnCoarsenToGranularityGeoJson a fno:Function ;
+gmeow:fnCoarsenToGranularityGeoJson a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "coarsen GeoJSON coordinates to the enclosing region (generalization, P10)"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     skos:definition "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise GeoJSON — a coarser region rather than exact coordinates, never deletion. Receives the already-selected ancestor's GeoJSON and re-emitting it as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;
     fno:expects ( gmeow:paramCoarsenTo gmeow:paramAsGeoJSON ) ;
     fno:returns ( gmeow:outCoarsenToGranularityGeoJson ) .
 
-gmeow:fnComposeAddress a fno:Function ;
+gmeow:fnComposeAddress a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "compose address components → single label string"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> ;
     skos:definition "Concatenates the decomposed address components (street, locality, region, postal code, country) into one single-line label string — emitted as vcard:label by the vCard projection. Lossy: formatting convention varies by locale."@en ;
     fno:expects ( gmeow:paramStreetAddress gmeow:paramAddressLocality gmeow:paramAddressRegion gmeow:paramPostalCode gmeow:paramCountryCode ) ;
     fno:returns ( gmeow:outComposeAddress ) .
 
-gmeow:fnComposeBcp47 a fno:Function ;
+gmeow:fnComposeBcp47 a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "compose BCP-47 language tag"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Composes a BCP-47 language tag from a language's gmeow:languageCode and a co-mingled writing system's gmeow:scriptCode (\"ja\" + \"Hani\" → \"ja-Hani\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName. A language with several scripts yields several tags."@en ;
     fno:expects ( gmeow:paramLanguageCode gmeow:paramScriptCode ) ;
     fno:returns ( gmeow:outComposeBcp47 ) .
 
-gmeow:fnComposeMailmapMapping a fno:Function ;
+gmeow:fnComposeMailmapMapping a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "compose canonical + old bytes → .mailmap mapping line"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/mailmap.rq> ;
     skos:definition "Composes a .mailmap mapping line for a superseded AuthorIdentity: CONCAT(canonical mailmapEntry, ' ', old authorIdentityString). This is the suppression projection — the old identity is retained in the graph but remapped in the generated .mailmap (Principle 10)."@en ;
     fno:expects ( gmeow:paramMailmapEntry gmeow:paramAuthorIdentityString ) ;
     fno:returns ( gmeow:outComposeMailmapMapping ) .
 
-gmeow:fnEventTypeToSummary a fno:Function ;
+gmeow:fnEventTypeToSummary a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "event type label → iCalendar SUMMARY"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
     skos:definition "Downcasts an event's open gmeow:eventType vocabulary to a single human-readable iCalendar SUMMARY: the rdfs:label of a gmeow:EventType value is emitted as ical:summary. The full multi-type richness collapses to one title string."@en ;
     fno:expects ( gmeow:paramEventType ) ;
     fno:returns ( gmeow:outEventTypeToSummary ) .
 
-gmeow:fnFuzzyTimeToDate a fno:Function ;
+gmeow:fnFuzzyTimeToDate a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "fuzzy event bounds → schema:startDate"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Downcasts an approximate (circa) event date to a single schema:startDate: the gmeow:earliestStart lower bound is emitted, while the gmeow:latestEnd upper bound and the gmeow:temporalPrecision qualifier are dropped — the uncertainty band collapses to one instant."@en ;
     fno:expects ( gmeow:paramEarliestStart ) ;
     fno:returns ( gmeow:outFuzzyTimeToDate ) .
 
-gmeow:fnHonorificToAffix a fno:Function ;
+gmeow:fnHonorificToAffix a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "honorific value → prefix/suffix literal"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Maps a gmeow:Honorific value to a target honorific-prefix or honorific-suffix string according to its gmeow:honorificPosition (e.g. honorificDr → schema:honorificPrefix \"Dr\"; honorificSan → a suffix)."@en ;
     fno:expects ( gmeow:paramHonorific ) ;
     fno:returns ( gmeow:outHonorificToAffix ) .
 
-gmeow:fnLatLongToGeoUri a fno:Function ;
+gmeow:fnLatLongToGeoUri a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "latitude + longitude → geo: URI (RFC 5870)"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> ;
     skos:definition "Composes separate decimal latitude and longitude into a geo: URI (RFC 5870, e.g. geo:53.544972,-113.924398). The URI identifies a geographic point independent of any particular serialization format (WKT, GeoJSON, vCard GEO, …). Used as the minted node IRI for vCard Geo projections and as a canonical, dereferenceable location identifier."@en ;
     fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outLatLongToGeoUri ) .
 
-gmeow:fnLatLongToWktPoint a fno:Function ;
+gmeow:fnLatLongToWktPoint a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "latitude + longitude → WKT POINT"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     skos:definition "Combines separate decimal latitude and longitude into a GeoSPARQL WKT POINT literal (POINT(lon lat), lon first per WKT), typed geo:wktLiteral."@en ;
     fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outLatLongToWktPoint ) .
 
-gmeow:fnOrganizationTypeToClass a fno:Function ;
+gmeow:fnOrganizationTypeToClass a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "organization-type value → target class"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Maps a gmeow:organizationType value individual (e.g. organizationTypeCompany) to the target vocabulary class to assert via rdf:type (e.g. schema:Corporation). The conditional retyping; organization types without a target class are dropped."@en ;
     fno:expects ( gmeow:paramOrganizationType ) ;
     fno:returns ( gmeow:outOrganizationTypeToClass ) .
 
-gmeow:fnParticipantToAttendee a fno:Function ;
+gmeow:fnParticipantToAttendee a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "hasParticipant → iCalendar ATTENDEE"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
     skos:definition "Downcasts the flat gmeow:hasParticipant shortcut to a bare iCalendar ATTENDEE edge: the participant agent is emitted as ical:attendee on the event. Any reified Participation's role, period, confidence and standpoint are dropped — iCal's ATTENDEE carries none of them."@en ;
     fno:expects ( gmeow:paramHasParticipant ) ;
     fno:returns ( gmeow:outParticipantToAttendee ) .
 
-gmeow:fnPosePositionToWktPoint a fno:Function ;
+gmeow:fnPosePositionToWktPoint a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "pose position → WKT POINT"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     skos:definition "Projects the translational component of a gmeow:Pose (reached via gmeow:hasPosePosition as SpatialCoordinates) to a GeoSPARQL WKT POINT literal. The orientation component is dropped because GeoSPARQL 1.0/1.1 has no native pose model; heading/bearing may be projected separately to a future GeoPose JSON profile."@en ;
     fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outPosePositionToWktPoint ) .
 
-gmeow:fnPostToOrganizationRole a fno:Function ;
+gmeow:fnPostToOrganizationRole a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "Post + Role → schema:roleName (lossy)"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Extracts a role name by traversing the Post: a gmeow:Post (gmeow:postIn ?org, filled by gmeow:Membership gmeow:hasRole ?role) yields the role's label as schema:roleName. GMEOW models a post as a seat independent of its holder; this downcasts the role label to the flat schema:roleName field, collapsing the seat/holder distinction."@en ;
     fno:expects ( gmeow:paramHasRole ) ;
     fno:returns ( gmeow:outPostToOrganizationRole ) .
 
-gmeow:fnProficiencyToKnownLanguage a fno:Function ;
+gmeow:fnProficiencyToKnownLanguage a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "flatten LanguageProficiency → schema:knowsLanguage"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Flattens the reified gmeow:LanguageProficiency relator (agent × language × modality × level) and the flat gmeow:knowsLanguage to schema:knowsLanguage(agent, language). Lossy: the CEFR/ILR/ACTFL level and skill modality are dropped — schema.org has no proficiency model."@en ;
     fno:expects ( gmeow:paramProficiencyLanguage ) ;
     fno:returns ( gmeow:outProficiencyToKnownLanguage ) .
 
-gmeow:fnPronounSetToText a fno:Function ;
+gmeow:fnPronounSetToText a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "pronoun set → full five-form declension text"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> ;
     skos:definition "Renders a gmeow:PronounSet's full five-form declension as a single slash-joined string (subject/object/possessive-determiner/possessive/reflexive, e.g. 'she/her/her/hers/herself', 'xe/xem/xyr/xyrs/xemself') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. Because PRONOUNS is free text it carries the whole declension LOSSLESSLY — no form is dropped, and a consumer can reconstruct the full set. The only non-representable parts are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms) and any period / standpoint on the assertion."@en ;
     fno:expects ( gmeow:paramPronounSubject gmeow:paramPronounObject gmeow:paramPronounPossessiveDeterminer gmeow:paramPronounPossessive gmeow:paramPronounReflexive ) ;
     fno:returns ( gmeow:outPronounSetToText ) .
 
-gmeow:fnRetagGeoJson a fno:Function ;
+gmeow:fnRetagGeoJson a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "retag GeoJSON literal as geo:geoJSONLiteral"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     skos:definition "Re-tags a gmeow:asGeoJSON value (range rdfs:Literal, for OWL 2 DL safety) with the geo:geoJSONLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;
     fno:expects ( gmeow:paramAsGeoJSON ) ;
     fno:returns ( gmeow:outRetagGeoJson ) .
 
-gmeow:fnRetagWkt a fno:Function ;
+gmeow:fnRetagWkt a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "retag WKT literal as geo:wktLiteral"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     skos:definition "Re-tags a gmeow:asWKT value (range rdfs:Literal, for OWL 2 DL safety) with the geo:wktLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;
     fno:expects ( gmeow:paramAsWKT ) ;
     fno:returns ( gmeow:outRetagWkt ) .
 
-gmeow:fnSelectEndonym a fno:Function ;
+gmeow:fnSelectEndonym a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "select displayable endonym place name → schema:name"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Returns the gmeow:fullName of a place's gmeow:PlaceName whose gmeow:namePurpose is gmeow:namePurposeEndonym and which is not gmeow:displayable false — the locale-internal toponym, emitted as schema:name. A projection FRAME choice (endonym-preferred), NOT a primary-name assertion in the canonical model: co-equal exonyms are emitted as schema:alternateName (gmeow:fnSelectExonym), and historical/superseded and competing-standpoint names are dropped."@en ;
     fno:expects ( gmeow:paramHasPlaceName ) ;
     fno:returns ( gmeow:outSelectEndonym ) .
 
-gmeow:fnSelectExonym a fno:Function ;
+gmeow:fnSelectExonym a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "select displayable exonym place name → schema:alternateName"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Returns the gmeow:fullName of a place's gmeow:PlaceName whose gmeow:namePurpose is gmeow:namePurposeExonym and which is not gmeow:displayable false — a name used from outside, emitted as schema:alternateName alongside the endonym selected as schema:name (gmeow:fnSelectEndonym). Lossy: which exonym applies is locale-relative (there may be one per language), and historical/superseded names are dropped."@en ;
     fno:expects ( gmeow:paramHasPlaceName ) ;
     fno:returns ( gmeow:outSelectExonym ) .
 
-gmeow:fnSubOrgToDepartment a fno:Function ;
+gmeow:fnSubOrgToDepartment a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "subOrganizationOf → schema:department"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects org hierarchy: a gmeow:Organization that is gmeow:subOrganizationOf a parent is emitted as the parent's schema:department (parent→child, the inverse direction). The department is a first-class sub-organization in GMEOW."@en ;
     fno:expects ( gmeow:paramSubOrganizationOf ) ;
     fno:returns ( gmeow:outSubOrgToDepartment ) .
 
-gmeow:fnTagToKeyword a fno:Function ;
+gmeow:fnTagToKeyword a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "tag label → schema:keywords text"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Extracts the rdfs:label of a gmeow:Tag pointed at by gmeow:hasTag for emission as schema:keywords. Suppresses tags whose gmeow:displayable is false (the same suppression contract as deadnames). Lossy: the tag IRI is lost; only the surface label survives."@en ;
     fno:expects ( gmeow:paramHasTag ) ;
     fno:returns ( gmeow:outTagToKeyword ) .
 
-gmeow:fnTaggingToAnnotation a fno:Function ;
+gmeow:fnTaggingToAnnotation a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "reshape Tagging relator → oa:Annotation"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> ;
     skos:definition "Reshapes a reified gmeow:Tagging relator into a W3C Web Annotation (oa:Annotation): the tagged entity becomes oa:hasTarget, the tag becomes oa:hasBody, and oa:motivatedBy is set to oa:tagging. The tagger (gmeow:taggingTagger / gmeow:wasAttributedTo) and temporal scope (gmeow:taggingInterval) are lossy-dropped in the structural projection; a consumer that needs them should use the canonical GMEOW model directly."@en ;
@@ -570,28 +621,32 @@ gmeow:paramTransformationType a fno:Parameter ;
     fno:required true ;
     fno:type gmeow:TransformationType .
 
-gmeow:fnBirthEventToDate a fno:Function ;
+gmeow:fnBirthEventToDate a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "Birth life-event → schema:birthDate"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Extracts a person's birth date by traversing the reified event model: an event with gmeow:eventType gmeow:eventTypeBirth, whose principal Participation (gmeow:participationRole gmeow:roleParticipantPrincipal, gmeow:participationParticipant ?person) and gmeow:eventTime yield ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence, participant roles); this downcasts the event's instant to the flat schema:birthDate / vCard BDAY field."@en ;
     fno:expects ( gmeow:paramEventTime ) ;
     fno:returns ( gmeow:outBirthEventToDate ) .
 
-gmeow:fnParticipationToEventRole a fno:Function ;
+gmeow:fnParticipationToEventRole a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "Participation → schema event-role edge"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
     skos:definition "Downcasts a reified gmeow:Participation to a flat schema.org event-role edge: the event gains schema:attendee / schema:performer / schema:organizer pointing at the participant, keyed by the participation's gmeow:ParticipantRole. The Participation's period, confidence, evidence and standpoint, and the open role space beyond the three schema roles, are dropped — the flat edge is lossy by design."@en ;
     fno:expects ( gmeow:paramParticipationParticipant ) ;
     fno:returns ( gmeow:outParticipationToEventRole ) .
 
-gmeow:fnPlaceTypeToClass a fno:Function ;
+gmeow:fnPlaceTypeToClass a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "place-type value → target class"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/bot.rq> ;
     skos:definition "Maps a gmeow:placeType value individual (e.g. placeTypeCountry) to the target vocabulary class to assert via rdf:type (e.g. schema:Country). The conditional retyping; place types without a target class are dropped."@en ;
     fno:expects ( gmeow:paramPlaceType ) ;
     fno:returns ( gmeow:outPlaceTypeToClass ) .
 
-gmeow:fnSelectDisplayableGender a fno:Function ;
+gmeow:fnSelectDisplayableGender a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "select displayable gender identity → gender label"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> ;
     skos:definition "Returns the rdfs:label of a person's displayable gmeow:GenderIdentity value for emission as schema:gender / foaf:gender. A gmeow:displayable false facet is NEVER emitted — the same suppression contract as a deadname. Lossy and directional: schema.org/FOAF conflate sex and gender, and orientation + sex-assigned-at-birth have no target term, so they are dropped."@en ;
@@ -823,28 +878,32 @@ gmeow:paramWasAttributedTo a fno:Parameter ;
     fno:required false ;
     fno:type gmeow:Agent .
 
-gmeow:fnMembershipToJobTitle a fno:Function ;
+gmeow:fnMembershipToJobTitle a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "Membership + Role → schema:jobTitle"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/resume.rq> ;
     skos:definition "Extracts a job title by traversing the reified relator: a gmeow:Membership (gmeow:membershipMember ?person, gmeow:hasRole ?role) yields ?person schema:jobTitle = the role's label. GMEOW models a job as a role played in a membership; this downcasts the role label to the flat schema:jobTitle / vCard TITLE field."@en ;
     fno:expects ( gmeow:paramHasRole ) ;
     fno:returns ( gmeow:outMembershipToJobTitle ) .
 
-gmeow:fnNicknameName a fno:Function ;
+gmeow:fnNicknameName a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> ;
     skos:definition "Returns the gmeow:fullName of a PersonName whose gmeow:namePurpose is gmeow:namePurposeNickname, for emission as foaf:nick / vcard:nickname / schema:alternateName. The nickname is a structured name in GMEOW; this downcasts it to the flat nick field."@en ;
     fno:expects ( gmeow:paramHasName ) ;
     fno:returns ( gmeow:outNicknameName ) .
 
-gmeow:fnSelectDisplayName a fno:Function ;
+gmeow:fnSelectDisplayName a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "select displayable full name"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> ;
     skos:definition "Returns an appellation's gmeow:fullName ONLY when gmeow:displayable is not false (deadnames and superseded names are suppressed). Co-equal: every displayable name is emitted; none is privileged as 'primary' — locale-relative selection is left to the consumer."@en ;
     fno:expects ( gmeow:paramHasAppellation ) ;
     fno:returns ( gmeow:outSelectDisplayName ) .
 
-gmeow:fnWebPageToUrl a fno:Function ;
+gmeow:fnWebPageToUrl a gmeow:ProjectionFunction,
+        fno:Function ;
     rdfs:label "hasWebPage → schema:url"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> ;
     skos:definition "Projects an entity's structured web presence: gmeow:hasWebPage points to a first-class gmeow:WebPage whose IRI is its URL, emitted as schema:url / foaf:homepage on the entity. Downcasts the structured page resource to the flat URL field."@en ;
