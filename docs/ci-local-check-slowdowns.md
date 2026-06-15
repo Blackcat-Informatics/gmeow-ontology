@@ -116,11 +116,10 @@ Focused module timings:
    to share parsed DSL and merged ontology fixtures where assertions are
    read-only.
 
-7. Stop rerunning full gates inside `compliance-report` during `make check`.
-   Preferred shape: emit the compliance RDF from the already-collected gate
-   outcomes, or add a `compliance-report --from-existing-gates` mode for local
-   `make check`. Preserve the current standalone `make compliance-report`
-   behavior for release/report regeneration.
+7. Stop rerunning full gates inside `compliance-report` during routine local
+   checks. `make compliance-report` should emit the RDF from already-run gate
+   outcomes using `--from-passing-check`; `make compliance-report-full` should
+   remain the explicit release/report-regeneration path that reruns gates.
 
 8. Add phase timing to `validate_all()`. The code path currently does syntax,
    sameAs, merged graph lints, full SHACL, 61 per-example SHACL validations,
