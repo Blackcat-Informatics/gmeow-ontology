@@ -21,7 +21,7 @@ Tier-2 uplift backlog.
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 0/16 | full |
 | cognition | core | core | 1 | 0 | 4 | 0 | 1 | 0/4 | full |
 | connectivity | extension | extensions | 2 | 3 | 8 | 0 | 1 | - | full |
-| contacts | core | core | 6 | 9 | 26 | 0 | 1 | 0/35 | full |
+| contacts | core | core | 6 | 10 | 26 | 0 | 1 | 0/36 | full |
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 0/5 | full |
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 0/57 | full |
 | deception | core | core | 4 | 2 | 10 | 0 | 1 | 0/12 | full |
@@ -72,4 +72,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
-**63 slices** · documentation: 63 full guides, 0 stubs remaining (#325); advisory coverage: 3/1113 core class/property terms (#471).
+**62 slices** · documentation: 62 full guides, 0 stubs remaining (#325); advisory coverage: 3/1083 core class/property terms (#471).

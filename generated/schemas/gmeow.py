@@ -16189,6 +16189,19 @@ class Instant(ConfiguredBaseModel):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/instantValue'} })
 
 
+class InstantMessageAddress(ContactPoint):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/InstantMessageAddress',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Instant Message Address'})
+
+    contactPointProvider: Optional[list[Agent]] = Field(default=None, title="contact point provider", json_schema_extra = { "linkml_meta": {'domain': 'ContactPoint',
+         'domain_of': ['ContactPoint'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contactPointProvider'} })
+    contactPointType: Optional[list[ContactPointType]] = Field(default=None, title="contact point type", json_schema_extra = { "linkml_meta": {'domain': 'ContactPoint',
+         'domain_of': ['ContactPoint'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contactPointType'} })
+
+
 class InstrumentConfiguration(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/InstrumentConfiguration',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -59300,6 +59313,7 @@ InscriptionReading.model_rebuild()
 InscriptionTranslation.model_rebuild()
 InscriptionTransliteration.model_rebuild()
 Instant.model_rebuild()
+InstantMessageAddress.model_rebuild()
 InstrumentConfiguration.model_rebuild()
 InstrumentModification.model_rebuild()
 InstrumentType.model_rebuild()

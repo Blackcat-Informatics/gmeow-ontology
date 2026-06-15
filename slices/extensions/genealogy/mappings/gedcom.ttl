@@ -248,26 +248,44 @@ gmeow:mapGedcomHusbandWife a gmeow:ProjectionMapping ;
 # Marriage date + place (project homepage and language): the couple's marriage gmeow:Event sources
 # gedcom:date / gedcom:place on the SAME minted <couple>-marriage node.
 gmeow:mapGedcomMarriageDate a gmeow:ProjectionMapping ;
-    rdfs:label "couple marriage event → gedcom:date / gedcom:place"@x-gmeow-english ;
+    rdfs:label "couple marriage event time → gedcom:date"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "gmdCouple" ;
         gmeow:atom (
             [ gmeow:subjectVar "gmdCouple" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:CoupleRelationship ]
             [ gmeow:subjectVar "gmdCouple" ; gmeow:predicate gmeow:hasCoupleEvent ; gmeow:objectVar "gmdEvent" ]
             [ gmeow:subjectVar "gmdEvent" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeMarriage ]
-            [ gmeow:optionalGroup ( [ gmeow:subjectVar "gmdEvent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "gmdDate" ] ) ]
-            [ gmeow:optionalGroup (
-                [ gmeow:subjectVar "gmdEvent" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "gmdPlaceEnt" ]
-                [ gmeow:subjectVar "gmdPlaceEnt" ; gmeow:predicate rdfs:label ; gmeow:objectVar "gmdPlace" ] ) ] ) ;
+            [ gmeow:subjectVar "gmdEvent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "gmdDate" ] ) ;
         gmeow:mint [ gmeow:bindVar "gmdMarriage" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "gmdCouple" ] ) ]
                     "-marriage" ) ] ) ] ] ;
-        gmeow:edoalSource gmeow:hasCoupleEvent ] ;
+        gmeow:edoalSource gmeow:eventTime ] ;
     gmeow:hasBinding [
         gmeow:profile "gedcom" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the marriage event's participants, evidence and standpoint drop; only date + place survive on the Marriage node" ;
+        gmeow:lossyDrop "the marriage event's participants, evidence and standpoint drop; the date survives on the Marriage node" ;
         gmeow:templateAtoms (
-            [ gmeow:tSubj "gmdMarriage" ; gmeow:tPred gedcom:date ; gmeow:tObj "gmdDate" ]
-            [ gmeow:tSubj "gmdMarriage" ; gmeow:tPred gedcom:place ; gmeow:tObj "gmdPlace" ] ) ] .
+            [ gmeow:tSubj "gmdMarriage" ; gmeow:tPred gedcom:date ; gmeow:tObj "gmdDate" ] ) ] .
+
+gmeow:mapGedcomMarriagePlace a gmeow:ProjectionMapping ;
+    rdfs:label "couple marriage event location → gedcom:place"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "gmpCouple" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "gmpCouple" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:CoupleRelationship ]
+            [ gmeow:subjectVar "gmpCouple" ; gmeow:predicate gmeow:hasCoupleEvent ; gmeow:objectVar "gmpEvent" ]
+            [ gmeow:subjectVar "gmpEvent" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeMarriage ]
+            [ gmeow:subjectVar "gmpEvent" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "gmpPlaceEnt" ]
+            [ gmeow:subjectVar "gmpPlaceEnt" ; gmeow:predicate rdfs:label ; gmeow:objectVar "gmpPlace" ] ) ;
+        gmeow:mint [ gmeow:bindVar "gmpMarriage" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "gmpCouple" ] ) ]
+                    "-marriage" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:eventLocation ] ;
+    gmeow:hasBinding [
+        gmeow:profile "gedcom" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the marriage event's participants, evidence and standpoint drop; the place label survives on the Marriage node" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "gmpMarriage" ; gmeow:tPred gedcom:place ; gmeow:tObj "gmpPlace" ] ) ] .

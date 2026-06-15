@@ -65,6 +65,8 @@ _PRED_REWRITES: tuple[tuple[str, str], ...] = (
     ("doap:repository", "gmeow:hasRepository"),
     ("doap:browse", "gmeow:webUrl"),
     ("dcterms:rights", "gmeow:copyrightNotice"),
+    # a bf:title node IS a gmeow title relator (the down-cell re-types it bf:Title)
+    ("bf:title", "gmeow:hasTitle"),
 )
 
 #: The object of these source predicates is typed as a gmeow class (so the
@@ -89,6 +91,8 @@ _INVERSE_REWRITES: tuple[tuple[str, str], ...] = (
     ("sioc:has_reply", "gmeow:inReplyTo"),
     # foaf:depiction (agent → image) is the inverse of gmeow:depicts (image → agent)
     ("foaf:depiction", "gmeow:depicts"),
+    # foaf:publications (agent → work) is the inverse of gmeow:hasAuthor (work → agent)
+    ("foaf:publications", "gmeow:hasAuthor"),
 )
 
 
@@ -183,6 +187,7 @@ _CONTACTS: tuple[tuple[str, str], ...] = (
     ("foaf:mbox", "EmailAddress"),
     ("vcard:hasTelephone", "TelephoneNumber"),
     ("foaf:phone", "TelephoneNumber"),
+    ("vcard:hasInstantMessage", "InstantMessageAddress"),
 )
 
 
