@@ -134,13 +134,23 @@ pub fn literal_n3(lit: &Literal) -> String {
 /// - `NamedNode(iri)` → `<iri>`
 /// - `BlankNode` → not expected after Skolemization; serialized as `_:id`
 /// - `Literal` → delegated to [`literal_n3`]
-/// - `Triple` → not supported; returns empty string
-pub fn term_n3(term: &Term) -> String {
+/// - `Triple` → hard error: RDF-star quoted-triple terms are out of scope for
+///   gmeow-logic v1.  An empty hash would cause silent ID collisions; failing
+///   closed is the correct behavior.
+///
+/// # Errors
+///
+/// Returns an error string if `term` is `Term::Triple`.
+pub fn term_n3(term: &Term) -> Result<String, String> {
     match term {
-        Term::NamedNode(nn) => format!("<{}>", nn.as_str()),
-        Term::BlankNode(bn) => format!("_:{}", bn.as_str()),
-        Term::Literal(lit) => literal_n3(lit),
-        Term::Triple(_) => String::new(),
+        Term::NamedNode(nn) => Ok(format!("<{}>", nn.as_str())),
+        Term::BlankNode(bn) => Ok(format!("_:{}", bn.as_str())),
+        Term::Literal(lit) => Ok(literal_n3(lit)),
+        Term::Triple(_) => Err(
+            "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
+             (Term::Triple cannot be hashed without risking ID collisions)"
+                .to_owned(),
+        ),
     }
 }
 
@@ -166,13 +176,20 @@ pub fn named_node_n3(nn: &NamedNode) -> String {
 /// - `p` — Predicate named node.
 /// - `o` — Object term.
 ///
+/// # Errors
+///
+/// Returns an error string if either `s` or `o` is a `Term::Triple`
+/// (RDF-star quoted triples are out of scope for gmeow-logic v1).
+///
 /// # Returns
 ///
 /// The reifier IRI as a `String`.
-pub fn mint_reifier(s: &Term, p: &NamedNode, o: &Term) -> String {
-    let canonical = format!("{} {} {}", term_n3(s), named_node_n3(p), term_n3(o));
+pub fn mint_reifier(s: &Term, p: &NamedNode, o: &Term) -> Result<String, String> {
+    let s_n3 = term_n3(s)?;
+    let o_n3 = term_n3(o)?;
+    let canonical = format!("{} {} {}", s_n3, named_node_n3(p), o_n3);
     let digest = sha1_hex(&canonical);
-    format!("{}{}", REIFIER_PREFIX, digest)
+    Ok(format!("{}{}", REIFIER_PREFIX, digest))
 }
 
 // ── mint_derivation_id ───────────────────────────────────────────────────────
@@ -276,14 +293,14 @@ mod tests {
     fn term_n3_iri() {
         let nn = NamedNode::new("http://example.org/a").unwrap();
         let term = Term::NamedNode(nn);
-        assert_eq!(term_n3(&term), "<http://example.org/a>");
+        assert_eq!(term_n3(&term).unwrap(), "<http://example.org/a>");
     }
 
     #[test]
     fn term_n3_literal_string() {
         let lit = Literal::new_simple_literal("hello");
         let term = Term::Literal(lit);
-        assert_eq!(term_n3(&term), "\"hello\"");
+        assert_eq!(term_n3(&term).unwrap(), "\"hello\"");
     }
 
     // ── mint_reifier goldens ─────────────────────────────────────────────────
@@ -296,7 +313,7 @@ mod tests {
         let s = Term::NamedNode(NamedNode::new("http://example.org/a").unwrap());
         let p = NamedNode::new("http://example.org/related").unwrap();
         let o = Term::NamedNode(NamedNode::new("http://example.org/b").unwrap());
-        let got = mint_reifier(&s, &p, &o);
+        let got = mint_reifier(&s, &p, &o).expect("IRI terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a",
@@ -313,7 +330,7 @@ mod tests {
         let p = NamedNode::new("http://www.w3.org/2000/01/rdf-schema#label").unwrap();
         let lit = Literal::new_language_tagged_literal("hello", "en").unwrap();
         let o = Term::Literal(lit);
-        let got = mint_reifier(&s, &p, &o);
+        let got = mint_reifier(&s, &p, &o).expect("lang literal terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/61194b8ccffff3db1bbb81df91c55b7776ee4064",
@@ -331,7 +348,7 @@ mod tests {
         let dt = NamedNode::new("http://www.w3.org/2001/XMLSchema#decimal").unwrap();
         let lit = Literal::new_typed_literal("1.0", dt);
         let o = Term::Literal(lit);
-        let got = mint_reifier(&s, &p, &o);
+        let got = mint_reifier(&s, &p, &o).expect("typed literal terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/efbda8fbbb765e64c7f8ca2d690489a1ba70e569",
@@ -348,7 +365,7 @@ mod tests {
         let p = NamedNode::new("http://example.org/name").unwrap();
         let lit = Literal::new_simple_literal("plain string");
         let o = Term::Literal(lit);
-        let got = mint_reifier(&s, &p, &o);
+        let got = mint_reifier(&s, &p, &o).expect("plain literal terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/784c486d79b869539405a3f90f21126477b07f26",
@@ -474,7 +491,8 @@ mod tests {
                 )
             };
 
-            let got = mint_reifier(&s, &p, &o);
+            let got = mint_reifier(&s, &p, &o)
+                .unwrap_or_else(|e| panic!("{id}: mint_reifier failed: {e}"));
             assert_eq!(
                 got, expected_reifier,
                 "goldens parity FAIL for {id}: got {got:?}, expected {expected_reifier:?}"

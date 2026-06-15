@@ -381,19 +381,19 @@ pub fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
 
             // ── 4. Trace each fact for provenance ────────────────────────────
             // Build Nemo Fact objects from our ChaseRows for the trace call.
-            // We collect (ChaseRow, Option<Fact>) pairs; rows that don't parse
-            // get stub provenance (marked EDB to be conservative).
+            // Fact::parse failure is a hard error — emitting false (fabricated
+            // EDB) provenance for an unparsable derived fact violates AC-c
+            // faithfulness and the no-optionality doctrine.
             let mut parseable_facts: Vec<(usize, Fact)> = Vec::new();
             for (idx, row) in rows.iter().enumerate() {
                 let fact_str = chase_row_to_fact_string(row);
-                match Fact::parse(&fact_str) {
-                    Ok(fact) => {
-                        parseable_facts.push((idx, fact));
-                    }
-                    Err(_) => {
-                        // Row not parseable — will get stub EDB provenance below.
-                    }
-                }
+                let fact = Fact::parse(&fact_str).map_err(|e| {
+                    format!(
+                        "nemo provenance error: failed to re-parse derived fact \
+                         at index {idx} ({fact_str:?}): {e:?}"
+                    )
+                })?;
+                parseable_facts.push((idx, fact));
             }
 
             // Call engine.trace() on all parseable facts at once.
@@ -404,30 +404,30 @@ pub fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
             let mut provenance_map: Vec<ChaseProvenance> = rows
                 .iter()
                 .map(|_| ChaseProvenance {
-                    is_edb: true, // default: conservative (assert) provenance
+                    is_edb: true,
                     rule_name: None,
                     antecedent_rows: vec![],
                 })
                 .collect();
 
             if !trace_facts.is_empty() {
-                match engine.trace(trace_facts).await {
-                    Ok((trace, handles)) => {
-                        for ((row_idx, _), handle) in parseable_facts.iter().zip(handles.iter()) {
-                            if let Some(tree) = trace.tree(*handle) {
-                                provenance_map[*row_idx] = extract_provenance_from_tree(&tree);
-                            }
-                            // If tree is None (tracing failed for this fact),
-                            // the default EDB provenance is kept.
-                        }
+                // engine.trace() failure is a hard error — degrading to false EDB
+                // provenance would fabricate derivation metadata, violating AC-c.
+                let (trace, handles) = engine
+                    .trace(trace_facts)
+                    .await
+                    .map_err(|e| format!("nemo trace error: {e:?}"))?;
+
+                for ((row_idx, _), handle) in parseable_facts.iter().zip(handles.iter()) {
+                    if let Some(tree) = trace.tree(*handle) {
+                        provenance_map[*row_idx] = extract_provenance_from_tree(&tree);
                     }
-                    Err(_e) => {
-                        // Trace call failed; all facts get conservative EDB provenance.
-                        // This is safe (over-approximates asserted facts) but loses
-                        // derivation detail.  Do not hard-fail — the chase output is
-                        // still correct; only the provenance metadata is degraded.
-                        // (Per no-optionality doctrine: trace failure IS reported via
-                        // the EDB flag; callers can detect degraded provenance.)
+                    // tree == None means Nemo could not find the fact in the
+                    // trace; that is also a faithfulness failure — propagate it.
+                    else {
+                        return Err(format!(
+                            "nemo trace error: no trace tree for derived fact at index {row_idx}"
+                        ));
                     }
                 }
             }

@@ -262,28 +262,44 @@ fn split_nemo_literal_content(s: &str) -> Result<(&str, &str), String> {
 ///
 /// Uses [`crate::provenance::mint_reifier`] on the already-decoded oxigraph
 /// terms so the result is byte-identical to the Python oracle.
-fn reifier_for_quad(subject: &Term, predicate: &NamedNode, object: &Term) -> String {
+///
+/// # Errors
+///
+/// Returns an error if subject or object is an RDF-star quoted triple.
+fn reifier_for_quad(
+    subject: &Term,
+    predicate: &NamedNode,
+    object: &Term,
+) -> Result<String, String> {
     mint_reifier(subject, predicate, object)
 }
 
 /// Compute the reifier IRI for an antecedent ChaseRow.
 ///
 /// Decodes the Nemo display-form row (ternary: S, O, world) back to oxigraph
-/// terms and calls `mint_reifier`.  Returns `None` if decode fails.
-fn reifier_for_antecedent_row(row: &ChaseRow) -> Option<String> {
+/// terms and calls `mint_reifier`.  Returns an error if decode fails — a
+/// partial antecedent list would produce a wrong derivation_id, which is
+/// worse than failing loudly.
+fn reifier_for_antecedent_row(row: &ChaseRow) -> Result<String, String> {
     if row.values.len() != 3 {
-        return None;
+        return Err(format!(
+            "antecedent row has {} values (expected 3): {:?}",
+            row.values.len(),
+            row
+        ));
     }
     // predicate: raw IRI string
-    let pred_nn = NamedNode::new(&row.predicate).ok()?;
+    let pred_nn = NamedNode::new(&row.predicate)
+        .map_err(|e| format!("antecedent predicate IRI {:?}: {e}", row.predicate))?;
     // subject: IRI
-    let subj_iri = decode_iri_term(&row.values[0]).ok()?;
-    let subj_nn = NamedNode::new(&subj_iri).ok()?;
+    let subj_iri = decode_iri_term(&row.values[0])?;
+    let subj_nn = NamedNode::new(&subj_iri)
+        .map_err(|e| format!("antecedent subject IRI {subj_iri:?}: {e}"))?;
     let subj_term = Term::NamedNode(subj_nn);
     // object: any term
-    let obj_term = decode_nemo_term(&row.values[1]).ok()?;
+    let obj_term = decode_nemo_term(&row.values[1])?;
 
-    Some(mint_reifier(&subj_term, &pred_nn, &obj_term))
+    mint_reifier(&subj_term, &pred_nn, &obj_term)
 }
 
 /// Determine the `rule_iri` for a derived quad's provenance record.
@@ -385,13 +401,14 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
             pyo3::exceptions::PyRuntimeError::new_err(format!("store iteration error: {e}"))
         })?;
 
-        // Resolve the world IRI (named-graph component)
+        // Resolve the world IRI (named-graph component).
+        // Default and blank-node graphs are skipped — matching the Python oracle
+        // (_extract_worlds checks `isinstance(graph_id, URIRef)` and skips non-named
+        // graphs).  Fabricating synthetic world IRIs for unnamed graphs would break
+        // the oracle≡engine parity guarantee (AC-d).
         let world_iri: String = match &quad.graph_name {
             GraphName::NamedNode(nn) => nn.as_str().to_owned(),
-            GraphName::DefaultGraph => "http://logic.gmeow.example/world/default".to_owned(),
-            GraphName::BlankNode(b) => {
-                format!("http://logic.gmeow.example/world/bnode/{}", b.as_str())
-            }
+            GraphName::DefaultGraph | GraphName::BlankNode(_) => continue,
         };
 
         let line =
@@ -459,7 +476,10 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
         })?;
 
         // ── Real provenance computation ───────────────────────────────────────
-        let self_reifier = reifier_for_quad(&subject_term, &predicate_nn, &object_term);
+        let self_reifier =
+            reifier_for_quad(&subject_term, &predicate_nn, &object_term).map_err(|e| {
+                pyo3::exceptions::PyRuntimeError::new_err(format!("row[{idx}] reifier error: {e}"))
+            })?;
 
         let (rule_iri, source_quad_ids, derivation_id) = if prov.is_edb {
             // Asserted (EDB) fact: logic:assert sentinel, self-reifier as source.
@@ -469,12 +489,19 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
             (rule, sources, deriv)
         } else {
             // Derived (IDB) fact: rule IRI from the rule name, antecedents as sources.
+            // Antecedent decode is fallible — a partial list produces a wrong
+            // derivation_id, which is worse than propagating the error.
             let rule = rule_iri_from_name(prov.rule_name.as_deref());
             let sources: Vec<String> = prov
                 .antecedent_rows
                 .iter()
-                .filter_map(reifier_for_antecedent_row)
-                .collect();
+                .map(reifier_for_antecedent_row)
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| {
+                    pyo3::exceptions::PyRuntimeError::new_err(format!(
+                        "row[{idx}] antecedent decode error: {e}"
+                    ))
+                })?;
             let source_refs: Vec<&str> = sources.iter().map(|s| s.as_str()).collect();
             let deriv = mint_derivation_id(&rule, &source_refs);
             (rule, sources, deriv)
@@ -678,7 +705,7 @@ mod tests {
         let s = Term::NamedNode(NamedNode::new("http://example.org/a").unwrap());
         let p = NamedNode::new("http://example.org/related").unwrap();
         let o = Term::NamedNode(NamedNode::new("http://example.org/b").unwrap());
-        let got = reifier_for_quad(&s, &p, &o);
+        let got = reifier_for_quad(&s, &p, &o).expect("IRI terms must not fail");
         assert_eq!(
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"
@@ -691,6 +718,9 @@ mod tests {
     fn term_n3_iri_for_quad_object() {
         let nn = NamedNode::new("http://example.org/Foo").unwrap();
         let term = Term::NamedNode(nn);
-        assert_eq!(term_n3(&term), "<http://example.org/Foo>");
+        assert_eq!(
+            term_n3(&term).expect("IRI term must not fail"),
+            "<http://example.org/Foo>"
+        );
     }
 }
