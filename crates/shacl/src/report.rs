@@ -249,6 +249,19 @@ fn insert_triple(
 
 // ── Round-trip helpers ────────────────────────────────────────────────────────
 
+/// Extract the `sh:conforms` boolean from an N-Triples SHACL report string.
+///
+/// # Errors
+///
+/// Returns an error string if the N-Triples cannot be parsed.
+pub fn conforms_from_ntriples(nt: &str) -> Result<bool, String> {
+    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+    store
+        .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
+        .map_err(|e| format!("N-Triples parse error: {e}"))?;
+    Ok(conforms_from_store(&store).unwrap_or(true))
+}
+
 /// Extract a `BTreeSet<ResultTuple>` from an N-Triples SHACL report string.
 ///
 /// Loads the N-Triples into an in-memory store and delegates to
@@ -415,6 +428,45 @@ mod tests {
             .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
             .unwrap();
         assert_eq!(conforms_from_store(&store), Some(true));
+    }
+
+    #[test]
+    fn conforms_from_ntriples_true() {
+        let nt = "_:r <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationReport> .\n\
+                  _:r <http://www.w3.org/ns/shacl#conforms> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n";
+        assert!(
+            conforms_from_ntriples(nt).expect("must parse"),
+            "conforming report must return true"
+        );
+    }
+
+    #[test]
+    fn conforms_from_ntriples_false() {
+        let nt = "_:r <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/shacl#ValidationReport> .\n\
+                  _:r <http://www.w3.org/ns/shacl#conforms> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n";
+        assert!(
+            !conforms_from_ntriples(nt).expect("must parse"),
+            "violating report must return false"
+        );
+    }
+
+    #[test]
+    fn conforms_from_ntriples_parse_error() {
+        let bad = "not valid ntriples @@@\n";
+        assert!(
+            conforms_from_ntriples(bad).is_err(),
+            "invalid N-Triples must return Err"
+        );
+    }
+
+    #[test]
+    fn conforms_from_ntriples_no_report_node_defaults_true() {
+        // Empty graph has no sh:ValidationReport → unwrap_or(true)
+        let nt = "";
+        assert!(
+            conforms_from_ntriples(nt).expect("empty must parse"),
+            "missing sh:conforms defaults to true"
+        );
     }
 
     #[test]
