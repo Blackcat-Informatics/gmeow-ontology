@@ -26,6 +26,13 @@ pub mod py;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod nemo_engine;
 
+// Static profile / decidability certifier — native targets only.
+// `certify` reuses Nemo's parser (via `nemo_engine::NemoParsedRules`) to extract
+// head/body predicates + negation from `.rls` text; it therefore lives under the
+// same `#[cfg(not(target_arch = "wasm32"))]` guard as `nemo_engine`.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod certify;
+
 // WebAssembly entry points — wasm32 target only.
 // wasm-bindgen binds to the JS host runtime which does not exist on native.
 #[cfg(target_arch = "wasm32")]

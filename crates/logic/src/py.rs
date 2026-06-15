@@ -57,6 +57,9 @@ use oxigraph::model::{GraphName, Literal, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 use sha1::{Digest, Sha1};
 
+use std::time::Instant;
+
+use crate::certify::certify as certify_rules;
 use crate::nemo_engine::{run_chase, ChaseRow, ChaseRowWithProvenance};
 use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
 use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
@@ -460,12 +463,48 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<PyObject> 
 /// An empty (or whitespace-only) `input` returns an empty list immediately
 /// without invoking the chase.
 ///
+/// # Budget governor (issue #502)
+///
+/// The optional `max_rule_firings`, `max_answers`, and `time_ms` parameters bound
+/// the run. **Rust budget enforcement is post-hoc and applies to terminating
+/// programs:** Nemo's `reason()` runs to fixpoint with no native budget hook, so
+/// the governor cannot interrupt the chase mid-flight. Instead, after the chase
+/// reaches fixpoint, it bounds the answer/firing counts and stamps the kept quads
+/// `BudgetStatus::Exhausted`; `time_ms` bounds only the *post-fixpoint* work
+/// (decode + bookkeeping), not the chase itself. A genuinely non-terminating rule
+/// set is the static certifier's job to reject up front (see [`crate::certify`]),
+/// not the governor's to interrupt.
+///
+/// This differs from the Python oracle, which cuts mid-chase. The divergence is
+/// **named, not glossed** (honesty invariant): on terminating fixtures the verdict
+/// and budget strings match the oracle exactly; on a non-terminating input the
+/// behaviours legitimately differ, and that difference is documented here, in
+/// `certify.rs`, and in `crates/logic/README.md`.
+///
+/// When a ceiling trips, kept rows are a **sound subset** — a prefix of the
+/// canonical (graph, S, P, O) sort — never fabricated. With all three parameters
+/// `None` (the default), the output is **byte-identical to pre-#502**: every quad
+/// keeps `budget_status = "ok"` and the chase-order output is preserved unchanged.
+///
 /// # Errors
 ///
 /// Returns a Python `ValueError` for N-Quads parse errors and
 /// `RuntimeError` for chase or decode failures.
 #[pyfunction]
-fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObject>> {
+#[pyo3(signature = (rules, input, max_rule_firings=None, max_answers=None, time_ms=None))]
+fn materialize(
+    py: Python<'_>,
+    rules: &str,
+    input: &str,
+    max_rule_firings: Option<u64>,
+    max_answers: Option<u64>,
+    time_ms: Option<u64>,
+) -> PyResult<Vec<PyObject>> {
+    // Start the post-fixpoint wall-clock the instant we enter (the chase itself is
+    // not interruptible; `time_ms` bounds the post-chase decode/bookkeeping — see
+    // the budget-governor docs above and the honesty paragraph in README.md).
+    let budget_active = max_rule_firings.is_some() || max_answers.is_some() || time_ms.is_some();
+    let start = Instant::now();
     // ── Short-circuit: nothing to do ──────────────────────────────────────────
     if input.trim().is_empty() {
         return Ok(vec![]);
@@ -517,7 +556,9 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("chase error: {e}")))?;
 
     // ── 5. Decode ChaseRows → DerivedQuads with real provenance ──────────────
-    let mut derived_quads: Vec<DerivedQuad> = Vec::new();
+    // Carry the EDB/IDB flag alongside each quad so the budget governor can bound
+    // IDB firings (`max_rule_firings`) without re-deriving provenance.
+    let mut derived_quads: Vec<(DerivedQuad, bool)> = Vec::new();
 
     for (idx, rwp) in rows_with_prov.iter().enumerate() {
         let row = &rwp.row;
@@ -594,6 +635,7 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
             (rule, sources, deriv)
         };
 
+        let is_edb = prov.is_edb;
         let dq = DerivedQuad {
             graph: graph_nn.clone(),
             subject: subject_term,
@@ -604,26 +646,183 @@ fn materialize(py: Python<'_>, rules: &str, input: &str) -> PyResult<Vec<PyObjec
             rule_iri,
             source_quad_ids,
             profile: ASSERTED_PROFILE.to_owned(),
+            // Default-path budget status (overwritten below when a ceiling trips).
             budget_status: BudgetStatus::Ok,
         };
-        derived_quads.push(dq);
+        derived_quads.push((dq, is_edb));
     }
 
-    // ── 6. Serialize to Python dicts ─────────────────────────────────────────
-    derived_quads
+    // ── 6. Post-hoc budget governor (issue #502) ─────────────────────────────
+    // With no budget params (the default), this whole block is skipped, so the
+    // output is byte-identical to pre-#502: chase order, every quad "ok".
+    let final_quads: Vec<DerivedQuad> = if budget_active {
+        apply_budget(derived_quads, max_rule_firings, max_answers, time_ms, start)
+    } else {
+        derived_quads.into_iter().map(|(dq, _edb)| dq).collect()
+    };
+
+    // ── 7. Serialize to Python dicts ─────────────────────────────────────────
+    final_quads
         .iter()
         .map(|dq| derived_quad_to_dict(py, dq))
         .collect()
+}
+
+/// Canonical sort key for a derived quad: `(graph, subject, predicate, object)`.
+///
+/// This is the deterministic order the budget governor truncates to, so a kept
+/// subset is always a sound *prefix* of a stable ordering — never a fabricated or
+/// reordered result. The key uses the same string surfaces the seam already
+/// projects (`graph`/`subject`/`predicate`/`object` display forms).
+fn budget_sort_key(dq: &DerivedQuad) -> (String, String, String, String) {
+    (
+        dq.graph.as_str().to_owned(),
+        dq.subject.to_string(),
+        dq.predicate.as_str().to_owned(),
+        dq.object.to_string(),
+    )
+}
+
+/// Apply the post-hoc budget ceilings to the materialized quads.
+///
+/// Enforcement (mirrors the Python `BudgetState` ceilings, applied post-fixpoint):
+/// - `max_rule_firings` bounds the number of **derived (IDB)** quads kept;
+/// - `max_answers` bounds the total number of derived quads kept;
+/// - `time_ms` bounds the post-fixpoint wall-clock (decode + bookkeeping); when
+///   exceeded, the result is marked exhausted but **not** truncated below the
+///   count ceilings (we never fabricate; we keep the sound subset computed so
+///   far).
+///
+/// The result is sorted by [`budget_sort_key`] so any truncation is a prefix of a
+/// stable order. When a ceiling trips, **every kept quad** is stamped
+/// `BudgetStatus::Exhausted` (matching the Python oracle, which stamps every quad
+/// of an exhausted run), signalling that the kept set is a sound subset of the
+/// full fixpoint, not the complete answer.
+fn apply_budget(
+    quads: Vec<(DerivedQuad, bool)>,
+    max_rule_firings: Option<u64>,
+    max_answers: Option<u64>,
+    time_ms: Option<u64>,
+    start: Instant,
+) -> Vec<DerivedQuad> {
+    // Deterministic canonical order so a truncation is a sound prefix.
+    let mut quads = quads;
+    quads.sort_by(|(a, _), (b, _)| budget_sort_key(a).cmp(&budget_sort_key(b)));
+
+    // Compute the keep-count from the firing/answer ceilings.
+    // `max_answers` bounds all derived quads; `max_rule_firings` bounds IDB quads.
+    // We walk the canonical order, counting IDB rows, and stop at the first
+    // ceiling hit — the kept rows are exactly the prefix up to that point.
+    let mut keep: usize = quads.len();
+    let mut exhausted = false;
+
+    if let Some(limit) = max_answers {
+        let limit = limit as usize;
+        if quads.len() > limit {
+            keep = keep.min(limit);
+            exhausted = true;
+        }
+    }
+    if let Some(limit) = max_rule_firings {
+        // Count IDB (derived) rows along the canonical order; cut after the
+        // `limit`-th IDB row.
+        let limit = limit as usize;
+        let mut idb_seen: usize = 0;
+        let mut cut_at: Option<usize> = None;
+        for (idx, (_dq, is_edb)) in quads.iter().enumerate() {
+            if !*is_edb {
+                idb_seen += 1;
+                if idb_seen > limit {
+                    cut_at = Some(idx);
+                    break;
+                }
+            }
+        }
+        if let Some(idx) = cut_at {
+            keep = keep.min(idx);
+            exhausted = true;
+        }
+    }
+
+    // Time ceiling bounds the post-fixpoint work. If exceeded, mark exhausted but
+    // keep whatever sound subset the count ceilings allowed (never fabricate).
+    if let Some(limit) = time_ms {
+        let elapsed_ms = start.elapsed().as_millis() as u64;
+        if elapsed_ms >= limit {
+            exhausted = true;
+        }
+    }
+
+    let status = if exhausted {
+        BudgetStatus::Exhausted
+    } else {
+        BudgetStatus::Ok
+    };
+
+    quads
+        .into_iter()
+        .take(keep)
+        .map(|(mut dq, _edb)| {
+            dq.budget_status = status;
+            dq
+        })
+        .collect()
+}
+
+// ── certify ─────────────────────────────────────────────────────────────────
+
+/// Statically certify a Nemo `.rls` rule set against a declared semantic profile.
+///
+/// This is the Rust mirror of the Python oracle
+/// (`gmeow_tools.logic_certify.certify_program`). The returned dict has the SAME
+/// shape, keys, and values as Python `CertificationVerdict.to_json()`:
+///
+/// ```python
+/// {
+///   "certified": bool,
+///   "decidability_class": str,
+///   "profile_id": str,
+///   "violations": [str, …]   # sorted, byte-identical to the oracle
+/// }
+/// ```
+///
+/// `profile` matches the Python profile-id strings, e.g. `"PositiveHornProfile"`,
+/// `"StratifiedNAFProfile"`, `"StableModelProfile"`. Certification uses
+/// *sufficient* conditions and is *necessarily incomplete* (termination is
+/// undecidable): a clean verdict proves membership in the declared
+/// decidable/terminating fragment; a violation only proves the cheap structural
+/// condition does not hold.
+///
+/// # Errors
+///
+/// Returns a Python `ValueError` if `rules` is not parseable Nemo `.rls`.
+#[pyfunction]
+fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<PyObject> {
+    let verdict = certify_rules(rules, profile).map_err(|e| {
+        pyo3::exceptions::PyValueError::new_err(format!("certify parse error: {e}"))
+    })?;
+    let (certified, decidability_class, profile_id, violations) = verdict.to_json_pairs();
+
+    let d = PyDict::new(py);
+    // Insert in the same sorted-key order Python's `to_json()` literal uses.
+    d.set_item("certified", certified)?;
+    d.set_item("decidability_class", decidability_class)?;
+    d.set_item("profile_id", profile_id)?;
+    d.set_item("violations", violations)?;
+    Ok(d.into())
 }
 
 // ── Module registration ───────────────────────────────────────────────────────
 
 /// Python extension module `gmeow_logic`.
 ///
-/// Exposes the `materialize(rules, input)` function.
+/// Exposes:
+/// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
+/// - `certify(rules, profile) -> dict`
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
+    m.add_function(wrap_pyfunction!(certify, m)?)?;
     Ok(())
 }
 

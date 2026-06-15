@@ -1317,7 +1317,15 @@ def project_nemo(
             else:
                 bo = _nemo_iri(body_atom.obj)
 
-            body_parts.append(f"{bp}({bs}, {bo}, {world_var})")
+            # Negation-as-failure (issue #502): a negated body literal projects to
+            # Nemo's `~atom` syntax.  Without this the negation flag carried by the
+            # IR (`LogicAxiom.negated`) would be silently dropped, and the Rust
+            # certifier (which reads this `.rls`) could not see the negative edge
+            # the Python oracle sees on the IR — breaking StratifiedNAF / Positive
+            # Horn parity.  Positive atoms (negated=False — every pre-#502 atom)
+            # are emitted exactly as before, so positive programs are byte-identical.
+            prefix = "~" if body_atom.negated else ""
+            body_parts.append(f"{prefix}{bp}({bs}, {bo}, {world_var})")
 
         # Emit rule name annotation so Nemo's trace API can recover the rule IRI.
         # The name is the rule's provenance IRI (from scope.provenance), or the

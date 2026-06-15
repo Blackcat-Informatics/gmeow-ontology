@@ -34,6 +34,40 @@ Nemo-based rule materialization and PyO3/wasm bindings arrive in later tasks.
 
 ---
 
+## Static certifier and the budget governor (issue #502)
+
+`certify(rules, profile)` is the Rust mirror of the Python oracle
+(`gmeow_tools.logic_certify`). It parses Nemo `.rls` text with Nemo's own parser
+(reusing the engine's surface, never a second IR) and produces a
+`CertificationVerdict` whose JSON shape, violation strings, and SCC-cycle
+rendering are **byte-identical** to the oracle, so the `oracle ≡ engine` gate
+diffs them directly. Every check is a *sufficient* condition and is *necessarily
+incomplete*: because termination is undecidable, a clean verdict proves
+membership in the declared decidable/terminating fragment, while a violation only
+proves that the cheap structural condition does not hold — the program may still
+terminate.
+
+### Budget enforcement is post-hoc — and honest about it
+
+`materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
+adds an optional resource budget. **Rust budget enforcement is post-hoc and
+applies to terminating programs: it bounds answer/firing counts after the chase
+reaches fixpoint, and `time_ms` bounds only post-fixpoint work, not the chase
+itself. A genuinely non-terminating rule set is the static certifier's job to
+reject up front, not the governor's to interrupt. This differs from the Python
+oracle, which cuts mid-chase.** Nemo's `reason()` runs to fixpoint with no native
+budget hook, so the governor cannot interrupt the chase; it instead truncates the
+materialized result to a *sound subset* — a prefix of the canonical
+`(graph, S, P, O)` sort, never a fabricated row — and stamps every kept quad
+`budget_status = "exhausted"`.
+
+This keeps `oracle ≡ engine` truthful rather than convenient: on terminating
+fixtures the verdict and budget strings match the oracle exactly; the behavioural
+divergence on non-terminating inputs is **named here, not glossed** (the same
+paragraph appears in the `certify.rs` and `py.rs` doc comments). With all three
+budget parameters `None` (the default), `materialize` output is byte-identical to
+the pre-#502 behaviour: chase order preserved, every quad `"ok"`.
+
 ## Oracle-parity discipline
 
 - **A world is a named graph.** Every insert targets a specific named graph IRI;
