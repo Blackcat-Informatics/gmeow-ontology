@@ -16,7 +16,7 @@ gmeow:expertisePrefixes
 
 gmeow:SkillProficiencyShape
     a sh:NodeShape ;
-    rdfs:label "SkillProficiency well-formedness shape" ;
+    rdfs:label "SkillProficiency well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:SkillProficiency ;
     sh:property [
         sh:path gmeow:skillProficiencyOf ;
@@ -35,7 +35,7 @@ gmeow:SkillProficiencyShape
 
 gmeow:SkillProficiencyScaleMismatchShape
     a sh:NodeShape ;
-    rdfs:label "SkillProficiency level/scale consistency shape" ;
+    rdfs:label "SkillProficiency level/scale consistency shape"@x-gmeow-english ;
     sh:targetClass gmeow:SkillProficiency ;
     sh:prefixes gmeow:expertisePrefixes ;
     sh:sparql [
@@ -53,7 +53,7 @@ gmeow:SkillProficiencyScaleMismatchShape
 
 gmeow:CredentialAttestationShape
     a sh:NodeShape ;
-    rdfs:label "Credential verifiable attestation shape" ;
+    rdfs:label "Credential verifiable attestation shape"@x-gmeow-english ;
     sh:targetClass gmeow:Credential ;
     sh:prefixes gmeow:expertisePrefixes ;
     sh:sparql [
@@ -74,7 +74,7 @@ gmeow:CredentialAttestationShape
 
 gmeow:CredentialIssuerShape
     a sh:NodeShape ;
-    rdfs:label "Credential issuer organization shape" ;
+    rdfs:label "Credential issuer organization shape"@x-gmeow-english ;
     sh:targetClass gmeow:Credential ;
     sh:property [
         sh:path gmeow:credentialIssuer ;
@@ -85,7 +85,7 @@ gmeow:CredentialIssuerShape
 
 gmeow:CredentialForShape
     a sh:NodeShape ;
-    rdfs:label "Credential target range shape" ;
+    rdfs:label "Credential target range shape"@x-gmeow-english ;
     sh:targetClass gmeow:Credential ;
     sh:property [
         sh:path gmeow:credentialFor ;
