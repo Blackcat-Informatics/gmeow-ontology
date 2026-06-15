@@ -76,20 +76,56 @@ class TransformReport:
 def _skolemized(abox: Graph) -> Graph:
     """Skolemize blank nodes on CONTENT-ADDRESSED labels (diffable reruns).
 
-    rdflib blank-node labels are per-process UUIDs, so the graph is
-    canonicalized first; the canonical labels are a pure function of the
-    graph's content, making the skolem IRIs stable across runs. Answers the
-    issue's open question: projection-minted nodes get the same treatment.
-    """
-    from rdflib.compare import to_canonical_graph
+    rdflib blank-node labels are per-process UUIDs, so the graph is canonicalized
+    first; the canonical labels are a pure function of the graph's content, making
+    the skolem IRIs stable across runs. Projection-minted nodes get the same
+    treatment.
 
-    canonical = to_canonical_graph(abox)
-    skolemized = canonical.skolemize(
-        authority=_SKOLEM_AUTHORITY, basepath=_SKOLEM_BASEPATH
+    Canonicalization runs on **pyoxigraph** (RDFC-1.0, Rust): rdflib's pure-Python
+    ``to_canonical_graph`` is pathologically slow on the blank-node-heavy graphs a
+    real source produces (a paudley transpile spent >10 minutes there). pyoxigraph
+    canonicalizes the same graph in well under a second; the cheap O(n) skolemize
+    round-trip stays in rdflib.
+    """
+    import pyoxigraph
+    from rdflib import Literal
+
+    dataset = pyoxigraph.Dataset(
+        pyoxigraph.Quad(t.subject, t.predicate, t.object)
+        for t in pyoxigraph.parse(
+            abox.serialize(format="nt", encoding="utf-8"),
+            format=pyoxigraph.RdfFormat.N_TRIPLES,
+        )
     )
+    dataset.canonicalize(pyoxigraph.CanonicalizationAlgorithm.UNSTABLE)
+
+    # Convert pyoxigraph terms → rdflib DIRECTLY, skolemizing each blank node by
+    # its CANONICAL value. Going through an N-Triples round trip would let rdflib
+    # re-randomize the blank-node ids (losing the canonical labels and breaking
+    # diffable reruns); this keeps the canonical labels in the skolem IRIs.
+    skolem = _SKOLEM_AUTHORITY + _SKOLEM_BASEPATH
+
+    xsd_string = "http://www.w3.org/2001/XMLSchema#string"
+
+    def _to_rdflib(term: object) -> URIRef | Literal:
+        if isinstance(term, pyoxigraph.NamedNode):
+            return URIRef(term.value)
+        if isinstance(term, pyoxigraph.BlankNode):
+            return URIRef(skolem + term.value)
+        # pyoxigraph.Literal — always carries an explicit datatype (xsd:string for
+        # a plain string, rdf:langString for a lang literal). Map back to rdflib's
+        # convention: a lang tag, a NON-string datatype, or a plain literal (the
+        # implicit xsd:string is dropped, matching the .gts and rdflib paths).
+        if term.language:  # type: ignore[attr-defined]
+            return Literal(term.value, lang=term.language)  # type: ignore[attr-defined]
+        dt = term.datatype.value  # type: ignore[attr-defined]
+        if dt != xsd_string:
+            return Literal(term.value, datatype=URIRef(dt))  # type: ignore[attr-defined]
+        return Literal(term.value)  # type: ignore[attr-defined]
+
     out = Graph()
-    for triple in skolemized:
-        out.add(triple)
+    for q in dataset:
+        out.add((_to_rdflib(q.subject), _to_rdflib(q.predicate), _to_rdflib(q.object)))
     bind_prefixes(out)
     return out
 
