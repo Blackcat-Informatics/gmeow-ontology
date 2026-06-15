@@ -44,7 +44,7 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, SKOS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import (
     EXTERNAL_FIXTURES_DIR,
@@ -65,6 +65,24 @@ _STRUCTURAL_NS: tuple[str, ...] = (
     str(RDF),
     str(RDFS),
     str(OWL),
+)
+
+#: Individual non-GMEOW predicates that are nonetheless structural — GMEOW's own
+#: concept-identity bridges (the QID concept bridge, #553), the SKOS analogue of
+#: the owl:sameAs / owl:equivalentClass identity links already allowed via OWL.
+#: Scoped to the SKOS *mapping* relations only — NOT the whole skos: namespace —
+#: so annotation/concept terms (skos:prefLabel, skos:broader, skos:Concept, …)
+#: still count as genuine consumer-vocab residue if they ever leak in.
+_STRUCTURAL_PREDICATES: frozenset[str] = frozenset(
+    str(p)
+    for p in (
+        SKOS.exactMatch,
+        SKOS.closeMatch,
+        SKOS.broadMatch,
+        SKOS.narrowMatch,
+        SKOS.relatedMatch,
+        SKOS.mappingRelation,
+    )
 )
 
 #: The consumer vocabularies whose own definition is vendored under
@@ -180,7 +198,11 @@ def _gate_pure_gmeow(draft: Graph) -> GateResult:
     """Gate 1: the up-projected draft contains only GMEOW + structural terms."""
     foreign: dict[str, int] = {}
     for _s, p, o in draft:
-        if p != RDF.type and not str(p).startswith(_STRUCTURAL_NS):
+        if (
+            p != RDF.type
+            and not str(p).startswith(_STRUCTURAL_NS)
+            and str(p) not in _STRUCTURAL_PREDICATES
+        ):
             key = _vocab_of(p) or str(p)
             foreign[key] = foreign.get(key, 0) + 1
         if (
