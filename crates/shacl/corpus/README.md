@@ -25,10 +25,12 @@ Each directory contains `data.nt` (N-Triples data graph), `shapes.ttl` (Turtle s
 | 19-target-objects-of | `sh:targetObjectsOf ex:knows`; target lacks `ex:name` | false | 1 — focus `ex:target`, path `ex:name`, MinCountConstraintComponent |
 | 20-no-inference-contract | `sh:targetClass ex:Person` but bob is typed `ex:Employee` (no direct Person type) | **true** | 0 — SHACL has no rdfs:subClassOf inference |
 | 21-rdf12-statement-layer | Statement node whose `rdf:reifies` object is a genuine RDF 1.2 triple term `<<( ex:alice ex:knows ex:bob )>>`; `sh:minCount 1` on `rdf:reifies` | **true** | 0 — proves oxigraph (rdf-12) ingests + validates triple-term data that rdflib/pySHACL cannot represent |
-| 22-max-length | `sh:pattern "^[a-z0-9-]{1,20}$"` on `ex:slug`; value exceeds 20 chars | false | 1 — focus `ex:post`, path `ex:slug`, PatternConstraintComponent |
+| 22-min-length-pattern | `sh:minLength 1` + `sh:pattern "^[a-z0-9-]{1,20}$"` on `ex:slug`; value exceeds 20 chars (pattern fails) | false | 1 — focus `ex:post`, path `ex:slug`, PatternConstraintComponent |
+| 23-datatype-lexical | `sh:datatype xsd:decimal` on `ex:value`; value `"1e3"^^xsd:decimal` uses scientific notation (not lexically valid for `xsd:decimal`) | false | 1 — focus `ex:measurement`, path `ex:value`, value `"1e3"^^xsd:decimal`, DatatypeConstraintComponent |
 
 ## Notes
 
 - **Case 21**: Uses the genuine RDF 1.2 **triple-term** syntax `<<( s p o )>>` (object position, with `rdf:reifies`) — verified accepted by oxigraph 0.5's N-Triples 1.2 parser. The older RDF-star asserted-triple syntax `<< s p o >>` (subject or object) is *rejected* by oxigraph 0.5; only the parenthesised RDF 1.2 triple term is accepted. This case demonstrates ingestion + validation of statement-layer data that rdflib/pySHACL cannot represent at all.
-- **Case 22**: Renamed from `max-length` because `sh:maxLength` is in the hard-fail unsupported constraint set. Uses `sh:pattern` with a bounded character class to achieve the same length-limiting intent.
+- **Case 22** (`22-min-length-pattern`): Previously misnamed `max-length`. `sh:maxLength` is in the hard-fail unsupported constraint set; this case actually tests `sh:minLength` + `sh:pattern` with a bounded character class to achieve length-limiting intent.
+- **Case 23** (`23-datatype-lexical`): Pins char-by-char XSD lexical validation in `check_datatype`. `"1e3"^^xsd:decimal` is rejected because scientific notation is outside the `xsd:decimal` lexical space (unlike `xsd:double`); previously a native `f64` parse wrongly accepted it. Companion unit tests also pin unbounded `xsd:integer` (no `i64` overflow).
 - Expected reports encode the intended outcomes (the table above is the spec). They are cross-checked against the engine output, but the intended violations — not a blind snapshot — are the source of truth.

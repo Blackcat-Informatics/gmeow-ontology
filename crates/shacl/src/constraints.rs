@@ -708,11 +708,24 @@ fn terms_equal(a: &Term, b: &Term) -> bool {
     a == b
 }
 
-/// Build a compiled `Regex` from a pattern string and optional flags.
+/// Build a compiled `Regex` from a pattern string and optional `sh:flags` string.
 ///
-/// Supported flags: `i` (case-insensitive), `s` (dot-all), `m` (multi-line),
-/// `x` (ignore whitespace in pattern). Flag `q` is silently ignored.
-fn build_regex(pattern: &str, flags: Option<&str>) -> Result<regex::Regex, regex::Error> {
+/// Supported flags (XPath 2.0 subset with Rust `regex` semantics):
+/// - `i` — case-insensitive
+/// - `s` — dot-all (`.` matches newlines)
+/// - `m` — multi-line (`^`/`$` match line boundaries)
+/// - `x` — ignore unescaped whitespace in pattern
+///
+/// **Hard-fail discipline**: any flag character outside `{i, s, m, x}` — including
+/// `q` (the XPath literal-match flag) — is a hard error. Silently ignoring `q`
+/// would change matching semantics in ways the caller cannot detect. Consistent
+/// with this crate's policy of hard-failing on any unmodelled SHACL feature, an
+/// unsupported flag returns `Err` immediately.
+///
+/// **Deviation from XPath 2.0**: patterns are evaluated with Rust `regex` crate
+/// semantics, not XPath 2.0 regex semantics. Behaviour diverges on features such
+/// as Unicode category escapes (`\p{…}`) and backreferences.
+fn build_regex(pattern: &str, flags: Option<&str>) -> Result<regex::Regex, String> {
     let mut builder = regex::RegexBuilder::new(pattern);
     if let Some(f) = flags {
         for c in f.chars() {
@@ -729,11 +742,16 @@ fn build_regex(pattern: &str, flags: Option<&str>) -> Result<regex::Regex, regex
                 'x' => {
                     builder.ignore_whitespace(true);
                 }
-                _ => {} // includes 'q' (literal flag) and any unknown flags; skip silently
+                _ => {
+                    return Err(format!(
+                        "unsupported sh:flags character {c:?} in sh:pattern \
+                         (supported: i, s, m, x)"
+                    ));
+                }
             }
         }
     }
-    builder.build()
+    builder.build().map_err(|e| e.to_string())
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
@@ -1056,6 +1074,48 @@ mod tests {
         );
         // With flag "i", lowercase should now pass.
         assert!(validate_shape(&store, &ex("a"), &shape).is_empty());
+    }
+
+    // ── build_regex ────────────────────────────────────────────────────────────
+
+    #[test]
+    fn build_regex_rejects_unknown_flag() {
+        // 'q' (XPath literal-match flag) is unsupported — must hard-fail.
+        assert!(
+            build_regex("foo", Some("q")).is_err(),
+            "build_regex should reject unknown flag 'q'"
+        );
+        // Verify the error message identifies the offending character.
+        let err = build_regex("foo", Some("q")).unwrap_err();
+        assert!(
+            err.contains('q'),
+            "error message should mention the rejected flag character"
+        );
+    }
+
+    #[test]
+    fn build_regex_accepts_supported_flags() {
+        // All four supported flags must compile without error.
+        assert!(
+            build_regex("foo", Some("i")).is_ok(),
+            "flag 'i' should be accepted"
+        );
+        assert!(
+            build_regex("foo", Some("s")).is_ok(),
+            "flag 's' should be accepted"
+        );
+        assert!(
+            build_regex("foo", Some("m")).is_ok(),
+            "flag 'm' should be accepted"
+        );
+        assert!(
+            build_regex("foo", Some("x")).is_ok(),
+            "flag 'x' should be accepted"
+        );
+        assert!(
+            build_regex("foo", Some("ismx")).is_ok(),
+            "combined flags should be accepted"
+        );
     }
 
     // ── minLength ──────────────────────────────────────────────────────────────
