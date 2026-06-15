@@ -36,12 +36,13 @@ impl WorldStore {
     ///
     /// Panics if any of the IRI strings is not a valid IRI.
     pub fn insert_quad(&self, world: &str, s: &str, p: &str, o: &str) {
-        let subject = NamedNode::new(s).unwrap_or_else(|e| panic!("invalid subject IRI {s:?}: {e}"));
+        let subject =
+            NamedNode::new(s).unwrap_or_else(|e| panic!("invalid subject IRI {s:?}: {e}"));
         let predicate =
             NamedNode::new(p).unwrap_or_else(|e| panic!("invalid predicate IRI {p:?}: {e}"));
         let object = NamedNode::new(o).unwrap_or_else(|e| panic!("invalid object IRI {o:?}: {e}"));
-        let graph = NamedNode::new(world)
-            .unwrap_or_else(|e| panic!("invalid world IRI {world:?}: {e}"));
+        let graph =
+            NamedNode::new(world).unwrap_or_else(|e| panic!("invalid world IRI {world:?}: {e}"));
         let quad = Quad::new(subject, predicate, object, graph);
         self.inner
             .insert(&quad)
@@ -61,12 +62,7 @@ impl WorldStore {
         };
         let graph_ref: GraphNameRef<'_> = GraphNameRef::NamedNode(graph_node.as_ref());
         self.inner
-            .quads_for_pattern(
-                None::<NamedOrBlankNodeRef<'_>>,
-                None,
-                None,
-                Some(graph_ref),
-            )
+            .quads_for_pattern(None::<NamedOrBlankNodeRef<'_>>, None, None, Some(graph_ref))
             .filter_map(|r| {
                 r.ok().map(|q| {
                     [
@@ -90,9 +86,7 @@ impl WorldStore {
             .named_graphs()
             .filter_map(|r| {
                 r.ok().and_then(|g| match g {
-                    oxigraph::model::NamedOrBlankNode::NamedNode(n) => {
-                        Some(n.as_str().to_owned())
-                    }
+                    oxigraph::model::NamedOrBlankNode::NamedNode(n) => Some(n.as_str().to_owned()),
                     oxigraph::model::NamedOrBlankNode::BlankNode(_) => None,
                 })
             })

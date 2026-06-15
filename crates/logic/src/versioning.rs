@@ -262,7 +262,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.source_graph_hash = [0x01u8; 32];
-        assert_ne!(materialized_world_key(&inp), k0, "source_graph_hash mutation must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "source_graph_hash mutation must change key"
+        );
     }
 
     #[test]
@@ -270,7 +274,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.rule_set_hash = [0x02u8; 32];
-        assert_ne!(materialized_world_key(&inp), k0, "rule_set_hash mutation must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "rule_set_hash mutation must change key"
+        );
     }
 
     #[test]
@@ -278,7 +286,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.profile_id = "http://logic.gmeow.example/profile/OtherProfile".to_owned();
-        assert_ne!(materialized_world_key(&inp), k0, "profile_id mutation must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "profile_id mutation must change key"
+        );
     }
 
     #[test]
@@ -286,7 +298,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.solver_version = "0.2.0".to_owned();
-        assert_ne!(materialized_world_key(&inp), k0, "solver_version mutation must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "solver_version mutation must change key"
+        );
     }
 
     #[test]
@@ -294,7 +310,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.budget_params.max_iterations = Some(9999);
-        assert_ne!(materialized_world_key(&inp), k0, "budget_params.max_iterations mutation must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "budget_params.max_iterations mutation must change key"
+        );
     }
 
     #[test]
@@ -302,7 +322,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.budget_params.max_derived_quads = Some(1);
-        assert_ne!(materialized_world_key(&inp), k0, "budget_params.max_derived_quads mutation must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "budget_params.max_derived_quads mutation must change key"
+        );
     }
 
     #[test]
@@ -310,7 +334,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.budget_params.timeout_ms = Some(1);
-        assert_ne!(materialized_world_key(&inp), k0, "budget_params.timeout_ms mutation must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "budget_params.timeout_ms mutation must change key"
+        );
     }
 
     #[test]
@@ -318,7 +346,11 @@ mod tests {
         let k0 = materialized_world_key(&baseline_mat());
         let mut inp = baseline_mat();
         inp.budget_params.max_iterations = None;
-        assert_ne!(materialized_world_key(&inp), k0, "removing a budget limit must change key");
+        assert_ne!(
+            materialized_world_key(&inp),
+            k0,
+            "removing a budget limit must change key"
+        );
     }
 
     // ── Counterfactual key: per-component invalidation ────────────────────────────────────────────
@@ -328,7 +360,11 @@ mod tests {
         let k0 = counterfactual_world_key(&baseline_cf());
         let mut inp = baseline_cf();
         inp.base_world_hash = [0x01u8; 32];
-        assert_ne!(counterfactual_world_key(&inp), k0, "base_world_hash mutation must change key");
+        assert_ne!(
+            counterfactual_world_key(&inp),
+            k0,
+            "base_world_hash mutation must change key"
+        );
     }
 
     #[test]
@@ -336,7 +372,11 @@ mod tests {
         let k0 = counterfactual_world_key(&baseline_cf());
         let mut inp = baseline_cf();
         inp.antecedent_hash = [0x02u8; 32];
-        assert_ne!(counterfactual_world_key(&inp), k0, "antecedent_hash mutation must change key");
+        assert_ne!(
+            counterfactual_world_key(&inp),
+            k0,
+            "antecedent_hash mutation must change key"
+        );
     }
 
     #[test]
@@ -344,7 +384,11 @@ mod tests {
         let k0 = counterfactual_world_key(&baseline_cf());
         let mut inp = baseline_cf();
         inp.rule_set_hash = [0x03u8; 32];
-        assert_ne!(counterfactual_world_key(&inp), k0, "rule_set_hash mutation must change key");
+        assert_ne!(
+            counterfactual_world_key(&inp),
+            k0,
+            "rule_set_hash mutation must change key"
+        );
     }
 
     #[test]
@@ -352,7 +396,11 @@ mod tests {
         let k0 = counterfactual_world_key(&baseline_cf());
         let mut inp = baseline_cf();
         inp.entrenchment_hash = [0x04u8; 32];
-        assert_ne!(counterfactual_world_key(&inp), k0, "entrenchment_hash mutation must change key");
+        assert_ne!(
+            counterfactual_world_key(&inp),
+            k0,
+            "entrenchment_hash mutation must change key"
+        );
     }
 
     #[test]
@@ -360,7 +408,11 @@ mod tests {
         let k0 = counterfactual_world_key(&baseline_cf());
         let mut inp = baseline_cf();
         inp.profile = "http://logic.gmeow.example/profile/DifferentProfile".to_owned();
-        assert_ne!(counterfactual_world_key(&inp), k0, "profile mutation must change key");
+        assert_ne!(
+            counterfactual_world_key(&inp),
+            k0,
+            "profile mutation must change key"
+        );
     }
 
     #[test]
@@ -368,7 +420,11 @@ mod tests {
         let k0 = counterfactual_world_key(&baseline_cf());
         let mut inp = baseline_cf();
         inp.solver_version = "1.0.0".to_owned();
-        assert_ne!(counterfactual_world_key(&inp), k0, "solver_version mutation must change key");
+        assert_ne!(
+            counterfactual_world_key(&inp),
+            k0,
+            "solver_version mutation must change key"
+        );
     }
 
     // ── Domain separation: materialized vs counterfactual ─────────────────────────────────────────

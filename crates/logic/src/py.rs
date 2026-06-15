@@ -27,7 +27,7 @@ use oxigraph::io::RdfFormat;
 use oxigraph::model::{GraphName, NamedNode};
 use oxigraph::store::Store;
 
-use crate::seam::{BudgetStatus, DerivedQuad, DerivationId};
+use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
 
 // ── Public profile IRI ─────────────────────────────────────────────────────────────────────────
 
@@ -36,8 +36,7 @@ use crate::seam::{BudgetStatus, DerivedQuad, DerivationId};
 /// Real profiles are IRI-identified named individuals in the ontology; for
 /// asserted base facts we use this constant as a sentinel so callers can
 /// distinguish "came in as input" from "derived by rule X".
-const ASSERTED_PROFILE: &str =
-    "http://logic.gmeow.example/profile/MonotonicDatalogProfile";
+const ASSERTED_PROFILE: &str = "http://logic.gmeow.example/profile/MonotonicDatalogProfile";
 
 /// The rule IRI used for asserted (non-derived) input quads in the scaffold.
 const ASSERTED_RULE: &str = "http://logic.gmeow.example/rule/asserted";
@@ -49,9 +48,7 @@ const ASSERTED_RULE: &str = "http://logic.gmeow.example/rule/asserted";
 /// The IRI is deterministic: `…/derivation/input/{n}`.  When Nemo is wired
 /// in (#501) this will be replaced by Nemo's own derivation IDs.
 fn input_derivation_id(n: usize) -> DerivationId {
-    DerivationId(format!(
-        "http://logic.gmeow.example/derivation/input/{n}"
-    ))
+    DerivationId(format!("http://logic.gmeow.example/derivation/input/{n}"))
 }
 
 /// Convert a [`DerivedQuad`] to a Python dict with all metadata fields.
@@ -117,9 +114,7 @@ fn materialize(py: Python<'_>, _rules: &str, input: &str) -> PyResult<Vec<PyObje
         store
             .load_from_reader(RdfFormat::NQuads, input.as_bytes())
             .map_err(|e| {
-                pyo3::exceptions::PyValueError::new_err(format!(
-                    "N-Quads parse error: {e}"
-                ))
+                pyo3::exceptions::PyValueError::new_err(format!("N-Quads parse error: {e}"))
             })?;
     }
 
@@ -137,10 +132,8 @@ fn materialize(py: Python<'_>, _rules: &str, input: &str) -> PyResult<Vec<PyObje
             GraphName::NamedNode(n) => n.clone(),
             // Default-graph quads are stored under a synthetic world IRI so
             // the metadata contract still holds (every quad has a world).
-            GraphName::DefaultGraph => NamedNode::new(
-                "http://logic.gmeow.example/world/default",
-            )
-            .expect("static IRI is valid"),
+            GraphName::DefaultGraph => NamedNode::new("http://logic.gmeow.example/world/default")
+                .expect("static IRI is valid"),
             GraphName::BlankNode(b) => NamedNode::new(format!(
                 "http://logic.gmeow.example/world/bnode/{}",
                 b.as_str()

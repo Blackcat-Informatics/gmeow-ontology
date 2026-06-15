@@ -247,8 +247,7 @@ mod tests {
     // ── DerivedQuad construction and field access ─────────────────────────────────────────────
 
     fn make_derived_quad() -> DerivedQuad {
-        let world =
-            NamedNode::new("http://logic.gmeow.example/world/alpha").expect("valid IRI");
+        let world = NamedNode::new("http://logic.gmeow.example/world/alpha").expect("valid IRI");
         DerivedQuad {
             graph: world.clone(),
             subject: Term::NamedNode(
@@ -259,9 +258,7 @@ mod tests {
                 NamedNode::new("http://example.org/object/Thing").expect("valid IRI"),
             ),
             graph_component: world.clone(),
-            derivation_id: DerivationId(
-                "http://logic.gmeow.example/derivation/d001".to_owned(),
-            ),
+            derivation_id: DerivationId("http://logic.gmeow.example/derivation/d001".to_owned()),
             rule_iri: "http://logic.gmeow.example/rule/r001".to_owned(),
             source_quad_ids: vec![
                 "http://logic.gmeow.example/quad/q001".to_owned(),
@@ -275,16 +272,16 @@ mod tests {
     #[test]
     fn derived_quad_graph_field_accessible() {
         let dq = make_derived_quad();
-        assert_eq!(
-            dq.graph.as_str(),
-            "http://logic.gmeow.example/world/alpha"
-        );
+        assert_eq!(dq.graph.as_str(), "http://logic.gmeow.example/world/alpha");
     }
 
     #[test]
     fn derived_quad_graph_equals_graph_component() {
         let dq = make_derived_quad();
-        assert_eq!(dq.graph, dq.graph_component, "graph and graph_component must be equal");
+        assert_eq!(
+            dq.graph, dq.graph_component,
+            "graph and graph_component must be equal"
+        );
     }
 
     #[test]
@@ -310,8 +307,14 @@ mod tests {
     fn derived_quad_source_quad_ids_populated() {
         let dq = make_derived_quad();
         assert_eq!(dq.source_quad_ids.len(), 2);
-        assert_eq!(dq.source_quad_ids[0], "http://logic.gmeow.example/quad/q001");
-        assert_eq!(dq.source_quad_ids[1], "http://logic.gmeow.example/quad/q002");
+        assert_eq!(
+            dq.source_quad_ids[0],
+            "http://logic.gmeow.example/quad/q001"
+        );
+        assert_eq!(
+            dq.source_quad_ids[1],
+            "http://logic.gmeow.example/quad/q002"
+        );
     }
 
     #[test]
