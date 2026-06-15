@@ -32,6 +32,12 @@ blake3 = "1"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 pyo3 = { version = "0.24", features = ["extension-module", "abi3-py313"] }
 nemo = { git = "https://github.com/knowsys/nemo", rev = "4415bc2e180adf33a7a4b98ddc41be9914b7584e" }
+# tokio is required to drive Nemo's async chase API (load_string / reason /
+# predicate_rows).  We match the exact feature set Nemo itself declares
+# (features = ["rt", "macros"]) and rely on Cargo's existing lock resolution
+# (1.52.x series) to avoid a duplicate tokio in the tree.  current_thread
+# flavour is used (same as nemo-cli's #[tokio::main(flavor = "current_thread")]).
+tokio = { version = "1", features = ["rt", "macros"] }
 
 # wasm-bindgen is wasm-only: it binds to the JavaScript host runtime which does
 # not exist on native targets.  The `js` feature on oxigraph wires getrandom's
