@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: connectivity is one graph machinery for every domain (#443). A
+# gmeow:Route runs from gmeow:routeStart through gmeow:routeVia stops to
+# gmeow:routeEnd, tagged with a gmeow:routeKind — and that kind is an open
+# vocabulary spanning transit, walking, flight, citation, dependency and social
+# routes. So the SAME Route/Connection model describes a subway line, a paper's
+# citation chain, and a package's dependency path. A gmeow:Connection is the
+# single edge (source → target) the routes are built from.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/connectivity/> .
+
+ex:central a gmeow:Place ; gmeow:name "Central Station"@x-gmeow-english .
+ex:midtown a gmeow:Place ; gmeow:name "Midtown"@x-gmeow-english .
+ex:airport a gmeow:Place ; gmeow:name "Airport Terminal"@x-gmeow-english .
+
+# --- A transit route: Central → Midtown → Airport.
+ex:airportLine a gmeow:Route ;
+    gmeow:routeKind  gmeow:routeKindTransit ;
+    gmeow:routeStart ex:central ;
+    gmeow:routeVia   ex:midtown ;
+    gmeow:routeEnd   ex:airport .
+
+# --- A single edge of the network: the Central→Midtown hop.
+ex:hop a gmeow:Connection ;
+    gmeow:connectionSource ex:central ;
+    gmeow:connectionTarget ex:midtown .
