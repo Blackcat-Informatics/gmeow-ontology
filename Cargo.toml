@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [workspace]
-members = ["crates/gts"]
+members = ["crates/gts", "crates/logic"]
 resolver = "2"
 
 [workspace.package]
