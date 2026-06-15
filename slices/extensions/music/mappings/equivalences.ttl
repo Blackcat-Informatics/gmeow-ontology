@@ -12,6 +12,7 @@
 @prefix mimo: <http://www.mimo-db.eu/InstrumentsKeywords/> .
 @prefix mbz: <https://musicbrainz.org/> .
 @prefix discogs: <https://www.discogs.com/> .
+@prefix afo: <https://w3id.org/afo/onto/1.1#> .
 
 # Music slice alignments.
 # Compiled to mappings/gmeow-music.sssom.tsv by `gmeow compile-mappings`.
@@ -509,4 +510,20 @@ gmeow:eqMu038 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:comment "Discogs style pages use /style/{name}." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# AFO 1.1 — timbre descriptor (issue #317)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMu039 a gmeow:TermEquivalence ;
+    rdfs:label "TimbreDescriptor ↔ AFO AudioFeature"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW TimbreDescriptor value vocabulary to AFO AudioFeature."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:TimbreDescriptor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject afo:AudioFeature ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "A categorical timbre descriptor is a coarse, human-interpretable audio feature in the AFO sense." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .

@@ -6,6 +6,7 @@
 # mapping_date: 2026-06-03
 # comment: "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)."
 # curie_map:
+#   afo: https://w3id.org/afo/onto/1.1#
 #   discogs: https://www.discogs.com/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   mbz: https://musicbrainz.org/
@@ -28,6 +29,7 @@ gmeow:PitchCollection	skos:closeMatch	wd:Q179651	semapv:ManualMappingCuration	0.
 gmeow:PitchSpellingSystem	skos:closeMatch	wd:Q233861	semapv:ManualMappingCuration	0.9	Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view.
 gmeow:PitchValue	skos:closeMatch	wd:Q1760309	semapv:ManualMappingCuration	0.85	Wikidata 'pitch class' (Q1760309) — a pitch value under octave equivalence.
 gmeow:TempoMap	skos:closeMatch	wd:Q189214	semapv:ManualMappingCuration	0.85	Wikidata 'tempo' (Q189214) — the broad concept; GMEOW models tempo as a piecewise frame mapping.
+gmeow:TimbreDescriptor	skos:closeMatch	afo:AudioFeature	semapv:ManualMappingCuration	0.8	A categorical timbre descriptor is a coarse, human-interpretable audio feature in the AFO sense.
 gmeow:TuningSystem	skos:closeMatch	wd:Q723441	semapv:ManualMappingCuration	0.9	Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view.
 gmeow:determinationDelegatedPerformer	skos:closeMatch	wd:Q1049625	semapv:ManualMappingCuration	0.8	Wikidata 'musical improvisation' (Q1049625) — improvisation is one form of performer-delegated determination.
 gmeow:eventTypeConcert	skos:closeMatch	wd:Q182832	semapv:ManualMappingCuration	0.95	Wikidata 'concert' (Q182832).

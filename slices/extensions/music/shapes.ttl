@@ -658,7 +658,7 @@ gmeow:MusicalSegmentShape
 gmeow:ToneEventShape
     a sh:NodeShape ;
     rdfs:label "Tone event shape"@x-gmeow-english ;
-    skos:definition "A ToneEvent is a MusicalSegment with at most one pitch-content mode and optional dynamics/articulation."@x-gmeow-english ;
+    skos:definition "A ToneEvent is a MusicalSegment with at most one pitch-content mode and optional dynamics, articulation, and timbre."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     sh:targetClass gmeow:ToneEvent ;
     sh:property [
@@ -701,6 +701,13 @@ gmeow:ToneEventShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A ToneEvent may have at most one articulation value." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:toneEventTimbre ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A ToneEvent may have at most one timbre descriptor." ;
     ] .
 
 gmeow:PitchTrajectoryShape
