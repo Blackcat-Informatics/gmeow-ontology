@@ -41,6 +41,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
         <https://blackcatinformatics.ca/gmeow/slices/calendar> ,
         <https://blackcatinformatics.ca/gmeow/slices/citations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/cognition> ,
         <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
