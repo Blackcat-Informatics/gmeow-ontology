@@ -35,14 +35,18 @@ gmeow:mapSchemaPlaceCoords a gmeow:ProjectionMapping ;
             [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ] ) ]
             [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ]
             [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:elevation ; gmeow:objectVar "elev" ] ) ] ) ;
+        gmeow:bind [ gmeow:bindVar "latDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "lonDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ] ] ;
         gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coords" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]
-            [ gmeow:tSubj "coords" ; gmeow:tPred schema:latitude ; gmeow:tObj "lat" ]
-            [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:latitude ; gmeow:tObj "latDec" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lonDec" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:elevation ; gmeow:tObj "elev" ] ) ] .
 
 gmeow:mapSchemaPlaceCoordsCoarsened a gmeow:ProjectionMapping ;
@@ -65,6 +69,10 @@ gmeow:mapSchemaPlaceCoordsCoarsened a gmeow:ProjectionMapping ;
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "place" ] ) ]
                     "-geo-coarsened" ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "latDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "lonDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ] ] ;
         gmeow:edoalSource gmeow:coarsenTo ; gmeow:edoalSourceKind "relation" ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
@@ -73,8 +81,8 @@ gmeow:mapSchemaPlaceCoordsCoarsened a gmeow:ProjectionMapping ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coarseGeo" ]
             [ gmeow:tSubj "coarseGeo" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]
-            [ gmeow:tSubj "coarseGeo" ; gmeow:tPred schema:latitude ; gmeow:tObj "lat" ]
-            [ gmeow:tSubj "coarseGeo" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ] ) ] .
+            [ gmeow:tSubj "coarseGeo" ; gmeow:tPred schema:latitude ; gmeow:tObj "latDec" ]
+            [ gmeow:tSubj "coarseGeo" ; gmeow:tPred schema:longitude ; gmeow:tObj "lonDec" ] ) ] .
 
 gmeow:mapSchemaPartOf a gmeow:ProjectionMapping ;
     rdfs:label "generic partOf → schema:isPartOf"@x-gmeow-english ;
@@ -758,6 +766,10 @@ gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
             [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ] ) ]
             [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ]
             [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:elevation ; gmeow:objectVar "elev" ] ) ] ) ;
+        gmeow:bind [ gmeow:bindVar "latDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "lonDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ] ] ;
         gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
         gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
     gmeow:hasBinding [
@@ -766,8 +778,8 @@ gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coords" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]
-            [ gmeow:tSubj "coords" ; gmeow:tPred schema:latitude ; gmeow:tObj "lat" ]
-            [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:latitude ; gmeow:tObj "latDec" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lonDec" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:elevation ; gmeow:tObj "elev" ] ) ] .
 
 # NOTE: geometryResult → schema.org is intentionally deferred. WKT geometries

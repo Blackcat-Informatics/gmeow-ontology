@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the score is NOT the work — it is one lossy projection of it
+# (#443, #306, P12). The slice's thesis is "frame-relative musical content; every
+# notation is a lossy projection." Here a MusicalWork sits at the head of the WEMI
+# spine. A printed gmeow:ScoreEdition (a Manifestation) embodies a notated
+# Expression — but the notation FIXES only some musical parameters and DELEGATES
+# others to the performer (gmeow:DegreeOfFreedom with determinationDelegatedPerformer).
+# Two performed Expressions realize the very same work and agree on everything the
+# score fixes (pitch, duration over the 12-EDO gmeow:tuningSystem12EDO frame) yet
+# legitimately diverge on timbre and dynamics — the parameters the page never
+# carried. That divergence is the proof of loss: the score under-determines the
+# work, and the missing information lives in the performance, not the paper.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/music/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- WORK: the abstract piece, determinate in what it fixes.
+ex:nocturne a gmeow:MusicalWork ;
+    rdfs:label          "Nocturne in E♭ (worked example)"@x-gmeow-english ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp .
+
+# --- EXPRESSION (notated): what the page actually encodes, framed by 12-EDO.
+ex:notatedExpression a gmeow:Expression ;
+    rdfs:label            "engraved notation of the Nocturne"@x-gmeow-english ;
+    gmeow:realizes        ex:nocturne ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO .
+
+# --- MANIFESTATION: the printed score — a lossy projection of the work.
+ex:printedScore a gmeow:ScoreEdition ;
+    rdfs:label                 "First printed edition"@x-gmeow-english ;
+    gmeow:embodies             ex:notatedExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore .
+
+# --- WHAT THE SCORE DROPS: parameters the notation delegates to the performer.
+ex:dofTimbre a gmeow:DegreeOfFreedom ;
+    rdfs:label        "timbre left to the performer"@x-gmeow-english ;
+    gmeow:dofWork     ex:nocturne ;
+    gmeow:dofParameter gmeow:musicalParameterTimbre ;
+    gmeow:dofStatus   gmeow:determinationDelegatedPerformer .
+
+ex:dofDynamics a gmeow:DegreeOfFreedom ;
+    rdfs:label        "fine dynamics left to the performer"@x-gmeow-english ;
+    gmeow:dofWork     ex:nocturne ;
+    gmeow:dofParameter gmeow:musicalParameterDynamics ;
+    gmeow:dofStatus   gmeow:determinationDelegatedPerformer .
+
+# --- TWO PERFORMANCES: same work, same fixed pitches/durations, divergent where
+#     the score is silent — the loss made concrete (neither is privileged, P9).
+ex:performanceRubinstein a gmeow:Expression ;
+    rdfs:label            "a warm, rubato-rich performance"@x-gmeow-english ;
+    gmeow:realizes        ex:nocturne ;
+    gmeow:realizationMode gmeow:realizationModePerformed ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:wasDerivedFrom  ex:notatedExpression .
+
+ex:performanceGould a gmeow:Expression ;
+    rdfs:label            "a stark, metronomic performance"@x-gmeow-english ;
+    gmeow:realizes        ex:nocturne ;
+    gmeow:realizationMode gmeow:realizationModePerformed ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:wasDerivedFrom  ex:notatedExpression .

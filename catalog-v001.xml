@@ -23,6 +23,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/attestation" uri="slices/core/attestation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/calendar" uri="slices/core/calendar/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/citations" uri="slices/core/citations/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/cognition" uri="slices/core/cognition/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/connectivity" uri="slices/extensions/connectivity/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/contacts" uri="slices/core/contacts/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/coreference" uri="slices/core/coreference/module.ttl"/>

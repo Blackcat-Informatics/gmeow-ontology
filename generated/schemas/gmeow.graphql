@@ -40,7 +40,9 @@ enum AestheticQualityEnum
 enum AgentEnum
   {
     fixtureAnalystA
+    fixtureHumanListener
     fixtureKiranaGharanaStandpoint
+    fixtureMIRAgent
     fixtureRivalScholarStandpoint
     fixtureSessionBassist
     fixtureSessionDrummer
@@ -1791,9 +1793,19 @@ enum ObservablePropertyEnum
     observablePropertyAtmosphericPressure
     observablePropertyHumidity
     observablePropertyLightIntensity
+    observablePropertyLoudness
     observablePropertyRadiationLevel
+    observablePropertyRoughness
     observablePropertySoundPressureLevel
     observablePropertyTemperature
+    observablePropertyTimbre
+    observablePropertyTimingDeviation
+  }
+
+enum ObservationEnum
+  {
+    fixtureHumanTimbreObservation
+    fixtureMIRTimbreObservation
   }
 
 enum ObservationMethodEnum
@@ -2868,6 +2880,15 @@ enum TextDirectionEnum
     directionVerticalRtl
   }
 
+enum TimbreDescriptorEnum
+  {
+    timbreDescriptorBreathy
+    timbreDescriptorBright
+    timbreDescriptorDark
+    timbreDescriptorGritty
+    timbreDescriptorHollow
+  }
+
 enum TimeMappingEnum
   {
     timeMappingSqrt2Canon
@@ -2896,6 +2917,7 @@ enum TimeScaleEnum
 enum ToneEventEnum
   {
     fixtureStructureToneEventC4
+    fixtureTimbreToneEvent
   }
 
 enum TrademarkStatusEnum
@@ -3199,6 +3221,7 @@ type Agent
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -3206,6 +3229,8 @@ type Agent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -3214,6 +3239,7 @@ type Agent
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type AggregationFunction
@@ -3277,6 +3303,7 @@ type Appraisal
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     appraisalDimension: [AppraisalDimension]
     appraisalOf: String
@@ -3308,6 +3335,7 @@ type ArcSample
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     developmentSignalEvent: [Event]
     developmentSignalText: [String]
@@ -3443,6 +3471,7 @@ type Assessment
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     assessmentCriterion: Criterion
     assessmentRubric: Rubric
@@ -4503,6 +4532,7 @@ type Builder
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -4510,6 +4540,8 @@ type Builder
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -4518,6 +4550,7 @@ type Builder
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type CadastralReference
@@ -4613,6 +4646,7 @@ type Capacity
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     capacityOf: Location
   }
@@ -5381,6 +5415,7 @@ type ComplianceAssessment
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     assessedEvent: Event
     assessedNorm: Norm
@@ -5461,6 +5496,7 @@ type ConditionEvaluation
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     evaluatedCondition: Condition
     evaluationVerdict: EvaluationVerdict
@@ -5830,6 +5866,7 @@ type CoordinateObservation
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     spatialMeasurementOf: [Entity]
     coordinateObservationOf: [Place]
@@ -11538,6 +11575,7 @@ type Measurement
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
   }
 
@@ -11678,6 +11716,7 @@ type MemoryItem
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     memoryKind: MemoryKind
     memoryOf: [Agent]
@@ -12823,6 +12862,7 @@ type MusicAnalysisClaim
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     analysisFrame: ReferenceFrame
     analysisProperty: AnalysisProperty
@@ -13667,6 +13707,7 @@ type Observation
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
   }
 
@@ -13742,6 +13783,7 @@ type Occupancy
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     occupancyOf: Location
   }
@@ -14144,6 +14186,7 @@ type Organization
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -14151,6 +14194,8 @@ type Organization
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -14159,6 +14204,7 @@ type Organization
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
     acceptsCurrency: [ReferenceFrame]
     acceptsPaymentMethod: [PaymentMethod]
     foundedBy: [Agent]
@@ -14670,6 +14716,7 @@ type Person
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -14677,6 +14724,8 @@ type Person
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -14685,6 +14734,7 @@ type Person
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
     alumniOf: [Organization]
     hasAncestor: [Person]
     hasChild: [Person]
@@ -16391,6 +16441,7 @@ type ProximityMeasurement
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     proximityTo: Entity
   }
@@ -16459,6 +16510,7 @@ type QualityAssessment
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     assessedEntity: [Entity]
     qualityDimension: [QualityDimension]
@@ -17354,6 +17406,7 @@ type RightsStatement
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     conflictStrategy: ConflictStrategy
     hasDataController: [Agent]
@@ -17976,6 +18029,7 @@ type ScriptLanguageAttribution
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     attributedLanguage: [Language]
     attributedNotation: [InformationObject]
@@ -18085,6 +18139,7 @@ type Sensor
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -18092,6 +18147,8 @@ type Sensor
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -18100,6 +18157,7 @@ type Sensor
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type SensorPlatform
@@ -18238,6 +18296,7 @@ type SensoryObservation
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     sensoryObservationOf: [Entity]
     sensoryProperty: [ObservableProperty]
@@ -18255,6 +18314,7 @@ type SensoryPerception
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     argumentAcceptability: [Float]
     claimModality: StandpointModality
@@ -19122,6 +19182,7 @@ type SoftwareAgent
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
     hasGoal: [Goal]
+    hasMastered: [Entity]
     hasMet: [Agent]
     hasSkill: [Skill]
     hasUsed: [Entity]
@@ -19129,6 +19190,8 @@ type SoftwareAgent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    isAwareOf: [Entity]
+    knowsAbout: [Entity]
     knowsLanguage: [Language]
     mailmapEntry: [String]
     makesOffer: [Offering]
@@ -19137,6 +19200,7 @@ type SoftwareAgent
     ownerOf: [Entity]
     slogan: [String]
     telephone: [String]
+    understands: [Entity]
   }
 
 type SoftwareName
@@ -19689,6 +19753,7 @@ type SpatialAggregation
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     aggregationFunction: AggregationFunction
     hasBin: [SpatialBin]
@@ -19852,6 +19917,7 @@ type SpatialMeasurement
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     spatialMeasurementOf: [Entity]
   }
@@ -19985,6 +20051,7 @@ type StandpointClaim
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     argumentAcceptability: [Float]
     claimModality: StandpointModality
@@ -20767,6 +20834,7 @@ type TemporalMeasurement
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     measuredAge: Float
     measuredDate: Instant
@@ -20954,59 +21022,6 @@ type Thread
 
 type TimbreDescriptor
   {
-    acquireLicensePage: [String]
-    attributionText: [String]
-    attributionUrl: [String]
-    authorityLink: [String]
-    cites: [CreativeWork]
-    conditionsOfAccess: [String]
-    counterpartOf: [Entity]
-    depictedIn: [MediaObject]
-    description: [String]
-    existenceInterval: [TimeInterval]
-    hasAccessibilityNeed: [AccessibilityFacet]
-    hasAppellation: [Appellation]
-    hasAttestation: [Attestation]
-    hasCopyright: [Copyright]
-    hasCreationEvent: [Event]
-    hasDestructionEvent: [Event]
-    hasDirectReply: [Comment]
-    hasIdentifier: [Identifier]
-    hasLicense: [License]
-    hasLogo: [MediaObject]
-    hasPose: [Pose]
-    hasReply: [Comment]
-    hasRightsStatement: [RightsStatement]
-    hasSensoryObservation: [SensoryObservation]
-    hasSensoryQuantity: [SensoryQuantity]
-    hasSpatialMeasurement: [SpatialMeasurement]
-    hasStream: [Stream]
-    hasTag: [Tag]
-    hasTrademark: [Trademark]
-    hasVersion: [Entity]
-    hasVoice: [Voice]
-    hasWebPage: [WebPage]
-    isAbout: [Entity]
-    isAccessibleForFree: [Boolean]
-    isReferencedBy: [Entity]
-    isResultOf: [Observation]
-    locatedAt: [Location]
-    mediaType: String
-    mentionedIn: [Note]
-    name: [String]
-    ownedBy: [Agent]
-    provenance: [String]
-    proximity: [ProximityMeasurement]
-    references: [Entity]
-    storedIn: [StorageLocation]
-    supersededBy: [Entity]
-    supersedes: [Entity]
-    usageInfo: [String]
-    versionFingerprint: [String]
-    versionLabel: [String]
-    versionOf: Entity
-    wasAttributedTo: [Agent]
-    wasGeneratedBy: [Activity]
   }
 
 type TimeInterval
@@ -21732,6 +21747,7 @@ type UsageAttestation
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     attestationInterval: TimeInterval
     attestedForm: LexicalForm
@@ -21752,6 +21768,7 @@ type Utilization
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     utilizationOf: Location
   }
@@ -21948,6 +21965,7 @@ type VersionMembership
     observationType: [ObservationType]
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
     vantage: [Entity]
     membershipAuthority: [Agent]
     membershipInterval: [TimeInterval]

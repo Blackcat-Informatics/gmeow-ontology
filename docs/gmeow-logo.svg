@@ -2,6 +2,10 @@
   <title id="title">GMEOW black cat knowledge-graph logo</title>
   <desc id="desc">A stylized black cat head holding a small linked knowledge graph, with red, blue, yellow, and green service accents on the graph edges.</desc>
   <defs>
+    <filter id="soft-white-glow" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#ffffff" flood-opacity="0.78"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ffffff" flood-opacity="0.72"/>
+    </filter>
     <style>
       /* Color tokens: cat #111214, paper #fffdf5, ink #111214, feature #ffffff, red #ea4335, blue #4285f4, yellow #fbbc05, green #34a853 */
       .cat { fill: #111214; }
@@ -21,7 +25,7 @@
     - Accent colors are isolated to the #accent-* graph edges for theming.
   -->
 
-  <g id="gmeow-logo">
+  <g id="gmeow-logo" filter="url(#soft-white-glow)">
     <g id="cat-head-core">
       <path id="cat-silhouette" class="cat" d="
         M512 268

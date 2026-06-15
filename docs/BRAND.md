@@ -43,12 +43,14 @@ The machine-readable project and brand self-description lives in
 software project, repository, canonical logo, and social-preview assets using
 GMEOW's own `SoftwareProject`, `Repository`, `MediaObject`, and `hasLogo` terms.
 
-- `docs/gmeow-logo.svg` — the canonical GMEOW logo (cat + knowledge graph).
+- `docs/gmeow-logo.svg` — the canonical GMEOW logo (cat + knowledge graph),
+  including a soft white glow so the black silhouette remains legible on dark
+  backgrounds.
 - `docs/social-preview.svg` — the editable GitHub sharing-card source (1280×640).
 - `docs/social-preview.png` — the rendered 1280×640 GitHub social preview.
 
-Use the SVG for README, icon, and card placements. The README references the raw
-GitHub URL so the logo also renders on registries that consume `README.md`.
+Use the SVG for README, icon, and card placements. The README references this
+asset by relative path so branch previews render the branch's current logo.
 
 Rebuild the PNG after editing the SVG:
 

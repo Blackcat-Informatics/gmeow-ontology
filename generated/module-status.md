@@ -15,22 +15,23 @@ Tier-2 uplift backlog.
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 0/5 | full |
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 0/34 | full |
-| archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 0 | - | full |
+| archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 1 | - | full |
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 0/44 | full |
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 0/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 0/16 | full |
+| cognition | core | core | 1 | 0 | 4 | 0 | 1 | 0/4 | full |
 | connectivity | extension | extensions | 2 | 3 | 8 | 0 | 1 | - | full |
 | contacts | core | core | 6 | 9 | 26 | 0 | 1 | 0/35 | full |
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 0/5 | full |
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 0/57 | full |
 | deception | core | core | 4 | 2 | 10 | 0 | 1 | 0/12 | full |
 | documents | core | core | 7 | 22 | 35 | 0 | 1 | 0/57 | full |
-| email | extension | extensions | 8 | 24 | 94 | 0 | 0 | - | full |
+| email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 0/8 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 0/10 | full |
-| expertise | core | core | 4 | 6 | 11 | 0 | 1 | 0/17 | full |
+| expertise | core | core | 5 | 6 | 11 | 0 | 1 | 0/17 | full |
 | finance | extension | extensions | 9 | 21 | 38 | 0 | 1 | - | full |
 | gender | core | core | 5 | 6 | 7 | 0 | 1 | 0/13 | full |
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
@@ -43,10 +44,10 @@ Tier-2 uplift backlog.
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 0/8 | full |
 | logic | core | core | 0 | 14 | 11 | 12 | 0 | 0/25 | full |
-| music | extension | extensions | 11 | 59 | 125 | 0 | 0 | - | full |
+| music | extension | extensions | 11 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 2/52 | full |
-| narrative | extension | extensions | 6 | 17 | 41 | 0 | 0 | - | full |
-| norms | extension | extensions | 10 | 25 | 56 | 0 | 0 | - | full |
+| narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
+| norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |
 | notation | extension | extensions | 4 | 5 | 9 | 0 | 1 | - | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 1 | 0/30 | full |
@@ -59,7 +60,7 @@ Tier-2 uplift backlog.
 | rights | core | core | 4 | 22 | 48 | 0 | 1 | 0/70 | full |
 | risk | extension | extensions | 2 | 8 | 19 | 0 | 1 | - | full |
 | sensory | extension | extensions | 3 | 4 | 6 | 0 | 1 | - | full |
-| sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 0 | - | full |
+| sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 1 | - | full |
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 0/8 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 0/3 | full |
@@ -70,4 +71,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
-**61 slices** · documentation: 61 full guides, 0 stubs remaining (#325); advisory coverage: 3/1078 core class/property terms (#471).
+**62 slices** · documentation: 62 full guides, 0 stubs remaining (#325); advisory coverage: 3/1082 core class/property terms (#471).

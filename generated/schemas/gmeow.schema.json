@@ -724,6 +724,15 @@
                         "null"
                     ]
                 },
+                "hasMastered": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMet": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -781,6 +790,24 @@
                 "holdsKey": {
                     "items": {
                         "$ref": "#/$defs/CryptographicKey"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAwareOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "knowsAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -858,6 +885,15 @@
                         "array",
                         "null"
                     ]
+                },
+                "understands": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
                 }
             },
             "title": "Agent",
@@ -867,7 +903,9 @@
             "description": "",
             "enum": [
                 "fixtureAnalystA",
+                "fixtureHumanListener",
                 "fixtureKiranaGharanaStandpoint",
+                "fixtureMIRAgent",
                 "fixtureRivalScholarStandpoint",
                 "fixtureSessionBassist",
                 "fixtureSessionDrummer"
@@ -1295,6 +1333,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -1449,6 +1497,16 @@
                     "type": [
                         "string",
                         "null"
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
                     ]
                 },
                 "vantage": {
@@ -2622,6 +2680,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -11505,6 +11573,15 @@
                         "null"
                     ]
                 },
+                "hasMastered": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMet": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -11562,6 +11639,24 @@
                 "holdsKey": {
                     "items": {
                         "$ref": "#/$defs/CryptographicKey"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAwareOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "knowsAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -11634,6 +11729,15 @@
                 "telephone": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "understands": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -12370,6 +12474,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -18762,6 +18876,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -19412,6 +19536,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -22217,6 +22351,16 @@
                     "type": [
                         "array",
                         "null"
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
                     ]
                 },
                 "vantage": {
@@ -69630,6 +69774,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -70826,6 +70980,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -77802,6 +77966,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -87397,9 +87571,13 @@
                 "observablePropertyAtmosphericPressure",
                 "observablePropertyHumidity",
                 "observablePropertyLightIntensity",
+                "observablePropertyLoudness",
                 "observablePropertyRadiationLevel",
+                "observablePropertyRoughness",
                 "observablePropertySoundPressureLevel",
-                "observablePropertyTemperature"
+                "observablePropertyTemperature",
+                "observablePropertyTimbre",
+                "observablePropertyTimingDeviation"
             ],
             "title": "ObservablePropertyEnum",
             "type": "string"
@@ -87491,6 +87669,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -87503,6 +87691,15 @@
             },
             "title": "Observation",
             "type": "object"
+        },
+        "ObservationEnum": {
+            "description": "",
+            "enum": [
+                "fixtureHumanTimbreObservation",
+                "fixtureMIRTimbreObservation"
+            ],
+            "title": "ObservationEnum",
+            "type": "string"
         },
         "ObservationMethod": {
             "additionalProperties": false,
@@ -88099,6 +88296,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -91475,6 +91682,15 @@
                         "null"
                     ]
                 },
+                "hasMastered": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMember": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -91568,6 +91784,24 @@
                 "industryClassification": {
                     "items": {
                         "$ref": "#/$defs/Identifier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAwareOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "knowsAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -91685,6 +91919,15 @@
                 "telephone": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "understands": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -96467,6 +96710,15 @@
                         "null"
                     ]
                 },
+                "hasMastered": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMet": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -96629,6 +96881,24 @@
                         "null"
                     ]
                 },
+                "isAwareOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "knowsAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "knowsLanguage": {
                     "items": {
                         "$ref": "#/$defs/Language"
@@ -96713,6 +96983,15 @@
                 "telephone": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "understands": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -110379,6 +110658,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -110949,6 +111238,16 @@
                     "type": [
                         "array",
                         "null"
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
                     ]
                 },
                 "vantage": {
@@ -118639,6 +118938,16 @@
                         "null"
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -124300,6 +124609,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -125099,6 +125418,15 @@
                         "null"
                     ]
                 },
+                "hasMastered": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMet": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -125156,6 +125484,24 @@
                 "holdsKey": {
                     "items": {
                         "$ref": "#/$defs/CryptographicKey"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAwareOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "knowsAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -125228,6 +125574,15 @@
                 "telephone": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "understands": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -126406,6 +126761,16 @@
                         "null"
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -126538,6 +126903,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryModality"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -133152,6 +133527,15 @@
                         "null"
                     ]
                 },
+                "hasMastered": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMet": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -133209,6 +133593,24 @@
                 "holdsKey": {
                     "items": {
                         "$ref": "#/$defs/CryptographicKey"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAwareOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "knowsAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -133281,6 +133683,15 @@
                 "telephone": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "understands": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
                     },
                     "type": [
                         "array",
@@ -138004,6 +138415,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -139372,6 +139793,16 @@
                         "null"
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -140508,6 +140939,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -147032,6 +147473,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -148570,487 +149021,20 @@
         "TimbreDescriptor": {
             "additionalProperties": false,
             "description": "",
-            "properties": {
-                "acquireLicensePage": {
-                    "items": {
-                        "format": "uri",
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "attributionText": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "attributionUrl": {
-                    "items": {
-                        "format": "uri",
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "authorityLink": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "cites": {
-                    "items": {
-                        "$ref": "#/$defs/CreativeWork"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "conditionsOfAccess": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "counterpartOf": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "depictedIn": {
-                    "items": {
-                        "$ref": "#/$defs/MediaObject"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "description": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "existenceInterval": {
-                    "items": {
-                        "$ref": "#/$defs/TimeInterval"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasAccessibilityNeed": {
-                    "items": {
-                        "$ref": "#/$defs/AccessibilityFacet"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasAppellation": {
-                    "items": {
-                        "$ref": "#/$defs/Appellation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasAttestation": {
-                    "items": {
-                        "$ref": "#/$defs/Attestation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasCopyright": {
-                    "items": {
-                        "$ref": "#/$defs/Copyright"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasCreationEvent": {
-                    "items": {
-                        "$ref": "#/$defs/Event"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasDestructionEvent": {
-                    "items": {
-                        "$ref": "#/$defs/Event"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasDirectReply": {
-                    "items": {
-                        "$ref": "#/$defs/Comment"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasIdentifier": {
-                    "items": {
-                        "$ref": "#/$defs/Identifier"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasLicense": {
-                    "items": {
-                        "$ref": "#/$defs/License"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasLogo": {
-                    "items": {
-                        "$ref": "#/$defs/MediaObject"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasPose": {
-                    "items": {
-                        "$ref": "#/$defs/Pose"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasReply": {
-                    "items": {
-                        "$ref": "#/$defs/Comment"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasRightsStatement": {
-                    "items": {
-                        "$ref": "#/$defs/RightsStatement"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSensoryObservation": {
-                    "items": {
-                        "$ref": "#/$defs/SensoryObservation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSensoryQuantity": {
-                    "items": {
-                        "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSpatialMeasurement": {
-                    "items": {
-                        "$ref": "#/$defs/SpatialMeasurement"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasStream": {
-                    "items": {
-                        "$ref": "#/$defs/Stream"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasTag": {
-                    "items": {
-                        "$ref": "#/$defs/Tag"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasTrademark": {
-                    "items": {
-                        "$ref": "#/$defs/Trademark"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasVersion": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasVoice": {
-                    "items": {
-                        "$ref": "#/$defs/Voice"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasWebPage": {
-                    "items": {
-                        "$ref": "#/$defs/WebPage"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "isAbout": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "isAccessibleForFree": {
-                    "items": {
-                        "type": "boolean"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "isReferencedBy": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "isResultOf": {
-                    "items": {
-                        "$ref": "#/$defs/Observation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "locatedAt": {
-                    "items": {
-                        "$ref": "#/$defs/Location"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "mediaType": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "mentionedIn": {
-                    "items": {
-                        "$ref": "#/$defs/Note"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "name": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "ownedBy": {
-                    "items": {
-                        "$ref": "#/$defs/Agent"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "provenance": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "proximity": {
-                    "items": {
-                        "$ref": "#/$defs/ProximityMeasurement"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "references": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "storedIn": {
-                    "items": {
-                        "$ref": "#/$defs/StorageLocation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "supersededBy": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "supersedes": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "usageInfo": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "versionFingerprint": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "versionLabel": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "versionOf": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/Entity"
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ]
-                },
-                "wasAttributedTo": {
-                    "items": {
-                        "$ref": "#/$defs/Agent"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "wasGeneratedBy": {
-                    "items": {
-                        "$ref": "#/$defs/Activity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                }
-            },
             "title": "TimbreDescriptor",
             "type": "object"
+        },
+        "TimbreDescriptorEnum": {
+            "description": "",
+            "enum": [
+                "timbreDescriptorBreathy",
+                "timbreDescriptorBright",
+                "timbreDescriptorDark",
+                "timbreDescriptorGritty",
+                "timbreDescriptorHollow"
+            ],
+            "title": "TimbreDescriptorEnum",
+            "type": "string"
         },
         "TimeInterval": {
             "additionalProperties": false,
@@ -151435,7 +151419,8 @@
         "ToneEventEnum": {
             "description": "",
             "enum": [
-                "fixtureStructureToneEventC4"
+                "fixtureStructureToneEventC4",
+                "fixtureTimbreToneEvent"
             ],
             "title": "ToneEventEnum",
             "type": "string"
@@ -155109,6 +155094,16 @@
                         }
                     ]
                 },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "vantage": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -155203,6 +155198,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"
@@ -156866,6 +156871,16 @@
                     "anyOf": [
                         {
                             "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
                         },
                         {
                             "type": "null"

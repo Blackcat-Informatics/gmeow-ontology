@@ -10,7 +10,7 @@
 
 gmeow:GmeowClassShape
     a sh:NodeShape ;
-    rdfs:label "GMEOW class completeness shape" ;
+    rdfs:label "GMEOW class completeness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -41,7 +41,7 @@ gmeow:GmeowClassShape
 
 gmeow:GmeowPropertyShape
     a sh:NodeShape ;
-    rdfs:label "GMEOW property completeness shape" ;
+    rdfs:label "GMEOW property completeness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -77,7 +77,7 @@ gmeow:GmeowPropertyShape
 
 gmeow:GmeowDatatypeShape
     a sh:NodeShape ;
-    rdfs:label "GMEOW datatype completeness shape" ;
+    rdfs:label "GMEOW datatype completeness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -108,7 +108,7 @@ gmeow:GmeowDatatypeShape
 
 gmeow:GmeowOntologyShape
     a sh:NodeShape ;
-    rdfs:label "GMEOW ontology header completeness shape" ;
+    rdfs:label "GMEOW ontology header completeness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -152,7 +152,7 @@ gmeow:GmeowOntologyShape
 # typed part.
 gmeow:AppellationHasContentShape
     a sh:NodeShape ;
-    rdfs:label "Appellation content shape (no required surname)" ;
+    rdfs:label "Appellation content shape (no required surname)"@x-gmeow-english ;
     sh:targetClass gmeow:Appellation ;
     sh:or (
         [ sh:path gmeow:fullName ; sh:minCount 1 ]
@@ -164,7 +164,7 @@ gmeow:AppellationHasContentShape
 # Deadnames and superseded names must be suppressed from display by default.
 gmeow:DeadnameSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Deadname / superseded suppression shape" ;
+    rdfs:label "Deadname / superseded suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:PersonName ;
     sh:sparql [
         sh:severity sh:Warning ;
@@ -206,7 +206,7 @@ gmeow:DeadnameSuppressionShape
 
 gmeow:GenderIdentityFacetShape
     a sh:NodeShape ;
-    rdfs:label "GenderIdentity well-formedness shape" ;
+    rdfs:label "GenderIdentity well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:GenderIdentity ;
     sh:property [
         sh:path gmeow:genderValue ;
@@ -218,7 +218,7 @@ gmeow:GenderIdentityFacetShape
 
 gmeow:GenderExpressionFacetShape
     a sh:NodeShape ;
-    rdfs:label "GenderExpression well-formedness shape" ;
+    rdfs:label "GenderExpression well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:GenderExpression ;
     sh:property [
         sh:path gmeow:expressionValue ;
@@ -230,7 +230,7 @@ gmeow:GenderExpressionFacetShape
 
 gmeow:SexualOrientationFacetShape
     a sh:NodeShape ;
-    rdfs:label "SexualOrientation well-formedness shape" ;
+    rdfs:label "SexualOrientation well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:SexualOrientation ;
     sh:property [
         sh:path gmeow:sexualOrientationValue ;
@@ -242,7 +242,7 @@ gmeow:SexualOrientationFacetShape
 
 gmeow:RomanticOrientationFacetShape
     a sh:NodeShape ;
-    rdfs:label "RomanticOrientation well-formedness shape" ;
+    rdfs:label "RomanticOrientation well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:RomanticOrientation ;
     sh:property [
         sh:path gmeow:romanticOrientationValue ;
@@ -257,7 +257,7 @@ gmeow:RomanticOrientationFacetShape
 # audience/register). Audience, register and period stay optional.
 gmeow:NameUsageShape
     a sh:NodeShape ;
-    rdfs:label "NameUsage well-formedness shape" ;
+    rdfs:label "NameUsage well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:NameUsage ;
     sh:property [
         sh:path gmeow:usageNamed ;
@@ -278,7 +278,7 @@ gmeow:NameUsageShape
 # (mirrors the someValuesFrom on notationUsageTarget and notationUsageNotationSystem).
 gmeow:NotationSystemUsageShape
     a sh:NodeShape ;
-    rdfs:label "NotationSystemUsage well-formedness shape" ;
+    rdfs:label "NotationSystemUsage well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:NotationSystemUsage ;
     sh:property [
         sh:path gmeow:notationUsageTarget ;
@@ -322,7 +322,7 @@ gmeow:NotationSystemUsageShape
 # only as gmeow:GenderIdentity would not match a gmeow:IdentityFacet target.
 gmeow:SupersededFacetSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Superseded identity-facet suppression shape" ;
+    rdfs:label "Superseded identity-facet suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:GenderIdentity ;
     sh:targetClass gmeow:GenderExpression ;
     sh:targetClass gmeow:SexualOrientation ;
@@ -350,7 +350,7 @@ gmeow:SupersededFacetSuppressionShape
 
 gmeow:IdentityAxisOrthogonalityShape
     a sh:NodeShape ;
-    rdfs:label "Identity-axis orthogonality data-check" ;
+    rdfs:label "Identity-axis orthogonality data-check"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -412,15 +412,15 @@ gmeow:IdentityAxisOrthogonalityShape
 # no shape constraining their coexistence (Principle 9 — no single slot to win).
 gmeow:StandpointCoexistenceShape
     a sh:NodeShape ;
-    rdfs:label "Standpoint coexistence marker (no-op)" ;
-    rdfs:comment "Documentation only — asserts and enforces nothing. Contradictory gmeow:accordingTo-scoped claims over the same subject/predicate are explicitly permitted and are NOT a violation (Principle 9). Coexistence is proven by the positive fixture in tests/test_standpoint.py, not by a SHACL constraint, because the OWL-infers / SHACL-validates split means SHACL only rejects malformations." .
+    rdfs:label "Standpoint coexistence marker (no-op)"@x-gmeow-english ;
+    rdfs:comment "Documentation only — asserts and enforces nothing. Contradictory gmeow:accordingTo-scoped claims over the same subject/predicate are explicitly permitted and are NOT a violation (Principle 9). Coexistence is proven by the positive fixture in tests/test_standpoint.py, not by a SHACL constraint, because the OWL-infers / SHACL-validates split means SHACL only rejects malformations."@x-gmeow-english .
 
 # (b) StandpointTenure well-formedness — closed-world cardinality. Mirrors
 # NameUsageShape; the OWL EL someValuesFrom in standpoint.ttl classifies, SHACL
 # enforces "exactly one standpoint".
 gmeow:StandpointTenureShape
     a sh:NodeShape ;
-    rdfs:label "StandpointTenure well-formedness shape" ;
+    rdfs:label "StandpointTenure well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:StandpointTenure ;
     sh:property [
         sh:path gmeow:tenureStandpoint ;
@@ -445,7 +445,7 @@ gmeow:StandpointTenureShape
 # term-absence test). No such term exists today, so this is dormant.
 gmeow:NoPreferredClaimShape
     a sh:NodeShape ;
-    rdfs:label "No preferred / primary claim shape" ;
+    rdfs:label "No preferred / primary claim shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -477,7 +477,7 @@ gmeow:NoPreferredClaimShape
 
 gmeow:AuthorityLinkMatchStrengthShape
     a sh:NodeShape ;
-    rdfs:label "Authority link match-strength shape" ;
+    rdfs:label "Authority link match-strength shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -508,7 +508,7 @@ gmeow:AuthorityLinkMatchStrengthShape
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
 gmeow:WithdrawnStandpointSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Withdrawn standpoint suppression shape" ;
+    rdfs:label "Withdrawn standpoint suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:StandpointTenure ;
     sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
     sh:sparql [
@@ -536,7 +536,7 @@ gmeow:WithdrawnStandpointSuppressionShape
 # events.ttl (mirrors gmeow:NameUsageShape).
 gmeow:ParticipationHasPlayersShape
     a sh:NodeShape ;
-    rdfs:label "Participation well-formedness shape" ;
+    rdfs:label "Participation well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Participation ;
     sh:property [
         sh:path gmeow:participationEvent ;
@@ -556,7 +556,7 @@ gmeow:ParticipationHasPlayersShape
 # is an unanchored occurrence. Warning (a stub event may be fleshed out later).
 gmeow:EventHasTypeOrTimeShape
     a sh:NodeShape ;
-    rdfs:label "Event has type or time shape" ;
+    rdfs:label "Event has type or time shape"@x-gmeow-english ;
     sh:targetClass gmeow:Event ;
     sh:severity sh:Warning ;
     sh:or (
@@ -576,7 +576,7 @@ gmeow:EventHasTypeOrTimeShape
 # The events sibling of SupersededFacetSuppressionShape. Warning (a source may lag).
 gmeow:CorrectedEventSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Corrected / superseded participation suppression shape" ;
+    rdfs:label "Corrected / superseded participation suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Participation ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -602,7 +602,7 @@ gmeow:CorrectedEventSuppressionShape
 # gmeow:statementAbout).
 gmeow:RightsStatementShape
     a sh:NodeShape ;
-    rdfs:label "RightsStatement well-formedness shape" ;
+    rdfs:label "RightsStatement well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:RightsStatement ;
     sh:property [
         sh:path gmeow:statementAbout ;
@@ -618,7 +618,7 @@ gmeow:RightsStatementShape
 # instances typed only as Permission / Prohibition / Duty.
 gmeow:RuleHasActionShape
     a sh:NodeShape ;
-    rdfs:label "Rule well-formedness shape" ;
+    rdfs:label "Rule well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Permission ;
     sh:targetClass gmeow:Prohibition ;
     sh:targetClass gmeow:Duty ;
@@ -633,7 +633,7 @@ gmeow:RuleHasActionShape
 # A Copyright relator mediates exactly one work and at least one holder.
 gmeow:CopyrightShape
     a sh:NodeShape ;
-    rdfs:label "Copyright well-formedness shape" ;
+    rdfs:label "Copyright well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Copyright ;
     sh:property [
         sh:path gmeow:copyrightWork ;
@@ -653,7 +653,7 @@ gmeow:CopyrightShape
 # optional — a blanket or open licence need not name a licensee).
 gmeow:LicenseShape
     a sh:NodeShape ;
-    rdfs:label "License well-formedness shape" ;
+    rdfs:label "License well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:License ;
     sh:property [
         sh:path gmeow:licensor ;
@@ -665,7 +665,7 @@ gmeow:LicenseShape
 # A Trademark mediates exactly one mark and at least one holder.
 gmeow:TrademarkShape
     a sh:NodeShape ;
-    rdfs:label "Trademark well-formedness shape" ;
+    rdfs:label "Trademark well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Trademark ;
     sh:property [
         sh:path gmeow:trademarkMark ;
@@ -686,7 +686,7 @@ gmeow:TrademarkShape
 # may lag the status change).
 gmeow:ExpiredTrademarkSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Expired / cancelled trademark suppression shape" ;
+    rdfs:label "Expired / cancelled trademark suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Trademark ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -708,7 +708,7 @@ gmeow:ExpiredTrademarkSuppressionShape
 # someValuesFrom mediation axioms on gmeow:AtomicConstraint / gmeow:LogicalConstraint.
 gmeow:AtomicConstraintShape
     a sh:NodeShape ;
-    rdfs:label "Atomic constraint well-formedness shape" ;
+    rdfs:label "Atomic constraint well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:AtomicConstraint ;
     sh:property [
         sh:path gmeow:leftOperand ;
@@ -732,7 +732,7 @@ gmeow:AtomicConstraintShape
 
 gmeow:LogicalConstraintShape
     a sh:NodeShape ;
-    rdfs:label "Logical constraint well-formedness shape" ;
+    rdfs:label "Logical constraint well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:LogicalConstraint ;
     sh:property [
         sh:path gmeow:constraintLogic ;
@@ -747,7 +747,7 @@ gmeow:LogicalConstraintShape
 
 gmeow:InternalLanguageTagShape
     a sh:NodeShape ;
-    rdfs:label "GMEOW internal language tag validation shape" ;
+    rdfs:label "GMEOW internal language tag validation shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -777,7 +777,7 @@ gmeow:InternalLanguageTagShape
 
 gmeow:FrameProfileShape
     a sh:NodeShape ;
-    rdfs:label "Reference Frame Profile Shape" ;
+    rdfs:label "Reference Frame Profile Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ReferenceFrame ;
     sh:property [
         sh:path gmeow:frameRealm ;
@@ -866,7 +866,7 @@ gmeow:FrameProfileShape
 
 gmeow:NarrativeReferenceFrameShape
     a sh:NodeShape ;
-    rdfs:label "Narrative Reference Frame Shape" ;
+    rdfs:label "Narrative Reference Frame Shape"@x-gmeow-english ;
     sh:targetClass gmeow:NarrativeReferenceFrame ;
     sh:property [
         sh:path gmeow:frameRealm ;
@@ -887,7 +887,7 @@ gmeow:NarrativeReferenceFrameShape
 
 gmeow:NarrativeFrameLinkShape
     a sh:NodeShape ;
-    rdfs:label "Narrative Frame Link Shape" ;
+    rdfs:label "Narrative Frame Link Shape"@x-gmeow-english ;
     sh:targetClass gmeow:NarrativeFrameLink ;
     sh:property [
         sh:path gmeow:narrativeFrameLinkSource ;
@@ -916,7 +916,7 @@ gmeow:NarrativeFrameLinkShape
 
 gmeow:NarrativeTimeFrameShape
     a sh:NodeShape ;
-    rdfs:label "Narrative Time Frame Shape" ;
+    rdfs:label "Narrative Time Frame Shape"@x-gmeow-english ;
     sh:targetClass gmeow:NarrativeTimeFrame ;
     sh:property [
         sh:path gmeow:narrativeTimeAxis ;
@@ -953,7 +953,7 @@ gmeow:NarrativeTimeFrameShape
 
 gmeow:NarrativePositionShape
     a sh:NodeShape ;
-    rdfs:label "Narrative Position Shape" ;
+    rdfs:label "Narrative Position Shape"@x-gmeow-english ;
     sh:targetClass gmeow:NarrativePosition ;
     sh:or (
         [ sh:path gmeow:positionOrdinal ; sh:minCount 1 ]
@@ -963,7 +963,7 @@ gmeow:NarrativePositionShape
 
 gmeow:PoseShape
     a sh:NodeShape ;
-    rdfs:label "Pose well-formedness shape" ;
+    rdfs:label "Pose well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Pose ;
     sh:property [
         sh:path gmeow:hasPosePosition ;
@@ -982,7 +982,7 @@ gmeow:PoseShape
 
 gmeow:OrientationShape
     a sh:NodeShape ;
-    rdfs:label "Orientation well-formedness shape" ;
+    rdfs:label "Orientation well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Orientation ;
     sh:or (
         [ sh:and (
@@ -1006,7 +1006,7 @@ gmeow:OrientationShape
 
 gmeow:ProfileShape
     a sh:NodeShape ;
-    rdfs:label "Profile well-formedness shape" ;
+    rdfs:label "Profile well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Profile ;
     sh:property [
         sh:path rdfs:label ;
@@ -1036,7 +1036,7 @@ gmeow:ProfileShape
 
 gmeow:ProfileOpenValueUseShape
     a sh:NodeShape ;
-    rdfs:label "Profile open-value use guard" ;
+    rdfs:label "Profile open-value use guard"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -1066,7 +1066,7 @@ gmeow:ProfileOpenValueUseShape
 # whatever carries them, the value must be a gmeow:GranularityLevel.
 gmeow:CoarsenToShape
     a sh:NodeShape ;
-    rdfs:label "coarsenTo disclosure-control well-formedness shape" ;
+    rdfs:label "coarsenTo disclosure-control well-formedness shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:coarsenTo ;
     sh:property [
         sh:path gmeow:coarsenTo ;
@@ -1096,7 +1096,7 @@ gmeow:CoarsenToShape
 
 gmeow:HasGranularityShape
     a sh:NodeShape ;
-    rdfs:label "hasGranularity facet well-formedness shape" ;
+    rdfs:label "hasGranularity facet well-formedness shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:hasGranularity ;
     sh:property [
         sh:path gmeow:hasGranularity ;
@@ -1117,7 +1117,7 @@ gmeow:HasGranularityShape
 # (coarsenTo or displayable false). Warning — a source may publish under consent.
 gmeow:SensitiveValueShape
     a sh:NodeShape ;
-    rdfs:label "Sensitive value disclosure-control shape" ;
+    rdfs:label "Sensitive value disclosure-control shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:hasSensitivity ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1138,7 +1138,7 @@ gmeow:SensitiveValueShape
 # A privacy notice SHOULD declare who issued it.
 gmeow:PrivacyNoticeShape
     a sh:NodeShape ;
-    rdfs:label "Privacy notice attribution shape" ;
+    rdfs:label "Privacy notice attribution shape"@x-gmeow-english ;
     sh:targetClass gmeow:PrivacyNotice ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1159,7 +1159,7 @@ gmeow:PrivacyNoticeShape
 # is allowed (a source may supply it later).
 gmeow:ConsentWellformednessShape
     a sh:NodeShape ;
-    rdfs:label "Consent metadata well-formedness shape" ;
+    rdfs:label "Consent metadata well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:RightsStatement ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1193,7 +1193,7 @@ gmeow:ConsentWellformednessShape
 
 gmeow:DisclosureLeakShape
     a sh:NodeShape ;
-    rdfs:label "Disclosure leak shape" ;
+    rdfs:label "Disclosure leak shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:hasDisclosurePolicy ;
     sh:severity sh:Violation ;
     sh:sparql [
@@ -1225,7 +1225,7 @@ gmeow:DisclosureLeakShape
 
 gmeow:ConditionalDisclosureWarningShape
     a sh:NodeShape ;
-    rdfs:label "Conditional disclosure warning shape" ;
+    rdfs:label "Conditional disclosure warning shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:hasDisclosurePolicy ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1256,7 +1256,7 @@ gmeow:ConditionalDisclosureWarningShape
 # but SHACL runs without OWL inference. Each subclass has its own shape below.
 gmeow:ObservationShape
     a sh:NodeShape ;
-    rdfs:label "Observation well-formedness shape" ;
+    rdfs:label "Observation well-formedness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -1288,7 +1288,7 @@ gmeow:ObservationShape
 # require a method — they are the original observation stack.
 gmeow:CoreObservationMethodShape
     a sh:NodeShape ;
-    rdfs:label "Core observation method shape" ;
+    rdfs:label "Core observation method shape"@x-gmeow-english ;
     sh:targetClass gmeow:Measurement ;
     sh:targetClass gmeow:SensoryObservation ;
     sh:targetClass gmeow:StandpointClaim ;
@@ -1305,7 +1305,7 @@ gmeow:CoreObservationMethodShape
 # IdentityFacet well-formedness (#69) — the universal claim construct bridges.
 gmeow:IdentityFacetShape
     a sh:NodeShape ;
-    rdfs:label "IdentityFacet well-formedness shape" ;
+    rdfs:label "IdentityFacet well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:IdentityFacet ;
     sh:targetClass gmeow:GenderIdentity ;
     sh:targetClass gmeow:GenderExpression ;
@@ -1329,7 +1329,7 @@ gmeow:IdentityFacetShape
 # KinRelationship well-formedness (#69) — multi-participant observation.
 gmeow:KinRelationshipShape
     a sh:NodeShape ;
-    rdfs:label "KinRelationship well-formedness shape" ;
+    rdfs:label "KinRelationship well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:KinRelationship ;
     sh:property [
         sh:path gmeow:relationshipParent ;
@@ -1349,7 +1349,7 @@ gmeow:KinRelationshipShape
 # A ScalarQuantity / Quantity / MeasuredValue needs a value and a unit.
 gmeow:ScalarQuantityShape
     a sh:NodeShape ;
-    rdfs:label "Quantity well-formedness shape" ;
+    rdfs:label "Quantity well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:ScalarQuantity, gmeow:Quantity, gmeow:MeasuredValue ;
     sh:property [
         sh:path gmeow:quantityValue ;
@@ -1371,7 +1371,7 @@ gmeow:ScalarQuantityShape
 # observation (one with gmeow:validUntil) should set gmeow:displayable false.
 gmeow:SupersededObservationSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Superseded observation suppression shape" ;
+    rdfs:label "Superseded observation suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Observation ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1394,7 +1394,7 @@ gmeow:SupersededObservationSuppressionShape
 # observationMethod, and either an observationResult (Instant) or a measuredAge.
 gmeow:TemporalMeasurementShape
     a sh:NodeShape ;
-    rdfs:label "TemporalMeasurement well-formedness shape" ;
+    rdfs:label "TemporalMeasurement well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:TemporalMeasurement ;
     sh:property [
         sh:path gmeow:vantage ;
@@ -1429,7 +1429,7 @@ gmeow:TemporalMeasurementShape
 
 gmeow:ProximityMeasurementShape
     a sh:NodeShape ;
-    rdfs:label "ProximityMeasurement well-formedness shape" ;
+    rdfs:label "ProximityMeasurement well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:ProximityMeasurement ;
     sh:property [
         sh:path gmeow:observedFeature ;
@@ -1464,7 +1464,7 @@ gmeow:ProximityMeasurementShape
 
 gmeow:SpatialAggregationShape
     a sh:NodeShape ;
-    rdfs:label "SpatialAggregation well-formedness shape" ;
+    rdfs:label "SpatialAggregation well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:SpatialAggregation ;
     sh:property [
         sh:path gmeow:vantage ;
@@ -1511,7 +1511,7 @@ gmeow:SpatialAggregationShape
 
 gmeow:CentroidGeometryShape
     a sh:NodeShape ;
-    rdfs:label "Place centroid shape" ;
+    rdfs:label "Place centroid shape"@x-gmeow-english ;
     sh:targetClass gmeow:Place ;
     sh:property [
         sh:path gmeow:hasCentroid ;
@@ -1531,7 +1531,7 @@ gmeow:CentroidGeometryShape
 # tags.ttl (mirrors gmeow:ParticipationHasPlayersShape).
 gmeow:TaggingHasPlayersShape
     a sh:NodeShape ;
-    rdfs:label "Tagging well-formedness shape" ;
+    rdfs:label "Tagging well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Tagging ;
     sh:property [
         sh:path gmeow:taggingTagged ;
@@ -1560,7 +1560,7 @@ gmeow:TaggingHasPlayersShape
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
 gmeow:RetractedTagSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Retracted / superseded tag suppression shape" ;
+    rdfs:label "Retracted / superseded tag suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Tagging ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1585,7 +1585,7 @@ gmeow:RetractedTagSuppressionShape
 # in email.ttl (mirrors gmeow:TaggingHasPlayersShape).
 gmeow:MessageParticipantHasPlayersShape
     a sh:NodeShape ;
-    rdfs:label "MessageParticipant well-formedness shape" ;
+    rdfs:label "MessageParticipant well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:MessageParticipant ;
     sh:property [
         sh:path gmeow:participantMessage ;
@@ -1613,7 +1613,7 @@ gmeow:MessageParticipantHasPlayersShape
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
 gmeow:SuppressedMessageParticipantShape
     a sh:NodeShape ;
-    rdfs:label "Suppressed / withdrawn message participant shape" ;
+    rdfs:label "Suppressed / withdrawn message participant shape"@x-gmeow-english ;
     sh:targetClass gmeow:MessageParticipant ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1637,7 +1637,7 @@ gmeow:SuppressedMessageParticipantShape
 # counterpart of the EL someValuesFrom mediation axiom in lifecycle.ttl.
 gmeow:EntityExistenceHasEntityShape
     a sh:NodeShape ;
-    rdfs:label "EntityExistence well-formedness shape" ;
+    rdfs:label "EntityExistence well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:EntityExistence ;
     sh:property [
         sh:path gmeow:existenceEntity ;
@@ -1659,7 +1659,7 @@ gmeow:EntityExistenceHasEntityShape
 # than be deleted. Warning — a source may lag the flag.
 gmeow:SupersededEntitySuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Superseded entity suppression shape" ;
+    rdfs:label "Superseded entity suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Entity ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1681,7 +1681,7 @@ gmeow:SupersededEntitySuppressionShape
 # JurisdictionTenure well-formedness: exactly one place, one polity, one interval.
 gmeow:JurisdictionTenureShape
     a sh:NodeShape ;
-    rdfs:label "JurisdictionTenure well-formedness shape" ;
+    rdfs:label "JurisdictionTenure well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:JurisdictionTenure ;
     sh:property [
         sh:path gmeow:jurisdictionPlace ;
@@ -1708,7 +1708,7 @@ gmeow:JurisdictionTenureShape
 # ContainmentTenure well-formedness: exactly one child, one parent, one interval.
 gmeow:ContainmentTenureShape
     a sh:NodeShape ;
-    rdfs:label "ContainmentTenure well-formedness shape" ;
+    rdfs:label "ContainmentTenure well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:ContainmentTenure ;
     sh:property [
         sh:path gmeow:containmentChild ;
@@ -1735,7 +1735,7 @@ gmeow:ContainmentTenureShape
 # RegulatoryOverlay well-formedness: exactly one place, one authority, one interval.
 gmeow:RegulatoryOverlayShape
     a sh:NodeShape ;
-    rdfs:label "RegulatoryOverlay well-formedness shape" ;
+    rdfs:label "RegulatoryOverlay well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:RegulatoryOverlay ;
     sh:property [
         sh:path gmeow:overlayPlace ;
@@ -1762,7 +1762,7 @@ gmeow:RegulatoryOverlayShape
 # LandTenure well-formedness: exactly one place, one party, one interval; at least one type.
 gmeow:LandTenureShape
     a sh:NodeShape ;
-    rdfs:label "LandTenure well-formedness shape" ;
+    rdfs:label "LandTenure well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:LandTenure ;
     sh:property [
         sh:path gmeow:tenurePlace ;
@@ -1795,7 +1795,7 @@ gmeow:LandTenureShape
 # CadastralReference well-formedness: exactly one value, at least one type, one authority, one jurisdiction.
 gmeow:CadastralReferenceShape
     a sh:NodeShape ;
-    rdfs:label "CadastralReference well-formedness shape" ;
+    rdfs:label "CadastralReference well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:CadastralReference ;
     sh:property [
         sh:path gmeow:referenceValue ;
@@ -1829,7 +1829,7 @@ gmeow:CadastralReferenceShape
 # a PlaceName appellation.
 gmeow:PlaceNamingHasPlayersShape
     a sh:NodeShape ;
-    rdfs:label "PlaceNaming player binding shape" ;
+    rdfs:label "PlaceNaming player binding shape"@x-gmeow-english ;
     sh:targetClass gmeow:NameUsage ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -1850,7 +1850,7 @@ gmeow:PlaceNamingHasPlayersShape
 # another place should set gmeow:displayable false. Warning — a source may lag the flag.
 gmeow:SupersededPlaceSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Superseded place suppression shape" ;
+    rdfs:label "Superseded place suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Place ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1872,7 +1872,7 @@ gmeow:SupersededPlaceSuppressionShape
 
 gmeow:AccessibilityAssertionShape
     a sh:NodeShape ;
-    rdfs:label "AccessibilityAssertion well-formedness shape" ;
+    rdfs:label "AccessibilityAssertion well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:AccessibilityAssertion ;
     sh:property [
         sh:path gmeow:assertionSubject ;
@@ -1901,7 +1901,7 @@ gmeow:AccessibilityAssertionShape
 # gmeow:displayable false rather than be deleted. Warning — a source may lag.
 gmeow:RetractedAccessibilityAssertionShape
     a sh:NodeShape ;
-    rdfs:label "Retracted accessibility assertion suppression shape" ;
+    rdfs:label "Retracted accessibility assertion suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:AccessibilityAssertion ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -1918,7 +1918,7 @@ gmeow:RetractedAccessibilityAssertionShape
 
 gmeow:GeocodeShape
     a sh:NodeShape ;
-    rdfs:label "Geocode well-formedness shape" ;
+    rdfs:label "Geocode well-formedness shape"@x-gmeow-english ;
     skos:definition "Enforces that a Geocode carries exactly one code value (the exactly-one-frame half is the generated gmeow:GeocodeFrameRequirementShape, #283). sh:xone (not sh:or) is intentional: a single Geocode instance represents one code in one system; competing or supplementary codes for the same place are modeled as multiple Geocode instances linked via gmeow:hasGeocode, coexisting as standpoint-indexed claims per Principle 9."@en ;
     sh:targetClass gmeow:Geocode ;
     sh:xone (
@@ -1943,7 +1943,7 @@ gmeow:GeocodeShape
 # Mirrors ParticipationHasPlayersShape and NameUsageShape.
 gmeow:ContributionHasPlayersShape
     a sh:NodeShape ;
-    rdfs:label "Contribution well-formedness shape" ;
+    rdfs:label "Contribution well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Contribution ;
     sh:property [
         sh:path gmeow:contributor ;
@@ -1977,7 +1977,7 @@ gmeow:ContributionHasPlayersShape
 # CitationAct relator well-formedness — closed-world cardinality.
 gmeow:CitationActShape
     a sh:NodeShape ;
-    rdfs:label "CitationAct well-formedness shape" ;
+    rdfs:label "CitationAct well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:CitationAct ;
     sh:property [
         sh:path gmeow:citingEntity ;
@@ -2004,7 +2004,7 @@ gmeow:CitationActShape
 # Spine integrity: every Expression realizes at least one Work.
 gmeow:ExpressionRealizesWorkShape
     a sh:NodeShape ;
-    rdfs:label "Expression realizes Work shape" ;
+    rdfs:label "Expression realizes Work shape"@x-gmeow-english ;
     sh:targetClass gmeow:Expression ;
     sh:property [
         sh:path gmeow:realizes ;
@@ -2017,7 +2017,7 @@ gmeow:ExpressionRealizesWorkShape
 # Spine integrity: every Manifestation embodies at least one Expression.
 gmeow:ManifestationEmbodiesExpressionShape
     a sh:NodeShape ;
-    rdfs:label "Manifestation embodies Expression shape" ;
+    rdfs:label "Manifestation embodies Expression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Manifestation ;
     sh:property [
         sh:path gmeow:embodies ;
@@ -2030,7 +2030,7 @@ gmeow:ManifestationEmbodiesExpressionShape
 # Spine integrity: every Item exemplifies at least one Manifestation.
 gmeow:ItemExemplifiesManifestationShape
     a sh:NodeShape ;
-    rdfs:label "Item exemplifies Manifestation shape" ;
+    rdfs:label "Item exemplifies Manifestation shape"@x-gmeow-english ;
     sh:targetClass gmeow:Item ;
     sh:property [
         sh:path gmeow:exemplifies ;
@@ -2050,7 +2050,7 @@ gmeow:ItemExemplifiesManifestationShape
 # eligible for projection suppression (Principle 10 — never erasure).
 gmeow:SelfPrivateEvidenceWarningShape
     a sh:NodeShape ;
-    rdfs:label "Self/private-only evidence warning shape" ;
+    rdfs:label "Self/private-only evidence warning shape"@x-gmeow-english ;
     sh:targetClass gmeow:CitationAct ;
     sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
     sh:sparql [
@@ -2081,7 +2081,7 @@ gmeow:SelfPrivateEvidenceWarningShape
 # WP:GNG triad (independent + secondary + significant coverage).
 gmeow:NotabilityRequirementShape
     a sh:NodeShape ;
-    rdfs:label "Notability requirement shape" ;
+    rdfs:label "Notability requirement shape"@x-gmeow-english ;
     sh:targetClass gmeow:CitationAct ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -2101,7 +2101,7 @@ gmeow:NotabilityRequirementShape
 
 gmeow:ContentSegmentShape
     a sh:NodeShape ;
-    rdfs:label "Content Segment Shape" ;
+    rdfs:label "Content Segment Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ContentSegment ;
     sh:property [
         sh:path gmeow:segmentOf ;
@@ -2126,7 +2126,7 @@ gmeow:ContentSegmentShape
 
 gmeow:CharacterArcShape
     a sh:NodeShape ;
-    rdfs:label "Character Arc Shape" ;
+    rdfs:label "Character Arc Shape"@x-gmeow-english ;
     sh:targetClass gmeow:CharacterArc ;
     sh:property [
         sh:path gmeow:arcSubject ;
@@ -2147,7 +2147,7 @@ gmeow:CharacterArcShape
 
 gmeow:MythShape
     a sh:NodeShape ;
-    rdfs:label "Myth Shape" ;
+    rdfs:label "Myth Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Myth ;
     sh:property [
         sh:path gmeow:hasMythTelling ;
@@ -2174,8 +2174,8 @@ gmeow:MythShape
 
 gmeow:ReadingOrderShape
     a sh:NodeShape ;
-    rdfs:label "Reading Order Shape" ;
-    rdfs:comment "Documentation only — asserts no property constraints. gmeow:ReadingOrder is a gmeow:Standpoint subclass; Standpoint declares no owl:Restriction requirements in the ontology, so this shape serves as a marker confirming ReadingOrder instances are valid without additional closed-world checks." ;
+    rdfs:label "Reading Order Shape"@x-gmeow-english ;
+    rdfs:comment "Documentation only — asserts no property constraints. gmeow:ReadingOrder is a gmeow:Standpoint subclass; Standpoint declares no owl:Restriction requirements in the ontology, so this shape serves as a marker confirming ReadingOrder instances are valid without additional closed-world checks."@x-gmeow-english ;
     sh:targetClass gmeow:ReadingOrder .
 
 # =========================================================================== #
@@ -2186,7 +2186,7 @@ gmeow:ReadingOrderShape
 # FinancialAccount well-formedness — holder (required) and type (functional).
 gmeow:FinancialAccountShape
     a sh:NodeShape ;
-    rdfs:label "FinancialAccount shape" ;
+    rdfs:label "FinancialAccount shape"@x-gmeow-english ;
     sh:targetClass gmeow:FinancialAccount ;
     sh:property [
         sh:path gmeow:accountHolder ;
@@ -2215,7 +2215,7 @@ gmeow:FinancialAccountShape
 # Every MonetaryAmount must have exactly one monetary value.
 gmeow:MonetaryAmountHasValueShape
     a sh:NodeShape ;
-    rdfs:label "MonetaryAmount value shape" ;
+    rdfs:label "MonetaryAmount value shape"@x-gmeow-english ;
     sh:targetClass gmeow:MonetaryAmount ;
     sh:property [
         sh:path gmeow:monetaryValue ;
@@ -2234,7 +2234,7 @@ gmeow:MonetaryAmountHasValueShape
 # flat shortcut (hasParticipant) or a reified Participation relator.
 gmeow:TransactionHasPartiesShape
     a sh:NodeShape ;
-    rdfs:label "Transaction has parties shape" ;
+    rdfs:label "Transaction has parties shape"@x-gmeow-english ;
     sh:targetClass gmeow:FinancialTransaction ;
     sh:or (
         [
@@ -2255,7 +2255,7 @@ gmeow:TransactionHasPartiesShape
 # A FinancialTransaction must have an amount (mirrors the EL someValuesFrom axiom).
 gmeow:TransactionHasAmountShape
     a sh:NodeShape ;
-    rdfs:label "Transaction has amount shape" ;
+    rdfs:label "Transaction has amount shape"@x-gmeow-english ;
     sh:targetClass gmeow:FinancialTransaction ;
     sh:property [
         sh:path gmeow:transactionAmount ;
@@ -2270,7 +2270,7 @@ gmeow:TransactionHasAmountShape
 # A LedgerAccount must have a type and at least one holder.
 gmeow:LedgerAccountShape
     a sh:NodeShape ;
-    rdfs:label "LedgerAccount shape" ;
+    rdfs:label "LedgerAccount shape"@x-gmeow-english ;
     sh:targetClass gmeow:LedgerAccount ;
     sh:property [
         sh:path gmeow:ledgerAccountHolder ;
@@ -2293,7 +2293,7 @@ gmeow:LedgerAccountShape
 # A JournalEntry must have at least two postings.
 gmeow:JournalEntryHasPostingsShape
     a sh:NodeShape ;
-    rdfs:label "JournalEntry postings shape" ;
+    rdfs:label "JournalEntry postings shape"@x-gmeow-english ;
     sh:targetClass gmeow:JournalEntry ;
     sh:property [
         sh:path gmeow:journalEntryPostings ;
@@ -2307,7 +2307,7 @@ gmeow:JournalEntryHasPostingsShape
 # Enforce double-entry balance (Σ debits = Σ credits) per currency.
 gmeow:JournalEntryBalancedShape
     a sh:NodeShape ;
-    rdfs:label "JournalEntry balanced shape" ;
+    rdfs:label "JournalEntry balanced shape"@x-gmeow-english ;
     sh:targetClass gmeow:JournalEntry ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -2335,7 +2335,7 @@ gmeow:JournalEntryBalancedShape
 # A Posting must have journal entry, account, amount, and direction.
 gmeow:PostingShape
     a sh:NodeShape ;
-    rdfs:label "Posting shape" ;
+    rdfs:label "Posting shape"@x-gmeow-english ;
     sh:targetClass gmeow:Posting ;
     sh:property [
         sh:path gmeow:postingJournalEntry ;
@@ -2382,7 +2382,7 @@ gmeow:PostingShape
 # An Invoice must have an amount, at least one issuer, and at least one recipient.
 gmeow:InvoiceShape
     a sh:NodeShape ;
-    rdfs:label "Invoice shape" ;
+    rdfs:label "Invoice shape"@x-gmeow-english ;
     sh:targetClass gmeow:Invoice ;
     sh:property [
         sh:path gmeow:invoiceAmount ;
@@ -2413,7 +2413,7 @@ gmeow:InvoiceShape
 # An Order must have an amount, at least one buyer, and at least one seller.
 gmeow:OrderShape
     a sh:NodeShape ;
-    rdfs:label "Order shape" ;
+    rdfs:label "Order shape"@x-gmeow-english ;
     sh:targetClass gmeow:Order ;
     sh:property [
         sh:path gmeow:orderAmount ;
@@ -2444,7 +2444,7 @@ gmeow:OrderShape
 # A Holding must have agent, asset, and quantity.
 gmeow:HoldingShape
     a sh:NodeShape ;
-    rdfs:label "Holding shape" ;
+    rdfs:label "Holding shape"@x-gmeow-english ;
     sh:targetClass gmeow:Holding ;
     sh:property [
         sh:path gmeow:holdingAgent ;
@@ -2480,7 +2480,7 @@ gmeow:HoldingShape
 # A CryptoWallet must have a scheme.
 gmeow:CryptoWalletShape
     a sh:NodeShape ;
-    rdfs:label "CryptoWallet shape" ;
+    rdfs:label "CryptoWallet shape"@x-gmeow-english ;
     sh:targetClass gmeow:CryptoWallet ;
     sh:property [
         sh:path gmeow:walletScheme ;
@@ -2500,7 +2500,7 @@ gmeow:CryptoWalletShape
 
 gmeow:ReversedTransactionSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Reversed transaction suppression shape" ;
+    rdfs:label "Reversed transaction suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:FinancialTransaction ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -2517,7 +2517,7 @@ gmeow:ReversedTransactionSuppressionShape
 
 gmeow:CancelledInvoiceSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Cancelled invoice suppression shape" ;
+    rdfs:label "Cancelled invoice suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Invoice ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -2534,7 +2534,7 @@ gmeow:CancelledInvoiceSuppressionShape
 
 gmeow:CancelledOrderSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Cancelled order suppression shape" ;
+    rdfs:label "Cancelled order suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Order ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -2557,7 +2557,7 @@ gmeow:CancelledOrderSuppressionShape
 # standpoint. minCount only (open-world: a complex deception may have more).
 gmeow:DeceptionEventShape
     a sh:NodeShape ;
-    rdfs:label "Deception event well-formedness shape" ;
+    rdfs:label "Deception event well-formedness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -2585,7 +2585,7 @@ gmeow:DeceptionEventShape
 # A deception cue observation must carry vantage and observationResult.
 gmeow:DeceptionCueShape
     a sh:NodeShape ;
-    rdfs:label "Deception cue well-formedness shape" ;
+    rdfs:label "Deception cue well-formedness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -2616,7 +2616,7 @@ gmeow:DeceptionCueShape
 # An Execution must reference at least one Procedure or ProcedureStep.
 gmeow:ExecutionHasPlanShape
     a sh:NodeShape ;
-    rdfs:label "Execution must reference a plan or step" ;
+    rdfs:label "Execution must reference a plan or step"@x-gmeow-english ;
     sh:targetClass gmeow:Execution ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -2636,7 +2636,7 @@ gmeow:ExecutionHasPlanShape
 # A ControlFlow must have exactly one source and one target.
 gmeow:ControlFlowHasSourceTargetShape
     a sh:NodeShape ;
-    rdfs:label "ControlFlow must have source and target" ;
+    rdfs:label "ControlFlow must have source and target"@x-gmeow-english ;
     sh:targetClass gmeow:ControlFlow ;
     sh:property [
         sh:path gmeow:flowSource ;
@@ -2658,7 +2658,7 @@ gmeow:ControlFlowHasSourceTargetShape
 # A DataFlow must have exactly one source and one target.
 gmeow:DataFlowHasSourceTargetShape
     a sh:NodeShape ;
-    rdfs:label "DataFlow must have source and target" ;
+    rdfs:label "DataFlow must have source and target"@x-gmeow-english ;
     sh:targetClass gmeow:DataFlow ;
     sh:property [
         sh:path gmeow:dataFlowSource ;
@@ -2680,7 +2680,7 @@ gmeow:DataFlowHasSourceTargetShape
 # A branch step must be the source of at least two ControlFlow relators.
 gmeow:BranchHasOutgoingFlowsShape
     a sh:NodeShape ;
-    rdfs:label "Branch step must have at least two outgoing control flows" ;
+    rdfs:label "Branch step must have at least two outgoing control flows"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -2714,7 +2714,7 @@ gmeow:BranchHasOutgoingFlowsShape
 
 gmeow:WebAnnotationShape
     a sh:NodeShape ;
-    rdfs:label "Web Annotation well-formedness shape" ;
+    rdfs:label "Web Annotation well-formedness shape"@x-gmeow-english ;
     sh:targetClass gmeow:Annotation ;
     sh:property [
         sh:path gmeow:annotationTarget ;
@@ -2739,7 +2739,7 @@ gmeow:WebAnnotationShape
 
 gmeow:HighlightHasSelectorShape
     a sh:NodeShape ;
-    rdfs:label "Highlight must have a selector span" ;
+    rdfs:label "Highlight must have a selector span"@x-gmeow-english ;
     sh:targetClass gmeow:Highlight ;
     sh:property [
         sh:path gmeow:annotationTargetSpan ;
@@ -2750,7 +2750,7 @@ gmeow:HighlightHasSelectorShape
 
 gmeow:CommentHasParentShape
     a sh:NodeShape ;
-    rdfs:label "Comment parent must be an Entity" ;
+    rdfs:label "Comment parent must be an Entity"@x-gmeow-english ;
     sh:targetClass gmeow:Comment ;
     sh:property [
         sh:path gmeow:commentParent ;
@@ -2763,7 +2763,7 @@ gmeow:CommentHasParentShape
 
 gmeow:NoteContentShape
     a sh:NodeShape ;
-    rdfs:label "Note must have content or a label" ;
+    rdfs:label "Note must have content or a label"@x-gmeow-english ;
     sh:targetClass gmeow:Note ;
     sh:or (
         [ sh:path gmeow:noteContent ; sh:minCount 1 ]
@@ -2774,7 +2774,7 @@ gmeow:NoteContentShape
 
 gmeow:RetractedNoteSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Retracted comment suppression check" ;
+    rdfs:label "Retracted comment suppression check"@x-gmeow-english ;
     sh:targetClass gmeow:Comment ;
     sh:sparql [
         sh:severity sh:Warning ;
@@ -2797,7 +2797,7 @@ gmeow:RetractedNoteSuppressionShape
 
 gmeow:DepictionUsageShape
     a sh:NodeShape ;
-    rdfs:label "Depiction Usage Shape" ;
+    rdfs:label "Depiction Usage Shape"@x-gmeow-english ;
     sh:targetClass gmeow:DepictionUsage ;
     sh:property [
         sh:path gmeow:depictionSubject ;
@@ -2832,7 +2832,7 @@ gmeow:DepictionUsageShape
 
 gmeow:ImageRegionShape
     a sh:NodeShape ;
-    rdfs:label "Image Region Shape" ;
+    rdfs:label "Image Region Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ImageRegion ;
     sh:property [
         sh:path gmeow:regionOf ;
@@ -2859,7 +2859,7 @@ gmeow:ImageRegionShape
 
 gmeow:RegionSelectorShape
     a sh:NodeShape ;
-    rdfs:label "Region Selector Shape" ;
+    rdfs:label "Region Selector Shape"@x-gmeow-english ;
     sh:targetClass gmeow:RegionSelector ;
     sh:property [
         sh:path gmeow:selectorType ;
@@ -2880,7 +2880,7 @@ gmeow:RegionSelectorShape
 
 gmeow:SceneGraphEdgeShape
     a sh:NodeShape ;
-    rdfs:label "Scene Graph Edge Shape" ;
+    rdfs:label "Scene Graph Edge Shape"@x-gmeow-english ;
     sh:targetClass gmeow:SceneGraphEdge ;
     sh:property [
         sh:path gmeow:sceneSubject ;
@@ -2927,7 +2927,7 @@ gmeow:SceneGraphEdgeShape
 
 gmeow:MediaObjectColourspaceShape
     a sh:NodeShape ;
-    rdfs:label "Media Object colourspace shape" ;
+    rdfs:label "Media Object colourspace shape"@x-gmeow-english ;
     sh:targetClass gmeow:MediaObject ;
     # The at-least-one half is the GENERATED MediaObjectFrameRequirementShape
     # (#283); only the max-one violation — colourspace is deliberately
@@ -2948,7 +2948,7 @@ gmeow:MediaObjectColourspaceShape
 # An EventSchedule must anchor at least a template event or a recurrence rule.
 gmeow:ScheduleHasRuleShape
     a sh:NodeShape ;
-    rdfs:label "Schedule has rule or template shape" ;
+    rdfs:label "Schedule has rule or template shape"@x-gmeow-english ;
     sh:targetClass gmeow:EventSchedule ;
     sh:or (
         [ sh:path gmeow:scheduleTemplateEvent ; sh:minCount 1 ; sh:class gmeow:Event ]
@@ -2960,7 +2960,7 @@ gmeow:ScheduleHasRuleShape
 # An EventInvitation must have at least one invitee and exactly one invitationStatus.
 gmeow:InvitationHasInviteeAndStatusShape
     a sh:NodeShape ;
-    rdfs:label "Invitation has invitee and status shape" ;
+    rdfs:label "Invitation has invitee and status shape"@x-gmeow-english ;
     sh:targetClass gmeow:EventInvitation ;
     sh:property [
         sh:path gmeow:invitationEvent ;
@@ -2988,7 +2988,7 @@ gmeow:InvitationHasInviteeAndStatusShape
 # A Task must have exactly one taskStatus.
 gmeow:TaskHasStatusShape
     a sh:NodeShape ;
-    rdfs:label "Task has status shape" ;
+    rdfs:label "Task has status shape"@x-gmeow-english ;
     sh:targetClass gmeow:Task ;
     sh:property [
         sh:path gmeow:taskStatus ;
@@ -3003,7 +3003,7 @@ gmeow:TaskHasStatusShape
 # suppressed rather than deleted. Warning — a source may lag on setting the flag.
 gmeow:CancelledOccurrenceSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Cancelled occurrence suppression shape" ;
+    rdfs:label "Cancelled occurrence suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:Event ;
     sh:severity sh:Warning ;
     sh:sparql [
@@ -3025,7 +3025,7 @@ gmeow:CancelledOccurrenceSuppressionShape
 # An Availability must have exactly one slot and one status.
 gmeow:AvailabilityHasIntervalAndStatusShape
     a sh:NodeShape ;
-    rdfs:label "Availability has interval and status shape" ;
+    rdfs:label "Availability has interval and status shape"@x-gmeow-english ;
     sh:targetClass gmeow:Availability ;
     sh:property [
         sh:path gmeow:availabilityAgent ;
@@ -3055,7 +3055,7 @@ gmeow:AvailabilityHasIntervalAndStatusShape
 # A Reminder must have exactly one trigger and one action.
 gmeow:ReminderHasTriggerAndActionShape
     a sh:NodeShape ;
-    rdfs:label "Reminder has trigger and action shape" ;
+    rdfs:label "Reminder has trigger and action shape"@x-gmeow-english ;
     sh:targetClass gmeow:Reminder ;
     sh:property [
         sh:path gmeow:reminderTarget ;
@@ -3088,7 +3088,7 @@ gmeow:ReminderHasTriggerAndActionShape
 # A TimeZone must have exactly one IANA id.
 gmeow:TimeZoneHasIanaIdShape
     a sh:NodeShape ;
-    rdfs:label "Time zone has IANA id shape" ;
+    rdfs:label "Time zone has IANA id shape"@x-gmeow-english ;
     sh:targetClass gmeow:TimeZone ;
     sh:property [
         sh:path gmeow:timeZoneIanaId ;
@@ -3105,7 +3105,7 @@ gmeow:TimeZoneHasIanaIdShape
 
 gmeow:IntentionalModeShape
     a sh:NodeShape ;
-    rdfs:label "Intentional Mode Shape" ;
+    rdfs:label "Intentional Mode Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Desire, gmeow:Intention ;
     sh:property [
         sh:path gmeow:intentBearer ;
@@ -3124,7 +3124,7 @@ gmeow:IntentionalModeShape
 
 gmeow:CommitmentShape
     a sh:NodeShape ;
-    rdfs:label "Commitment Shape" ;
+    rdfs:label "Commitment Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Commitment ;
     sh:property [
         sh:path gmeow:committedAgent ;
@@ -3160,7 +3160,7 @@ gmeow:CommitmentShape
 
 gmeow:CounterGoalIrreflexiveShape
     a sh:NodeShape ;
-    rdfs:label "Counter-Goal Irreflexivity Shape" ;
+    rdfs:label "Counter-Goal Irreflexivity Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Goal ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3175,7 +3175,7 @@ gmeow:CounterGoalIrreflexiveShape
 
 gmeow:IntentionTenureShape
     a sh:NodeShape ;
-    rdfs:label "Intention Tenure Shape" ;
+    rdfs:label "Intention Tenure Shape"@x-gmeow-english ;
     sh:targetClass gmeow:IntentionTenure ;
     sh:property [
         sh:path gmeow:tenureAgent ;
@@ -3205,7 +3205,7 @@ gmeow:IntentionTenureShape
 
 gmeow:AboutnessTargetShape
     a sh:NodeShape ;
-    rdfs:label "Aboutness Target Shape" ;
+    rdfs:label "Aboutness Target Shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:hasAboutness ;
     sh:property [
         sh:path gmeow:hasAboutness ;
@@ -3221,7 +3221,7 @@ gmeow:AboutnessTargetShape
 
 gmeow:NormIssuerShape
     a sh:NodeShape ;
-    rdfs:label "Norm Issuer Shape" ;
+    rdfs:label "Norm Issuer Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Norm ;
     sh:property [
         sh:path gmeow:deonticModality ;
@@ -3253,7 +3253,7 @@ gmeow:NormIssuerShape
 
 gmeow:ConditionShape
     a sh:NodeShape ;
-    rdfs:label "Condition Shape" ;
+    rdfs:label "Condition Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Condition ;
     sh:property [
         sh:path gmeow:conditionText ;
@@ -3266,7 +3266,7 @@ gmeow:ConditionShape
 
 gmeow:ConditionGroupShape
     a sh:NodeShape ;
-    rdfs:label "Condition Group Shape" ;
+    rdfs:label "Condition Group Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ConditionGroup ;
     sh:property [
         sh:path gmeow:groupOperator ;
@@ -3285,7 +3285,7 @@ gmeow:ConditionGroupShape
 
 gmeow:ConditionExpressionShape
     a sh:NodeShape ;
-    rdfs:label "Condition Expression Shape" ;
+    rdfs:label "Condition Expression Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ConditionExpression ;
     sh:property [
         sh:path gmeow:expressionText ;
@@ -3305,7 +3305,7 @@ gmeow:ConditionExpressionShape
 
 gmeow:ConditionParameterShape
     a sh:NodeShape ;
-    rdfs:label "Condition Parameter Shape" ;
+    rdfs:label "Condition Parameter Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ConditionParameter ;
     sh:property [
         sh:path gmeow:parameterName ;
@@ -3324,7 +3324,7 @@ gmeow:ConditionParameterShape
 
 gmeow:PrecedenceTenureShape
     a sh:NodeShape ;
-    rdfs:label "Precedence Tenure Shape" ;
+    rdfs:label "Precedence Tenure Shape"@x-gmeow-english ;
     sh:targetClass gmeow:PrecedenceTenure ;
     sh:property [
         sh:path gmeow:precedenceHigher ;
@@ -3364,7 +3364,7 @@ gmeow:PrecedenceTenureShape
 
 gmeow:ConditionEvaluationShape
     a sh:NodeShape ;
-    rdfs:label "Condition Evaluation Shape" ;
+    rdfs:label "Condition Evaluation Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ConditionEvaluation ;
     sh:property [
         sh:path gmeow:evaluatedCondition ;
@@ -3389,7 +3389,7 @@ gmeow:ConditionEvaluationShape
 
 gmeow:ComplianceAssessmentShape
     a sh:NodeShape ;
-    rdfs:label "Compliance Assessment Shape" ;
+    rdfs:label "Compliance Assessment Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ComplianceAssessment ;
     sh:property [
         sh:path gmeow:assessedEvent ;
@@ -3426,7 +3426,7 @@ gmeow:ComplianceAssessmentShape
 # core-only behaviour of the rights slice is untouched.
 gmeow:GraftPermissionModalityShape
     a sh:NodeShape ;
-    rdfs:label "Graft: Permission Modality Invariant" ;
+    rdfs:label "Graft: Permission Modality Invariant"@x-gmeow-english ;
     sh:targetClass gmeow:Permission ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3442,7 +3442,7 @@ gmeow:GraftPermissionModalityShape
 
 gmeow:GraftProhibitionModalityShape
     a sh:NodeShape ;
-    rdfs:label "Graft: Prohibition Modality Invariant" ;
+    rdfs:label "Graft: Prohibition Modality Invariant"@x-gmeow-english ;
     sh:targetClass gmeow:Prohibition ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3458,7 +3458,7 @@ gmeow:GraftProhibitionModalityShape
 
 gmeow:GraftDutyModalityShape
     a sh:NodeShape ;
-    rdfs:label "Graft: Duty Modality Invariant" ;
+    rdfs:label "Graft: Duty Modality Invariant"@x-gmeow-english ;
     sh:targetClass gmeow:Duty ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -3478,7 +3478,7 @@ gmeow:GraftDutyModalityShape
 
 gmeow:NarrationUsageShape
     a sh:NodeShape ;
-    rdfs:label "Narration Usage Shape" ;
+    rdfs:label "Narration Usage Shape"@x-gmeow-english ;
     sh:targetClass gmeow:NarrationUsage ;
     sh:property [
         sh:path gmeow:narrationSegment ;
@@ -3509,7 +3509,7 @@ gmeow:NarrationUsageShape
 
 gmeow:CriterionShape
     a sh:NodeShape ;
-    rdfs:label "Criterion Shape" ;
+    rdfs:label "Criterion Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Criterion ;
     sh:property [
         sh:path gmeow:rewardPole ;
@@ -3541,7 +3541,7 @@ gmeow:CriterionShape
 
 gmeow:ScoreScaleShape
     a sh:NodeShape ;
-    rdfs:label "Score Scale Shape" ;
+    rdfs:label "Score Scale Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ScoreScale ;
     sh:property [
         sh:path gmeow:scaleMin ;
@@ -3581,7 +3581,7 @@ gmeow:ScoreScaleShape
 
 gmeow:ScoreAnchorShape
     a sh:NodeShape ;
-    rdfs:label "Score Anchor Shape" ;
+    rdfs:label "Score Anchor Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ScoreAnchor ;
     sh:property [
         sh:path gmeow:anchorMeaning ;
@@ -3643,7 +3643,7 @@ gmeow:ScoreAnchorShape
 
 gmeow:ExemplarShape
     a sh:NodeShape ;
-    rdfs:label "Exemplar Shape" ;
+    rdfs:label "Exemplar Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Exemplar ;
     sh:property [
         sh:path gmeow:exemplarPolarity ;
@@ -3700,7 +3700,7 @@ gmeow:ExemplarShape
 
 gmeow:UsesScaleTargetShape
     a sh:NodeShape ;
-    rdfs:label "Uses Scale Target Shape" ;
+    rdfs:label "Uses Scale Target Shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:usesScale ;
     sh:property [
         sh:path gmeow:usesScale ;
@@ -3712,7 +3712,7 @@ gmeow:UsesScaleTargetShape
 
 gmeow:AssessmentShape
     a sh:NodeShape ;
-    rdfs:label "Assessment Shape" ;
+    rdfs:label "Assessment Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Assessment ;
     sh:property [
         sh:path gmeow:assessmentTarget ;
@@ -3767,7 +3767,7 @@ gmeow:AssessmentShape
 
 gmeow:PersonaShape
     a sh:NodeShape ;
-    rdfs:label "Persona Shape" ;
+    rdfs:label "Persona Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Persona ;
     sh:property [
         sh:path gmeow:personaBearer ;
@@ -3793,7 +3793,7 @@ gmeow:PersonaShape
 
 gmeow:StyleGuideShape
     a sh:NodeShape ;
-    rdfs:label "Style Guide Shape" ;
+    rdfs:label "Style Guide Shape"@x-gmeow-english ;
     sh:targetClass gmeow:StyleGuide ;
     sh:property [
         sh:path gmeow:styleGuideFor ;
@@ -3817,7 +3817,7 @@ gmeow:StyleGuideShape
 
 gmeow:OrganizationCurrencyShape
     a sh:NodeShape ;
-    rdfs:label "Organization Currency Shape" ;
+    rdfs:label "Organization Currency Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Organization ;
     sh:property [
         # open-vocabulary contract: the value is an IRI whose frameRealm IS the
@@ -3843,7 +3843,7 @@ gmeow:OrganizationCurrencyShape
 
 gmeow:HazardShape
     a sh:NodeShape ;
-    rdfs:label "Hazard Shape" ;
+    rdfs:label "Hazard Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Hazard ;
     sh:property [
         sh:path gmeow:hazardBearer ;
@@ -3869,7 +3869,7 @@ gmeow:HazardShape
 
 gmeow:CausalLinkShape
     a sh:NodeShape ;
-    rdfs:label "Causal Link Shape" ;
+    rdfs:label "Causal Link Shape"@x-gmeow-english ;
     sh:targetClass gmeow:CausalLink ;
     sh:property [
         sh:path gmeow:linkAntecedent ;
@@ -3932,7 +3932,7 @@ gmeow:CausalLinkShape
 
 gmeow:CascadeShape
     a sh:NodeShape ;
-    rdfs:label "Cascade Shape" ;
+    rdfs:label "Cascade Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Cascade ;
     sh:property [
         sh:path gmeow:cascadeFirstLink ;
@@ -3953,7 +3953,7 @@ gmeow:CascadeShape
 
 gmeow:MitigationShape
     a sh:NodeShape ;
-    rdfs:label "Mitigation Shape" ;
+    rdfs:label "Mitigation Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Mitigation ;
     sh:property [
         sh:path gmeow:mitigationMeasure ;
@@ -3983,7 +3983,7 @@ gmeow:MitigationShape
 
 gmeow:EmotionShape
     a sh:NodeShape ;
-    rdfs:label "Emotion Shape" ;
+    rdfs:label "Emotion Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Emotion ;
     sh:property [
         sh:path gmeow:emotionBearer ;
@@ -4002,7 +4002,7 @@ gmeow:EmotionShape
 
 gmeow:AppraisalShape
     a sh:NodeShape ;
-    rdfs:label "Appraisal Shape" ;
+    rdfs:label "Appraisal Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Appraisal ;
     sh:property [
         sh:path gmeow:appraisalOf ;
@@ -4073,7 +4073,7 @@ gmeow:AppraisalShape
 
 gmeow:ArcSampleShape
     a sh:NodeShape ;
-    rdfs:label "Arc Sample Shape" ;
+    rdfs:label "Arc Sample Shape"@x-gmeow-english ;
     sh:targetClass gmeow:ArcSample ;
     sh:property [
         sh:path gmeow:sampleSubject ;
@@ -4107,7 +4107,7 @@ gmeow:ArcSampleShape
 
 gmeow:RoleInNarrativeShape
     a sh:NodeShape ;
-    rdfs:label "Role In Narrative Shape" ;
+    rdfs:label "Role In Narrative Shape"@x-gmeow-english ;
     sh:targetClass gmeow:RoleInNarrative ;
     sh:property [
         sh:path gmeow:narrativeRoleBearer ;
@@ -4135,7 +4135,7 @@ gmeow:RoleInNarrativeShape
 
 gmeow:MotifShape
     a sh:NodeShape ;
-    rdfs:label "Motif Shape" ;
+    rdfs:label "Motif Shape"@x-gmeow-english ;
     sh:targetClass gmeow:Motif ;
     sh:property [
         sh:path rdfs:label ;
@@ -4163,7 +4163,7 @@ gmeow:MotifShape
 
 gmeow:WebPageMainEntityShape
     a sh:NodeShape ;
-    rdfs:label "WebPage principal-subject shape" ;
+    rdfs:label "WebPage principal-subject shape"@x-gmeow-english ;
     sh:targetClass gmeow:WebPage ;
     sh:property [
         sh:path gmeow:pagePrincipalSubject ;
@@ -4179,7 +4179,7 @@ gmeow:WebPageMainEntityShape
 
 gmeow:FeedPostingKindShape
     a sh:NodeShape ;
-    rdfs:label "FeedPosting kind cardinality shape" ;
+    rdfs:label "FeedPosting kind cardinality shape"@x-gmeow-english ;
     sh:targetClass gmeow:FeedPosting ;
     sh:property [
         sh:path gmeow:feedPostingKind ;
@@ -4191,7 +4191,7 @@ gmeow:FeedPostingKindShape
 
 gmeow:MediaTypeShape
     a sh:NodeShape ;
-    rdfs:label "Media-type cardinality shape" ;
+    rdfs:label "Media-type cardinality shape"@x-gmeow-english ;
     sh:targetSubjectsOf gmeow:mediaType ;
     sh:property [
         sh:path gmeow:mediaType ;

@@ -1,10 +1,19 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Blackcat-Informatics/gmeow-ontology/main/docs/gmeow-logo.svg" alt="GMEOW logo — a black cat holding a linked knowledge graph" width="160" height="160">
+  <img src="./docs/gmeow-logo.svg" alt="GMEOW logo — a black cat holding a linked knowledge graph" width="160" height="160">
 </p>
 
 # GMEOW — Global Metadata and Entity Ontology for the Web
 
 > **An LLM output is a claim, not a truth.**
+
+<p align="center">
+  <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/codeql.yml/badge.svg?branch=main"></a>
+  <a href="https://pypi.org/project/gmeow/"><img alt="PyPI package: gmeow" src="https://img.shields.io/pypi/v/gmeow?label=gmeow&logo=pypi&logoColor=white"></a>
+  <a href="https://pypi.org/project/gmeow/"><img alt="Python versions supported by gmeow" src="https://img.shields.io/pypi/pyversions/gmeow?logo=python&logoColor=white"></a>
+  <a href="./LICENSE"><img alt="Tooling license: Apache-2.0" src="https://img.shields.io/badge/tooling-Apache--2.0-blue"></a>
+  <a href="./LICENSE-ontology"><img alt="Ontology license: CC BY 4.0" src="https://img.shields.io/badge/ontology-CC%20BY%204.0-blue"></a>
+</p>
 
 GMEOW is a substrate for **grounded agent memory and claim provenance**. Every fact an AI
 system stores, recalls, or emits is held as what it actually is: an **attributed,
@@ -25,9 +34,9 @@ able to answer the question every institution must answer: *how do you know, and
 
 | Product | What it is | Status |
 |---|---|---|
-| **`gmeow` (PyPI)** | The five-minute client: `pip install` → store / recall / revise one attributed claim, no Docker, no reasoner, no RDF | in development ([#296](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/296)) |
-| **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, atop the live retrieval tools (`object_search`, `graph_explore`, …) | retrieval live; memory triad in development ([#297](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/297)) |
-| **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](./docs/GTS-SPEC.md)) | format specified; Python reader/writer shipped; signing in progress ([#272](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/272)) |
+| **`gmeow` (PyPI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, export docs, and run the MCP server | shipped ([#296](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/296), [#442](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/442)) |
+| **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, backed by the claim, standpoint, evidence, and suppression model | shipped ([#297](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/297)) |
+| **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](./docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification ([#267](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/267), [#272](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/272), [#327](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/327)) |
 
 **Verifiable PyPI builds.** Wheels and sdists for `gmeow` and `gmeow-gts` are built in
 GitHub Actions and signed with GitHub artifact attestations. After downloading a package
@@ -54,11 +63,11 @@ the [documentation map](#documentation-map).
 **Why does this exist?** Because LLM and RAG outputs are stored as *truth* — no provenance,
 no evidence, no confidence, no time, no way to disagree — and that is a category error with
 compounding costs. See [`docs/RATIONALE.md`](./docs/RATIONALE.md) for the long form, and
-the position paper in progress: *"An LLM Output Is a Claim, Not a Truth: A Substrate for
-Grounded Agent Memory."*
+the position paper *"An LLM Output Is a Claim, Not a Truth: A Substrate for Grounded Agent
+Memory."*
 
 **Principles.** Every design decision and pull request is measured against
-[`CONSTITUTION.md`](./CONSTITUTION.md) — sixteen normative principles (claim-not-truth,
+[`CONSTITUTION.md`](./CONSTITUTION.md) — seventeen normative principles (claim-not-truth,
 the-product-is-a-tool, RDF-1.2-first, one-canonical-source, maximal bridging, greenfield,
 verified-by-construction, frame-relativity, suppression-never-erasure, …).
 Cite them by number in issues and PRs.
@@ -92,27 +101,16 @@ Cite them by number in issues and PRs.
   epistemics ship in the **core**, by commitment — a memory substrate that makes "what is a
   person" an optional add-on has already answered the question, badly.
 
-> **Status.** GMEOW is built **incrementally, one slice of digital existence at a time** — and
-> the foundation is now broad. **50 modules** are modelled, aligned, and reasoned: identity
-> (entities, names, gender, sexuality, languages), social & contact (genealogy, organization,
-> contacts, email, accounts), content & evidence (documents, sources, software), trust & crypto
-> (trust, messaging-trust), skills & legal (expertise, agreements, rights), place / time / events
-> (places, temporal, events, with Location now a universal reference-frame spanning 13+ realms),
-> the **unified epistemics & measurement spine** (provenance, standpoint, observation — where a
-> standpoint-indexed claim *is* an observation-from-a-vantage), and cross-cutting foundations
-> (frame-relativity, determinacy, granularity, privacy, accessibility, spatial aggregation,
-> regulatory overlays, data quality, attestation). Recent work has sharply expanded GMEOW's
-> **scientific utility** — Observation (SOSA/SensorThings), QUDT quantities, and frame-relative
-> measurement across astronomy, genomics, robotics and n-D mathematics (see
-> [Scientific & measurement utility](#scientific--measurement-utility)). The reasoning stack is
-> in place — axiomatized doctrine (disjointness, relator mediation, kinship/containment property
-> chains), the [OWL-infers / SHACL-validates split](./docs/reasoning.md) with entailment-based
-> competency tests, and a gUFO↔BFO foundational bridge. Constitution Principles 11
-> (frame-relativity) and 12 (solver boundary) are ratified. Each slice adds canonical terms,
-> SSSOM alignment tables, projections, and a vendored fixture, and `make coverage` reports how
-> much GMEOW covers and what gaps remain. The full toolchain (validate → reason → mappings →
-> coverage → build → docs → publish) runs green at every step. **Where it's heading next** is
-> tracked as issues — see the [Roadmap](#roadmap).
+> **Status.** GMEOW now ships as **62 slices**, each with a full guide; 61 slice
+> examples exercise the model and feed the full GTS bundle. The current surface covers
+> identity (entities, names, gender, sexuality, languages), social/contact/email/account
+> data, content/evidence/software, trust/attestation/crypto, skills, cognition,
+> epistemics, agreements, rights, norms, risk, place/time/events, music, narrative,
+> research objects, and the frame-relative observation/measurement spine. The logic layer
+> is native RDF 1.2 first: OWL, Datalog, N3, Prolog, probabilistic, counterfactual, and
+> profile-certified forms are projections of the same `logic:` source. The full
+> toolchain (validate → reason → regenerate → transpile acceptance → docs → publish)
+> is registry-gated and source-derived, with no hand-edited generated artifacts.
 
 ## Documentation map
 
@@ -122,13 +120,15 @@ slice's model *and* how it aligns/projects.
 
 | Guide | Kind | What it covers |
 |---|---|---|
-| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The sixteen normative principles every design decision and PR is measured against |
+| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The seventeen normative principles every design decision and PR is measured against |
 | [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md) | Governance | The v0.2.0 realignment: one engine, three products — positioning, recast inventory, deliverables D1–D7 |
 | [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
 | [`docs/mcp-server.md`](./docs/mcp-server.md) | Product | The MCP server: the grounded-memory triad (`store_claim`/`recall`/`revise_belief`) + the ontology toolchain tools; one-line install |
 | [`docs/hallucination-resistant-kg.md`](./docs/hallucination-resistant-kg.md) | Doctrine | The claim-extraction spine done right — fixture, prompt, audit gates, `gmeow audit`; scored across models on the [eval leaderboard](./generated/evals/leaderboard.md) |
 | [`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) | Specification | The Graph Transport Substrate — the content-addressed, append-only single-file format behind the `ai-package` memory and the narrow-waist exports |
-| [`docs/cli-extensions.md`](./docs/cli-extensions.md) | Specification | The `gmeow` CLI extension roll-up — subcommand discovery from slice manifests, GTS profile gating, solver-layer transforms (implementation deferred per P15) |
+| [`docs/VERIFY-EXAMPLE.md`](./docs/VERIFY-EXAMPLE.md) | Reference | Sample signed `gmeow.gts` verification output: signature counts, transport-key fingerprint, emoji hash, randomart, and bundled ontology checks |
+| [`docs/cli-extensions.md`](./docs/cli-extensions.md) | Specification | The `gmeow` CLI extension roll-up — subcommand discovery from slice manifests, GTS profile gating, and solver-layer transforms |
+| [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The four-artifact alignment stack (SSSOM / EDOAL / FnO / SPARQL) and how lossy down-projection works |
 | [`docs/transpile.md`](./docs/transpile.md) | Doctrine | The full transpile — consumer RDF → pure-GMEOW draft → MAXIMAL multi-vocab; `gmeow transpile`, stdin streaming, and the draft as a first-class artifact |
@@ -143,6 +143,7 @@ slice's model *and* how it aligns/projects.
 | [`slices/extensions/languages/docs.md`](./slices/extensions/languages/docs.md) | Domain guide | Languages as registry-independent first-class entities; co-mingled writing systems; proficiency |
 | [`slices/extensions/email/docs.md`](./slices/extensions/email/docs.md) | Domain guide | Email message/header structure, participants, and RFC 5322 mapping; time-scoped address tenure |
 | [`docs/location-mapping.md`](./docs/location-mapping.md) | Domain guide | The universal reference-frame: 13+ realms, RCC-8 topology, pose/trajectory, frame-relativity |
+| [`docs/music-mapping.md`](./docs/music-mapping.md) | Domain guide | Music as frame-relative content: WEMI, tuning/time frames, notation as declared-loss projection, performance, timbre, genre, and analysis standpoints |
 | [`slices/core/attestation/docs.md`](./slices/core/attestation/docs.md) | Domain guide | Signed-claim envelopes, verification results, and append-only transparency logs (cross-cutting) |
 | [`slices/core/rights/docs.md`](./slices/core/rights/docs.md) | Domain guide | Alignment/projection companion to `rights.md` — ODRL, CC REL, Dublin Core, SPDX, schema.org |
 | [`slices/core/standpoint/docs.md`](./slices/core/standpoint/docs.md) | Domain guide | Alignment/projection companion to `standpoints.md` — CRMinf, PROV-O, Web Annotation, schema:Claim |
@@ -152,19 +153,91 @@ slice's model *and* how it aligns/projects.
 
 ## Quick start
 
-**Using GMEOW** (storing/recalling claims, agent memory): the consumer surfaces ship with
-[v0.2.0](./docs/REALIGNMENT-v0.2.0.md) — `pip install gmeow` (#296) and the memory MCP
-server (#297). Watch epic #300; the five-minute quickstart will live right here.
+**Using GMEOW** (no source checkout required):
+
+```bash
+pip install gmeow gmeow-gts
+
+gmeow info
+gmeow describe gmeow:StandpointClaim
+gmeow transpile source.ttl --profiles all -o out/
+gmeow docs --directory docs-tree
+gmeow mcp
+```
+
+The public `gmeow` CLI is backed by the bundled `generated/dist/gmeow.gts` snapshot,
+so description, verification, docs, transpile, projection, export, CrossRef metadata,
+and GTS conversion run from the wheel. Repository maintenance stays on `gmeow-dev`:
+if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
+developer command.
 
 **Working on the engine** (the ontology, compilers, and gates):
 
 ```bash
 make install         # sync the uv environment
-make check           # full local gate: lint, validate, reason (ELK), mappings, wikidata, tests
+make check           # fast local gate: lint, validate, ELK, mappings, wikidata, fast tests
+make check-docker    # optional Docker gate: HermiT, reasoning cases, Jena statement checks
 ```
 
-`make check` requires Docker (for ROBOT). Everything else (`validate`, `mappings`,
-`wikidata`, `metadata`, `apache`, `docs` via pyLODE, tests) is pure Python.
+`make check` is the normal local gate. Docker-heavy lanes are explicit so routine
+development is not blocked on HermiT/Jena, while CI and release jobs still exercise the
+complete reasoner surface.
+
+## The `gmeow.gts` bundle
+
+GTS exists because grounded memory cannot be just an RDF dump, a database export, or a
+tarball. A useful agent-memory package has to move as one file, preserve RDF 1.2
+statement metadata, carry the binary evidence and docs the graph references, survive
+append-only revision, compose without reserialization, and be mechanically verifiable
+offline. GTS is that narrow waist: the ontology, claim layer, evidence blobs, projection
+surface, and verification trail travel together, while readers remain small enough to
+implement independently in Python, Rust, Go, and TypeScript.
+
+GMEOW is the primary package. GTS is the transport utility we also ship, and the same
+conformance corpus gates its four reader implementations:
+
+| Runtime | Distribution | Install |
+|---|---|---|
+| Python | [PyPI `gmeow-gts`](https://pypi.org/project/gmeow-gts/) | `pip install gmeow-gts` |
+| Rust | [crates.io `gmeow-gts`](https://crates.io/crates/gmeow-gts) | `cargo install gmeow-gts` |
+| TypeScript | [npm `@blackcatinformatics/gmeow-gts`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-gts) | `npm install @blackcatinformatics/gmeow-gts` |
+| Go | [pkg.go.dev `go.blackcatinformatics.ca/gts`](https://pkg.go.dev/go.blackcatinformatics.ca/gts) | `go install go.blackcatinformatics.ca/gts/cmd/gts@latest` |
+
+The committed [`generated/dist/gmeow.gts`](./generated/dist/gmeow.gts) artifact is the
+repo-free GMEOW distribution snapshot. It is the file bundled into the wheel and used by
+`gmeow info`, `describe`, `docs`, `verify`, `transpile`, `project`, and the GTS export
+paths when no source checkout is present. The current dist snapshot folds as one
+`dist`-profile segment with 18,207 terms, 33,142 quads, 116 RDF 1.2 reifiers, 324
+statement annotations, and 68 content-addressed blobs.
+
+What rides inside that single file:
+
+- The import-free authored GMEOW graph as the default graph, plus the vendored gUFO/import
+  closure and self-description metadata as named graphs.
+- The RDF 1.2 statement layer, so provenance, confidence, time scope, standpoints, and
+  suppression metadata survive transport rather than collapsing into flat triples.
+- The alignment and transform surface: SSSOM mappings, projection CONSTRUCT queries,
+  mapping cells, and the denied-cell ledger needed by repo-free transpile/projection.
+- The docs surface: every slice guide, the project `docs/` tree, and the generated
+  ontology-docs site as content-addressed blobs that `gmeow docs` can extract from the
+  installed package.
+
+The Graph Transport Substrate underneath is deliberately small and mechanical: a CBOR
+append-only segment log; deterministic BLAKE3 frame IDs and `prev` chains; a four-table
+RDF 1.2 fold (`terms`, `quads`, `reifies`, `annot`); content-addressed binary blobs;
+suppression frames for belief revision; literal byte concatenation (`cat 2.gts >> 1.gts`),
+with `gts cat` as the validating composer; files-profile pack/unpack/diff; N-Quads,
+SQLite, and DuckDB transforms; and robust reader diagnostics for torn appends, damaged
+frames, broken chains, unknown codecs, missing keys, conflicting reifiers, and position
+constraints.
+
+Verification has two layers. `gts verify generated/dist/gmeow.gts` verifies the GTS chain
+and reports the composition ledger. `gmeow verify <bundle.gts>` adds source-free ontology
+checks over the folded graph: namespace, term catalog, missing labels/definitions, reader
+diagnostics, and documentation blobs. Signed release bundles also carry COSE signatures and
+an embedded OpenPGP transport key; `gmeow verify` displays the grouped fingerprint, emoji
+hash, text labels, randomart, and valid/invalid/unverified signature counts. See
+[`docs/VERIFY-EXAMPLE.md`](./docs/VERIFY-EXAMPLE.md) for the expected signed-output shape.
 
 ## The pipeline
 
@@ -179,11 +252,12 @@ make check           # full local gate: lint, validate, reason (ELK), mappings, 
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
 | `make wikidata` / `wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
-| `make docs` / `docs-full` | pyLODE HTML / + WIDOCO (diagrams, changelog, OOPS!) |
+| `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
+| `make docs` / `docs-full` | Native ontology-docs site into `dist/ontology-docs` / + optional Docker stages |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
-| `make rdf12` | Emit the RDF 1.2 / RDF\* lead artifact + its OWL-form downcast via Apache Jena (**required** — fails if absent) |
+| `make check-docker` | HermiT, reasoning cases, and Jena-backed statement checks |
 | `make quality` | OOPS! pitfall scan (network, best-effort) |
-| `make release` | Reasoned closure (HermiT) + build + metadata + RDF 1.2 / RDF\* lead artifact + OWL-form downcast |
+| `make release` | Regenerate + HermiT closure + build + compliance report + CrossRef deposit |
 
 The Java tools (ROBOT, WIDOCO, Jena) run as **pinned Docker images** (see
 `src/gmeow_tools/config.py`); `make pull-images` pre-pulls them. Containers run as the
@@ -243,12 +317,12 @@ resolves it. ELK gates every push (fast); HermiT gates releases (sound + complet
   interoperates with the OBO-Foundry / ISO top-level world. This is Principle 5 applied
   recursively to the foundational layer; the emitted BFO IRIs are verified against a vendored
   class snapshot (`imports/targets/bfo.ttl`), kept out of the reasoned closure. DOLCE/SUMO are
-  planned next. Authoring source: `mapping-dsl/foundational/`; full guide:
+  link-only bridge views, not imported truth sources. Authoring source: `dsl/mappings/foundational/`; full guide:
   [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
 
 ### Linking & the license policy
 
-Alignments are authored once in the **mapping DSL** (`mapping-dsl/`) and compiled
+Alignments are authored once in the **mapping DSL** (`dsl/mappings/`) and compiled
 (`gmeow-dev regenerate mappings`) to SSSOM + EDOAL + FnO + SPARQL — see [§ The mapping
 compiler](#the-mapping-compiler). Asserting a link (`owl:equivalentClass`,
 `skos:exactMatch`, …) to any external term is always permitted — it copies nothing.
@@ -262,7 +336,7 @@ reference-only source (NC/ND/share-alike/copyleft/proprietary) is **refused**
 GMEOW's doctrine — *one canonical source, everything else a generated lossy
 projection* ([Principle 4](./CONSTITUTION.md)) — applies to the alignment layer
 itself. Every mapping is authored
-**once** as a `gmeow:`-grounded Turtle cell in `mapping-dsl/`, and
+**once** as a `gmeow:`-grounded Turtle cell in `dsl/mappings/`, and
 `gmeow-dev regenerate mappings` renders the four standard artifacts (SSSOM term links, EDOAL
 complex cells, FnO transform functions, SPARQL CONSTRUCT executors). Drift is
 impossible by construction; `gmeow-dev check-generated mappings` is the CI no-drift
@@ -277,8 +351,8 @@ GMEOW vocabulary, never raw SPARQL. Full reference + authoring guide:
 GMEOW **projects down** to the vocabularies people actually consume — a deliberately lossy,
 directional export that downgrades the rich canonical model into a target consumer's terms
 without corrupting it ([Principle 4](./CONSTITUTION.md)). Each target below is authored in
-`mapping-dsl/projections/`, compiled to an EDOAL spec (`projections/*.edoal.ttl`) + a SPARQL
-CONSTRUCT executor (`queries/projections/*.rq`), and run by `gmeow project` /
+`dsl/mappings/projections/`, compiled to an EDOAL spec (`generated/projections/*.edoal.ttl`) +
+a SPARQL CONSTRUCT executor (`generated/queries/*.rq`), and run by `gmeow project` /
 `make project`. The full set with worked examples lives in
 [`docs/projections.md`](./docs/projections.md).
 
@@ -305,13 +379,13 @@ CONSTRUCT executor (`queries/projections/*.rq`), and run by `gmeow project` /
 Beyond what it projects, GMEOW **aligns by reference** (`skos:exactMatch` / `closeMatch` /
 `owl:equivalentClass`, copying no axioms — [Principle 5](./CONSTITUTION.md)) to dozens more
 vocabularies, so data already published elsewhere is covered without rewriting. The
-**exhaustive, authoritative list is the SSSOM tables** in
-[`mappings/*.sssom.tsv`](./mappings/) (one per module); this is a representative, grouped
-sample:
+**exhaustive, authoritative list is the SSSOM output set** under
+[`generated/mappings/`](./generated/mappings/) (one table per slice/domain); this is a
+representative, grouped sample:
 
 | Domain | Aligned vocabularies (by reference) |
 |---|---|
-| **Foundational** | gUFO, **BFO 2020** (ISO/IEC 21838-2), DOLCE/SUMO (planned) |
+| **Foundational** | gUFO, **BFO 2020** (ISO/IEC 21838-2), DOLCE/SUMO bridge views |
 | **Hub & coreference** | **Wikidata**, schema.org, FOAF, ORG, PROV-O |
 | **Identity & language** | GSSO, Homosaurus, FHIR, FOAF, OntoLex-Lemon, LIME, Glottolog, CEFR/ILR/ACTFL |
 | **Geospatial & place** | GeoSPARQL, CIDOC-CRM + CRMgeo, BOT/ifcOWL, LADM, INSPIRE, AIXM, UNCLOS, MRGID, OGC GeoPose, OGC Moving Features |
@@ -319,13 +393,13 @@ sample:
 | **Rights & provenance** | ODRL, CC REL, Dublin Core, SPDX, RightsStatements.org (all 12), PREMIS 3, WIPO, W3C Media Resources |
 | **Trust & attestation** | PROV-O, in-toto, SLSA, DSSE, Sigstore/Rekor, SCITT, nanopublications |
 | **Privacy & content** | W3C DPV, SKOS, MOAT, Web Annotation, RDF Data Cube |
-| **Finance (seed)** | FIBO (by reference; the full Finance slice is [planned](#roadmap)) |
+| **Finance** | FIBO (by reference), schema.org, Dublin Core, provenance and rights surfaces |
 
 ### RDF 1.2 / RDF\* — the canonical statement-level model
 
 GMEOW is **RDF 1.2 / RDF\*-first** ([Principles 2–3](./CONSTITUTION.md)): statement-level
 metadata — provenance, confidence, temporal scope — is **authored once** as native RDF 1.2 /
-RDF\* content in `statement-dsl/`, the canonical source. From it `gmeow compile-statements`
+RDF\* content in `dsl/statements/`, the canonical source. From it `gmeow-dev regenerate statements`
 generates two verified artifacts: the **RDF 1.2 / RDF\* serialization** (the lead form, via
 Apache Jena — the only engine that emits triple terms today) and the **OWL 2 axiom-annotation
 form** (`owl:Axiom` + `owl:annotatedSource/Property/Target`) — the *generated,
@@ -333,9 +407,22 @@ reasoning-lossless downcast* that the OWL 2 DL reasoners GMEOW gates on actually
 OWL form is the **downgrade for legacy tooling** — the same lossy-compatibility-as-projection
 principle GMEOW applies to schema.org / vCard / FOAF ([Principle 4](./CONSTITUTION.md)), not a
 competing source of truth — and it recedes as RDF-1.2-native reasoners and stores arrive. Both
-downcasts are guarded by a no-drift `gmeow compile-statements --check`
+downcasts are guarded by `make check-generated`
 ([Principle 7](./CONSTITUTION.md)). The scope is exact: the **logical TBox stays OWL 2 DL** —
 triple-terms are not OWL 2 DL, and GMEOW never claims otherwise.
+
+### Native logic: OWL is a projection, not the ceiling
+
+GMEOW's logical core is a canonical RDF 1.2 `logic:` layer
+([Principle 17](./CONSTITUTION.md)). The authored logic source
+normalizes into a typed IR, then projects into the forms each engine can consume:
+OWL DL/EL for today’s reasoners, Datalog/Nemo for monotonic materialization, N3 and Prolog
+for rule/backward-goal surfaces, plus preservation/loss ledgers that make every downgrade
+auditable. The Rust `crates/logic` engine stores world-indexed graphs in oxigraph, uses
+Nemo for forward materialization, carries proof traces, and exposes PyO3/wasm seams. Logic
+profiles certify what is decidable, complete, lossy, probabilistic, counterfactual, or
+budget-bounded before anything is allowed to call itself preserved. Design entrypoint:
+[`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md).
 
 ### Names: first-class, multi-culture, inclusive
 
@@ -545,70 +632,63 @@ provenance/confidence/standpoint layer every other slice already uses:
   (biological-sequence locations on GRCh38; FALDO/Sequence Ontology/GFF3, with liftover left
   to the solver), **robotics** (C-space, TF transform trees, SLAM occupancy grids;
   IEEE 1872-2015), and **mathematics/n-D** (Hilbert spaces, latent vectors, phase spaces;
-  OpenMath/MEX) — each *data over the same kernel*, never a schema fork. Forthcoming
-  domain-specific **Observation profiles** (archaeology, astronomy, clinical, media) extend
-  this further — see the [roadmap](#roadmap).
+  OpenMath/MEX) — each *data over the same kernel*, never a schema fork. Domain-specific
+  observation surfaces for archaeology, astronomy, media, sensory environments, and research
+  objects extend the same model rather than forking it.
 
 ## Publishing
 
-1. **DOI (CrossRef).** Blackcat Informatics mints the DOI as a CrossRef member (its own prefix).
-   `make crossref` generates `dist/crossref-deposit.xml` (CrossRef deposit schema 5.4.0) from the
-   ontology metadata, registering the DOI against the landing page `https://blackcatinformatics.ca/gmeow`.
-   Set `CROSSREF_DOI_PREFIX` (and the depositor email) in `src/gmeow_tools/config.py` once
-   membership is finalized — they are placeholders until then. Validate the deposit against the
-   CrossRef XSD and submit on the CrossRef **test** system before depositing to production; the
-   deposit is a deliberate manual step. `CITATION.cff` carries the DOI for GitHub's "Cite this
-   repository" box once minted.
-2. **LOD Cloud.** Submit via <https://lod-cloud.net/>. The `metadata/void.ttl` linksets supply
-   the cross-dataset links the diagram needs (the ≥50-link rule).
-3. **Content negotiation.** Include `apache/gmeow.conf` from the blackcatinformatics.ca vhost;
-   it negotiates `Accept` → Turtle / RDF-XML / JSON-LD with an HTML fallback and per-term slash
-   dereferencing. Releases are **immutable** — fix issues in a new version, never in place
-   ([Principle 6](./CONSTITUTION.md)).
+GMEOW publication is generated from the graph and the release commit, not maintained as a
+parallel metadata file.
 
-## Roadmap
+1. **DOI/PID graph.** `make crossref` generates `dist/crossref-deposit.xml` (CrossRef deposit
+   schema 5.4.0) from canonical metadata. The PID model uses a concept DOI, immutable version
+   DOIs, component DOIs for slices and mapping sets, graph-projected CrossRef relationships,
+   statement-level DOI provenance, FAIR Signposting, and SWHID/commit pairing for exact bytes.
+2. **LOD and content negotiation.** `generated/metadata/void.ttl`, `generated/metadata/dcat.ttl`,
+   and `generated/apache/gmeow.conf` are registered generated artifacts. The Apache config
+   negotiates Turtle / RDF-XML / JSON-LD / HTML, handles profile and slice IRIs, and keeps
+   release snapshots immutable ([Principle 6](./CONSTITUTION.md)).
+3. **Verifiable packages and bundles.** PyPI wheels, npm/Cargo/Go release surfaces, signed
+   GTS bundles, SBOMs, GitHub attestations, emoji verification fingerprints, and rsyncable GTS
+   payloads are part of the publication contract.
 
-GMEOW grows one slice at a time; the direction is tracked entirely in
-[GitHub issues](https://github.com/Blackcat-Informatics/gmeow-ontology/issues). The current
-themes (cite the issue number in PRs):
+## Current surface
 
-- **v0.2.0 — The Realignment Release (the front of the queue)** — the three products of
-  [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md), tracked by epic #300: the
-  `gmeow` PyPI client with the five-minute time-to-first-claim CI gate (#296), the
-  grounded-memory MCP triad + flagship docs (#297), the productised GTS `ai-package` with
-  COSE signing (#267/#272), the claim spine cookbook (#55), and a mechanically-scored
-  claim-extraction eval suite across frontier models (#298).
-- **Compliance-by-construction** — derive enforcement from declarations (epic #278): the
-  generator registry (#279), the core/extensions repository re-layout (#287, Principle 16),
-  constitution-as-code (#280), and annotation-driven invariants for suppression,
-  co-equal facets, and frame-relativity (#281–#284).
-- **Deepen Languages → diachronic, sociolinguistic, symbolic, archaeological** — language
-  varieties/states/change events (#170), lexical items, forms, usage attestations & etymology
-  (#171), notation and symbolic systems (#172), and archaeological evidence, inscriptions &
-  cultural-heritage readings (#173), under the strengthening umbrella (#169); canonical
-  private-use tags with public BCP 47 projection (#164) and an exhaustive reference language
-  catalog (#111).
-- **Complete the Email ontology** — full coverage of stored mail (#141): mailbox hierarchy
-  (#132), MIME body parts (#133), address structure & envelope headers (#134), provenance &
-  raw bytes (#135), versioning/variants (#136), status/bounces/auto-generated (#137), thread
-  subject normalization (#138), calendar-invite seam (#139), JMAP body structure (#140), and
-  mailing-list vocabulary (#131).
-- **Scientific Observation profiles & unification** — domain-specific Observation profiles for
-  archaeology, astronomy, media, and clinical data (#129), Event–Observation unification (#128),
-  and the sensory-environment module (#126). *(Standpoint-Claim-as-Observation #127 — merged.)*
-- **New domain slices** — Finance (accounts, transactions, REA/double-entry; FIBO/ISO 20022)
-  (#64), Calendar & scheduling (#62), Notes / PKM with Web Annotation (#63), Employment / CV
-  (#23), Images as a layered super-ontology (#22), Books (works/releases/serials) (#156), and
-  Projects / software / verifiable git provenance (#47).
-- **AI / RAG, hallucination-resistant knowledge graphs** — the full claim layer beneath the
-  v0.2.0 products: LLM output as *claim-not-truth* with evidence-bound claims and
-  contradiction-as-standpoint (#54), and a maximally-interlinked multi-ontology transpiler
-  from a canonical A-Box (#34).
-- **Broad-consumption tooling & FAIR reach** — ML-dataset & research-object interop
-  (Croissant + RO-Crate + DataCite/DCAT) as `gts→*` surfaces (#58), a maximal DOI strategy
-  (concept+version chains, Signposting) (#44), and broadly-consumable export variants
-  re-triaged as GTS shims (#12). *(Already shipped: LinkML → JSON Schema / Pydantic /
-  TypeScript / GraphQL schemas; labeled-property-graph export; the MCP retrieval server.)*
+The issue backlog is represented here as current capability:
+
+- **Products.** The PyPI `gmeow`/`gmeow-gts` surface, grounded-memory MCP triad, claim spine,
+  hallucination-resistant extraction pattern, eval leaderboard, GTS `ai-package`, signed
+  verification, and multi-language GTS engines are the public adoption path.
+- **Compliance-by-construction.** The generator registry, single `generated/` root, slice
+  manifests, constitution-as-code, annotation-driven co-equal/suppression/frame guards,
+  `owl:sameAs` hard gates, and RDF compliance report make constitutional drift a build failure.
+- **Docs-with-the-ontology.** Every slice has a full guide; `gmeow describe` and `gmeow docs`
+  work from the bundled GTS snapshot; `make docs` builds the native static site under
+  `dist/ontology-docs`; the citation ledger lives in `metadata/references.ttl` and exports to
+  CSL, BibTeX, Markdown, and generated docs.
+- **Transpile and projection.** `gmeow transpile` lifts consumer RDF to a pure-GMEOW draft,
+  then emits the MAXIMAL multi-vocabulary family with honest gap reports, real-data acceptance
+  scores, consumer-clean language tags, single-vocabulary GTS views, and context-aware
+  up-projection over graph position, structural inverses, SKOS identity, QID concept bridges,
+  and polymorphic literal guards.
+- **Logic.** The native `logic:` layer supplies typed IR, OWL/gUFO adapters, OWL/Datalog/N3/
+  Prolog projections, Nemo materialization into world-indexed oxigraph named graphs, proof
+  traces, profile certification, counterfactual revision, backward goals, and probabilistic
+  weights with explicit preservation/loss ledgers.
+- **Cognition and epistemics.** Objectual cognition (`isAwareOf` → `knowsAbout` →
+  `understands` → `hasMastered`), mental moments, cognitive states, attention/interest/memory,
+  propositional epistemics, doxastic state/tenure, credence, justification, defeaters, Gettier
+  structure, and standpointed belief claims form the agent-memory mental-state spine.
+- **Music and notation.** The music extension covers WEMI, pitch/tuning/time frames, structure,
+  form/process/indeterminacy, performance participation, instruments/configurations, genre,
+  oral tradition, timbre/sensory observations, notation projection profiles with declared loss,
+  stress fixtures, and the GTS `music-package` render/import toolchain.
+- **Domain breadth.** Email, calendars, organizations, employment, contacts, accounts, images,
+  software provenance, research objects, finance, notes, genealogy, places, temporal data,
+  accessibility, sensory environments, norms, risk, registers, rubrics, affect, narrative,
+  archaeological evidence, language/lexicon/notation, rights, trust, attestation, evidence, and
+  quality are modelled as slices with examples and projection/alignment surfaces.
 
 ## Licensing
 

@@ -40,7 +40,9 @@ export enum AestheticQualityEnum {
 export enum AgentEnum {
 
     fixture_analyst_A = "fixtureAnalystA",
+    human_listener_fixture = "fixtureHumanListener",
     Kirana_gharana_standpoint_fixture = "fixtureKiranaGharanaStandpoint",
+    MIR_extractor_fixture = "fixtureMIRAgent",
     rival_scholar_standpoint_fixture = "fixtureRivalScholarStandpoint",
     fixture_session_bassist = "fixtureSessionBassist",
     fixture_session_drummer = "fixtureSessionDrummer",
@@ -1791,9 +1793,19 @@ export enum ObservablePropertyEnum {
     atmospheric_pressure = "observablePropertyAtmosphericPressure",
     humidity = "observablePropertyHumidity",
     light_intensity = "observablePropertyLightIntensity",
+    loudness = "observablePropertyLoudness",
     radiation_level = "observablePropertyRadiationLevel",
+    roughness = "observablePropertyRoughness",
     sound_pressure_level = "observablePropertySoundPressureLevel",
     temperature = "observablePropertyTemperature",
+    timbre = "observablePropertyTimbre",
+    timing_deviation = "observablePropertyTimingDeviation",
+};
+
+export enum ObservationEnum {
+
+    human_timbre_observation_fixture = "fixtureHumanTimbreObservation",
+    MIR_timbre_observation_fixture = "fixtureMIRTimbreObservation",
 };
 
 export enum ObservationMethodEnum {
@@ -2868,6 +2880,15 @@ export enum TextDirectionEnum {
     vertical_columns_right_to_left = "directionVerticalRtl",
 };
 
+export enum TimbreDescriptorEnum {
+
+    breathy = "timbreDescriptorBreathy",
+    bright = "timbreDescriptorBright",
+    dark = "timbreDescriptorDark",
+    gritty = "timbreDescriptorGritty",
+    hollow = "timbreDescriptorHollow",
+};
+
 export enum TimeMappingEnum {
 
     sqrtLEFT_PARENTHESIS2RIGHT_PARENTHESISCOLON2_tempo_canon_mapping = "timeMappingSqrt2Canon",
@@ -2896,6 +2917,7 @@ export enum TimeScaleEnum {
 export enum ToneEventEnum {
 
     fixture_tone_event_C4 = "fixtureStructureToneEventC4",
+    fixture_timbre_tone_event = "fixtureTimbreToneEvent",
 };
 
 export enum TrademarkStatusEnum {
@@ -3157,6 +3179,7 @@ export interface Agent {
     hasAgreement?: Agreement[],
     hasContactPoint?: ContactPoint[],
     hasGoal?: Goal[],
+    hasMastered?: Entity[],
     hasMet?: Agent[],
     hasSkill?: Skill[],
     hasUsed?: Entity[],
@@ -3164,6 +3187,8 @@ export interface Agent {
     holdsAccount?: OnlineAccount[],
     holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
+    isAwareOf?: Entity[],
+    knowsAbout?: Entity[],
     knowsLanguage?: Language[],
     mailmapEntry?: string[],
     makesOffer?: Offering[],
@@ -3172,6 +3197,7 @@ export interface Agent {
     ownerOf?: Entity[],
     slogan?: string[],
     telephone?: string[],
+    understands?: Entity[],
 }
 
 
@@ -5687,6 +5713,7 @@ export interface Observation {
     observationType?: ObservationType[],
     observedFeature?: string[],
     perceptionEnvironment?: SensoryEnvironment,
+    timbreObservationResult?: TimbreDescriptor,
     vantage?: Entity[],
 }
 
@@ -7086,7 +7113,7 @@ export interface Thread extends InformationObject {
 
 
 
-export interface TimbreDescriptor extends Entity {
+export interface TimbreDescriptor {
 }
 
 

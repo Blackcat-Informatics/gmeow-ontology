@@ -4,6 +4,7 @@
 @prefix schema: <https://schema.org/> .
 @prefix oa:     <http://www.w3.org/ns/oa#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 
 # Projection mappings: GMEOW tags → schema.org keywords and W3C Web Annotation.
 # Compiled to projections/*.edoal.ttl + queries/projections/*.rq by
@@ -75,3 +76,41 @@ gmeow:mapWebAnnotationTagging a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "tagging" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "tagged" ]
             [ gmeow:tSubj "tagging" ; gmeow:tPred oa:hasBody ; gmeow:tObj "tag" ]
             [ gmeow:tSubj "tagging" ; gmeow:tPred oa:motivatedBy ; gmeow:tObjValue oa:tagging ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# SKOS — a Tag IS a concept: label, hierarchy, scheme (the bidirectional model)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSkosConcept a gmeow:ProjectionMapping ;
+    rdfs:label "Tag → skos:Concept (prefLabel, broader, inScheme)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "tag" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "tag" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Tag ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "tag" ; gmeow:predicate rdfs:label ; gmeow:objectVar "label" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "tag" ; gmeow:predicate gmeow:broaderTag ; gmeow:objectVar "broader" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "tag" ; gmeow:predicate gmeow:tagInScheme ; gmeow:objectVar "scheme" ] ) ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "tag" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Tag ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "skos" ; gmeow:relation "=" ;
+        gmeow:edoalTarget skos:Concept ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "the Tagging relator's provenance/confidence/scope and the open value-vocabulary of tag relations beyond broader/narrower are not expressible in SKOS" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "tag" ; gmeow:tPred rdf:type ; gmeow:tObjValue skos:Concept ]
+            [ gmeow:tSubj "tag" ; gmeow:tPred skos:prefLabel ; gmeow:tObj "label" ]
+            [ gmeow:tSubj "tag" ; gmeow:tPred skos:broader ; gmeow:tObj "broader" ]
+            [ gmeow:tSubj "tag" ; gmeow:tPred skos:inScheme ; gmeow:tObj "scheme" ] ) ] .
+
+gmeow:mapSkosConceptScheme a gmeow:ProjectionMapping ;
+    rdfs:label "TagScheme → skos:ConceptScheme"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "scheme" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "scheme" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:TagScheme ] ) ;
+        gmeow:edoalSource gmeow:TagScheme ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "skos" ; gmeow:relation "=" ;
+        gmeow:edoalTarget skos:ConceptScheme ; gmeow:edoalTargetKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "scheme" ; gmeow:tPred rdf:type ; gmeow:tObjValue skos:ConceptScheme ] ) ] .

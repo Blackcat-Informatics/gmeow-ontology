@@ -105,7 +105,7 @@ gmeow:StatementAnnotationShape
 
 gmeow:StatementDslVocabularyTermShape
     a sh:NodeShape ;
-    rdfs:label "Statement DSL vocabulary annotation completeness shape" ;
+    rdfs:label "Statement DSL vocabulary annotation completeness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """

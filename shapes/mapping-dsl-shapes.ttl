@@ -649,7 +649,7 @@ gmeow:ValueClassMapEntryShape
 
 gmeow:MappingDslVocabularyTermShape
     a sh:NodeShape ;
-    rdfs:label "Mapping DSL vocabulary annotation completeness shape" ;
+    rdfs:label "Mapping DSL vocabulary annotation completeness shape"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """

@@ -11,7 +11,7 @@
 
 gmeow:PostMustHavePostInShape
     a sh:NodeShape ;
-    rdfs:label "Post must have exactly one postIn" ;
+    rdfs:label "Post must have exactly one postIn"@x-gmeow-english ;
     sh:targetClass gmeow:Post ;
     sh:property [
         sh:path gmeow:postIn ;
@@ -27,7 +27,7 @@ gmeow:PostMustHavePostInShape
 
 gmeow:MembershipFillsPostOrgMismatchShape
     a sh:NodeShape ;
-    rdfs:label "Membership fillsPost org mismatch warning" ;
+    rdfs:label "Membership fillsPost org mismatch warning"@x-gmeow-english ;
     sh:targetClass gmeow:Membership ;
     sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
     sh:sparql [
@@ -48,7 +48,7 @@ gmeow:MembershipFillsPostOrgMismatchShape
 
 gmeow:MergerAcquisitionEventShape
     a sh:NodeShape ;
-    rdfs:label "Merger / acquisition event shape" ;
+    rdfs:label "Merger / acquisition event shape"@x-gmeow-english ;
     sh:targetClass gmeow:Event ;
     sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
     sh:sparql [
@@ -79,7 +79,7 @@ gmeow:MergerAcquisitionEventShape
 
 gmeow:SplitSpinOffEventShape
     a sh:NodeShape ;
-    rdfs:label "Split / spin-off event shape" ;
+    rdfs:label "Split / spin-off event shape"@x-gmeow-english ;
     sh:targetClass gmeow:Event ;
     sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
     sh:sparql [
@@ -114,7 +114,7 @@ gmeow:SplitSpinOffEventShape
 
 gmeow:IdentifierMustHaveSchemeShape
     a sh:NodeShape ;
-    rdfs:label "Identifier must declare its scheme" ;
+    rdfs:label "Identifier must declare its scheme"@x-gmeow-english ;
     sh:targetClass gmeow:Identifier ;
     sh:property [
         sh:path gmeow:identifierScheme ;

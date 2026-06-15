@@ -144,6 +144,48 @@ ex:yamanPerformance1975 a gmeow:Expression ;
 Reusing these keeps the core small and puts the music-specific doctrine in the
 extension slice where it belongs (Principle 16).
 
+## Timbre and sensory bridge
+
+Timbre is modelled as an attributed, standpoint-indexed observation, not a
+single ground-truth label. A `gmeow:ToneEvent` may carry a flat shortcut
+(`gmeow:toneEventTimbre`) for the simple case; the worked form uses the core
+observation stack.
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/music-timbre/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:segment a gmeow:ToneEvent ;
+    gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture .
+
+ex:humanListener a gmeow:Agent .
+ex:mirExtractor a gmeow:Agent .
+
+ex:humanTimbre a gmeow:Observation ;
+    gmeow:observedFeature ex:segment ;
+    gmeow:vantage ex:humanListener ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:observationType gmeow:observationTypeSensory ;
+    gmeow:timbreObservationResult gmeow:timbreDescriptorBright ;
+    gmeow:confidence "0.85"^^xsd:decimal .
+
+ex:mirTimbre a gmeow:Observation ;
+    gmeow:observedFeature ex:segment ;
+    gmeow:vantage ex:mirExtractor ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:observationType gmeow:observationTypeDerived ;
+    gmeow:timbreObservationResult gmeow:timbreDescriptorGritty ;
+    gmeow:confidence "0.72"^^xsd:decimal .
+```
+
+The two observations coexist without privilege (Principle 9). The actual
+spectral feature vectors are referenced by identifier, never materialised as
+triples (Principle 12). The AFO 1.1 alignment row in
+`slices/extensions/music/mappings/equivalences.ttl` links `TimbreDescriptor` to
+`afo:AudioFeature`. The auditory `ObservableProperty` seeds and their `afv:*`
+alignments live in `slices/extensions/sensory/mappings/equivalences.ttl`.
+
 ## Competency queries
 
 - `queries/competency/music-oral-works.rq` — MusicalWorks with no notated
