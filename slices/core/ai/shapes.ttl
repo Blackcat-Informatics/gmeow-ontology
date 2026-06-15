@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Closed-world halves of the AI claim module's EL axioms (#54). The
+# Closed-world halves of the AI claim module's EL axioms (GraphRAG provenance design). The
 # ClaimNeedsEvidence WARNING (an ungrounded claim is a flagged hallucination)
-# ships with #55's audit machinery, where its message can cite the cookbook.
+# ships with EvidenceSpan audit machinery's audit machinery, where its message can cite the cookbook.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
@@ -52,7 +52,7 @@ gmeow:ChunkLocationShape
 gmeow:SpanSanityShape
     a sh:NodeShape ;
     rdfs:label "Span sanity shape"@x-gmeow-english ;
-    skos:definition "A span's exclusive end offset must exceed its inclusive start; nonsensical spans would silently break the mechanical AIS checking the typed offsets exist for (#55)."@x-gmeow-english ;
+    skos:definition "A span's exclusive end offset must exceed its inclusive start; nonsensical spans would silently break the mechanical AIS checking the typed offsets exist for (EvidenceSpan audit machinery)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     sh:targetSubjectsOf gmeow:spanStart ;
     sh:sparql [
@@ -81,7 +81,7 @@ gmeow:MemoryItemOwnerShape
     ] .
 
 # --------------------------------------------------------------------------- #
-# The hallucination-resistant gates (#55). Warnings flag; they never delete.
+# The hallucination-resistant gates (EvidenceSpan audit machinery). Warnings flag; they never delete.
 # --------------------------------------------------------------------------- #
 
 gmeow:ClaimNeedsEvidenceShape

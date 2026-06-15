@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: notes and annotations (#443). A gmeow:Note is a first-class
+# Worked example: notes and annotations. A gmeow:Note is a first-class
 # information object — authored, timestamped, and linked to other notes by
 # gmeow:hasWikilink and to entities by gmeow:mentions (the Zettelkasten / linked-
 # note pattern). A gmeow:Highlight is the W3C-Web-Annotation shape for pure

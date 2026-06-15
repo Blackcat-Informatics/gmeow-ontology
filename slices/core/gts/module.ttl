@@ -22,14 +22,14 @@ MODEL BOUNDARIES (Principles 1, 9, 12).
 - GTS gives TRANSPORT claims (these bytes, this order, this chain); GMEOW gives CONTENT
   claims (this statement is true, according to whom). A frame signature or head commitment
   is an Attestation whose attestedSubject is a GTSSegment; it proves bytes/order/signer key
-  control, never the truth of the carried statements (#342).
+  control, never the truth of the carried statements.
 - Compaction re-authors only the ORDERING: content claims ride as ordinary quads and are
   rewrite-invariant by construction; transport claims over the old chain become detached
   evidence about the source document, cited through the compaction's derivation lineage.
 - Fold semantics, codec reversal, hash verification, and signature checking live in the
   solver layer (the gts engines); this module only describes their artifacts and outcomes.
 
-REUSE (no parallel mechanisms — #267).
+REUSE (no parallel mechanisms — GTS transport design).
 - Byte identity of blobs and files     -> gmeow:contentDigest (sources).
 - Chain-head identity of a segment     -> gmeow:gtsHeadId, a versionFingerprint (versions).
 - Frame/head signatures, signers       -> gmeow:hasSignature / gmeow:Attestation (attestation).
@@ -75,7 +75,7 @@ gmeow:GTSCompaction
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gmeow:Activity ;
     rdfs:label "GTS Compaction"@x-gmeow-english ;
-    skos:definition "An activity that rewrites a GTS document's frame layout — e.g. into delivery order for streaming (spec §3.2, #342) or into a snapshot. Compaction re-authors only the ORDERING: content claims (ordinary quads, including signed statement-level claims) are rewrite-invariant by construction; transport claims over the source chain become detached evidence about the source document. The compacted document gmeow:wasGeneratedBy the compaction and gmeow:wasDerivedFrom the source document, whose segment heads remain citable through gmeow:gtsHeadId. Evidence-profile documents SHOULD NOT be compacted (see shapes); sealing the source verbatim as a nested GTS blob preserves its attestation intact."@x-gmeow-english ;
+    skos:definition "An activity that rewrites a GTS document's frame layout — e.g. into delivery order for streaming (spec §3.2, ) or into a snapshot. Compaction re-authors only the ORDERING: content claims (ordinary quads, including signed statement-level claims) are rewrite-invariant by construction; transport claims over the source chain become detached evidence about the source document. The compacted document gmeow:wasGeneratedBy the compaction and gmeow:wasDerivedFrom the source document, whose segment heads remain citable through gmeow:gtsHeadId. Evidence-profile documents SHOULD NOT be compacted (see shapes); sealing the source verbatim as a nested GTS blob preserves its attestation intact."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 # --------------------------------------------------------------------------- #

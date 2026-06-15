@@ -7,7 +7,7 @@ well-formedness.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
+from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import run_shacl
@@ -15,6 +15,7 @@ from gmeow_tools.validate import run_shacl
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test/")
+SELF = Namespace("https://blackcatinformatics.ca/gmeow/self#")
 
 
 def _graph() -> Graph:
@@ -181,3 +182,38 @@ def test_self_description_loader() -> None:
     assert meta.registrant == "Blackcat Informatics Inc."
     assert meta.license_uri == "https://creativecommons.org/licenses/by/4.0/"
     assert meta.homepage == "https://blackcatinformatics.ca/gmeow"
+
+
+def test_self_description_models_project_repository_and_brand_assets() -> None:
+    from gmeow_tools.self_desc import SELF_DESC_FILE
+
+    g = Graph()
+    g.parse(SELF_DESC_FILE, format="turtle")
+
+    ontology = URIRef("https://blackcatinformatics.ca/gmeow")
+
+    assert (SELF.project, RDF.type, GMEOW.SoftwareProject) in g
+    assert (SELF.project, GMEOW.hasRepository, SELF.repository) in g
+    assert (SELF.project, GMEOW.maintenanceStatus, GMEOW.statusActive) in g
+    assert (SELF.project, GMEOW.projectLicense, SELF["license-apache-2"]) in g
+    assert (SELF["license-apache-2"], RDF.type, GMEOW.License) in g
+    assert (
+        SELF["license-apache-2"],
+        GMEOW.licensor,
+        URIRef("https://blackcatinformatics.ca/#bii"),
+    ) in g
+    assert (SELF.repository, RDF.type, GMEOW.Repository) in g
+    assert (SELF.repository, GMEOW.repositoryType, GMEOW.repoTypeGit) in g
+
+    assert (SELF.project, GMEOW.hasLogo, SELF["logo-svg"]) in g
+    assert (ontology, GMEOW.hasLogo, SELF["logo-svg"]) in g
+    assert (SELF["logo-svg"], RDF.type, GMEOW.MediaObject) in g
+    assert (SELF["logo-svg"], GMEOW.mediaType, Literal("image/svg+xml")) in g
+    assert (SELF["logo-svg"], GMEOW.depicts, ontology) not in g
+
+    assert (SELF["social-preview-png"], RDF.type, GMEOW.MediaObject) in g
+    assert (
+        SELF["social-preview-png"],
+        GMEOW.wasDerivedFrom,
+        SELF["social-preview-svg"],
+    ) in g

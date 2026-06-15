@@ -76,7 +76,7 @@ gmeow:nationality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38) — principal ultimate Kinds are pairwise disjoint.
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — principal ultimate Kinds are pairwise disjoint.
 #
 # By UFO, distinct gufo:Kind classes each supply their own principle of identity, so an
 # individual instantiates exactly one ultimate Kind. We assert that disjointness

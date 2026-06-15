@@ -3,7 +3,7 @@
 Frame-relative musical content; every notation is a lossy projection.
 
 This slice is the first full-scale Principle 16 extension. It scaffolds the
-five-layer music model described in the #306 EPIC:
+five-layer music model described in the music design:
 
 1. **Pitch** — `TuningSystem` as a `ReferenceFrame`; exact rational `PitchValue`;
    `PitchCollection` and `PitchSpelling` as projections.
@@ -15,12 +15,12 @@ five-layer music model described in the #306 EPIC:
 5. **Analysis** — `MusicAnalysisClaim` as standpoint-indexed observations against
    explicit theory frames.
 
-The structural foundation issue (#307) lands only the extension scaffold and the
+The structural foundation issue (music universal terms) lands only the extension scaffold and the
 universal core touch-points (`MusicalWork`, `Recording`, `ScoreEdition`,
 `CreativeDerivation`, `Genre`, `RealizationMode`, and the role/format seeds) in
 `slices/core/creative-works/module.ttl`. Child issues fill the layers above.
 
-## Pitch collections and spelling (issue #309)
+## Pitch collections and spelling (pitch collections and spelling)
 
 Pitch collections (`gmeow:PitchCollection`) are categorised by a single
 `gmeow:PitchCollectionKind` value — scale, mode, maqam, jins, raga, thaat,
@@ -45,7 +45,7 @@ Seed fixtures: Rast maqam (ordered ajnas in 24-EDO), Raga Yaman (member roles in
 12-EDO), Messiaen's whole-tone mode of limited transposition, the pitch-class
 set `[0,2,7]`, and co-equal C♯4 / D♭4 spellings.
 
-## Musical time (issue #310)
+## Musical time (musical time)
 
 A `gmeow:MusicalTimeFrame` is the time-layer analogue of `TuningSystem`: a
 reference frame that anchors musical events and defines what it means for one
@@ -82,7 +82,7 @@ Seed fixtures: a 5/8 → 7/8 → 4/4 sequence, 7/8-over-4/4 polymeter, nested 5:
 and 3:2 tuplets, a √2:2 mensuration canon, a swing groove, and a Carter-style
 metric modulation.
 
-## Structure graph (issue #311)
+## Structure graph (structure graph)
 
 A `gmeow:MusicalSegment` is the single structural node for musical content at
 any granularity: riff, motif, phrase, section, fragment, talea, color, drone,
@@ -119,7 +119,7 @@ Seed fixtures: riff A → transposed riff A′ → re-accented riff A″ transfo
 chain; a C4 `ToneEvent`; a two-point C4→G4 glissando trajectory; and a bass
 `Voice`.
 
-## Performance: form, process, and indeterminacy (issue #312)
+## Performance: form, process, and indeterminacy (performance constraints)
 
 ### gmeow:DegreeOfFreedom
 
@@ -165,7 +165,7 @@ raga/maqam model (Principles 9, 11). Seed fixture: Raga Yaman gamaka profile.
 fragments. It is plain data; reachability is computed by
 `gmeow:fnTraverseMobileForm`, never reasoned by the DL engine.
 
-## Performance: events and participation (issue #313)
+## Performance: events and participation (performance events and participation)
 
 ### Event types and the no-subclass doctrine
 
@@ -192,7 +192,7 @@ participation pattern:
 
 - `participationInstrument` — the kind of instrument (`InstrumentType`).
 - `participationInstrumentItem` — the specific physical instrument item.
-- `participationConfiguration` — the configured instrument setup (`InstrumentConfiguration`, stub for #314).
+- `participationConfiguration` — the configured instrument setup (`InstrumentConfiguration`, stub for instruments and configurations).
 - `participationPart` — the musical part performed (open range).
 - `participationTechnique` — the playing technique (`PlayingTechnique`).
 
@@ -205,7 +205,7 @@ advises ≤1 instrument per participation — mint one participation per instrum
 A `Contribution` on the resulting `Recording` is derived from the
 `PerformanceParticipation` cells by a documented FnO projection rule
 (`gmeow:fnParticipationToContribution`), never an OWL property chain (Principle
-12). Full cataloguing of the rule lands with the projection toolchain (#319).
+12). Full cataloguing of the rule lands with the projection toolchain (projection toolchain).
 
 ### Session micro-fixture
 
@@ -215,7 +215,7 @@ take event generates a `Recording`; the composite `wasDerivedFrom` the take
 recordings. The fixture demonstrates the “who played what on take 3” competency
 query via `PerformanceParticipation`.
 
-## Instruments & configurations (issue #314)
+## Instruments & configurations (instruments and configurations)
 
 ### Three levels, no subclass tree
 
@@ -238,7 +238,7 @@ Another open value vocabulary carried on `PerformanceParticipation`: arco, pizzi
 - **Cage prepared piano**: piano + prepared + 12-EDO frame, no interval (timbre change, not tuning change).
 - **Drop-D electric guitar**: electric guitar + scordatura + a `tablatureRelative` drop-D frame + a major-second-down interval.
 
-## Analysis standpoints & genre doctrine (issue #315)
+## Analysis Standpoints & Genre Doctrine
 
 ### gmeow:MusicAnalysisClaim
 
@@ -262,7 +262,7 @@ analytical terms are added as new individuals.
 ### Genre doctrine
 
 `gmeow:Genre` is defined in `slices/core/creative-works/module.ttl`
-(issue #307). The music slice seeds common genres and records lineage with
+The music slice seeds common genres and records lineage with
 `gmeow:wasDerivedFrom` — fusion genres and scene splits are derivation links,
 not a subclass taxonomy. A genre may be refuted from a standpoint
 (`standpointModality gmeow:refuted`) while asserted from another; both claims
@@ -281,4 +281,4 @@ those additional music-specific external dependencies out of core
 
 - The **GTS `music-package`** single-file format.
 - The **MCP analysis-claims** recall/revise surface.
-- The **19-case stress corpus** that closes the EPIC.
+- The **19-case stress corpus** that closes the music design.

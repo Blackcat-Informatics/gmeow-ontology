@@ -21,4 +21,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:sliceConsumer "Inscription readings and find contexts; the languages stress corpus (#173)."@x-gmeow-english .
+    gmeow:sliceConsumer "Inscription readings and find contexts; the languages stress corpus."@x-gmeow-english.

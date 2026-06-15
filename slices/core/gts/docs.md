@@ -3,7 +3,7 @@
 
 # GTS Transport Module
 
-GMEOW describing its own transport (#267, `docs/GTS-SPEC.md`): a GTS file as a
+GMEOW describing its own transport (GTS transport design, `docs/GTS-SPEC.md`): a GTS file as a
 first-class entity — its segments, profiles, chain heads, transform codecs,
 opaque frames, and compaction lineage. Term-level documentation lives in
 `module.ttl`; this note carries the doctrine.

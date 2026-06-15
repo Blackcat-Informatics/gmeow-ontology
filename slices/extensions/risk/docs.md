@@ -5,7 +5,7 @@
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/risk` · **tier: extension**
 
-Hazards, type-level causation, cascades, and mitigations (#354, EPIC #348) —
+Hazards, type-level causation, cascades, and mitigations (the risk design) —
 counterfactual causal structure **without counterfactual machinery**.
 
 ## The type-level move
@@ -47,4 +47,4 @@ vocabulary — that asymmetry is why this slice exists.
 OBO RO rows (linkage-only, BFO lineage), MITRE D3FEND
 (countermeasure ↔ Mitigation), STIX 2.1/ATT&CK, UCO, ConceptNet/ATOMIC;
 projections to bowtie JSON (near-structural; drops causalModality — declared),
-FMEA CSV (drops chain order — declared), STIX bundles. Target list fixed in issue #354.
+FMEA CSV (drops chain order — declared), STIX bundles. Target list fixed in the alignment ledger.

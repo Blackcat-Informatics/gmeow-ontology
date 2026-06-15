@@ -88,7 +88,7 @@ gmeow:sliceConsumer a owl:DatatypeProperty ;
 
 # --------------------------------------------------------------------------- #
 # Distribution & tooling provision (consumed by the GTS packager and the
-# CLI roll-up — specified in issues #326/#327; fields reserved here so the
+# CLI roll-up — specified in the CLI roll-up and profile doctrine; fields reserved here so the
 # manifest schema needs no re-architecture when those land)
 # --------------------------------------------------------------------------- #
 
@@ -96,14 +96,14 @@ gmeow:sliceProfile a owl:DatatypeProperty ;
     rdfs:label "slice profile membership"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
     rdfs:range xsd:string ;
-    skos:definition "A named profile this slice belongs to. Multi-valued: a slice may serve several profiles. One name serves both worlds (the twin doctrine, #327/#330): it names the OWL composition profile <…/gmeow/profiles/<name>> — a generated, dependency-closed owl:imports aggregation — and the GTS sub-profile tag a package segment carrying this slice's data declares in its header (how a reader without the slice installed reports what is missing). Membership is always explicit; there is no default."@x-gmeow-english ;
+    skos:definition "A named profile this slice belongs to. Multi-valued: a slice may serve several profiles. One name serves both worlds (the twin doctrine, the twin profile doctrine): it names the OWL composition profile <…/gmeow/profiles/<name>> — a generated, dependency-closed owl:imports aggregation — and the GTS sub-profile tag a package segment carrying this slice's data declares in its header (how a reader without the slice installed reports what is missing). Membership is always explicit; there is no default."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 gmeow:providesSubcommand a owl:DatatypeProperty ;
     rdfs:label "provides subcommand"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
     rdfs:range xsd:string ;
-    skos:definition "A CLI subcommand this slice contributes to the gmeow roll-up (e.g. \"image\", \"render\", \"gts\"). Discovery and dispatch are specified in the CLI roll-up spec (#326); this field is the declaration the loader will read."@x-gmeow-english ;
+    skos:definition "A CLI subcommand this slice contributes to the gmeow roll-up (e.g. \"image\", \"render\", \"gts\"). Discovery and dispatch are specified in the CLI roll-up spec (CLI roll-up design); this field is the declaration the loader will read."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 gmeow:builtAgainstCore a owl:DatatypeProperty ;

@@ -70,7 +70,7 @@ pyoxigraph answer every committed query identically with no Docker.
 ## Engine architecture: a Rust core behind a Python oracle
 
 The stack follows a pattern GMEOW has already committed to for the Graph Transport Substrate
-(issue #277, *"Rust core + PyO3/wasm bindings, gated by a language-neutral conformance corpus"*; a
+(GTS conformance design, *"Rust core + PyO3/wasm bindings, gated by a language-neutral conformance corpus"*; a
 `crates/gts/` Rust crate already exists, with pyoxigraph named as the architectural model):
 
 - **Python is the conformance oracle, not the production engine.** The reference solver — the `owlrl`
@@ -87,7 +87,7 @@ The stack follows a pattern GMEOW has already committed to for the Graph Transpo
   binding puts the reasoner in the browser — reasoning over a GTS package client-side — serving the
   AI-first and "open anywhere" goals.
 
-The safety net is the corpus gate #277 defines (see [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)): one
+The safety net is the corpus conformance gate defines (see [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)): one
 language-neutral corpus that both the Python oracle and the Rust engine pass identically. **The
 compiler itself is bound for Rust**: Python's role narrows to the oracle and thin orchestration, while
 the IR compiler, lowering, solver, and projections consolidate in the Rust core. The corpus gate makes
@@ -221,7 +221,7 @@ loss/preservation contract for these artifacts is in [LOGIC-CONFORMANCE.md](LOGI
 
 A logic this expressive is humane only if it can say *why* in words — and `logic:` can, because GMEOW
 already mandates the raw material. Every term has an `rdfs:label`, a `skos:definition`,
-`skos:scopeNote`/`skos:example` where the documentation doctrine (#325) applies, and the markdown guide
+`skos:scopeNote`/`skos:example` where the documentation doctrine applies, and the markdown guide
 prose those slices ship; the structural lint *requires* a label, a definition, and a defining slice on
 every term (`src/gmeow_tools/validate.py`, `structural_lint`). So at every node of a proof the solver
 has vetted human text. **Prose is another projection target — the human, explanatory surface — generated
@@ -237,7 +237,7 @@ the prose cites appears in the proof trace or witness graph, so the explanation 
 cited term outside the trace), not merely trusted. A language model may *polish* the prose; the skeleton
 — which axioms, rules, and sources, in which order — is provable and checkable (the conformance test for
 this is in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)). This makes annotation expressivity load-bearing:
-the scopeNote/example backlog (#325/#433) is **fuel for the explanation surface**, not cosmetic debt.
+the scopeNote/example backlog (documentation doctrine/reasoner timeout gate) is **fuel for the explanation surface**, not cosmetic debt.
 `gmeow describe` already renders term-level prose; this generalizes it to a whole derivation. For the
 stable parts — foundation axioms and the constraint catalogue — the rendered rationale is itself a
 generated, drift-gated artifact; per-query explanations are produced at reasoning time.

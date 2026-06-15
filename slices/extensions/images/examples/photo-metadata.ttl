@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: image metadata at three layers (#443). EXIF technical tags
+# Worked example: image metadata at three layers. EXIF technical tags
 # (gmeow:hasExifTag) record how the bytes were captured. A gmeow:ImageRegion with
 # a typed gmeow:RegionSelector pins WHERE something is in the frame (a fractional
 # bounding box). And a gmeow:DepictionUsage makes "this image depicts X" a

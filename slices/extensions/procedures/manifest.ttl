@@ -17,4 +17,4 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ;
-    gmeow:sliceConsumer "The universal process/procedure/plan generalization (#226) for workflows and recipes."@x-gmeow-english .
+    gmeow:sliceConsumer "The universal process/procedure/plan generalization for workflows and recipes."@x-gmeow-english.

@@ -18,7 +18,7 @@
 | [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the Nemo–Prolog seam, graph versioning, generated artifacts, CLI |
 | [`LOGIC-MIGRATION.md`](LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
 | [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
-| [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger (#491) |
+| [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
 ## The thesis
 
@@ -84,7 +84,7 @@ not RDF-native and has no open-world reading. **No prior system unifies these, a
 Third, **the current Java/Docker reasoning path is expensive.** HermiT sound-and-complete
 consistency over the merged ontology runs ~15 minutes and grows with the ontology; the default
 900s container ceiling sits right at that cliff, so HermiT gets a doubled 1800s ceiling
-(`src/gmeow_tools/reason.py:44-45`, `_HERMIT_TIMEOUT`; gate-health tracked as issue #433). HermiT
+(`src/gmeow_tools/reason.py:44-45`, `_HERMIT_TIMEOUT`; gate-health tracked as reasoner timeout gate). HermiT
 and ROBOT are valuable compatibility checkers, but they are too slow and too far from RDF 1.2 to
 be the canonical authority.
 
@@ -193,14 +193,14 @@ index that keeps the whole design honest; the siblings cite these in context.
 | Type-level counterfactual (no-occurrence gate) | risk slice (`Hazard ⊑ Disposition`, `CausalLink`/`Cascade` over `EventType`); teleology `Goal`/`satisfiedBy`; norms `prescribedConduct` |
 | Belief-world vs asserted-world | deception `heldStandpoint` / `projectedStandpoint` on one `Event` |
 | Deterministic revision (entrenchment) | reuse `gmeow:overrides` / `AuthorityLevel` / `moreSevereThan` / `sharpens` as the tie-break order; tie → `unknown` |
-| Engine pattern (Rust core + Python oracle + corpus gate) | GTS #277; `crates/gts/`; pyoxigraph model; Principle 7 |
+| Engine pattern (Rust core + Python oracle + corpus gate) | GTS GTS conformance design; `crates/gts/`; pyoxigraph model; Principle 7 |
 | Possible world = named graph | oxigraph quad store; `accordingTo` context; paraconsistency = world-indexed entailment |
 | World construction substrate | Nemo existential rules + acyclicity/termination certification |
 | Backward chaining (Prolog-grade) | embedded Scryer Prolog; magic-sets over Nemo later |
 | Second-order identity supply | OWL punning (class-as-individual) + Flora-2/Ergo HiLog reification |
-| Logic-to-prose explanation source | mandatory annotations (`validate.py` `structural_lint`); `gmeow describe`; markdown datatype (#325) |
+| Logic-to-prose explanation source | mandatory annotations (`validate.py` `structural_lint`); `gmeow describe`; markdown datatype |
 | Upper-ontology projection targets | `config.py:560-575` (`gufo`/`dolce`/`bfo` as `"upper"`) |
-| Reasoning cost reality | `reason.py:44-45` (`_HERMIT_TIMEOUT`, #433) |
+| Reasoning cost reality | `reason.py:44-45` (`_HERMIT_TIMEOUT`, reasoner timeout gate) |
 | CLI sub-app + reason modes | `cli.py:332,1168` (`add_typer`); `cli.py:407` (`reason`) |
 
 ## Constitutional Alignment

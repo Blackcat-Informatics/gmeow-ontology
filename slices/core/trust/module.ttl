@@ -13,7 +13,7 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:comment """A cross-cutting trust facility: cryptographic keys, certifications (key↔identity attestations) and perspectival owner-trust — the Web-of-Trust superset layer (OpenPGP RFC 4880/9580, X.509, SSH, Nostr; aligned to the WOT schema). Reused wherever identity must be vouched for: contacts, accounts, and message signatures (the messaging-trust module builds on this). Trust here is asserted and perspectival; trust METRICS (transitive validity propagation) are deliberately left outside the logical core — represent inputs and outputs, never compute them in OWL.
 
-STANDPOINT DOCTRINE (#51). The trust module exercises the three-axis separation that governs every contested-fact slice: gmeow:accordingTo (whose frame holds the claim true) ⟂ gmeow:wasAttributedTo (which source recorded it) ⟂ gmeow:confidence (how sure we are). A gmeow:TrustAssertion is already perspectival (its gmeow:trustor is the frame holder), but the underlying gmeow:Certification — a key↔identity binding — can ALSO be disputed across standpoints: one standpoint holds the binding unequivocal, another refutes it. The three axes never bridge (Principle 9); a neutral archive can record a partisan claim (source ≠ standpoint), and a claim can be high-confidence-that-S-holds-it yet about a frame we disagree with (confidence ≠ standpoint). There is NO trust-specific dispute mechanism, no primaryCertification, no preferredTrust — only the cross-cutting #43 facility."""@x-gmeow-english ;
+STANDPOINT DOCTRINE. The trust module exercises the three-axis separation that governs every contested-fact slice: gmeow:accordingTo (whose frame holds the claim true) ⟂ gmeow:wasAttributedTo (which source recorded it) ⟂ gmeow:confidence (how sure we are). A gmeow:TrustAssertion is already perspectival (its gmeow:trustor is the frame holder), but the underlying gmeow:Certification — a key↔identity binding — can ALSO be disputed across standpoints: one standpoint holds the binding unequivocal, another refutes it. The three axes never bridge (Principle 9); a neutral archive can record a partisan claim (source ≠ standpoint), and a claim can be high-confidence-that-S-holds-it yet about a frame we disagree with (confidence ≠ standpoint). There is NO trust-specific dispute mechanism, no primaryCertification, no preferredTrust — only the cross-cutting standpoint facility."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -220,10 +220,10 @@ gmeow:endorses
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine — phase 2 of the reasoning-depth design context)
 #
 # Relator mediation for the two trust relators (EL someValuesFrom, open-world;
-# closed-world cardinality is SHACL's, #39). NO property chain is asserted over
+# closed-world cardinality is SHACL's, SHACL closure gate). NO property chain is asserted over
 # gmeow:trustor / trustee / endorses: OpenPGP owner-trust is DELIBERATELY
 # non-transitive — A trusting B and B trusting C does not make A trust C (that is
 # exactly what trust-signature depth bounds). Transitive-trust computation is a
@@ -241,7 +241,7 @@ gmeow:TrustAssertion rdfs:subClassOf
 
 # =========================================================================== #
 # CRYPTOGRAPHIC SIGNATURES (from the dissolved messaging-trust module —
-# #287 dependency surgery)
+# slice-dependency doctrine dependency refactor)
 # Generic signature machinery beside the keys it references: a
 # CryptographicSignature (PGP, S/MIME) signs any artifact, not only mail.
 # The email-wire half (DKIM, Authentication-Results, relay hops) lives in

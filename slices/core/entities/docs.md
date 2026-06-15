@@ -16,7 +16,7 @@ more) and routes everything with structure — person names above all — to the
 model, downcasting to "First Last" only in the projection layer (Principle 10: projection
 is where lossiness is allowed, never storage).
 
-The module's one axiom block is doctrine made checkable (#38): distinct `gufo:Kind`
+The module's one axiom block is doctrine made checkable (relator-mediation doctrine): distinct `gufo:Kind`
 classes each supply their own principle of identity, so the core ultimate Kinds are
 asserted pairwise disjoint — and only those whose disjointness is *true*.
 
@@ -72,7 +72,7 @@ The structured form of a "website / URL" field: the page is a first-class `gmeow
 rights. Non-functional — an entity may have several pages. Prefer this over a bare URL
 literal: the bridge into the document layer is the point.
 
-## The disjointness doctrine (#38)
+## The disjointness doctrine (relator-mediation doctrine)
 
 The `owl:AllDisjointClasses` axiom covers Person, Organization, SoftwareAgent, Location,
 ContactPoint, CryptographicKey, Appellation, Language, and WritingSystem — cross-module

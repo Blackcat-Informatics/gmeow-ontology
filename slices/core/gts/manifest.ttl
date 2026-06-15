@@ -20,4 +20,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/versions> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
-    gmeow:sliceConsumer "Describing and dogfooding GTS transport artifacts: packages, segments, profiles, chain heads, opaque frames, codecs, and compaction lineage (#267, docs/GTS-SPEC.md)."@x-gmeow-english .
+    gmeow:sliceConsumer "Describing and dogfooding GTS transport artifacts: packages, segments, profiles, chain heads, opaque frames, codecs, and compaction lineage (GTS transport design, docs/GTS-SPEC.md)."@x-gmeow-english.

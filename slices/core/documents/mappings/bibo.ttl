@@ -6,7 +6,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix bibo:  <http://purl.org/ontology/bibo/> .
 
-# Projection mappings: GMEOW publications → BIBO (#34 phase 3). The flat
+# Projection mappings: GMEOW publications → BIBO (PROV activity alignment phase 3). The flat
 # bibliographic view: articles, patents, identifiers. The DOI split uses the
 # TWO-CELL guard pattern (a "10."-prefixed identifier is a DOI per the DOI
 # handle syntax; everything else stays bibo:identifier) — pattern filters are

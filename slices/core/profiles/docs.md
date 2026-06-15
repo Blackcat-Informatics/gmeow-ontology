@@ -16,7 +16,7 @@ its own descriptors and value classes, so tooling can validate, render, and exte
 facet by reading the graph rather than reading code.
 
 This is the load-bearing pattern beneath Principle 11 (frame-relativity): every
-`ReferenceFrame` — temporal, spatial, currency, even instrument-tuning frames (#308) —
+`ReferenceFrame` — temporal, spatial, currency, even instrument-tuning frames (pitch frames) —
 is governed by a Profile, which is what makes "a value asserted without its
 self-describing frame is ill-formed" enforceable by construction (the kernel's
 `gmeow:requiresFrame` generates the shapes; this slice supplies the schema they check).

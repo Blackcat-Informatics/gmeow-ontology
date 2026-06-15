@@ -80,7 +80,7 @@ reusing the patterns the project already runs. The required tests, mapped to exi
 - **two-engine agreement** per projected fragment — the `crosscheck` pattern (native vs
   ELK/HermiT/Datalog must agree where the projection preserves meaning);
 - **oracle/engine agreement** — the Python oracle and the Rust core must pass one shared,
-  language-neutral conformance corpus identically (the #277 gate; Principle 7);
+  language-neutral conformance corpus identically (the conformance gate; Principle 7);
 - **DL/EL projection** tests for preserved and intentionally narrowed axioms;
 - **loss-ledger** tests for every omitted or weakened construct, including the **preservation
   polarity** of each projection (see [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md));

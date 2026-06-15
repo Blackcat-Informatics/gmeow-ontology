@@ -1,4 +1,4 @@
-"""Oral tradition & performance lineage guards (issue #316).
+"""Oral tradition & performance lineage guards.
 
 Principles 4, 5, 9, 10, 16.
 """

@@ -254,7 +254,7 @@ gmeow:scriptUsageInterval
 
 # =========================================================================== #
 # Version labels + the software bridge. Universal version/supersession lineage
-# lives in coreference.ttl (#74); LanguageVersion is one consumer.
+# lives in coreference.ttl (authority/coreference links); LanguageVersion is one consumer.
 # =========================================================================== #
 
 gmeow:versionLabel
@@ -814,7 +814,7 @@ gmeow:changeMerger skos:definition "The merger language change type — a kind o
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # =========================================================================== #
-# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# OBSERVATION-SPINE BRIDGES (slice-dependency doctrine dependency refactor)
 # Declared HERE, in the slice that owns these properties: a dependent slice
 # knows the core observation spine; the spine never knows the slice. The
 # super-properties (observedFeature / vantage / observationResult) live in

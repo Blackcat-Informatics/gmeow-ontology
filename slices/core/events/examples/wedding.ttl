@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: an event on the four orthogonal axes (#443). A wedding has a
+# Worked example: an event on the four orthogonal axes. A wedding has a
 # TYPE (eventTypeMarriage), a temporal placement carried in an EXPLICIT frame
 # (P11: the instant is meaningless without its TemporalFrame), and a LOCATION —
 # three independent axes. The fourth axis is participation: most attendees ride

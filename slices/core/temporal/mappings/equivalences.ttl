@@ -16,16 +16,16 @@
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
 
-# Term equivalences for the expanded temporal kernel (#67) — GMEOW authoring source.
+# Term equivalences for the expanded temporal kernel — GMEOW authoring source.
 # Compiled to mappings/gmeow-temporal.sssom.tsv by `gmeow compile-mappings`.
 # Alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
 #
 # Design notes:
-#   * TemporalFrame is the temporal counterpart of gmeow:ReferenceFrame (#65 / #70).
+# * TemporalFrame is the temporal counterpart of gmeow:ReferenceFrame (reference-frame profile / temporal-frame design).
 #     It aligns to OWL-Time's TRS, CIDOC-CRM E52, and CRMgeo's spatiotemporal
 #     reference system by reference.
 #   * ReferenceFrame and hasReferenceFrame also align to OWL-Time TRS/hasTRS
-#     when the frame's realm is temporal (contextual closeMatch from #70).
+# when the frame's realm is temporal (contextual closeMatch from temporal-frame design).
 #   * TimeScale, CalendarSystem, and ReferencePosition are first-class kinds so
 #     non-Gregorian calendars and astronomical scales are co-equal with UTC/Gregorian
 #     (Principle 9).
@@ -45,8 +45,8 @@ gmeow:mapsetTemporal a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/temporal" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Expanded temporal kernel alignments (#67) — TemporalFrame / Instant / NamedPeriod / TemporalMeasurement / interval-level Allen JEPD, supersetting OWL-Time, CIDOC-CRM E52/E16, CRMgeo, EDTF Ontology, PeriodO, ICS Geologic Timescale, QUDT, IVOA, and Wikidata BY REFERENCE.
-        TEMPORAL FRAME: GMEOW's TemporalFrame is the temporal counterpart of the spatial ReferenceFrame (#65), decomposed into TimeScale + optional CalendarSystem + optional ReferencePosition. It aligns to OWL-Time TRS, CIDOC-CRM E52 Time-Span, and CRMgeo spatiotemporal reference systems.  Also includes contextual alignments from #70: ReferenceFrame↔time:TRS and hasReferenceFrame↔time:hasTRS when frameRealm is temporal.
+    gmeow:setComment """Expanded temporal kernel alignments — TemporalFrame / Instant / NamedPeriod / TemporalMeasurement / interval-level Allen JEPD, supersetting OWL-Time, CIDOC-CRM E52/E16, CRMgeo, EDTF Ontology, PeriodO, ICS Geologic Timescale, QUDT, IVOA, and Wikidata BY REFERENCE.
+        TEMPORAL FRAME: GMEOW's TemporalFrame is the temporal counterpart of the spatial ReferenceFrame (reference-frame profile), decomposed into TimeScale + optional CalendarSystem + optional ReferencePosition. It aligns to OWL-Time TRS, CIDOC-CRM E52 Time-Span, and CRMgeo spatiotemporal reference systems. Also includes contextual alignments from temporal-frame design: ReferenceFrame↔time:TRS and hasReferenceFrame↔time:hasTRS when frameRealm is temporal.
         INSTANT / EDTF: crisp instantValue is xsd:dateTime; edtfValue is a plain literal (EDTF parsing is solver-layer, P12). Aligned to OWL-Time time:Instant and EDTF Ontology by reference.
         NAMED PERIOD: aligned to OWL-Time time:ProperInterval, PeriodO periods, and ICS geologic timescale concepts. Geologic period seeds carry skos:exactMatch to ICS by reference.
         TEMPORAL MEASUREMENT: aligned to CIDOC-CRM E16 Measurement and CRMgeo; dating methods are a value vocabulary mapped to Wikidata QIDs.
@@ -54,7 +54,7 @@ gmeow:mapsetTemporal a gmeow:MappingSet ;
         CO-EQUAL CALENDARS: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, and ISO week (Principle 9).""" .
 
 # --------------------------------------------------------------------------- #
-# ReferenceFrame contextual alignments (from #70 — merged during rebase)
+# ReferenceFrame contextual alignments (from temporal-frame design — merged during rebase)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqTemporalFrame001 a gmeow:TermEquivalence ;
@@ -284,7 +284,7 @@ gmeow:eqTemporal022 a gmeow:TermEquivalence ;
     gmeow:alignObject crm:E16_Measurement ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW (#124)" ;
+    gmeow:comment "CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW";
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 gmeow:eqTemporal023 a gmeow:TermEquivalence ;
@@ -485,7 +485,7 @@ gmeow:eqTemporal039 a gmeow:TermEquivalence ;
     gmeow:comment "Barycentric Dynamical Time (Q1320839)" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
-# IVOA timescale — direct vocabulary matches (#85)
+# IVOA timescale — direct vocabulary matches (celestial-frame design)
 gmeow:eqTemporal039b a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:timeScaleUTC ;
     gmeow:alignPredicate skos:closeMatch ;
@@ -648,7 +648,7 @@ gmeow:eqTemporal053 a gmeow:TermEquivalence ;
     gmeow:alignObject prov:startedAtTime ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (#34 phase 2)" ;
+    gmeow:comment "the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (PROV activity alignment phase 2)";
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 gmeow:eqTemporal054 a gmeow:TermEquivalence ;
@@ -657,5 +657,5 @@ gmeow:eqTemporal054 a gmeow:TermEquivalence ;
     gmeow:alignObject prov:endedAtTime ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the end-boundary twin of eqTemporal053 (#34 phase 2)" ;
+    gmeow:comment "the end-boundary twin of eqTemporal053 (PROV activity alignment phase 2)";
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .

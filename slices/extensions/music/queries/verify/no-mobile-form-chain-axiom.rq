@@ -1,4 +1,4 @@
-# ROBOT verify QC (#312) — mobile-form graph must never be DL-axiomatized.
+# ROBOT verify QC (performance constraints) — mobile-form graph must never be DL-axiomatized.
 # gmeow:mayFollow must not be declared transitive, symmetric, or appear as the
 # subject or as a member of any owl:propertyChainAxiom. Any row is a FAILURE.
 

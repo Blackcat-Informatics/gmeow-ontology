@@ -10,7 +10,7 @@
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-# Term equivalences for the notes & annotation domain (#63) — GMEOW authoring source.
+# Term equivalences for the notes & annotation domain (annotation target span) — GMEOW authoring source.
 # Compiled to mappings/gmeow-notes.sssom.tsv by `gmeow compile-mappings`.
 # Alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
 
@@ -18,7 +18,7 @@ gmeow:mapsetNotes a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-notes.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/notes" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Notes & annotation alignments (#63).
+    gmeow:setComment """Notes & annotation alignments (annotation target span).
         W3C Web Annotation: GMEOW Annotation is a relator with provenance, confidence, temporal scope and suppression; oa:Annotation is a flatter body/target/motivation construct — closeMatch, not exactMatch.
         schema.org: GMEOW Note/Comment are information objects with full provenance; schema:NoteDigitalDocument / schema:Comment are flat document types — closeMatch.
         ActivityStreams: as:Note is a flat social-media note; GMEOW Note carries the full provenance stack — closeMatch.

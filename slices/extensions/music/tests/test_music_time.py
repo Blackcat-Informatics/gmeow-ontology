@@ -1,4 +1,4 @@
-"""Musical-time layer structural guards (issue #310).
+"""Musical-time layer structural guards (musical time).
 
 Principles 4, 9, 10, 11, 12, 15, 16.
 """

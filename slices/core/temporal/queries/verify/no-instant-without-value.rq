@@ -1,4 +1,4 @@
-# ROBOT verify QC (#67) — every Instant must carry at least one value.
+# ROBOT verify QC — every Instant must carry at least one value.
 # An instant with neither a crisp instantValue nor an edtfValue is
 # indeterminate and therefore a FAILURE.
 

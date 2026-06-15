@@ -271,8 +271,8 @@ gmeow:supportsNotability
 # =========================================================================== #
 
 # =========================================================================== #
-# EVIDENCE SPAN (from the notes module — #287 dependency surgery)
-# The claim-spine anchor (#55: Source → Chunk → EvidenceSpan → Claim) is core
+# EVIDENCE SPAN (from the notes module — slice-dependency doctrine dependency refactor)
+# The claim-spine anchor (EvidenceSpan audit machinery: Source → Chunk → EvidenceSpan → Claim) is core
 # evidence machinery: citations' Selector specializes it and notes' annotation
 # target span reuses it; both now reference core.
 # =========================================================================== #
@@ -281,5 +281,5 @@ gmeow:EvidenceSpan
     a owl:Class, gufo:Category ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Evidence Span"@x-gmeow-english ;
-    skos:definition "An anchored target span within a resource — a text quote, character position, fragment identifier, page, or generic locator. Generalized from the citation-selector model to serve both evidentiary claims (#54/#55) and annotation targets (#63). The selector properties (selectorTextQuote, selectorTextPosition, selectorPage, selectorLocator) are asserted on EvidenceSpan individuals and inherited by Selector instances. No second selector model is minted (Principle 4)."@x-gmeow-english ;
+    skos:definition "An anchored target span within a resource — a text quote, character position, fragment identifier, page, or generic locator. Generalized from the citation-selector model to serve both evidentiary claims (GraphRAG provenance design/EvidenceSpan audit machinery) and annotation targets (annotation target span). The selector properties (selectorTextQuote, selectorTextPosition, selectorPage, selectorLocator) are asserted on EvidenceSpan individuals and inherited by Selector instances. No second selector model is minted (Principle 4)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .

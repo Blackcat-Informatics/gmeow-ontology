@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: names as reified, perspectival appellations (#443). One person
+# Worked example: names as reified, perspectival appellations. One person
 # carries several PersonNames at once — a chosen legal name decomposed into
 # parts, a superseded deadname kept but flagged non-displayable (P10:
 # suppression, never deletion), and a Han-script form. A NameUsage relator

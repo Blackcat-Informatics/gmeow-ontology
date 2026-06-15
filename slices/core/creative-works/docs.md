@@ -4,7 +4,7 @@
 # Creative-Works Mapping Guide
 
 This document describes the WEMI (Work / Expression / Manifestation / Item) spine
-introduced in issue #208, its design rationale, and its mappings to external
+introduced in WEMI spine, its design rationale, and its mappings to external
 vocabularies.
 
 ## The WEMI spine in GMEOW
@@ -19,7 +19,7 @@ GMEOW reconstructs the four-tier FRBR/LRMoo distinction using native primitives:
 | **Item** | `gmeow:Item` | Single exemplar | `gufo:Kind` |
 
 `gmeow:CreativeWork` is the `gufo:Category` umbrella over all four tiers. It
-replaces the former flat `gufo:Kind` (pre-#208) so that surface-vocabulary
+replaces the former flat `gufo:Kind` (pre-WEMI spine) so that surface-vocabulary
 alignments become projections from the umbrella rather than core equivalences.
 
 ### Key design decisions
