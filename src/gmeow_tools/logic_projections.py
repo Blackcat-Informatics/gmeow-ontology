@@ -46,6 +46,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+# TYPE_CHECKING-only import to avoid a runtime circular dependency: the
+# LossEntry type lives in logic_materialize, which imports from logic_ir but
+# NOT from logic_projections.  We reference it only in function signatures so
+# the ``from __future__ import annotations`` deferred evaluation means the name
+# is never resolved at module-import time.
+from typing import TYPE_CHECKING
+
 from rdflib import RDF, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDFS, XSD
 
@@ -56,6 +63,9 @@ from gmeow_tools.logic_ir import (
     LogicProgram,
     PreservationKind,
 )
+
+if TYPE_CHECKING:
+    from gmeow_tools.logic_materialize import LossEntry
 
 LOGIC = Namespace(LOGIC_NAMESPACE)
 GMEOW = Namespace(NAMESPACE)
@@ -1265,6 +1275,7 @@ def build_projection_report(
     program: LogicProgram,
     projections: list[ProjectionResult],
     *,
+    materialization_loss_entries: list[LossEntry] | None = None,
     path: Path | None = None,
 ) -> Graph:
     """Build the projection report graph (``generated/logic/projection-report.ttl``).
@@ -1283,13 +1294,35 @@ def build_projection_report(
     Then :func:`assert_no_overclaim` is called for each projection so that an
     overclaim blocks the report from being serialized.
 
+    Materialization loss ledger (Task 5)
+    -------------------------------------
+    When *materialization_loss_entries* is supplied (non-empty list of
+    :class:`~.logic_materialize.LossEntry` records from a
+    :func:`~.logic_materialize.materialize_program` run), the narrowed
+    constructs are attached to the ``nemo`` target node (the Nemo/materialization
+    projection) as ``gmeow:lossyDrop`` literals prefixed ``"materialization: "``.
+    The overclaim gate is extended to cover the materialization path: if the
+    ``nemo`` target declares ``ExactPreservation`` but materialization produced
+    any loss entries, :class:`OverclaimError` is raised (red build).
+
     Args:
         program: The source program (used for counts).
         projections: List of :class:`ProjectionResult` instances.
+        materialization_loss_entries: Optional list of
+            :class:`~.logic_materialize.LossEntry` records from the oracle
+            chase.  When present and non-empty, they are recorded as
+            ``gmeow:lossyDrop`` nodes on the ``nemo`` target and trigger the
+            materialization overclaim check.  Pass ``None`` or ``[]`` for
+            projection-only runs where no oracle chase was performed.
         path: When given, the Turtle text is written there.
 
     Returns:
         The rdflib Graph of the report.
+
+    Raises:
+        OverclaimError: If any projection declares
+            :attr:`~.logic_ir.PreservationKind.EXACT` but produced drops
+            (structural or materialization).
     """
     g = Graph()
     _bind_prefixes(g)
@@ -1318,9 +1351,27 @@ def build_projection_report(
         )
     )
 
+    # Build an index of materialization loss strings keyed by target name.
+    # Currently all materialization losses are attributed to the "nemo" target
+    # because Nemo/materialization is the execution surface for the oracle chase.
+    mat_drops_by_target: dict[str, list[str]] = {}
+    if materialization_loss_entries:
+        nemo_mat_drops: list[str] = []
+        for entry in materialization_loss_entries:
+            nemo_mat_drops.append(
+                f"{entry.construct}: {entry.reason} "
+                f"[preservationKind={entry.preservation_kind.value}]"
+            )
+        if nemo_mat_drops:
+            mat_drops_by_target["nemo"] = nemo_mat_drops
+
     for proj in sorted(projections, key=lambda p: p.target):
-        # Overclaim check per projection
-        assert_no_overclaim(proj.target, proj.preservation, proj.actual_drops)
+        # Gather all drops for this target: actual projection drops + mat drops.
+        mat_drops = mat_drops_by_target.get(proj.target, [])
+        all_actual_drops = proj.actual_drops + mat_drops
+
+        # Overclaim check: ExactPreservation + any drops (projection or mat) → red.
+        assert_no_overclaim(proj.target, proj.preservation, all_actual_drops)
 
         target_iri = URIRef(LOGIC_NAMESPACE + "target/" + proj.target)
         g.add((report_iri, LOGIC.hasProjection, target_iri))
@@ -1343,9 +1394,14 @@ def build_projection_report(
         # Structural lossy-drop notes (from _TARGET_META)
         for drop_note in sorted(proj.lossy_drops):
             g.add((target_iri, GMEOW_LOSSY_DROP, Literal(drop_note)))
-        # Concrete actual drops from this run
+        # Concrete actual drops from this run (projection-level)
         for actual in sorted(proj.actual_drops):
             g.add((target_iri, GMEOW_LOSSY_DROP, Literal("actual: " + actual)))
+        # Materialization-phase loss entries for this target
+        for mat_drop in sorted(mat_drops):
+            g.add(
+                (target_iri, GMEOW_LOSSY_DROP, Literal("materialization: " + mat_drop))
+            )
 
     if path is not None:
         path.parent.mkdir(parents=True, exist_ok=True)
