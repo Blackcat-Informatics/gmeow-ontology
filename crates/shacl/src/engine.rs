@@ -19,14 +19,14 @@ use crate::shapes::{Shapes, Target};
 
 /// Collect distinct subjects of `(?, pred, ?)` in the default graph.
 fn subjects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
-    let mut seen = std::collections::BTreeSet::new();
+    let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
     for quad in data
         .quads_for_pattern(None, Some(pred.as_ref()), None, None)
         .flatten()
     {
         let t = Term::from(quad.subject);
-        if seen.insert(t.to_string()) {
+        if seen.insert(t.clone()) {
             result.push(t);
         }
     }
@@ -35,14 +35,14 @@ fn subjects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
 
 /// Collect distinct objects of `(?, pred, ?)` in the default graph.
 fn objects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
-    let mut seen = std::collections::BTreeSet::new();
+    let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
     for quad in data
         .quads_for_pattern(None, Some(pred.as_ref()), None, None)
         .flatten()
     {
         let t = quad.object;
-        if seen.insert(t.to_string()) {
+        if seen.insert(t.clone()) {
             result.push(t);
         }
     }
@@ -53,14 +53,14 @@ fn objects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
 /// No subclass inference — only quads present in `data` are consulted.
 fn instances_of_class(data: &Store, class_iri: &oxigraph::model::NamedNode) -> Vec<Term> {
     let class_term = Term::NamedNode(class_iri.clone());
-    let mut seen = std::collections::BTreeSet::new();
+    let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
     for quad in data
         .quads_for_pattern(None, Some(rdf::TYPE), Some(class_term.as_ref()), None)
         .flatten()
     {
         let t = Term::from(quad.subject);
-        if seen.insert(t.to_string()) {
+        if seen.insert(t.clone()) {
             result.push(t);
         }
     }
@@ -69,9 +69,9 @@ fn instances_of_class(data: &Store, class_iri: &oxigraph::model::NamedNode) -> V
 
 /// Resolve the focus node set for a single shape from its target declarations.
 ///
-/// Results are deduped (by `Term::to_string`) and sorted for a stable order.
+/// Results are deduped by `Term` identity and sorted for a stable order.
 fn resolve_focus_nodes(data: &Store, targets: &[Target]) -> Vec<Term> {
-    let mut seen = std::collections::BTreeSet::new();
+    let mut seen = std::collections::HashSet::new();
     let mut nodes: Vec<Term> = Vec::new();
 
     for target in targets {
@@ -90,8 +90,7 @@ fn resolve_focus_nodes(data: &Store, targets: &[Target]) -> Vec<Term> {
             }
         };
         for node in candidates {
-            let key = node.to_string();
-            if seen.insert(key) {
+            if seen.insert(node.clone()) {
                 nodes.push(node);
             }
         }
