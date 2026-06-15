@@ -16,7 +16,6 @@ MODULES = (
     "evals",
     "export",
     "frame_shapes_gen",
-    "gts_full_gen",
     "gts_gen",
     "gts_vectors_gen",
     "logic_compile",

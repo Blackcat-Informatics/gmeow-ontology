@@ -22,11 +22,13 @@ from rdflib.compare import to_canonical_graph
 
 from gmeow_tools.config import (
     GTS_GRAPH_ALIGNMENTS,
+    GTS_GRAPH_IMPORTS,
+    GTS_GRAPH_METADATA,
     GTS_GRAPH_STATEMENTS,
     GTS_SNAPSHOT_FILE,
     PROJECT_ROOT,
 )
-from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.graph import iter_import_files, load_merged_graph
 from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gts import read
@@ -61,15 +63,9 @@ def test_cross_hash_seed_builds_are_byte_identical(tmp_path: Path) -> None:
     interning must erase all of it.
     """
     script = (
-        "from gmeow_tools.config import STATEMENT_RDF12_FILE\n"
-        "from gmeow_tools.graph import load_merged_graph\n"
-        "from gmeow_tools.gts_producer import compile_gts\n"
-        "from gmeow_tools.mappings import build_alignment_graph, load_mappings\n"
+        "from gmeow_tools.gts_gen import build_snapshot_bytes\n"
         "import sys\n"
-        "data = compile_gts(load_merged_graph(include_imports=False),"
-        " STATEMENT_RDF12_FILE,"
-        " alignment_graph=build_alignment_graph(load_mappings()))\n"
-        "sys.stdout.buffer.write(data)\n"
+        "sys.stdout.buffer.write(build_snapshot_bytes())\n"
     )
     outputs = []
     for seed in ("0", "424242"):
@@ -91,11 +87,16 @@ def test_committed_snapshot_matches_a_fresh_build() -> None:
 
 
 def test_snapshot_partitions_sources_into_named_graphs() -> None:
-    """Base graph → default; rdf12 base quads → statements; SSSOM → alignments."""
+    """Default graph is authored GMEOW; imports/metadata are named graphs."""
     g = read(GTS_SNAPSHOT_FILE.read_bytes())
     assert g.diagnostics == []
     graph_names = {g.terms[gid].value for _, _, _, gid in g.quads if gid is not None}
-    assert graph_names == {GTS_GRAPH_STATEMENTS, GTS_GRAPH_ALIGNMENTS}
+    assert graph_names == {
+        GTS_GRAPH_STATEMENTS,
+        GTS_GRAPH_ALIGNMENTS,
+        GTS_GRAPH_IMPORTS,
+        GTS_GRAPH_METADATA,
+    }
 
     default_quads = sum(1 for q in g.quads if q[3] is None)
     merged_size = len(to_canonical_graph(load_merged_graph(include_imports=False)))
@@ -117,8 +118,49 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
     ]
     assert len(alignments) == len(build_alignment_graph(load_mappings()))
 
+    imports = [
+        q
+        for q in g.quads
+        if q[3] is not None and g.terms[q[3]].value == GTS_GRAPH_IMPORTS
+    ]
+    import_graph = Graph()
+    for source in iter_import_files():
+        import_graph.parse(source, format="turtle")
+    assert len(imports) == len(to_canonical_graph(import_graph))
+
+    metadata = [
+        q
+        for q in g.quads
+        if q[3] is not None and g.terms[q[3]].value == GTS_GRAPH_METADATA
+    ]
+    assert metadata
+
     # the statement layer rides with its reifier machinery intact
     assert g.reifiers and g.annotations
+
+
+def test_default_graph_loader_excludes_import_subjects() -> None:
+    """Term-facing consumers read authored GMEOW, not the gUFO import closure."""
+    from gmeow_tools.describe import load_graph_from_gts
+
+    graph = load_graph_from_gts(GTS_SNAPSHOT_FILE)
+    assert any(
+        str(s).startswith("https://blackcatinformatics.ca/gmeow/") for s, _, _ in graph
+    )
+    assert not any(str(s).startswith("http://purl.org/nemo/gufo#") for s, _, _ in graph)
+
+
+def test_self_description_metadata_is_named_graph() -> None:
+    """CrossRef metadata remains bundled without polluting the default graph."""
+    from gmeow_tools.describe import load_graph_from_gts
+    from gmeow_tools.self_desc import load_self_description_from_graph
+
+    metadata = load_graph_from_gts(GTS_SNAPSHOT_FILE, graph_names={GTS_GRAPH_METADATA})
+    assert load_self_description_from_graph(metadata).doi
+
+    default = load_graph_from_gts(GTS_SNAPSHOT_FILE)
+    with pytest.raises(ValueError, match="self-description"):
+        load_self_description_from_graph(default)
 
 
 def test_snapshot_term_ids_are_content_sorted() -> None:
