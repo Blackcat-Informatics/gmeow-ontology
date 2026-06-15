@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-B/no-occurrence-gate/EventType>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n28c43be0edd748659853eb16576b9f7ab2>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n28c43be0edd748659853eb16576b9f7ab3>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n28c43be0edd748659853eb16576b9f7ab1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n7ab0495f10b44e9a88c43541c3d3ae66b2>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n7ab0495f10b44e9a88c43541c3d3ae66b3>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n7ab0495f10b44e9a88c43541c3d3ae66b1>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, "default").
 
 % === Rules ===
 #[name("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation")]
-<https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?A, ?C, ?C) :-
-    <https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?A, ?B, ?C),
-    <https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?B, ?C, ?C) .
+<https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?A, ?C, ?W) :-
+    <https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?A, ?B, ?W),
+    <https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?B, ?C, ?W) .

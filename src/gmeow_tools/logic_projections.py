@@ -1238,6 +1238,18 @@ def project_nemo(
                 f"Head: {head.subject} {head.predicate} {head.obj}"
             )
 
+        # Single world-context variable shared by the head and every body atom,
+        # so all premises and the conclusion lie in the same named-graph world
+        # (no cross-world joins).  It must not collide with a logical variable
+        # the rule already uses (e.g. an object variable named ?C), so pick a
+        # fresh name outside the rule's variable set.
+        rule_vars = head_vars | body_vars
+        world_var = "?W"
+        _world_suffix = 0
+        while world_var in rule_vars:
+            _world_suffix += 1
+            world_var = f"?W{_world_suffix}"
+
         body_parts: list[str] = []
         for body_atom in sorted(rule.body, key=lambda a: a._sort_key()):
             bp = _nemo_iri(body_atom.predicate)
@@ -1254,7 +1266,7 @@ def project_nemo(
             else:
                 bo = _nemo_iri(body_atom.obj)
 
-            body_parts.append(f"{bp}({bs}, {bo}, ?C)")
+            body_parts.append(f"{bp}({bs}, {bo}, {world_var})")
 
         # Emit rule name annotation so Nemo's trace API can recover the rule IRI.
         # The name is the rule's provenance IRI (from scope.provenance), or the
@@ -1267,12 +1279,12 @@ def project_nemo(
 
         if body_parts:
             body_str = ",\n    ".join(body_parts)
-            # Use ?C (shared across all body atoms and the rule head) so every
-            # premise and the conclusion must be in the same named-graph world.
-            # This enforces world isolation (no cross-world joins) and still
-            # satisfies Nemo's safety constraint because ?C appears in every
-            # body atom.
-            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C) :-")
+            # The shared world variable appears in every body atom, so the head
+            # is world-bound: Nemo's safety constraint holds while world
+            # isolation is enforced.
+            lines.append(
+                f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, {world_var}) :-"
+            )
             lines.append(f"    {body_str} .")
         else:
             # Zero-body rule: head-only (ground fact, no context variable needed).
