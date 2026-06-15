@@ -1201,6 +1201,52 @@ def transpile(
         err_console.print(f"[green]wrote[/green] {path}")
 
 
+@app.command()
+def acceptance(
+    source: Path | None = typer.Argument(  # noqa: B008
+        None,
+        help="A real-world source RDF file to score; default: the vendored "
+        "external/ snapshots (the un-gameable parity corpus).",
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None, "-o", "--out", help="Write the Markdown scoreboard here (else stdout)."
+    ),
+    floor: bool = typer.Option(
+        False,
+        "--floor",
+        help="Use the per-term floor instead of the context-aware descent.",
+    ),
+) -> None:
+    """Score the full transpile against real data — the honest scoreboard (#450).
+
+    Runs every acceptance gate over each source: pure-GMEOW intermediate (hard),
+    round-trip ⊇ source per vocabulary (scoreboard, red until done), size
+    invariant (hard), external-validator (no x-gmeow leak hard; term-attestation
+    and SHACL-from-vendored-axioms report-only), and the honest coverage report.
+    The corpus is the verbatim ``external/`` snapshots — numbers that cannot be
+    moved by writing fixtures. A progress meter, not a CI blocker.
+    """
+    from gmeow_tools.acceptance import default_corpus, render_report, run_acceptance
+
+    sources = [source] if source is not None else default_corpus()
+    if not sources:
+        raise _fail("no source given and no external/ snapshots found")
+    try:
+        results = [run_acceptance(s, descend=not floor) for s in sources]
+    except (OSError, ValueError, SyntaxError) as exc:
+        raise _fail(str(exc)) from exc
+
+    report = render_report(results)
+    if out is not None:
+        out.write_text(report, encoding="utf-8")
+        err_console.print(f"[green]wrote[/green] {out}")
+    else:
+        console.print(report, markup=False, highlight=False)
+    for fa in results:
+        verdict = "[green]PASS[/green]" if fa.passed else "[red]FAIL[/red]"
+        err_console.print(f"{verdict} {fa.source}")
+
+
 _EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")
 
 
