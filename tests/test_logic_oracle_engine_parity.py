@@ -58,9 +58,14 @@ gmeow_logic = pytest.importorskip(
     reason="gmeow_logic native extension not installed — run 'make logic-py' first",
 )
 
+from gmeow_tools.logic_certify import certify_program  # noqa: E402
 from gmeow_tools.logic_frontend import parse_logic_source  # noqa: E402
 from gmeow_tools.logic_ir import SemanticProfileId  # noqa: E402
-from gmeow_tools.logic_materialize import DerivedQuad, materialize_program  # noqa: E402
+from gmeow_tools.logic_materialize import (  # noqa: E402
+    BudgetParams,
+    DerivedQuad,
+    materialize_program,
+)
 from gmeow_tools.logic_projections import project_nemo  # noqa: E402
 
 # --------------------------------------------------------------------------- #
@@ -91,15 +96,60 @@ def _discover_parity_cases() -> list[Path]:
 _PARITY_CASES = _discover_parity_cases()
 _PARITY_IDS = [f"{p.parent.name}/{p.name}" for p in _PARITY_CASES]
 
-# Minimum expected case IDs (issue #501 AC-d corpus).
+# Cases whose projected rule set is intentionally NON-stratified (recursion
+# through negation-as-failure).  These are valid CERTIFY-parity cases — the
+# certifier's whole job is to FLAG them — but they cannot be MATERIALIZED: Nemo's
+# stratified engine refuses a non-stratified program (``NonStratifiedProgram``),
+# and the Python v1 oracle has no well-founded / stable-model evaluator either.
+# They are therefore skipped by the materialization parity test (which would have
+# no defined answer to compare) while still exercised by the certify parity test.
+_NON_MATERIALIZABLE_CASE_IDS: frozenset[str] = frozenset(
+    [
+        "decidability/non-stratified-flagged",
+        "profiles/well-founded",
+        "profiles/stable-model",
+    ]
+)
+
+# Minimum expected case IDs.  The first four are the issue #501 AC-d world corpus;
+# the remainder are the issue #502 Task 6 certifier/budget corpus whose rule sets
+# are `.rls`-projectable and therefore subject to oracle ≡ engine parity.
 _REQUIRED_CASE_IDS: frozenset[str] = frozenset(
     [
+        # #501 world corpus
         "worlds-A/contested-standpoint",
         "worlds-B/no-occurrence-gate",
         "explanation/transitive-derivation",
         "paraconsistency/cross-world-isolation",
+        # #502 decidability corpus
+        "decidability/stratified-certifies",
+        "decidability/non-stratified-flagged",
+        "decidability/budget-exhaustion",
+        # #502 profiles corpus
+        "profiles/positive-horn",
+        "profiles/stratified-naf",
+        "profiles/well-founded",
+        "profiles/stable-model",
     ]
 )
+
+# The semantic profile each case declares (its profile.json ``semantic_profile``),
+# keyed by case id.  Used by the CERTIFY parity assertion to call both the Python
+# oracle (``certify_program``) and the Rust engine (``gmeow_logic.certify``)
+# against the SAME declared profile, and to diff the two verdicts field-for-field.
+_CASE_PROFILE: dict[str, SemanticProfileId] = {
+    "worlds-A/contested-standpoint": SemanticProfileId.POSITIVE_HORN,
+    "worlds-B/no-occurrence-gate": SemanticProfileId.POSITIVE_HORN,
+    "explanation/transitive-derivation": SemanticProfileId.POSITIVE_HORN,
+    "paraconsistency/cross-world-isolation": SemanticProfileId.POSITIVE_HORN,
+    "decidability/stratified-certifies": SemanticProfileId.STRATIFIED_NAF,
+    "decidability/non-stratified-flagged": SemanticProfileId.STRATIFIED_NAF,
+    "decidability/budget-exhaustion": SemanticProfileId.POSITIVE_HORN,
+    "profiles/positive-horn": SemanticProfileId.POSITIVE_HORN,
+    "profiles/stratified-naf": SemanticProfileId.STRATIFIED_NAF,
+    "profiles/well-founded": SemanticProfileId.WELL_FOUNDED,
+    "profiles/stable-model": SemanticProfileId.STABLE_MODEL,
+}
 
 # --------------------------------------------------------------------------- #
 # Helpers: Nemo rules extraction
@@ -288,6 +338,13 @@ def test_oracle_engine_parity(case_dir: Path) -> None:
        quads.
     """
     case_id = f"{case_dir.parent.name}/{case_dir.name}"
+    if case_id in _NON_MATERIALIZABLE_CASE_IDS:
+        pytest.skip(
+            f"[{case_id}] non-stratified rule set: Nemo's stratified engine "
+            f"refuses to materialize it and the v1 Python oracle has no "
+            f"well-founded/stable-model evaluator — covered by the CERTIFY "
+            f"parity test instead (it is flagged, never materialized)"
+        )
     input_logic = case_dir / "input.logic.ttl"
     input_nq_path = case_dir / "input.nq"
 
@@ -368,6 +425,112 @@ def test_oracle_engine_parity(case_dir: Path) -> None:
             f"oracle's explanation cited-IRI pool — possible rule IRI mismatch.\n"
             f"  Oracle cited IRIs (first 20): {sorted(oracle_cited_all)[:20]}"
         )
+
+
+# --------------------------------------------------------------------------- #
+# Certifier parity: Rust certify ≡ Python certify_program (issue #502)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.parametrize("case_dir", _PARITY_CASES, ids=_PARITY_IDS)
+def test_certify_oracle_engine_parity(case_dir: Path) -> None:
+    """Assert the Rust certifier ≡ the Python certifier on a corpus case.
+
+    The static profile/decidability certifier is mirrored in Rust
+    (``gmeow_logic.certify``) and Python (``certify_program``).  Per Principle 7
+    the two MUST agree field-for-field on every certifiable case.  We feed the
+    ``% === Rules ===`` section of ``project_nemo(program).rls`` to the Rust
+    engine (the rule-extraction approach Task 4 documented — the ground-fact
+    axioms are not certification inputs) and the parsed :class:`LogicProgram` to
+    the Python oracle, both against the case's declared profile, then compare the
+    two ``CertificationVerdict`` dicts exactly (``certified``,
+    ``decidability_class``, ``profile_id``, and the sorted ``violations`` list).
+    """
+    case_id = f"{case_dir.parent.name}/{case_dir.name}"
+    profile = _CASE_PROFILE.get(case_id)
+    if profile is None:
+        pytest.skip(f"[{case_id}] no declared profile in _CASE_PROFILE — not certified")
+
+    program, _diagnostics = parse_logic_source(case_dir / "input.logic.ttl")
+
+    # Python oracle verdict.
+    oracle_verdict = certify_program(program, profile).to_json()
+
+    # Rust engine verdict over the projected rule section only.
+    rules_only = _extract_rules_section(project_nemo(program).content)
+    engine_verdict = gmeow_logic.certify(rules_only, str(profile))
+
+    assert engine_verdict == oracle_verdict, (
+        f"[{case_id}] certifier divergence (Rust ≠ Python) for profile "
+        f"{profile!s}:\n"
+        f"  oracle (Python): {oracle_verdict}\n"
+        f"  engine (Rust)  : {engine_verdict}\n"
+        f"  projected rules:\n{rules_only}"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Budget parity: Rust materialize ≡ Python materialize_program under a ceiling
+# --------------------------------------------------------------------------- #
+
+
+def test_budget_oracle_engine_parity() -> None:
+    """Assert oracle ≡ engine under a budget ceiling on ``budget-exhaustion``.
+
+    The ``decidability/budget-exhaustion`` case is a positive transitive-closure
+    program whose full fixpoint exceeds the declared ``max_rule_firings`` ceiling.
+    Both engines run the chase to fixpoint and then truncate the DERIVED quads to
+    the canonical-sort prefix (asserted EDB facts are always kept), so the kept
+    set is an evaluation-order-independent, sound partial — identical on both
+    sides.  We assert:
+
+    * the same ``budget_status`` (``"exhausted"``), and
+    * the same truncated quad set (subject/predicate/object/world), proving the
+      partial result is sound (a subset of the full closure) and engine-agnostic.
+    """
+    case_id = "decidability/budget-exhaustion"
+    case_dir = _CONFORMANCE_ROOT / "cases" / "decidability" / "budget-exhaustion"
+    assert case_dir.is_dir(), f"[{case_id}] case directory missing: {case_dir}"
+
+    program, _diagnostics = parse_logic_source(case_dir / "input.logic.ttl")
+    input_nq_text = (case_dir / "input.nq").read_text(encoding="utf-8")
+    input_cg: ConjunctiveGraph = ConjunctiveGraph()
+    if input_nq_text.strip():
+        input_cg.parse(io.StringIO(input_nq_text), format="nquads")
+
+    ceiling = 2
+
+    # ── Python oracle under the budget ─────────────────────────────────────────
+    oracle_result = materialize_program(
+        program,
+        input_cg,
+        profile=SemanticProfileId.POSITIVE_HORN,
+        budget=BudgetParams(max_rule_firings=ceiling),
+    )
+    oracle_status = oracle_result.budget_status
+    oracle_keys: set[_QuadKey] = {_oracle_quad_key(q) for q in oracle_result.quads}
+
+    # ── Rust engine under the budget ───────────────────────────────────────────
+    rules_only = _extract_rules_section(project_nemo(program).content)
+    engine_dicts: list[dict[str, object]] = gmeow_logic.materialize(
+        rules_only, input_nq_text, max_rule_firings=ceiling
+    )
+    engine_status = str(engine_dicts[0]["budget_status"]) if engine_dicts else "ok"
+    engine_keys: set[_QuadKey] = {_engine_quad_key(d) for d in engine_dicts}
+
+    # ── Assertions ─────────────────────────────────────────────────────────────
+    assert oracle_status == "exhausted", (
+        f"[{case_id}] Python oracle did not report exhaustion under "
+        f"max_rule_firings={ceiling}; got {oracle_status!r}"
+    )
+    assert oracle_result.incomplete is True, (
+        f"[{case_id}] Python oracle did not mark the result incomplete"
+    )
+    assert engine_status == oracle_status, (
+        f"[{case_id}] budget_status mismatch: oracle={oracle_status!r} "
+        f"engine={engine_status!r}"
+    )
+    _assert_quad_sets_equal(case_id, oracle_keys, engine_keys)
 
 
 # --------------------------------------------------------------------------- #

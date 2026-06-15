@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: profiles/stable-model
+# AC: profiles — a StableModel rule set that is NOT constrained to a tractable
+# subfragment carries the NP-hard advisory (certified:false).
+#
+# Answer-set / stable-model semantics admits possibly multiple models and is
+# NP-hard in general. The certifier emits no advisory ONLY when the same rule set
+# is also stratified (then the stable model coincides with the perfect model and
+# is tractable). This case is deliberately NON-stratified: a choice-style
+# recursion through negation (`inSet` iff there is a candidate that is NOT
+# `outSet`, and `outSet` iff `inSet`) crosses a negative edge inside its cycle.
+# The StableModel certifier therefore returns certified:false carrying the single
+# NP-hard advisory string (entailment under budget may return unknown) plus the
+# decidability_class NP-hard. This is the honest "outside the tractable
+# subfragment" verdict, not a clean certification.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/stable-model/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sort used by the projection back-ends.
+ex:Candidate a logic:Kind .
+
+# Rule 1: a candidate is IN the set iff it is a candidate NOT OUT of the set.
+# Both ?X bindings come from the positive `candidate` atom (DL-safe).
+#   ?X inSet ?X  :-  ?X candidate ?X , NOT ?X outSet ?X
+ex:ruleInSet a logic:Rule ;
+    logic:provenance ex:ruleInSet ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:inSet ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:candidate ;
+        rdf:object    "?X"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:outSet ;
+        rdf:object    "?X"
+    ] .
+
+# Rule 2: a candidate is OUT of the set iff it is a candidate NOT IN the set —
+# closing the cycle  inSet -> outSet -> inSet  through negation (non-stratified).
+#   ?X outSet ?X  :-  ?X candidate ?X , NOT ?X inSet ?X
+ex:ruleOutSet a logic:Rule ;
+    logic:provenance ex:ruleOutSet ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:outSet ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:candidate ;
+        rdf:object    "?X"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:inSet ;
+        rdf:object    "?X"
+    ] .

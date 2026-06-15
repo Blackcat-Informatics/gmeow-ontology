@@ -1,0 +1,7 @@
+{
+  "semantic_profile": "WellFoundedProfile",
+  "world_types": ["epistemic"],
+  "mode": "native",
+  "expected_decidability_class": "three-valued/PTIME",
+  "certify": true
+}

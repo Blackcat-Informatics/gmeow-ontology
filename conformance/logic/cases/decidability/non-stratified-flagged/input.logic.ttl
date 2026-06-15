@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: decidability/non-stratified-flagged
+# AC: decidability — a profile-VIOLATING rule set is FLAGGED (certified:false).
+#
+# The classic non-stratifiable program: a 2-predicate recursion that crosses a
+# negation-as-failure edge. `win` is derived from a positive `move` plus the
+# negation of `lose`; `lose` is derived positively from `win`. The predicate
+# dependency graph therefore has the cycle  win -> lose -> win  with a NEGATIVE
+# edge (win <- NOT lose) inside it, so there is no stratification and no unique
+# perfect model. The StratifiedNAF certifier returns certified:false carrying the
+# REAL, non-empty cycle violation. This is the negative control for the certifier
+# and the regression pin for the cycle-rendering fix (the cycle closes back to
+# the negated head: [win -> lose -> win], never a blank cycle).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/decidability/non-stratified-flagged/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sort used by the projection back-ends.
+ex:Position a logic:Kind .
+
+# Rule 1: a position WINS if there is a move to a position that does NOT lose.
+#   ?X win ?X  :-  ?X move ?Y , NOT ?Y lose ?Y
+ex:ruleWin a logic:Rule ;
+    logic:provenance ex:ruleWin ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:win ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:move ;
+        rdf:object    "?Y"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:lose ;
+        rdf:object    "?Y"
+    ] .
+
+# Rule 2: a position LOSES (positively) once it is shown to win — closing the
+# cycle  win -> lose -> win  through the negated dependency above.
+#   ?X lose ?X  :-  ?X win ?X
+ex:ruleLose a logic:Rule ;
+    logic:provenance ex:ruleLose ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:lose ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:win ;
+        rdf:object    "?X"
+    ] .

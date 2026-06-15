@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: profiles/positive-horn
+# AC: profiles — a rule set valid under PositiveHorn semantics certifies clean.
+#
+# The simplest monotonic Horn rule: a single positive body atom deriving a
+# single head atom (parent => ancestor). No negation, no recursion, every head
+# variable bound by a positive body atom (DL-safe), no existential heads. The
+# PositiveHorn certifier returns certified:true with an empty violation set and
+# decidability_class terminating/PTIME-data.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/positive-horn/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sort used by the projection back-ends.
+ex:Person a logic:Kind .
+
+# Rule: a parent is an ancestor.
+#   ?X ancestorOf ?Y  :-  ?X parentOf ?Y
+ex:ruleAncestor a logic:Rule ;
+    logic:provenance ex:ruleAncestor ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:ancestorOf ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:parentOf ;
+        rdf:object    "?Y"
+    ] .

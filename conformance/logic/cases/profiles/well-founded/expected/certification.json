@@ -1,0 +1,6 @@
+{
+  "certified": true,
+  "decidability_class": "three-valued/PTIME",
+  "profile_id": "WellFoundedProfile",
+  "violations": []
+}
