@@ -83,7 +83,7 @@ msgstr "GMEOW 生命周期模块——GMEOW 超级词汇表的类、属性和个
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|rdfs:label"
 msgid "superseded by"
-msgstr "被取代于"
+msgstr "被取代"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition"
 msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and may carry gmeow:displayable false."
