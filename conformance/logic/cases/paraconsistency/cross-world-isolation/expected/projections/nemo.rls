@@ -5,18 +5,18 @@
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/NormativeFact>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/Severity>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <n9dd94da1e1e347099301872905522102b2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <n9dd94da1e1e347099301872905522102b1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <n6a8cba323efa47dfb4276fcfbef8ccb7b2>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <n6a8cba323efa47dfb4276fcfbef8ccb7b1>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <n9dd94da1e1e347099301872905522102b4>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <n9dd94da1e1e347099301872905522102b3>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <n6a8cba323efa47dfb4276fcfbef8ccb7b4>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <n6a8cba323efa47dfb4276fcfbef8ccb7b3>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, "default").
 
 % === Rules ===
 #[name("https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity")]
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?P, <https://example.org/paraconsistency/cross-world-isolation/JurisdictionLenient>, ?C0) :-
-    <https://example.org/paraconsistency/cross-world-isolation/severity>(?P, <https://example.org/paraconsistency/cross-world-isolation/Low>, ?C0) .
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?P, <https://example.org/paraconsistency/cross-world-isolation/JurisdictionLenient>, ?C) :-
+    <https://example.org/paraconsistency/cross-world-isolation/severity>(?P, <https://example.org/paraconsistency/cross-world-isolation/Low>, ?C) .
 #[name("https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity")]
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?P, <https://example.org/paraconsistency/cross-world-isolation/JurisdictionStrict>, ?C0) :-
-    <https://example.org/paraconsistency/cross-world-isolation/severity>(?P, <https://example.org/paraconsistency/cross-world-isolation/High>, ?C0) .
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?P, <https://example.org/paraconsistency/cross-world-isolation/JurisdictionStrict>, ?C) :-
+    <https://example.org/paraconsistency/cross-world-isolation/severity>(?P, <https://example.org/paraconsistency/cross-world-isolation/High>, ?C) .

@@ -1239,7 +1239,7 @@ def project_nemo(
             )
 
         body_parts: list[str] = []
-        for idx, body_atom in enumerate(sorted(rule.body, key=lambda a: a._sort_key())):
+        for body_atom in sorted(rule.body, key=lambda a: a._sort_key()):
             bp = _nemo_iri(body_atom.predicate)
 
             if body_atom.subject.startswith("?"):
@@ -1254,7 +1254,7 @@ def project_nemo(
             else:
                 bo = _nemo_iri(body_atom.obj)
 
-            body_parts.append(f"{bp}({bs}, {bo}, ?C{idx})")
+            body_parts.append(f"{bp}({bs}, {bo}, ?C)")
 
         # Emit rule name annotation so Nemo's trace API can recover the rule IRI.
         # The name is the rule's provenance IRI (from scope.provenance), or the
@@ -1267,21 +1267,18 @@ def project_nemo(
 
         if body_parts:
             body_str = ",\n    ".join(body_parts)
-            # Use ?C0 (the first body atom's context variable) in the rule head so
-            # the derived quad stays in the same world as its first antecedent.
-            # This satisfies Nemo's safety constraint (every head variable must
-            # appear at a safe position in the body) while preserving the
-            # world-indexed semantics: a derived fact lives in the world of the
-            # triggering EDB fact.
-            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C0) :-")
+            # Use ?C (shared across all body atoms and the rule head) so every
+            # premise and the conclusion must be in the same named-graph world.
+            # This enforces world isolation (no cross-world joins) and still
+            # satisfies Nemo's safety constraint because ?C appears in every
+            # body atom.
+            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C) :-")
             lines.append(f"    {body_str} .")
         else:
             # Zero-body rule: head-only (ground fact, no context variable needed).
             # Emit as a ground fact with a "default" context constant — a rule
             # with a head variable but no body is always unsafe in Nemo.
-            lines.append(
-                f'{head_pred}({head_subj_nemo}, {head_obj_nemo}, "default").'
-            )
+            lines.append(f'{head_pred}({head_subj_nemo}, {head_obj_nemo}, "default").')
 
     content = "\n".join(lines) + "\n"
     if path is not None:
