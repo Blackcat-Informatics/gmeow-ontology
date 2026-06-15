@@ -34,9 +34,13 @@ fn conformance_corpus() {
         .collect();
     cases.sort();
 
-    assert!(
-        !cases.is_empty(),
-        "corpus directory is empty — guard against silent skip"
+    // Assert the EXACT case count (not merely non-empty) so a removed or renamed
+    // corpus directory fails fast instead of silently reducing coverage. Bump this
+    // when adding a case.
+    assert_eq!(
+        cases.len(),
+        23,
+        "unexpected corpus case count — update this when adding/removing a corpus case"
     );
 
     let mut failures: Vec<String> = Vec::new();

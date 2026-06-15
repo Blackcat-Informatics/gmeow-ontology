@@ -11,7 +11,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/gmeow-shacl.svg)](https://crates.io/crates/gmeow-shacl)
 [![docs.rs](https://docs.rs/gmeow-shacl/badge.svg)](https://docs.rs/gmeow-shacl)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/LICENSE)
 [![Repository](https://img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg)](https://github.com/Blackcat-Informatics/gmeow-ontology)
 
 > **An LLM output is a claim, not a truth.**
