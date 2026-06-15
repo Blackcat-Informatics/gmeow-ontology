@@ -147,7 +147,7 @@ extension slice where it belongs (Principle 16).
 ## Timbre and sensory bridge
 
 Timbre is modelled as an attributed, standpoint-indexed observation, not a
-single ground-truth label. A `gmeow:ToneEvent` may carry a lossless shortcut
+single ground-truth label. A `gmeow:ToneEvent` may carry a flat shortcut
 (`gmeow:toneEventTimbre`) for the simple case; the worked form uses the core
 observation stack.
 
@@ -181,9 +181,10 @@ ex:mirTimbre a gmeow:Observation ;
 
 The two observations coexist without privilege (Principle 9). The actual
 spectral feature vectors are referenced by identifier, never materialised as
-triples (Principle 12). AFO 1.1 alignment rows in
-`slices/extensions/music/mappings/equivalences.ttl` link `TimbreDescriptor` and
-the auditory `ObservableProperty` seeds to `afo:AudioFeature` / `afv:*` terms.
+triples (Principle 12). The AFO 1.1 alignment row in
+`slices/extensions/music/mappings/equivalences.ttl` links `TimbreDescriptor` to
+`afo:AudioFeature`. The auditory `ObservableProperty` seeds and their `afv:*`
+alignments live in `slices/extensions/sensory/mappings/equivalences.ttl`.
 
 ## Competency queries
 
