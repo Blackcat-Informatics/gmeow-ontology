@@ -20,6 +20,7 @@ Covers:
 
 from __future__ import annotations
 
+import pytest
 from rdflib import ConjunctiveGraph, Literal, Namespace, URIRef
 
 from gmeow_tools.logic_ir import (
@@ -304,3 +305,47 @@ class TestDefaultUnboundedParity:
         assert result.budget_status == "ok"
         assert result.incomplete is False
         assert all(q.budget_status == "ok" for q in result.quads)
+
+
+# --------------------------------------------------------------------------- #
+# BudgetParams input validation
+# --------------------------------------------------------------------------- #
+
+
+class TestBudgetParamsValidation:
+    """Negative-path tests for BudgetParams.__post_init__ validation."""
+
+    # -- positive baseline ---------------------------------------------------
+
+    def test_all_none_constructs_fine(self) -> None:
+        bp = BudgetParams()
+        assert bp.is_unbounded() is True
+
+    def test_single_positive_field_constructs_fine(self) -> None:
+        bp = BudgetParams(max_rule_firings=2)
+        assert bp.max_rule_firings == 2
+        assert bp.is_unbounded() is False
+
+    # -- zero / negative rejected as ValueError ------------------------------
+
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("time_ms", 0),
+            ("time_ms", -1),
+            ("max_rule_firings", 0),
+            ("max_rule_firings", -1),
+            ("max_answers", 0),
+            ("max_answers", -1),
+        ],
+    )
+    def test_zero_or_negative_raises_value_error(self, field: str, value: int) -> None:
+        with pytest.raises(ValueError, match=field):
+            BudgetParams(**{field: value})
+
+    # -- bool rejected as TypeError (bool is subclass of int) ---------------
+
+    @pytest.mark.parametrize("field", ["time_ms", "max_rule_firings", "max_answers"])
+    def test_bool_ceiling_raises_type_error(self, field: str) -> None:
+        with pytest.raises(TypeError, match=field):
+            BudgetParams(**{field: True})

@@ -152,6 +152,10 @@ class BudgetParams:
     exactly as it did before #502 (every quad ``budget_status="ok"``,
     :attr:`MaterializationResult.incomplete` ``False``).
 
+    Non-``None`` ceilings must be positive :class:`int` values (``bool``
+    is rejected as a type error; zero or negative values are rejected as a
+    value error).
+
     Determinism note
     ----------------
     :attr:`max_rule_firings` and :attr:`max_answers` are deterministic gates
@@ -172,6 +176,29 @@ class BudgetParams:
     time_ms: int | None = None
     max_rule_firings: int | None = None
     max_answers: int | None = None
+
+    def __post_init__(self) -> None:
+        """Validate that each non-None ceiling is a positive int (not bool).
+
+        ``None`` is always accepted (unbounded — the documented default-off
+        posture).  A ``bool`` value is rejected via :exc:`TypeError` because
+        ``bool`` is a subclass of ``int`` and ``True``/``False`` ceilings are
+        nonsensical.  A zero or negative ceiling is rejected via
+        :exc:`ValueError`.
+        """
+        for name, v in (
+            ("time_ms", self.time_ms),
+            ("max_rule_firings", self.max_rule_firings),
+            ("max_answers", self.max_answers),
+        ):
+            if v is None:
+                continue
+            if isinstance(v, bool) or not isinstance(v, int):
+                raise TypeError(
+                    f"{name} must be an int or None, got {type(v).__name__}"
+                )
+            if v <= 0:
+                raise ValueError(f"{name} must be a positive int or None, got {v}")
 
     def is_unbounded(self) -> bool:
         """Return True iff every ceiling is ``None`` (no governance at all)."""
