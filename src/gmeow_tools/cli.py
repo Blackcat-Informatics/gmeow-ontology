@@ -9,6 +9,7 @@ trees. Repository maintenance lives in :mod:`gmeow_tools.cli_dev`.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
 from rich.console import Console
@@ -19,6 +20,9 @@ import gts
 from gmeow_tools import __version__
 from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, NAMESPACE
 from gmeow_tools.gts_views import FoldView
+
+if TYPE_CHECKING:
+    from rdflib import Graph
 
 app = typer.Typer(
     name="gmeow",
@@ -64,6 +68,30 @@ def _read_bytes_or_fail(path: Path) -> bytes:
 def _bundle_view(path: Path | None = None) -> FoldView:
     """Return a fold view for the bundled or user-supplied GTS file."""
     return FoldView(_read_gts_or_fail(path or _default_gts_file()))
+
+
+def _read_turtle(source: Path) -> tuple[Graph, str]:
+    """Parse Turtle from a file, or from stdin when ``source`` is ``-``.
+
+    Returns ``(graph, stem)`` — the stem is the basename for the file case and
+    ``"stdin"`` for the pipe, so the tools compose: ``… | gmeow transpile -``.
+    """
+    import sys
+
+    from rdflib import Graph
+
+    graph = Graph()
+    stdin = str(source) == "-"
+    try:
+        if stdin:
+            graph.parse(data=sys.stdin.read(), format="turtle")
+        else:
+            graph.parse(source, format="turtle")
+    except (OSError, ValueError, SyntaxError) as exc:
+        where = "stdin" if stdin else source
+        raise _fail(f"cannot read or parse {where}: {exc}") from exc
+    stem = "stdin" if stdin else source.stem
+    return graph, stem
 
 
 @app.callback()
@@ -261,9 +289,10 @@ def build(
 
 @app.command()
 def project(
-    file: Path | None = typer.Argument(  # noqa: B008
+    source: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS snapshot to filter (default: bundled gmeow-full.gts).",
+        help="A GMEOW data file (.ttl) to project, or a transpiled .gts to filter; "
+        "default: the bundled snapshot.",
     ),
     profile: str = typer.Option(
         "gmeow",
@@ -274,19 +303,105 @@ def project(
         _DEFAULT_OUT_ROOT / "project", "--out", "-o", help="Output directory."
     ),
 ) -> None:
-    """Project an already-bundled snapshot to one vocabulary view."""
+    """Project GMEOW to a pure schema.org / FOAF / vCard / … profile.
+
+    Two input kinds, both running from the bundle (no repo):
+
+    * A **GMEOW data file** (.ttl): runs the per-profile CONSTRUCT (the FnO/EDOAL
+      executor, lossy by design) — ``gmeow project mydata.ttl --profile foaf``.
+    * A **.gts** snapshot (or the default bundle): a *view filter* —
+      ``--profile foaf`` emits the FOAF subset already in the snapshot, ``gmeow``
+      the pure-GMEOW base, ``all``/``maximal`` the whole thing.
+    """
     from gmeow_tools.projections import (
         GTS_VIEW_ALL,
         GTS_VIEW_GMEOW,
         PROFILES,
+        project_file,
         project_gts_subset,
     )
+
+    # A user GMEOW data file → run the CONSTRUCT; a .gts (or the bundle) → view.
+    if source is not None and source.suffix.lower() != ".gts":
+        if profile not in PROFILES:
+            raise _fail(f"unknown projection profile: {profile} (a vocabulary profile)")
+        path = project_file(source, profile, dist_dir=out)
+        console.print(f"[green]wrote[/green] {path}")
+        return
 
     valid = set(PROFILES) | {GTS_VIEW_GMEOW, *GTS_VIEW_ALL}
     if profile not in valid:
         raise _fail(f"unknown view: {profile} (vocab | gmeow | all | maximal)")
-    path = project_gts_subset(file or _default_gts_file(), profile, dist_dir=out)
+    path = project_gts_subset(source or _default_gts_file(), profile, dist_dir=out)
     console.print(f"[green]wrote[/green] {path}")
+
+
+@app.command()
+def transpile(
+    source: Path = typer.Argument(  # noqa: B008
+        ...,
+        help="A non-GMEOW source RDF file (Turtle), or '-' to read it from stdin.",
+    ),
+    out: Path | None = typer.Option(  # noqa: B008
+        None, "-o", "--out", help="Output directory (default dist/transpile/<stem>/)."
+    ),
+    profiles: str = typer.Option(
+        "all", "--profiles", help="Projection profiles for the maximal pass: all|name,…"
+    ),
+    floor: bool = typer.Option(
+        False,
+        "--floor",
+        help="Use the per-term floor instead of the context-aware descent.",
+    ),
+) -> None:
+    """Transpile consumer RDF → pure GMEOW → MAXIMAL multi-vocab (#448).
+
+    The full pipeline: up-project the source into pure GMEOW (the context-aware
+    descent), write that draft, then run MAXIMAL(G) = G + E(G) + P(G) over it —
+    the canonical base, its strong-equivalence saturation, and every projection
+    profile — into one fat, provenance-audited multi-vocabulary file family.
+    Runs from the bundled snapshot alone (no repo); reads stdin when <source> is
+    '-' (``cat src | gmeow transpile -``).
+    """
+    from gmeow_tools.projections import PROFILES
+    from gmeow_tools.transpile import transpile as run_transpile
+    from gmeow_tools.transpile import transpile_graph
+
+    names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
+    if names is not None:
+        unknown = sorted(set(names) - set(PROFILES))
+        if unknown:
+            raise _fail(f"unknown projection profile(s): {', '.join(unknown)}")
+    try:
+        if str(source) == "-":
+            graph, stem = _read_turtle(source)
+            result = transpile_graph(
+                graph, stem, out_dir=out, profiles=names, descend=not floor
+            )
+        else:
+            result = run_transpile(
+                source, out_dir=out, profiles=names, descend=not floor
+            )
+    except (OSError, ValueError, SyntaxError) as exc:
+        raise _fail(str(exc)) from exc
+
+    err_console.print(
+        f"[green]lifted[/green] {result.lifted} facts · "
+        f"[cyan]claimed[/cyan] {result.claimed} inferred · "
+        f"[magenta]context[/magenta] {result.context_resolved} by-type · "
+        f"[yellow]gap[/yellow] {result.gap_terms} · "
+        f"[yellow]ambiguous[/yellow] {result.ambiguous_terms}",
+    )
+    err_console.print(
+        f"[green]maximal[/green] asserted {result.transform.asserted} · "
+        f"saturated {result.transform.saturated} · "
+        f"projected {result.transform.projected} · "
+        f"[dim]{result.transform.wall_clock_s:.1f}s[/dim]",
+    )
+    err_console.print(f"[green]draft[/green] {result.draft_path}")
+    err_console.print(f"[green]gaps[/green] {result.gap_report_path}")
+    for path in result.transform.written:
+        err_console.print(f"[green]wrote[/green] {path}")
 
 
 @app.command()
