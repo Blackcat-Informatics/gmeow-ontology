@@ -35,6 +35,7 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 PREFIX schema: <https://schema.org/>
 PREFIX gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#>
+PREFIX doap: <http://usefulinc.com/ns/doap#>
 """
 
 #: Flat name-part predicates → the gmeow:NamePartType they denote. Each mints a
@@ -169,6 +170,31 @@ WHERE {{
 )
 
 
+#: Software contribution roles: source predicate → the gmeow contribution-role
+#: individual. A flat maintainer/developer edge mints a gmeow:Contribution relator
+#: (the down-projection reads {target, contributor, role}).
+_CONTRIBUTIONS: tuple[tuple[str, str, str], ...] = (
+    ("doap:maintainer", "maint", "roleSoftwareMaintainer"),
+    ("doap:developer", "dev", "roleSoftwareDeveloper"),
+)
+
+
+def _contribution_query(source_pred: str, slug: str, role: str) -> str:
+    """A CONSTRUCT minting a gmeow:Contribution relator from a flat role edge."""
+    return f"""{_PREFIXES}
+CONSTRUCT {{
+  ?contrib rdf:type gmeow:Contribution .
+  ?contrib gmeow:contributionTarget ?proj .
+  ?contrib gmeow:contributor ?agent .
+  ?contrib gmeow:contributionRole gmeow:{role} .
+}}
+WHERE {{
+  ?proj {source_pred} ?agent .
+  BIND(IRI(CONCAT("{_GENID}contrib-{slug}-",
+       MD5(CONCAT(STR(?proj), "|", STR(?agent))))) AS ?contrib)
+}}"""
+
+
 def _reverse_queries() -> list[str]:
     """All authored reverse-projection CONSTRUCT queries."""
     return (
@@ -177,6 +203,7 @@ def _reverse_queries() -> list[str]:
         + [_nickname_query(sp) for sp in _NICKNAMES]
         + [_contact_query(sp, ct) for sp, ct in _CONTACTS]
         + list(_GENEALOGY)
+        + [_contribution_query(sp, sl, r) for sp, sl, r in _CONTRIBUTIONS]
     )
 
 
