@@ -403,6 +403,10 @@ def _match_atom(
     if _is_var(axiom_pred):
         if not isinstance(fact_p, URIRef):
             return None
+        # Intra-atom repeated variable: if this var already bound (e.g. from
+        # the subject slot), the new value must agree with the existing binding.
+        if axiom_pred in bindings and bindings[axiom_pred] != fact_p:
+            return None
         bindings[axiom_pred] = fact_p
     else:
         if str(fact_p) != axiom_pred:
@@ -410,6 +414,12 @@ def _match_atom(
 
     # -- object --
     if _is_var(axiom_obj):
+        # Intra-atom repeated variable: if this var is already bound (e.g. ?x
+        # appears in subject and object slots, as in `?x :p ?x`), the object
+        # value must equal the existing binding; otherwise this fact does not
+        # match the atom.
+        if axiom_obj in bindings and bindings[axiom_obj] != fact_o:
+            return None
         bindings[axiom_obj] = fact_o
     else:
         # Ground match: compare canonical string representation

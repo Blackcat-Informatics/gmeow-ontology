@@ -597,3 +597,108 @@ class TestProfileField:
         expected_profile = f"{logic_ns}PositiveHornProfile"
         for q in result.quads:
             assert q.profile == expected_profile
+
+
+# --------------------------------------------------------------------------- #
+# Tests: Gap 12 — intra-atom repeated-variable consistency in _match_atom
+# --------------------------------------------------------------------------- #
+
+
+def _reflexive_rule_program() -> LogicProgram:
+    """Return a program with a single rule: ?x :related ?x → ?x :related ?x.
+
+    The body atom ``?x :related ?x`` uses ?x in BOTH the subject and object
+    position.  It should match ONLY reflexive facts (s :related s), not
+    non-reflexive facts like (a :related b) where a ≠ b.
+    """
+    body_atom = LogicAxiom(
+        subject="?x",
+        predicate=str(_RELATED),
+        obj="?x",
+        obj_is_literal=False,
+    )
+    head_atom = LogicAxiom(
+        subject="?x",
+        predicate=str(_RELATED),
+        obj="?x",
+        obj_is_literal=False,
+    )
+    rule = LogicRule(
+        head=head_atom,
+        body=(body_atom,),
+        scope=ContextualScope(
+            provenance=("https://blackcatinformatics.ca/logic/rules/reflexive-test")
+        ),
+    )
+    return LogicProgram(
+        axioms=(),
+        rules=(rule,),
+        profiles=(LogicProfile(profile_id=SemanticProfileId.POSITIVE_HORN),),
+    )
+
+
+class TestMatchAtomRepeatedVariable:
+    """Gap 12: _match_atom must enforce equality when the same variable appears
+    in multiple positions of a single body atom.
+
+    These tests work through materialize_program to stay on the public API.
+    The rule head mirrors the body (`?x :related ?x → ?x :related ?x`) so the
+    only new derivations are triggered by the body match — if the intra-atom
+    check is absent the rule would fire on every non-reflexive fact and produce
+    a spurious new triple.
+
+    The assert-sentinel IRI is ``{PREFIXES["logic"]}assert``; input facts carry
+    that rule_iri.  All rule-derived quads carry a different rule_iri.
+    """
+
+    # The full sentinel IRI that materialize_program stamps on input (asserted) facts.
+    _ASSERT_IRI = PREFIXES["logic"] + "assert"
+
+    def test_reflexive_fact_matches(self) -> None:
+        """A fact where subject == object is preserved as an asserted quad."""
+        # _A :related _A  →  reflexive, ?x binds to _A consistently
+        cg = _cg_with_quads([(_A, _RELATED, _A, _W_ALPHA)])
+        result = materialize_program(_reflexive_rule_program(), cg)
+        subjects = {q.subject for q in result.quads}
+        # The reflexive fact itself is present (pass-through).
+        assert str(_A) in subjects, (
+            f"Reflexive fact _A :related _A should be in result; got {subjects}"
+        )
+
+    def test_non_reflexive_fact_does_not_trigger_rule(self) -> None:
+        """A fact where subject ≠ object must NOT fire the `?x :related ?x` rule.
+
+        Without the intra-atom repeated-variable check, ?x would be bound to _A
+        from the subject slot and then silently overwritten with _B from the
+        object slot, causing a spurious derivation.  With the fix, no new triple
+        is derived — only the original input fact is present (as an asserted quad).
+        """
+        cg = _cg_with_quads([(_A, _RELATED, _B, _W_ALPHA)])
+        result = materialize_program(_reflexive_rule_program(), cg)
+        # Any quad whose rule_iri is not the assert sentinel is a rule derivation.
+        derived = [q for q in result.quads if q.rule_iri != self._ASSERT_IRI]
+        triples = [(q.subject, q.predicate, q.obj) for q in derived]
+        assert derived == [], (
+            f"No derived triples expected for non-reflexive fact with a "
+            f"reflexive-body rule; got {triples}"
+        )
+
+    def test_mixed_facts_only_reflexive_fires(self) -> None:
+        """In a graph with both reflexive and non-reflexive facts, only the
+        reflexive one should produce a rule-derived quad.  The non-reflexive
+        fact (_A :related _B) must NOT produce a derivation.
+        """
+        cg = _cg_with_quads(
+            [
+                (_A, _RELATED, _A, _W_ALPHA),  # reflexive — body matches
+                (_A, _RELATED, _B, _W_ALPHA),  # non-reflexive — must NOT match body
+            ]
+        )
+        result = materialize_program(_reflexive_rule_program(), cg)
+        derived = [q for q in result.quads if q.rule_iri != self._ASSERT_IRI]
+        # Only the _A :related _A fact can trigger a derivation; check subj/pred
+        for q in derived:
+            assert q.subject == str(_A) and q.predicate == str(_RELATED), (
+                f"Derived triple ({q.subject}, {q.predicate}, {q.obj}) is unexpected; "
+                f"non-reflexive body atom fired erroneously"
+            )
