@@ -363,6 +363,10 @@ PREFIXES: dict[str, str] = {
     "vcard": "http://www.w3.org/2006/vcard/ns#",
     # Music Ontology (legacy but widely-used; bridged by reference only)
     "mo": "http://purl.org/ontology/mo/",
+    # MusicBrainz (CC0 core data; bridged by reference)
+    "mbz": "https://musicbrainz.org/",
+    # Discogs style pages (reference-only — link by IRI only)
+    "discogs": "https://www.discogs.com/",
     # MIMO instrument vocabulary (bridged by reference only)
     "mimo": "http://www.mimo-db.eu/InstrumentsKeywords/",
     # Workflow / process alignment (#226)
@@ -609,6 +613,10 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
         "DCMI Metadata Terms", PREFIXES["dcterms"], "CC0-1.0", "schema"
     ),
     "mo": AlignmentTarget("Music Ontology", PREFIXES["mo"], "Unknown", "schema"),
+    "mbz": AlignmentTarget("MusicBrainz", PREFIXES["mbz"], "CC0-1.0", "schema"),
+    "discogs": AlignmentTarget(
+        "Discogs", PREFIXES["discogs"], "REFERENCE_ONLY", "schema"
+    ),
     "gedcom": AlignmentTarget(
         "W3C GEDCOM", PREFIXES["gedcom"], "W3C-Document", "schema"
     ),

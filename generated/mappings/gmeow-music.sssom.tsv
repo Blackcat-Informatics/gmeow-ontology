@@ -6,7 +6,9 @@
 # mapping_date: 2026-06-03
 # comment: "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)."
 # curie_map:
+#   discogs: https://www.discogs.com/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
+#   mbz: https://musicbrainz.org/
 #   mimo: http://www.mimo-db.eu/InstrumentsKeywords/
 #   mo: http://purl.org/ontology/mo/
 #   prov: http://www.w3.org/ns/prov#
@@ -16,6 +18,8 @@
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:DegreeOfFreedom	skos:closeMatch	wd:Q623715	semapv:ManualMappingCuration	0.8	Wikidata 'aleatoric music' (Q623715) — the GMEOW relator declares the same indeterminacy structurally.
+gmeow:Genre	skos:relatedMatch	discogs:style	semapv:ManualMappingCuration	0.9	Discogs style pages use /style/{name}.
+gmeow:Genre	skos:relatedMatch	mbz:genre	semapv:ManualMappingCuration	0.9	MusicBrainz genre pages use /genre/{mbid}.
 gmeow:InstrumentType	skos:closeMatch	wd:Q26836418	semapv:ManualMappingCuration	0.85	Wikidata 'MIMO's classification of musical instruments' (Q26836418) — per-seed MIMO exactMatches are carried directly on InstrumentType individuals.
 gmeow:InstrumentType	skos:closeMatch	wd:Q34379	semapv:ManualMappingCuration	0.9	Wikidata 'musical instrument' (Q34379) — the GMEOW sense is a value-vocabulary entry, not the physical object.
 gmeow:MetricStructure	skos:closeMatch	wd:Q155234	semapv:ManualMappingCuration	0.85	Wikidata 'time signature' (Q155234) — a CMN projection of the underlying MetricStructure.

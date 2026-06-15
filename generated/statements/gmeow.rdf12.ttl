@@ -173,11 +173,34 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:assertedAt   "2026-06-11T00:00:00+00:00"^^xsd:dateTime;
         gmeow:confidence   0.6 .
 
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-ai-german-sixth>
+        rdf:reifies               <<( gmeow:fixtureRomanNumeralClaim gmeow:analysisResult gmeow:harmonicFunctionGermanSixth )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/ai-chord-model-v3>;
+        gmeow:assertedAt          "2026-06-14T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence          0.72;
+        gmeow:mappedFrom          <https://blackcatinformatics.ca/gmeow/examples/music/ai-chord-model-v3>;
+        gmeow:standpointModality  gmeow:unequivocal .
+
+gmeow:fixtureRomanNumeralClaim
+        gmeow:analysisResult  gmeow:harmonicFunctionGermanSixth .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-event-bullshit-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> gmeow:eventType gmeow:eventTypeBullshit )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst>;
         gmeow:assertedAt   "2026-06-05T00:00:00+00:00"^^xsd:dateTime;
         gmeow:confidence   0.72 .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-bar17-meter-7_8>
+        rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/music/bar17> gmeow:assignedMeter gmeow:metricStructure78 )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-transcriber-a>;
+        gmeow:confidence          0.85;
+        gmeow:standpointModality  gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-math-rock-critics>
+        rdf:reifies               <<( gmeow:fixtureMathRockWork gmeow:hasGenre gmeow:genreMathRock )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-music-critics>;
+        gmeow:confidence          0.9;
+        gmeow:standpointModality  gmeow:unequivocal .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-omission-held-001>
         rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-omission-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> )>>;
@@ -224,6 +247,12 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 <https://blackcatinformatics.ca/gmeow/examples/aiCommit>
         gmeow:authoredBy  <https://blackcatinformatics.ca/gmeow/examples/copilot> .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-greensleeves-anonymous>
+        rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/music/greensleeves-work> gmeow:hasComposer <https://blackcatinformatics.ca/gmeow/examples/music/anonymous-composer> )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-musicological-consensus>;
+        gmeow:confidence          0.95;
+        gmeow:standpointModality  gmeow:unequivocal .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-fabrication-held-modality-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-fabrication-held-001> gmeow:claimModality gmeow:refuted )>>;
@@ -355,6 +384,12 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/attestation-factcheck-001>
         gmeow:attestationType  gmeow:attestationTypeFactCheck .
 
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-spectral-key-tonal>
+        rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/music/spectral-key-claim> gmeow:analysisResult gmeow:pitchValue12EDOE4 )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-tonal-analyst>;
+        gmeow:confidence          0.75;
+        gmeow:standpointModality  gmeow:probable .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-telling-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/telling-dupe-post-001> gmeow:propagatesFrom <https://blackcatinformatics.ca/gmeow/examples/telling-origin-article-001> )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
@@ -451,6 +486,15 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
         gmeow:assertedAt   "2026-06-09T00:00:00+00:00"^^xsd:dateTime;
         gmeow:confidence   0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-spectral-key-refuted>
+        rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/music/spectral-key-claim> gmeow:analysisResult gmeow:pitchValue12EDOE4 )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-spectral-analyst>;
+        gmeow:confidence          0.9;
+        gmeow:standpointModality  gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/spectral-key-claim>
+        gmeow:analysisResult  gmeow:pitchValue12EDOE4 .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-tf-dynamic-end-effector>
         rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/referenceFrameRobotEndEffector> gmeow:parentFrame gmeow:referenceFrameRobotBase )>>;
@@ -646,6 +690,15 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001>;
         gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> .
 
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-not-math-rock-band>
+        rdf:reifies               <<( gmeow:fixtureMathRockWork gmeow:hasGenre gmeow:genreMathRock )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-the-band>;
+        gmeow:confidence          1;
+        gmeow:standpointModality  gmeow:refuted .
+
+gmeow:fixtureMathRockWork
+        gmeow:hasGenre  gmeow:genreMathRock .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-downstream-event-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-downstream-reshare-001> gmeow:eventType gmeow:eventTypeDeception )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
@@ -695,6 +748,15 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-impersonation-held-001>;
         gmeow:implicates           <https://blackcatinformatics.ca/gmeow/examples/identityfacet-impersonation-001>;
         gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-impersonation-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-bar17-meter-4_4-plus-3_8>
+        rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/music/bar17> gmeow:assignedMeter <https://blackcatinformatics.ca/gmeow/examples/music/metricStructure-4_4-plus-3_8> )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-transcriber-b>;
+        gmeow:confidence          0.8;
+        gmeow:standpointModality  gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/bar17>
+        gmeow:assignedMeter  gmeow:metricStructure78 , <https://blackcatinformatics.ca/gmeow/examples/music/metricStructure-4_4-plus-3_8> .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-impersonation-facet-subject-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/identityfacet-impersonation-001> gmeow:facetSubject <https://blackcatinformatics.ca/gmeow/examples/agent-victim-001> )>>;
@@ -779,6 +841,15 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:eventType            gmeow:eventTypeDeception;
         gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001>;
         gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/claim-greensleeves-henry-viii>
+        rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/music/greensleeves-work> gmeow:hasComposer <https://blackcatinformatics.ca/gmeow/examples/music/henry-viii> )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/music/standpoint-popular-tradition>;
+        gmeow:confidence          0.6;
+        gmeow:standpointModality  gmeow:conceivable .
+
+<https://blackcatinformatics.ca/gmeow/examples/music/greensleeves-work>
+        gmeow:hasComposer  <https://blackcatinformatics.ca/gmeow/examples/music/anonymous-composer> , <https://blackcatinformatics.ca/gmeow/examples/music/henry-viii> .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-distortion-projected-modality-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> gmeow:claimModality gmeow:unequivocal )>>;

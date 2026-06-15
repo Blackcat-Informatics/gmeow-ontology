@@ -10,6 +10,8 @@
 @prefix schema: <https://schema.org/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix mimo: <http://www.mimo-db.eu/InstrumentsKeywords/> .
+@prefix mbz: <https://musicbrainz.org/> .
+@prefix discogs: <https://www.discogs.com/> .
 
 # Music slice alignments.
 # Compiled to mappings/gmeow-music.sssom.tsv by `gmeow compile-mappings`.
@@ -478,4 +480,33 @@ gmeow:eqMu036 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "Wikidata 'gamelan' (Q194492) — the music/ensemble sense; closest available for the instrument-type seed." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+
+# --------------------------------------------------------------------------- #
+# Genre doctrine alignments (issue #315)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMu037 a gmeow:TermEquivalence ;
+    rdfs:label "Genre ↔ MusicBrainz genre namespace"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW Genre class to the MusicBrainz genre resource namespace."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:Genre ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject mbz:genre ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "MusicBrainz genre pages use /genre/{mbid}." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMu038 a gmeow:TermEquivalence ;
+    rdfs:label "Genre ↔ Discogs style namespace"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW Genre class to the Discogs style resource namespace."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:Genre ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject discogs:style ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Discogs style pages use /style/{name}." ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
