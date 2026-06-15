@@ -23,7 +23,8 @@ ScalarQuantity). These tests verify:
 from __future__ import annotations
 
 import owlrl
-from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, Namespace
+from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
@@ -32,6 +33,8 @@ from gmeow_tools.slices import module_path
 GMEOW = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test/")
+
+SENSORY_EQ_FILE = module_path("sensory").parent / "mappings" / "equivalences.ttl"
 
 
 # --------------------------------------------------------------------------- #
@@ -351,3 +354,42 @@ def test_platform_location_mapped_to_geo_location() -> None:
     geo_matches = [m for m in pl_mappings if m.object_id == "geo:location"]
     assert geo_matches, "platformLocation must map to geo:location"
     assert geo_matches[0].predicate_id == "skos:closeMatch"
+
+
+def test_sensory_afo_mappings_exist() -> None:
+    graph = Graph()
+    graph.parse(SENSORY_EQ_FILE, format="turtle")
+    expected = {
+        "eqSens001": (
+            "observablePropertyTimbre",
+            "https://w3id.org/afo/onto/1.1#AudioFeature",
+            SKOS.closeMatch,
+        ),
+        "eqSens002": (
+            "observablePropertyTimbre",
+            "https://w3id.org/afo/vocab/1.1#TimbreDistribution",
+            SKOS.relatedMatch,
+        ),
+        "eqSens003": (
+            "observablePropertyLoudness",
+            "https://w3id.org/afo/vocab/1.1#Loudness",
+            SKOS.closeMatch,
+        ),
+        "eqSens004": (
+            "observablePropertyRoughness",
+            "https://w3id.org/afo/vocab/1.1#Roughness",
+            SKOS.closeMatch,
+        ),
+        "eqSens005": (
+            "observablePropertyTimingDeviation",
+            "https://w3id.org/afo/vocab/1.1#Onset",
+            SKOS.relatedMatch,
+        ),
+    }
+    for eq, (subject_local, object_iri, predicate) in expected.items():
+        eq_iri = GMEOW[eq]
+        assert (eq_iri, RDF.type, GMEOW.TermEquivalence) in graph, f"{eq} missing"
+        assert (eq_iri, GMEOW.alignPredicate, predicate) in graph
+        subject_iri = GMEOW[subject_local]
+        assert (eq_iri, GMEOW.alignSubject, subject_iri) in graph
+        assert (eq_iri, GMEOW.alignObject, URIRef(object_iri)) in graph
