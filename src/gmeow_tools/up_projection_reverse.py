@@ -106,12 +106,77 @@ WHERE {{
 }}"""
 
 
+#: Contact endpoints: source predicate → the gmeow ContactPoint type. The source
+#: IRI (mailto:/tel:) IS reused as the contact node, typed and linked.
+_CONTACTS: tuple[tuple[str, str], ...] = (
+    ("vcard:hasEmail", "EmailAddress"),
+    ("foaf:mbox", "EmailAddress"),
+    ("vcard:hasTelephone", "TelephoneNumber"),
+    ("foaf:phone", "TelephoneNumber"),
+)
+
+
+def _contact_query(source_pred: str, cp_type: str) -> str:
+    """A CONSTRUCT typing the source endpoint IRI as a gmeow ContactPoint."""
+    return f"""{_PREFIXES}
+CONSTRUCT {{
+  ?p gmeow:hasContactPoint ?cp .
+  ?cp rdf:type gmeow:{cp_type} .
+}}
+WHERE {{
+  ?p {source_pred} ?cp .
+  FILTER(isIRI(?cp))
+}}"""
+
+
+#: Genealogy reverse-projection: the GEDCOM Family structure mints gmeow kinship
+#: relators (the proper model — gedcom:sex already lifts to sexAssignedAtBirth via
+#: value inversion; husband/wife stay REFUSED — gendered spousal roles are never
+#: derived, SEX != GENDER, Principle 9).
+_GENEALOGY: tuple[str, ...] = (
+    # a couple: both partners of a Family form one CoupleRelationship (within it),
+    # so the down-projection mints gedcom:Marriage + spouseIn for each partner.
+    f"""{_PREFIXES}
+CONSTRUCT {{
+  ?cr rdf:type gmeow:CoupleRelationship .
+  ?cr gmeow:hasPartner ?h .
+  ?cr gmeow:hasPartner ?w .
+  ?cr gmeow:withinFamily ?fam .
+}}
+WHERE {{
+  ?fam gedcom:husband ?h . ?fam gedcom:wife ?w .
+  BIND(IRI(CONCAT("{_GENID}couple-", MD5(STR(?fam)))) AS ?cr)
+}}""",
+    # a child's membership: one ParentChildRelationship within the family, so the
+    # down-projection emits gedcom:childIn.
+    f"""{_PREFIXES}
+CONSTRUCT {{
+  ?pcr rdf:type gmeow:ParentChildRelationship .
+  ?pcr gmeow:relationshipChild ?c .
+  ?pcr gmeow:withinFamily ?fam .
+}}
+WHERE {{
+  {{ ?c gedcom:childIn ?fam }} UNION {{ ?fam gedcom:child ?c }}
+  BIND(IRI(CONCAT("{_GENID}pcr-", MD5(CONCAT(STR(?fam), "|", STR(?c))))) AS ?pcr)
+}}""",
+    # flat parent→child: each parent of the family has each child (gedcom:child).
+    f"""{_PREFIXES}
+CONSTRUCT {{ ?parent gmeow:hasChild ?c . }}
+WHERE {{
+  {{ ?c gedcom:childIn ?fam }} UNION {{ ?fam gedcom:child ?c }}
+  {{ ?fam gedcom:husband ?parent }} UNION {{ ?fam gedcom:wife ?parent }}
+}}""",
+)
+
+
 def _reverse_queries() -> list[str]:
     """All authored reverse-projection CONSTRUCT queries."""
     return (
         [_name_part_query(sp, pt) for sp, pt in _NAME_PARTS]
         + [_full_name_query(sp) for sp in _FULL_NAMES]
         + [_nickname_query(sp) for sp in _NICKNAMES]
+        + [_contact_query(sp, ct) for sp, ct in _CONTACTS]
+        + list(_GENEALOGY)
     )
 
 
