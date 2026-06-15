@@ -83,3 +83,14 @@ repos:
     rev: v8.24.0
     hooks:
       - id: gitleaks
+
+  # Rust formatting gate — mirrors the CI "Format gate" step exactly.
+  # Runs `cargo fmt --check` so unformatted Rust cannot reach CI.
+  - repo: local
+    hooks:
+      - id: cargo-fmt-check
+        name: cargo fmt --check
+        language: system
+        entry: cargo fmt --check
+        types: [rust]
+        pass_filenames: false

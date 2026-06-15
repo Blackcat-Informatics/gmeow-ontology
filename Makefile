@@ -16,7 +16,8 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
-        coverage acceptance crossref constitution-check compliance-report audit evals-score
+        coverage acceptance crossref constitution-check compliance-report audit evals-score \
+        logic-build logic-test logic-py logic-wasm
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -129,6 +130,18 @@ audit: ## Claim audit gates over the worked fixture (#55): ungrounded/contradict
 
 evals-score: ## Score committed model emissions against the published contract (offline, #298).
 	$(GMEOW_DEV) evals score
+
+logic-build: ## Build the gmeow-logic Rust crate (world-indexed oxigraph store core).
+	cargo build -p gmeow-logic
+
+logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
+	cargo test -p gmeow-logic
+
+logic-py: ## Build and install the gmeow_logic Python extension (maturin develop).
+	uvx maturin develop --manifest-path crates/logic/Cargo.toml
+
+logic-wasm: ## Build gmeow-logic for wasm32-unknown-unknown (wasm-bindgen surface + oxigraph store).
+	cargo build -p gmeow-logic --target wasm32-unknown-unknown
 
 build: ## Build serializations and JSON-LD context into dist/.
 	$(GMEOW_DEV) build
