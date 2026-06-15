@@ -320,6 +320,9 @@ def apply_reverse(source: Graph) -> Graph:
     out = Graph()
     for query in _reverse_queries():
         result = store.query(query)
+        # every _reverse_queries() entry is a CONSTRUCT, so the result is always a
+        # triple stream — narrow the union for the serializer (and the type checker).
+        assert isinstance(result, pyoxigraph.QueryTriples)
         nt = pyoxigraph.serialize(result, format=pyoxigraph.RdfFormat.N_TRIPLES)
         if nt:
             out.parse(data=nt.decode("utf-8"), format="nt")
