@@ -34,7 +34,7 @@ gmeow:NotationProjectionProfileShape
     ] ;
     sh:or (
         [ sh:property [ sh:path gmeow:representableParameter ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
-        [ sh:property [ sh:path gmeow:declaredLoss ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
+        [ sh:property [ sh:path gmeow:declaredLoss ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:class gmeow:ProjectionLoss ; sh:severity sh:Violation ] ]
     ) ;
     sh:message "A NotationProjectionProfile must declare at least one representableParameter or one declaredLoss." .
 

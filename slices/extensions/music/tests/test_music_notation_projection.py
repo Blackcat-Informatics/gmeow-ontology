@@ -127,7 +127,13 @@ def test_every_music_notation_system_has_profile() -> None:
         for ns in g.subjects(RDF.type, GM.NotationSystem)
         if str(ns).startswith(str(GM))
     }
-    profiled_systems = set(g.objects(None, GM.notationSystemOf))
+    profile_counts = dict.fromkeys(notation_systems, 0)
+    for ns in g.objects(None, GM.notationSystemOf):
+        if ns in profile_counts:
+            profile_counts[ns] += 1
 
-    unprofiled = notation_systems - profiled_systems
+    unprofiled = {ns for ns, count in profile_counts.items() if count == 0}
+    duplicated = {ns: count for ns, count in profile_counts.items() if count > 1}
+
     assert not unprofiled, f"NotationSystem(s) without projection profile: {unprofiled}"
+    assert not duplicated, f"NotationSystem(s) with multiple profiles: {duplicated}"
