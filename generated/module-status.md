@@ -15,7 +15,7 @@ Tier-2 uplift backlog.
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 0/5 | full |
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 0/34 | full |
-| archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 0 | - | full |
+| archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 1 | - | full |
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 0/44 | full |
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 0/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 0/16 | full |
@@ -25,7 +25,7 @@ Tier-2 uplift backlog.
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 0/57 | full |
 | deception | core | core | 4 | 2 | 10 | 0 | 1 | 0/12 | full |
 | documents | core | core | 7 | 22 | 35 | 0 | 1 | 0/57 | full |
-| email | extension | extensions | 8 | 24 | 94 | 0 | 0 | - | full |
+| email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 0/8 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
