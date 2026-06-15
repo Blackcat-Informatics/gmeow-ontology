@@ -8,7 +8,7 @@
 //! Task 3.  Unsupported SHACL features (SPARQL constraints, qualified shapes,
 //! complex path forms, …) cause a hard `Err` rather than a silent skip.
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::HashSet;
 
 use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Term};
 use oxigraph::store::Store;
@@ -215,10 +215,10 @@ impl<'s> Parser<'s> {
 
     fn parse(&mut self) -> Result<Shapes, String> {
         // --- collect all top-level shape node terms ---
-        let mut shape_ids: BTreeSet<String> = BTreeSet::new();
+        let mut shape_ids: HashSet<Term> = HashSet::new();
         // Track which nodes are property-shape-only (reachable only via sh:property)
         // so we don't list them as top-level node shapes.
-        let mut property_shape_nodes: HashSet<String> = HashSet::new();
+        let mut property_shape_nodes: HashSet<Term> = HashSet::new();
 
         // 1. Nodes typed sh:NodeShape
         for quad in self
@@ -231,7 +231,7 @@ impl<'s> Parser<'s> {
             )
             .flatten()
         {
-            shape_ids.insert(Term::from(quad.subject).to_string());
+            shape_ids.insert(Term::from(quad.subject));
         }
 
         // 2. Nodes typed sh:PropertyShape (collect to exclude from top-level)
@@ -245,7 +245,7 @@ impl<'s> Parser<'s> {
             )
             .flatten()
         {
-            property_shape_nodes.insert(Term::from(quad.subject).to_string());
+            property_shape_nodes.insert(Term::from(quad.subject));
         }
 
         // 3. Subjects of sh:targetClass / sh:targetSubjectsOf / sh:targetObjectsOf / sh:targetNode
@@ -260,7 +260,7 @@ impl<'s> Parser<'s> {
                 .quads_for_pattern(None, Some(pred), None, None)
                 .flatten()
             {
-                shape_ids.insert(Term::from(quad.subject).to_string());
+                shape_ids.insert(Term::from(quad.subject));
             }
         }
 
@@ -274,10 +274,9 @@ impl<'s> Parser<'s> {
             .flatten()
         {
             let subj_term = Term::from(quad.subject);
-            let key = subj_term.to_string();
             // Only add if not exclusively a property shape itself
-            if !property_shape_nodes.contains(&key) {
-                shape_ids.insert(key);
+            if !property_shape_nodes.contains(&subj_term) {
+                shape_ids.insert(subj_term);
             }
         }
 
@@ -287,50 +286,24 @@ impl<'s> Parser<'s> {
             .quads_for_pattern(None, Some(sh::PROPERTY), None, None)
             .flatten()
         {
-            property_shape_nodes.insert(quad.object.to_string());
+            property_shape_nodes.insert(quad.object.clone());
         }
 
         // Remove property-shape-only nodes from top-level set
-        for ps_id in &property_shape_nodes {
-            shape_ids.remove(ps_id);
+        for ps in &property_shape_nodes {
+            shape_ids.remove(ps);
         }
-
-        // Build a term-string → Term lookup so we can reconstruct Terms from ids
-        let term_lookup = self.build_term_lookup();
 
         // Parse each top-level node shape in stable (sorted) order
         let mut node_shapes: Vec<Shape> = Vec::new();
-        let ids: Vec<String> = shape_ids.into_iter().collect(); // already sorted by BTreeSet
-        for id_str in ids {
-            if let Some(term) = term_lookup.get(&id_str) {
-                let shape = self.parse_node_shape(term.clone())?;
-                node_shapes.push(shape);
-            }
+        let mut ids: Vec<Term> = shape_ids.into_iter().collect();
+        ids.sort_by_key(|t| t.to_string());
+        for term in ids {
+            let shape = self.parse_node_shape(term.clone())?;
+            node_shapes.push(shape);
         }
 
         Ok(Shapes { node_shapes })
-    }
-
-    /// Build a map from `term.to_string()` → `Term` by scanning all subjects in the store.
-    fn build_term_lookup(&self) -> HashMap<String, Term> {
-        let mut map = HashMap::new();
-        for quad in self
-            .store
-            .quads_for_pattern(None, None, None, None)
-            .flatten()
-        {
-            let subj = Term::from(quad.subject);
-            map.entry(subj.to_string()).or_insert(subj);
-            // Also index object terms that might be shape nodes (IRIs and bnodes)
-            match &quad.object {
-                Term::NamedNode(_) | Term::BlankNode(_) => {
-                    map.entry(quad.object.to_string())
-                        .or_insert_with(|| quad.object.clone());
-                }
-                _ => {}
-            }
-        }
-        map
     }
 
     /// Convert a `Term` to a `NamedOrBlankNodeRef` for use in store queries.
