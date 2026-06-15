@@ -306,6 +306,83 @@ def _structural_pairs() -> tuple[dict[str, set[str]], dict[str, dict[str, str]]]
     return exact, generalizing
 
 
+def _value_mapped_pairs() -> dict[tuple[str, str], tuple[str, str]]:
+    """Invert ``whenValue`` cells into value-lift rules.
+
+    Returns ``(target predicate, literal LEXEME) → (gmeow predicate, gmeow value)``.
+    The literal is keyed by its lexical form, NOT its rdflib ``Literal`` term: a
+    ``whenValue`` cell maps a controlled documentary CODE (GEDCOM SEX ``"M"``,
+    ``doap:status "active"``) whose identity is the lexeme. Source data routinely
+    tags the code (``gedcom:sex "M"@en``) or types it (``xsd:string``); every such
+    form denotes the same code and MUST lift, so a term-identity key would silently
+    drop legitimate data. A genuinely ambiguous code — one lexeme several cells map
+    to *different* gmeow values — is held out by the single-candidate filter below,
+    so lexical keying cannot mislift.
+    A value-mapped down-cell emits a FIXED literal for a FIXED gmeow value
+    individual — ``sexAssignedAtBirth saabMale → gedcom:sex "M"``,
+    ``maintenanceStatus statusActive → doap:status "active"``. Its shape is a
+    single pattern atom ``anchor gmeow:P gmeow:VALUE`` (an ``objectValue``), a
+    ``mint`` binding a literal, and one template atom emitting ``anchor target
+    <minted literal>``. Reversed, the documentary literal precisely denotes the
+    gmeow value individual in the target's own frame, so it lifts as a FACT
+    (``gedcom:sex "M"`` IS the documentary ``saabMale`` datum — never gender).
+
+    A ``(target, literal)`` that several cells map to *different* gmeow values
+    (e.g. GEDCOM ``"U"`` degraded from both ``saabUnknown`` and an intersex note)
+    is genuinely irreversible and dropped — never guessed.
+    """
+    candidates: dict[tuple[str, str], set[tuple[str, str]]] = defaultdict(set)
+    for graph in iter_projection_graphs():
+        for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
+            pattern = graph.value(cell, GM.hasMappingPattern)
+            if pattern is None:
+                continue
+            anchor = graph.value(pattern, GM.anchor)
+            atoms = _rdf_list(graph, graph.value(pattern, GM.atom))
+            if anchor is None or len(atoms) != 1:
+                continue
+            atom = atoms[0]
+            gmeow_pred = graph.value(atom, GM.predicate)
+            gmeow_val = graph.value(atom, GM.objectValue)
+            if (
+                graph.value(atom, GM.subjectVar) != anchor
+                or not isinstance(gmeow_pred, URIRef)
+                or not isinstance(gmeow_val, URIRef)
+                or not str(gmeow_pred).startswith(str(GM))
+            ):
+                continue
+            # value-rule inversion is only sound for the strict single-mint,
+            # single-template shape — a richer cell (several mints or template
+            # legs) is not a clean (target, literal) → (gmeow_pred, gmeow_val)
+            # bijection, so refuse to derive a rule from it.
+            mints = list(graph.objects(pattern, GM.mint))
+            if len(mints) != 1:
+                continue
+            mint = mints[0]
+            bind_var = graph.value(mint, GM.bindVar)
+            bind_expr = graph.value(mint, GM.bindExpr)
+            # a value rule keys on the minted LITERAL; a non-literal bind
+            # expression (a computed IRI, a function) is not a value mapping
+            if bind_var is None or not isinstance(bind_expr, Literal):
+                continue
+            for binding in graph.objects(cell, GM.hasBinding):
+                tas = list(_template_atoms(graph, binding))
+                if len(tas) != 1:
+                    continue
+                ta = tas[0]
+                tpred = graph.value(ta, GM.tPred)
+                if (
+                    graph.value(ta, GM.tSubj) == anchor
+                    and graph.value(ta, GM.tObj) == bind_var
+                    and isinstance(tpred, URIRef)
+                    and _in_projection_ns(str(tpred))
+                ):
+                    candidates[(str(tpred), str(bind_expr))].add(
+                        (str(gmeow_pred), str(gmeow_val))
+                    )
+    return {k: next(iter(v)) for k, v in candidates.items() if len(v) == 1}
+
+
 def _edoalpath_pairs() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     """``(direct, inverse)`` target IRI → gmeow IRIs from single-atom edoalPath cells.
 
@@ -372,6 +449,9 @@ class LiftMap:
     # cannot assert a literal object (it would be ill-typed), so a literal lifts as
     # a claim instead (see _lift_edge).
     object_properties: frozenset[str] = field(default_factory=frozenset)
+    # value-mapped inversion: (target predicate IRI, literal) → (gmeow predicate
+    # IRI, gmeow value-individual IRI). A whenValue cell read backwards.
+    value_rules: dict[tuple[str, str], tuple[str, str]] = field(default_factory=dict)
 
 
 def build_lift_map() -> LiftMap:
@@ -489,6 +569,7 @@ def build_lift_map() -> LiftMap:
         inverse_rules=inverse_rules,
         claim_rules=claim_rules,
         object_properties=object_properties,
+        value_rules=_value_mapped_pairs(),
     )
 
 
@@ -516,6 +597,8 @@ class UpProjection:
     # orphaned keyword/language strings promoted to their anchored concept entity
     tag_resolved: int = 0
     tag_resolved_terms: dict[str, int] = field(default_factory=dict)
+    # structured triples minted by the reverse-projection pass (name parts, etc.)
+    minted: int = 0
 
 
 def _emit_claim(
@@ -603,6 +686,17 @@ def _lift_edge(acc: _Acc, s: Node, p: Node, o: Node, lift: LiftMap) -> None:
     if not isinstance(p, URIRef):
         return
     key = str(p)
+    if (
+        isinstance(o, Literal)
+        and (rule := lift.value_rules.get((key, str(o)))) is not None
+    ):
+        # a documentary value CODE (gedcom:sex "M", doap:status "active") lifts to
+        # its gmeow value individual — a fact, never a guess (whenValue inverse).
+        # Keyed on the lexeme so a tagged/typed code (`"M"@en`, `xsd:string`) still
+        # lifts; ambiguous lexemes are already held out of value_rules.
+        gmeow_pred, gmeow_val = rule
+        acc.fact(s, URIRef(gmeow_pred), URIRef(gmeow_val))
+        return
     if key in lift.rules:
         target = lift.rules[key]
         if isinstance(o, Literal) and target in lift.object_properties:
@@ -653,6 +747,7 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     acc.out.bind("gmeow", GM)
     for s, p, o in source:
         _lift_edge(acc, s, p, o, lift)
+    minted = _apply_reverse(source, acc)
     tag_terms = resolve_concept_references(source, acc.out)
     retag_graph_to_internal(acc.out)
     return UpProjection(
@@ -664,4 +759,25 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
         claim_terms=dict(acc.claims),
         tag_resolved=sum(tag_terms.values()),
         tag_resolved_terms=tag_terms,
+        minted=minted,
     )
+
+
+def _apply_reverse(source: Graph, acc: _Acc) -> int:
+    """Mint structured GMEOW from the flat consumer vocab (reverse projection).
+
+    A flat predicate that denotes a structured gmeow shape the down-projection
+    consumes (a name part, a kinship relator) is lifted by minting that structure
+    — the contextual lift the flat per-term rule cannot express. Returns the count
+    of minted triples (all bare facts: a documentary reverse projection is
+    faithful, not inferred).
+    """
+    from gmeow_tools.up_projection_reverse import apply_reverse
+
+    minted = apply_reverse(source)
+    count = 0
+    for s, p, o in minted:
+        if (s, p, o) not in acc.out:
+            acc.out.add((s, p, o))
+            count += 1
+    return count
