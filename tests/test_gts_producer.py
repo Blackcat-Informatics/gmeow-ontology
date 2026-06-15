@@ -5,14 +5,16 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Mapping
 from pathlib import Path
 
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 from rdflib.namespace import RDFS, XSD
 
 from gmeow_tools.gts_db import to_duckdb, to_sqlite
-from gmeow_tools.gts_producer import gts_from_graph
+from gmeow_tools.gts_producer import compile_gts, gts_from_graph
 from gts import read, to_nquads
+from gts.wire import iter_items, unwrap_header
 
 EX = "https://example.org/"
 
@@ -36,6 +38,28 @@ def _reparse(nq: str, *, dataset: bool = False) -> Graph:
     return target
 
 
+def _frame_codecs(data: bytes) -> list[tuple[str, list[str]]]:
+    items, torn = iter_items(data)
+    assert torn is None
+    header = unwrap_header(items[0][1])
+    raw_catalog = header.get("cat")
+    assert isinstance(raw_catalog, Mapping)
+    catalog: dict[int, str] = {}
+    for cid, entry in raw_catalog.items():
+        assert isinstance(cid, int)
+        assert isinstance(entry, Mapping)
+        name = entry.get("name")
+        assert isinstance(name, str)
+        catalog[cid] = name
+    frames: list[tuple[str, list[str]]] = []
+    for _offset, item in items[1:]:
+        assert isinstance(item, dict)
+        frames.append(
+            (str(item["t"]), [str(catalog[cid]) for cid in item.get("x", [])])
+        )
+    return frames
+
+
 def test_producer_round_trip_isomorphic() -> None:
     """RDF → GTS → fold → N-Quads → RDF reproduces an isomorphic graph."""
     source = _sample_graph()
@@ -51,6 +75,35 @@ def test_producer_default_compresses() -> None:
     data = gts_from_graph(_sample_graph())
     # the self-describe magic + a snapshot frame; folds without diagnostics
     assert read(data).diagnostics == []
+
+
+def test_large_frames_use_zstd_rsyncable() -> None:
+    """Large GTS frames use rsyncable zstd blocks for git-friendly deltas."""
+    large_blob = b"0123456789abcdef" * 5000
+    data = compile_gts(
+        _sample_graph(),
+        doc_blobs=[(large_blob, "text/plain", "test:large")],
+    )
+    frames = _frame_codecs(data)
+    assert ("blob", ["zstd-rsyncable"]) in frames
+
+    snapshot_codecs = [
+        codecs for frame_type, codecs in frames if frame_type == "snapshot"
+    ]
+    assert snapshot_codecs == [["zstd"]]
+
+
+def test_rsyncable_threshold_only_rewrites_default_zstd() -> None:
+    """The threshold switches default zstd frames without overriding explicit codecs."""
+    rsyncable = compile_gts(_sample_graph(), rsyncable_threshold=1)
+    frames = _frame_codecs(rsyncable)
+    assert frames[-1] == ("snapshot", ["zstd-rsyncable"])
+
+    explicit = compile_gts(
+        _sample_graph(), transform=["identity"], rsyncable_threshold=1
+    )
+    frames = _frame_codecs(explicit)
+    assert frames[-1] == ("snapshot", ["identity"])
 
 
 def test_producer_named_graphs() -> None:

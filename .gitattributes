@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+# The committed bundle is generated and binary. Keep the current side during
+# merges/rebases, then regenerate from canonical sources if needed.
+generated/dist/gmeow.gts merge=ours -diff

@@ -22,8 +22,9 @@ help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
-install: ## Sync the uv environment (runtime + dev deps).
+install: ## Sync the uv environment (runtime + dev deps) and Git merge drivers.
 	uv sync --all-packages
+	bash scripts/bootstrap-git-merge-drivers.sh
 
 fmt: ## Auto-format with ruff.
 	uv run ruff format .
