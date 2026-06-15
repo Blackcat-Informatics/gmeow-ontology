@@ -786,20 +786,38 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
         except Exception as exc:
             diffs.append(f"[{case_id}] materialized.nq parse error: {exc}")
         else:
-            # Compare using aggregate union graphs (ConjunctiveGraph isomorphism)
-            actual_union = Graph()
-            for ctx in actual_cg.contexts():
-                if isinstance(ctx.identifier, URIRef):
-                    for triple in ctx:
-                        actual_union.add(triple)
-            expected_union = Graph()
-            for ctx in expected_cg.contexts():
-                if isinstance(ctx.identifier, URIRef):
-                    for triple in ctx:
-                        expected_union.add(triple)
-            rdf_diffs = compare_rdf(actual_union, expected_union)
-            for d in rdf_diffs:
-                diffs.append(f"[{case_id}] materialized.nq: {d}")
+            # Compare per named graph to detect cross-world leaks (Gap-1 fix).
+            # A union comparison would allow a quad in the wrong graph to pass
+            # as long as the (S,P,O) triple existed in ANY world — defeating the
+            # world-isolation invariant required by issue #501 AC(a)/(b).
+            actual_graph_iris: set[URIRef] = {
+                ctx.identifier
+                for ctx in actual_cg.contexts()
+                if isinstance(ctx.identifier, URIRef)
+            }
+            expected_graph_iris: set[URIRef] = {
+                ctx.identifier
+                for ctx in expected_cg.contexts()
+                if isinstance(ctx.identifier, URIRef)
+            }
+            # Report named graphs present on one side but not the other.
+            for extra_iri in sorted(actual_graph_iris - expected_graph_iris):
+                diffs.append(
+                    f"[{case_id}] materialized.nq: named graph present in actual"
+                    f" but not expected: <{extra_iri}>"
+                )
+            for missing_iri in sorted(expected_graph_iris - actual_graph_iris):
+                diffs.append(
+                    f"[{case_id}] materialized.nq: named graph present in expected"
+                    f" but not actual: <{missing_iri}>"
+                )
+            # Per-shared-graph triple comparison using the existing compare_rdf helper.
+            for graph_iri in sorted(actual_graph_iris & expected_graph_iris):
+                actual_g: Graph = Graph(store=actual_cg.store, identifier=graph_iri)
+                expected_g: Graph = Graph(store=expected_cg.store, identifier=graph_iri)
+                rdf_diffs = compare_rdf(actual_g, expected_g)
+                for d in rdf_diffs:
+                    diffs.append(f"[{case_id}] materialized.nq [<{graph_iri}>]: {d}")
 
     return CaseDiffResult(
         case_id=case_id,

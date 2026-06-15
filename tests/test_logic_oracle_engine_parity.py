@@ -91,6 +91,16 @@ def _discover_parity_cases() -> list[Path]:
 _PARITY_CASES = _discover_parity_cases()
 _PARITY_IDS = [f"{p.parent.name}/{p.name}" for p in _PARITY_CASES]
 
+# Minimum expected case IDs (issue #501 AC-d corpus).
+_REQUIRED_CASE_IDS: frozenset[str] = frozenset(
+    [
+        "worlds-A/contested-standpoint",
+        "worlds-B/no-occurrence-gate",
+        "explanation/transitive-derivation",
+        "paraconsistency/cross-world-isolation",
+    ]
+)
+
 # --------------------------------------------------------------------------- #
 # Helpers: Nemo rules extraction
 # --------------------------------------------------------------------------- #
@@ -196,9 +206,7 @@ def _assert_world_sets_equal(
         errors.append(
             f"  worlds in engine but NOT in oracle: {sorted(extra_in_engine)}"
         )
-    assert not errors, (
-        f"[{case_id}] world-set mismatch:\n" + "\n".join(errors)
-    )
+    assert not errors, f"[{case_id}] world-set mismatch:\n" + "\n".join(errors)
 
 
 def _assert_quad_sets_equal(
@@ -257,8 +265,8 @@ def _assert_rule_iris_agree(
                 f"    engine  rule_iri = {eng_rule!r}"
             )
 
-    assert not errors, (
-        f"[{case_id}] rule_iri mismatch on derived quads:\n" + "\n".join(errors)
+    assert not errors, f"[{case_id}] rule_iri mismatch on derived quads:\n" + "\n".join(
+        errors
     )
 
 
@@ -360,3 +368,29 @@ def test_oracle_engine_parity(case_dir: Path) -> None:
             f"oracle's explanation cited-IRI pool — possible rule IRI mismatch.\n"
             f"  Oracle cited IRIs (first 20): {sorted(oracle_cited_all)[:20]}"
         )
+
+
+# --------------------------------------------------------------------------- #
+# Guard: corpus discovery must not be empty (Gap-11 fix)
+# --------------------------------------------------------------------------- #
+
+
+def test_parity_cases_discovered() -> None:
+    """Assert that all required #501 AC-d corpus cases are discovered.
+
+    This non-parametrized guard ensures that if ``_discover_parity_cases()``
+    ever returns an empty list (e.g. due to a renamed directory or a broken
+    conformance root), pytest's parametrize silently producing ZERO test
+    instances is caught here rather than letting the AC-d gate pass vacuously.
+
+    The four required case IDs correspond to the four world-indexed cases
+    described in issue #501 and the module-level docstring.
+    """
+    discovered_ids: frozenset[str] = frozenset(_PARITY_IDS)
+    missing: frozenset[str] = _REQUIRED_CASE_IDS - discovered_ids
+    assert not missing, (
+        f"Required parity cases not discovered — conformance corpus may be broken.\n"
+        f"  Missing case IDs: {sorted(missing)}\n"
+        f"  Discovered IDs:   {sorted(discovered_ids)}\n"
+        f"  Corpus root: {_CONFORMANCE_ROOT / 'cases'}"
+    )
