@@ -17,7 +17,7 @@ Tier-2 uplift backlog.
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 0/34 | full |
 | archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 0 | - | full |
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 0/44 | full |
-| calendar | core | core | 4 | 14 | 26 | 0 | 0 | 0/40 | full |
+| calendar | core | core | 4 | 14 | 26 | 0 | 1 | 0/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 0/16 | full |
 | connectivity | extension | extensions | 2 | 3 | 8 | 0 | 0 | - | full |
 | contacts | core | core | 6 | 9 | 26 | 0 | 1 | 0/35 | full |
@@ -68,6 +68,6 @@ Tier-2 uplift backlog.
 | teleology | core | core | 3 | 7 | 10 | 0 | 1 | 0/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 0/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
-| versions | core | core | 3 | 4 | 7 | 0 | 0 | 0/11 | full |
+| versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
 **61 slices** · documentation: 61 full guides, 0 stubs remaining (#325); advisory coverage: 3/1078 core class/property terms (#471).
