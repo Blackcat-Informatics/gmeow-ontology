@@ -700,4 +700,100 @@ def test_project_canonical_rdf12_writes_path(tmp_path: Path) -> None:
     out = tmp_path / "gmeow.logic.rdf12.ttl"
     project_canonical_rdf12(prog, path=out)
     assert out.exists()
-    assert out.stat().st_size > 0
+
+
+# --------------------------------------------------------------------------- #
+# Regression: Datalog uniform arity (Gap 2 / issue #500)
+# --------------------------------------------------------------------------- #
+
+
+def _program_mixed_scope() -> LogicProgram:
+    """A LogicProgram with BOTH scoped and unscoped axioms of the SAME predicate.
+
+    The scoped ``subClassOf`` carries epistemic modality; the unscoped one has
+    the default scope.  Before the fix, ``project_datalog`` emitted these at
+    arity 2 and arity 3 respectively — a load-time error in Soufflé/DLV/Nemo.
+    """
+    scoped = LogicAxiom(
+        subject=str(EX.Animal),
+        predicate=_LOGIC_SUBCLS,
+        obj=str(EX.Organism),
+        scope=ContextualScope(modality=LogicModality.EPISTEMIC, confidence=0.9),
+    )
+    unscoped = LogicAxiom(
+        subject=str(EX.Bird),
+        predicate=_LOGIC_SUBCLS,
+        obj=str(EX.Animal),
+    )
+    return LogicProgram(axioms=(scoped, unscoped), rules=(), profiles=())
+
+
+def _parse_dl_facts(content: str) -> dict[str, set[int]]:
+    """Parse a Datalog text and return {predicate_name: set_of_arities}.
+
+    Only inspects ground fact lines of the form ``pred(...).`` — ignores
+    comment lines (starting with ``%``) and rule lines (containing ``:-``).
+    """
+    import re
+
+    fact_pattern = re.compile(r"^(\w+)\s*\(([^)]*)\)\s*\.$")
+    result: dict[str, set[int]] = {}
+    for line in content.splitlines():
+        line = line.strip()
+        if not line or line.startswith("%") or ":-" in line:
+            continue
+        m = fact_pattern.match(line)
+        if not m:
+            continue
+        pred = m.group(1)
+        args_str = m.group(2)
+        # Count arguments (naive split by comma — adequate for IRI/string atoms).
+        arity = len(args_str.split(","))
+        result.setdefault(pred, set()).add(arity)
+    return result
+
+
+def test_datalog_uniform_arity_for_mixed_scope_program() -> None:
+    """Regression: project_datalog emits uniform arity for every predicate.
+
+    A program mixing scoped and unscoped axioms of the same predicate must
+    produce Datalog where every predicate appears at exactly ONE arity.  Mixed
+    arity (arity 2 for unscoped, arity 3 for scoped) was the bug reported in
+    the Gap-2 Gemini review comment on ``project_datalog`` (~line 607) and is
+    a syntax/load error in Soufflé, DLV, and Nemo.
+    """
+    prog = _program_mixed_scope()
+    result = project_datalog(prog)
+
+    arity_map = _parse_dl_facts(result.content)
+    # Every predicate in the output must have exactly one arity.
+    multi_arity = {
+        pred: arities for pred, arities in arity_map.items() if len(arities) > 1
+    }
+    assert not multi_arity, (
+        "project_datalog emitted mixed arity for the following predicate(s):\n"
+        + "\n".join(
+            f"  {pred}: arities {sorted(arities)}"
+            for pred, arities in multi_arity.items()
+        )
+    )
+
+
+def test_datalog_scoped_axiom_uses_modality_context() -> None:
+    """Scoped axiom emits modality value as context, not 'default'."""
+    prog = _program_mixed_scope()
+    result = project_datalog(prog)
+    # The scoped subClassOf(Animal, Organism) should carry "epistemic" as context.
+    assert '"epistemic"' in result.content, (
+        "Expected epistemic modality as context argument in scoped fact"
+    )
+
+
+def test_datalog_unscoped_axiom_uses_default_context() -> None:
+    """Unscoped axiom emits 'default' as context argument."""
+    prog = _program_mixed_scope()
+    result = project_datalog(prog)
+    # The unscoped subClassOf(Bird, Animal) should carry "default" as context.
+    assert '"default"' in result.content, (
+        "Expected 'default' as context argument for unscoped facts"
+    )

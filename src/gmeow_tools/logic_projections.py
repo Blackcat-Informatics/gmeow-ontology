@@ -8,7 +8,11 @@ one target format:
 
 * :func:`project_owl_dl` — OWL 2 DL Turtle (``generated/owl/gmeow-dl.ttl``)
 * :func:`project_owl_el` — OWL 2 EL profile Turtle (``generated/owl/gmeow-el.ttl``)
-* :func:`project_datalog` — Datalog text (``generated/datalog/gmeow.dl``)
+* :func:`project_datalog` — Datalog text (``generated/datalog/gmeow.dl``).
+  Every predicate is emitted with **uniform arity 3** — ``pred(subj, obj, ctx)``
+  — where ``ctx`` is the modality string for scoped axioms and ``"default"`` for
+  unscoped axioms.  This satisfies the hard requirement of real Datalog engines
+  (Soufflé, DLV, Nemo) that every predicate name appear at a single arity.
 * :func:`project_n3` — N3 rules (``generated/n3/gmeow.n3``)
 * :func:`project_gufo` — gUFO bridge Turtle (``generated/foundation/gufo.ttl``)
 * :func:`project_canonical_rdf12` — round-trippable canonical serialization
@@ -544,14 +548,23 @@ def project_datalog(
 
     Emits a Datalog program where:
 
-    * Each :class:`~.logic_ir.LogicAxiom` becomes a ground EDB fact:
-      ``pred(subject, object).``
+    * Each :class:`~.logic_ir.LogicAxiom` becomes a ground EDB fact with
+      **uniform arity 3**: ``pred(subject, object, context).``
+    * The ``context`` argument encodes the axiom's contextual scope.  For
+      axioms without any non-trivial scope the context is the constant
+      ``"default"``.  For scoped axioms the context is the modality value
+      string (e.g. ``"epistemic"``, ``"deontic"``).  This guarantees that
+      every predicate has exactly one arity throughout the program, which is
+      required by real Datalog engines (Soufflé, DLV, Nemo) — mixed-arity
+      facts for the same predicate name are a load-time error in those engines.
     * Each :class:`~.logic_ir.LogicRule` becomes a Datalog rule:
-      ``head_pred(X, Y) :- body_pred1(X, Y1), body_pred2(Y1, Y).``
+      ``head_pred(X, Y, Z) :- body_pred1(X, Y1, C1), body_pred2(Y1, Y, C2).``
     * The local name of the ``logic:`` predicate is used as the Datalog
       predicate name (``#`` comments identify dropped constructs).
-    * Modal/contextual scope is encoded as an extra ``context`` argument when
-      non-trivial (approximation).
+
+    Arity convention (enforced uniformly):
+    - Unscoped axiom: ``pred(subj, obj, "default").``
+    - Scoped axiom:   ``pred(subj, obj, "<modality-value>").``
 
     Output is **deterministic**: axioms and rules sorted by their canonical
     sort key.
@@ -599,12 +612,20 @@ def project_datalog(
         obj_dl = repr(axiom.obj) if axiom.obj_is_literal else _iri_atom(axiom.obj)
         subj_dl = _iri_atom(axiom.subject)
 
+        # Always emit arity-3 facts: pred(subj, obj, ctx).
+        # Unscoped axioms use the constant "default"; scoped axioms use the
+        # modality value string.  This ensures every predicate has exactly one
+        # arity across the whole program — a hard requirement for Soufflé, DLV,
+        # and Nemo, which reject mixed-arity predicate definitions.
         if _is_modal_or_scoped(axiom):
-            # Encode context as an extra argument (approximate)
-            modal_str = axiom.scope.modality.value if axiom.scope.modality else "none"
-            lines.append(f'{pred_dl}({subj_dl}, {obj_dl}, "{modal_str}").')
+            ctx_str = (
+                axiom.scope.modality.value
+                if axiom.scope.modality != LogicModality.NONE
+                else "default"
+            )
         else:
-            lines.append(f"{pred_dl}({subj_dl}, {obj_dl}).")
+            ctx_str = "default"
+        lines.append(f'{pred_dl}({subj_dl}, {obj_dl}, "{ctx_str}").')
 
     lines.append("")
     lines.append("% === Rules ===")
@@ -614,9 +635,12 @@ def project_datalog(
         head_pred = "type" if head.predicate == rdf_type_str else _local(head.predicate)
         head_obj = repr(head.obj) if head.obj_is_literal else _iri_atom(head.obj)
         head_subj = _iri_atom(head.subject)
+        # Rules use variable C for context to preserve uniform arity-3 convention.
+        # Body atoms use per-atom context variables (C0, C1, …) so each can
+        # carry its own scope independently.
 
         body_parts: list[str] = []
-        for body_atom in sorted(rule.body, key=lambda a: a._sort_key()):
+        for idx, body_atom in enumerate(sorted(rule.body, key=lambda a: a._sort_key())):
             ba_pred = body_atom.predicate
             bp = "type" if ba_pred == rdf_type_str else _local(ba_pred)
             bs = _iri_atom(body_atom.subject)
@@ -625,10 +649,10 @@ def project_datalog(
                 if body_atom.obj_is_literal
                 else _iri_atom(body_atom.obj)
             )
-            body_parts.append(f"{bp}({bs}, {bo})")
+            body_parts.append(f"{bp}({bs}, {bo}, C{idx})")
 
         body_str = ",\n    ".join(body_parts) if body_parts else "true"
-        lines.append(f"{head_pred}({head_subj}, {head_obj}) :-")
+        lines.append(f"{head_pred}({head_subj}, {head_obj}, C) :-")
         lines.append(f"    {body_str}.")
 
     content = "\n".join(lines) + "\n"
