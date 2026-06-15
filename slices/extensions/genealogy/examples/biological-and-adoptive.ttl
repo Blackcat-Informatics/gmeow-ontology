@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: parent-child is not one relation (#443, P9). Most schemas have
+# a single "parent" field; GMEOW reifies the KIND of parentage, so a child's
+# BIOLOGICAL and ADOPTIVE parents COEXIST rather than overwrite. A
+# gmeow:BiologicalParentChild and a gmeow:AdoptiveParentChild (siblings of
+# Foster/Step) each bind a gmeow:relationshipParent to a gmeow:relationshipChild.
+# Flat gmeow:hasParent / gmeow:hasFather remain available as the simple view; the
+# reified relations carry the distinction the flat edges can't.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/genealogy/> .
+
+ex:alex     a gmeow:Person ; gmeow:name "Alex"@x-gmeow-english ; gmeow:hasParent ex:birthFather , ex:adoptiveMother .
+ex:birthFather    a gmeow:Person ; gmeow:name "Jordan (birth father)"@x-gmeow-english .
+ex:adoptiveMother a gmeow:Person ; gmeow:name "Priya (adoptive mother)"@x-gmeow-english .
+
+# --- The two parentages coexist — neither erases the other (P9). A child has a
+#     biological father AND an adoptive mother, each a distinct reified relation;
+#     the flat gmeow:hasParent edges above are the simple, kind-blind view.
+ex:biological a gmeow:BiologicalParentChild ;
+    gmeow:relationshipParent ex:birthFather ;
+    gmeow:relationshipChild  ex:alex .
+
+ex:adoptive a gmeow:AdoptiveParentChild ;
+    gmeow:relationshipParent ex:adoptiveMother ;
+    gmeow:relationshipChild  ex:alex .
