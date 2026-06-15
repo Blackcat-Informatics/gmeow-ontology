@@ -74,6 +74,10 @@ def test_observable_property_seeds_exist() -> None:
         "observablePropertyAtmosphericPressure",
         "observablePropertyAirQualityIndex",
         "observablePropertyRadiationLevel",
+        "observablePropertyTimbre",
+        "observablePropertyLoudness",
+        "observablePropertyRoughness",
+        "observablePropertyTimingDeviation",
     ):
         assert (GMEOW[term], RDF.type, GMEOW.ObservableProperty) in graph
 
