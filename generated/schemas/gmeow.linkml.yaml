@@ -64,7 +64,9 @@ classes:
     title: Agent
     slots:
     - accepts
+    - attendsTo
     - believes
+    - curiousAbout
     - doubts
     - email
     - endorses
@@ -80,6 +82,7 @@ classes:
     - holdsAccount
     - holdsCredential
     - holdsKey
+    - interestedIn
     - isAwareOf
     - knowsAbout
     - knowsLanguage
@@ -89,6 +92,7 @@ classes:
     - memberOf
     - nativeLanguage
     - ownerOf
+    - remembers
     - slogan
     - suspendsJudgementOn
     - telephone
@@ -465,6 +469,10 @@ classes:
   CodecClass:
     class_uri: https://blackcatinformatics.ca/gmeow/CodecClass
     title: Codec Class
+  CognitiveState:
+    class_uri: https://blackcatinformatics.ca/gmeow/CognitiveState
+    title: Cognitive State
+    is_a: MentalMoment
   Collection:
     class_uri: https://blackcatinformatics.ca/gmeow/Collection
     title: Collection
@@ -1553,6 +1561,7 @@ classes:
   IntentionalMode:
     class_uri: https://blackcatinformatics.ca/gmeow/IntentionalMode
     title: Intentional Mode
+    is_a: IntentionalMoment
     slots:
     - intentBearer
   IntentionalMoment:
@@ -1617,6 +1626,20 @@ classes:
     title: Kin Relationship
     slots:
     - withinFamily
+  KnowledgeLevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/KnowledgeLevel
+    title: Knowledge Level
+    slots:
+    - deeperThan
+  KnowledgeProficiency:
+    class_uri: https://blackcatinformatics.ca/gmeow/KnowledgeProficiency
+    title: Knowledge Proficiency
+    slots:
+    - knowledgeProficiencyAgent
+    - knowledgeProficiencyInterval
+    - knowledgeProficiencyLevel
+    - knowledgeProficiencyScale
+    - knowledgeProficiencySubject
   LandTenure:
     class_uri: https://blackcatinformatics.ca/gmeow/LandTenure
     title: Land Tenure
@@ -1902,6 +1925,9 @@ classes:
   MemoryKind:
     class_uri: https://blackcatinformatics.ca/gmeow/MemoryKind
     title: Memory Kind
+  MentalMoment:
+    class_uri: https://blackcatinformatics.ca/gmeow/MentalMoment
+    title: Mental Moment
   MentalReferenceFrame:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     title: Mental Reference Frame
@@ -4287,6 +4313,12 @@ slots:
     title: at time
     range: datetime
     multivalued: true
+  attendsTo:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attendsTo
+    title: attends to
+    range: Entity
+    domain: Agent
+    multivalued: true
   attestationArtifact:
     slot_uri: https://blackcatinformatics.ca/gmeow/attestationArtifact
     title: attestation artifact
@@ -5330,6 +5362,12 @@ slots:
     range: CriterionDomain
     domain: Criterion
     multivalued: true
+  curiousAbout:
+    slot_uri: https://blackcatinformatics.ca/gmeow/curiousAbout
+    title: curious about
+    range: Entity
+    domain: Agent
+    multivalued: true
   currency:
     slot_uri: https://blackcatinformatics.ca/gmeow/currency
     title: currency
@@ -5437,6 +5475,12 @@ slots:
     title: declination
     range: decimal
     domain: CelestialCoordinates
+    multivalued: true
+  deeperThan:
+    slot_uri: https://blackcatinformatics.ca/gmeow/deeperThan
+    title: deeper than
+    range: KnowledgeLevel
+    domain: KnowledgeLevel
     multivalued: true
   degreeCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/degreeCount
@@ -7765,6 +7809,12 @@ slots:
     range: Goal
     domain: IntentionalMoment
     multivalued: false
+  interestedIn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/interestedIn
+    title: interested in
+    range: Entity
+    domain: Agent
+    multivalued: true
   interpolationKind:
     slot_uri: https://blackcatinformatics.ca/gmeow/interpolationKind
     title: interpolation kind
@@ -8034,6 +8084,36 @@ slots:
     title: key scheme
     range: KeyScheme
     domain: CryptographicKey
+    multivalued: false
+  knowledgeProficiencyAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgent
+    title: knowledge proficiency agent
+    range: Agent
+    domain: KnowledgeProficiency
+    multivalued: false
+  knowledgeProficiencyInterval:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowledgeProficiencyInterval
+    title: knowledge proficiency interval
+    range: TimeInterval
+    domain: KnowledgeProficiency
+    multivalued: true
+  knowledgeProficiencyLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevel
+    title: knowledge proficiency level
+    range: KnowledgeLevel
+    domain: KnowledgeProficiency
+    multivalued: false
+  knowledgeProficiencyScale:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScale
+    title: knowledge proficiency scale
+    range: ProficiencyScale
+    domain: KnowledgeProficiency
+    multivalued: false
+  knowledgeProficiencySubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubject
+    title: knowledge proficiency subject
+    range: Entity
+    domain: KnowledgeProficiency
     multivalued: false
   knowsAbout:
     slot_uri: https://blackcatinformatics.ca/gmeow/knowsAbout
@@ -10205,6 +10285,12 @@ slots:
     title: release version
     range: string
     domain: Release
+    multivalued: true
+  remembers:
+    slot_uri: https://blackcatinformatics.ca/gmeow/remembers
+    title: remembers
+    range: Entity
+    domain: Agent
     multivalued: true
   reminderAction:
     slot_uri: https://blackcatinformatics.ca/gmeow/reminderAction
@@ -14955,6 +15041,21 @@ enums:
       keySchemeX509:
         meaning: https://blackcatinformatics.ca/gmeow/keySchemeX509
         title: X.509
+  KnowledgeLevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/KnowledgeLevel
+    permissible_values:
+      knowledgeAware:
+        meaning: https://blackcatinformatics.ca/gmeow/knowledgeAware
+        title: 'knowledge: aware'
+      knowledgeKnowsAbout:
+        meaning: https://blackcatinformatics.ca/gmeow/knowledgeKnowsAbout
+        title: 'knowledge: knows about'
+      knowledgeMastered:
+        meaning: https://blackcatinformatics.ca/gmeow/knowledgeMastered
+        title: 'knowledge: mastered'
+      knowledgeUnderstands:
+        meaning: https://blackcatinformatics.ca/gmeow/knowledgeUnderstands
+        title: 'knowledge: understands'
   LandTenureTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LandTenureType
     permissible_values:
@@ -17257,6 +17358,9 @@ enums:
       scaleAssessed:
         meaning: https://blackcatinformatics.ca/gmeow/scaleAssessed
         title: assessed
+      scaleBloomRevised:
+        meaning: https://blackcatinformatics.ca/gmeow/scaleBloomRevised
+        title: Bloom's revised taxonomy
       scaleCEFR:
         meaning: https://blackcatinformatics.ca/gmeow/scaleCEFR
         title: CEFR
@@ -17266,9 +17370,15 @@ enums:
       scaleILR:
         meaning: https://blackcatinformatics.ca/gmeow/scaleILR
         title: ILR
+      scaleKnowledgeDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/scaleKnowledgeDepth
+        title: knowledge depth
       scaleNIH:
         meaning: https://blackcatinformatics.ca/gmeow/scaleNIH
         title: NIH
+      scaleSOLO:
+        meaning: https://blackcatinformatics.ca/gmeow/scaleSOLO
+        title: SOLO taxonomy
       scaleSelfReported:
         meaning: https://blackcatinformatics.ca/gmeow/scaleSelfReported
         title: self-reported

@@ -19,7 +19,7 @@ Tier-2 uplift backlog.
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 0/44 | full |
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 0/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 0/16 | full |
-| cognition | core | core | 1 | 0 | 4 | 0 | 1 | 0/4 | full |
+| cognition | core | core | 2 | 3 | 14 | 0 | 4 | 0/17 | full |
 | connectivity | extension | extensions | 2 | 3 | 8 | 0 | 1 | - | full |
 | contacts | core | core | 6 | 9 | 26 | 0 | 1 | 0/35 | full |
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 0/5 | full |
@@ -32,14 +32,14 @@ Tier-2 uplift backlog.
 | epistemics | core | core | 1 | 1 | 5 | 0 | 1 | 0/6 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 0/10 | full |
-| expertise | core | core | 5 | 6 | 11 | 0 | 1 | 0/17 | full |
+| expertise | core | core | 5 | 3 | 11 | 0 | 1 | 0/14 | full |
 | finance | extension | extensions | 9 | 21 | 38 | 0 | 1 | - | full |
 | gender | core | core | 5 | 6 | 7 | 0 | 1 | 0/13 | full |
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 0/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
-| kernel | core | core | 0 | 12 | 27 | 0 | 1 | 1/39 | full |
+| kernel | core | core | 0 | 16 | 27 | 0 | 1 | 1/43 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 0/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
@@ -72,4 +72,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
-**63 slices** · documentation: 63 full guides, 0 stubs remaining (#325); advisory coverage: 3/1113 core class/property terms (#471).
+**63 slices** · documentation: 63 full guides, 0 stubs remaining (#325); advisory coverage: 3/1127 core class/property terms (#471).

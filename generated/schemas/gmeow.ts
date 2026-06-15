@@ -1250,6 +1250,14 @@ export enum KeySchemeEnum {
     XFULL_STOP509 = "keySchemeX509",
 };
 
+export enum KnowledgeLevelEnum {
+
+    knowledgeCOLON_aware = "knowledgeAware",
+    knowledgeCOLON_knows_about = "knowledgeKnowsAbout",
+    knowledgeCOLON_mastered = "knowledgeMastered",
+    knowledgeCOLON_understands = "knowledgeUnderstands",
+};
+
 export enum LandTenureTypeEnum {
 
     crown_lease = "tenureTypeCrownLease",
@@ -2270,10 +2278,13 @@ export enum ProficiencyScaleEnum {
 
     ACTFL = "scaleACTFL",
     assessed = "scaleAssessed",
+    BloomAPOSTROPHEs_revised_taxonomy = "scaleBloomRevised",
     CEFR = "scaleCEFR",
     Dreyfus = "scaleDreyfus",
     ILR = "scaleILR",
+    knowledge_depth = "scaleKnowledgeDepth",
     NIH = "scaleNIH",
+    SOLO_taxonomy = "scaleSOLO",
     self_reported = "scaleSelfReported",
 };
 
@@ -3236,7 +3247,9 @@ export interface AestheticQuality {
 
 export interface Agent {
     accepts?: string[],
+    attendsTo?: Entity[],
     believes?: string[],
+    curiousAbout?: Entity[],
     doubts?: string[],
     email?: string[],
     endorses?: Agent[],
@@ -3252,6 +3265,7 @@ export interface Agent {
     holdsAccount?: OnlineAccount[],
     holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
+    interestedIn?: Entity[],
     isAwareOf?: Entity[],
     knowsAbout?: Entity[],
     knowsLanguage?: Language[],
@@ -3261,6 +3275,7 @@ export interface Agent {
     memberOf?: Organization[],
     nativeLanguage?: Language[],
     ownerOf?: Entity[],
+    remembers?: Entity[],
     slogan?: string[],
     suspendsJudgementOn?: string[],
     telephone?: string[],
@@ -3703,6 +3718,11 @@ export interface CodeReview extends Event {
 
 
 export interface CodecClass {
+}
+
+
+
+export interface CognitiveState extends MentalMoment {
 }
 
 
@@ -4957,7 +4977,7 @@ export interface IntentionTenure extends TimeScopedRelation {
 
 
 
-export interface IntentionalMode {
+export interface IntentionalMode extends IntentionalMoment {
     intentBearer?: Agent,
 }
 
@@ -5030,6 +5050,22 @@ export interface KeyScheme {
 
 export interface KinRelationship {
     withinFamily?: Family[],
+}
+
+
+
+export interface KnowledgeLevel {
+    deeperThan?: KnowledgeLevel[],
+}
+
+
+
+export interface KnowledgeProficiency {
+    knowledgeProficiencyAgent?: Agent,
+    knowledgeProficiencyInterval?: TimeInterval[],
+    knowledgeProficiencyLevel?: KnowledgeLevel,
+    knowledgeProficiencyScale?: ProficiencyScale,
+    knowledgeProficiencySubject?: Entity,
 }
 
 
@@ -5355,6 +5391,11 @@ export interface MemoryItem extends Observation {
 
 
 export interface MemoryKind {
+}
+
+
+
+export interface MentalMoment {
 }
 
 

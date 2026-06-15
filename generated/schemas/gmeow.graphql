@@ -1250,6 +1250,14 @@ enum KeySchemeEnum
     keySchemeX509
   }
 
+enum KnowledgeLevelEnum
+  {
+    knowledgeAware
+    knowledgeKnowsAbout
+    knowledgeMastered
+    knowledgeUnderstands
+  }
+
 enum LandTenureTypeEnum
   {
     tenureTypeCrownLease
@@ -2270,10 +2278,13 @@ enum ProficiencyScaleEnum
   {
     scaleACTFL
     scaleAssessed
+    scaleBloomRevised
     scaleCEFR
     scaleDreyfus
     scaleILR
+    scaleKnowledgeDepth
     scaleNIH
+    scaleSOLO
     scaleSelfReported
   }
 
@@ -3278,7 +3289,9 @@ type AestheticQuality
 type Agent
   {
     accepts: [String]
+    attendsTo: [Entity]
     believes: [String]
+    curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
@@ -3294,6 +3307,7 @@ type Agent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
@@ -3303,6 +3317,7 @@ type Agent
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    remembers: [Entity]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
@@ -4594,7 +4609,9 @@ type BuildActivity
 type Builder
   {
     accepts: [String]
+    attendsTo: [Entity]
     believes: [String]
+    curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
@@ -4610,6 +4627,7 @@ type Builder
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
@@ -4619,6 +4637,7 @@ type Builder
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    remembers: [Entity]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
@@ -5102,6 +5121,10 @@ type CodeReview
     violates: [Norm]
     reviewCommit: [Commit]
     reviewOf: [MergeRequest]
+  }
+
+type CognitiveState
+  {
   }
 
 type Collection
@@ -6816,6 +6839,61 @@ type DerivationType
 
 type Desire
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    intentionGoal: Goal
+    motivates: [Event]
     intentBearer: Agent
   }
 
@@ -9821,11 +9899,121 @@ type InstrumentType
 
 type Intention
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    intentionGoal: Goal
+    motivates: [Event]
     intentBearer: Agent
   }
 
 type IntentionalMode
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    intentionGoal: Goal
+    motivates: [Event]
     intentBearer: Agent
   }
 
@@ -10255,6 +10443,20 @@ type KeyScheme
 type KinRelationship
   {
     withinFamily: [Family]
+  }
+
+type KnowledgeLevel
+  {
+    deeperThan: [KnowledgeLevel]
+  }
+
+type KnowledgeProficiency
+  {
+    knowledgeProficiencyAgent: Agent
+    knowledgeProficiencyInterval: [TimeInterval]
+    knowledgeProficiencyLevel: KnowledgeLevel
+    knowledgeProficiencyScale: ProficiencyScale
+    knowledgeProficiencySubject: Entity
   }
 
 type LandTenure
@@ -11795,6 +11997,10 @@ type MemoryItem
   }
 
 type MemoryKind
+  {
+  }
+
+type MentalMoment
   {
   }
 
@@ -14323,7 +14529,9 @@ type OrderStatus
 type Organization
   {
     accepts: [String]
+    attendsTo: [Entity]
     believes: [String]
+    curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
@@ -14339,6 +14547,7 @@ type Organization
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
@@ -14348,6 +14557,7 @@ type Organization
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    remembers: [Entity]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
@@ -14858,7 +15068,9 @@ type Permission
 type Person
   {
     accepts: [String]
+    attendsTo: [Entity]
     believes: [String]
+    curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
@@ -14874,6 +15086,7 @@ type Person
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
@@ -14883,6 +15096,7 @@ type Person
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    remembers: [Entity]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
@@ -18352,7 +18566,9 @@ type SensitivityLevel
 type Sensor
   {
     accepts: [String]
+    attendsTo: [Entity]
     believes: [String]
+    curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
@@ -18368,6 +18584,7 @@ type Sensor
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
@@ -18377,6 +18594,7 @@ type Sensor
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    remembers: [Entity]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
@@ -19400,7 +19618,9 @@ type SocialObject
 type SoftwareAgent
   {
     accepts: [String]
+    attendsTo: [Entity]
     believes: [String]
+    curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
@@ -19416,6 +19636,7 @@ type SoftwareAgent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
@@ -19425,6 +19646,7 @@ type SoftwareAgent
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
+    remembers: [Entity]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
