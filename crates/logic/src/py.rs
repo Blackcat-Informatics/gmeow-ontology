@@ -466,25 +466,33 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<PyObject> 
 /// # Budget governor (issue #502)
 ///
 /// The optional `max_rule_firings`, `max_answers`, and `time_ms` parameters bound
-/// the run. **Rust budget enforcement is post-hoc and applies to terminating
-/// programs:** Nemo's `reason()` runs to fixpoint with no native budget hook, so
-/// the governor cannot interrupt the chase mid-flight. Instead, after the chase
-/// reaches fixpoint, it bounds the answer/firing counts and stamps the kept quads
-/// `BudgetStatus::Exhausted`; `time_ms` bounds only the *post-fixpoint* work
-/// (decode + bookkeeping), not the chase itself. A genuinely non-terminating rule
-/// set is the static certifier's job to reject up front (see [`crate::certify`]),
-/// not the governor's to interrupt.
+/// the run. Asserted **EDB input facts are always kept in full** — a budget never
+/// drops a given input quad; only **derived (IDB)** quads are bounded.
 ///
-/// This differs from the Python oracle, which cuts mid-chase. The divergence is
-/// **named, not glossed** (honesty invariant): on terminating fixtures the verdict
-/// and budget strings match the oracle exactly; on a non-terminating input the
-/// behaviours legitimately differ, and that difference is documented here, in
-/// `certify.rs`, and in `crates/logic/README.md`.
+/// **The count ceilings (`max_rule_firings`, `max_answers`) are engine-independent
+/// and deterministic.** Nemo's `reason()` runs to full fixpoint with no native
+/// budget hook, and the Python oracle likewise runs to fixpoint under these
+/// ceilings; both then truncate the derived set *post-hoc* to the canonical-sort
+/// prefix of the **complete** derivation and stamp the kept quads
+/// `BudgetStatus::Exhausted`. Because both engines compute the same fixpoint and
+/// keep the same canonical prefix, the count ceilings yield identical verdicts.
 ///
-/// When a ceiling trips, kept rows are a **sound subset** — a prefix of the
-/// canonical (graph, S, P, O) sort — never fabricated. With all three parameters
-/// `None` (the default), the output is **byte-identical to pre-#502**: every quad
-/// keeps `budget_status = "ok"` and the chase-order output is preserved unchanged.
+/// **Only `time_ms` is engine-dependent.** The Python oracle can cut the chase
+/// mid-flight on the wall clock; on the Rust side `time_ms` bounds only the
+/// *post-fixpoint* work (decode + bookkeeping), not the chase itself. A genuinely
+/// non-terminating rule set is the static certifier's job to reject up front (see
+/// [`crate::certify`]), not the governor's to interrupt.
+///
+/// The `time_ms` divergence is **named, not glossed** (honesty invariant): under
+/// the count ceilings the verdict and budget strings match the oracle exactly;
+/// only on a wall-clock cut do the behaviours legitimately differ, and that
+/// difference is documented here, in `certify.rs`, and in `crates/logic/README.md`.
+///
+/// When a ceiling trips, kept rows are a **sound subset** of the full fixpoint —
+/// a prefix of the canonical (graph, S, P, O) sort — never fabricated. With all
+/// three parameters `None` (the default), the output is **byte-identical to
+/// pre-#502**: every quad keeps `budget_status = "ok"` and the chase-order output
+/// is preserved unchanged.
 ///
 /// # Errors
 ///

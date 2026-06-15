@@ -50,23 +50,36 @@ terminate.
 ### Budget enforcement is post-hoc — and honest about it
 
 `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
-adds an optional resource budget. **Rust budget enforcement is post-hoc and
-applies to terminating programs: it bounds answer/firing counts after the chase
-reaches fixpoint, and `time_ms` bounds only post-fixpoint work, not the chase
-itself. A genuinely non-terminating rule set is the static certifier's job to
-reject up front, not the governor's to interrupt. This differs from the Python
-oracle, which cuts mid-chase.** Nemo's `reason()` runs to fixpoint with no native
-budget hook, so the governor cannot interrupt the chase; it instead truncates the
-materialized result to a *sound subset* — a prefix of the canonical
-`(graph, S, P, O)` sort, never a fabricated row — and stamps every kept quad
-`budget_status = "exhausted"`.
+adds an optional resource budget with this contract:
 
-This keeps `oracle ≡ engine` truthful rather than convenient: on terminating
-fixtures the verdict and budget strings match the oracle exactly; the behavioural
-divergence on non-terminating inputs is **named here, not glossed** (the same
-paragraph appears in the `certify.rs` and `py.rs` doc comments). With all three
-budget parameters `None` (the default), `materialize` output is byte-identical to
-the pre-#502 behaviour: chase order preserved, every quad `"ok"`.
+- **Asserted EDB input facts are always kept in full.** A budget never drops a
+  given input quad; only **derived (IDB)** quads are bounded.
+- **The count ceilings (`max_rule_firings`, `max_answers`) are engine-independent
+  and deterministic.** Both engines run the chase to full fixpoint and then
+  truncate the derived set *post-hoc* to the canonical-sort prefix of the
+  **complete** derivation — a prefix of the `(graph, S, P, O)` sort, never a
+  fabricated row. The kept quads are stamped `budget_status = "exhausted"` and the
+  run is marked incomplete. Because both the Python oracle and Nemo compute the
+  same complete fixpoint and truncate the same canonical prefix, the count
+  ceilings give **identical** verdicts on both engines.
+- **Only `time_ms` is a mid-chase cut, and only in Python.** The Python oracle can
+  stop the chase early on the wall clock; Nemo's `reason()` runs to fixpoint with
+  no native budget hook, so on the Rust side `time_ms` bounds only *post-fixpoint*
+  work (decode + bookkeeping), not the chase itself. This is the one budget
+  parameter whose behaviour is engine-dependent.
+- **Rejecting genuinely non-terminating rule sets is the static certifier's job,
+  up front — not the governor's to interrupt.** The governor never sees a
+  non-terminating program it is expected to halt.
+- **Kept results are always a sound subset of the full fixpoint** — never a false
+  answer.
+
+This keeps `oracle ≡ engine` truthful rather than convenient: under the count
+ceilings the verdict, kept set, and budget strings match the oracle exactly; the
+only engine-dependent budget is `time_ms`, and that divergence is **named here,
+not glossed** (the same contract appears in the `certify.rs` and `py.rs` doc
+comments). With all three budget parameters `None` (the default), `materialize`
+output is byte-identical to the pre-#502 behaviour: chase order preserved, every
+quad `"ok"`.
 
 ## Oracle-parity discipline
 

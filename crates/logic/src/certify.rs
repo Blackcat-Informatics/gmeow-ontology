@@ -69,15 +69,19 @@
 //!
 //! Rejecting a genuinely **non-terminating** rule set up front is *this static
 //! certifier's* job, not the runtime budget governor's. The governor in
-//! [`crate::py::materialize`] is **post-hoc**: Nemo's `reason()` runs to fixpoint
-//! with no native budget hook, so the governor bounds answer/firing counts *after*
-//! the chase reaches fixpoint and `time_ms` bounds only post-fixpoint work — it
-//! cannot interrupt the chase mid-flight. This differs from the Python oracle,
-//! which cuts mid-chase. The divergence is **named, not glossed**: on terminating
-//! fixtures the verdict and budget strings match the oracle exactly; the
-//! behavioural difference on non-terminating inputs is documented here, in
-//! `py.rs`, and in `crates/logic/README.md`. Keeping `oracle ≡ engine` truthful
-//! is the reason the certifier exists as the front-line termination guard.
+//! [`crate::py::materialize`] is **post-hoc for the count ceilings**: both the
+//! Python oracle and Nemo run the chase to full fixpoint and then truncate the
+//! derived set to the canonical-sort prefix of the *complete* derivation, so
+//! `max_rule_firings`/`max_answers` are engine-independent and deterministic —
+//! identical verdicts on both engines. Asserted EDB input is always kept in full.
+//! The only engine-dependent budget is `time_ms`: the Python oracle can cut the
+//! chase mid-flight on the wall clock, while Nemo's `reason()` has no native
+//! budget hook, so on the Rust side `time_ms` bounds only post-fixpoint work. The
+//! divergence is **named, not glossed**: under the count ceilings the verdict and
+//! budget strings match the oracle exactly; the `time_ms` difference is documented
+//! here, in `py.rs`, and in `crates/logic/README.md`. Keeping `oracle ≡ engine`
+//! truthful is the reason the certifier exists as the front-line termination
+//! guard.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
