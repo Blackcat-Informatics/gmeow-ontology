@@ -4,7 +4,12 @@
 
 from __future__ import annotations
 
-from gts.emojihash import emojihash, randomart
+from gts.emojihash import (
+    EMOJIHASH_ALPHABET_SIZE,
+    emojihash,
+    emojihash_labels,
+    randomart,
+)
 
 
 def test_emojihash_length_and_determinism() -> None:
@@ -24,8 +29,17 @@ def test_emojihash_changes_with_input() -> None:
 
 
 def test_emojihash_default_length() -> None:
-    """Default emojihash length is 8 emojis."""
-    assert len(emojihash(b"x").split()) == 8
+    """Default emojihash length is 11 symbols for 66 bits of visual hash."""
+    assert EMOJIHASH_ALPHABET_SIZE == 64
+    assert len(emojihash(b"x").split()) == 11
+
+
+def test_emojihash_labels_match_symbols() -> None:
+    """Every visual hash symbol has a readable stable label."""
+    data = b"gmeow transport key"
+    assert len(emojihash(data).split()) == len(emojihash_labels(data).split())
+    labels = emojihash_labels(data).split()
+    assert all(label and label == label.lower() for label in labels)
 
 
 def test_randomart_has_grid_shape() -> None:
