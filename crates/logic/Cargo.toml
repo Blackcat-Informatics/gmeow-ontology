@@ -30,7 +30,7 @@ blake3 = "1"
 # and the CPython ABI — unavailable on wasm32.  This is a HARD dependency: the
 # build MUST succeed with the full Nemo reasoner linked; there is no fallback.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pyo3 = { version = "0.24", features = ["extension-module", "abi3-py313"] }
+pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
 nemo = { git = "https://github.com/knowsys/nemo", rev = "4415bc2e180adf33a7a4b98ddc41be9914b7584e" }
 
 # wasm-bindgen is wasm-only: it binds to the JavaScript host runtime which does
