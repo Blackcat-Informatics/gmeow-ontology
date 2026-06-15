@@ -19,6 +19,7 @@ MODULES = (
     "gts_full_gen",
     "gts_gen",
     "gts_vectors_gen",
+    "logic_compile",
     "lpg",
     "mapping_compile",
     "matrix",

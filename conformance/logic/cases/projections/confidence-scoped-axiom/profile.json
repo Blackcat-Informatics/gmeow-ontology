@@ -1,0 +1,6 @@
+{
+  "semantic_profile": "ProbabilisticProfile",
+  "world_types": ["epistemic"],
+  "mode": "native",
+  "expected_decidability_class": "decidable"
+}

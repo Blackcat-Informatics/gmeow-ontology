@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: confidence-scoped-axiom
+# Exercises axiom-level annotation projection using the logic: epistemic/
+# confidence vocabulary.  A subClassOf axiom is annotated with a quantitative
+# confidence score via classic RDF reification + logic:confidence.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/confidence-scoped-axiom/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# Sorts
+ex:Organism a logic:Kind .
+ex:Animal   a logic:Kind .
+ex:Bird     a logic:SubKind .
+
+# Plain (unscoped) subClassOf
+ex:Bird     logic:subClassOf ex:Animal .
+
+# Confidence-annotated subClassOf via classic RDF reification.
+# The assertion "Animal subClassOf Organism" carries a 0.9 confidence weight,
+# e.g. representing a curated but not fully certain classification.
+ex:stmt1
+    a rdf:Statement ;
+    rdf:subject   ex:Animal ;
+    rdf:predicate logic:subClassOf ;
+    rdf:object    ex:Organism ;
+    logic:confidence "0.9"^^xsd:decimal ;
+    logic:modality   logic:epistemic .
