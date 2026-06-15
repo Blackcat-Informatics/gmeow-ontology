@@ -132,9 +132,12 @@ markers = [
 
 [tool.codespell]
 # Spell-check prose and identifiers; skip generated/binary/lock artifacts, the
-# vendored gUFO import, and the vendored public-data fixtures (upstream content,
-# not ours to correct). Patterns are fnmatch'd against repo-relative paths.
-skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*"
+# vendored gUFO import, the vendored public-data fixtures (upstream content, not
+# ours to correct), and the i18n translation catalogs (*.po — foreign-language
+# msgstr is not English prose to spell-check; their English msgids are already
+# checked at the .ttl/.md source, #572). Patterns are fnmatch'd against
+# repo-relative paths.
+skip = "uv.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*"
 # False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
 # opNe (the not-equal expression operator in the mapping DSL algebra),
 # ser (Rust serde/ciborium module path `ciborium::ser`),
