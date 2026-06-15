@@ -239,3 +239,18 @@ gmeow:mapFoafMbox a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "foaf" ; gmeow:toPredicate foaf:mbox ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "contact-point usage context and validity drop; the bare mbox edge survives" ] .
+
+gmeow:mapFoafDepiction a gmeow:ProjectionMapping ;
+    rdfs:label "depicting MediaObject → foaf:depiction (entity → image)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fdEnt" ; gmeow:value "fdImg" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "fdImg" ; gmeow:predicate gmeow:depicts ; gmeow:objectVar "fdEnt" ]
+            [ gmeow:subjectVar "fdImg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "fdEnt" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:depicts ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:edoalTarget foaf:depiction ; gmeow:edoalTargetKind "property" ;
+        gmeow:lossyDrop "the depiction's context/period/audience drop; the entity gains foaf:depiction pointing at the depicting MediaObject" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "fdEnt" ; gmeow:tPred foaf:depiction ; gmeow:tObj "fdImg" ] ) ] .

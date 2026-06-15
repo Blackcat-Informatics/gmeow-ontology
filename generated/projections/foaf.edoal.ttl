@@ -19,6 +19,14 @@
             align:relation "<=" ;
             edoal:measure 7e-01 ],
         [ a align:Cell ;
+            rdfs:label "depicting MediaObject → foaf:depiction (entity → image)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:depicts ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:depiction ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "family-name part → foaf:familyName"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:partText ] ;

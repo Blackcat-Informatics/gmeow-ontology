@@ -31,6 +31,7 @@ _GENID = NAMESPACE + ".well-known/genid/up-"
 _PREFIXES = f"""
 PREFIX gmeow: <{NAMESPACE}>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 PREFIX schema: <https://schema.org/>
@@ -39,6 +40,7 @@ PREFIX doap: <http://usefulinc.com/ns/doap#>
 PREFIX sioc: <http://rdfs.org/sioc/ns#>
 PREFIX time: <http://www.w3.org/2006/time#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX bf: <http://id.loc.gov/ontologies/bibframe/>
 """
 
 #: Flat type rewrites (source class → gmeow class) the per-term lift misses
@@ -48,6 +50,8 @@ _TYPE_REWRITES: tuple[tuple[str, str], ...] = (
     ("sioc:Post", "gmeow:EmailMessage"),
     ("sioc:Thread", "gmeow:Thread"),
     ("sioc:Container", "gmeow:Thread"),
+    # bibframe:Work IS the WEMI Work — the down-cell projects gmeow:Work → bf:Work
+    ("bf:Work", "gmeow:Work"),
 )
 
 #: Flat predicate rewrites (source predicate → gmeow predicate).
@@ -66,7 +70,11 @@ _PRED_REWRITES: tuple[tuple[str, str], ...] = (
 #: The object of these source predicates is typed as a gmeow class (so the
 #: down-cell that requires the type fires) — e.g. a doap:repository node IS a
 #: gmeow:Repository, which doap:browse → gmeow:webUrl then needs.
-_OBJECT_TYPES: tuple[tuple[str, str], ...] = (("doap:repository", "gmeow:Repository"),)
+_OBJECT_TYPES: tuple[tuple[str, str], ...] = (
+    ("doap:repository", "gmeow:Repository"),
+    # the depiction object is the depicting MediaObject (gmeow:depicts' domain)
+    ("foaf:depiction", "gmeow:MediaObject"),
+)
 
 
 def _object_type_query(src_pred: str, gmeow_type: str) -> str:
@@ -79,6 +87,8 @@ CONSTRUCT {{ ?o rdf:type {gmeow_type} . }} WHERE {{ ?s {src_pred} ?o . }}"""
 _INVERSE_REWRITES: tuple[tuple[str, str], ...] = (
     ("sioc:container_of", "gmeow:partOfThread"),
     ("sioc:has_reply", "gmeow:inReplyTo"),
+    # foaf:depiction (agent → image) is the inverse of gmeow:depicts (image → agent)
+    ("foaf:depiction", "gmeow:depicts"),
 )
 
 
@@ -225,6 +235,25 @@ CONSTRUCT {{ ?parent gmeow:hasChild ?c . }}
 WHERE {{
   {{ ?c gedcom:childIn ?fam }} UNION {{ ?fam gedcom:child ?c }}
   {{ ?fam gedcom:husband ?parent }} UNION {{ ?fam gedcom:wife ?parent }}
+}}""",
+    # the marriage event's date/place: the couple gains a gmeow:Event (eventType
+    # Marriage) bearing eventTime/eventLocation, keyed on the family so it joins the
+    # CoupleRelationship and the down-projection flattens it onto the Marriage node.
+    f"""{_PREFIXES}
+CONSTRUCT {{
+  ?cr gmeow:hasCoupleEvent ?evt .
+  ?evt rdf:type gmeow:Event .
+  ?evt gmeow:eventType gmeow:eventTypeMarriage .
+  ?evt gmeow:eventTime ?d .
+  ?evt gmeow:eventLocation ?pl .
+  ?pl rdfs:label ?placeName .
+}}
+WHERE {{
+  ?fam gedcom:husband ?h . ?fam gedcom:wife ?w . ?fam gedcom:marriage ?m .
+  OPTIONAL {{ ?m gedcom:date ?d }}
+  OPTIONAL {{ ?m gedcom:place ?pl . OPTIONAL {{ ?pl schema:name ?placeName }} }}
+  BIND(IRI(CONCAT("{_GENID}couple-", MD5(STR(?fam)))) AS ?cr)
+  BIND(IRI(CONCAT("{_GENID}cevent-", MD5(STR(?fam)))) AS ?evt)
 }}""",
 )
 
