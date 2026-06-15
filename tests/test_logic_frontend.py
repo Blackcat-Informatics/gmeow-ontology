@@ -342,6 +342,107 @@ def test_rule_missing_head_emits_diagnostic() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Negation-as-failure body atoms (logic:negatedBody, issue #502)
+# --------------------------------------------------------------------------- #
+
+
+def _naf_rule_graph() -> Graph:
+    """A logic:Rule with one positive and one negated body atom.
+
+    Models the StratifiedNAF surface: ``head :- posBody, not negBody``.
+    """
+    g = Graph()
+    g.add((EX.s, RDF.type, LOGIC.Kind))
+
+    rule = EX.nafRule
+    g.add((rule, RDF.type, LOGIC.Rule))
+
+    head = BNode("naf_head")
+    g.add((head, RDF.subject, EX.x))
+    g.add((head, RDF.predicate, LOGIC.rigidlyAppliesTo))
+    g.add((head, RDF.object, EX.y))
+    g.add((rule, LOGIC.head, head))
+
+    pos = BNode("naf_pos")
+    g.add((pos, RDF.subject, EX.x))
+    g.add((pos, RDF.predicate, LOGIC.mediates))
+    g.add((pos, RDF.object, EX.z))
+    g.add((rule, LOGIC.body, pos))
+
+    neg = BNode("naf_neg")
+    g.add((neg, RDF.subject, EX.x))
+    g.add((neg, RDF.predicate, LOGIC.suppliesIdentity))
+    g.add((neg, RDF.object, EX.w))
+    g.add((rule, LOGIC.negatedBody, neg))
+
+    return g
+
+
+def test_negated_body_atom_yields_negated_axiom() -> None:
+    """A logic:negatedBody atom yields a LogicAxiom with negated=True."""
+    prog, _diags = parse_logic_source(_naf_rule_graph())
+
+    assert len(prog.rules) == 1
+    body = prog.rules[0].body
+    assert len(body) == 2
+
+    by_pred = {a.predicate: a for a in body}
+    pos_atom = by_pred[LOGIC_NAMESPACE + "mediates"]
+    neg_atom = by_pred[LOGIC_NAMESPACE + "suppliesIdentity"]
+
+    # (a) the logic:negatedBody atom is negated
+    assert neg_atom.negated is True
+    # (b) the positive logic:body atom is NOT negated
+    assert pos_atom.negated is False
+
+
+def test_positive_rule_body_is_not_negated() -> None:
+    """A rule with only logic:body atoms yields negated=False everywhere."""
+    g = Graph()
+    g.add((EX.s, RDF.type, LOGIC.Kind))
+
+    rule = EX.posRule
+    g.add((rule, RDF.type, LOGIC.Rule))
+
+    head = BNode("pos_head")
+    g.add((head, RDF.subject, EX.x))
+    g.add((head, RDF.predicate, LOGIC.rigidlyAppliesTo))
+    g.add((head, RDF.object, EX.y))
+    g.add((rule, LOGIC.head, head))
+
+    body = BNode("pos_body")
+    g.add((body, RDF.subject, EX.x))
+    g.add((body, RDF.predicate, LOGIC.mediates))
+    g.add((body, RDF.object, EX.z))
+    g.add((rule, LOGIC.body, body))
+
+    prog, _diags = parse_logic_source(g)
+
+    assert len(prog.rules) == 1
+    r = prog.rules[0]
+    assert r.head.negated is False
+    assert all(a.negated is False for a in r.body)
+
+
+def test_negated_body_canonical_round_trip_is_stable() -> None:
+    """canonical()/sort is order-independent and stable with a negated atom."""
+    prog1, _ = parse_logic_source(_naf_rule_graph())
+    prog2, _ = parse_logic_source(_naf_rule_graph())
+
+    # (c) round-trip stability: same input → equal programs and canonical dicts
+    assert prog1 == prog2
+    assert prog1.canonical() == prog2.canonical()
+
+    # The negated atom surfaces a "negated": true key in canonical(); the
+    # positive atom omits the key entirely (corpus-safety convention).
+    body_dicts = prog1.canonical()["rules"][0]["body"]
+    negated_flags = [d.get("negated", False) for d in body_dicts]
+    assert sorted(negated_flags) == [False, True]
+    positive_dict = next(d for d in body_dicts if not d.get("negated", False))
+    assert "negated" not in positive_dict
+
+
+# --------------------------------------------------------------------------- #
 # INVALID_COMPLEXITY_CLASS diagnostic
 # --------------------------------------------------------------------------- #
 

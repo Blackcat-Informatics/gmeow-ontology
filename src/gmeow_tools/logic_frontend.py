@@ -446,6 +446,7 @@ def _extract_rules(
     logic_rule = LOGIC.Rule
     logic_head = LOGIC.head
     logic_body = LOGIC.body
+    logic_negated_body = LOGIC.negatedBody
 
     rules: list[LogicRule] = []
 
@@ -496,42 +497,52 @@ def _extract_rules(
             )
             continue
 
-        # Body (zero or more)
+        # Body (zero or more).  Positive body atoms are read via logic:body
+        # (negated=False); negated body atoms — the StratifiedNAF negation-as-
+        # failure surface (issue #502) — are read via logic:negatedBody with
+        # parallel structure and negated=True.  Both predicates are optional, so
+        # a purely positive rule keeps its exact pre-#502 parse.
         body_axioms: list[LogicAxiom] = []
-        for body_node in graph.objects(rule_node, logic_body):
-            body_s = graph.value(body_node, RDF.subject)
-            body_p = graph.value(body_node, RDF.predicate)
-            body_o = graph.value(body_node, RDF.object)
-            if body_p is None:
-                diagnostics.append(
-                    Diagnostic(
-                        severity=WARNING,
-                        code="MALFORMED_RULE_BODY",
-                        message=(
-                            "logic:body node has no rdf:predicate; body atom skipped"
-                        ),
-                        subject=_str_or_none(rule_node),
+        for body_predicate, negated in (
+            (logic_body, False),
+            (logic_negated_body, True),
+        ):
+            for body_node in graph.objects(rule_node, body_predicate):
+                body_s = graph.value(body_node, RDF.subject)
+                body_p = graph.value(body_node, RDF.predicate)
+                body_o = graph.value(body_node, RDF.object)
+                if body_p is None:
+                    diagnostics.append(
+                        Diagnostic(
+                            severity=WARNING,
+                            code="MALFORMED_RULE_BODY",
+                            message=(
+                                "logic:body node has no rdf:predicate; "
+                                "body atom skipped"
+                            ),
+                            subject=_str_or_none(rule_node),
+                        )
                     )
-                )
-                continue
-            try:
-                body_axioms.append(
-                    LogicAxiom(
-                        subject=str(body_s) if body_s else "",
-                        predicate=str(body_p),
-                        obj=str(body_o) if body_o else "",
-                        obj_is_literal=isinstance(body_o, Literal),
+                    continue
+                try:
+                    body_axioms.append(
+                        LogicAxiom(
+                            subject=str(body_s) if body_s else "",
+                            predicate=str(body_p),
+                            obj=str(body_o) if body_o else "",
+                            obj_is_literal=isinstance(body_o, Literal),
+                            negated=negated,
+                        )
                     )
-                )
-            except ValueError as exc:
-                diagnostics.append(
-                    Diagnostic(
-                        severity=WARNING,
-                        code="MALFORMED_RULE_BODY",
-                        message=str(exc),
-                        subject=_str_or_none(rule_node),
+                except ValueError as exc:
+                    diagnostics.append(
+                        Diagnostic(
+                            severity=WARNING,
+                            code="MALFORMED_RULE_BODY",
+                            message=str(exc),
+                            subject=_str_or_none(rule_node),
+                        )
                     )
-                )
 
         rules.append(
             LogicRule(
