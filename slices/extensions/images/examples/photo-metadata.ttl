@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: image metadata at three layers (#443). EXIF technical tags
+# (gmeow:hasExifTag) record how the bytes were captured. A gmeow:ImageRegion with
+# a typed gmeow:RegionSelector pins WHERE something is in the frame (a fractional
+# bounding box). And a gmeow:DepictionUsage makes "this image depicts X" a
+# PERSPECTIVAL act, not a bare fact: it records the subject, the context (candid /
+# portrait / childhood …), and WHOSE authority asserts the depiction — so the same
+# photo can be a "family" depiction to one audience and a "work" depiction to
+# another, without either being privileged.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/images/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:dana         a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
+ex:photographer a gmeow:Person ; gmeow:name "Sam Okonkwo"@x-gmeow-english .
+
+# --- The image. A MediaObject is a Manifestation on the WEMI spine, so it embodies
+#     an Expression realizing a Work (the same backing every published artifact has).
+ex:photo a gmeow:MediaObject ;
+    rdfs:label       "Team portrait, June 2026"@x-gmeow-english ;
+    gmeow:embodies   ex:photoExpression ;
+    gmeow:hasExifTag ex:exifMake , ex:exifDate ;
+    gmeow:hasRegion  ex:faceRegion .
+
+ex:photoExpression a gmeow:Expression ; gmeow:realizes ex:photoWork .
+ex:photoWork a gmeow:Work ; gmeow:title "Team portrait, June 2026"@x-gmeow-english .
+
+ex:exifMake a gmeow:ExifTag ; gmeow:exifTagId "Make" ; gmeow:exifTagValue "Canon EOS R5" .
+ex:exifDate a gmeow:ExifTag ; gmeow:exifTagId "DateTimeOriginal" ; gmeow:exifTagValue "2026:06:01 14:30:00" .
+
+# --- A region of the image: WHERE Dana's face is, by a fractional bounding box.
+ex:faceRegion a gmeow:ImageRegion ;
+    gmeow:regionOf       ex:photo ;
+    gmeow:regionLabel    "Dana" ;
+    gmeow:regionSelector ex:bbox .
+
+ex:bbox a gmeow:RegionSelector ;
+    gmeow:selectorType  gmeow:selectorTypeFractionalRectangle ;
+    gmeow:selectorValue "0.30,0.20,0.18,0.24" .
+
+# --- The depiction as a perspectival act: who is depicted, in what context, by
+#     whose authority — not a privileged "this is a photo of Dana" fact.
+ex:depiction a gmeow:DepictionUsage ;
+    gmeow:depictionImage     ex:photo ;
+    gmeow:depictionSubject   ex:dana ;
+    gmeow:depictionContext   gmeow:depictionContextCandid ;
+    gmeow:depictionAuthority ex:photographer .
