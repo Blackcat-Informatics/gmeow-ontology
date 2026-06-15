@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "gmeow-shacl"
+description = "GMEOW SHACL validation engine core: oxigraph-backed RDF 1.2 SHACL Core validator, gated against the SHACL conformance corpus"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "shacl", "validation", "knowledge-graph", "oxigraph"]
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+path = "src/lib.rs"
+
+[dependencies]
+# oxigraph in-memory Store with RDF 1.2 (statement-layer quoted triples that
+# rdflib/pySHACL cannot represent). default-features off drops the rocksdb
+# C/C++ backend we never use.
+oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# sh:pattern regex constraint.
+regex = "1"
+
+# pyo3 native-only: cannot link into wasm. The engine core is PyO3-free; only
+# py.rs uses it, so the rlib links into the future Rust compiler without Python.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pyo3 = { version = "0.24", features = ["extension-module", "abi3-py313"] }
