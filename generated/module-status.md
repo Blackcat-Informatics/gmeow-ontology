@@ -39,8 +39,8 @@ Tier-2 uplift backlog.
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
 | kernel | core | core | 0 | 12 | 27 | 0 | 1 | 1/39 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 0/10 | full |
-| languages | extension | extensions | 6 | 15 | 30 | 0 | 0 | - | full |
-| lexicon | extension | extensions | 5 | 6 | 16 | 0 | 0 | - | full |
+| languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
+| lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 0/8 | full |
 | logic | core | core | 0 | 14 | 11 | 12 | 0 | 0/25 | full |
 | music | extension | extensions | 11 | 59 | 125 | 0 | 0 | - | full |
