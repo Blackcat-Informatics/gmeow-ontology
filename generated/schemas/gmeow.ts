@@ -69,6 +69,7 @@ export enum AnalysisPropertyEnum {
     mode = "analysisPropertyMode",
     motif_identity = "analysisPropertyMotifIdentity",
     schema = "analysisPropertySchema",
+    segment = "analysisPropertySegment",
     tuning_identification = "analysisPropertyTuningIdentification",
 };
 
@@ -1776,6 +1777,50 @@ export enum NetworkAddressTypeEnum {
     URL = "networkAddressTypeURL",
 };
 
+export enum NotationProjectionProfileEnum {
+
+    ABC_notation_projection_profile = "profileABC",
+    Byzantine_neume_projection_profile = "profileByzantineNeume",
+    Common_Music_Notation_staff_projection_profile = "profileCMNStaff",
+    Graphic_notation_projection_profile = "profileGraphic",
+    HEJI_projection_profile = "profileHEJI",
+    Jianpu_projection_profile = "profileJianpu",
+    Johnston_JI_notation_projection_profile = "profileJohnstonJI",
+    Humdrum_ASTERISKASTERISKkern_projection_profile = "profileKern",
+    Klavarskribo_projection_profile = "profileKlavarskribo",
+    LilyPond_projection_profile = "profileLilyPond",
+    MEI_projection_profile = "profileMEI",
+    MIDI_projection_profile = "profileMIDI",
+    Mensural_notation_projection_profile = "profileMensural",
+    MusicXML_projection_profile = "profileMusicXML",
+    Scala_FULL_STOPscl_projection_profile = "profileSCL",
+    Sagittal_notation_projection_profile = "profileSagittal",
+    Sargam_projection_profile = "profileSargam",
+    Tablature_projection_profile = "profileTablature",
+};
+
+export enum NotationSystemEnum {
+
+    ABC_notation = "notationABC",
+    Byzantine_neumatic_notation = "notationByzantineNeume",
+    Common_Music_Notation_LEFT_PARENTHESISstaffRIGHT_PARENTHESIS = "notationCMNStaff",
+    Graphic_notation = "notationGraphic",
+    Helmholtz_Ellis_JI_Pitch_Notation = "notationHEJI",
+    Jianpu = "notationJianpu",
+    Ben_Johnston_just_intonation_notation = "notationJohnstonJI",
+    Humdrum_ASTERISKASTERISKkern = "notationKern",
+    Klavarskribo = "notationKlavarskribo",
+    LilyPond = "notationLilyPond",
+    MEI = "notationMEI",
+    MIDI = "notationMIDI",
+    Mensural_notation = "notationMensural",
+    MusicXML = "notationMusicXML",
+    Scala_FULL_STOPscl = "notationSCL",
+    Sagittal_notation = "notationSagittal",
+    Sargam = "notationSargam",
+    Tablature = "notationTablature",
+};
+
 export enum NotationUsageRoleEnum {
 
     cipher = "notationRoleCipher",
@@ -2249,6 +2294,23 @@ export enum ProjectionContextEnum {
     schemaFULL_STOPorg_JSON_LD = "consumerSchemaOrgJsonLd",
     Wikidata = "consumerWikidata",
     Wikipedia = "consumerWikipedia",
+};
+
+export enum ProjectionLossEnum {
+
+    lossCOLON_drops_dynamics = "lossDropsDynamics",
+    lossCOLON_drops_instrumentation = "lossDropsInstrumentation",
+    lossCOLON_drops_microtiming = "lossDropsMicrotiming",
+    lossCOLON_drops_performer_count = "lossDropsPerformerCount",
+    lossCOLON_drops_spatialSOLIDUSsound_context = "lossDropsSpatialSoundContext",
+    lossCOLON_drops_spectral_derivation = "lossDropsSpectralDerivation",
+    lossCOLON_drops_tacet = "lossDropsTacet",
+    lossCOLON_drops_timbre = "lossDropsTimbre",
+    lossCOLON_drops_traversal_constraints = "lossDropsTraversalConstraints",
+    lossCOLON_drops_tuning_frame = "lossDropsTuningFrame",
+    lossCOLON_quantizes_pitch_to_12_EDO = "lossQuantizesPitchTo12Edo",
+    lossCOLON_quantizes_time_to_a_rational_grid = "lossQuantizesTimeToRationalGrid",
+    lossCOLON_symbolizes_continuous_trajectory = "lossSymbolizesContinuousTrajectory",
 };
 
 export enum PromptRoleEnum {
@@ -5670,9 +5732,21 @@ export interface NormativeSystem extends SocialObject {
 
 
 
+export interface NotationProjectionProfile extends Profile {
+    declaredLoss?: ProjectionLoss[],
+    notationSystemOf?: NotationSystem,
+    projectableExpression?: Expression[],
+    projectionFunction?: string[],
+    representableParameter?: MusicalParameter[],
+}
+
+
+
 export interface NotationSystem extends SymbolicSystem {
+    hasNotationProjectionProfile?: NotationProjectionProfile[],
     notationSystemFor?: Language[],
     notationSystemKind?: SymbolicSystemKind[],
+    smuflCodepoint?: string,
 }
 
 
@@ -6271,6 +6345,12 @@ export interface Project extends Entity {
 
 
 export interface ProjectionContext {
+}
+
+
+
+export interface ProjectionLoss {
+    accountsForParameter?: MusicalParameter[],
 }
 
 

@@ -627,6 +627,27 @@
             align:relation "<=" ;
             edoal:measure 7.5e-01 ],
         [ a align:Cell ;
+            rdfs:label "musical release Manifestation → schema:MusicAlbum"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Manifestation ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:MusicAlbum ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "Recording → schema:MusicRecording"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Recording ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:MusicRecording ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "MusicalWork → schema:MusicComposition"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:MusicalWork ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:MusicComposition ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
             rdfs:label "displayable fullName → schema:name"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:fullName ] ;

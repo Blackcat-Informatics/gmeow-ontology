@@ -305,6 +305,69 @@ This property plays the `gmeow:observationResult` role but is **not** declared
 Low-level spectral vectors, MFCCs, and embedding arrays live outside the graph
 and are referenced by identifier (Principle 12).
 
+## Notation projection layer (issue #318)
+
+Every musical notation is a **directional, lossy projection** of frame-relative canonical content. The canonical object is a graph of `MusicalSegment`s carrying `PitchValue`s in explicit `TuningSystem`s and durations in explicit `MusicalTimeFrame`s. A staff score, a MIDI file, a MusicXML export, and a LilyPond engraving are all renders of that content — none is the work itself (Principles 4, 11, 12).
+
+### `gmeow:NotationProjectionProfile`
+
+A `gmeow:NotationProjectionProfile` is a `gmeow:Profile` (closed descriptor schema + open values) attached to one `gmeow:NotationSystem`. It declares:
+
+- `gmeow:representableParameter` — which `MusicalParameter`s the notation can carry without loss.
+- `gmeow:declaredLoss` — which `ProjectionLoss` values explain every parameter the notation drops or approximates.
+- `gmeow:projectionFunction` — the FnO function reference that performs the render.
+
+The completeness gate requires that **every `MusicalParameter` is either representable or accounted for by a declared loss** in every profile. This is enforced by `slices/extensions/music/tests/test_music_notation_projection.py`.
+
+### `gmeow:ProjectionLoss`
+
+An open value vocabulary of information-loss kinds. Each value maps via `gmeow:accountsForParameter` to the `MusicalParameter`(s) it explains:
+
+| Loss | Parameter(s) accounted for |
+|---|---|
+| `lossQuantizesPitchTo12Edo` | pitch |
+| `lossQuantizesTimeToRationalGrid` | duration, tempo, order |
+| `lossDropsMicrotiming` | tempo, duration |
+| `lossDropsTimbre` | timbre |
+| `lossDropsDynamics` | dynamics |
+| `lossDropsTraversalConstraints` | order |
+| `lossDropsSpectralDerivation` | pitch |
+| `lossDropsTuningFrame` | pitch |
+| `lossSymbolizesContinuousTrajectory` | pitch |
+| `lossDropsInstrumentation` | instrumentation |
+| `lossDropsPerformerCount` | performer count |
+| `lossDropsSpatialSoundContext` | sound content, location |
+| `lossDropsTacet` | tacet |
+
+### Notation systems
+
+The music slice seeds music-domain `gmeow:NotationSystem` individuals, classified by `gmeow:notationSystemKind`:
+
+- Symbolic notations: `notationCMNStaff`, `notationMensural`, `notationTablature`, `notationGraphic`, `notationSargam`, `notationJianpu`, `notationKlavarskribo`, `notationJohnstonJI`, `notationSagittal`, `notationHEJI`, `notationByzantineNeume`.
+- Encoding formats: `notationMIDI`, `notationMusicXML`, `notationMEI`, `notationABC`, `notationKern`, `notationLilyPond`, `notationSCL`.
+
+SMuFL glyph codepoints are recorded on notation systems where applicable (e.g. Sagittal, HEJI).
+
+### Stress-case honesty
+
+- **Mensural honesty**: `profileMensural` does *not* declare `lossQuantizesTimeToRationalGrid`; mensural notation carries its own proportion/coloration semantics. A CMN transcription of ars subtilior is a lossy, standpointed projection.
+- **Graphic honesty**: `profileGraphic` declares near-total symbolic loss; only `soundContent` and `location` are representable. Symbolic "transcriptions" of a graphic score are standpointed interpretations running the arrow backwards.
+
+### External alignment
+
+The notation projection layer aligns by reference to:
+
+- **Music Ontology** (`mo:`) — `MusicalWork` closeMatch.
+- **Polifonia PON** — primary linkage hub for work/expression metadata and JAMS segment annotations.
+- **LRMoo 1.0** — Work/Expression/Performance via the crmarchaeo EDOAL pattern, *not* FRBRoo.
+- **Wikidata** — QID anchors for notation systems and MBID PIDs for MusicBrainz references.
+- **MusicBrainz** — by MBID only (P434/P435/P436/P4404); no schema absorption.
+- **OMRAS2 chord ontology** — chord-symbol `closeMatch` (Harte grammar is 12-TET only).
+- **schema.org** — `MusicComposition`, `MusicRecording`, `MusicAlbum` lossy projections (WEMI spine collapses).
+- **MEI, MusicXML, MIDI, ABC, Humdrum \*\*kern, LilyPond, Scala .scl** — one projection profile and one FnO function per format.
+
+Every projection mapping row carries a mandatory `gmeow:lossyDrop` note.
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.

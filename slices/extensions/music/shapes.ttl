@@ -9,6 +9,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix fno:   <https://w3id.org/function/ontology#> .
 
 gmeow:TuningSystemShape
     a sh:NodeShape ;
@@ -1389,4 +1390,66 @@ gmeow:GenreNoSubclassShape
             }
         """ ;
         sh:message "Genre must not be subclassed (Principle 9)." ;
+    ] .
+
+
+# =========================================================================== #
+# NOTATION PROJECTION LAYER — issue #318
+# =========================================================================== #
+
+gmeow:NotationProjectionProfileShape
+    a sh:NodeShape ;
+    rdfs:label "Notation projection profile shape"@x-gmeow-english ;
+    skos:definition "A NotationProjectionProfile must describe exactly one NotationSystem and must declare at least one representable parameter or one incurred loss."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:NotationProjectionProfile ;
+    sh:property [
+        sh:path gmeow:notationSystemOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:NotationSystem ;
+        sh:severity sh:Violation ;
+        sh:message "A NotationProjectionProfile must describe exactly one NotationSystem." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:projectionFunction ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NotationProjectionProfile must reference at least one FnO projection function (Principle 12)." ;
+    ] ;
+    sh:or (
+        [ sh:property [ sh:path gmeow:representableParameter ; sh:minCount 1 ; sh:class gmeow:MusicalParameter ; sh:severity sh:Violation ] ]
+        [ sh:property [ sh:path gmeow:declaredLoss ; sh:minCount 1 ; sh:class gmeow:ProjectionLoss ; sh:severity sh:Violation ] ]
+    ) ;
+    sh:message "A NotationProjectionProfile must declare at least one representableParameter or one declaredLoss." .
+
+gmeow:ProjectionLossNoSubclassShape
+    a sh:NodeShape ;
+    rdfs:label "ProjectionLoss no-subclass shape"@x-gmeow-english ;
+    skos:definition "ProjectionLoss is a value vocabulary; no subclasses are allowed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetNode gmeow:ProjectionLoss ;
+    sh:sparql [
+        sh:select """
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT $this
+            WHERE {
+                ?sub rdfs:subClassOf $this .
+                FILTER (?sub != $this)
+            }
+        """ ;
+        sh:message "ProjectionLoss must not be subclassed (Principle 9)." ;
+    ] .
+
+gmeow:NotationSystemSMuFLShape
+    a sh:NodeShape ;
+    rdfs:label "Notation system SMuFL codepoint shape"@x-gmeow-english ;
+    skos:definition "When a music-domain NotationSystem carries a SMuFL codepoint annotation, the value must be a Unicode codepoint string."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    sh:targetClass gmeow:NotationSystem ;
+    sh:property [
+        sh:path gmeow:smuflCodepoint ;
+        sh:datatype xsd:string ;
+        sh:pattern "^U\\+[0-9A-F]{4,6}$" ;
+        sh:severity sh:Violation ;
+        sh:message "SMuFL codepoint must be a Unicode codepoint of the form U+HHHH(HH)." ;
     ] .

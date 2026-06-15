@@ -69,6 +69,7 @@ enum AnalysisPropertyEnum
     analysisPropertyMode
     analysisPropertyMotifIdentity
     analysisPropertySchema
+    analysisPropertySegment
     analysisPropertyTuningIdentification
   }
 
@@ -1776,6 +1777,50 @@ enum NetworkAddressTypeEnum
     networkAddressTypeURL
   }
 
+enum NotationProjectionProfileEnum
+  {
+    profileABC
+    profileByzantineNeume
+    profileCMNStaff
+    profileGraphic
+    profileHEJI
+    profileJianpu
+    profileJohnstonJI
+    profileKern
+    profileKlavarskribo
+    profileLilyPond
+    profileMEI
+    profileMIDI
+    profileMensural
+    profileMusicXML
+    profileSCL
+    profileSagittal
+    profileSargam
+    profileTablature
+  }
+
+enum NotationSystemEnum
+  {
+    notationABC
+    notationByzantineNeume
+    notationCMNStaff
+    notationGraphic
+    notationHEJI
+    notationJianpu
+    notationJohnstonJI
+    notationKern
+    notationKlavarskribo
+    notationLilyPond
+    notationMEI
+    notationMIDI
+    notationMensural
+    notationMusicXML
+    notationSCL
+    notationSagittal
+    notationSargam
+    notationTablature
+  }
+
 enum NotationUsageRoleEnum
   {
     notationRoleCipher
@@ -2249,6 +2294,23 @@ enum ProjectionContextEnum
     consumerSchemaOrgJsonLd
     consumerWikidata
     consumerWikipedia
+  }
+
+enum ProjectionLossEnum
+  {
+    lossDropsDynamics
+    lossDropsInstrumentation
+    lossDropsMicrotiming
+    lossDropsPerformerCount
+    lossDropsSpatialSoundContext
+    lossDropsSpectralDerivation
+    lossDropsTacet
+    lossDropsTimbre
+    lossDropsTraversalConstraints
+    lossDropsTuningFrame
+    lossQuantizesPitchTo12Edo
+    lossQuantizesTimeToRationalGrid
+    lossSymbolizesContinuousTrajectory
   }
 
 enum PromptRoleEnum
@@ -13560,6 +13622,74 @@ type NormativeSystem
     systemIssuer: [String]
   }
 
+type NotationProjectionProfile
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    profileAppliesTo: [String]
+    profileDescriptor: String
+    profileOpenValue: [String]
+    declaredLoss: [ProjectionLoss]
+    notationSystemOf: NotationSystem
+    projectableExpression: [Expression]
+    projectionFunction: [String]
+    representableParameter: [MusicalParameter]
+  }
+
 type NotationSystem
   {
     acquireLicensePage: [String]
@@ -13619,8 +13749,10 @@ type NotationSystem
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     symbolicSystemKind: [SymbolicSystemKind]
+    hasNotationProjectionProfile: [NotationProjectionProfile]
     notationSystemFor: [Language]
     notationSystemKind: [SymbolicSystemKind]
+    smuflCodepoint: String
   }
 
 type NotationSystemUsage
@@ -16255,6 +16387,11 @@ type Project
 
 type ProjectionContext
   {
+  }
+
+type ProjectionLoss
+  {
+    accountsForParameter: [MusicalParameter]
   }
 
 type Prompt

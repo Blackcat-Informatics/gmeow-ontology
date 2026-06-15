@@ -10,6 +10,13 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+gmeow:fnApplyTransformation a fno:Function ;
+    rdfs:label "apply segment transformation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Applies a SegmentTransformation (transposition, augmentation, retrograde, etc.) to a MusicalSegment, returning a derived segment."@en ;
+    fno:expects ( gmeow:paramTransformationSource gmeow:paramTransformationType gmeow:paramTransformationParameter ) ;
+    fno:returns ( gmeow:outApplyTransformation ) .
+
 gmeow:fnArgumentAcceptability a fno:Function ;
     rdfs:label "argument acceptability → score"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
@@ -45,12 +52,152 @@ gmeow:fnMaximViolationType a fno:Function ;
     fno:expects ( gmeow:paramMaximViolationType ) ;
     fno:returns ( gmeow:outMaximViolationType ) .
 
+gmeow:fnParsePitchName a fno:Function ;
+    rdfs:label "parse pitch name to frame-relative value"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Parses a spelled pitch name in a given PitchSpellingSystem and TuningSystem into a frame-relative PitchValue."@en ;
+    fno:expects ( gmeow:paramSpelledName gmeow:paramSpellingSystem ) ;
+    fno:returns ( gmeow:outParsePitchName ) .
+
+gmeow:fnProjectToABC a fno:Function ;
+    rdfs:label "project expression to ABC notation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to ABC notation. Lossy: monophonic bias, nonstandard microtone extensions."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToABC ) .
+
+gmeow:fnProjectToByzantineNeume a fno:Function ;
+    rdfs:label "project expression to Byzantine neume notation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative melodic content to Byzantine neumatic notation."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToByzantineNeume ) .
+
+gmeow:fnProjectToCMN a fno:Function ;
+    rdfs:label "project expression to CMN staff notation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to Common Music Notation staff notation. Lossy: quantizes pitch to 12-EDO, time to rational grid, drops microtiming/timbre/tuning-frame/trajectory."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToCMN ) .
+
+gmeow:fnProjectToGraphic a fno:Function ;
+    rdfs:label "project expression to graphic notation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to a graphic score image or instruction set. Near-total loss in the symbolic direction; the visual artifact is canonical in the image direction."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToGraphic ) .
+
+gmeow:fnProjectToHEJI a fno:Function ;
+    rdfs:label "project expression to HEJI"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative just-intonation pitch content to Helmholtz-Ellis JI Pitch Notation."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToHEJI ) .
+
+gmeow:fnProjectToJianpu a fno:Function ;
+    rdfs:label "project expression to Jianpu"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative pitch content to Jianpu numbered notation."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToJianpu ) .
+
+gmeow:fnProjectToJohnstonJI a fno:Function ;
+    rdfs:label "project expression to Johnston JI notation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative just-intonation pitch content to Ben Johnston staff notation."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToJohnstonJI ) .
+
+gmeow:fnProjectToKern a fno:Function ;
+    rdfs:label "project expression to Humdrum **kern"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to Humdrum **kern. Lossy: 12-TET letter pitch, no tuning-frame declaration."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToKern ) .
+
+gmeow:fnProjectToKlavarskribo a fno:Function ;
+    rdfs:label "project expression to Klavarskribo"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative pitch/duration content to Klavarskribo vertical keyboard notation."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToKlavarskribo ) .
+
+gmeow:fnProjectToLilyPond a fno:Function ;
+    rdfs:label "project expression to LilyPond"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to LilyPond source. Program-not-data: layout macros are lost when read back as data."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToLilyPond ) .
+
+gmeow:fnProjectToMEI a fno:Function ;
+    rdfs:label "project expression to MEI"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to MEI. Lossy: att.tuning limited to named temperaments, JI lattices → cents approximations, mobile form via editorial markup only."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToMEI ) .
+
+gmeow:fnProjectToMIDI a fno:Function ;
+    rdfs:label "project expression to MIDI"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to MIDI bytes. Lossy: no notation semantics, enharmonics, rests, tuplet structure, or work identity."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToMIDI ) .
+
+gmeow:fnProjectToMensural a fno:Function ;
+    rdfs:label "project expression to mensural notation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to mensural notation with proportions and coloration. A CMN transcription of ars subtilior is a lossy, standpointed projection."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToMensural ) .
+
+gmeow:fnProjectToMusicXML a fno:Function ;
+    rdfs:label "project expression to MusicXML"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative musical content to MusicXML 4.0. Lossy: microtones via bare decimal alter, polymeter via hacks, no mobile form."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToMusicXML ) .
+
+gmeow:fnProjectToSagittal a fno:Function ;
+    rdfs:label "project expression to Sagittal notation"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative microtonal pitch content to Sagittal accidental notation."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToSagittal ) .
+
+gmeow:fnProjectToSargam a fno:Function ;
+    rdfs:label "project expression to Sargam"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative pitch content to Sargam solfege notation."@en ;
+    fno:expects ( gmeow:paramProjectableExpression ) ;
+    fno:returns ( gmeow:outProjectToSargam ) .
+
+gmeow:fnProjectToScl a fno:Function ;
+    rdfs:label "project tuning to Scala .scl"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders a TuningSystem to a Scala .scl pitch-class list. Lossy: comma/prime-limit theory and keyboard mapping context."@en ;
+    fno:expects ( gmeow:paramHasTuningFrame ) ;
+    fno:returns ( gmeow:outProjectToScl ) .
+
+gmeow:fnProjectToTablature a fno:Function ;
+    rdfs:label "project expression to tablature"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders frame-relative pitch/duration content to instrument-specific finger/fret/string tablature. Lossy: abstracts pitch to instrument position."@en ;
+    fno:expects ( gmeow:paramProjectableExpression gmeow:paramConfigurationInstrumentType ) ;
+    fno:returns ( gmeow:outProjectToTablature ) .
+
 gmeow:fnPropagationMutationDistance a fno:Function ;
     rdfs:label "propagation mutation distance → integer"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     skos:definition "Projects the mutation distance of a propagated deceptive claim to an integer count. Measures how many hops/transmissions before the claim mutates. Solver-layer computation (Principle 12)."@en ;
     fno:expects ( gmeow:paramPropagationMutationDistance ) ;
     fno:returns ( gmeow:outPropagationMutationDistance ) .
+
+gmeow:fnSpellPitch a fno:Function ;
+    rdfs:label "spell pitch value in a notation system"@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    skos:definition "Renders a frame-relative PitchValue as a note name / symbol in a given PitchSpellingSystem (e.g. C♯4, Sa, +7). Enharmonic peers are co-equal outputs (Principle 9)."@en ;
+    fno:expects ( gmeow:paramHasTuningFrame gmeow:paramSpellingSystem ) ;
+    fno:returns ( gmeow:outSpellPitch ) .
 
 gmeow:fnStandpointDivergence a fno:Function ;
     rdfs:label "held + projected standpoint → divergence text"@en ;
@@ -241,6 +388,10 @@ gmeow:implWebAnnotation a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> .
 
+gmeow:outApplyTransformation a fno:Output ;
+    fno:predicate gmeow:projectedTransformedSegment ;
+    fno:type gmeow:MusicalSegment .
+
 gmeow:outArgumentAcceptability a fno:Output ;
     fno:predicate gmeow:projectedAcceptability ;
     fno:type xsd:decimal .
@@ -261,9 +412,89 @@ gmeow:outMaximViolationType a fno:Output ;
     fno:predicate gmeow:projectedMaximViolation ;
     fno:type xsd:string .
 
+gmeow:outParsePitchName a fno:Output ;
+    fno:predicate gmeow:projectedParsedPitch ;
+    fno:type gmeow:PitchValue .
+
+gmeow:outProjectToABC a fno:Output ;
+    fno:predicate gmeow:projectedABC ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToByzantineNeume a fno:Output ;
+    fno:predicate gmeow:projectedByzantineNeume ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToCMN a fno:Output ;
+    fno:predicate gmeow:projectedCMN ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToGraphic a fno:Output ;
+    fno:predicate gmeow:projectedGraphic ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToHEJI a fno:Output ;
+    fno:predicate gmeow:projectedHEJI ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToJianpu a fno:Output ;
+    fno:predicate gmeow:projectedJianpu ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToJohnstonJI a fno:Output ;
+    fno:predicate gmeow:projectedJohnstonJI ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToKern a fno:Output ;
+    fno:predicate gmeow:projectedKern ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToKlavarskribo a fno:Output ;
+    fno:predicate gmeow:projectedKlavarskribo ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToLilyPond a fno:Output ;
+    fno:predicate gmeow:projectedLilyPond ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToMEI a fno:Output ;
+    fno:predicate gmeow:projectedMEI ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToMIDI a fno:Output ;
+    fno:predicate gmeow:projectedMIDI ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToMensural a fno:Output ;
+    fno:predicate gmeow:projectedMensural ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToMusicXML a fno:Output ;
+    fno:predicate gmeow:projectedMusicXML ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToSagittal a fno:Output ;
+    fno:predicate gmeow:projectedSagittal ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToSargam a fno:Output ;
+    fno:predicate gmeow:projectedSargam ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToScl a fno:Output ;
+    fno:predicate gmeow:projectedScl ;
+    fno:type rdfs:Literal .
+
+gmeow:outProjectToTablature a fno:Output ;
+    fno:predicate gmeow:projectedTablature ;
+    fno:type rdfs:Literal .
+
 gmeow:outPropagationMutationDistance a fno:Output ;
     fno:predicate gmeow:projectedMutationDistance ;
     fno:type xsd:integer .
+
+gmeow:outSpellPitch a fno:Output ;
+    fno:predicate gmeow:projectedPitchName ;
+    fno:type rdfs:Literal .
 
 gmeow:outStandpointDivergence a fno:Output ;
     fno:predicate gmeow:projectedDivergence ;
@@ -273,6 +504,11 @@ gmeow:paramArgumentAcceptability a fno:Parameter ;
     fno:predicate gmeow:argumentAcceptability ;
     fno:required true ;
     fno:type xsd:decimal .
+
+gmeow:paramConfigurationInstrumentType a fno:Parameter ;
+    fno:predicate gmeow:configurationInstrumentType ;
+    fno:required true ;
+    fno:type gmeow:InstrumentType .
 
 gmeow:paramCredibilityScore a fno:Parameter ;
     fno:predicate gmeow:credibilityScore ;
@@ -309,10 +545,30 @@ gmeow:paramPropagationMutationDistance a fno:Parameter ;
     fno:required true ;
     fno:type xsd:integer .
 
+gmeow:paramSpelledName a fno:Parameter ;
+    fno:predicate gmeow:spelledName ;
+    fno:required true ;
+    fno:type xsd:string .
+
 gmeow:paramTaggingInterval a fno:Parameter ;
     fno:predicate gmeow:taggingInterval ;
     fno:required false ;
     fno:type gmeow:TimeInterval .
+
+gmeow:paramTransformationParameter a fno:Parameter ;
+    fno:predicate gmeow:transformationParameter ;
+    fno:required true ;
+    fno:type gmeow:Entity .
+
+gmeow:paramTransformationSource a fno:Parameter ;
+    fno:predicate gmeow:transformationSource ;
+    fno:required true ;
+    fno:type gmeow:MusicalSegment .
+
+gmeow:paramTransformationType a fno:Parameter ;
+    fno:predicate gmeow:transformationType ;
+    fno:required true ;
+    fno:type gmeow:TransformationType .
 
 gmeow:fnBirthEventToDate a fno:Function ;
     rdfs:label "Birth life-event → schema:birthDate"@en ;
@@ -467,6 +723,11 @@ gmeow:paramHasTag a fno:Parameter ;
     fno:required true ;
     fno:type gmeow:Tag .
 
+gmeow:paramHasTuningFrame a fno:Parameter ;
+    fno:predicate gmeow:hasTuningFrame ;
+    fno:required true ;
+    fno:type gmeow:TuningSystem .
+
 gmeow:paramHonorific a fno:Parameter ;
     fno:predicate gmeow:honorific ;
     fno:required true ;
@@ -526,6 +787,11 @@ gmeow:paramScriptCode a fno:Parameter ;
     fno:predicate gmeow:scriptCode ;
     fno:required false ;
     fno:type rdfs:Literal .
+
+gmeow:paramSpellingSystem a fno:Parameter ;
+    fno:predicate gmeow:spellingSystem ;
+    fno:required true ;
+    fno:type gmeow:PitchSpellingSystem .
 
 gmeow:paramStreetAddress a fno:Parameter ;
     fno:predicate gmeow:streetAddress ;
@@ -709,6 +975,11 @@ gmeow:paramLongitude a fno:Parameter ;
     fno:predicate gmeow:longitude ;
     fno:required true ;
     fno:type xsd:decimal .
+
+gmeow:paramProjectableExpression a fno:Parameter ;
+    fno:predicate gmeow:projectableExpression ;
+    fno:required true ;
+    fno:type gmeow:Expression .
 
 gmeow:implSchemaOrg a fno:Implementation ;
     dcterms:format "application/sparql-query" ;

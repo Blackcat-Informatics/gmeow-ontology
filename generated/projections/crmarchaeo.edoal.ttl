@@ -3,6 +3,10 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix edoal: <http://ns.inria.org/edoal/1.0/#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix jams: <http://w3id.org/polifonia/ontology/jams/> .
+@prefix lrmoo: <http://iflastandards.info/ns/lrm/lrmoo/> .
+@prefix mo: <http://purl.org/ontology/mo/> .
+@prefix pon: <https://w3id.org/polifonia/ontology/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
@@ -32,7 +36,49 @@
             align:entity2 [ a edoal:Class ;
                     edoal:uri crmarc:S4_Observation ] ;
             align:relation "<=" ;
-            edoal:measure 8.5e-01 ] ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "MusicalSegment analysis → JAMS segment annotation"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:MusicAnalysisClaim ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri jams:Segment ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "Expression → LRMoo F2 Expression"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Expression ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri lrmoo:F2_Expression ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "musical performance Event → LRMoo F31 Performance"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:eventTypeMusicalPerformance ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri lrmoo:F31_Performance ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "MusicalWork → LRMoo F1 Work"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:MusicalWork ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri lrmoo:F1_Work ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "MusicalWork → mo:MusicalWork"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:MusicalWork ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri mo:MusicalWork ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "MusicalWork → PON Music Meta Work"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:MusicalWork ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri pon:Work ] ;
+            align:relation "<=" ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
     align:onto2 [ a align:Ontology ;

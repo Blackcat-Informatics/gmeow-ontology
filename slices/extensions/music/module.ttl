@@ -4400,6 +4400,12 @@ gmeow:analysisPropertySchema
     skos:definition "A harmonic or melodic schema label."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
+gmeow:analysisPropertySegment
+    a gmeow:AnalysisProperty ;
+    rdfs:label "segment"@x-gmeow-english ;
+    skos:definition "A structural or timed segment boundary or label, aligned to JAMS-style segment annotations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
 gmeow:FormFunction
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
@@ -5029,4 +5035,610 @@ gmeow:fixtureMIRTimbreObservation
     gmeow:observationType gmeow:observationTypeDerived ;
     gmeow:timbreObservationResult gmeow:timbreDescriptorGritty ;
     gmeow:confidence "0.72"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+
+# =========================================================================== #
+# NOTATION PROJECTION LAYER — issue #318
+#
+# Every musical notation is a directional, lossy projection of frame-relative
+# canonical content. A NotationProjectionProfile declares, per notation system,
+# which MusicalParameters it can represent and which losses it incurs.
+# Encoding formats (MIDI, MusicXML, MEI, ABC, kern, LilyPond) are notation
+# systems too — each is a lossy render, not the canonical object (Principles 4,
+# 11, 12). SMuFL codepoints identify glyphs where applicable.
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:NotationProjectionProfile
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Profile ;
+    rdfs:label "Notation Projection Profile"@x-gmeow-english ;
+    skos:definition "A closed descriptor schema for the lossy projection from frame-relative musical content to one notation system. Declares representable parameters, incurred losses, and the FnO projection function that performs the render (Principles 4, 11, 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:ProjectionLoss
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Projection Loss"@x-gmeow-english ;
+    skos:definition "A kind of information loss incurred when canonical musical content is projected to a notation system. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:notationSystemOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range gmeow:NotationSystem ;
+    rdfs:label "notation system of"@x-gmeow-english ;
+    skos:definition "The notation system that this projection profile describes. Functional: one profile per notation system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:hasNotationProjectionProfile
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:notationSystemOf ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:range gmeow:NotationProjectionProfile ;
+    rdfs:label "has notation projection profile"@x-gmeow-english ;
+    skos:definition "Links a notation system to its GMEOW projection profile. Non-functional: a future notation system may have co-existing profiles for different consumer contexts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:representableParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range gmeow:MusicalParameter ;
+    rdfs:label "representable parameter"@x-gmeow-english ;
+    skos:definition "A musical parameter that this notation system can represent without loss (e.g. pitch in a 12-EDO-aware staff notation)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:declaredLoss
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range gmeow:ProjectionLoss ;
+    rdfs:label "declared loss"@x-gmeow-english ;
+    skos:definition "A loss that this notation system incurs when rendering canonical frame-relative musical content (e.g. quantization to 12-EDO, dropping microtiming)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:accountsForParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ProjectionLoss ;
+    rdfs:range gmeow:MusicalParameter ;
+    rdfs:label "accounts for parameter"@x-gmeow-english ;
+    skos:definition "The musical parameter whose omission or approximation is explained by this ProjectionLoss. Used by the completeness gate to ensure every MusicalParameter is representable or accounted for."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:projectionFunction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range fno:Function ;
+    rdfs:label "projection function"@x-gmeow-english ;
+    skos:definition "An FnO function reference that renders canonical musical content to this notation system (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:projectableExpression
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range gmeow:Expression ;
+    rdfs:label "projectable expression"@x-gmeow-english ;
+    skos:definition "A solver-bound input property: the Expression being projected through a NotationProjectionProfile. Used by FnO projection functions to declare their input type; not asserted as canonical data (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# DATATYPE PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:smuflCodepoint
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:range xsd:string ;
+    rdfs:label "SMuFL codepoint"@x-gmeow-english ;
+    skos:definition "A Unicode codepoint reference in the Standard Music Font Layout (SMuFL) specification that identifies a glyph used by this notation system. Functional per codepoint assertion; multiple codepoints are asserted as multiple triples from distinct standpoints if needed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — ProjectionLoss
+# --------------------------------------------------------------------------- #
+
+gmeow:lossQuantizesPitchTo12Edo
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: quantizes pitch to 12-EDO"@x-gmeow-english ;
+    skos:definition "The notation can only represent 12-equal-division-of-the-octave pitch classes; other tuning frames are approximated or unrepresentable."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterPitch ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossQuantizesTimeToRationalGrid
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: quantizes time to a rational grid"@x-gmeow-english ;
+    skos:definition "The notation represents time as a hierarchy of rational note values under a single meter and tempo; continuous tempo maps and irrational ratios are approximated."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterDuration, gmeow:musicalParameterTempo, gmeow:musicalParameterOrder ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsMicrotiming
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops microtiming"@x-gmeow-english ;
+    skos:definition "Systematic timing deviations (swing, groove, Dilla feel) are not encoded as explicit frame-relative offsets."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterTempo, gmeow:musicalParameterDuration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsTimbre
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops timbre"@x-gmeow-english ;
+    skos:definition "Timbre, playing technique, and instrument-specific tone colour are not encoded in the symbolic content."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterTimbre ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsTraversalConstraints
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops traversal constraints"@x-gmeow-english ;
+    skos:definition "Mobile-form traversal rules are not representable; only one realized sequence can be encoded."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterOrder ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsSpectralDerivation
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops spectral derivation"@x-gmeow-english ;
+    skos:definition "The spectral source of pitch collections is discarded; only a subset of derived pitches is encoded."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterPitch ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsTuningFrame
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops tuning frame"@x-gmeow-english ;
+    skos:definition "The explicit TuningSystem reference is lost; only local accidental symbols or pitch-class numbers remain."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterPitch ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossSymbolizesContinuousTrajectory
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: symbolizes continuous trajectory"@x-gmeow-english ;
+    skos:definition "Continuous pitch trajectories (glissandi, portamenti, UPIC shapes) are reduced to discrete note symbols or graphic approximations."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterPitch ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsInstrumentation
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops instrumentation"@x-gmeow-english ;
+    skos:definition "The specific instrument set or instrumentation is not encoded in the notation."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterInstrumentation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsPerformerCount
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops performer count"@x-gmeow-english ;
+    skos:definition "The number of performers or voices is not explicitly encoded in the notation."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterPerformerCount ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsSpatialSoundContext
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops spatial/sound context"@x-gmeow-english ;
+    skos:definition "The environmental sound content or spatial location of musical events is not encoded in the notation."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterSoundContent, gmeow:musicalParameterLocation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsTacet
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops tacet"@x-gmeow-english ;
+    skos:definition "The explicit instruction that a part is silent (tacet) is not separately encoded in the notation."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterTacet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:lossDropsDynamics
+    a gmeow:ProjectionLoss ;
+    rdfs:label "loss: drops dynamics"@x-gmeow-english ;
+    skos:definition "Dynamic markings (loudness, accent, articulation) are not encoded in the notation."@x-gmeow-english ;
+    gmeow:accountsForParameter gmeow:musicalParameterDynamics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# NOTATION SYSTEM INDIVIDUALS (music-domain instances of gmeow:NotationSystem)
+# --------------------------------------------------------------------------- #
+
+gmeow:notationCMNStaff
+    a gmeow:NotationSystem ;
+    rdfs:label "Common Music Notation (staff)"@x-gmeow-english ;
+    skos:definition "The Western five-line staff notation of letter names, accidentals, and octave numbers. A symbolic music notation; 12-EDO by default, with ad-hoc microtonal extensions."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationMensural
+    a gmeow:NotationSystem ;
+    rdfs:label "Mensural notation"@x-gmeow-english ;
+    skos:definition "Medieval and Renaissance mensural notation with its own time semantics (proportions, coloration, perfection)."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationTablature
+    a gmeow:NotationSystem ;
+    rdfs:label "Tablature"@x-gmeow-english ;
+    skos:definition "A notation system that represents finger/fret/string positions on a specific instrument rather than abstract pitch."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationGraphic
+    a gmeow:NotationSystem ;
+    rdfs:label "Graphic notation"@x-gmeow-english ;
+    skos:definition "A visual, non-symbolic notation system where the score image itself is the canonical instruction (e.g. Cardew Treatise, Stockhausen Klavierstück XI)."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationSargam
+    a gmeow:NotationSystem ;
+    rdfs:label "Sargam"@x-gmeow-english ;
+    skos:definition "The solfege-based pitch notation used in Hindustani and Carnatic music (Sa, Re, Ga, Ma, Pa, Dha, Ni)."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationJianpu
+    a gmeow:NotationSystem ;
+    rdfs:label "Jianpu"@x-gmeow-english ;
+    skos:definition "A numbered musical notation system widely used in Chinese-language music practice."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationKlavarskribo
+    a gmeow:NotationSystem ;
+    rdfs:label "Klavarskribo"@x-gmeow-english ;
+    skos:definition "A vertical-staff keyboard notation system that represents notes as black and white bars."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationJohnstonJI
+    a gmeow:NotationSystem ;
+    rdfs:label "Ben Johnston just-intonation notation"@x-gmeow-english ;
+    skos:definition "A staff notation for just intonation using accidentals to indicate prime-limit comma alterations (e.g. +7, -5)."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationSagittal
+    a gmeow:NotationSystem ;
+    rdfs:label "Sagittal notation"@x-gmeow-english ;
+    skos:definition "A microtonal notation system using arrow-like accidentals for arbitrary equal divisions and just intonation."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    gmeow:smuflCodepoint "U+E310" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationHEJI
+    a gmeow:NotationSystem ;
+    rdfs:label "Helmholtz-Ellis JI Pitch Notation"@x-gmeow-english ;
+    skos:definition "A just-intonation staff notation using symbols for prime-number comma alterations above or below a note."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    gmeow:smuflCodepoint "U+E2C0" ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationByzantineNeume
+    a gmeow:NotationSystem ;
+    rdfs:label "Byzantine neumatic notation"@x-gmeow-english ;
+    skos:definition "The neumatic notation system of Byzantine chant, encoding melodic formulae and mode."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --- Encoding formats (also notation systems; each is a lossy render) -------- #
+
+gmeow:notationMIDI
+    a gmeow:NotationSystem ;
+    rdfs:label "MIDI"@x-gmeow-english ;
+    skos:definition "The Musical Instrument Digital Interface protocol and file format. A lossy encoding of symbolic musical content: no notation semantics, enharmonic distinction, rests, or tuplet structure."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationMusicXML
+    a gmeow:NotationSystem ;
+    rdfs:label "MusicXML"@x-gmeow-english ;
+    skos:definition "The W3C MusicXML 4.0 symbolic music interchange format. Lossy: microtones via bare decimal alter, polymeter via implementation-dependent hacks, no mobile-form traversal semantics."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationMEI
+    a gmeow:NotationSystem ;
+    rdfs:label "MEI"@x-gmeow-english ;
+    skos:definition "The Music Encoding Initiative XML format. Richer than MusicXML for CMN, mensural, neumes, and tablature; still lossy for tuning frames, JI lattices, and mobile forms."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationABC
+    a gmeow:NotationSystem ;
+    rdfs:label "ABC notation"@x-gmeow-english ;
+    skos:definition "A text-based music notation format popular in folk music and LLM-native interchange. Monophonic-biased and nonstandard for microtones."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationKern
+    a gmeow:NotationSystem ;
+    rdfs:label "Humdrum **kern"@x-gmeow-english ;
+    skos:definition "The Humdrum **kern symbolic music representation. 12-TET letter-pitch bias; designed for musicology pipelines."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationLilyPond
+    a gmeow:NotationSystem ;
+    rdfs:label "LilyPond"@x-gmeow-english ;
+    skos:definition "The LilyPond text-based engraving format. Program-not-data: executable layout macros are lost when read as pure symbolic data."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:notationSCL
+    a gmeow:NotationSystem ;
+    rdfs:label "Scala .scl"@x-gmeow-english ;
+    skos:definition "The Scala tuning file format (.scl). Carries a pitch-class list but loses comma/prime-limit theory and keyboard mapping (.kbm) context."@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# NOTATION PROJECTION PROFILES
+# --------------------------------------------------------------------------- #
+
+gmeow:profileCMNStaff
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Common Music Notation staff projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Western staff notation: represents 12-EDO pitch, rational metric time, order, tempo, dynamics, instrumentation, and performer count; loses microtiming, timbre, non-12-EDO tuning frames, traversal constraints, spectral derivation, continuous trajectories, spatial/sound context."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationCMNStaff ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToCMN ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileMensural
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Mensural notation projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for mensural notation: carries its own time semantics (proportions, coloration). A CMN transcription of ars subtilior is a lossy, standpointed projection."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationMensural ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsDynamics, gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToMensural ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileTablature
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Tablature projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for tablature: represents instrument-specific finger positions, not abstract pitch; tuning-frame dependent."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationTablature ;
+    gmeow:representableParameter gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre, gmeow:lossQuantizesPitchTo12Edo, gmeow:lossQuantizesTimeToRationalGrid ;
+    gmeow:projectionFunction gmeow:fnProjectToTablature ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileGraphic
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Graphic notation projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for graphic scores: the visual Manifestation is canonical in the image direction; symbolic transcriptions are standpointed interpretations running the arrow backwards. Near-total loss in the symbolic direction."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationGraphic ;
+    gmeow:representableParameter gmeow:musicalParameterSoundContent, gmeow:musicalParameterLocation ;
+    gmeow:declaredLoss gmeow:lossDropsDynamics, gmeow:lossDropsInstrumentation, gmeow:lossDropsPerformerCount, gmeow:lossDropsTacet, gmeow:lossDropsTimbre, gmeow:lossQuantizesPitchTo12Edo, gmeow:lossQuantizesTimeToRationalGrid ;
+    gmeow:projectionFunction gmeow:fnProjectToGraphic ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileSargam
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Sargam projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Sargam solfege notation."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationSargam ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToSargam ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileJianpu
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Jianpu projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Jianpu numbered notation."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationJianpu ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToJianpu ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileKlavarskribo
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Klavarskribo projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Klavarskribo vertical keyboard notation."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationKlavarskribo ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToKlavarskribo ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileJohnstonJI
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Johnston JI notation projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Ben Johnston just-intonation staff notation. Preserves JI tuning frame up to the declared prime limit."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationJohnstonJI ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToJohnstonJI ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileSagittal
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Sagittal notation projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Sagittal microtonal notation. Represents arbitrary EDO and JI pitch classes; time and other parameters are outside its scope."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationSagittal ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToSagittal ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileHEJI
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "HEJI projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Helmholtz-Ellis JI Pitch Notation."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationHEJI ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToHEJI ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileByzantineNeume
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Byzantine neume projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Byzantine neumatic notation."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationByzantineNeume ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsDynamics, gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToByzantineNeume ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileMIDI
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "MIDI projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for MIDI. Lossy: no notation semantics, enharmonics, rests, tuplet structure, or work identity; per-note pitch 7.9 in MIDI 2.0 can carry microtonal cents."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationMIDI ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterTimbre, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTacet ;
+    gmeow:projectionFunction gmeow:fnProjectToMIDI ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileMusicXML
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "MusicXML projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for MusicXML. Lossy: microtones via bare decimal alter, nested tuplets unreliable across implementations, polymeter via hacks, no mobile form."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationMusicXML ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToMusicXML ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileMEI
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "MEI projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for MEI. Lossy: att.tuning limited to named temperaments, JI lattices → cents approximations, mobile form via editorial markup only."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationMEI ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToMEI ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileABC
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "ABC notation projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for ABC notation. Lossy: monophonic bias, nonstandard microtone extensions."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationABC ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToABC ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileKern
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Humdrum **kern projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for **kern. Lossy: 12-TET letter pitch, no tuning-frame declaration."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationKern ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToKern ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileLilyPond
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "LilyPond projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for LilyPond. Program-not-data: executable layout macros are lost when read back as data."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationLilyPond ;
+    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:projectionFunction gmeow:fnProjectToLilyPond ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:profileSCL
+    a gmeow:NotationProjectionProfile ;
+    rdfs:label "Scala .scl projection profile"@x-gmeow-english ;
+    skos:definition "Projection profile for Scala .scl tuning files. Carries a pitch-class list but loses comma/prime-limit theory and keyboard mapping context."@x-gmeow-english ;
+    gmeow:notationSystemOf gmeow:notationSCL ;
+    gmeow:representableParameter gmeow:musicalParameterPitch ;
+    gmeow:declaredLoss gmeow:lossDropsDynamics, gmeow:lossDropsInstrumentation, gmeow:lossDropsPerformerCount, gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTacet, gmeow:lossDropsTimbre, gmeow:lossQuantizesTimeToRationalGrid ;
+    gmeow:projectionFunction gmeow:fnProjectToScl ;
+    gmeow:profileDescriptor
+        gmeow:notationSystemOf ,
+        gmeow:representableParameter ,
+        gmeow:declaredLoss ,
+        gmeow:projectionFunction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
