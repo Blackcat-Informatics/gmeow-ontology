@@ -42,10 +42,16 @@ When adding a command, ask the razor first. If it needs a repo path that the whe
 ### Environment & Formatting
 
 ```bash
-make install         # Sync the uv environment (runtime + dev dependencies)
+make install         # Sync uv and configure repo-local Git merge drivers
 make fmt             # Auto-format Python files with ruff
 make lint            # Run ruff check, ruff format --check, and mypy
 ```
+
+`make install` also runs `scripts/bootstrap-git-merge-drivers.sh`, which sets
+`merge.ours.driver=true` in the local Git config. That driver backs the
+`.gitattributes` rule for `generated/dist/gmeow.gts`: Git keeps the current
+side during binary bundle merges/rebases, and the developer regenerates/checks
+the bundle from canonical sources afterward.
 
 ### Validation & Compilation
 
