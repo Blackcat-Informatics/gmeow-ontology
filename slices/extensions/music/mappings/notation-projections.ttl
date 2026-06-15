@@ -1,0 +1,526 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix mo: <http://purl.org/ontology/mo/> .
+@prefix schema: <https://schema.org/> .
+@prefix pon: <https://w3id.org/polifonia/ontology/> .
+@prefix jams: <http://w3id.org/polifonia/ontology/jams/> .
+@prefix lrmoo: <http://iflastandards.info/ns/lrm/lrmoo/> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix mbz: <https://musicbrainz.org/> .
+@prefix chord: <http://purl.org/ontology/chord/> .
+@prefix afo: <https://w3id.org/afo/onto/1.1#> .
+
+# Music notation projection layer and maximal alignment.
+# Compiled by `gmeow regenerate` (mappings) to:
+#   - mappings/gmeow-music.sssom.tsv (TermEquivalence rows)
+#   - projections/functions.fno.ttl (ProjectionFunction declarations)
+#   - projections/music-*.edoal.ttl (ProjectionMapping cells)
+#   - queries/projections/music-*.rq (executable CONSTRUCT)
+
+# --------------------------------------------------------------------------- #
+# MAPPING SET HEADER
+# --------------------------------------------------------------------------- #
+
+gmeow:mapsetMusicNotation a gmeow:MappingSet ;
+    rdfs:label "music notation projection mapping set"@x-gmeow-english ;
+    skos:definition "Music-notation projection alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/music" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Music-notation projection alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)." .
+
+# --------------------------------------------------------------------------- #
+# PROJECTED OUTPUT PREDICATES (DSL-layer, no ontology range)
+# --------------------------------------------------------------------------- #
+
+gmeow:projectedCMN rdfs:label "projected CMN output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Common Music Notation staff rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedMensural rdfs:label "projected mensural output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for mensural notation rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedTablature rdfs:label "projected tablature output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for tablature rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedGraphic rdfs:label "projected graphic output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for graphic notation rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedSargam rdfs:label "projected sargam output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Sargam rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedJianpu rdfs:label "projected jianpu output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Jianpu rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedKlavarskribo rdfs:label "projected klavarskribo output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Klavarskribo rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedJohnstonJI rdfs:label "projected Johnston JI output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Ben Johnston JI notation rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedSagittal rdfs:label "projected Sagittal output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Sagittal notation rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedHEJI rdfs:label "projected HEJI output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Helmholtz-Ellis JI rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedByzantineNeume rdfs:label "projected Byzantine neume output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Byzantine neume rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedMIDI rdfs:label "projected MIDI output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for MIDI rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedMusicXML rdfs:label "projected MusicXML output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for MusicXML rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedMEI rdfs:label "projected MEI output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for MEI rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedABC rdfs:label "projected ABC output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for ABC notation rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedKern rdfs:label "projected **kern output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Humdrum **kern rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedLilyPond rdfs:label "projected LilyPond output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for LilyPond rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedScl rdfs:label "projected Scala .scl output"@x-gmeow-english ;
+    skos:definition "Solver output predicate for Scala .scl rendering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedPitchName rdfs:label "projected pitch name"@x-gmeow-english ;
+    skos:definition "Solver output predicate for spelled pitch names."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedParsedPitch rdfs:label "projected parsed pitch"@x-gmeow-english ;
+    skos:definition "Solver output predicate for parsed pitch values."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+gmeow:projectedTransformedSegment rdfs:label "projected transformed segment"@x-gmeow-english ;
+    skos:definition "Solver output predicate for transformed musical segments."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FnO CATALOG — notation projection functions
+# --------------------------------------------------------------------------- #
+
+gmeow:fnSpellPitch a gmeow:ProjectionFunction ;
+    rdfs:label "spell pitch value in a notation system"@x-gmeow-english ;
+    skos:definition "Renders a frame-relative PitchValue as a note name / symbol in a given PitchSpellingSystem (e.g. C♯4, Sa, +7). Enharmonic peers are co-equal outputs (Principle 9)."@x-gmeow-english ;
+    gmeow:fnInput gmeow:hasTuningFrame, gmeow:spellingSystem ;
+    gmeow:fnOutput gmeow:projectedPitchName ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnParsePitchName a gmeow:ProjectionFunction ;
+    rdfs:label "parse pitch name to frame-relative value"@x-gmeow-english ;
+    skos:definition "Parses a spelled pitch name in a given PitchSpellingSystem and TuningSystem into a frame-relative PitchValue."@x-gmeow-english ;
+    gmeow:fnInput gmeow:spelledName, gmeow:spellingSystem ;
+    gmeow:fnOutput gmeow:projectedParsedPitch ; gmeow:fnOutputType gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnApplyTransformation a gmeow:ProjectionFunction ;
+    rdfs:label "apply segment transformation"@x-gmeow-english ;
+    skos:definition "Applies a SegmentTransformation (transposition, augmentation, retrograde, etc.) to a MusicalSegment, returning a derived segment."@x-gmeow-english ;
+    gmeow:fnInput gmeow:transformationSource, gmeow:transformationType, gmeow:transformationParameter ;
+    gmeow:fnOutput gmeow:projectedTransformedSegment ; gmeow:fnOutputType gmeow:MusicalSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToCMN a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to CMN staff notation"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to Common Music Notation staff notation. Lossy: quantizes pitch to 12-EDO, time to rational grid, drops microtiming/timbre/tuning-frame/trajectory."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedCMN ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToMensural a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to mensural notation"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to mensural notation with proportions and coloration. A CMN transcription of ars subtilior is a lossy, standpointed projection."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedMensural ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToTablature a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to tablature"@x-gmeow-english ;
+    skos:definition "Renders frame-relative pitch/duration content to instrument-specific finger/fret/string tablature. Lossy: abstracts pitch to instrument position."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression, gmeow:configurationInstrumentType ;
+    gmeow:fnOutput gmeow:projectedTablature ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToGraphic a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to graphic notation"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to a graphic score image or instruction set. Near-total loss in the symbolic direction; the visual artifact is canonical in the image direction."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedGraphic ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToSargam a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to Sargam"@x-gmeow-english ;
+    skos:definition "Renders frame-relative pitch content to Sargam solfege notation."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedSargam ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToJianpu a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to Jianpu"@x-gmeow-english ;
+    skos:definition "Renders frame-relative pitch content to Jianpu numbered notation."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedJianpu ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToKlavarskribo a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to Klavarskribo"@x-gmeow-english ;
+    skos:definition "Renders frame-relative pitch/duration content to Klavarskribo vertical keyboard notation."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedKlavarskribo ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToJohnstonJI a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to Johnston JI notation"@x-gmeow-english ;
+    skos:definition "Renders frame-relative just-intonation pitch content to Ben Johnston staff notation."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedJohnstonJI ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToSagittal a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to Sagittal notation"@x-gmeow-english ;
+    skos:definition "Renders frame-relative microtonal pitch content to Sagittal accidental notation."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedSagittal ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToHEJI a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to HEJI"@x-gmeow-english ;
+    skos:definition "Renders frame-relative just-intonation pitch content to Helmholtz-Ellis JI Pitch Notation."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedHEJI ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToByzantineNeume a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to Byzantine neume notation"@x-gmeow-english ;
+    skos:definition "Renders frame-relative melodic content to Byzantine neumatic notation."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedByzantineNeume ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToMIDI a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to MIDI"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to MIDI bytes. Lossy: no notation semantics, enharmonics, rests, tuplet structure, or work identity."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedMIDI ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToMusicXML a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to MusicXML"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to MusicXML 4.0. Lossy: microtones via bare decimal alter, polymeter via hacks, no mobile form."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedMusicXML ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToMEI a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to MEI"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to MEI. Lossy: att.tuning limited to named temperaments, JI lattices → cents approximations, mobile form via editorial markup only."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedMEI ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToABC a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to ABC notation"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to ABC notation. Lossy: monophonic bias, nonstandard microtone extensions."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedABC ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToKern a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to Humdrum **kern"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to Humdrum **kern. Lossy: 12-TET letter pitch, no tuning-frame declaration."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedKern ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToLilyPond a gmeow:ProjectionFunction ;
+    rdfs:label "project expression to LilyPond"@x-gmeow-english ;
+    skos:definition "Renders frame-relative musical content to LilyPond source. Program-not-data: layout macros are lost when read back as data."@x-gmeow-english ;
+    gmeow:fnInput gmeow:projectableExpression ;
+    gmeow:fnOutput gmeow:projectedLilyPond ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fnProjectToScl a gmeow:ProjectionFunction ;
+    rdfs:label "project tuning to Scala .scl"@x-gmeow-english ;
+    skos:definition "Renders a TuningSystem to a Scala .scl pitch-class list. Lossy: comma/prime-limit theory and keyboard mapping context."@x-gmeow-english ;
+    gmeow:fnInput gmeow:hasTuningFrame ;
+    gmeow:fnOutput gmeow:projectedScl ; gmeow:fnOutputType rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# TERM EQUIVALENCES — notation systems and encoding formats
+# --------------------------------------------------------------------------- #
+
+gmeow:eqMuNot001 a gmeow:TermEquivalence ;
+    rdfs:label "CMN staff notation ↔ Wikidata Q233861"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW CMN staff notation individual to Wikidata 'musical notation' (Q233861)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:notationCMNStaff ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q233861 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'musical notation' (Q233861) — broader than CMN staff specifically." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot002 a gmeow:TermEquivalence ;
+    rdfs:label "MIDI ↔ Wikidata Q80284"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW MIDI notation-system individual to Wikidata 'MIDI' (Q80284)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:notationMIDI ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q80284 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'MIDI' (Q80284)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot003 a gmeow:TermEquivalence ;
+    rdfs:label "tablature ↔ Wikidata Q207338"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW tablature notation-system individual to Wikidata 'tablature' (Q207338)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:notationTablature ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q207338 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'tablature' (Q207338) — broader than any single instrument tablature." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot004 a gmeow:TermEquivalence ;
+    rdfs:label "ABC notation ↔ Wikidata Q287895"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW ABC notation individual to Wikidata 'ABC notation' (Q287895)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:notationABC ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q287895 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'ABC notation' (Q287895)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot005 a gmeow:TermEquivalence ;
+    rdfs:label "LilyPond ↔ Wikidata Q507471"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW LilyPond notation individual to Wikidata 'LilyPond' (Q507471)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:notationLilyPond ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q507471 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'LilyPond' (Q507471)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot006 a gmeow:TermEquivalence ;
+    rdfs:label "MusicXML ↔ Wikidata Q284221"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW MusicXML notation individual to Wikidata 'MusicXML' (Q284221)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:notationMusicXML ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q284221 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'MusicXML' (Q284221)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot007 a gmeow:TermEquivalence ;
+    rdfs:label "MEI ↔ Wikidata Q6808199"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW MEI notation individual to Wikidata 'Music Encoding Initiative' (Q6808199)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:notationMEI ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q6808199 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'Music Encoding Initiative' (Q6808199)." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot008 a gmeow:TermEquivalence ;
+    rdfs:label "MusicBrainz work MBID via P434"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW MusicalWork class to MusicBrainz work identifiers via Wikidata P434."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:MusicalWork ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:P434 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "MusicBrainz work MBID is referenced via Wikidata P434; no schema absorption." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot009 a gmeow:TermEquivalence ;
+    rdfs:label "MusicBrainz recording MBID via P436"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW Recording class to MusicBrainz recording identifiers via Wikidata P436."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:Recording ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:P436 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "MusicBrainz recording MBID is referenced via Wikidata P436; no schema absorption." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+gmeow:eqMuNot010 a gmeow:TermEquivalence ;
+    rdfs:label "OMRAS2 chord symbol ↔ chord:Chord"@x-gmeow-english ;
+    skos:definition "Maps the GMEOW PitchCollection used as a chord symbol to the OMRAS2 Chord concept. Harte grammar is 12-TET letter-name only."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:alignSubject gmeow:PitchCollection ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject chord:Chord ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "OMRAS2 chord symbols are 12-TET only; JI/EDO≠12 chords are unrepresentable." ;
+    gmeow:sssomFile "gmeow-music.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# PROJECTION MAPPINGS — external surface vocabularies
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaMusicWork a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Work to schema.org MusicWork by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "MusicalWork → schema:MusicComposition"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
+        gmeow:edoalSource gmeow:MusicalWork ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:toClass schema:MusicComposition ;
+        gmeow:edoalTarget schema:MusicComposition ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "the WEMI spine collapses: Work, Expression, and Manifestation are flattened into one schema:MusicComposition; realization mode and notation frame are lost" ] .
+
+gmeow:mapSchemaMusicRecording a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Recording to schema.org MusicRecording by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "Recording → schema:MusicRecording"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rec" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rec" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Recording ] ) ;
+        gmeow:edoalSource gmeow:Recording ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:toClass schema:MusicRecording ;
+        gmeow:edoalTarget schema:MusicRecording ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "recording event provenance, take/overdub structure, and standpoint-indexed performance claims collapse to a flat schema:MusicRecording" ] .
+
+gmeow:mapSchemaMusicAlbum a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Work/Release to schema.org MusicAlbum by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "musical release Manifestation → schema:MusicAlbum"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rel" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Manifestation ]
+            [ gmeow:subjectVar "rel" ; gmeow:predicate gmeow:embodies ; gmeow:objectVar "expr" ]
+            [ gmeow:subjectVar "expr" ; gmeow:predicate gmeow:realizes ; gmeow:objectVar "work" ]
+            [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
+        gmeow:edoalSource gmeow:Manifestation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:toClass schema:MusicAlbum ;
+        gmeow:edoalTarget schema:MusicAlbum ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "the WEMI spine collapses; track-level frame-relative content and declared losses are lost" ] .
+
+gmeow:mapLRMooWork a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Work to IFLA LRMoo Work by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "MusicalWork → LRMoo F1 Work"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
+        gmeow:edoalSource gmeow:MusicalWork ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "lrmoo" ; gmeow:relation "<=" ;
+        gmeow:toClass lrmoo:F1_Work ;
+        gmeow:edoalTarget lrmoo:F1_Work ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "GMEOW's frame-relative content, tuning systems, and declared losses have no LRMoo home" ] .
+
+gmeow:mapLRMooExpression a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Expression to IFLA LRMoo Expression by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "Expression → LRMoo F2 Expression"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "expr" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "expr" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Expression ] ) ;
+        gmeow:edoalSource gmeow:Expression ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "lrmoo" ; gmeow:relation "<=" ;
+        gmeow:toClass lrmoo:F2_Expression ;
+        gmeow:edoalTarget lrmoo:F2_Expression ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "the notation-system reference frame and loss manifest are not part of LRMoo" ] .
+
+gmeow:mapLRMooPerformance a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Performance to IFLA LRMoo Performance by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "musical performance Event → LRMoo F31 Performance"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "perf" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "perf" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Event ]
+            [ gmeow:subjectVar "perf" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeMusicalPerformance ] ) ;
+        gmeow:edoalSource gmeow:eventTypeMusicalPerformance ; gmeow:edoalSourceKind "relation" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "lrmoo" ; gmeow:relation "<=" ;
+        gmeow:toClass lrmoo:F31_Performance ;
+        gmeow:edoalTarget lrmoo:F31_Performance ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "performance-as-expression-creation flattens improvisation and standpoint-indexed participation claims" ] .
+
+gmeow:mapMusicOntologyWork a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Work to the Music Ontology Work by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "MusicalWork → mo:MusicalWork"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
+        gmeow:edoalSource gmeow:MusicalWork ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "mo" ; gmeow:relation "<=" ;
+        gmeow:toClass mo:MusicalWork ;
+        gmeow:edoalTarget mo:MusicalWork ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "Music Ontology has no note-level model, no tuning frame, and a composition-first cultural bias" ] .
+
+gmeow:mapPONWork a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW musical Work to the Polifonia Ontology Network Work by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "MusicalWork → PON Music Meta Work"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
+        gmeow:edoalSource gmeow:MusicalWork ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "pon" ; gmeow:relation "<=" ;
+        gmeow:toClass pon:Work ;
+        gmeow:edoalTarget pon:Work ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "PON's annotation model presumes Western categories and has no tuning math" ] .
+
+gmeow:mapJAMSSegment a gmeow:ProjectionMapping ;
+    skos:definition "Project a GMEOW MusicalSegment to a JAMS segment observation by reference (Principle 5)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "MusicalSegment analysis → JAMS segment annotation"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "claim" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "claim" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicAnalysisClaim ]
+            [ gmeow:subjectVar "claim" ; gmeow:predicate gmeow:analysisProperty ; gmeow:objectValue gmeow:analysisPropertySegment ] ) ;
+        gmeow:edoalSource gmeow:MusicAnalysisClaim ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "jams" ; gmeow:relation "<=" ;
+        gmeow:toClass jams:Segment ;
+        gmeow:edoalTarget jams:Segment ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "JAMS annotations are audio-time anchored, not score-anchored; vantage and theory frame are lost" ] .

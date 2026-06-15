@@ -33,5 +33,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> ,
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
-        <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     gmeow:sliceConsumer "The GTS music-package single-file format, the MCP analysis-claims surface, and the 19-case stress corpus that closes the music design."@x-gmeow-english.

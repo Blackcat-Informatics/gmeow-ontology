@@ -144,3 +144,31 @@ ex:claimB a gmeow:StandpointClaim ;
 | **MathML / OpenMath** | `NotationSystem` (mathematical) → math element container | Notation metadata, standpoint, temporal scope |
 | **MusicXML / MEI** | `NotationSystem` (musical) → score container | Usage relator, confidence, standpoint |
 | **MIDI** | `NotationSystem` (musical) → track/sequence | Human-readable notation semantics |
+
+## Projection framework: NotationProjectionProfile
+
+A **`gmeow:NotationProjectionProfile`** is a `gmeow:Profile` (from the core
+profiles slice) that describes how a `NotationSystem` projects canonical,
+frame-relative content. It is deliberately not the canonical content itself;
+it is a machine-readable, honest declaration of what survives the projection
+and what is lost (Principles 4, 11, 12).
+
+Every profile states:
+
+* **`gmeow:notationSystemOf`** — exactly one `NotationSystem` being described.
+* **`gmeow:representableParameter`** — parameters the notation can carry
+  without loss (range is open in core; domain slices constrain it, e.g. to
+  `MusicalParameter` in the music extension).
+* **`gmeow:declaredLoss`** — `ProjectionLoss` individuals that explain what
+  the notation drops or approximates.
+* **`gmeow:projectionFunction`** — an FnO function reference that performs the
+  render.
+
+A **`gmeow:ProjectionLoss`** is an abstract individual type (value vocabulary;
+never subclassed). Each loss may **`gmeow:accountsForParameter`** one or more
+parameters so that completeness gates can prove every parameter is either
+represented or explicitly accounted for.
+
+The core framework intentionally stays domain-agnostic. The music extension
+provides the concrete `MusicalParameter` vocabulary, music-domain
+`NotationSystem` individuals, and per-system projection profiles.

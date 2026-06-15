@@ -127,6 +127,14 @@ TARGET_SOURCES: dict[str, TargetSource] = {
         "ontolex", "https://www.w3.org/ns/lemon/ontolex.owl", "xml"
     ),
     "lime": TargetSource("lime", "https://www.w3.org/ns/lemon/lime.owl", "xml"),
+    # Music-domain alignment targets (issue #318). All three are reference-only
+    # (unknown/restrictive licensing), so their axioms are fetched live under
+    # --network and are never vendored into the CC BY 4.0 artifact.
+    "jams": TargetSource("jams", "http://w3id.org/polifonia/ontology/jams/", "xml"),
+    "pon": TargetSource(
+        "pon", "https://w3id.org/polifonia/ontology/ontology-network/", "xml"
+    ),
+    "chord": TargetSource("chord", "http://purl.org/ontology/chord/", "xml"),
     # BOT (Building Topology Ontology) — BSD-3-Clause / CC-BY, property-axiom shape.
     "bot": TargetSource("bot", "https://w3id.org/bot/bot.ttl", "turtle"),
 }

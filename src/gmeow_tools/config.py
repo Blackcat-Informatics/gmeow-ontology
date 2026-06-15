@@ -372,6 +372,12 @@ PREFIXES: dict[str, str] = {
     # Audio Feature Ontology / Vocabulary (MIR feature provenance, issue #317)
     "afo": "https://w3id.org/afo/onto/1.1#",
     "afv": "https://w3id.org/afo/vocab/1.1#",
+    # JAMS annotation vocabulary (bridged by reference only, issue #318)
+    "jams": "http://w3id.org/polifonia/ontology/jams/",
+    # Polifonia Ontology Network core (bridged by reference only, issue #318)
+    "pon": "https://w3id.org/polifonia/ontology/",
+    # OMRAS2 chord ontology (bridged by reference only, issue #318)
+    "chord": "http://purl.org/ontology/chord/",
     # MIMO instrument vocabulary (bridged by reference only)
     "mimo": "http://www.mimo-db.eu/InstrumentsKeywords/",
     # Workflow / process alignment (#226)
@@ -627,6 +633,15 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "afv": AlignmentTarget(
         "Audio Feature Vocabulary", PREFIXES["afv"], "Unknown", "concept_scheme"
+    ),
+    "jams": AlignmentTarget(
+        "JAMS Annotation Vocabulary", PREFIXES["jams"], "Unknown", "schema"
+    ),
+    "pon": AlignmentTarget(
+        "Polifonia Ontology Network", PREFIXES["pon"], "Unknown", "schema"
+    ),
+    "chord": AlignmentTarget(
+        "OMRAS2 Chord Ontology", PREFIXES["chord"], "Unknown", "schema"
     ),
     "gedcom": AlignmentTarget(
         "W3C GEDCOM", PREFIXES["gedcom"], "W3C-Document", "schema"
