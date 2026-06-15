@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: spatial aggregation IS a measurement, with a privacy floor
+# (#443). A gmeow:SpatialAggregation is a gmeow:Measurement (so it carries the
+# observation bundle: observedFeature, vantage, observationMethod, result) that
+# applies a gmeow:aggregationFunction (average / count / density …) over
+# gmeow:SpatialBins. gmeow:minimumPopulation is the k-anonymity floor: bins with
+# fewer than that many people are NOT reported, so the aggregate can be published
+# without re-identifying individuals (P12 — the safe public projection).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/aggregation/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:censusBureau a gmeow:Organization ; gmeow:name "Regional Census Bureau"@x-gmeow-english .
+ex:metro        a gmeow:Place ; gmeow:name "Metro statistical area"@x-gmeow-english .
+
+# --- The aggregation: average household size over the region, by survey, with a
+#     1000-person minimum-population floor for safe publication.
+ex:householdAgg a gmeow:SpatialAggregation ;
+    gmeow:observedFeature     ex:metro ;
+    gmeow:vantage             ex:censusBureau ;
+    gmeow:observationMethod   gmeow:methodSurvey ;
+    gmeow:aggregationFunction gmeow:aggAverage ;
+    gmeow:minimumPopulation   "1000"^^xsd:nonNegativeInteger ;
+    gmeow:hasBin              ex:downtownBin ;
+    gmeow:observationResult   ex:avgHouseholdSize .
+
+# The result is a scalar with its unit (a Quantity must declare exactly one unit,
+# P11); a count of persons-per-household is the dimensionless QUDT number unit.
+ex:avgHouseholdSize a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "2.4"^^xsd:decimal ;
+    gmeow:hasUnit       <http://qudt.org/vocab/unit/NUM> .
+
+ex:downtownBin a gmeow:SpatialBin ;
+    rdfs:label "Downtown census tract"@x-gmeow-english .

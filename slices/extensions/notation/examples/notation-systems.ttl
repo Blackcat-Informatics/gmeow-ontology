@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: notation systems, one machinery for every symbol set (#443). A
+# gmeow:NotationSystem is classified by an open gmeow:notationSystemKind
+# (musical / mathematical / transcription / encoding / stenographic …), so staff
+# notation, IPA, Morse and a math syntax are the SAME kind of object — a symbolic
+# system for representing something. A transcription notation declares which
+# language it transcribes (gmeow:notationSystemFor); a script is itself a notation
+# system, reached from the writing system via gmeow:writingSystemAsNotation.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/notation/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Western staff notation: a musical symbolic system, not tied to a language.
+ex:staffNotation a gmeow:NotationSystem ;
+    rdfs:label              "Western staff notation"@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical .
+
+# --- The IPA: a transcription system FOR a language (here English).
+ex:ipa a gmeow:NotationSystem ;
+    rdfs:label               "International Phonetic Alphabet"@x-gmeow-english ;
+    gmeow:notationSystemFor  gmeow:langEnglish ;
+    gmeow:notationSystemKind gmeow:symbolicKindTranscription .
+
+# --- A script IS a notation system: the Latin writing system, viewed as the
+#     encoding notation it provides.
+ex:latin a gmeow:WritingSystem ;
+    rdfs:label                  "Latin script"@x-gmeow-english ;
+    gmeow:writingSystemAsNotation ex:latinNotation .
+
+ex:latinNotation a gmeow:NotationSystem ;
+    rdfs:label               "Latin-script encoding"@x-gmeow-english ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding .
