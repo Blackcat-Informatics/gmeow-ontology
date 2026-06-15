@@ -55051,6 +55051,32 @@
             "title": "Instant",
             "type": "object"
         },
+        "InstantMessageAddress": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "contactPointProvider": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contactPointType": {
+                    "items": {
+                        "$ref": "#/$defs/ContactPointType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "InstantMessageAddress",
+            "type": "object"
+        },
         "InstrumentConfiguration": {
             "additionalProperties": false,
             "description": "",

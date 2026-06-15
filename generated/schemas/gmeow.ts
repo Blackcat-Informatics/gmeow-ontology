@@ -4944,6 +4944,11 @@ export interface Instant {
 
 
 
+export interface InstantMessageAddress extends ContactPoint {
+}
+
+
+
 export interface InstrumentConfiguration {
     configurationInstrumentType?: InstrumentType,
     configurationInterval?: PitchInterval,

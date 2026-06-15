@@ -17,7 +17,14 @@ gmeow:ContactPoint
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Contact Point"@x-gmeow-english ;
-    skos:definition "A means of reaching an agent: an email address, telephone number, or postal address."@x-gmeow-english ;
+    skos:definition "A means of reaching an agent: an email address, telephone number, postal address, or instant-messaging handle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+
+gmeow:InstantMessageAddress
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ContactPoint ;
+    rdfs:label "Instant Message Address"@x-gmeow-english ;
+    skos:definition "A contact point reachable through an instant-messaging or chat service — a handle, channel, or service-scheme URI (xmpp:, weixin:, matrix:, …)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:EmailAddress

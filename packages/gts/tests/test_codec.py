@@ -73,3 +73,11 @@ def test_zstd_rsyncable_decodes_via_zstd_path() -> None:
     # The codec's decode path treats zstd-rsyncable as zstd-compatible.
     decoded = decode_chain([Codec("zstd-rsyncable", "compress")], encoded)
     assert decoded == data
+
+
+def test_gzip_encoding_uses_zero_mtime() -> None:
+    """Committed gzip-coded frames must not depend on wall-clock time."""
+    encoded = encode_chain(["gzip"], b"stable gzip payload" * 100)
+
+    assert encoded[4:8] == b"\x00\x00\x00\x00"
+    assert encode_chain(["gzip"], b"stable gzip payload" * 100) == encoded

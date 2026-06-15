@@ -119,13 +119,36 @@ def test_committed_snapshot_matches_a_fresh_build(fresh_snapshot: bytes) -> None
     assert fresh_snapshot == GTS_SNAPSHOT_FILE.read_bytes()
 
 
-def test_committed_snapshot_uses_rsyncable_frames() -> None:
-    """The committed bundle's large frames are delta-friendly."""
-    frames = _frame_codecs(GTS_SNAPSHOT_FILE.read_bytes())
-    assert ("snapshot", ["zstd-rsyncable"]) in frames
-    assert any(
-        frame == "blob" and codecs == ["zstd-rsyncable"] for frame, codecs in frames
-    )
+def test_committed_snapshot_uses_deterministic_gzip_frames() -> None:
+    """The committed bundle avoids zstd byte drift across CI/local codecs."""
+    data = GTS_SNAPSHOT_FILE.read_bytes()
+    frames = _frame_codecs(data)
+    target_frames = [
+        codecs for frame, codecs in frames if frame in {"snapshot", "blob"}
+    ]
+    assert target_frames
+    assert all(codecs == ["gzip"] for codecs in target_frames)
+
+    items, torn = iter_items(data)
+    assert torn is None
+    header = unwrap_header(items[0][1])
+    raw_catalog = header.get("cat")
+    assert isinstance(raw_catalog, Mapping)
+    gzip_ids = {
+        cid
+        for cid, entry in raw_catalog.items()
+        if isinstance(cid, int)
+        and isinstance(entry, Mapping)
+        and entry.get("name") == "gzip"
+    }
+    assert len(gzip_ids) == 1
+    gzip_id = next(iter(gzip_ids))
+    for _offset, item in items[1:]:
+        assert isinstance(item, dict)
+        if item.get("x") == [gzip_id]:
+            payload = item.get("d")
+            assert isinstance(payload, bytes)
+            assert payload[4:8] == b"\x00\x00\x00\x00"
 
 
 def test_snapshot_partitions_sources_into_named_graphs() -> None:
