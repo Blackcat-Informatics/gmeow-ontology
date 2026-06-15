@@ -17,7 +17,8 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
-        logic-build logic-test logic-py logic-wasm conformance
+        logic-build logic-test logic-py logic-wasm conformance \
+        shacl-build shacl-test shacl-py
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -145,6 +146,15 @@ logic-py: ## Build and install the gmeow_logic Python extension (maturin develop
 
 logic-wasm: ## Build gmeow-logic for wasm32-unknown-unknown (wasm-bindgen surface + oxigraph store).
 	cargo build -p gmeow-logic --target wasm32-unknown-unknown
+
+shacl-build: ## Build the gmeow-shacl Rust crate (oxigraph SHACL Core validator).
+	cargo build -p gmeow-shacl
+
+shacl-test: ## Run the gmeow-shacl unit + conformance tests.
+	cargo test -p gmeow-shacl
+
+shacl-py: ## Build and install the gmeow_shacl Python extension (maturin develop).
+	uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
 conformance: ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
 	$(GMEOW_DEV) conformance
