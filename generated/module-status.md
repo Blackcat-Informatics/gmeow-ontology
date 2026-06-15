@@ -45,11 +45,11 @@ Tier-2 uplift backlog.
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 0/8 | full |
 | logic | core | core | 0 | 14 | 11 | 12 | 0 | 0/25 | full |
-| music | extension | extensions | 11 | 59 | 126 | 0 | 1 | - | full |
+| music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 2/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |
-| notation | extension | extensions | 4 | 5 | 9 | 0 | 1 | - | full |
+| notation | core | core | 5 | 8 | 17 | 0 | 1 | 0/25 | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 1 | 0/30 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 0/51 | full |
@@ -72,4 +72,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
-**63 slices** · documentation: 63 full guides, 0 stubs remaining (#325); advisory coverage: 3/1088 core class/property terms (#471).
+**63 slices** · documentation: 63 full guides, 0 stubs remaining (#325); advisory coverage: 3/1113 core class/property terms (#471).

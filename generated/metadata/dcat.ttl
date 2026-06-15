@@ -35,7 +35,7 @@
     dcat:landingPage <https://blackcatinformatics.ca/gmeow/profiles/memory> .
 
 <https://blackcatinformatics.ca/gmeow/profiles/music> a dcat:Dataset ;
-    dcterms:description "Slim dependency-closed profile: 1 declared slice(s), 25 in the import closure."@en ;
+    dcterms:description "Slim dependency-closed profile: 1 declared slice(s), 26 in the import closure."@en ;
     dcterms:isPartOf gmeow:full ;
     dcterms:title "GMEOW — music profile"@en ;
     dcat:landingPage <https://blackcatinformatics.ca/gmeow/profiles/music> .

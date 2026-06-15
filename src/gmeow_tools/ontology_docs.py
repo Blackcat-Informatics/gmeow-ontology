@@ -219,6 +219,7 @@ _EXTERNAL_TARGET_DESCRIPTIONS: dict[str, str] = {
     "bot": "Building topology vocabulary for sites, buildings, spaces, and zones.",
     "brick": "Built-environment schema for equipment, points, systems, and sensors.",
     "cc": "Creative Commons rights vocabulary for licenses and reuse conditions.",
+    "chord": "OMRAS2 chord ontology for harmonic structures and chord symbols.",
     "codemeta": "Software metadata vocabulary for packages and repositories.",
     "crmarc": "CIDOC CRM archaeological extension for excavation and stratigraphy.",
     "crmdig": "CIDOC CRM digital extension for digitization and digital provenance.",
@@ -261,6 +262,9 @@ _EXTERNAL_TARGET_DESCRIPTIONS: dict[str, str] = {
     "iiif": "IIIF vocabulary for canvases, manifests, and presentation metadata.",
     "iptc": "IPTC NewsML-G2 vocabulary for news, subjects, rights, and metadata.",
     "ivoa": "International Virtual Observatory vocabulary for astronomy concepts.",
+    "jams": (
+        "JAMS annotation vocabulary for music analysis observations and segment labels."
+    ),
     "lexvo": "Language identifier vocabulary used for language and script references.",
     "lime": "Linguistic Metadata vocabulary for lexicons and lexical datasets.",
     "loinc": "Clinical laboratory and observation code system for measurements.",
@@ -283,6 +287,7 @@ _EXTERNAL_TARGET_DESCRIPTIONS: dict[str, str] = {
     "odrl": "W3C Open Digital Rights Language for policies, parties, and duties.",
     "ontolex": "OntoLex-Lemon model for lexical entries, senses, forms, and lexicons.",
     "org": "W3C Organization ontology for memberships, posts, sites, and orgs.",
+    "pon": "Polifonia Ontology Network for music heritage, works, and annotations.",
     "premis": "Preservation metadata for digital objects, events, rights, and fixity.",
     "prov": (
         "W3C provenance ontology for activities, entities, agents, derivation, "

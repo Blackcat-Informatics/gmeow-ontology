@@ -4,9 +4,10 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)."
+# comment: "Music-notation projection alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)."
 # curie_map:
 #   afo: https://w3id.org/afo/onto/1.1#
+#   chord: http://purl.org/ontology/chord/
 #   discogs: https://www.discogs.com/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   mbz: https://musicbrainz.org/
@@ -24,10 +25,13 @@ gmeow:Genre	skos:relatedMatch	mbz:genre	semapv:ManualMappingCuration	0.9	MusicBr
 gmeow:InstrumentType	skos:closeMatch	wd:Q26836418	semapv:ManualMappingCuration	0.85	Wikidata 'MIMO's classification of musical instruments' (Q26836418) — per-seed MIMO exactMatches are carried directly on InstrumentType individuals.
 gmeow:InstrumentType	skos:closeMatch	wd:Q34379	semapv:ManualMappingCuration	0.9	Wikidata 'musical instrument' (Q34379) — the GMEOW sense is a value-vocabulary entry, not the physical object.
 gmeow:MetricStructure	skos:closeMatch	wd:Q155234	semapv:ManualMappingCuration	0.85	Wikidata 'time signature' (Q155234) — a CMN projection of the underlying MetricStructure.
+gmeow:MusicalWork	skos:relatedMatch	wd:P434	semapv:ManualMappingCuration	0.8	MusicBrainz work MBID is referenced via Wikidata P434; no schema absorption.
 gmeow:PerformanceParticipation	skos:closeMatch	prov:Association	semapv:ManualMappingCuration	0.8	PROV-O Association is the generic qualified participation idiom.
+gmeow:PitchCollection	skos:closeMatch	chord:Chord	semapv:ManualMappingCuration	0.7	OMRAS2 chord symbols are 12-TET only; JI/EDO≠12 chords are unrepresentable.
 gmeow:PitchCollection	skos:closeMatch	wd:Q179651	semapv:ManualMappingCuration	0.9	Wikidata 'scale' (Q179651) — broader than the GMEOW collection view.
 gmeow:PitchSpellingSystem	skos:closeMatch	wd:Q233861	semapv:ManualMappingCuration	0.9	Wikidata 'musical notation' (Q233861) — broader than the GMEOW pitch-spelling view.
 gmeow:PitchValue	skos:closeMatch	wd:Q1760309	semapv:ManualMappingCuration	0.85	Wikidata 'pitch class' (Q1760309) — a pitch value under octave equivalence.
+gmeow:Recording	skos:relatedMatch	wd:P436	semapv:ManualMappingCuration	0.8	MusicBrainz recording MBID is referenced via Wikidata P436; no schema absorption.
 gmeow:TempoMap	skos:closeMatch	wd:Q189214	semapv:ManualMappingCuration	0.85	Wikidata 'tempo' (Q189214) — the broad concept; GMEOW models tempo as a piecewise frame mapping.
 gmeow:TimbreDescriptor	skos:closeMatch	afo:AudioFeature	semapv:ManualMappingCuration	0.8	A categorical timbre descriptor is a coarse, human-interpretable audio feature in the AFO sense.
 gmeow:TuningSystem	skos:closeMatch	wd:Q723441	semapv:ManualMappingCuration	0.9	Wikidata 'musical tuning' (Q723441) — broader than the GMEOW reference-frame view.
@@ -42,6 +46,13 @@ gmeow:instrumentTypeModularSynth	skos:closeMatch	mimo:2321	semapv:ManualMappingC
 gmeow:instrumentTypePiano	skos:exactMatch	mimo:2299	semapv:ManualMappingCuration	0.95	MIMO 'Piano' (2299).
 gmeow:instrumentTypeSitar	skos:exactMatch	mimo:3456	semapv:ManualMappingCuration	0.95	MIMO 'Sitar' (3456).
 gmeow:instrumentTypeTabla	skos:exactMatch	mimo:2899	semapv:ManualMappingCuration	0.95	MIMO 'Tabla' (2899).
+gmeow:notationABC	skos:exactMatch	wd:Q287895	semapv:ManualMappingCuration	0.95	Wikidata 'ABC notation' (Q287895).
+gmeow:notationCMNStaff	skos:closeMatch	wd:Q233861	semapv:ManualMappingCuration	0.85	Wikidata 'musical notation' (Q233861) — broader than CMN staff specifically.
+gmeow:notationLilyPond	skos:exactMatch	wd:Q507471	semapv:ManualMappingCuration	0.95	Wikidata 'LilyPond' (Q507471).
+gmeow:notationMEI	skos:exactMatch	wd:Q6808199	semapv:ManualMappingCuration	0.95	Wikidata 'Music Encoding Initiative' (Q6808199).
+gmeow:notationMIDI	skos:exactMatch	wd:Q80284	semapv:ManualMappingCuration	0.95	Wikidata 'MIDI' (Q80284).
+gmeow:notationMusicXML	skos:exactMatch	wd:Q284221	semapv:ManualMappingCuration	0.95	Wikidata 'MusicXML' (Q284221).
+gmeow:notationTablature	skos:closeMatch	wd:Q207338	semapv:ManualMappingCuration	0.85	Wikidata 'tablature' (Q207338) — broader than any single instrument tablature.
 gmeow:performanceOf	skos:closeMatch	mo:performance_of	semapv:ManualMappingCuration	0.75	Music Ontology mo:performance_of relates a performance event to the musical work performed.
 gmeow:performanceOf	skos:closeMatch	wd:P2550	semapv:ManualMappingCuration	0.85	Wikidata 'recording or performance of' (P2550) — the closest available property for performance→work linkage.
 gmeow:pitchCollectionKindMaqam	skos:closeMatch	wd:Q12826678	semapv:ManualMappingCuration	0.85	Wikidata 'Arabic maqam' (Q12826678) is narrower than the GMEOW maqam kind, which spans Arabic and Turkish traditions.

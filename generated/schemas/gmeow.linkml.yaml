@@ -2229,13 +2229,25 @@ classes:
     is_a: SocialObject
     slots:
     - systemIssuer
+  NotationProjectionProfile:
+    class_uri: https://blackcatinformatics.ca/gmeow/NotationProjectionProfile
+    title: Notation Projection Profile
+    is_a: Profile
+    slots:
+    - declaredLoss
+    - notationSystemOf
+    - projectableExpression
+    - projectionFunction
+    - representableParameter
   NotationSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/NotationSystem
     title: Notation System
     is_a: SymbolicSystem
     slots:
+    - hasNotationProjectionProfile
     - notationSystemFor
     - notationSystemKind
+    - smuflCodepoint
   NotationSystemUsage:
     class_uri: https://blackcatinformatics.ca/gmeow/NotationSystemUsage
     title: Notation System Usage
@@ -2768,6 +2780,14 @@ classes:
   ProjectionContext:
     class_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     title: Projection Context
+  ProjectionFunction:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProjectionFunction
+    title: Projection Function
+  ProjectionLoss:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProjectionLoss
+    title: Projection Loss
+    slots:
+    - accountsForParameter
   Prompt:
     class_uri: https://blackcatinformatics.ca/gmeow/Prompt
     title: Prompt
@@ -3869,6 +3889,12 @@ slots:
     range: FinancialAccountType
     domain: FinancialAccount
     multivalued: false
+  accountsForParameter:
+    slot_uri: https://blackcatinformatics.ca/gmeow/accountsForParameter
+    title: accounts for parameter
+    range: string
+    domain: ProjectionLoss
+    multivalued: true
   acquireLicensePage:
     slot_uri: https://blackcatinformatics.ca/gmeow/acquireLicensePage
     title: acquire license page
@@ -5400,6 +5426,12 @@ slots:
     range: string
     domain: PerformanceDecision
     multivalued: false
+  declaredLoss:
+    slot_uri: https://blackcatinformatics.ca/gmeow/declaredLoss
+    title: declared loss
+    range: ProjectionLoss
+    domain: NotationProjectionProfile
+    multivalued: true
   declination:
     slot_uri: https://blackcatinformatics.ca/gmeow/declination
     title: declination
@@ -7004,6 +7036,12 @@ slots:
     title: has network address
     range: NetworkAddress
     domain: VirtualLocation
+    multivalued: true
+  hasNotationProjectionProfile:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasNotationProjectionProfile
+    title: has notation projection profile
+    range: NotationProjectionProfile
+    domain: NotationSystem
     multivalued: true
   hasNotationSystem:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasNotationSystem
@@ -8875,6 +8913,12 @@ slots:
     range: SymbolicSystemKind
     domain: NotationSystem
     multivalued: true
+  notationSystemOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/notationSystemOf
+    title: notation system of
+    range: NotationSystem
+    domain: NotationProjectionProfile
+    multivalued: false
   notationUsageInterval:
     slot_uri: https://blackcatinformatics.ca/gmeow/notationUsageInterval
     title: notation usage interval
@@ -9732,11 +9776,23 @@ slots:
     range: License
     domain: Project
     multivalued: true
+  projectableExpression:
+    slot_uri: https://blackcatinformatics.ca/gmeow/projectableExpression
+    title: projectable expression
+    range: string
+    domain: NotationProjectionProfile
+    multivalued: true
   projectedStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/projectedStandpoint
     title: projected standpoint
     range: StandpointClaim
     domain: Event
+    multivalued: true
+  projectionFunction:
+    slot_uri: https://blackcatinformatics.ca/gmeow/projectionFunction
+    title: projection function
+    range: ProjectionFunction
+    domain: NotationProjectionProfile
     multivalued: true
   promptRole:
     slot_uri: https://blackcatinformatics.ca/gmeow/promptRole
@@ -10186,6 +10242,12 @@ slots:
     range: RepositoryType
     domain: Repository
     multivalued: false
+  representableParameter:
+    slot_uri: https://blackcatinformatics.ca/gmeow/representableParameter
+    title: representable parameter
+    range: string
+    domain: NotationProjectionProfile
+    multivalued: true
   requires:
     slot_uri: https://blackcatinformatics.ca/gmeow/requires
     title: requires
@@ -10799,6 +10861,12 @@ slots:
     title: slogan
     range: string
     domain: Agent
+    multivalued: true
+  smuflCodepoint:
+    slot_uri: https://blackcatinformatics.ca/gmeow/smuflCodepoint
+    title: SMuFL codepoint
+    range: string
+    domain: NotationSystem
     multivalued: true
   sourceFor:
     slot_uri: https://blackcatinformatics.ca/gmeow/sourceFor
@@ -12169,6 +12237,9 @@ enums:
       analysisPropertySchema:
         meaning: https://blackcatinformatics.ca/gmeow/analysisPropertySchema
         title: schema
+      analysisPropertySegment:
+        meaning: https://blackcatinformatics.ca/gmeow/analysisPropertySegment
+        title: segment
       analysisPropertyTuningIdentification:
         meaning: https://blackcatinformatics.ca/gmeow/analysisPropertyTuningIdentification
         title: tuning identification
@@ -16070,6 +16141,120 @@ enums:
       networkAddressTypeURL:
         meaning: https://blackcatinformatics.ca/gmeow/networkAddressTypeURL
         title: URL
+  NotationProjectionProfileEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/NotationProjectionProfile
+    permissible_values:
+      profileABC:
+        meaning: https://blackcatinformatics.ca/gmeow/profileABC
+        title: ABC notation projection profile
+      profileByzantineNeume:
+        meaning: https://blackcatinformatics.ca/gmeow/profileByzantineNeume
+        title: Byzantine neume projection profile
+      profileCMNStaff:
+        meaning: https://blackcatinformatics.ca/gmeow/profileCMNStaff
+        title: Common Music Notation staff projection profile
+      profileGraphic:
+        meaning: https://blackcatinformatics.ca/gmeow/profileGraphic
+        title: Graphic notation projection profile
+      profileHEJI:
+        meaning: https://blackcatinformatics.ca/gmeow/profileHEJI
+        title: HEJI projection profile
+      profileJianpu:
+        meaning: https://blackcatinformatics.ca/gmeow/profileJianpu
+        title: Jianpu projection profile
+      profileJohnstonJI:
+        meaning: https://blackcatinformatics.ca/gmeow/profileJohnstonJI
+        title: Johnston JI notation projection profile
+      profileKern:
+        meaning: https://blackcatinformatics.ca/gmeow/profileKern
+        title: Humdrum **kern projection profile
+      profileKlavarskribo:
+        meaning: https://blackcatinformatics.ca/gmeow/profileKlavarskribo
+        title: Klavarskribo projection profile
+      profileLilyPond:
+        meaning: https://blackcatinformatics.ca/gmeow/profileLilyPond
+        title: LilyPond projection profile
+      profileMEI:
+        meaning: https://blackcatinformatics.ca/gmeow/profileMEI
+        title: MEI projection profile
+      profileMIDI:
+        meaning: https://blackcatinformatics.ca/gmeow/profileMIDI
+        title: MIDI projection profile
+      profileMensural:
+        meaning: https://blackcatinformatics.ca/gmeow/profileMensural
+        title: Mensural notation projection profile
+      profileMusicXML:
+        meaning: https://blackcatinformatics.ca/gmeow/profileMusicXML
+        title: MusicXML projection profile
+      profileSCL:
+        meaning: https://blackcatinformatics.ca/gmeow/profileSCL
+        title: Scala .scl projection profile
+      profileSagittal:
+        meaning: https://blackcatinformatics.ca/gmeow/profileSagittal
+        title: Sagittal notation projection profile
+      profileSargam:
+        meaning: https://blackcatinformatics.ca/gmeow/profileSargam
+        title: Sargam projection profile
+      profileTablature:
+        meaning: https://blackcatinformatics.ca/gmeow/profileTablature
+        title: Tablature projection profile
+  NotationSystemEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/NotationSystem
+    permissible_values:
+      notationABC:
+        meaning: https://blackcatinformatics.ca/gmeow/notationABC
+        title: ABC notation
+      notationByzantineNeume:
+        meaning: https://blackcatinformatics.ca/gmeow/notationByzantineNeume
+        title: Byzantine neumatic notation
+      notationCMNStaff:
+        meaning: https://blackcatinformatics.ca/gmeow/notationCMNStaff
+        title: Common Music Notation (staff)
+      notationGraphic:
+        meaning: https://blackcatinformatics.ca/gmeow/notationGraphic
+        title: Graphic notation
+      notationHEJI:
+        meaning: https://blackcatinformatics.ca/gmeow/notationHEJI
+        title: Helmholtz-Ellis JI Pitch Notation
+      notationJianpu:
+        meaning: https://blackcatinformatics.ca/gmeow/notationJianpu
+        title: Jianpu
+      notationJohnstonJI:
+        meaning: https://blackcatinformatics.ca/gmeow/notationJohnstonJI
+        title: Ben Johnston just-intonation notation
+      notationKern:
+        meaning: https://blackcatinformatics.ca/gmeow/notationKern
+        title: Humdrum **kern
+      notationKlavarskribo:
+        meaning: https://blackcatinformatics.ca/gmeow/notationKlavarskribo
+        title: Klavarskribo
+      notationLilyPond:
+        meaning: https://blackcatinformatics.ca/gmeow/notationLilyPond
+        title: LilyPond
+      notationMEI:
+        meaning: https://blackcatinformatics.ca/gmeow/notationMEI
+        title: MEI
+      notationMIDI:
+        meaning: https://blackcatinformatics.ca/gmeow/notationMIDI
+        title: MIDI
+      notationMensural:
+        meaning: https://blackcatinformatics.ca/gmeow/notationMensural
+        title: Mensural notation
+      notationMusicXML:
+        meaning: https://blackcatinformatics.ca/gmeow/notationMusicXML
+        title: MusicXML
+      notationSCL:
+        meaning: https://blackcatinformatics.ca/gmeow/notationSCL
+        title: Scala .scl
+      notationSagittal:
+        meaning: https://blackcatinformatics.ca/gmeow/notationSagittal
+        title: Sagittal notation
+      notationSargam:
+        meaning: https://blackcatinformatics.ca/gmeow/notationSargam
+        title: Sargam
+      notationTablature:
+        meaning: https://blackcatinformatics.ca/gmeow/notationTablature
+        title: Tablature
   NotationUsageRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/NotationUsageRole
     permissible_values:
@@ -17126,6 +17311,48 @@ enums:
       consumerWikipedia:
         meaning: https://blackcatinformatics.ca/gmeow/consumerWikipedia
         title: Wikipedia
+  ProjectionLossEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionLoss
+    permissible_values:
+      lossDropsDynamics:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsDynamics
+        title: 'loss: drops dynamics'
+      lossDropsInstrumentation:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsInstrumentation
+        title: 'loss: drops instrumentation'
+      lossDropsMicrotiming:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsMicrotiming
+        title: 'loss: drops microtiming'
+      lossDropsPerformerCount:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsPerformerCount
+        title: 'loss: drops performer count'
+      lossDropsSpatialSoundContext:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsSpatialSoundContext
+        title: 'loss: drops spatial/sound context'
+      lossDropsSpectralDerivation:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsSpectralDerivation
+        title: 'loss: drops spectral derivation'
+      lossDropsTacet:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsTacet
+        title: 'loss: drops tacet'
+      lossDropsTimbre:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsTimbre
+        title: 'loss: drops timbre'
+      lossDropsTraversalConstraints:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsTraversalConstraints
+        title: 'loss: drops traversal constraints'
+      lossDropsTuningFrame:
+        meaning: https://blackcatinformatics.ca/gmeow/lossDropsTuningFrame
+        title: 'loss: drops tuning frame'
+      lossQuantizesPitchTo12Edo:
+        meaning: https://blackcatinformatics.ca/gmeow/lossQuantizesPitchTo12Edo
+        title: 'loss: quantizes pitch to 12-EDO'
+      lossQuantizesTimeToRationalGrid:
+        meaning: https://blackcatinformatics.ca/gmeow/lossQuantizesTimeToRationalGrid
+        title: 'loss: quantizes time to a rational grid'
+      lossSymbolizesContinuousTrajectory:
+        meaning: https://blackcatinformatics.ca/gmeow/lossSymbolizesContinuousTrajectory
+        title: 'loss: symbolizes continuous trajectory'
   PromptRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PromptRole
     permissible_values:

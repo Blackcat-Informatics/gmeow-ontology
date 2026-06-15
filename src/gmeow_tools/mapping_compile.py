@@ -216,6 +216,7 @@ def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
     for fn_iri in sorted(dsl.functions, key=str):
         fn = dsl.functions[fn_iri]
         graph.add((fn_iri, RDF.type, FNO.Function))
+        graph.add((fn_iri, RDF.type, GM.ProjectionFunction))
         graph.add((fn_iri, RDFS.label, Literal(fn.label, lang="x-gmeow-english")))
         if fn.description:
             graph.add(

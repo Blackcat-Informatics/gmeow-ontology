@@ -14,6 +14,7 @@
 @prefix brick: <https://brickschema.org/schema/Brick#> .
 @prefix cc: <http://creativecommons.org/ns#> .
 @prefix ceterms: <https://purl.org/ctdl/terms/> .
+@prefix chord: <http://purl.org/ontology/chord/> .
 @prefix cito: <http://purl.org/spar/cito/> .
 @prefix codemeta: <https://codemeta.github.io/terms/#> .
 @prefix cora: <http://purl.org/ieee1872-owl/cora#> .
@@ -68,6 +69,7 @@
 @prefix iptc: <http://iptc.org/std/NewsML-G2/> .
 @prefix iso19156: <http://www.isotc211.org/iso19156/> .
 @prefix ivoa: <http://www.ivoa.net/rdf/> .
+@prefix jams: <http://w3id.org/polifonia/ontology/jams/> .
 @prefix knowrob: <http://knowrob.org/kb/knowrob.owl#> .
 @prefix ladm: <http://www.opengis.net/ont/ladm#> .
 @prefix lexvo: <http://lexvo.org/id/> .
@@ -100,6 +102,7 @@
 @prefix pav: <http://purl.org/pav/> .
 @prefix periodo: <http://n2t.net/ark:/99152/> .
 @prefix pleiades: <http://pleiades.stoa.org/places/vocab#> .
+@prefix pon: <https://w3id.org/polifonia/ontology/> .
 @prefix pos: <http://purl.org/ieee1872-owl/pos#> .
 @prefix pplan: <http://purl.org/net/p-plan#> .
 @prefix premis: <http://www.loc.gov/premis/rdf/v3/> .
@@ -539,6 +542,13 @@
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 7 .
 
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-chord-94c096-skos_closeMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:closeMatch links to http://purl.org/ontology/chord/ (1)"@en ;
+    void:linkPredicate skos:closeMatch ;
+    void:objectsTarget chord: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cidoc-crm-8a837d-skos_broadMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:broadMatch links to http://www.cidoc-crm.org/cidoc-crm/ (1)"@en ;
     void:linkPredicate skos:broadMatch ;
@@ -778,25 +788,25 @@
     void:triples 4 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (192)"@en ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (194)"@en ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget wd: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 192 .
+    void:triples 194 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_exactMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:exactMatch links to http://www.wikidata.org/entity/ (44)"@en ;
+    rdfs:label "GMEOW skos:exactMatch links to http://www.wikidata.org/entity/ (49)"@en ;
     void:linkPredicate skos:exactMatch ;
     void:objectsTarget wd: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 44 .
+    void:triples 49 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to http://www.wikidata.org/entity/ (23)"@en ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://www.wikidata.org/entity/ (25)"@en ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget wd: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 23 .
+    void:triples 25 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-fabio-9130c4-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://purl.org/spar/fabio/ (4)"@en ;
@@ -1753,6 +1763,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-bibo-e60670-owl_equivalentClass>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-bibo-e60670-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-bot-9c6f16-skos_closeMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-chord-94c096-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cidoc-crm-8a837d-skos_broadMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cidoc-crm-8a837d-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cidoc-crm-8a837d-skos_relatedMatch>,
@@ -1936,6 +1947,7 @@
         qb:,
         gufo:,
         bibo:,
+        chord:,
         mo:,
         fabio:,
         bio:,
@@ -1951,6 +1963,7 @@
         gvp:,
         tgn:,
         gtfs:,
+        jams:,
         bbc:,
         ifc:,
         crmarc:,
@@ -2000,6 +2013,7 @@
         afo:,
         afv:,
         bot:,
+        pon:,
         discogs: ;
     foaf:homepage <https://blackcatinformatics.ca/gmeow> .
 
