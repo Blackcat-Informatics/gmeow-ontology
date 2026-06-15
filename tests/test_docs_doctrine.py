@@ -41,10 +41,22 @@ def test_ontology_docs_inputs_track_every_rendered_example() -> None:
     ``generated/dist/gmeow.gts`` stale after new examples merged. The
     millisecond early-warning for the 4-minute snapshot reproduction test.
     """
+    from gmeow_tools import ontology_docs as ontology_docs_mod
     from gmeow_tools.config import SLICES_DIR
     from gmeow_tools.ontology_docs import ontology_docs_inputs
 
     declared = {p.resolve() for p in ontology_docs_inputs()}
+
+    # The vendored stylesheet write_simple_css() copies verbatim into every page.
+    rendered_css = (
+        Path(ontology_docs_mod.__file__).with_name("assets") / "simple.css"
+    ).resolve()
+    assert rendered_css in declared, (
+        "assets/simple.css is copied verbatim into every doc page (and thus the "
+        "GTS bundle) but is absent from ontology_docs_inputs() — the drift gate "
+        "cannot see it change, so the committed snapshot goes silently stale."
+    )
+
     rendered_examples = {p.resolve() for p in SLICES_DIR.glob("*/*/examples/*.ttl")}
     assert rendered_examples, "no slice example files discovered"
     missing = sorted(
