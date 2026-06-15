@@ -45,6 +45,11 @@ _DEFAULT_DOC_LANG = "x-gmeow-english"
 #: Paths/files to skip when bundling project docs.
 _PROJECT_DOC_SKIP = frozenset({"_generated", ".gitignore", ".DS_Store"})
 
+#: Deterministic committed snapshot encoding. ``zstd`` output can vary across
+#: codec/library builds even when the decoded fold is identical; gzip with
+#: ``mtime=0`` stays compact without depending on zstandard frame bytes.
+_SNAPSHOT_TRANSFORM = ["gzip"]
+
 
 def _is_project_doc_path(path: Path) -> bool:
     """True when *path* should be bundled into the project-docs archive."""
@@ -223,6 +228,7 @@ def build_snapshot_bytes(
             (_metadata_graph(), GTS_GRAPH_METADATA, "metadata"),
         ],
         doc_blobs=blobs,
+        transform=_SNAPSHOT_TRANSFORM,
         signer=signer,
         public_key_armor=public_key_armor,
     )
@@ -242,6 +248,28 @@ class GtsSnapshotGenerator(Generator):
     """Emit the byte-deterministic unified GTS bundle."""
 
     name: str = "gts"
+
+    @property
+    def implementation_paths(self) -> Sequence[Path]:
+        """Implementation and dependency-lock files that affect snapshot bytes."""
+        gts_pkg = PROJECT_ROOT / "packages" / "gts"
+        gts_src = gts_pkg / "src" / "gts"
+        return [
+            PROJECT_ROOT / "pyproject.toml",
+            PROJECT_ROOT / "uv.lock",
+            gts_pkg / "pyproject.toml",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "bundle.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "config.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "graph.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "gts_producer.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "self_desc.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "slices.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "transform.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "validate.py",
+            *sorted(gts_src.glob("*.py")),
+        ]
 
     @property
     def inputs(self) -> Sequence[Path]:

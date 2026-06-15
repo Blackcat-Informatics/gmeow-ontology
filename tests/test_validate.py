@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 from rdflib import RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
 
+import gmeow_tools.validate as validate_mod
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.validate import (
     ValidationResult,
@@ -16,7 +18,6 @@ from gmeow_tools.validate import (
     check_sameas_ban,
     check_syntax,
     structural_lint,
-    validate_all,
 )
 
 
@@ -24,9 +25,107 @@ def test_check_syntax_on_sources() -> None:
     assert check_syntax().ok
 
 
-def test_validate_all_passes_on_skeleton() -> None:
-    # Full pure-Python validation (syntax + lint + SHACL) over the real sources.
-    assert validate_all().ok
+def test_validate_all_orchestrates_cached_gates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+    merged = object()
+
+    def result(name: str) -> ValidationResult:
+        calls.append(name)
+        return ValidationResult(warnings=[name])
+
+    def lint(name: str) -> Callable[[object | None], ValidationResult]:
+        def _lint(graph: object | None = None) -> ValidationResult:
+            if graph is not None:
+                assert graph is merged
+            return result(name)
+
+        return _lint
+
+    def load_merged_graph() -> object:
+        calls.append("load-merged")
+        return merged
+
+    def cached_result(
+        kind: str,
+        key: str,
+        compute: Callable[[], ValidationResult],
+    ) -> ValidationResult:
+        calls.append(f"cache:{kind}:{key}")
+        return compute()
+
+    monkeypatch.setattr(validate_mod, "check_syntax", lambda: result("syntax"))
+    monkeypatch.setattr(validate_mod, "check_sameas_ban", lambda: result("sameas"))
+    monkeypatch.setattr(
+        validate_mod,
+        "load_merged_graph",
+        load_merged_graph,
+    )
+    monkeypatch.setattr(validate_mod, "structural_lint", lint("structural"))
+    monkeypatch.setattr(validate_mod, "term_naming_lint", lint("term-naming"))
+    monkeypatch.setattr(validate_mod, "slice_ownership_lint", lint("slice-ownership"))
+    monkeypatch.setattr(validate_mod, "guide_anchor_lint", lint("guide-anchors"))
+    monkeypatch.setattr(validate_mod, "reasoning_lint", lint("reasoning"))
+    monkeypatch.setattr(validate_mod, "_merged_shacl_cache_key", lambda: "merged-key")
+    monkeypatch.setattr(validate_mod, "_cached_result", cached_result)
+    monkeypatch.setattr(validate_mod, "run_shacl", lint("merged-shacl"))
+    monkeypatch.setattr(
+        validate_mod,
+        "check_examples",
+        lambda graph, *, base_cache_key: result(f"examples:{base_cache_key}"),
+    )
+    monkeypatch.setattr(
+        validate_mod,
+        "_dsl_shacl_cache_key",
+        lambda _dsl_dir, label: f"{label}-key",
+    )
+    monkeypatch.setattr(
+        validate_mod,
+        "_dsl_shacl",
+        lambda _dsl_dir, label: result(f"dsl:{label}"),
+    )
+
+    validation = validate_mod.validate_all()
+
+    assert validation.ok
+    assert calls == [
+        "syntax",
+        "sameas",
+        "load-merged",
+        "structural",
+        "term-naming",
+        "slice-ownership",
+        "guide-anchors",
+        "reasoning",
+        "cache:merged-shacl:merged-key",
+        "merged-shacl",
+        "examples:merged-key",
+        "cache:dsl-shacl:mapping-key",
+        "dsl:mapping",
+        "cache:dsl-shacl:statement-key",
+        "dsl:statement",
+    ]
+
+
+def test_validate_all_stops_before_graph_lints_on_parse_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        validate_mod,
+        "check_syntax",
+        lambda: ValidationResult(errors=["syntax failed"]),
+    )
+    monkeypatch.setattr(validate_mod, "check_sameas_ban", lambda: ValidationResult())
+    monkeypatch.setattr(
+        validate_mod,
+        "load_merged_graph",
+        lambda: pytest.fail("validate_all should not load the merged graph"),
+    )
+
+    validation = validate_mod.validate_all()
+
+    assert validation.errors == ["syntax failed"]
 
 
 def test_cached_validation_result_write_replaces_cleanly(tmp_path: Path) -> None:
