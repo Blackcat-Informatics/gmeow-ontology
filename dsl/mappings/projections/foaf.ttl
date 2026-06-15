@@ -227,3 +227,15 @@ gmeow:mapFoafPhone a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "foaf" ; gmeow:toPredicate foaf:phone ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:lossyDrop "the phone literal is minted into a tel: URI to match foaf:phone's resource range" ] .
+
+gmeow:mapFoafMbox a gmeow:ProjectionMapping ;
+    rdfs:label "contact-point email address → foaf:mbox"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "fmAgent" ; gmeow:value "fmAddr" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "fmAgent" ; gmeow:predicate gmeow:hasContactPoint ; gmeow:objectVar "fmAddr" ]
+            [ gmeow:subjectVar "fmAddr" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:EmailAddress ] ) ;
+        gmeow:edoalSource gmeow:hasContactPoint ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:mbox ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "contact-point usage context and validity drop; the bare mbox edge survives" ] .

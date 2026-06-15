@@ -246,3 +246,15 @@ gmeow:mapVcardHasEmail a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:toPredicate vcard:hasEmail ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "contact-point usage context and validity drop; the bare email edge survives" ] .
+
+gmeow:mapVcardHasTelephone a gmeow:ProjectionMapping ;
+    rdfs:label "contact-point telephone number → vcard:hasTelephone"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "vhtAgent" ; gmeow:value "vhtNum" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "vhtAgent" ; gmeow:predicate gmeow:hasContactPoint ; gmeow:objectVar "vhtNum" ]
+            [ gmeow:subjectVar "vhtNum" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:TelephoneNumber ] ) ;
+        gmeow:edoalSource gmeow:hasContactPoint ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:hasTelephone ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "contact-point usage context and validity drop; the bare telephone edge survives" ] .

@@ -14,6 +14,7 @@ CONSTRUCT {
     ?omember org:memberOf ?ozTarget .
     ?orole a org:Role .
     ?osub org:subOrganizationOf ?oparent .
+    ?omOrg org:member ?omAgent .
 }
 WHERE {
     {
@@ -40,5 +41,9 @@ WHERE {
     UNION {
         ?osub gmeow:subOrganizationOf ?oparent .
         FILTER NOT EXISTS { ?osub gmeow:displayable false . }
+    }
+    UNION {
+        ?omOrg gmeow:hasMember ?omAgent .
+        FILTER NOT EXISTS { ?omOrg gmeow:displayable false . }
     }
 }

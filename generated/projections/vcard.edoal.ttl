@@ -50,6 +50,14 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "contact-point telephone number → vcard:hasTelephone"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasContactPoint ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri vcard:hasTelephone ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "nickname-purpose PersonName → vcard:nickname"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasName ] ;

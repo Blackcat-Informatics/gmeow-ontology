@@ -78,3 +78,11 @@ gmeow:mapOrgSubOrganizationOf a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "osub" ; gmeow:predicate gmeow:subOrganizationOf ; gmeow:objectVar "oparent" ] ) ;
         gmeow:edoalSource gmeow:subOrganizationOf ] ;
     gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:subOrganizationOf ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapOrgMember a gmeow:ProjectionMapping ;
+    rdfs:label "hasMember → org:member"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "omOrg" ; gmeow:value "omAgent" ;
+        gmeow:atom ( [ gmeow:subjectVar "omOrg" ; gmeow:predicate gmeow:hasMember ; gmeow:objectVar "omAgent" ] ) ;
+        gmeow:edoalSource gmeow:hasMember ] ;
+    gmeow:hasBinding [ gmeow:profile "org" ; gmeow:toPredicate org:member ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
