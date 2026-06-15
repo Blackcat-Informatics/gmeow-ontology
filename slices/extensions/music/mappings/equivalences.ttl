@@ -13,7 +13,6 @@
 @prefix mbz: <https://musicbrainz.org/> .
 @prefix discogs: <https://www.discogs.com/> .
 @prefix afo: <https://w3id.org/afo/onto/1.1#> .
-@prefix afv: <https://w3id.org/afo/vocab/1.1#> .
 
 # Music slice alignments.
 # Compiled to mappings/gmeow-music.sssom.tsv by `gmeow compile-mappings`.
@@ -514,7 +513,7 @@ gmeow:eqMu038 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# AFO 1.1 — timbre & sensory features (issue #317)
+# AFO 1.1 — timbre descriptor (issue #317)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu039 a gmeow:TermEquivalence ;
