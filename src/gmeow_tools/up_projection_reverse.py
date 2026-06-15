@@ -36,7 +36,49 @@ PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 PREFIX schema: <https://schema.org/>
 PREFIX gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#>
 PREFIX doap: <http://usefulinc.com/ns/doap#>
+PREFIX sioc: <http://rdfs.org/sioc/ns#>
 """
+
+#: Flat type rewrites (source class → gmeow class) the per-term lift misses
+#: because the down-cell is multi-leg. Faithful round trip: the source asserted
+#: the vocab term; the gmeow form is the draft's interpretation, re-emitted down.
+_TYPE_REWRITES: tuple[tuple[str, str], ...] = (
+    ("sioc:Post", "gmeow:EmailMessage"),
+    ("sioc:Thread", "gmeow:Thread"),
+    ("sioc:Container", "gmeow:Thread"),
+)
+
+#: Flat predicate rewrites (source predicate → gmeow predicate).
+_PRED_REWRITES: tuple[tuple[str, str], ...] = (
+    ("sioc:has_container", "gmeow:partOfThread"),
+    ("sioc:reply_of", "gmeow:inReplyTo"),
+    ("sioc:has_creator", "gmeow:from"),
+    ("sioc:topic", "gmeow:isAbout"),
+    ("sioc:link", "gmeow:sourceLocation"),
+)
+
+#: Inverse predicate rewrites: source ``s P o`` → ``o gmeow:Q s`` (the down-cell
+#: emits the source as the inverse of the gmeow edge).
+_INVERSE_REWRITES: tuple[tuple[str, str], ...] = (
+    ("sioc:container_of", "gmeow:partOfThread"),
+    ("sioc:has_reply", "gmeow:inReplyTo"),
+)
+
+
+def _type_rewrite_query(src_type: str, gmeow_type: str) -> str:
+    return f"""{_PREFIXES}
+CONSTRUCT {{ ?s rdf:type {gmeow_type} . }} WHERE {{ ?s rdf:type {src_type} . }}"""
+
+
+def _pred_rewrite_query(src_pred: str, gmeow_pred: str) -> str:
+    return f"""{_PREFIXES}
+CONSTRUCT {{ ?s {gmeow_pred} ?o . }} WHERE {{ ?s {src_pred} ?o . }}"""
+
+
+def _inverse_rewrite_query(src_pred: str, gmeow_pred: str) -> str:
+    return f"""{_PREFIXES}
+CONSTRUCT {{ ?o {gmeow_pred} ?s . }} WHERE {{ ?s {src_pred} ?o . }}"""
+
 
 #: Flat name-part predicates → the gmeow:NamePartType they denote. Each mints a
 #: shared ``gmeow:PersonName`` (one per person) carrying the typed part.
@@ -204,6 +246,9 @@ def _reverse_queries() -> list[str]:
         + [_contact_query(sp, ct) for sp, ct in _CONTACTS]
         + list(_GENEALOGY)
         + [_contribution_query(sp, sl, r) for sp, sl, r in _CONTRIBUTIONS]
+        + [_type_rewrite_query(s, g) for s, g in _TYPE_REWRITES]
+        + [_pred_rewrite_query(s, g) for s, g in _PRED_REWRITES]
+        + [_inverse_rewrite_query(s, g) for s, g in _INVERSE_REWRITES]
     )
 
 
