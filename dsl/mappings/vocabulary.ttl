@@ -345,6 +345,9 @@ gmeow:opStrEnds a gmeow:ExpressionOperator ; rdfs:label "STRENDS"@x-gmeow-englis
 gmeow:opEncodeForUri a gmeow:ExpressionOperator ; rdfs:label "ENCODE_FOR_URI"@x-gmeow-english ;
     skos:definition "Percent-encode a string for use in an IRI."@x-gmeow-english .
 
+gmeow:opDecimal a gmeow:ExpressionOperator ; rdfs:label "xsd:decimal"@x-gmeow-english ;
+    skos:definition "Cast a numeric value to canonical xsd:decimal — normalizes a source's scientific-notation xsd:double or bare xsd:integer (e.g. a coordinate 5.35e+01 or 47) to a clean decimal, so projected geographic coordinates carry a consistent, human-readable datatype."@x-gmeow-english .
+
 # Infix operators (rendered (a OP b)). Arithmetic, comparison, boolean.
 gmeow:opAdd a gmeow:ExpressionOperator ; rdfs:label "+"@x-gmeow-english ; skos:definition "Numeric addition."@x-gmeow-english .
 gmeow:opSub a gmeow:ExpressionOperator ; rdfs:label "-"@x-gmeow-english ; skos:definition "Numeric subtraction."@x-gmeow-english .
@@ -811,6 +814,7 @@ gmeow:opDatatype rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-
 gmeow:opDiv rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:opEncodeForUri rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:opDecimal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:opEq rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 

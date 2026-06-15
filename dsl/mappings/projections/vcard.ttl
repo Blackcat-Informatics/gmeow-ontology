@@ -218,6 +218,10 @@ gmeow:mapVcardGeo a gmeow:ProjectionMapping ;
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     "geo:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ]
                     "," [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ] ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "latDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "lonDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ] ] ;
         gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
         gmeow:edoalSource gmeow:hasCoordinates ] ;
     gmeow:hasBinding [
@@ -227,8 +231,8 @@ gmeow:mapVcardGeo a gmeow:ProjectionMapping ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred vcard:hasGeo ; gmeow:tObj "geoNode" ]
             [ gmeow:tSubj "geoNode" ; gmeow:tPred rdf:type ; gmeow:tObjValue vcard:Geo ]
-            [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:latitude ; gmeow:tObj "lat" ]
-            [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:longitude ; gmeow:tObj "lon" ] ) ] .
+            [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:latitude ; gmeow:tObj "latDec" ]
+            [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:longitude ; gmeow:tObj "lonDec" ] ) ] .
 
 # --- #34 phases 2-3 backlog work-down. ------------------------------------ #
 gmeow:mapVcardHasEmail a gmeow:ProjectionMapping ;

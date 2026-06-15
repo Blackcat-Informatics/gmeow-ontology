@@ -9,11 +9,23 @@ from rdflib import RDF, XSD, BNode, Graph, Literal, URIRef
 from gmeow_tools import sparql
 from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.projections import project_graph
-from gmeow_tools.up_projection import build_lift_map, up_project
+from gmeow_tools.up_projection import (
+    _ADOPTED_PREDICATES,
+    _NORMALIZED_PREDICATES,
+    build_lift_map,
+    up_project,
+)
+
+#: Lift targets that are deliberately NOT gmeow-namespaced: the SKOS coreference
+#: predicates GMEOW adopts and uses directly (skos:exactMatch/closeMatch) and the
+#: canonical label predicate every external label normalizes to (rdfs:label). Pure
+#: GMEOW is "gmeow terms PLUS this declared adopted vocabulary", never a guess.
+_ADOPTED_LIFT_TARGETS = set(_ADOPTED_PREDICATES) | set(_NORMALIZED_PREDICATES.values())
 
 GM = "https://blackcatinformatics.ca/gmeow/"
 SCHEMA = "https://schema.org/"
 DC = "http://purl.org/dc/elements/1.1/"
+RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label"
 
 
 def test_lift_map_is_unambiguous() -> None:
@@ -23,13 +35,93 @@ def test_lift_map_is_unambiguous() -> None:
     assert len(lift.rules) > 200, "expected a substantial clean-reversal map"
     # rules and ambiguous are disjoint and each rule is a single gmeow IRI
     assert not (set(lift.rules) & set(lift.ambiguous))
-    assert all(v.startswith(GM) for v in lift.rules.values())
+    assert all(
+        v.startswith(GM) or v in _ADOPTED_LIFT_TARGETS for v in lift.rules.values()
+    )
     # dc:date is the down-image of six peer gmeow date properties, no identity
     # winner → genuinely ambiguous
     assert DC + "date" in lift.ambiguous
     assert DC + "date" not in lift.rules
     # a genuinely 1:1 term IS a rule
     assert lift.rules.get(SCHEMA + "conformsTo") == GM + "conformsTo"
+
+
+SKOS = "http://www.w3.org/2004/02/skos/core#"
+WD = "http://www.wikidata.org/entity/"
+
+
+def test_skos_concept_lifts_to_asserted_tag_with_label() -> None:
+    """A source skos:Concept IS a gmeow:Tag — asserted, not a refutable claim —
+    and its skos:prefLabel normalizes to rdfs:label (the canonical label). The
+    tag's scheme membership asserts via the inScheme identity."""
+    src = Graph()
+    c = URIRef(WD + "Q59")
+    src.add((c, RDF.type, URIRef(SKOS + "Concept")))
+    src.add((c, URIRef(SKOS + "prefLabel"), Literal("PHP", lang="en")))
+    src.add((c, URIRef(SKOS + "inScheme"), URIRef("https://ex/scheme")))
+    out = up_project(src).graph
+    # asserted Tag fact, not buried in a StatementMetadata claim reifier
+    assert (c, RDF.type, URIRef(GM + "Tag")) in out
+    assert not list(out.subjects(RDF.type, URIRef(GM + "StatementMetadata")))
+    # prefLabel → rdfs:label (value preserved); scheme membership asserted
+    labels = [str(o) for o in out.objects(c, URIRef(RDFS_LABEL))]
+    assert labels == ["PHP"]
+    assert (c, URIRef(GM + "tagInScheme"), URIRef("https://ex/scheme")) in out
+
+
+def test_qid_bridge_links_keyword_string_to_anchored_tag() -> None:
+    """The implicit QID bridge: a keyword/programmingLanguage string that matches
+    (case-folded) a QID-anchored tag's label becomes gmeow:hasTag to that entity —
+    the curated coreference the data entailed but did not state."""
+    src = Graph()
+    php = URIRef(WD + "Q59")
+    src.add((php, RDF.type, URIRef(SKOS + "Concept")))
+    src.add((php, URIRef(SKOS + "prefLabel"), Literal("PHP", lang="en")))
+    proj = URIRef("https://ex/proj")
+    src.add((proj, URIRef("https://schema.org/programmingLanguage"), Literal("php")))
+    src.add((proj, URIRef("https://schema.org/keywords"), Literal("not-a-concept")))
+    result = up_project(src)
+    # case-folded "php" → the anchored wd:Q59 tag
+    assert (proj, URIRef(GM + "hasTag"), php) in result.graph
+    assert result.tag_resolved == 1  # the unmatched keyword adds nothing
+    # a tag with NO QID anchor is never a bridge target (no guessing)
+    src2 = Graph()
+    local = URIRef("https://ex/local-tag")
+    src2.add((local, RDF.type, URIRef(SKOS + "Concept")))
+    src2.add((local, URIRef(SKOS + "prefLabel"), Literal("PHP", lang="en")))
+    p2 = URIRef("https://ex/p2")
+    src2.add((p2, URIRef("https://schema.org/keywords"), Literal("php")))
+    assert up_project(src2).tag_resolved == 0
+
+
+def test_knows_about_lifts_entity_as_fact_text_as_claim() -> None:
+    """schema:knowsAbout exactMatch gmeow:knowsAbout: an IRI subject lifts to an
+    ASSERTED knowsAbout fact (the concept/QID preserved); a TEXT value lifts to a
+    claim, never an ill-typed object-property-with-literal edge (the polymorphic
+    Text|Thing guard)."""
+    schema_ka = URIRef(SCHEMA + "knowsAbout")
+    ka = URIRef(GM + "knowsAbout")
+    src = Graph()
+    agent = URIRef("https://ex/agent")
+    topic = URIRef(WD + "Q28865")  # Python — an entity
+    src.add((agent, schema_ka, topic))
+    src.add((agent, schema_ka, Literal("STL Metaprogramming")))  # free text
+    out = up_project(src).graph
+    # the entity edge asserts as a fact
+    assert (agent, ka, topic) in out
+    # the literal does NOT assert (would be ill-typed); it is claimed instead
+    assert (agent, ka, Literal("STL Metaprogramming")) not in out
+    sm = URIRef(GM + "StatementMetadata")
+    claims = [
+        r
+        for r in out.subjects(RDF.type, sm)
+        if (r, URIRef(GM + "qPredicate"), ka) in out
+    ]
+    assert claims, "the text knowsAbout must survive as a claim, not vanish"
+    assert any(
+        (r, URIRef(GM + "qObjectLiteral"), Literal("STL Metaprogramming")) in out
+        for r in claims
+    )
 
 
 def test_identity_outranks_projection_collision() -> None:

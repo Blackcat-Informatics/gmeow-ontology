@@ -50,6 +50,7 @@ class TranspileReport:
     lifted: int  # source triples lifted as bare facts
     claimed: int  # source triples lifted as provenance-stamped claims
     context_resolved: int  # edges the descent resolved by graph position
+    tag_resolved: int  # gmeow:hasTag edges added by the QID-bridge pass
     gap_terms: int  # distinct source terms with no lift rule
     ambiguous_terms: int  # distinct source terms held out as ambiguous
     draft_path: Path  # the pure-GMEOW intermediate
@@ -191,6 +192,7 @@ def transpile_graph(
         lifted=lift.lifted,
         claimed=lift.claimed,
         context_resolved=lift.context_resolved,
+        tag_resolved=lift.tag_resolved,
         gap_terms=len(lift.gap_terms),
         ambiguous_terms=len(lift.ambiguous_terms),
         draft_path=draft_path,

@@ -53,6 +53,7 @@ from gmeow_tools.up_projection import (
     _sssom_closematch_pairs,
     _structural_pairs,
     build_lift_map,
+    resolve_concept_references,
 )
 from gmeow_tools.up_projection_audit import (
     _canon_qname,
@@ -338,6 +339,7 @@ def up_project_descend(source: Graph, lift: LiftMap | None = None) -> UpProjecti
         context_resolved += 1
         context_terms[_canon_qname(str(p))] += 1
 
+    tag_terms = resolve_concept_references(source, acc.out)
     retag_graph_to_internal(acc.out)  # public BCP-47 → canonical x-gmeow-* (#451)
     return UpProjection(
         graph=acc.out,
@@ -348,4 +350,6 @@ def up_project_descend(source: Graph, lift: LiftMap | None = None) -> UpProjecti
         claim_terms=dict(acc.claims),
         context_resolved=context_resolved,
         context_terms=dict(context_terms),
+        tag_resolved=sum(tag_terms.values()),
+        tag_resolved_terms=tag_terms,
     )

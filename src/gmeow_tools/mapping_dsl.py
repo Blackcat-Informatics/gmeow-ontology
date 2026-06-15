@@ -245,6 +245,10 @@ _FUNC_OPS: dict[str, str] = {
     "opStrStarts": "STRSTARTS",
     "opStrEnds": "STRENDS",
     "opEncodeForUri": "ENCODE_FOR_URI",
+    # numeric cast: normalize a value to canonical xsd:decimal (e.g. a source's
+    # scientific-notation xsd:double coordinate 5.35e+01 → 53.5, an integer 47 →
+    # 47) — a real cast, unlike STRDT which would retype the illegal lexical form.
+    "opDecimal": "xsd:decimal",
 }
 
 #: Infix expression operators, rendered ``(a OP b OP …)``.

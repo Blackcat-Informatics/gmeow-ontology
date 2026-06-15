@@ -1123,6 +1123,11 @@ def up_project_cmd(
             if descend
             else ""
         )
+        + (
+            f"[blue]bridged[/blue] {result.tag_resolved} QID-tag · "
+            if result.tag_resolved
+            else ""
+        )
         + f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
         f"[yellow]ambiguous[/yellow] {len(result.ambiguous_terms)} terms",
     )

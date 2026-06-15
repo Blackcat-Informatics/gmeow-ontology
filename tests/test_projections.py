@@ -141,6 +141,33 @@ def test_schema_org_projects_explicit_generic_mereology() -> None:
     _assert_no_gmeow_leakage(g)
 
 
+def test_geo_coordinates_cast_to_decimal() -> None:
+    """Geographic coordinates project as canonical xsd:decimal, regardless of how
+    the source typed them — a scientific-notation xsd:double (5.355e+01) and a bare
+    xsd:integer (47) both come out clean decimal (53.55 / 47), not the ugly,
+    inconsistent source datatypes. The cast lives in the down-projection."""
+    from rdflib import XSD, BNode, Literal
+
+    wgs84_lat = URIRef("http://www.w3.org/2003/01/geo/wgs84_pos#lat")
+    src = load_merged_graph(include_imports=False)
+    place, coords = URIRef("https://example.org/place"), BNode()
+    src.add((place, RDF.type, URIRef(GMEOW + "Place")))
+    src.add((place, URIRef(GMEOW + "hasCoordinates"), coords))
+    src.add(
+        (coords, URIRef(GMEOW + "latitude"), Literal("5.355e+01", datatype=XSD.double))
+    )
+    src.add((coords, URIRef(GMEOW + "longitude"), Literal(47, datatype=XSD.integer)))
+
+    g = project_graph("foaf", src)
+    lat = next(o for _s, p, o in g if p == wgs84_lat)
+    lon = next(o for _s, p, o in g if str(p).endswith("#long"))
+    assert isinstance(lat, Literal) and isinstance(lon, Literal)
+    assert lat.datatype == XSD.decimal, f"lat should be xsd:decimal, got {lat.datatype}"
+    assert "e" not in str(lat).lower(), f"no scientific notation: {lat}"
+    assert float(lat) == 53.55
+    assert lon.datatype == XSD.decimal and float(lon) == 47.0
+
+
 def test_languages_projection() -> None:
     g = project_graph("schema-org", _source())
     # Language → schema:Language; ProgrammingLanguage → schema:ComputerLanguage.
@@ -584,6 +611,35 @@ def test_logo_projection_schema_and_foaf() -> None:
     assert (ent, URIRef(FOAF + "logo"), img) in gf
     assert (ent, URIRef(FOAF + "logo"), old) not in gf
     _assert_no_gmeow_leakage(gf)
+
+
+def test_skos_projection_tag_concept_hierarchy() -> None:
+    """A gmeow:Tag projects to a skos:Concept (prefLabel, broader, inScheme) and a
+    gmeow:TagScheme to a skos:ConceptScheme; a displayable-false tag is suppressed."""
+    skos = "http://www.w3.org/2004/02/skos/core#"
+    g = Graph()
+    g.parse(
+        data="""
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        gmeow:tagLamp a gmeow:Tag ; rdfs:label "LAMP" ;
+            gmeow:broaderTag gmeow:tagStack ; gmeow:tagInScheme gmeow:tech .
+        gmeow:tagStack a gmeow:Tag ; rdfs:label "Stack" .
+        gmeow:tech a gmeow:TagScheme .
+        gmeow:hidden a gmeow:Tag ; rdfs:label "secret" ; gmeow:displayable false .
+        """,
+        format="turtle",
+    )
+    out = project_graph("skos", g)
+    lamp = URIRef(GMEOW + "tagLamp")
+    assert (lamp, RDF.type, URIRef(skos + "Concept")) in out
+    assert (lamp, URIRef(skos + "prefLabel"), Literal("LAMP")) in out
+    assert (lamp, URIRef(skos + "broader"), URIRef(GMEOW + "tagStack")) in out
+    assert (lamp, URIRef(skos + "inScheme"), URIRef(GMEOW + "tech")) in out
+    assert (URIRef(GMEOW + "tech"), RDF.type, URIRef(skos + "ConceptScheme")) in out
+    # displayable false → never projected (P10)
+    assert (URIRef(GMEOW + "hidden"), RDF.type, URIRef(skos + "Concept")) not in out
+    _assert_no_gmeow_leakage(out)
 
 
 def test_gedcom_projection() -> None:

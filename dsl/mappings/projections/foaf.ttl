@@ -16,14 +16,18 @@ gmeow:mapFoafSpatialThing a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "c" ]
             [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ]
             [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ;
+        gmeow:bind [ gmeow:bindVar "latDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "lonDec" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opDecimal ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ] ] ;
         gmeow:edoalSource gmeow:Place ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
         gmeow:profile "foaf" ; gmeow:relation "<=" ;
         gmeow:edoalTarget wgs84:SpatialThing ; gmeow:edoalTargetKind "class" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred rdf:type ; gmeow:tObjValue wgs84:SpatialThing ]
-            [ gmeow:tSubj "place" ; gmeow:tPred wgs84:lat ; gmeow:tObj "lat" ]
-            [ gmeow:tSubj "place" ; gmeow:tPred wgs84:long ; gmeow:tObj "lon" ] ) ;
+            [ gmeow:tSubj "place" ; gmeow:tPred wgs84:lat ; gmeow:tObj "latDec" ]
+            [ gmeow:tSubj "place" ; gmeow:tPred wgs84:long ; gmeow:tObj "lonDec" ] ) ;
         gmeow:lossyDrop "address structure, place types, hierarchy, geometry/WKT" ] .
 
 gmeow:mapFoafName a gmeow:ProjectionMapping ;
