@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import io
 import tarfile
-import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -156,12 +155,15 @@ def _project_doc_blobs() -> list[tuple[bytes, str, str]]:
 
 def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
     """A deterministic tar archive of the ontology docs tree (#440)."""
-    from gmeow_tools.ontology_docs import build_ontology_docs
+    from gmeow_tools.ontology_docs import cached_ontology_docs_tree
 
-    with tempfile.TemporaryDirectory(dir=PROJECT_ROOT, prefix=".gmeow-tmp-") as tmp:
-        docs_dir = Path(tmp) / "ontology-docs"
-        build_ontology_docs(docs_dir)
-        return [(_tar_directory(docs_dir), "application/x-tar", "ontology-docs")]
+    return [
+        (
+            _tar_directory(cached_ontology_docs_tree()),
+            "application/x-tar",
+            "ontology-docs",
+        )
+    ]
 
 
 def _imports_graph() -> Graph:
@@ -250,7 +252,7 @@ class GtsSnapshotGenerator(Generator):
             PROJECTION_QUERY_DIR,
             SLICES_DIR,
         )
-        from gmeow_tools.ontology_docs import ontology_docs_inputs
+        from gmeow_tools.ontology_docs import ontology_docs_cache_inputs
 
         doc_files = [
             p
@@ -271,7 +273,7 @@ class GtsSnapshotGenerator(Generator):
             *sorted((MAPPING_DSL_DIR / "projections").glob("*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/mappings/*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
-            *ontology_docs_inputs(),
+            *ontology_docs_cache_inputs(),
             *sorted(doc_files),
         ]
 

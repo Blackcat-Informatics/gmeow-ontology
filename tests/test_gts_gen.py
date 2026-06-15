@@ -52,6 +52,12 @@ def _build_snapshot() -> bytes:
     return build_snapshot_bytes()
 
 
+@pytest.fixture(scope="module")
+def fresh_snapshot() -> bytes:
+    """One full source-built snapshot for read-only drift/content assertions."""
+    return _build_snapshot()
+
+
 def _frame_codecs(data: bytes) -> list[tuple[str, list[str]]]:
     items, torn = iter_items(data)
     assert torn is None
@@ -74,11 +80,13 @@ def _frame_codecs(data: bytes) -> list[tuple[str, list[str]]]:
     return frames
 
 
-def test_double_build_is_byte_identical() -> None:
+@pytest.mark.ci_only
+def test_double_build_is_byte_identical(fresh_snapshot: bytes) -> None:
     """Two in-process builds emit identical bytes."""
-    assert _build_snapshot() == _build_snapshot()
+    assert fresh_snapshot == _build_snapshot()
 
 
+@pytest.mark.ci_only
 def test_cross_hash_seed_builds_are_byte_identical(tmp_path: Path) -> None:
     """Builds under different PYTHONHASHSEED values emit identical bytes.
 
@@ -104,10 +112,11 @@ def test_cross_hash_seed_builds_are_byte_identical(tmp_path: Path) -> None:
     assert outputs[0] == outputs[1], "snapshot bytes depend on the hash seed"
 
 
-def test_committed_snapshot_matches_a_fresh_build() -> None:
+@pytest.mark.ci_only
+def test_committed_snapshot_matches_a_fresh_build(fresh_snapshot: bytes) -> None:
     """The committed artifact reproduces from sources (the drift gate's claim)."""
     assert GTS_SNAPSHOT_FILE.exists(), "run `gmeow regenerate gts`"
-    assert _build_snapshot() == GTS_SNAPSHOT_FILE.read_bytes()
+    assert fresh_snapshot == GTS_SNAPSHOT_FILE.read_bytes()
 
 
 def test_committed_snapshot_uses_rsyncable_frames() -> None:
