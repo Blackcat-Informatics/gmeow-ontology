@@ -657,6 +657,54 @@ class CaseDiffResult:
     diffs: list[str] = field(default_factory=list)
 
 
+def _parse_cited_iri_skeleton(text: str) -> frozenset[str]:
+    """Parse the cited-iri-skeleton block from an explanation markdown file.
+
+    Reads every non-empty line between the ``<!-- cited-iri-skeleton`` opening
+    comment and its closing ``-->`` marker.  Lines are stripped of leading and
+    trailing whitespace before collection.
+
+    Args:
+        text: The full text of an explanation ``.md`` golden file.
+
+    Returns:
+        A frozenset of IRI strings extracted from the skeleton block.
+    """
+    lines = text.splitlines()
+    in_block = False
+    iris: list[str] = []
+    for line in lines:
+        if line.strip() == "<!-- cited-iri-skeleton":
+            in_block = True
+            continue
+        if in_block:
+            if line.strip() == "-->":
+                break
+            iri = line.strip()
+            if iri:
+                iris.append(iri)
+    return frozenset(iris)
+
+
+def _parse_explanation_reifier(text: str) -> str:
+    """Parse the target_quad_reifier from the prose header of an explanation file.
+
+    Looks for the line: ``# Explanation for `<REIFIER>```
+
+    Args:
+        text: The full text of an explanation ``.md`` golden file.
+
+    Returns:
+        The reifier IRI string, or empty string if the header is not found.
+    """
+    prefix = "# Explanation for `<"
+    suffix = ">`"
+    for line in text.splitlines():
+        if line.startswith(prefix) and line.endswith(suffix):
+            return line[len(prefix) : -len(suffix)]
+    return ""
+
+
 def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
     """Diff a :class:`RunnerOutputs` against the committed ``expected/`` files.
 
@@ -818,6 +866,26 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
                 rdf_diffs = compare_rdf(actual_g, expected_g)
                 for d in rdf_diffs:
                     diffs.append(f"[{case_id}] materialized.nq [<{graph_iri}>]: {d}")
+
+    # --- Explanation skeletons ---
+    expl_expected = expected_root / "explanation"
+    if expl_expected.is_dir():
+        produced = {e.target_quad_reifier: e for e in outputs.explanations}
+        for md_path in sorted(expl_expected.glob("*.md")):
+            md_text = md_path.read_text(encoding="utf-8")
+            committed_iris = _parse_cited_iri_skeleton(md_text)
+            reifier = _parse_explanation_reifier(md_text)
+            actual = produced.get(reifier)
+            if actual is None:
+                diffs.append(
+                    f"[{case_id}] explanation {md_path.name}: golden cites reifier"
+                    f" <{reifier}> but the runner produced no explanation for it"
+                )
+                continue
+            diffs.extend(
+                f"[{case_id}] explanation {md_path.name}: {d}"
+                for d in compare_explanation_skeleton(actual.cited_iris, committed_iris)
+            )
 
     return CaseDiffResult(
         case_id=case_id,

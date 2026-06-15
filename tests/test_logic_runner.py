@@ -24,6 +24,8 @@ from rdflib import RDF, Graph, Namespace
 from gmeow_tools.logic_runner import (
     RunnerError,
     RunnerOutputs,
+    _parse_cited_iri_skeleton,
+    _parse_explanation_reifier,
     compare_canonical_json,
     compare_explanation_skeleton,
     compare_rdf,
@@ -452,6 +454,80 @@ def test_diff_case_passes_for_projection_cases(case_dir: Path) -> None:
     diff_result = diff_case(outputs)
     assert diff_result.passed, f"diff_case FAILED for {case_dir.name}:\n" + "\n".join(
         diff_result.diffs
+    )
+    assert diff_result.diffs == []
+
+
+# --------------------------------------------------------------------------- #
+# diff_case test over explanation case
+# --------------------------------------------------------------------------- #
+
+_EXPLANATION_CASE_DIR = (
+    _CONFORMANCE_ROOT / "cases" / "explanation" / "transitive-derivation"
+)
+
+
+def test_diff_case_passes_for_explanation_case() -> None:
+    """diff_case must report PASS for the explanation/transitive-derivation case.
+
+    Also verifies:
+    * The derived explanation's cited_iris is non-empty (guard against vacuous pass).
+    * The produced cited_iris equals the golden's parsed cited_iris.
+    """
+    if not _EXPLANATION_CASE_DIR.is_dir():
+        pytest.skip("explanation/transitive-derivation case not present")
+
+    outputs = run(_EXPLANATION_CASE_DIR, mode="native")
+
+    # Locate the derived explanation: the one that cites a real rule (not assert).
+    _assert_rule_iri = "https://blackcatinformatics.ca/logic/assert"
+    derived = [
+        e
+        for e in outputs.explanations
+        if any(step.rule_iri != _assert_rule_iri for step in e.step_skeleton)
+    ]
+    assert len(derived) >= 1, (
+        "Expected at least one derived (non-trivial) explanation, got none. "
+        f"Explanations: {[e.target_quad_reifier for e in outputs.explanations]}"
+    )
+    # Guard against vacuous pass: the derived explanation must cite real IRIs.
+    derived_expl = derived[0]
+    assert len(derived_expl.cited_iris) > 0, (
+        "Derived explanation has empty cited_iris — vacuous pass guard triggered"
+    )
+
+    # Parse the committed golden for the derived explanation and compare.
+    golden_dir = _EXPLANATION_CASE_DIR / "expected" / "explanation"
+    golden_files = sorted(golden_dir.glob("*.md"))
+    assert len(golden_files) >= 1, f"No golden .md files found in {golden_dir}"
+
+    # Find the golden that matches the derived explanation's reifier.
+    matched_golden: Path | None = None
+    for gf in golden_files:
+        reifier = _parse_explanation_reifier(gf.read_text(encoding="utf-8"))
+        if reifier == derived_expl.target_quad_reifier:
+            matched_golden = gf
+            break
+    assert matched_golden is not None, (
+        f"No golden file found for derived explanation reifier "
+        f"<{derived_expl.target_quad_reifier}> in {golden_dir}"
+    )
+    committed_iris = _parse_cited_iri_skeleton(
+        matched_golden.read_text(encoding="utf-8")
+    )
+    extra = sorted(derived_expl.cited_iris - committed_iris)
+    missing = sorted(committed_iris - derived_expl.cited_iris)
+    assert derived_expl.cited_iris == committed_iris, (
+        f"Derived explanation cited_iris does not match golden:\n"
+        f"  extra   (produced not in golden): {extra}\n"
+        f"  missing (golden not produced):    {missing}"
+    )
+
+    # Full diff_case must also pass.
+    diff_result = diff_case(outputs)
+    assert diff_result.passed, (
+        "diff_case FAILED for explanation/transitive-derivation:\n"
+        + "\n".join(diff_result.diffs)
     )
     assert diff_result.diffs == []
 
