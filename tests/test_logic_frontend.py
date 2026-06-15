@@ -342,6 +342,46 @@ def test_rule_missing_head_emits_diagnostic() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# INVALID_COMPLEXITY_CLASS diagnostic
+# --------------------------------------------------------------------------- #
+
+
+def test_empty_complexity_class_emits_diagnostic() -> None:
+    """An empty logic:complexityClass literal emits INVALID_COMPLEXITY_CLASS."""
+    g = Graph()
+    g.add((EX.s, RDF.type, LOGIC.Kind))
+    # Declare a known profile individual
+    g.add((LOGIC.PositiveHornProfile, RDF.type, LOGIC.SemanticProfile))
+    # Attach an empty complexityClass literal — should trigger the diagnostic
+    g.add((LOGIC.PositiveHornProfile, LOGIC.complexityClass, Literal("")))
+
+    prog, diags = parse_logic_source(g)
+
+    warning_codes = [d.code for d in diags if d.severity == WARNING]
+    assert "INVALID_COMPLEXITY_CLASS" in warning_codes, (
+        f"Expected INVALID_COMPLEXITY_CLASS; got {diags}"
+    )
+    # The profile is still added (fail-soft), but with no complexity
+    assert len(prog.profiles) == 1
+    assert prog.profiles[0].complexity is None
+
+
+def test_whitespace_complexity_class_emits_diagnostic() -> None:
+    """A whitespace-only complexityClass literal emits INVALID_COMPLEXITY_CLASS."""
+    g = Graph()
+    g.add((EX.s, RDF.type, LOGIC.Kind))
+    g.add((LOGIC.PositiveHornProfile, RDF.type, LOGIC.SemanticProfile))
+    g.add((LOGIC.PositiveHornProfile, LOGIC.complexityClass, Literal("   ")))
+
+    _prog, diags = parse_logic_source(g)
+
+    warning_codes = [d.code for d in diags if d.severity == WARNING]
+    assert "INVALID_COMPLEXITY_CLASS" in warning_codes, (
+        f"Expected INVALID_COMPLEXITY_CLASS; got {diags}"
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Order-independence: two parses of equivalent graphs yield equal programs
 # --------------------------------------------------------------------------- #
 

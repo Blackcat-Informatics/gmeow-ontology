@@ -241,7 +241,7 @@ def _extract_axioms(
             continue
         # Avoid re-adding ontology-header type declarations (owl:Ontology etc.)
         # Only include rdf:type axioms where subject is NOT the logic: namespace itself
-        if o_str == str(o) and str(s).startswith(LOGIC_NAMESPACE):
+        if str(s).startswith(LOGIC_NAMESPACE):
             continue
         try:
             axiom = LogicAxiom(
@@ -405,18 +405,22 @@ def _extract_profiles(
         complexity: ComplexityClass | None = None
         if complexity_node is not None:
             label = str(complexity_node).strip()
-            if label:
-                try:
-                    complexity = ComplexityClass(label)
-                except ValueError:
-                    diagnostics.append(
-                        Diagnostic(
-                            severity=WARNING,
-                            code="INVALID_COMPLEXITY_CLASS",
-                            message=f"complexityClass {label!r} is empty; ignored",
-                            subject=iri_str,
-                        )
+            try:
+                if not label:
+                    raise ValueError("empty")
+                complexity = ComplexityClass(label)
+            except ValueError:
+                diagnostics.append(
+                    Diagnostic(
+                        severity=WARNING,
+                        code="INVALID_COMPLEXITY_CLASS",
+                        message=(
+                            f"complexityClass {label!r} is not a recognised "
+                            "ComplexityClass value; ignored"
+                        ),
+                        subject=iri_str,
                     )
+                )
 
         profiles.append(LogicProfile(profile_id=profile_id, complexity=complexity))
 
