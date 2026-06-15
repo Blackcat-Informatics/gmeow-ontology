@@ -13,6 +13,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/versions/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:maintainer a gmeow:Person ; gmeow:name "Release maintainer"@x-gmeow-english .
 
@@ -30,13 +31,35 @@ ex:canonicalMembership a gmeow:VersionMembership ;
     gmeow:versionRole         gmeow:roleCanonical ;
     gmeow:versionScale        gmeow:scaleMajor ;
     gmeow:membershipAuthority ex:maintainer ;
-    gmeow:vantage             ex:maintainer .
+    gmeow:vantage             ex:maintainer ;
+    gmeow:membershipInterval  ex:canonicalPeriod .
 
 # --- A LATER claim, not an overwrite: the same release is now deprecated. The
-#     two memberships coexist — the history of the role change is preserved (P10).
+#     two memberships coexist; their gmeow:membershipIntervals make the order
+#     machine-readable — canonical until 2026-06-01, deprecated from then on (P10).
 ex:deprecatedMembership a gmeow:VersionMembership ;
     gmeow:versionMember       ex:release100 ;
     gmeow:versionSet          ex:stableChannel ;
     gmeow:versionRole         gmeow:roleDeprecated ;
     gmeow:membershipAuthority ex:maintainer ;
-    gmeow:vantage             ex:maintainer .
+    gmeow:vantage             ex:maintainer ;
+    gmeow:membershipInterval  ex:deprecatedPeriod .
+
+# --- The validity periods, every value in its temporal frame (P11). The instant
+#     that ends the canonical period IS the instant that begins the deprecated one.
+ex:canonicalPeriod a gmeow:TimeInterval ;
+    gmeow:hasStartInstant  ex:jan15 ;
+    gmeow:hasEndInstant    ex:jun01 ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:deprecatedPeriod a gmeow:TimeInterval ;
+    gmeow:hasStartInstant  ex:jun01 ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:jan15 a gmeow:Instant ;
+    gmeow:instantValue    "2026-01-15T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:jun01 a gmeow:Instant ;
+    gmeow:instantValue    "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .

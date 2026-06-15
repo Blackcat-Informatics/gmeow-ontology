@@ -16,7 +16,7 @@
 # --- A minted event kind (open vocabulary — no closed enum of event types).
 ex:eventTypeTeamMeeting a gmeow:EventType ; rdfs:label "team meeting"@x-gmeow-english .
 
-ex:utc a gmeow:TimeZone ; gmeow:timeZoneIanaId "America/Edmonton" .
+ex:edmonton a gmeow:TimeZone ; gmeow:timeZoneIanaId "America/Edmonton" .
 
 ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
 
@@ -24,15 +24,15 @@ ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
 ex:standup a gmeow:Event ;
     rdfs:label               "Weekly engineering standup"@x-gmeow-english ;
     gmeow:eventType          ex:eventTypeTeamMeeting ;
-    gmeow:eventTime          "2026-06-15T09:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTime          "2026-06-15T09:00:00-06:00"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
-    gmeow:eventTimeZone      ex:utc .
+    gmeow:eventTimeZone      ex:edmonton .
 
 # --- The recurrence: every Monday, by RFC 5545 rule, in the named time zone.
 ex:schedule a gmeow:EventSchedule ;
     gmeow:scheduleTemplateEvent  ex:standup ;
     gmeow:scheduleRecurrenceRule ex:weekly ;
-    gmeow:scheduleTimeZone       ex:utc .
+    gmeow:scheduleTimeZone       ex:edmonton .
 
 ex:weekly a gmeow:RecurrenceRule ;
     gmeow:recurrenceRuleText "FREQ=WEEKLY;BYDAY=MO" .
