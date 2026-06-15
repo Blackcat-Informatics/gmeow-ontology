@@ -15,7 +15,7 @@
 
 gmeow:SoftwareFacetOrthogonalityShape
     a sh:NodeShape ;
-    rdfs:label "Software facet orthogonality data-check" ;
+    rdfs:label "Software facet orthogonality data-check"@x-gmeow-english ;
     sh:target [
         a sh:SPARQLTarget ;
         sh:select """
@@ -66,7 +66,7 @@ gmeow:SoftwareFacetOrthogonalityShape
 
 gmeow:CommitContentDigestShape
     a sh:NodeShape ;
-    rdfs:label "Commit content digest shape" ;
+    rdfs:label "Commit content digest shape"@x-gmeow-english ;
     sh:targetClass gmeow:Commit ;
     sh:property [
         sh:path gmeow:contentDigest ;
@@ -81,7 +81,7 @@ gmeow:CommitContentDigestShape
 
 gmeow:ReleaseProjectShape
     a sh:NodeShape ;
-    rdfs:label "Release project shape" ;
+    rdfs:label "Release project shape"@x-gmeow-english ;
     sh:targetClass gmeow:Release ;
     sh:property [
         sh:path gmeow:releaseOf ;
@@ -96,7 +96,7 @@ gmeow:ReleaseProjectShape
 
 gmeow:RepositoryTypeShape
     a sh:NodeShape ;
-    rdfs:label "Repository type shape" ;
+    rdfs:label "Repository type shape"@x-gmeow-english ;
     sh:targetClass gmeow:Repository ;
     sh:property [
         sh:path gmeow:repositoryType ;
@@ -111,7 +111,7 @@ gmeow:RepositoryTypeShape
 
 gmeow:BlobContentDigestShape
     a sh:NodeShape ;
-    rdfs:label "Blob content digest shape" ;
+    rdfs:label "Blob content digest shape"@x-gmeow-english ;
     sh:targetClass gmeow:Blob ;
     sh:property [
         sh:path gmeow:contentDigest ;
@@ -126,7 +126,7 @@ gmeow:BlobContentDigestShape
 
 gmeow:TreeEntryCompletenessShape
     a sh:NodeShape ;
-    rdfs:label "Tree entry completeness shape" ;
+    rdfs:label "Tree entry completeness shape"@x-gmeow-english ;
     sh:targetClass gmeow:TreeEntry ;
     sh:property [
         sh:path gmeow:treeEntryName ;
@@ -156,7 +156,7 @@ gmeow:TreeEntryCompletenessShape
 
 gmeow:DiffEndpointShape
     a sh:NodeShape ;
-    rdfs:label "Diff endpoint shape" ;
+    rdfs:label "Diff endpoint shape"@x-gmeow-english ;
     sh:targetClass gmeow:Diff ;
     sh:property [
         sh:path gmeow:diffFrom ;
@@ -177,7 +177,7 @@ gmeow:DiffEndpointShape
 
 gmeow:MergeBaseShape
     a sh:NodeShape ;
-    rdfs:label "Merge base shape" ;
+    rdfs:label "Merge base shape"@x-gmeow-english ;
     sh:targetClass gmeow:Merge ;
     sh:property [
         sh:path gmeow:mergeBase ;

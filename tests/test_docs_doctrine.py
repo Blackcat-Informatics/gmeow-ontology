@@ -29,6 +29,48 @@ def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
 
 
+def test_ontology_docs_inputs_track_every_rendered_example() -> None:
+    """Every file the docs render verbatim must be a declared docs input.
+
+    The ontology docs fold into the GTS bundle (#bundle), and the drift gate
+    skips regeneration when ``ontology_docs_inputs()`` hashes unchanged. So a
+    file rendered into the docs but absent from that input list is silent
+    staleness: its content changes, the input hash does not, the committed
+    snapshot is never rebuilt. This exact hole — slice ``examples/*.ttl``, which
+    ``_collect_examples`` renders verbatim, missing from the input list — left
+    ``generated/dist/gmeow.gts`` stale after new examples merged. The
+    millisecond early-warning for the 4-minute snapshot reproduction test.
+    """
+    from gmeow_tools import ontology_docs as ontology_docs_mod
+    from gmeow_tools.config import SLICES_DIR
+    from gmeow_tools.ontology_docs import ontology_docs_inputs
+
+    declared = {p.resolve() for p in ontology_docs_inputs()}
+
+    # The vendored stylesheet write_simple_css() copies verbatim into every page.
+    rendered_css = (
+        Path(ontology_docs_mod.__file__).with_name("assets") / "simple.css"
+    ).resolve()
+    assert rendered_css in declared, (
+        "assets/simple.css is copied verbatim into every doc page (and thus the "
+        "GTS bundle) but is absent from ontology_docs_inputs() — the drift gate "
+        "cannot see it change, so the committed snapshot goes silently stale."
+    )
+
+    rendered_examples = {p.resolve() for p in SLICES_DIR.glob("*/*/examples/*.ttl")}
+    assert rendered_examples, "no slice example files discovered"
+    missing = sorted(
+        p.relative_to(SLICES_DIR.parent).as_posix()
+        for p in rendered_examples - declared
+    )
+    assert not missing, (
+        "slice example files are rendered into the docs (and thus the GTS "
+        "bundle) but absent from ontology_docs_inputs() — the drift gate cannot "
+        "see them change, so the committed snapshot goes silently stale:\n  "
+        + "\n  ".join(missing)
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Tier 1 — vocabulary and graded gate
 # --------------------------------------------------------------------------- #
