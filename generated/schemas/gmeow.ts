@@ -40,6 +40,8 @@ export enum AestheticQualityEnum {
 export enum AgentEnum {
 
     fixture_analyst_A = "fixtureAnalystA",
+    Kirana_gharana_standpoint_fixture = "fixtureKiranaGharanaStandpoint",
+    rival_scholar_standpoint_fixture = "fixtureRivalScholarStandpoint",
     fixture_session_bassist = "fixtureSessionBassist",
     fixture_session_drummer = "fixtureSessionDrummer",
 };
@@ -757,6 +759,7 @@ export enum EvaluationVerdictEnum {
 
 export enum EventEnum {
 
+    Kirana_gharana_transmission_event_fixture = "fixtureKiranaTransmissionEvent",
     Klavierstück_XI_performance_traversal_1 = "fixtureKlavierstuckPerformanceOne",
     Klavierstück_XI_performance_traversal_2 = "fixtureKlavierstuckPerformanceTwo",
     fixture_recording_session_event = "fixtureSessionEvent",
@@ -901,6 +904,10 @@ export enum ExpressionEnum {
 
     graphic_score_expression = "fixtureGraphicScoreExpression",
     graphic_score_CMN_transcription = "fixtureGraphicScoreTranscription",
+    Raga_Yaman_improvised_expression_1975 = "fixtureRagaYamanImprovised1975",
+    Raga_Yaman_oral_expression = "fixtureRagaYamanOralExpression",
+    Raga_Yaman_performed_expression_1960 = "fixtureRagaYamanPerformed1960",
+    Raga_Yaman_performed_expression_1980 = "fixtureRagaYamanPerformed1980",
     Reich_style_phasing_realization = "fixtureReichPhasingExpression",
     session_expression_fixture = "fixtureSessionExpression",
 };
@@ -1630,6 +1637,7 @@ export enum MusicalWorkEnum {
     graphic_score_work_fixture = "fixtureGraphicScoreWork",
     Klavierstück_XI = "fixtureKlavierstuckXIWork",
     fixture_math_rock_work = "fixtureMathRockWork",
+    Raga_Yaman_EM_DASH_oral_tradition_work_fixture = "fixtureOralRagaYamanWork",
     Reich_style_phasing_work = "fixtureReichPhasingWork",
     session_work_fixture = "fixtureSessionWork",
     fixture_structure_work = "fixtureStructureWork",
@@ -1895,6 +1903,12 @@ export enum ParticipantRoleEnum {
     transmitter = "roleTransmitter",
     victim = "roleVictim",
     witness = "roleWitness",
+};
+
+export enum ParticipationEnum {
+
+    Kirana_transmission_learner_participation = "fixtureKiranaLearnerParticipation",
+    Kirana_transmission_transmitter_participation = "fixtureKiranaTransmitterParticipation",
 };
 
 export enum PaymentMethodEnum {
@@ -3000,6 +3014,14 @@ export enum VerificationStatusEnum {
     verified = "verificationStatusVerified",
 };
 
+export enum VersionMembershipEnum {
+
+    Raga_Yaman_contested_membership_LEFT_PARENTHESISsuppressedRIGHT_PARENTHESIS = "fixtureRagaYamanContestedMembership",
+    Raga_Yaman_1960_Kirana_gharana_membership = "fixtureRagaYamanKiranaMembership1960",
+    Raga_Yaman_1975_Kirana_gharana_membership = "fixtureRagaYamanKiranaMembership1975",
+    Raga_Yaman_1980_Kirana_gharana_membership = "fixtureRagaYamanKiranaMembership1980",
+};
+
 export enum VersionRoleEnum {
 
     canonical = "roleCanonical",
@@ -3021,6 +3043,11 @@ export enum VersionScaleEnum {
     major = "scaleMajor",
     minor = "scaleMinor",
     trivial = "scaleTrivial",
+};
+
+export enum VersionSetEnum {
+
+    Raga_Yaman_as_performed_in_the_Kirana_gharana = "fixtureRagaYamanKiranaSet",
 };
 
 export enum VirtualLocationTypeEnum {

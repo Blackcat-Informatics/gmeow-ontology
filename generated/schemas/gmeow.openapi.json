@@ -905,6 +905,8 @@
             "description": "",
             "enum": [
               "fixtureAnalystA",
+              "fixtureKiranaGharanaStandpoint",
+              "fixtureRivalScholarStandpoint",
               "fixtureSessionBassist",
               "fixtureSessionDrummer"
             ],
@@ -36648,6 +36650,7 @@
           "EventEnum": {
             "description": "",
             "enum": [
+              "fixtureKiranaTransmissionEvent",
               "fixtureKlavierstuckPerformanceOne",
               "fixtureKlavierstuckPerformanceTwo",
               "fixtureSessionEvent",
@@ -39587,6 +39590,10 @@
             "enum": [
               "fixtureGraphicScoreExpression",
               "fixtureGraphicScoreTranscription",
+              "fixtureRagaYamanImprovised1975",
+              "fixtureRagaYamanOralExpression",
+              "fixtureRagaYamanPerformed1960",
+              "fixtureRagaYamanPerformed1980",
               "fixtureReichPhasingExpression",
               "fixtureSessionExpression"
             ],
@@ -80571,6 +80578,7 @@
               "fixtureGraphicScoreWork",
               "fixtureKlavierstuckXIWork",
               "fixtureMathRockWork",
+              "fixtureOralRagaYamanWork",
               "fixtureReichPhasingWork",
               "fixtureSessionWork",
               "fixtureStructureWork"
@@ -94173,6 +94181,15 @@
             },
             "title": "Participation",
             "type": "object"
+          },
+          "ParticipationEnum": {
+            "description": "",
+            "enum": [
+              "fixtureKiranaLearnerParticipation",
+              "fixtureKiranaTransmitterParticipation"
+            ],
+            "title": "ParticipationEnum",
+            "type": "string"
           },
           "Patent": {
             "additionalProperties": false,
@@ -156944,6 +156961,17 @@
             "title": "VersionMembership",
             "type": "object"
           },
+          "VersionMembershipEnum": {
+            "description": "",
+            "enum": [
+              "fixtureRagaYamanContestedMembership",
+              "fixtureRagaYamanKiranaMembership1960",
+              "fixtureRagaYamanKiranaMembership1975",
+              "fixtureRagaYamanKiranaMembership1980"
+            ],
+            "title": "VersionMembershipEnum",
+            "type": "string"
+          },
           "VersionRole": {
             "additionalProperties": false,
             "description": "",
@@ -157496,6 +157524,14 @@
             },
             "title": "VersionSet",
             "type": "object"
+          },
+          "VersionSetEnum": {
+            "description": "",
+            "enum": [
+              "fixtureRagaYamanKiranaSet"
+            ],
+            "title": "VersionSetEnum",
+            "type": "string"
           },
           "VirtualLocation": {
             "additionalProperties": false,
