@@ -63,6 +63,15 @@ from gmeow_tools.up_projection_audit import (
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 
+_SKOS = "http://www.w3.org/2004/02/skos/core#"
+#: External predicates GMEOW adopts and uses DIRECTLY (registry/authority
+#: coreference, asserted "with skos:exactMatch and gmeow:authorityLink"). A source
+#: carrying them is already GMEOW-expressible, so the up-projection lifts them to
+#: THEMSELVES (identity pass-through) instead of reporting a false coverage gap.
+_ADOPTED_PREDICATES: frozenset[str] = frozenset(
+    {_SKOS + "exactMatch", _SKOS + "closeMatch"}
+)
+
 
 def _sssom_clean_pairs() -> dict[str, set[str]]:
     """Target IRI → set of gmeow IRIs from clean-reversible SSSOM cells."""
@@ -331,6 +340,16 @@ def build_lift_map() -> LiftMap:
 
     add_claims(generalizing_struct)  # authored inverses first
     add_claims(_sssom_closematch_pairs())  # then looser closeMatch for the rest
+
+    # GMEOW-adopted semantic-web predicates (#451): the ontology uses these
+    # DIRECTLY — registry/authority coreference is asserted "with skos:exactMatch
+    # and gmeow:authorityLink" (see the languages module + the schema-org cell). A
+    # source carrying them is already GMEOW-expressible, so they lift to THEMSELVES
+    # (identity pass-through), never a gap. Their down-projection is just keeping
+    # the same triple, so the round trip is exact.
+    for adopted in _ADOPTED_PREDICATES:
+        rules.setdefault(adopted, adopted)
+
     return LiftMap(
         rules=rules,
         ambiguous=ambiguous,
