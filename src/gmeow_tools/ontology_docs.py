@@ -194,6 +194,14 @@ _GUFO_TERM_HELP: dict[str, tuple[str, str]] = {
     ),
 }
 _EXTERNAL_TARGET_DESCRIPTIONS: dict[str, str] = {
+    "afo": (
+        "Audio Feature Ontology for music information retrieval — signal "
+        "features, their extraction, and feature provenance."
+    ),
+    "afv": (
+        "Audio Feature Vocabulary enumerating named MIR audio features "
+        "(timbre, rhythm, and harmony descriptors)."
+    ),
     "bbc": "News-domain vocabulary for articles, stories, topics, and metadata.",
     "bfo": (
         "Basic Formal Ontology 2020, the OBO upper-ontology spine used by "

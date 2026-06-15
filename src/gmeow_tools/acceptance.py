@@ -44,7 +44,7 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, SKOS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import (
     EXTERNAL_FIXTURES_DIR,
@@ -59,12 +59,17 @@ if TYPE_CHECKING:
     from rdflib.term import Node
 
 #: Namespaces that may appear in the pure-GMEOW draft besides GMEOW itself: the
-#: structural RDF/RDFS/OWL terms the claim reification and typing use.
+#: structural RDF/RDFS/OWL terms the claim reification and typing use, plus SKOS
+#: — the concept-identity layer GMEOW emits as skos:exactMatch / skos:closeMatch
+#: bridges (the QID concept bridge, #553), the SKOS analogue of the owl:sameAs /
+#: owl:equivalentClass identity links already allowed here. These are GMEOW's own
+#: identity assertions, not consumer-vocab residue.
 _STRUCTURAL_NS: tuple[str, ...] = (
     NAMESPACE,
     str(RDF),
     str(RDFS),
     str(OWL),
+    str(SKOS),
 )
 
 #: The consumer vocabularies whose own definition is vendored under
