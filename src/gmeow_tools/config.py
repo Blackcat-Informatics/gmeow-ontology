@@ -369,6 +369,9 @@ PREFIXES: dict[str, str] = {
     "mbz": "https://musicbrainz.org/",
     # Discogs style pages (reference-only — link by IRI only)
     "discogs": "https://www.discogs.com/",
+    # Audio Feature Ontology / Vocabulary (MIR feature provenance, issue #317)
+    "afo": "https://w3id.org/afo/onto/1.1#",
+    "afv": "https://w3id.org/afo/vocab/1.1#",
     # MIMO instrument vocabulary (bridged by reference only)
     "mimo": "http://www.mimo-db.eu/InstrumentsKeywords/",
     # Workflow / process alignment (#226)
@@ -618,6 +621,12 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "mbz": AlignmentTarget("MusicBrainz", PREFIXES["mbz"], "CC0-1.0", "schema"),
     "discogs": AlignmentTarget(
         "Discogs", PREFIXES["discogs"], "REFERENCE_ONLY", "schema"
+    ),
+    "afo": AlignmentTarget(
+        "Audio Feature Ontology", PREFIXES["afo"], "Unknown", "schema"
+    ),
+    "afv": AlignmentTarget(
+        "Audio Feature Vocabulary", PREFIXES["afv"], "Unknown", "concept_scheme"
     ),
     "gedcom": AlignmentTarget(
         "W3C GEDCOM", PREFIXES["gedcom"], "W3C-Document", "schema"

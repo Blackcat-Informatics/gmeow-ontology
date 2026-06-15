@@ -2382,10 +2382,10 @@ gmeow:DynamicsValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:TimbreDescriptor
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Timbre Descriptor"@x-gmeow-english ;
-    skos:definition "A placeholder class for a timbre descriptor applied to a ToneEvent; the full sensory bridge lands in M11 (sensory bridge)."@x-gmeow-english ;
+    skos:definition "A perceived timbre quality applied to a ToneEvent — bright, dark, breathy, gritty, hollow, etc. A value vocabulary of individuals; never subclassed (Principle 9). Contested descriptors are coexisting standpoints, each in its own observation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
@@ -2437,7 +2437,15 @@ gmeow:toneEventTimbre
     rdfs:domain gmeow:ToneEvent ;
     rdfs:range gmeow:TimbreDescriptor ;
     rdfs:label "tone event timbre"@x-gmeow-english ;
-    skos:definition "A timbre descriptor applied to this ToneEvent; the full sensory bridge lands in M11 (sensory bridge)."@x-gmeow-english ;
+    skos:definition "A timbre descriptor applied to this ToneEvent. This shortcut asserts one descriptor without provenance context; contested or attributed descriptors are modelled as coexisting observations (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreObservationResult
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Observation ;
+    rdfs:range gmeow:TimbreDescriptor ;
+    rdfs:label "timbre observation result"@x-gmeow-english ;
+    skos:definition "The timbre descriptor assigned to an observed ToneEvent by this Observation. Semantically plays the gmeow:observationResult role, but it is NOT declared rdfs:subPropertyOf gmeow:observationResult because gmeow:TimbreDescriptor is a gufo:QualityValue (abstract individual) and therefore disjoint from gmeow:Entity, the range of gmeow:observationResult (the claimModality precedent, standpoint and norms modules)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:trajectoryControlPoint
@@ -2787,6 +2795,35 @@ gmeow:articulationPizzicato a gmeow:ArticulationKind ;
 gmeow:articulationHarmonic a gmeow:ArticulationKind ;
     rdfs:label "harmonic"@x-gmeow-english ;
     skos:definition "A string harmonic articulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — TimbreDescriptor (issue #317)
+# --------------------------------------------------------------------------- #
+
+gmeow:timbreDescriptorBright a gmeow:TimbreDescriptor ;
+    rdfs:label "bright"@x-gmeow-english ;
+    skos:definition "A bright timbre — emphasis on high-frequency energy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorDark a gmeow:TimbreDescriptor ;
+    rdfs:label "dark"@x-gmeow-english ;
+    skos:definition "A dark timbre — emphasis on low-frequency energy, muted highs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorBreathy a gmeow:TimbreDescriptor ;
+    rdfs:label "breathy"@x-gmeow-english ;
+    skos:definition "A breathy timbre — audible noise-like aspiration mixed with the tone."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorGritty a gmeow:TimbreDescriptor ;
+    rdfs:label "gritty"@x-gmeow-english ;
+    skos:definition "A gritty timbre — rough, distorted, or noisy texture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorHollow a gmeow:TimbreDescriptor ;
+    rdfs:label "hollow"@x-gmeow-english ;
+    skos:definition "A hollow timbre — a scooped-out or filtered quality with weak midrange."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
@@ -4936,4 +4973,59 @@ gmeow:fixtureKiranaLearnerParticipation
     gmeow:participationEvent gmeow:fixtureKiranaTransmissionEvent ;
     gmeow:participationParticipant gmeow:fixtureRivalScholarStandpoint ;
     gmeow:participationRole gmeow:roleLearner ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+
+# =========================================================================== #
+# TIMBRE & SENSORY BRIDGE FIXTURE — issue #317
+#
+# One tone event, two co-equal attributed timbre observations:
+# - a human listener calls it "bright"
+# - a MIR extractor calls it "gritty"
+# Neither observation is privileged (Principle 9).
+# =========================================================================== #
+
+gmeow:fixtureTimbreToneEvent
+    a gmeow:ToneEvent ;
+    rdfs:label "fixture timbre tone event"@x-gmeow-english ;
+    skos:definition "A worked tone-event fixture for the timbre / sensory bridge."@x-gmeow-english ;
+    gmeow:segmentSpan gmeow:musicalTimeSpanBarOne ;
+    gmeow:segmentOf gmeow:fixtureStructureWork ;
+    gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureHumanListener
+    a gmeow:Agent ;
+    rdfs:label "human listener fixture"@x-gmeow-english ;
+    skos:definition "A human listener vantage for the timbre fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMIRAgent
+    a gmeow:Agent ;
+    rdfs:label "MIR extractor fixture"@x-gmeow-english ;
+    skos:definition "A machine listening / MIR extractor vantage for the timbre fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureHumanTimbreObservation
+    a gmeow:Observation ;
+    rdfs:label "human timbre observation fixture"@x-gmeow-english ;
+    skos:definition "A human listener attributes a bright timbre to the fixture tone event; co-equal with the MIR observation."@x-gmeow-english ;
+    gmeow:observedFeature gmeow:fixtureTimbreToneEvent ;
+    gmeow:vantage gmeow:fixtureHumanListener ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:observationType gmeow:observationTypeSensory ;
+    gmeow:timbreObservationResult gmeow:timbreDescriptorBright ;
+    gmeow:confidence "0.85"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMIRTimbreObservation
+    a gmeow:Observation ;
+    rdfs:label "MIR timbre observation fixture"@x-gmeow-english ;
+    skos:definition "A machine extractor attributes a gritty timbre to the fixture tone event; co-equal with the human observation."@x-gmeow-english ;
+    gmeow:observedFeature gmeow:fixtureTimbreToneEvent ;
+    gmeow:vantage gmeow:fixtureMIRAgent ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:observationType gmeow:observationTypeDerived ;
+    gmeow:timbreObservationResult gmeow:timbreDescriptorGritty ;
+    gmeow:confidence "0.72"^^xsd:decimal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
