@@ -1335,7 +1335,7 @@ def gts_info(
     (cheap because the embedded transport key is folded into the first meta
     frame).  Use ``--no-verify`` to inspect a damaged or partially trusted file.
     """
-    from gts.verify import verify_file
+    from gts.verify import format_fingerprint, verify_file
 
     path = file or _default_gts_file()
     graph = _read_gts_or_fail(path)
@@ -1355,9 +1355,13 @@ def gts_info(
             )
             if result.fingerprint:
                 console.print(
-                    f"transport key: [bold]{result.fingerprint}[/bold]  "
-                    f"{result.emojihash}"
+                    f"transport key: [bold]"
+                    f"{format_fingerprint(result.fingerprint)}[/bold]"
                 )
+            if result.emojihash:
+                console.print(f"emoji hash:    {result.emojihash}")
+            if result.emojihash_labels:
+                console.print(f"emoji labels:  {result.emojihash_labels}")
         else:
             console.print("signatures: none")
         for err in result.errors:
@@ -1386,7 +1390,7 @@ def gts_verify(
     used.  Pass ``--trusted-key`` to verify against a key obtained out of band
     (e.g. the release key published in the repository).
     """
-    from gts.verify import verify_file
+    from gts.verify import format_fingerprint, verify_file
 
     path = file or _default_gts_file()
     try:
@@ -1405,9 +1409,13 @@ def gts_verify(
         raise _fail(f"verification failed: {exc}") from exc
 
     if result.fingerprint:
-        console.print(f"transport key: [bold]{result.fingerprint}[/bold]")
+        console.print(
+            f"transport key: [bold]{format_fingerprint(result.fingerprint)}[/bold]"
+        )
         if result.emojihash:
-            console.print(f"emojihash:     {result.emojihash}")
+            console.print(f"emoji hash:    {result.emojihash}")
+        if result.emojihash_labels:
+            console.print(f"emoji labels:  {result.emojihash_labels}")
         if result.randomart:
             console.print(result.randomart)
     console.print(
