@@ -252,6 +252,56 @@ pub mod sh {
 
     pub const SPARQL_TARGET: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLTarget");
+
+    // ── Constraint component IRIs (sh:*ConstraintComponent) ──────────────────
+
+    pub const MIN_COUNT_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MinCountConstraintComponent");
+
+    pub const MAX_COUNT_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MaxCountConstraintComponent");
+
+    pub const CLASS_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#ClassConstraintComponent");
+
+    pub const DATATYPE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#DatatypeConstraintComponent");
+
+    pub const NODE_KIND_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#NodeKindConstraintComponent");
+
+    pub const IN_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#InConstraintComponent");
+
+    pub const HAS_VALUE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#HasValueConstraintComponent");
+
+    pub const PATTERN_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#PatternConstraintComponent");
+
+    pub const MIN_LENGTH_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MinLengthConstraintComponent");
+
+    pub const UNIQUE_LANG_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#UniqueLangConstraintComponent");
+
+    pub const MIN_INCLUSIVE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MinInclusiveConstraintComponent");
+
+    pub const MAX_INCLUSIVE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MaxInclusiveConstraintComponent");
+
+    pub const AND_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#AndConstraintComponent");
+
+    pub const OR_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#OrConstraintComponent");
+
+    pub const XONE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#XoneConstraintComponent");
+
+    pub const NODE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#NodeConstraintComponent");
 }
 
 /// RDF namespace constants (`http://www.w3.org/1999/02/22-rdf-syntax-ns#`).

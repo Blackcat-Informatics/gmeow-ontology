@@ -3,19 +3,20 @@
 
 //! SHACL Core validation engine.
 //!
-//! Task 1 stub: `validate` always returns an empty conforming report. The real
-//! constraint evaluation arrives in Task 3.
+//! `validate` is the top-level entry point.  Target resolution and report
+//! assembly arrive in Task 4; Task 3 delivers the constraint evaluator in
+//! `constraints.rs` which this module delegates to.
 
 use oxigraph::io::RdfFormat;
-use oxigraph::model::Term;
 use oxigraph::store::Store;
 
 use crate::report::ValidationReport;
-use crate::shapes::{Shape, Shapes};
+use crate::shapes::Shapes;
 
 /// Validate `data` against `shapes`, returning a [`ValidationReport`].
 ///
-/// Task 1 stub: always returns a conforming empty report.
+/// Task 3 stub: target resolution and full report assembly arrive in Task 4.
+/// Returns an empty conforming report for now.
 pub fn validate(_data: &Store, _shapes: &Shapes) -> ValidationReport {
     ValidationReport {
         conforms: true,
@@ -47,17 +48,6 @@ pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationRepo
 
     let shapes = crate::shapes::from_store(&shapes_store)?;
     Ok(validate(&data, &shapes))
-}
-
-/// Check whether a single focus node conforms to a single shape.
-///
-/// Task 1 stub: always returns `true`. Real constraint evaluation arrives
-/// in Task 3.
-// Task 3's constraints module will call this; the dead_code lint fires
-// in Task 1 because no caller exists yet.
-#[allow(dead_code)]
-pub(crate) fn conforms_to_shape(_data: &Store, _focus: &Term, _shape: &Shape) -> bool {
-    true
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
