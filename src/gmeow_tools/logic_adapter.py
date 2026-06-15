@@ -308,7 +308,9 @@ def _is_blank(node: object) -> bool:
 
 def _is_complex_restriction(graph: Graph, node: object) -> bool:
     """Return True when node is a blank-node OWL restriction (unmappable)."""
-    if not _is_blank(node):
+    from rdflib import BNode
+
+    if not isinstance(node, BNode):
         return False
     # A blank node typed owl:Restriction or connected via owl:someValuesFrom.
     restriction_preds = {
@@ -322,10 +324,7 @@ def _is_complex_restriction(graph: Graph, node: object) -> bool:
         OWL.onClass,
         OWL.onDataRange,
     }
-    return any(
-        graph.value(node, pred) is not None  # type: ignore[arg-type]
-        for pred in restriction_preds
-    )
+    return any((node, pred, None) in graph for pred in restriction_preds)
 
 
 # --------------------------------------------------------------------------- #

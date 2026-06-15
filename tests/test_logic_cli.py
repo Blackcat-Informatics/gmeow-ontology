@@ -16,11 +16,15 @@ Covers:
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from typer.testing import CliRunner
 
 from gmeow_tools.cli_dev import app as dev_app
+
+if TYPE_CHECKING:
+    from gmeow_tools.generator import Generator
 
 # --------------------------------------------------------------------------- #
 # Generator registry
@@ -37,7 +41,7 @@ def test_logic_generator_registered() -> None:
     assert "logic" in reg, f"'logic' not in registry: {sorted(reg)}"
 
 
-def _get_logic_gen() -> object:
+def _get_logic_gen() -> Generator:
     """Return the registered logic generator instance."""
     from gmeow_tools.generator import registry
     from gmeow_tools.load_generators import load_all
@@ -48,14 +52,14 @@ def _get_logic_gen() -> object:
 
 def test_logic_generator_name() -> None:
     gen = _get_logic_gen()
-    assert gen.name == "logic"  # type: ignore[union-attr]
+    assert gen.name == "logic"
 
 
 def test_logic_generator_inputs_include_source() -> None:
     from gmeow_tools.logic_compile import LOGIC_SOURCE_FILE
 
     gen = _get_logic_gen()
-    inputs = [str(p) for p in gen.inputs]  # type: ignore[union-attr]
+    inputs = [str(p) for p in gen.inputs]
     assert any(str(LOGIC_SOURCE_FILE) in s for s in inputs), (
         f"LOGIC_SOURCE_FILE not in inputs: {inputs}"
     )
@@ -73,7 +77,7 @@ def test_logic_generator_outputs_all_seven() -> None:
     )
 
     gen = _get_logic_gen()
-    outputs = list(gen.outputs)  # type: ignore[union-attr]
+    outputs = list(gen.outputs)
     assert len(outputs) == 7, f"Expected 7 outputs, got {len(outputs)}: {outputs}"
     output_strs = {str(p) for p in outputs}
     for expected in [
@@ -90,7 +94,7 @@ def test_logic_generator_outputs_all_seven() -> None:
 
 def test_logic_generator_allows_internal_tags() -> None:
     gen = _get_logic_gen()
-    assert gen.allows_internal_tags is True  # type: ignore[union-attr]
+    assert gen.allows_internal_tags is True
 
 
 # --------------------------------------------------------------------------- #
@@ -159,14 +163,14 @@ def test_logic_generator_render_compare_round_trip(tmp_path: Path) -> None:
 
     gen = _get_logic_gen()
     # Render all outputs into tmp_path as the staging root
-    gen.render(tmp_path)  # type: ignore[union-attr]
+    gen.render(tmp_path)
 
     from gmeow_tools.generator import _staging_rel
 
     drifts: list[str] = []
-    for committed in gen.outputs:  # type: ignore[union-attr]
+    for committed in gen.outputs:
         fresh = tmp_path / _staging_rel(committed)
         if fresh.exists():
-            drifts.extend(gen.compare(fresh, committed))  # type: ignore[union-attr]
+            drifts.extend(gen.compare(fresh, committed))
 
     assert not drifts, "Round-trip produced drift:\n" + "\n".join(drifts)

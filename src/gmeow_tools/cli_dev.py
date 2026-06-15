@@ -1872,8 +1872,8 @@ def logic_compile(
                 r_n3 = project_n3(program)
                 r_gufo = project_gufo(program)
                 r_rdf12 = project_canonical_rdf12(program)
-                proj_fn = build_projection_report
-                result = proj_fn(program, [r_dl, r_el, r_dl_r, r_n3, r_gufo, r_rdf12])
+                report_fn = build_projection_report
+                result = report_fn(program, [r_dl, r_el, r_dl_r, r_n3, r_gufo, r_rdf12])
             except (OverclaimError, CompileError) as exc:
                 raise _fail(f"✗ {exc}") from exc
 
@@ -1916,7 +1916,8 @@ def logic_compile(
                 _sfx = ".ttl" if mode not in ("datalog", "n3") else f".{mode}"
                 with tempfile.NamedTemporaryFile(suffix=_sfx, delete=False) as tf:
                     tmp_path = Path(tf.name)
-                result = proj_fn(program, path=tmp_path)
+                _proj_result = proj_fn(program, path=tmp_path)
+                del _proj_result  # result only needed for side-effect (file write)
                 gen = _registry()["logic"]
                 drifts = gen.compare(tmp_path, target_file)
                 tmp_path.unlink(missing_ok=True)
@@ -1926,7 +1927,8 @@ def logic_compile(
                     raise _fail(f"✗ --mode {mode}: committed artifact drifted")
                 console.print(f"[green]✓ --mode {mode}: no drift[/green]")
             else:
-                result = proj_fn(program, path=target_file)
+                _proj_result = proj_fn(program, path=target_file)
+                del _proj_result  # result only needed for side-effect (file write)
                 _rel = target_file.relative_to(_PROJECT_ROOT)
                 console.print(f"[green]✓[/green] {_rel}")
         except (OverclaimError, CompileError) as exc:

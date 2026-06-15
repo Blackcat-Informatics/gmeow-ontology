@@ -296,9 +296,9 @@ def _extract_scoped_axioms(
         # triple-term API we extract it; otherwise fall back to classic form.
         try:
             # rdflib triple-terms expose subject/predicate/object attributes
-            t_s = triple_term.subject  # type: ignore[union-attr]
-            t_p = triple_term.predicate  # type: ignore[union-attr]
-            t_o = triple_term.object  # type: ignore[union-attr]
+            t_s = triple_term.subject  # type: ignore[attr-defined]
+            t_p = triple_term.predicate  # type: ignore[attr-defined]
+            t_o = triple_term.object  # type: ignore[attr-defined]
             p_str = str(t_p)
             if not p_str.startswith(LOGIC_NAMESPACE) and t_p != RDF.type:
                 continue

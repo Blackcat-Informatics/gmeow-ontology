@@ -21,8 +21,12 @@ Covers:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+from pathlib import Path
+
 import pytest
 from rdflib import RDF, XSD, BNode, Graph, Literal, Namespace
+from rdflib.term import Node
 
 from gmeow_tools.config import LOGIC_NAMESPACE
 from gmeow_tools.logic_frontend import (
@@ -253,20 +257,20 @@ def test_invalid_confidence_emits_diagnostic() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_nonexistent_file_raises(tmp_path: Path) -> None:  # noqa: F821
+def test_nonexistent_file_raises(tmp_path: Path) -> None:
     bad = tmp_path / "nonexistent.ttl"
     with pytest.raises(LogicParseError, match="does not exist"):
         parse_logic_source(bad)
 
 
-def test_invalid_turtle_raises(tmp_path: Path) -> None:  # noqa: F821
+def test_invalid_turtle_raises(tmp_path: Path) -> None:
     bad = tmp_path / "bad.ttl"
     bad.write_text("this is not valid turtle @@@ !!!", encoding="utf-8")
     with pytest.raises(LogicParseError):
         parse_logic_source(bad)
 
 
-def test_file_source_iri_defaults_to_file_uri(tmp_path: Path) -> None:  # noqa: F821
+def test_file_source_iri_defaults_to_file_uri(tmp_path: Path) -> None:
     ttl = tmp_path / "test.ttl"
     ttl.write_text(
         "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n"
@@ -345,7 +349,7 @@ def test_rule_missing_head_emits_diagnostic() -> None:
 def test_parse_is_order_independent() -> None:
     """Two graphs with the same triples in different order yield equal programs."""
 
-    def make_graph(order: list[tuple]) -> Graph:
+    def make_graph(order: Sequence[tuple[Node, Node, Node]]) -> Graph:
         g = Graph()
         for triple in order:
             g.add(triple)

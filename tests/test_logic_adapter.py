@@ -22,6 +22,8 @@ Covers:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from rdflib import RDF, BNode, Graph, Namespace
 from rdflib.namespace import OWL, RDFS
@@ -72,13 +74,13 @@ def test_adapt_empty_graph_raises() -> None:
         adapt_legacy_source(Graph())
 
 
-def test_adapt_nonexistent_file_raises(tmp_path) -> None:
+def test_adapt_nonexistent_file_raises(tmp_path: Path) -> None:
     bad = tmp_path / "nonexistent.ttl"
     with pytest.raises(LogicParseError, match="does not exist"):
         adapt_legacy_source(bad)
 
 
-def test_adapt_invalid_turtle_raises(tmp_path) -> None:
+def test_adapt_invalid_turtle_raises(tmp_path: Path) -> None:
     bad = tmp_path / "bad.ttl"
     bad.write_text("this is not valid turtle @@@ !!!", encoding="utf-8")
     with pytest.raises(LogicParseError):
@@ -539,7 +541,7 @@ def test_adapt_source_iri_stored() -> None:
     assert prog.source_iri == "https://example.org/legacy"
 
 
-def test_adapt_source_iri_from_file(tmp_path) -> None:
+def test_adapt_source_iri_from_file(tmp_path: Path) -> None:
     ttl = tmp_path / "legacy.ttl"
     ttl.write_text(
         "@prefix gufo: <http://purl.org/nemo/gufo#> .\n"
