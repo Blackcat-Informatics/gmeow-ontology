@@ -23,6 +23,7 @@ from gmeow_tools.config import (
     NAMESPACE,
     ONTOLOGY_FILE,
     PROJECT_ROOT,
+    SHAPES_DIR,
     SHAPES_FILE,
     SLICE_VOCABULARY_FILE,
     STATEMENT_DSL_DIR,
@@ -378,6 +379,48 @@ def _iter_slice_source_files() -> list[Path]:
     ]
 
 
+# Hand-authored TTL OUTSIDE ``slices/`` — the global SHACL shapes, the
+# constitution, and the DSL grammars. These were retrofitted alongside the
+# slice corpus (#474 follow-through): a translation has to attach a sibling
+# literal beside every source rendering wherever it lives, not just in slices.
+# Generated artifacts (``generated/``) carry public ``@en`` and are governed by
+# the internal-tag leak gate instead, so they stay out of scope here.
+GOVERNANCE_DIR = PROJECT_ROOT / "governance"
+
+
+def _iter_nonslice_authored_files() -> list[Path]:
+    """Authored TTL outside ``slices/``: shapes, governance, and DSL grammars."""
+    files: list[Path] = []
+    files.extend(sorted(SHAPES_DIR.glob("*.ttl")))
+    files.extend(sorted(GOVERNANCE_DIR.glob("*.ttl")))
+    files.extend(sorted(MAPPING_DSL_DIR.rglob("*.ttl")))
+    files.extend(sorted(STATEMENT_DSL_DIR.rglob("*.ttl")))
+    return files
+
+
+def _untagged_localizable_literals(paths: list[Path]) -> dict[str, list[str]]:
+    """Map each file with plain (untagged) localizable literals to those literals.
+
+    A localizable literal carrying any language tag (``@x-gmeow-english`` for
+    authoring, ``@en`` for already-public governance vocab) satisfies the
+    discipline; only a *plain* literal — distinct RDF term from any tagged
+    sibling, hence silently untranslatable — fails closed.
+    """
+    untagged: dict[str, list[str]] = {}
+    for path in paths:
+        graph = _parse_ttl(path)
+        bad = sorted(
+            f"{graph.namespace_manager.normalizeUri(str(p))} {obj!r}"
+            for _, p, obj in graph
+            if p in LOCALIZABLE_PREDICATES
+            and isinstance(obj, Literal)
+            and not obj.language
+        )
+        if bad:
+            untagged[path.relative_to(PROJECT_ROOT).as_posix()] = bad
+    return untagged
+
+
 def test_slice_source_localizable_literals_are_language_tagged() -> None:
     """Localizable literals in slice source must carry a language tag.
 
@@ -393,18 +436,7 @@ def test_slice_source_localizable_literals_are_language_tagged() -> None:
     """
     source_files = _iter_slice_source_files()
     assert source_files, "No slice source files found to validate!"
-    untagged: dict[str, list[str]] = {}
-    for path in source_files:
-        graph = _parse_ttl(path)
-        bad = sorted(
-            f"{graph.namespace_manager.normalizeUri(str(p))} {obj!r}"
-            for _, p, obj in graph
-            if p in LOCALIZABLE_PREDICATES
-            and isinstance(obj, Literal)
-            and not obj.language
-        )
-        if bad:
-            untagged[path.relative_to(PROJECT_ROOT).as_posix()] = bad
+    untagged = _untagged_localizable_literals(source_files)
 
     messages = [
         f"  {name}:\n    " + "\n    ".join(bad) for name, bad in untagged.items()
@@ -414,6 +446,32 @@ def test_slice_source_localizable_literals_are_language_tagged() -> None:
         "name, title, definition and comment must carry a language tag "
         "(@x-gmeow-english for authoring) so translations can attach:\n"
         + "\n".join(messages)
+    )
+
+
+def test_nonslice_authored_localizable_literals_are_language_tagged() -> None:
+    """Authored TTL outside ``slices/`` must also carry language tags.
+
+    The translation-readiness discipline is corpus-wide, not slice-local: the
+    global SHACL shapes (``shapes/``), the constitution (``governance/``) and the
+    DSL grammars (``dsl/``) carry human-readable ``rdfs:label`` / ``skos:definition``
+    / ``rdfs:comment`` prose too, and a plain literal there is just as
+    untranslatable as one in a slice. This is the corpus-wide sibling of
+    :func:`test_slice_source_localizable_literals_are_language_tagged`; together
+    they cover every hand-authored localizable literal in the repository.
+    """
+    authored_files = _iter_nonslice_authored_files()
+    assert authored_files, "No non-slice authored files found to validate!"
+    untagged = _untagged_localizable_literals(authored_files)
+
+    messages = [
+        f"  {name}:\n    " + "\n    ".join(bad) for name, bad in untagged.items()
+    ]
+    assert not untagged, (
+        "Plain (untagged) localizable literals in authored shapes / governance / "
+        "DSL — every label, name, title, definition and comment must carry a "
+        "language tag (@x-gmeow-english for authoring, @en for public governance "
+        "vocab) so translations can attach:\n" + "\n".join(messages)
     )
 
 
