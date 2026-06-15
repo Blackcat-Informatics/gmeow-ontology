@@ -4,10 +4,12 @@
 # Worked example: notes and annotations (#443). A gmeow:Note is a first-class
 # information object — authored, timestamped, and linked to other notes by
 # gmeow:hasWikilink and to entities by gmeow:mentions (the Zettelkasten / linked-
-# note pattern). A gmeow:Annotation (here a gmeow:Highlight) is the W3C-Web-
-# Annotation shape: it has a gmeow:annotationTarget, a gmeow:annotationMotivation
-# (highlighting / commenting / questioning …), and a gmeow:annotationBody that is
-# itself a Note. A gmeow:Comment is a Note that threads under a parent.
+# note pattern). A gmeow:Highlight is the W3C-Web-Annotation shape for pure
+# highlighting: a gmeow:annotationTarget, a precise gmeow:annotationTargetSpan
+# (a text-quote Selector), and a gmeow:annotationMotivation — but NO body (a
+# highlight just marks a span; for an annotation that says something, a body-
+# bearing gmeow:Annotation subclass is used). A gmeow:Comment is a Note that
+# threads under a parent.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/notes/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -27,13 +29,13 @@ ex:note2 a gmeow:Note ;
     gmeow:noteAuthor  ex:dana ;
     gmeow:noteContent "The attention mechanism is the core idea." .
 
-# --- A highlight on the paper: a highlight pins WHICH span via annotationTargetSpan
-#     (a Selector), motivated by highlighting, bodied by note1.
+# --- A highlight on the paper: it pins WHICH span via annotationTargetSpan (a
+#     Selector) and is motivated by highlighting — a pure target+span binding,
+#     no body (that is the Highlight contract).
 ex:highlight a gmeow:Highlight ;
     gmeow:annotationTarget     ex:paper ;
     gmeow:annotationTargetSpan ex:span ;
-    gmeow:annotationMotivation gmeow:motivationHighlighting ;
-    gmeow:annotationBody       ex:note1 .
+    gmeow:annotationMotivation gmeow:motivationHighlighting .
 
 ex:span a gmeow:Selector ;
     gmeow:selectorTextQuote "the attention mechanism scales quadratically with sequence length" .

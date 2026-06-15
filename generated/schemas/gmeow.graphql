@@ -40,6 +40,8 @@ enum AestheticQualityEnum
 enum AgentEnum
   {
     fixtureAnalystA
+    fixtureKiranaGharanaStandpoint
+    fixtureRivalScholarStandpoint
     fixtureSessionBassist
     fixtureSessionDrummer
   }
@@ -757,6 +759,7 @@ enum EvaluationVerdictEnum
 
 enum EventEnum
   {
+    fixtureKiranaTransmissionEvent
     fixtureKlavierstuckPerformanceOne
     fixtureKlavierstuckPerformanceTwo
     fixtureSessionEvent
@@ -901,6 +904,10 @@ enum ExpressionEnum
   {
     fixtureGraphicScoreExpression
     fixtureGraphicScoreTranscription
+    fixtureRagaYamanImprovised1975
+    fixtureRagaYamanOralExpression
+    fixtureRagaYamanPerformed1960
+    fixtureRagaYamanPerformed1980
     fixtureReichPhasingExpression
     fixtureSessionExpression
   }
@@ -1625,6 +1632,7 @@ enum MusicalWorkEnum
     fixtureGraphicScoreWork
     fixtureKlavierstuckXIWork
     fixtureMathRockWork
+    fixtureOralRagaYamanWork
     fixtureReichPhasingWork
     fixtureSessionWork
     fixtureStructureWork
@@ -1895,6 +1903,12 @@ enum ParticipantRoleEnum
     roleTransmitter
     roleVictim
     roleWitness
+  }
+
+enum ParticipationEnum
+  {
+    fixtureKiranaLearnerParticipation
+    fixtureKiranaTransmitterParticipation
   }
 
 enum PaymentMethodEnum
@@ -3000,6 +3014,14 @@ enum VerificationStatusEnum
     verificationStatusVerified
   }
 
+enum VersionMembershipEnum
+  {
+    fixtureRagaYamanContestedMembership
+    fixtureRagaYamanKiranaMembership1960
+    fixtureRagaYamanKiranaMembership1975
+    fixtureRagaYamanKiranaMembership1980
+  }
+
 enum VersionRoleEnum
   {
     roleCanonical
@@ -3021,6 +3043,11 @@ enum VersionScaleEnum
     scaleMajor
     scaleMinor
     scaleTrivial
+  }
+
+enum VersionSetEnum
+  {
+    fixtureRagaYamanKiranaSet
   }
 
 enum VirtualLocationTypeEnum
