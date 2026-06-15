@@ -963,9 +963,10 @@ def export_research_objects(
         out_dir: Output directory.
         profiles: Which exports to produce.
         stem: Output filename stem.
-        banner: Optional ``(generator name, source hash)`` for text banners
-            on the Turtle output (JSON/XML/HTML never get banners — losses
-            ride their native fields instead).
+        banner: Optional ``(generator name, source hash)`` for the Turtle
+            generated-file banner. The source hash is accepted for generator
+            API compatibility but is not embedded (JSON/XML/HTML never get
+            banners — losses ride their native fields instead).
 
     Returns:
         Written paths. Raises GeneratorError on validator diagnostics (P7).

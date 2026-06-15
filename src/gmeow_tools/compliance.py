@@ -48,7 +48,7 @@ class GateRun:
     """The outcome of one executed gate."""
 
     errors: int
-    warnings: int
+    warnings: int | None
 
 
 def _run_validate() -> ValidationResult:
@@ -117,6 +117,15 @@ def run_gates(names: frozenset[str] | None = None) -> dict[str, GateRun]:
     return results
 
 
+def assumed_passed_gate_runs(names: frozenset[str] | None = None) -> dict[str, GateRun]:
+    """Return pass evidence for gates already run by the surrounding workflow."""
+    return {
+        name: GateRun(errors=0, warnings=None)
+        for name in RUNNERS
+        if names is None or name in names
+    }
+
+
 def _git_head() -> str:
     try:
         return subprocess.run(
@@ -133,14 +142,21 @@ def _git_head() -> str:
 
 def _enforcement_status(
     citations: tuple[str, ...], kind: str, gate_runs: Mapping[str, GateRun]
-) -> tuple[str, int, int]:
+) -> tuple[str, int, int | None]:
     """(status, errors, warnings) for one enforcement's citations."""
     # dict.fromkeys-dedupe: an enforcement may cite the same runnable as both
     # makeTarget and cliCommand; its run must be counted once.
     ran = [gate_runs[c] for c in dict.fromkeys(citations) if c in gate_runs]
     if ran:
         errors = sum(r.errors for r in ran)
-        warnings = sum(r.warnings for r in ran)
+        warning_counts: list[int] = []
+        warnings_unknown = False
+        for run in ran:
+            if run.warnings is None:
+                warnings_unknown = True
+            else:
+                warning_counts.append(run.warnings)
+        warnings = None if warnings_unknown else sum(warning_counts)
         return ("failed" if errors else "passed", errors, warnings)
     if kind in ("TestSuite", "Gate", "Shape", "Lint"):
         return ("gated-in-ci", 0, 0)
@@ -153,6 +169,7 @@ def build_report(
     *,
     generated_at: str,
     source_commit: str,
+    evidence_mode: str = "in-process",
 ) -> str:
     """Render the compliance report as Turtle (pure; testable with fakes)."""
     lines = [
@@ -166,6 +183,7 @@ def build_report(
         f'    meta:sourceCommit "{source_commit}" ;',
         f'    meta:toolchainVersion "{__version__}" ;',
         f'    meta:pythonVersion "{platform.python_version()}" ;',
+        f'    meta:evidenceMode "{evidence_mode}" ;',
         "    meta:assesses "
         + ", ".join(f"meta:Principle{p.number}" for p in manifest.principles)
         + " .",
@@ -184,10 +202,13 @@ def build_report(
                 citations, enforcement.kind, gate_runs
             )
             statuses.append(status)
+            warning_count = (
+                "" if warnings is None else f" ; meta:warningCount {warnings}"
+            )
             body.append(
                 f"    meta:enforcementResult [ meta:enforcement meta:{name} ; "
-                f'meta:status "{status}" ; meta:errorCount {errors} ; '
-                f"meta:warningCount {warnings} ]"
+                f'meta:status "{status}" ; meta:errorCount {errors}'
+                f"{warning_count} ]"
             )
         overall = "failed" if "failed" in statuses else "passed"
         lines.append(f"meta:Principle{principle.number}Result")
@@ -203,20 +224,28 @@ def build_report(
     return "\n".join(lines)
 
 
-def compliance_report() -> str:
+def compliance_report(*, assume_runners_passed: bool = False) -> str:
     """Run the gates and render the full report."""
     manifest = load_manifest()
-    gate_runs = run_gates()
+    gate_runs = assumed_passed_gate_runs() if assume_runners_passed else run_gates()
     return build_report(
         manifest,
         gate_runs,
         generated_at=datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds"),
         source_commit=_git_head(),
+        evidence_mode=(
+            "prior-successful-gates" if assume_runners_passed else "in-process"
+        ),
     )
 
 
-def write_report(path: Path = REPORT_FILE) -> Path:
+def write_report(
+    path: Path = REPORT_FILE, *, assume_runners_passed: bool = False
+) -> Path:
     """Write the report to ``dist/`` and return the path."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(compliance_report(), encoding="utf-8")
+    path.write_text(
+        compliance_report(assume_runners_passed=assume_runners_passed),
+        encoding="utf-8",
+    )
     return path

@@ -21,7 +21,10 @@ import json
 import posixpath
 import re
 import shutil
+import tempfile
+import time
 from collections import defaultdict
+from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -4227,6 +4230,108 @@ def build_ontology_docs(
     writer.write_simple_css()
     writer.write_css()
     writer.write_favicon()
+
+
+_ONTOLOGY_DOCS_CACHE_DIR = PROJECT_ROOT / ".cache" / "ontology-docs"
+_ONTOLOGY_DOCS_CACHE_WAIT_SECONDS = 900.0
+_ONTOLOGY_DOCS_CACHE_POLL_SECONDS = 0.25
+_ONTOLOGY_DOCS_CACHE_LOCK_STALE_SECONDS = 900.0
+_ONTOLOGY_DOCS_RENDERER_INPUTS = (
+    PROJECT_ROOT / "src" / "gmeow_tools" / "config.py",
+    PROJECT_ROOT / "src" / "gmeow_tools" / "export.py",
+    PROJECT_ROOT / "src" / "gmeow_tools" / "gts_views.py",
+    PROJECT_ROOT / "src" / "gmeow_tools" / "mapping_dsl.py",
+    PROJECT_ROOT / "src" / "gmeow_tools" / "slices.py",
+)
+
+
+def ontology_docs_cache_inputs() -> Sequence[Path]:
+    """Inputs whose changes invalidate the content-addressed docs cache."""
+    return [*ontology_docs_inputs(), *_ONTOLOGY_DOCS_RENDERER_INPUTS]
+
+
+def ontology_docs_cache_key() -> str:
+    """Return the content hash for the current ontology-docs inputs."""
+    from gmeow_tools.generator import source_hash as compute_source_hash
+
+    return compute_source_hash(ontology_docs_cache_inputs())
+
+
+def _remove_stale_ontology_docs_lock(lock: Path) -> bool:
+    """Remove a dead cache lock directory when its mtime is stale."""
+    try:
+        lock_mtime = lock.stat().st_mtime
+    except FileNotFoundError:
+        return True
+    except OSError:
+        return False
+    if time.time() - lock_mtime < _ONTOLOGY_DOCS_CACHE_LOCK_STALE_SECONDS:
+        return False
+    with suppress(OSError):
+        shutil.rmtree(lock)
+    return not lock.exists()
+
+
+def cached_ontology_docs_tree() -> Path:
+    """Return a content-addressed cached ontology-docs tree, building if needed."""
+    key = ontology_docs_cache_key()
+    entry = _ONTOLOGY_DOCS_CACHE_DIR / key
+    tree = entry / "tree"
+    complete = entry / ".complete"
+    if complete.exists() and tree.is_dir():
+        return tree
+    _ONTOLOGY_DOCS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    lock = _ONTOLOGY_DOCS_CACHE_DIR / f".lock-{key}"
+    deadline = time.monotonic() + _ONTOLOGY_DOCS_CACHE_WAIT_SECONDS
+    while True:
+        if complete.exists() and tree.is_dir():
+            return tree
+        try:
+            lock.mkdir()
+            break
+        except FileExistsError:
+            if _remove_stale_ontology_docs_lock(lock):
+                continue
+            if time.monotonic() >= deadline:
+                msg = f"timed out waiting for ontology-docs cache key {key}"
+                raise RuntimeError(msg) from None
+            time.sleep(_ONTOLOGY_DOCS_CACHE_POLL_SECONDS)
+
+    tmp: Path | None = None
+    try:
+        if complete.exists() and tree.is_dir():
+            return tree
+        tmp = Path(
+            tempfile.mkdtemp(dir=_ONTOLOGY_DOCS_CACHE_DIR, prefix=f".tmp-{key}-")
+        )
+        tmp_tree = tmp / "tree"
+        build_ontology_docs(tmp_tree)
+        (tmp / ".complete").write_text(key, encoding="utf-8")
+        if entry.exists():
+            with suppress(FileNotFoundError):
+                shutil.rmtree(entry)
+        tmp.replace(entry)
+        tmp = None
+    finally:
+        with suppress(OSError):
+            lock.rmdir()
+        if tmp is not None:
+            with suppress(OSError):
+                shutil.rmtree(tmp)
+
+    if complete.exists() and tree.is_dir():
+        return tree
+    msg = f"ontology-docs cache population failed for key {key}"
+    raise RuntimeError(msg)
+
+
+def build_ontology_docs_cached(outdir: Path) -> None:
+    """Copy the content-addressed ontology-docs cache into *outdir*."""
+    tree = cached_ontology_docs_tree()
+    if outdir.exists():
+        shutil.rmtree(outdir)
+    shutil.copytree(tree, outdir)
 
 
 def ontology_docs_inputs() -> Sequence[Path]:
