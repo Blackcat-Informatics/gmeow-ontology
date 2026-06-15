@@ -11,3 +11,4 @@
 
 pub mod seam;
 pub mod store;
+pub mod versioning;
