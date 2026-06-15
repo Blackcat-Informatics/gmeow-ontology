@@ -57,8 +57,8 @@ from gmeow_tools.up_projection import (
 from gmeow_tools.up_projection_audit import (
     _canon_qname,
     _in_projection_ns,
-    _projection_files,
     _rdf_list,
+    iter_projection_graphs,
 )
 
 
@@ -147,8 +147,7 @@ def _multiatom_pairs() -> dict[str, set[str]]:
     subject's type (``identifierUrl``'s ``rdfs:domain`` is ``Identifier``).
     """
     pairs: dict[str, set[str]] = defaultdict(set)
-    for path in _projection_files():
-        graph = Graph().parse(path, format="turtle")
+    for graph in iter_projection_graphs():
         for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
             pattern = graph.value(cell, GM.hasMappingPattern)
             if pattern is None:

@@ -102,6 +102,24 @@ _EXAMPLE_FIXTURES = (
 )
 
 
+def _load_projection_query(profile: str) -> str:
+    """The compiled CONSTRUCT for *profile*, from the repo or, failing that, the bundle.
+
+    The dev fast-path reads ``generated/queries/<profile>.rq`` directly; a
+    wheel-only install (no source tree) reads the query folded into the bundle
+    (#bundle — the CLI razor: ``gmeow`` needs no repo).
+    """
+    path = PROJECTION_QUERY_DIR / f"{profile}.rq"
+    if path.exists():
+        return path.read_text(encoding="utf-8")
+    from gmeow_tools.bundle import bundled_queries
+
+    data = bundled_queries().get(f"{profile}.rq")
+    if data is None:
+        raise FileNotFoundError(f"projection query not found: {profile}.rq")
+    return data.decode("utf-8")
+
+
 def project_graph(profile: str, source: Graph | pyoxigraph.Store) -> Graph:
     """Run a profile's CONSTRUCT over a source, returning the projection.
 
@@ -119,7 +137,7 @@ def project_graph(profile: str, source: Graph | pyoxigraph.Store) -> Graph:
         A fresh graph of pure target-vocabulary triples, prefixes bound.
     """
     prof = PROFILES[profile]
-    query = (PROJECTION_QUERY_DIR / f"{profile}.rq").read_text(encoding="utf-8")
+    query = _load_projection_query(profile)
     store = (
         source
         if isinstance(source, pyoxigraph.Store)

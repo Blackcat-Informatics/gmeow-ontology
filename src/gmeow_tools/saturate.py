@@ -112,18 +112,29 @@ def load_cells(dsl_dir: Path | None = None) -> list[Cell]:
     from gmeow_tools.slices import iter_slice_mapping_files
 
     directory = dsl_dir if dsl_dir is not None else MAPPING_DSL_DIR / "equivalences"
-    if not directory.is_dir():
+    g = Graph()
+    if directory.is_dir():
+        paths = sorted(directory.glob("*.ttl"))
+        if dsl_dir is None:
+            paths += iter_slice_mapping_files()  # already sorted (slices.py)
+        if not paths:
+            msg = f"no mapping .ttl files found under {directory}"
+            raise FileNotFoundError(msg)
+        for path in paths:
+            g.parse(path, format="turtle")
+    elif dsl_dir is not None:
         msg = f"equivalence DSL directory not found: {directory}"
         raise FileNotFoundError(msg)
-    paths = sorted(directory.glob("*.ttl"))
-    if dsl_dir is None:
-        paths += iter_slice_mapping_files()  # already sorted (slices.py)
-    if not paths:
-        msg = f"no mapping .ttl files found under {directory}"
-        raise FileNotFoundError(msg)
-    g = Graph()
-    for path in paths:
-        g.parse(path, format="turtle")
+    else:
+        # Wheel-only install (no source tree): read the equivalence + slice cells
+        # folded into the bundle (#bundle — the CLI razor: gmeow needs no repo).
+        from gmeow_tools.bundle import bundled_cells_under
+
+        cells_bytes = bundled_cells_under("dsl/mappings/equivalences/")
+        if not cells_bytes:
+            raise FileNotFoundError(f"no bundled cells under {directory}")
+        for _rel, data in sorted(cells_bytes.items()):
+            g.parse(data=data, format="turtle")
     cells: list[Cell] = []
     for cell in sorted(g.subjects(RDF.type, URIRef(_GM + "TermEquivalence")), key=str):
         subj = g.value(cell, URIRef(_GM + "alignSubject"))

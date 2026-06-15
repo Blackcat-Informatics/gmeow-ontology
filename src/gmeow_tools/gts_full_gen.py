@@ -79,6 +79,94 @@ def _tar_directory(root: Path, lang: str = _DEFAULT_DOC_LANG) -> bytes:
     return buffer.getvalue()
 
 
+def _tar_members(members: list[tuple[str, bytes]]) -> bytes:
+    """A deterministic, uncompressed tar of explicit ``(arcname, data)`` members.
+
+    Metadata is normalized (mtime/uid/gid/mode fixed) and members are emitted in
+    sorted arcname order, so the bytes are a pure function of the inputs.
+    """
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w") as tar:
+        for arcname, data in sorted(members):
+            info = tarfile.TarInfo(name=arcname)
+            info.size = len(data)
+            info.mtime = 0
+            info.uid = 0
+            info.gid = 0
+            info.uname = ""
+            info.gname = ""
+            info.mode = 0o644
+            tar.addfile(info, io.BytesIO(data))
+    return buffer.getvalue()
+
+
+def _transform_blobs() -> list[tuple[bytes, str, str]]:
+    """Fold the transform surface into the bundle so the consumer CLI is repo-free.
+
+    The SSSOM lift maps, the compiled projection queries, the equivalence /
+    projection cell sources, and the merged ontology graph (with and without
+    imports). The bundle-backed loaders in :mod:`gmeow_tools.bundle` read these
+    back when no source tree is present — the CLI razor (`gmeow` needs no repo).
+    """
+    import json
+
+    from rdflib.compare import to_canonical_graph
+
+    from gmeow_tools.bundle import (
+        REP_CELLS,
+        REP_DENIED,
+        REP_MAPPINGS,
+        REP_MERGED_IMPORTS,
+        REP_MERGED_NOIMPORTS,
+        REP_QUERIES,
+    )
+    from gmeow_tools.config import (
+        MAPPING_DSL_DIR,
+        PROJECTION_QUERY_DIR,
+        SLICES_DIR,
+    )
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.transform import _denied_cells
+
+    def _canonical_nt(graph: Graph) -> bytes:
+        """Byte-stable serialization: canonical blank-node labels + sorted lines.
+
+        rdflib assigns blank-node labels non-deterministically per process, so a
+        plain ``serialize`` drifts run-to-run. Canonicalizing fixes the labels and
+        sorting the N-Triples fixes the order — a pure function of the graph, so
+        the bundle stays byte-reproducible (``check-generated``).
+        """
+        lines = sorted(to_canonical_graph(graph).serialize(format="nt").splitlines())
+        return ("\n".join(lines) + "\n").encode("utf-8")
+
+    sssom = [(p.name, p.read_bytes()) for p in sorted(MAPPINGS_DIR.glob("*.sssom.tsv"))]
+    queries = [
+        (p.name, p.read_bytes()) for p in sorted(PROJECTION_QUERY_DIR.glob("*.rq"))
+    ]
+    cell_paths = (
+        sorted((MAPPING_DSL_DIR / "equivalences").glob("*.ttl"))
+        + sorted((MAPPING_DSL_DIR / "projections").glob("*.ttl"))
+        + sorted(SLICES_DIR.glob("*/*/mappings/*.ttl"))
+    )
+    cells = [
+        (p.relative_to(PROJECT_ROOT).as_posix(), p.read_bytes()) for p in cell_paths
+    ]
+    merged_imports = _canonical_nt(load_merged_graph(include_imports=True))
+    merged_noimports = _canonical_nt(load_merged_graph(include_imports=False))
+    # the saturation refusal set, computed now (sources present) and folded so the
+    # consumer transform never re-runs the alignment lint (an equivalence-collapse
+    # ERROR aborts the build here, exactly as #284 intends).
+    denied = sorted(_denied_cells())
+    return [
+        (_tar_members(sssom), "application/x-tar", REP_MAPPINGS),
+        (_tar_members(queries), "application/x-tar", REP_QUERIES),
+        (_tar_members(cells), "application/x-tar", REP_CELLS),
+        (merged_imports, "application/n-triples", REP_MERGED_IMPORTS),
+        (merged_noimports, "application/n-triples", REP_MERGED_NOIMPORTS),
+        (json.dumps(denied).encode("utf-8"), "application/json", REP_DENIED),
+    ]
+
+
 def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
     """Content-addressed slice guides, linked via ``gmeow:guideBlob``."""
     guide_blob = URIRef(NAMESPACE + "guideBlob")
@@ -133,13 +221,18 @@ def compile_full_snapshot(
 
     graph = load_merged_graph(include_imports=True)
     graph.parse(SELF_DESC_FILE, format="turtle")
-    doc_blobs = _doc_blobs(graph) + _project_doc_blobs() + _ontology_doc_blobs()
+    blobs = (
+        _doc_blobs(graph)
+        + _project_doc_blobs()
+        + _ontology_doc_blobs()
+        + _transform_blobs()
+    )
     alignments = build_alignment_graph(load_mappings())
     return compile_gts(
         graph,
         STATEMENT_RDF12_FILE,
         alignment_graph=alignments,
-        doc_blobs=doc_blobs,
+        doc_blobs=blobs,
         signer=signer,
         public_key_armor=public_key_armor,
     )
@@ -159,7 +252,12 @@ class GtsFullSnapshotGenerator(Generator):
         Ontology docs are rebuilt independently from their canonical sources
         and embedded, so ``dist/ontology-docs/`` is not an input.
         """
-        from gmeow_tools.config import ONTOLOGY_FILE, SLICES_DIR
+        from gmeow_tools.config import (
+            MAPPING_DSL_DIR,
+            ONTOLOGY_FILE,
+            PROJECTION_QUERY_DIR,
+            SLICES_DIR,
+        )
         from gmeow_tools.ontology_docs import ontology_docs_inputs
 
         doc_files = [
@@ -174,7 +272,12 @@ class GtsFullSnapshotGenerator(Generator):
             *iter_import_files(),
             STATEMENT_RDF12_FILE,
             SELF_DESC_FILE,
+            # transform surface folded for the repo-free consumer CLI (#bundle)
             *sorted(MAPPINGS_DIR.glob("*.sssom.tsv")),
+            *sorted(PROJECTION_QUERY_DIR.glob("*.rq")),
+            *sorted((MAPPING_DSL_DIR / "equivalences").glob("*.ttl")),
+            *sorted((MAPPING_DSL_DIR / "projections").glob("*.ttl")),
+            *sorted(SLICES_DIR.glob("*/*/mappings/*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
             *ontology_docs_inputs(),
             *sorted(doc_files),
