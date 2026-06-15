@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: norms, deontic modality, and compliance (#443). A gmeow:Norm in
+# a gmeow:NormativeSystem carries a gmeow:deonticModality — obligation /
+# prohibition / permission / recommendation — the deontic stance the rights slice
+# applies to assets, here applied to CONDUCT. Whether an event lives up to a norm
+# is not a bare boolean: it is a reified gmeow:ComplianceAssessment binding the
+# assessed event, the assessed norm, and a gmeow:complianceVerdict (held /
+# not-held / undetermined), AS OBSERVED by an assessor with a method — so a
+# contested compliance ruling can coexist with another (P9).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:healthAuthority a gmeow:Organization ; gmeow:name "City Public Health Authority"@x-gmeow-english .
+
+ex:foodCode a gmeow:NormativeSystem ; rdfs:label "Municipal Food Safety Code"@x-gmeow-english .
+
+# --- An OBLIGATION norm within that system. A norm names its gmeow:normIssuer —
+#     there is no ought, only ought-ACCORDING-TO an authority (the keystone).
+ex:handwashNorm a gmeow:Norm ;
+    rdfs:label            "Staff must wash hands before food preparation"@x-gmeow-english ;
+    gmeow:deonticModality gmeow:deonticObligation ;
+    gmeow:normIssuer      ex:healthAuthority .
+
+# --- An inspected kitchen-prep event that complies with the norm.
+ex:eventTypeFoodPrep a gmeow:EventType ; rdfs:label "food preparation"@x-gmeow-english .
+
+ex:prepShift a gmeow:Event ;
+    rdfs:label               "Lunch prep shift"@x-gmeow-english ;
+    gmeow:eventType          ex:eventTypeFoodPrep ;
+    gmeow:eventTime          "2026-06-12T11:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:complies           ex:handwashNorm .
+
+ex:inspector a gmeow:Person ; gmeow:name "Health inspector"@x-gmeow-english .
+
+# --- The compliance ruling: a reified, assessor-scoped observation.
+ex:ruling a gmeow:ComplianceAssessment ;
+    gmeow:assessedEvent     ex:prepShift ;
+    gmeow:assessedNorm      ex:handwashNorm ;
+    gmeow:complianceVerdict gmeow:verdictHeld ;
+    gmeow:vantage           ex:inspector ;
+    gmeow:observationMethod gmeow:methodDirectObservation .
