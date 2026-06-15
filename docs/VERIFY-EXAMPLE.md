@@ -4,7 +4,7 @@
 # GTS Verification Output Examples
 
 These examples show the expected shape of verification output for a signed
-`gmeow-full.gts` snapshot.
+`gmeow.gts` snapshot.
 
 The concrete key identifiers below come from the in-repository GTS test key,
 not the production GMEOW release key. A real release build should show the
@@ -19,13 +19,13 @@ key:
 uv run --package gmeow-dev gmeow-dev gts compile-full \
   --sign-key packages/gts/tests/fixtures/test_key.sec.asc \
   --public-key packages/gts/tests/fixtures/test_key.pub.asc \
-  -o dist/gmeow-full.gts
+  -o dist/gmeow.gts
 ```
 
 Expected signing summary:
 
 ```text
-✓ dist/gmeow-full.gts (5016978 bytes)
+✓ dist/gmeow.gts (7076451 bytes)
 ✓ signed with kid 93F32F9F1439F0FBA266331B6F4732092D747581
 ```
 
@@ -35,15 +35,15 @@ Expected signing summary:
 over the bundled graph:
 
 ```bash
-COLUMNS=120 uv run gmeow verify dist/gmeow-full.gts
+COLUMNS=120 uv run gmeow verify dist/gmeow.gts
 ```
 
 Example output:
 
 ```text
 ╭───────────────────────────────────────────── GTS Signature Verification ─────────────────────────────────────────────╮
-│ snapshot       dist/gmeow-full.gts                                                                                   │
-│ signatures     65 signed, 65 valid, 0 invalid, 0 unverified                                                          │
+│ snapshot       dist/gmeow.gts                                                                                        │
+│ signatures     69 signed, 69 valid, 0 invalid, 0 unverified                                                          │
 │ transport key  93F3 2F9F 1439 F0FB A266 331B 6F47 3209 2D74 7581                                                     │
 │ emoji hash     🐷 🦆 🐵 🦋 🍎 🍐 🦊 🐸 🐟 🍒 🍎                                                                      │
 │ emoji labels   pig duck monkey butterfly apple pear fox frog fish cherries apple                                     │
@@ -65,10 +65,10 @@ Example output:
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
 │ reader diagnostics  │ pass   │ 0 found                               │
 │ ontology namespace  │ pass   │ https://blackcatinformatics.ca/gmeow/ │
-│ term catalog        │ pass   │ 4439 terms                            │
+│ term catalog        │ pass   │ 4040 terms                            │
 │ labels              │ pass   │ 0 missing                             │
 │ definitions         │ pass   │ 0 missing                             │
-│ documentation blobs │ pass   │ 63 blobs                              │
+│ documentation blobs │ pass   │ 67 blobs                              │
 └─────────────────────┴────────┴───────────────────────────────────────┘
 verification passed
 ```
@@ -79,7 +79,7 @@ verification passed
 bundle checks:
 
 ```bash
-COLUMNS=120 uv run gmeow gts verify dist/gmeow-full.gts
+COLUMNS=120 uv run gmeow gts verify dist/gmeow.gts
 ```
 
 Example output:
@@ -99,7 +99,7 @@ emoji labels:  pig duck monkey butterfly apple pear fox frog fish cherries apple
 |           . o X=|
 |           .*+@O=|
 +----------------+
-signatures: 65 signed, 65 valid, 0 invalid, 0 unverified
+signatures: 69 signed, 69 valid, 0 invalid, 0 unverified
 verification passed
 ```
 
@@ -109,14 +109,14 @@ The standalone `gts` CLI reports the GTS composition ledger. For signed files,
 the `sigs` count should be nonzero:
 
 ```bash
-COLUMNS=120 uv run gts verify dist/gmeow-full.gts
+COLUMNS=120 uv run gts verify dist/gmeow.gts
 ```
 
 Example output:
 
 ```text
-dist/gmeow-full.gts: 1 segment(s)
-  segment 0: head f04b221d92fdcce30565f2dd08fd1c3229724194bda921719001149dcd3f7edb profile dist terms 17797 quads 32399 reifies 107 annot 295 blobs 63 suppress 0 opaque 0 sigs 65
+dist/gmeow.gts: 1 segment(s)
+  segment 0: head deaafb30d8c5d90e4e04c2637ff0fdb0fcb9879317a6b5e65095b51c77a4d8bb profile dist terms 18105 quads 32954 reifies 116 annot 324 blobs 67 suppress 0 opaque 0 sigs 69
 ```
 
 ## What to Compare

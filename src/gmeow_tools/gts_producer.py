@@ -99,9 +99,8 @@ class _Builder:
         """Ingest an rdflib ``Graph``/``Dataset`` base graph.
 
         ``graph_name`` assigns rows that carry no name of their own to a named
-        graph — the snapshot's source-partitioning hook (§3.1 of the plan:
-        statements and alignments ride in their own graphs so consumers can
-        scope to exactly the layer they need).
+        graph — the snapshot's source-partitioning hook, so consumers can
+        scope to exactly the layer they need.
         """
         default_gid = self.terms.iri(graph_name) if graph_name is not None else None
         for s, p, o, name in _iter_quads(graph):
@@ -446,6 +445,7 @@ def compile_gts(
     rdf12_path: Path | None = None,
     *,
     alignment_graph: Graph | None = None,
+    extra_named_graphs: Sequence[tuple[Graph, str, str]] | None = None,
     transform: list[str] | None = None,
     doc_blobs: list[tuple[bytes, str, str]] | None = None,
     signer: Signer | None = None,
@@ -456,9 +456,10 @@ def compile_gts(
 
     The narrow waist's producer: the RDF 1.1 base graph rides in the default
     graph, the RDF 1.2 statement layer in ``gmeow:graph/statements`` (its
-    reifies/annot tables are global), and the SSSOM alignment axioms in
-    ``gmeow:graph/alignments``. rdflib blank-node labels are per-process
-    UUIDs, so both rdflib sources are canonicalized
+    reifies/annot tables are global), the SSSOM alignment axioms in
+    ``gmeow:graph/alignments``, and any additional explicitly named graphs
+    supplied by the caller. rdflib blank-node labels are per-process UUIDs,
+    so rdflib sources are canonicalized
     (:func:`rdflib.compare.to_canonical_graph`) — together with the
     content-sorted term table this makes the emitted bytes a pure function
     of the inputs (the drift-gate requirement).
@@ -491,6 +492,12 @@ def compile_gts(
             to_canonical_graph(alignment_graph),
             graph_name=GTS_GRAPH_ALIGNMENTS,
             bnode_scope="align",
+        )
+    for named_graph, graph_name, bnode_scope in extra_named_graphs or ():
+        builder.add_graph(
+            to_canonical_graph(named_graph),
+            graph_name=graph_name,
+            bnode_scope=bnode_scope,
         )
     return builder.to_gts(
         profile="dist",

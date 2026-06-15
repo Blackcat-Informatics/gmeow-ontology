@@ -55,7 +55,7 @@ jobs:
       - name: RDF 1.2 statement artifact gate
         run: uv run --package gmeow-dev gmeow-dev regenerate statements
 
-      - name: Sign gmeow-full.gts with the release key
+      - name: Sign gmeow.gts with the release key
         env:
           GMEOW_RELEASE_SIGNING_KEY: ${{ secrets.GMEOW_RELEASE_SIGNING_KEY }}
         run: |
@@ -68,11 +68,11 @@ jobs:
           uv run --package gmeow-dev gmeow-dev gts compile-full \
             --sign-key /tmp/gpg/signing-key.asc \
             --public-key keys/gmeow-release-key.asc \
-            -o dist/gmeow-full.gts
+            -o dist/gmeow.gts
           rm -f /tmp/gpg/signing-key.asc
 
-      - name: Verify signed gmeow-full.gts
-        run: uv run gmeow verify dist/gmeow-full.gts
+      - name: Verify signed gmeow.gts
+        run: uv run gmeow verify dist/gmeow.gts
 
       - name: Upload published artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

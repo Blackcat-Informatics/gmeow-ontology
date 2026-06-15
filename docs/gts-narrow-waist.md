@@ -15,7 +15,9 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
                               |
                     generated/dist/gmeow.gts
                     (default graph | gmeow:graph/statements
-                     | gmeow:graph/alignments)
+                     | gmeow:graph/alignments
+                     | gmeow:graph/imports
+                     | gmeow:graph/metadata)
                               |
             +---------+------+--------+----------+
             |         |               |          |

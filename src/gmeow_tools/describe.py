@@ -67,34 +67,37 @@ class TermCard:
     guide: str = ""
 
 
-def load_graph_from_gts(path: Path) -> Graph:
+def load_graph_from_gts(
+    path: Path, *, graph_names: set[str | None] | None = None
+) -> Graph:
     """Offline mode: read a .gts package into an rdflib Graph.
 
-    Uses the gts package's reader + N-Quads view; the default graph carries
-    the ontology, which is all ``describe`` needs.
+    Uses the gts package's reader and defaults to the GTS default graph, which
+    carries the authored import-free ontology. Pass ``graph_names`` to flatten
+    a specific named graph such as bundled self-description metadata.
     """
-    from gts import read, to_nquads
+    from gts import read
+    from gts.nquads import term_token
 
     payload = read(path.read_bytes())
-    # describe needs the plain ontology union; the RDF 1.2 statement layer's
-    # quoted-triple terms (<<( ... )>>) are not rdflib-nquads-parseable and
-    # carry nothing describe renders — filter those rows out.
-    lines = [
-        line
-        for line in to_nquads(payload).splitlines()
-        if "<<(" not in line and ")>>" not in line
-    ]
-    from rdflib import Dataset
-
-    # Dataset (not the deprecated ConjunctiveGraph); flatten every quad's triple
-    # into a plain Graph via quads(). NB: rdflib's own nquads parser internally
-    # touches the deprecated Dataset.default_context — an upstream self-
-    # deprecation we cannot avoid here; it is filtered in pyproject.
-    ds = Dataset()
-    ds.parse(data="\n".join(lines), format="nquads")
+    scopes = {None} if graph_names is None else graph_names
+    lines: list[str] = []
+    for s, p, o, graph_id in payload.quads:
+        scope = payload.terms[graph_id].value if graph_id is not None else None
+        if scope not in scopes:
+            continue
+        triple = (
+            f"{term_token(payload, s)} {term_token(payload, p)} "
+            f"{term_token(payload, o)}"
+        )
+        # rdflib cannot parse RDF 1.2 quoted triple terms; describe/crossref do
+        # not render them from this compatibility graph.
+        if "<<(" in triple or ")>>" in triple:
+            continue
+        lines.append(f"{triple} .")
     graph = Graph()
-    for s, p, o, _ctx in ds.quads((None, None, None, None)):
-        graph.add((s, p, o))
+    if lines:
+        graph.parse(data="\n".join(lines), format="nt")
     return graph
 
 
