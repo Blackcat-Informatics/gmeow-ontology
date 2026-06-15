@@ -19,6 +19,9 @@ Runner contract
         witnesses,      # POPULATED: empty dict (no within-world contradictions
                         #            in v1 monotonic Horn; deferred to #503/#504)
         answers,        # DEFERRED: goal/counterfactual answers (#504/#505)
+        certification,  # POPULATED (#502): static profile/decidability verdict
+        budget_status,  # POPULATED (#502): aggregate budget-governor status
+        incomplete,     # POPULATED (#502): True iff a budget ceiling was tripped
     )
 
 Populated vs deferred (v1 monotonic scope)
@@ -64,10 +67,12 @@ from pathlib import Path
 from rdflib import ConjunctiveGraph, Graph, URIRef
 from rdflib.compare import isomorphic
 
+from gmeow_tools.logic_certify import certify_program
 from gmeow_tools.logic_explain import Explanation, explain
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
 from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
 from gmeow_tools.logic_materialize import (
+    BudgetParams,
     MaterializationError,
     MaterializationResult,
     materialize_program,
@@ -152,6 +157,22 @@ class RunnerOutputs:
 
         answers: Goal/counterfactual answer sets.  **Always ``{}``** — deferred
             to #504/#505.
+
+        certification: The static profile/decidability verdict for ``program``
+            against the case's declared profile, as the deterministic sorted-key
+            dict produced by
+            :meth:`~.logic_certify.CertificationVerdict.to_json`.  **Populated**
+            for every case (issue #502, Task 5).
+
+        budget_status: The aggregate budget-governor status copied from
+            :attr:`~.logic_materialize.MaterializationResult.budget_status` —
+            ``"ok"`` when the chase reached fixpoint within budget (or ran
+            unbounded), ``"exhausted"`` when a declared ceiling was tripped.
+            **Populated** for every case.
+
+        incomplete: ``True`` iff the materialization was a sound partial because
+            a budget ceiling was tripped (i.e. ``budget_status == "exhausted"``).
+            Mirrors :attr:`~.logic_materialize.MaterializationResult.incomplete`.
     """
 
     case_dir: Path
@@ -168,6 +189,11 @@ class RunnerOutputs:
     verdicts: dict[str, dict[str, object]]
     witnesses: dict[str, object]  # always {}
     answers: dict[str, object]  # always {}
+
+    # issue #502 (Task 5): certifier + budget governor surfaced as artifacts
+    certification: dict[str, object]
+    budget_status: str
+    incomplete: bool
 
 
 # --------------------------------------------------------------------------- #
@@ -402,6 +428,76 @@ def _build_verdicts(result: MaterializationResult) -> dict[str, dict[str, object
 
 
 # --------------------------------------------------------------------------- #
+# Budget governor params (issue #502)
+# --------------------------------------------------------------------------- #
+
+
+def _parse_budget_params(
+    case_dir: Path, profile_data: dict[str, object]
+) -> BudgetParams | None:
+    """Read the optional ``budget_params`` object from a case's ``profile.json``.
+
+    The object is optional and every field inside it is optional.  Recognised
+    keys are ``time_ms``, ``max_rule_firings`` and ``max_answers`` (all positive
+    integers, matching :class:`~.logic_materialize.BudgetParams`).  When the key
+    is absent the chase runs unbounded (``None``) — the #501 default that keeps
+    the existing corpus byte-identical.
+
+    Hard-fail (no silent coercion) on a malformed value: a non-object
+    ``budget_params``, an unknown key, or a non-integer / non-positive ceiling is
+    a :class:`RunnerError`, never a degraded default.
+
+    Args:
+        case_dir: The case directory (used only for error messages).
+        profile_data: The parsed ``profile.json`` dict.
+
+    Returns:
+        A :class:`~.logic_materialize.BudgetParams` when ``budget_params`` is
+        present, else ``None``.
+    """
+    raw = profile_data.get("budget_params")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise RunnerError(
+            f"Case {case_dir.name}: profile.json budget_params must be a JSON "
+            f"object, got {type(raw).__name__}"
+        )
+
+    allowed = {"time_ms", "max_rule_firings", "max_answers"}
+    unknown = sorted(set(raw) - allowed)
+    if unknown:
+        raise RunnerError(
+            f"Case {case_dir.name}: profile.json budget_params has unknown "
+            f"key(s) {unknown}; allowed keys are {sorted(allowed)}"
+        )
+
+    def _ceiling(key: str) -> int | None:
+        if key not in raw:
+            return None
+        value = raw[key]
+        # bool is an int subclass; reject it explicitly so `true`/`false`
+        # cannot masquerade as a 1/0 ceiling.
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise RunnerError(
+                f"Case {case_dir.name}: profile.json budget_params.{key} must be "
+                f"a positive integer, got {value!r}"
+            )
+        if value <= 0:
+            raise RunnerError(
+                f"Case {case_dir.name}: profile.json budget_params.{key} must be "
+                f"a positive integer, got {value}"
+            )
+        return value
+
+    return BudgetParams(
+        time_ms=_ceiling("time_ms"),
+        max_rule_firings=_ceiling("max_rule_firings"),
+        max_answers=_ceiling("max_answers"),
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Public API: run()
 # --------------------------------------------------------------------------- #
 
@@ -474,6 +570,18 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     semantic_profile_str = str(
         profile_data.get("semantic_profile", "PositiveHornProfile")
     )
+    # Resolve the declared profile to the typed enum for the certifier.  An
+    # unknown localname is a hard failure (no silent fallback): the case author
+    # must declare a real SemanticProfileId.
+    try:
+        declared_profile = SemanticProfileId(semantic_profile_str)
+    except ValueError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: unknown semantic_profile "
+            f"{semantic_profile_str!r} in profile.json — must be one of "
+            f"{[str(p) for p in SemanticProfileId]}"
+        ) from exc
+
     # The v1 oracle only handles PositiveHornProfile
     if semantic_profile_str != "PositiveHornProfile":
         _log.warning(
@@ -482,6 +590,12 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             case_dir.name,
             semantic_profile_str,
         )
+
+    # Static certification against the DECLARED profile (issue #502, Task 5).
+    # This is pure analysis over the IR and never raises; a non-empty
+    # ``violations`` list is surfaced (not raised) so the conformance diff can
+    # compare it as a golden artifact.
+    certification = certify_program(program, declared_profile).to_json()
 
     # Build the input ConjunctiveGraph for the materializer.
     # Projection-only cases carry no named-graph worlds (flat Turtle program);
@@ -503,12 +617,18 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
                 f"Case {case_dir.name}: cannot parse input.nq: {exc}"
             ) from exc
 
+    # Optional budget governor (issue #502, Task 5).  Absent ``budget_params``
+    # means unbounded (the #501 default): the chase runs to full fixpoint and
+    # the result is byte-identical to pre-#502 behaviour.
+    budget = _parse_budget_params(case_dir, profile_data)
+
     # Materialize
     try:
         mat_result = materialize_program(
             program,
             input_graph,
             profile=SemanticProfileId.POSITIVE_HORN,
+            budget=budget,
         )
     except MaterializationError as exc:
         raise RunnerError(
@@ -538,6 +658,9 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         verdicts=verdicts,
         witnesses={},  # deferred to #503
         answers={},  # deferred to #504/#505
+        certification=certification,
+        budget_status=mat_result.budget_status,
+        incomplete=mat_result.incomplete,
     )
 
 
@@ -655,6 +778,33 @@ class CaseDiffResult:
     case_id: str
     passed: bool
     diffs: list[str] = field(default_factory=list)
+
+
+def _read_case_profile(case_dir: Path) -> dict[str, object]:
+    """Re-read a case's ``profile.json`` for the diff phase.
+
+    :func:`diff_case` receives only :class:`RunnerOutputs`, which deliberately
+    does not carry the raw profile dict; the opt-in flags driving the
+    certification/budget missing-golden rules live in ``profile.json``, so the
+    diff re-reads it here.  The file was already validated as a JSON object by
+    :func:`run` / :func:`discover_cases`, so a parse error at this point is a
+    bug and surfaces as an empty profile (no opt-in) rather than a crash.
+
+    Args:
+        case_dir: The case directory.
+
+    Returns:
+        The parsed ``profile.json`` dict, or an empty dict if it is absent or
+        unreadable (treated as "no opt-in").
+    """
+    profile_path = case_dir / "profile.json"
+    if not profile_path.exists():
+        return {}
+    try:
+        data = json.loads(profile_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def _parse_cited_iri_skeleton(text: str) -> frozenset[str]:
@@ -812,6 +962,74 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
             json_diffs = compare_canonical_json(outputs.verdicts, expected_verdicts)  # type: ignore[arg-type]
             for d in json_diffs:
                 diffs.append(f"[{case_id}] verdicts: {d}")
+
+    # --- Certification verdict (issue #502, Task 5) -----------------------
+    #
+    # Missing-golden rule (OPT-IN, mirrors the projections precedent but
+    # inverted for corpus safety):
+    #   * The runner ALWAYS produces a non-trivial certification dict, so a
+    #     blanket "non-trivial output ⇒ require golden" rule (as used for
+    #     projections) would force every legacy #501 case to grow a
+    #     certification.json — they have none, so the corpus would go red.
+    #   * Instead certification is COMPARED only when the case opts in: either
+    #     the golden ``expected/certification.json`` already exists, OR
+    #     ``profile.json`` sets ``"certify": true``.
+    #   * Opt-in WITHOUT a golden is still a hard fail (verification-honesty:
+    #     a declared certification expectation must be backed by a committed
+    #     file, never silently skipped).
+    # This keeps the #501 corpus green (no opt-in, no golden ⇒ no diff) while
+    # the Task 6 profiles/decidability cases get full coverage by committing the
+    # golden (which auto-enables the comparison).
+    cert_path = expected_root / "certification.json"
+    profile_data = _read_case_profile(case_dir)
+    cert_opt_in = bool(profile_data.get("certify", False))
+    if cert_path.exists():
+        try:
+            expected_cert = json.loads(cert_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            diffs.append(f"[{case_id}] cannot parse expected certification.json: {exc}")
+        else:
+            for d in compare_canonical_json(outputs.certification, expected_cert):
+                diffs.append(f"[{case_id}] certification: {d}")
+    elif cert_opt_in:
+        diffs.append(
+            f"[{case_id}] certification: golden certification.json is missing "
+            f'from expected/ but profile.json declares "certify": true — '
+            f"run `gmeow-dev conformance --update` to generate it"
+        )
+
+    # --- Budget governor markers (issue #502, Task 5) ---------------------
+    #
+    # Missing-golden rule (DECLARES-BUDGET ⇒ REQUIRE-GOLDEN):
+    #   * A case only carries a budget marker when it declares ``budget_params``
+    #     in profile.json.  Such a case asserts a budget outcome, so its golden
+    #     ``expected/budget.json`` is REQUIRED — absence is a hard fail.
+    #   * A case with NO ``budget_params`` runs unbounded (budget_status "ok",
+    #     incomplete False — the trivial #501 outcome); it must NOT require a
+    #     budget.json golden.  When the golden is absent and no budget is
+    #     declared we skip silently (nothing non-trivial to test).
+    #   * If a budget.json golden exists it is always compared, regardless of
+    #     declaration (so a hand-committed golden is honoured).
+    budget_path = expected_root / "budget.json"
+    declares_budget = "budget_params" in profile_data
+    actual_budget: dict[str, object] = {
+        "budget_status": outputs.budget_status,
+        "incomplete": outputs.incomplete,
+    }
+    if budget_path.exists():
+        try:
+            expected_budget = json.loads(budget_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            diffs.append(f"[{case_id}] cannot parse expected budget.json: {exc}")
+        else:
+            for d in compare_canonical_json(actual_budget, expected_budget):
+                diffs.append(f"[{case_id}] budget: {d}")
+    elif declares_budget:
+        diffs.append(
+            f"[{case_id}] budget: golden budget.json is missing from expected/ "
+            f"but profile.json declares budget_params — "
+            f"run `gmeow-dev conformance --update` to generate it"
+        )
 
     # --- Materialized N-Quads ---
     mat_path = expected_root / "materialized.nq"

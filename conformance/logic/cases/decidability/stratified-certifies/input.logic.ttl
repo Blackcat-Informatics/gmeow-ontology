@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: decidability/stratified-certifies
+# AC: decidability — a decidable (stratified-NAF) profile is CERTIFIED.
+#
+# Two strata over a single world. Stratum 0 computes graph reachability by
+# positive recursion (`reachable` is transitively closed over `edge`). Stratum 1
+# uses negation-as-failure (`logic:negatedBody`) over the LOWER stratum only:
+# a node is `isolated` iff it is a declared `node` but is NOT reachable. Because
+# the only negated dependency (isolated ← NOT reachable) crosses a STRATUM
+# boundary — never a recursive cycle — the predicate dependency graph has no SCC
+# containing a negative edge, so the StratifiedNAF certifier returns
+# certified:true with an empty violation set (decidability_class
+# terminating/PTIME-data). This is the positive control for the certifier.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/decidability/stratified-certifies/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sorts used by the projection back-ends.
+ex:Node a logic:Kind .
+
+# Rule 1 (stratum 0): base reachability — an edge is reachability.
+#   ?X reachable ?Y  :-  ?X edge ?Y
+ex:ruleReachableBase a logic:Rule ;
+    logic:provenance ex:ruleReachableBase ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:edge ;
+        rdf:object    "?Y"
+    ] .
+
+# Rule 2 (stratum 0): transitive reachability — positive recursion (no negation).
+#   ?X reachable ?Z  :-  ?X edge ?Y , ?Y reachable ?Z
+ex:ruleReachableStep a logic:Rule ;
+    logic:provenance ex:ruleReachableStep ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?Z"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:edge ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?Z"
+    ] .
+
+# Rule 3 (stratum 1): isolation by negation-as-failure over the LOWER stratum.
+#   ?X isolated ?X  :-  ?X node ?X , NOT ?X reachable ?X
+# The negated atom (reachable) is computed entirely in stratum 0, so the negative
+# edge isolated <- reachable is NOT inside any SCC: stratifiable, hence certified.
+ex:ruleIsolated a logic:Rule ;
+    logic:provenance ex:ruleIsolated ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:isolated ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:node ;
+        rdf:object    "?X"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:reachable ;
+        rdf:object    "?X"
+    ] .

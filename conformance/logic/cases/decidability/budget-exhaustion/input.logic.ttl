@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: decidability/budget-exhaustion
+# AC: decidability — a budget ceiling yields a SOUND PARTIAL result, marked
+# incomplete; the chase NEVER fabricates an answer it could not derive.
+#
+# A positive (PositiveHorn) transitive-closure program over a 4-node edge chain
+# a -> b -> c -> d. The base rule lifts every `edge` into `tc`; the step rule
+# closes `tc` transitively. Left unbounded the chase would derive the full
+# closure (6 tc pairs). Here profile.json sets budget_params.max_rule_firings = 2,
+# so the governor trips after the SECOND derived quad and returns a sound partial:
+# budget_status "exhausted", incomplete true. The committed materialized.nq holds
+# ONLY the within-budget quads (the deterministic canonical-sort prefix of the
+# derivations plus the asserted edges) — proving partial-but-sound, never a false
+# answer.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/decidability/budget-exhaustion/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sort used by the projection back-ends.
+ex:Node a logic:Kind .
+
+# Rule 1: base — every edge is a transitive-closure pair.
+#   ?X tc ?Y  :-  ?X edge ?Y
+ex:ruleTcBase a logic:Rule ;
+    logic:provenance ex:ruleTcBase ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:tc ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:edge ;
+        rdf:object    "?Y"
+    ] .
+
+# Rule 2: step — transitive closure over tc.
+#   ?X tc ?Z  :-  ?X tc ?Y , ?Y edge ?Z
+ex:ruleTcStep a logic:Rule ;
+    logic:provenance ex:ruleTcStep ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:tc ;
+        rdf:object    "?Z"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:tc ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:edge ;
+        rdf:object    "?Z"
+    ] .

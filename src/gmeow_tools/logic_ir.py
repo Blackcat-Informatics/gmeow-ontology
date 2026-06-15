@@ -190,6 +190,10 @@ class LogicAxiom:
         obj: IRI string or literal-string value of the axiom object.
         obj_is_literal: True when ``obj`` is a literal (data value), False
             when it is an IRI.
+        negated: True when this axiom is a negated (negation-as-failure) body
+            literal — the StratifiedNAF surface (issue #502).  Defaults to
+            ``False`` (positive); ALL pre-#502 programs are positive, so the
+            default keeps every existing canonical/sort output byte-identical.
         scope: Contextual scope for this axiom (standpoint, time, confidence,
             modality, provenance).
     """
@@ -198,6 +202,7 @@ class LogicAxiom:
     predicate: str
     obj: str
     obj_is_literal: bool = False
+    negated: bool = False
     scope: ContextualScope = field(default_factory=ContextualScope)
 
     def __post_init__(self) -> None:
@@ -208,10 +213,20 @@ class LogicAxiom:
             raise ValueError("LogicAxiom.predicate must be a non-empty IRI string")
 
     def _sort_key(self) -> str:
-        """Stable sort key for canonical ordering."""
-        return (
+        """Stable sort key for canonical ordering.
+
+        Corpus-safety (issue #502): the negation flag is appended to the key
+        ONLY when ``negated`` is True.  Positive atoms (``negated=False`` — every
+        pre-#502 atom) keep the exact pre-existing key string, so the content
+        hashes derived from this key in :mod:`logic_projections` (and thus every
+        generated artifact) stay byte-identical for positive programs.
+        """
+        base = (
             f"{self.subject}\x00{self.predicate}\x00{self.obj}\x00{self.obj_is_literal}"
         )
+        if self.negated:
+            base += f"\x00{self.negated}"
+        return base
 
 
 @dataclass(frozen=True, slots=True)
@@ -335,13 +350,28 @@ class LogicProgram:
             A ``dict`` with keys ``"axioms"``, ``"rules"``, ``"profiles"``,
             and ``"source_iri"``, each mapping to a list of dicts or a scalar.
         """
+
+        # Corpus-safety decision (issue #502): the ``"negated"`` key is emitted
+        # ONLY when an atom is actually negated.  Positive atoms (negated=False —
+        # every pre-#502 atom) serialize to the exact pre-existing dict shape, so
+        # every existing canonical() output stays byte-identical and the
+        # round-trip isomorphism / parity corpus is unaffected.  Negated atoms
+        # add ``"negated": true``, which is the only new surface this task mints.
+        def _axiom_dict(a: LogicAxiom) -> dict[str, Any]:
+            d: dict[str, Any] = {
+                "subject": a.subject,
+                "predicate": a.predicate,
+                "obj": a.obj,
+                "obj_is_literal": a.obj_is_literal,
+            }
+            if a.negated:
+                d["negated"] = a.negated
+            return d
+
         return {
             "axioms": [
                 {
-                    "subject": a.subject,
-                    "predicate": a.predicate,
-                    "obj": a.obj,
-                    "obj_is_literal": a.obj_is_literal,
+                    **_axiom_dict(a),
                     "scope": {
                         "standpoint": a.scope.standpoint,
                         "time": a.scope.time,
@@ -354,21 +384,8 @@ class LogicProgram:
             ],
             "rules": [
                 {
-                    "head": {
-                        "subject": r.head.subject,
-                        "predicate": r.head.predicate,
-                        "obj": r.head.obj,
-                        "obj_is_literal": r.head.obj_is_literal,
-                    },
-                    "body": [
-                        {
-                            "subject": b.subject,
-                            "predicate": b.predicate,
-                            "obj": b.obj,
-                            "obj_is_literal": b.obj_is_literal,
-                        }
-                        for b in r.body
-                    ],
+                    "head": _axiom_dict(r.head),
+                    "body": [_axiom_dict(b) for b in r.body],
                     "scope": {
                         "standpoint": r.scope.standpoint,
                         "time": r.scope.time,

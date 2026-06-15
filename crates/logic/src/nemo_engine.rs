@@ -493,6 +493,45 @@ impl NemoParsedRules {
         Ok(Self { program })
     }
 
+    /// Parse a Nemo rule program **without** the semantic-validation pass.
+    ///
+    /// [`Self::parse`] (via [`nemo::api::load_program`]) runs Nemo's validator,
+    /// which *rejects* the very rule shapes the static certifier exists to flag —
+    /// e.g. a head variable not bound by a positive body atom (Nemo error 202,
+    /// "unsafe variable used in rule head") or a rule with no positive literals
+    /// (error 994, "rule without positive literals are currently unsupported").
+    /// The certifier must *see* those rules to diagnose them (DL-safety,
+    /// PositiveHorn-negation, StratifiedNAF cycles), so it parses with the
+    /// translation-only path [`ProgramHandle::from_file`] + `materialize`, which
+    /// builds the `Program` from the AST translation without the safety
+    /// validation that `load_program` applies afterwards.
+    ///
+    /// Genuine *syntax* errors still fail here (they originate in the parser, not
+    /// the validator), so malformed `.rls` is still rejected loudly.
+    ///
+    /// # Errors
+    ///
+    /// Returns a string error if Nemo cannot lex/parse the program text.
+    pub fn parse_unvalidated(rules: &str) -> Result<Self, String> {
+        use nemo::rule_file::RuleFile;
+        use nemo::rule_model::programs::handle::ProgramHandle;
+        use nemo::rule_model::programs::ProgramWrite;
+
+        let file = RuleFile::new(rules.to_owned(), "<gmeow-logic-certify>".to_owned());
+        let warned = ProgramHandle::from_file(&file)
+            .map_err(|report| format!("nemo parse error: {report:?}"))?;
+        let handle = warned.into_object();
+
+        // Materialize a `Program` from the translated statements (no validation).
+        // `handle.materialize()` is private to crate visibility for some Nemo
+        // revisions, so rebuild via the public `ProgramRead`/`ProgramWrite` API.
+        let mut program = Program::default();
+        for statement in handle.statements() {
+            program.add_statement(statement.clone());
+        }
+        Ok(Self { program })
+    }
+
     /// Validate a Nemo rule string and return any diagnostics as a string.
     ///
     /// This is a pure syntax/semantic check; no engine is instantiated.

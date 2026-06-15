@@ -1,0 +1,6 @@
+{
+  "https://example.org/profiles/stable-model/world-choice": {
+    "quads": 1,
+    "status": "consistent"
+  }
+}

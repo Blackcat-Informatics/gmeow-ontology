@@ -59,7 +59,8 @@ from __future__ import annotations
 
 import io
 import logging
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from hashlib import sha1
 from typing import NamedTuple
 
@@ -125,6 +126,192 @@ class MaterializationError(Exception):
 # --------------------------------------------------------------------------- #
 
 
+# --------------------------------------------------------------------------- #
+# Budget governor (issue #502, Task 3)
+# --------------------------------------------------------------------------- #
+
+#: Canonical budget-status spellings.  These MUST stay byte-identical to the
+#: Rust ``BudgetStatus::as_str()`` mapping (crates/logic/src/seam.rs):
+#: ``Ok -> "ok"``, ``Partial -> "partial"``, ``Exhausted -> "exhausted"``.
+_BUDGET_OK = "ok"
+_BUDGET_EXHAUSTED = "exhausted"
+
+
+@dataclass(frozen=True, slots=True)
+class BudgetParams:
+    """Declared runtime ceilings for the forward chase.
+
+    A ceiling of ``None`` means *unbounded* for that dimension; ``None``
+    everywhere (the default for every field) means the chase runs to full
+    fixpoint with no governance whatsoever.
+
+    The all-``None`` (unbounded) default is **deliberate, not an oversight**:
+    it is a documented default-off posture chosen so that the existing #501
+    materialisation corpus stays byte-identical.  A caller must *opt in* to
+    governance by passing an explicit ceiling; until then the oracle behaves
+    exactly as it did before #502 (every quad ``budget_status="ok"``,
+    :attr:`MaterializationResult.incomplete` ``False``).
+
+    Non-``None`` ceilings must be positive :class:`int` values (``bool``
+    is rejected as a type error; zero or negative values are rejected as a
+    value error).
+
+    Determinism note
+    ----------------
+    :attr:`max_rule_firings` and :attr:`max_answers` are deterministic gates
+    (they count discrete, reproducible events) and are the ceilings used in
+    committed conformance fixtures.  :attr:`time_ms` is inherently
+    nondeterministic (wall-clock dependent); it still produces a *sound* partial
+    result on exhaustion, but per the gate-health doctrine it must NOT be used
+    in committed conformance fixtures.
+
+    Attributes:
+        time_ms: Wall-clock ceiling in milliseconds, or ``None`` for unbounded.
+        max_rule_firings: Maximum number of rule firings (derived quads), or
+            ``None`` for unbounded.
+        max_answers: Maximum number of derived answers (quads) to keep, or
+            ``None`` for unbounded.
+    """
+
+    time_ms: int | None = None
+    max_rule_firings: int | None = None
+    max_answers: int | None = None
+
+    def __post_init__(self) -> None:
+        """Validate that each non-None ceiling is a positive int (not bool).
+
+        ``None`` is always accepted (unbounded — the documented default-off
+        posture).  A ``bool`` value is rejected via :exc:`TypeError` because
+        ``bool`` is a subclass of ``int`` and ``True``/``False`` ceilings are
+        nonsensical.  A zero or negative ceiling is rejected via
+        :exc:`ValueError`.
+        """
+        for name, v in (
+            ("time_ms", self.time_ms),
+            ("max_rule_firings", self.max_rule_firings),
+            ("max_answers", self.max_answers),
+        ):
+            if v is None:
+                continue
+            if isinstance(v, bool) or not isinstance(v, int):
+                raise TypeError(
+                    f"{name} must be an int or None, got {type(v).__name__}"
+                )
+            if v <= 0:
+                raise ValueError(f"{name} must be a positive int or None, got {v}")
+
+    def is_unbounded(self) -> bool:
+        """Return True iff every ceiling is ``None`` (no governance at all)."""
+        return (
+            self.time_ms is None
+            and self.max_rule_firings is None
+            and self.max_answers is None
+        )
+
+
+@dataclass(slots=True)
+class BudgetState:
+    """Mutable per-run tracker enforcing the :class:`BudgetParams` ceilings.
+
+    One instance is created per chase run and threaded through the round loop.
+    The honesty invariant is *structural*: when a ceiling is hit the chase
+    stops mid-loop and the already-emitted quads are tagged with
+    :meth:`status_str`.  No quad is ever fabricated and no exception is raised
+    on exhaustion — the kept set is always a sound subset of the full fixpoint.
+
+    The ``"partial"`` Rust spelling is intentionally **not** produced here: the
+    Python oracle has no mid-round partial-closure state, so a run is either
+    fully within budget (``"ok"``) or it stopped early (``"exhausted"``).
+    """
+
+    params: BudgetParams
+    firings: int = 0
+    answers: int = 0
+    exhausted: bool = False
+    #: Set only when the WALL-CLOCK ceiling trips.  Unlike the deterministic
+    #: count ceilings, a time cut must stop the chase immediately (runaway
+    #: protection), so it is tracked separately from :attr:`exhausted`.
+    time_exhausted: bool = False
+    reason: str | None = None
+    _start: float = field(default_factory=time.monotonic)
+
+    def note_firing(self) -> None:
+        """Record one rule firing; flag exhaustion if the firing ceiling is met.
+
+        Called *after* a derived quad is appended.  Reaching the
+        ``max_rule_firings`` ceiling marks the run exhausted (so the result is
+        tagged incomplete and post-hoc truncated), but it **does not stop the
+        chase**: the count ceilings let the chase reach full fixpoint and then
+        truncate to a canonical-sort prefix of the *complete* derivation set.
+        This makes the kept set a deterministic, **evaluation-order-independent**
+        function of (program, input, budget) — the only contract under which the
+        Python oracle and the Rust engine can keep the *same* truncated quad set
+        (Principle 7).  Only :meth:`check_time` stops the chase early (runaway
+        protection); a wall-clock cut is inherently nondeterministic and is never
+        used in committed conformance fixtures.
+        """
+        self.firings += 1
+        ceiling = self.params.max_rule_firings
+        if ceiling is not None and self.firings >= ceiling and not self.exhausted:
+            self.exhausted = True
+            self.reason = f"max_rule_firings={ceiling} reached"
+
+    def note_answers(self, count: int) -> None:
+        """Record the current derived-answer count; flag exhaustion if exceeded.
+
+        Like :meth:`note_firing`, reaching ``max_answers`` marks the run
+        exhausted for the incompleteness tag + post-hoc truncation, but does not
+        stop the chase — see that method for the engine-parity rationale.
+
+        Args:
+            count: The running number of derived answers (quads) emitted.
+        """
+        self.answers = count
+        ceiling = self.params.max_answers
+        if ceiling is not None and self.answers >= ceiling and not self.exhausted:
+            self.exhausted = True
+            self.reason = f"max_answers={ceiling} reached"
+
+    def check_time(self) -> None:
+        """Flag exhaustion if the elapsed wall-clock exceeds the time ceiling."""
+        ceiling = self.params.time_ms
+        if ceiling is None or self.time_exhausted:
+            return
+        elapsed_ms = (time.monotonic() - self._start) * 1000.0
+        if elapsed_ms >= ceiling:
+            self.time_exhausted = True
+            self.exhausted = True
+            self.reason = f"time_ms={ceiling} exceeded"
+
+    def should_stop_chase(self) -> bool:
+        """Return True iff the chase must stop NOW (wall-clock ceiling only).
+
+        The deterministic count ceilings (``max_rule_firings`` / ``max_answers``)
+        do **not** stop the chase — they let it reach fixpoint so the post-hoc
+        truncation is a canonical prefix of the *complete* derivation set
+        (engine-parity contract).  Only a wall-clock cut forces an early stop.
+        """
+        return self.time_exhausted
+
+    def is_exhausted(self) -> bool:
+        """Return True iff any ceiling has tripped.
+
+        Accessor used in the chase loop guards so the exhaustion check is opaque
+        to the type-narrower (the flag is mutated by :meth:`note_firing` etc.
+        across method-call boundaries, which static narrowing of the bare
+        attribute would otherwise miss).
+        """
+        return self.exhausted
+
+    def status_str(self) -> str:
+        """Return the canonical budget status for quads emitted by this run.
+
+        Returns ``"exhausted"`` once any ceiling has tripped, otherwise
+        ``"ok"``.  ``"partial"`` is never returned (see class docstring).
+        """
+        return _BUDGET_EXHAUSTED if self.exhausted else _BUDGET_OK
+
+
 @dataclass(frozen=True, slots=True)
 class LossEntry:
     """A record of a construct narrowed during the chase.
@@ -160,7 +347,10 @@ class DerivedQuad(NamedTuple):
             ``assert:`` sentinel for input facts).
         source_quad_ids: Reifier IRIs of the antecedent quads.
         profile: IRI of the semantic/decidability profile in force.
-        budget_status: Always ``"ok"`` (guaranteed by the monotonic core).
+        budget_status: ``"ok"`` for a run that reached fixpoint within budget;
+            ``"exhausted"`` for every quad emitted by a run that hit a
+            :class:`BudgetParams` ceiling (issue #502).  Canonical spellings
+            mirror the Rust ``BudgetStatus`` enum.
     """
 
     graph: str
@@ -187,6 +377,13 @@ class MaterializationResult:
         loss_entries: Constructs narrowed during the chase (for Task 5).
         input_quad_count: Number of input (asserted) quads.
         derived_quad_count: Number of freshly derived quads (not in input).
+        budget_status: The worst-of budget status across all worlds —
+            ``"exhausted"`` if any world hit a :class:`BudgetParams` ceiling,
+            else ``"ok"`` (issue #502, AC-B incompleteness marker).
+        incomplete: ``True`` iff :attr:`budget_status` is ``"exhausted"`` — the
+            explicit incompleteness marker required by AC-B.  When ``True`` the
+            ``quads`` are a *sound subset* of the full fixpoint, never a false
+            answer.
     """
 
     quads: tuple[DerivedQuad, ...]
@@ -195,6 +392,8 @@ class MaterializationResult:
     loss_entries: tuple[LossEntry, ...]
     input_quad_count: int
     derived_quad_count: int
+    budget_status: str
+    incomplete: bool
 
 
 # --------------------------------------------------------------------------- #
@@ -597,6 +796,7 @@ def _build_asserted_quad(
     p: URIRef | Literal,
     o: URIRef | Literal,
     profile_iri: str,
+    budget_status: str,
 ) -> DerivedQuad:
     """Build a DerivedQuad record for an asserted (input) fact.
 
@@ -609,6 +809,7 @@ def _build_asserted_quad(
         p: Skolemized predicate.
         o: Skolemized object.
         profile_iri: The profile IRI for this run.
+        budget_status: Canonical budget status to stamp on the quad.
 
     Returns:
         A :class:`DerivedQuad` with ``rule_iri = logic:assert``.
@@ -631,7 +832,7 @@ def _build_asserted_quad(
         rule_iri=_ASSERT_RULE_IRI,
         source_quad_ids=[reifier],
         profile=profile_iri,
-        budget_status="ok",
+        budget_status=budget_status,
     )
 
 
@@ -640,30 +841,48 @@ def _chase_world(
     initial_facts: list[tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]],
     program: LogicProgram,
     profile_iri: str,
+    budget: BudgetParams | None = None,
 ) -> tuple[
     list[DerivedQuad],
     list[tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]],
     list[LossEntry],
+    BudgetState,
 ]:
-    """Run the forward chase in one world to fixpoint.
+    """Run the forward chase in one world to fixpoint (or until budget exhausts).
 
     Implements semi-naive evaluation: we track the 'delta' (newly derived facts)
     and in each round only attempt to fire rules where at least one body atom
     matches a delta fact.  For the v1 monotonic Horn profile this terminates
     when no new facts can be derived.
 
+    Budget governance (issue #502)
+    ------------------------------
+    When ``budget`` declares a ceiling, a :class:`BudgetState` enforces it.  On
+    exhaustion the chase STOPS mid-loop and breaks out of the round loop — it
+    never raises and never fabricates a quad.  Every quad already emitted is
+    tagged with the run's :meth:`BudgetState.status_str`, so the kept set is a
+    sound subset of the full fixpoint.  Under a ``max_answers`` cap the derived
+    quads are deterministically truncated to the canonical-sort prefix so the
+    cap is honoured exactly and reproducibly.
+
+    With ``budget=None`` (or an all-unbounded :class:`BudgetParams`) the run is
+    byte-identical to the pre-#502 behaviour: every quad ``budget_status="ok"``.
+
     Args:
         world_iri: The world IRI (for provenance records).
         initial_facts: The Skolemized asserted (S, P, O) facts for this world.
         program: The compiled logic program (provides rules).
         profile_iri: The profile IRI for seam metadata.
+        budget: Optional runtime ceilings; ``None`` means unbounded.
 
     Returns:
-        A 3-tuple:
+        A 4-tuple:
         - list of all DerivedQuad records (asserted + derived),
         - list of all (S, P, O) facts after closure (for the no-occurrence gate),
-        - list of LossEntry records for non-Horn constructs.
+        - list of LossEntry records for non-Horn constructs,
+        - the :class:`BudgetState` for this run (carries exhaustion status).
     """
+    budget_state = BudgetState(params=budget if budget is not None else BudgetParams())
     loss_entries: list[LossEntry] = []
 
     # Warn on non-POSITIVE_HORN profile (loss in v1)
@@ -694,7 +913,11 @@ def _chase_world(
     all_quads: list[DerivedQuad] = []
     for s, p, o in initial_facts:
         if isinstance(s, URIRef) and isinstance(p, URIRef):
-            all_quads.append(_build_asserted_quad(world_iri, s, p, o, profile_iri))
+            all_quads.append(
+                _build_asserted_quad(
+                    world_iri, s, p, o, profile_iri, budget_state.status_str()
+                )
+            )
         else:
             # Subjects that are still non-URI after Skolemization (shouldn't
             # happen, but hard-fail rather than silently skip)
@@ -714,11 +937,23 @@ def _chase_world(
     # facts (using the delta for the semi-naive optimization).
     # For v1 Horn rules: all body atoms are positive; no negation.
     for _round in range(10_000):  # hard iteration cap (should terminate much sooner)
+        # Budget gate: re-check wall-clock at the top of every round.  Only a
+        # WALL-CLOCK cut stops the chase early (runaway protection); the
+        # deterministic count ceilings let the chase reach fixpoint so the
+        # post-hoc truncation is a canonical prefix of the COMPLETE derivation
+        # set — the evaluation-order-independent contract required for oracle ≡
+        # engine parity (Principle 7).
+        budget_state.check_time()
+        if budget_state.should_stop_chase():
+            break
+
         new_delta: list[
             tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]
         ] = []
 
         for rule in program.rules:
+            if budget_state.should_stop_chase():
+                break
             if not rule.body:
                 # Zero-body rules (facts-as-rules): emit head unconditionally
                 head = rule.head
@@ -745,9 +980,14 @@ def _chase_world(
                         rule_iri=rule_iri,
                         source_quad_ids=[],
                         profile=profile_iri,
-                        budget_status="ok",
+                        budget_status=budget_state.status_str(),
                     )
                 )
+                budget_state.note_firing()
+                budget_state.note_answers(len(derived_quads))
+                budget_state.check_time()
+                if budget_state.should_stop_chase():
+                    break
                 continue
 
             # For rules with body: join all atoms against the current fact base.
@@ -819,10 +1059,17 @@ def _chase_world(
                         rule_iri=rule_iri,
                         source_quad_ids=source_reifiers,
                         profile=profile_iri,
-                        budget_status="ok",
+                        budget_status=budget_state.status_str(),
                     )
                 )
+                budget_state.note_firing()
+                budget_state.note_answers(len(derived_quads))
+                budget_state.check_time()
+                if budget_state.should_stop_chase():
+                    break
 
+        if budget_state.should_stop_chase():
+            break  # wall-clock cut — stop the chase (sound partial result)
         if not new_delta:
             break  # fixpoint reached
         delta = new_delta
@@ -833,9 +1080,50 @@ def _chase_world(
             "10,000 rounds. Check for non-terminating rules."
         )
 
+    # Deterministic truncation under the DERIVED-quad count ceilings.  Because
+    # the chase ran to FULL fixpoint (only a wall-clock cut stops it early), the
+    # derived set here is COMPLETE, so truncating it to the canonical-sort PREFIX
+    # yields an evaluation-order-independent kept set: the SAME quads the Rust
+    # engine keeps (it likewise runs to fixpoint then truncates), giving oracle ≡
+    # engine parity (Principle 7).  Both ``max_rule_firings`` and ``max_answers``
+    # bound the count of DERIVED (IDB) quads; the effective cap is the minimum of
+    # the declared ceilings.  Asserted EDB facts live in ``all_quads`` and are
+    # never truncated by a derivation budget.  The canonical key
+    # ``(graph, subject, predicate, obj)`` is byte-identical to the engine's
+    # ``budget_sort_key`` (within this fixed world ``graph`` is constant, so the
+    # prefix is stable either way).
+    derived_caps = [
+        c
+        for c in (
+            budget_state.params.max_rule_firings,
+            budget_state.params.max_answers,
+        )
+        if c is not None
+    ]
+    if derived_caps:
+        derived_cap = min(derived_caps)
+        if len(derived_quads) > derived_cap:
+            derived_quads.sort(key=lambda q: (q.graph, q.subject, q.predicate, q.obj))
+            derived_quads = derived_quads[:derived_cap]
+            # The full fixpoint exceeded the cap ⇒ exhausted, regardless of which
+            # ceiling tripped during the chase (note_firing/note_answers already
+            # set it, but a max_answers cap smaller than a single round's output
+            # is reasserted here for the rebuilt-to-fixpoint path).
+            if not budget_state.exhausted:
+                budget_state.exhausted = True
+                budget_state.reason = f"derived cap={derived_cap} exceeded at fixpoint"
+
+    # Final status stamp: once a run is exhausted EVERY quad it emitted
+    # (asserted + derived) carries "exhausted", so the result is unambiguously
+    # marked incomplete.  When not exhausted this is a no-op ("ok" everywhere).
+    final_status = budget_state.status_str()
+    if budget_state.is_exhausted():
+        all_quads = [q._replace(budget_status=final_status) for q in all_quads]
+        derived_quads = [q._replace(budget_status=final_status) for q in derived_quads]
+
     all_quads.extend(derived_quads)
     all_facts = list(fact_index.values())
-    return all_quads, all_facts, loss_entries
+    return all_quads, all_facts, loss_entries, budget_state
 
 
 def _join_body_atoms(
@@ -929,6 +1217,7 @@ def materialize_program(
     program: LogicProgram,
     input_graph: ConjunctiveGraph,
     profile: SemanticProfileId = SemanticProfileId.POSITIVE_HORN,
+    budget: BudgetParams | None = None,
 ) -> MaterializationResult:
     """Run the forward Horn chase to fixpoint over the input ConjunctiveGraph.
 
@@ -960,10 +1249,18 @@ def materialize_program(
         profile: The semantic profile to use.  v1 oracle supports only
             :attr:`~.logic_ir.SemanticProfileId.POSITIVE_HORN`; other profiles
             are recorded as loss entries and skipped.
+        budget: Optional runtime ceilings (issue #502).  ``None`` (the default)
+            means unbounded — the chase runs to full fixpoint and the result is
+            byte-identical to the pre-#502 behaviour (every quad
+            ``budget_status="ok"``, ``incomplete=False``).  When a ceiling is
+            passed and tripped, the result is a SOUND partial: kept quads carry
+            ``budget_status="exhausted"`` and :attr:`MaterializationResult.incomplete`
+            is ``True`` — never a false answer.
 
     Returns:
         A :class:`MaterializationResult` with all quads, worlds, profile,
-        loss entries, and counts.
+        loss entries, counts, and the aggregate budget status / incompleteness
+        marker.
 
     Raises:
         NoOccurrenceViolationError: If any world contains a token gufo:Event instance.
@@ -992,20 +1289,27 @@ def materialize_program(
     input_quad_count = 0
     derived_quad_count = 0
 
+    any_exhausted = False
     for world_iri, facts in sorted(world_facts.items()):
         input_quad_count += len(facts)
-        world_quads, closed_facts, loss = _chase_world(
-            world_iri, facts, program, profile_iri
+        world_quads, closed_facts, loss, world_budget = _chase_world(
+            world_iri, facts, program, profile_iri, budget
         )
         derived_quad_count += len(world_quads) - len(facts)
         all_quads.extend(world_quads)
         all_loss_entries.extend(loss)
+        if world_budget.exhausted:
+            any_exhausted = True
 
         # No-occurrence gate (Stratum B)
         _assert_no_occurrence(world_iri, closed_facts, event_subclasses)
 
     # Sort output deterministically: world IRI, then S/P/O N3-lex order
     all_quads.sort(key=lambda q: (q.graph, q.subject, q.predicate, q.obj))
+
+    # Aggregate budget status: worst-of across all worlds (AC-B incompleteness
+    # marker).  "exhausted" if ANY world tripped a ceiling, else "ok".
+    aggregate_status = _BUDGET_EXHAUSTED if any_exhausted else _BUDGET_OK
 
     return MaterializationResult(
         quads=tuple(all_quads),
@@ -1014,4 +1318,6 @@ def materialize_program(
         loss_entries=tuple(all_loss_entries),
         input_quad_count=input_quad_count,
         derived_quad_count=derived_quad_count,
+        budget_status=aggregate_status,
+        incomplete=any_exhausted,
     )

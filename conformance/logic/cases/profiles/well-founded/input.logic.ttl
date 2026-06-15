@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: profiles/well-founded
+# AC: profiles — a rule set valid under WellFounded semantics certifies clean.
+#
+# Well-founded semantics is three-valued, total and polynomial, and — unlike
+# StratifiedNAF — TOLERATES recursion through negation. The classic example is
+# the game-graph `win` rule: a position wins iff some move leads to a position
+# that does NOT win. That self-recursion through negation is NOT stratifiable
+# (StratifiedNAF would flag it), yet it is a perfectly normal program with a
+# unique well-founded model. The WellFounded certifier requires only a normal
+# rule that is DL-safe (every variable bound by a positive body atom) and
+# acyclic over existential positions; this rule set satisfies all three, so it
+# certifies clean: certified:true, decidability_class three-valued/PTIME.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/well-founded/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sort used by the projection back-ends.
+ex:Position a logic:Kind .
+
+# Rule: a position wins iff there is a move to a position that does NOT win.
+# Recursion through the negated `win` atom is admissible under WellFounded.
+# Both ?X and ?Y are bound by the positive `move` atom (DL-safe).
+#   ?X win ?X  :-  ?X move ?Y , NOT ?Y win ?Y
+ex:ruleWin a logic:Rule ;
+    logic:provenance ex:ruleWin ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:win ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:move ;
+        rdf:object    "?Y"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:win ;
+        rdf:object    "?Y"
+    ] .
