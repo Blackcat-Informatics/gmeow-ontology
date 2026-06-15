@@ -1,0 +1,6 @@
+{
+  "https://example.org/profiles/well-founded/world-game": {
+    "quads": 1,
+    "status": "consistent"
+  }
+}

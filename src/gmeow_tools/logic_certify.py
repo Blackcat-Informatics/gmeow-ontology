@@ -310,12 +310,22 @@ def stratify(graph: PredicateDepGraph) -> StratificationResult:
 def _shortest_cycle(
     adj: dict[str, list[str]], src: str, dst: str
 ) -> tuple[str, ...] | None:
-    """A deterministic shortest path ``src → … → dst`` rendered as a cycle.
+    """The offending predicate cycle that closes through a negated dependency.
 
-    Used to render the offending cycle when a negative edge ``dst ← src`` lies
-    inside an SCC: the returned tuple is ``(dst, …, src, dst)`` — the cycle
-    closing back through the negated dependency.  BFS over sorted successors
-    gives the shortest, deterministic witness.
+    The adjacency runs ``head → body`` (a head predicate depends on each body
+    predicate).  A negated dependency is the edge ``dst ← src`` (rule head
+    ``dst`` with a negation-as-failure body atom on ``src``); for it to lie inside
+    a strongly-connected component, ``src`` must reach ``dst`` again along the
+    positive/negative dependency edges.  This helper finds that return path
+    ``src → … → dst`` by BFS over sorted successors (the shortest, deterministic
+    witness) and renders the full cycle **closing back to the head**:
+
+        ``(dst, src, …, dst)``  — i.e. ``head → body → … → head``.
+
+    For a self-loop (``src == dst``) the cycle is the single repeated node
+    ``(dst, dst)`` — e.g. ``[p -> p]``.  The returned tuple is therefore always
+    non-empty and always starts and ends with ``dst`` (the negated head), so
+    :func:`_render_cycle` can never produce a blank cycle.
     """
     if src == dst:
         return (dst, dst)
@@ -327,14 +337,16 @@ def _shortest_cycle(
             if succ not in prev:
                 prev[succ] = node
                 if succ == dst:
+                    # Reconstruct the return path src → … → dst.
                     path = [dst]
                     cur = dst
                     while cur != src:
                         cur = prev[cur]
                         path.append(cur)
-                    path.reverse()
-                    # path is src→…→dst; close the cycle: dst, …, src, dst
-                    return (*tuple(reversed(path)), path[0])
+                    path.reverse()  # now src → … → dst
+                    # Close the cycle through the negated head edge dst ← src:
+                    # head(dst) → body(src) → … → dst → back to head(dst).
+                    return (dst, *path)
                 queue.append(succ)
     return None
 

@@ -475,8 +475,14 @@ pub fn tarjan_scc(graph: &BTreeMap<String, Vec<String>>) -> Vec<BTreeSet<String>
     result
 }
 
-/// A deterministic shortest path `src → … → dst` rendered as a cycle
-/// `(dst, …, src, dst)` — the cycle closing back through the negated dependency.
+/// The offending predicate cycle that closes through a negated dependency.
+///
+/// The adjacency runs `head → body`. A negated dependency is the edge `dst ← src`
+/// (rule head `dst` with a negation-as-failure body atom on `src`); inside an SCC
+/// `src` reaches `dst` again, so the rendered cycle closes back to the head:
+/// `(dst, src, …, dst)` — i.e. `head → body → … → head`. A self-loop renders as
+/// `(dst, dst)` (e.g. `[p -> p]`). The result is always non-empty and always
+/// starts and ends with `dst`, so `render_cycle` can never produce a blank cycle.
 /// BFS over sorted successors. Mirrors Python `_shortest_cycle`.
 fn shortest_cycle(
     adj: &BTreeMap<String, Vec<String>>,
@@ -496,7 +502,7 @@ fn shortest_cycle(
                 if !prev.contains_key(succ) {
                     prev.insert(succ.clone(), node.clone());
                     if succ == dst {
-                        // Reconstruct src→…→dst, then close the cycle dst,…,src,dst.
+                        // Reconstruct the return path src → … → dst.
                         let mut path = vec![dst.to_owned()];
                         let mut cur = dst.to_owned();
                         while cur != src {
@@ -504,9 +510,12 @@ fn shortest_cycle(
                             path.push(cur.clone());
                         }
                         path.reverse(); // now src → … → dst
-                                        // Python: (*reversed(path), path[0]) = (dst,…,src, dst)
-                        let mut cycle: Vec<String> = path.iter().rev().cloned().collect();
-                        cycle.push(path[0].clone());
+                                        // Close the cycle through the negated head
+                                        // edge dst ← src: head(dst) → body(src) → … → dst.
+                                        // Python: (dst, *path).
+                        let mut cycle: Vec<String> = Vec::with_capacity(path.len() + 1);
+                        cycle.push(dst.to_owned());
+                        cycle.extend(path.iter().cloned());
                         return Some(cycle);
                     }
                     queue.push_back(succ.clone());
@@ -924,10 +933,11 @@ mod tests {
         assert!(cycle.contains("not stratifiable"));
         assert!(cycle.contains("LOGIC-SEMANTICS.md §Semantic profiles"));
         // The exact rendered cycle: negative edge (p ← q); shortest_cycle BFS from
-        // body `q` to head `p` yields the closing form `[p -> q -> q]` — identical
-        // to the Python oracle (verified against logic_certify.py).
+        // body `q` to head `p` yields the closing form `[p -> q -> p]` — the cycle
+        // closes back to the negated head, identical to the Python oracle
+        // (verified against logic_certify.py).
         assert!(
-            cycle.contains(&format!("[{P} -> {Q} -> {Q}]")),
+            cycle.contains(&format!("[{P} -> {Q} -> {P}]")),
             "unexpected cycle text: {cycle}"
         );
     }

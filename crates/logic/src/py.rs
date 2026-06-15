@@ -685,18 +685,25 @@ fn budget_sort_key(dq: &DerivedQuad) -> (String, String, String, String) {
 
 /// Apply the post-hoc budget ceilings to the materialized quads.
 ///
-/// Enforcement (mirrors the Python `BudgetState` ceilings, applied post-fixpoint):
-/// - `max_rule_firings` bounds the number of **derived (IDB)** quads kept;
-/// - `max_answers` bounds the total number of derived quads kept;
-/// - `time_ms` bounds the post-fixpoint wall-clock (decode + bookkeeping); when
-///   exceeded, the result is marked exhausted but **not** truncated below the
-///   count ceilings (we never fabricate; we keep the sound subset computed so
-///   far).
+/// Enforcement (mirrors the Python `materialize_program` ceilings, applied
+/// post-fixpoint — see `gmeow_tools.logic_materialize`):
+/// - **Asserted EDB facts are GIVEN and are NEVER truncated by a derivation
+///   budget.** They are always kept in full; only **derived (IDB)** quads are
+///   bounded. This is the sound-partial contract: a budget bounds derivation
+///   work, not the input. (The Python oracle keeps EDB in a separate list that
+///   the truncation never touches; this mirrors that.)
+/// - `max_rule_firings` and `max_answers` each bound the count of **derived**
+///   quads; the effective derived cap is the minimum of the declared ceilings.
+///   The kept derived set is the canonical-sort PREFIX (by [`budget_sort_key`])
+///   so a truncation is a reproducible, sound subset, identical to the Python
+///   oracle's `(graph, subject, predicate, obj)` prefix.
+/// - `time_ms` bounds the post-fixpoint wall-clock; when exceeded the result is
+///   marked exhausted but never truncated below the count ceilings (we keep the
+///   sound subset computed so far; we never fabricate).
 ///
-/// The result is sorted by [`budget_sort_key`] so any truncation is a prefix of a
-/// stable order. When a ceiling trips, **every kept quad** is stamped
-/// `BudgetStatus::Exhausted` (matching the Python oracle, which stamps every quad
-/// of an exhausted run), signalling that the kept set is a sound subset of the
+/// When a ceiling trips, **every kept quad** (EDB and derived alike) is stamped
+/// `BudgetStatus::Exhausted`, matching the Python oracle, which stamps every quad
+/// of an exhausted run so the kept set is unambiguously a sound subset of the
 /// full fixpoint, not the complete answer.
 fn apply_budget(
     quads: Vec<(DerivedQuad, bool)>,
@@ -705,41 +712,34 @@ fn apply_budget(
     time_ms: Option<u64>,
     start: Instant,
 ) -> Vec<DerivedQuad> {
-    // Deterministic canonical order so a truncation is a sound prefix.
-    let mut quads = quads;
-    quads.sort_by(|(a, _), (b, _)| budget_sort_key(a).cmp(&budget_sort_key(b)));
-
-    // Compute the keep-count from the firing/answer ceilings.
-    // `max_answers` bounds all derived quads; `max_rule_firings` bounds IDB quads.
-    // We walk the canonical order, counting IDB rows, and stop at the first
-    // ceiling hit — the kept rows are exactly the prefix up to that point.
-    let mut keep: usize = quads.len();
-    let mut exhausted = false;
-
-    if let Some(limit) = max_answers {
-        let limit = limit as usize;
-        if quads.len() > limit {
-            keep = keep.min(limit);
-            exhausted = true;
+    // Split EDB (asserted, always kept) from IDB (derived, bounded by budget).
+    let mut edb: Vec<DerivedQuad> = Vec::new();
+    let mut idb: Vec<DerivedQuad> = Vec::new();
+    for (dq, is_edb) in quads {
+        if is_edb {
+            edb.push(dq);
+        } else {
+            idb.push(dq);
         }
     }
-    if let Some(limit) = max_rule_firings {
-        // Count IDB (derived) rows along the canonical order; cut after the
-        // `limit`-th IDB row.
-        let limit = limit as usize;
-        let mut idb_seen: usize = 0;
-        let mut cut_at: Option<usize> = None;
-        for (idx, (_dq, is_edb)) in quads.iter().enumerate() {
-            if !*is_edb {
-                idb_seen += 1;
-                if idb_seen > limit {
-                    cut_at = Some(idx);
-                    break;
-                }
-            }
-        }
-        if let Some(idx) = cut_at {
-            keep = keep.min(idx);
+
+    // Deterministic canonical order over the DERIVED quads so a truncation is a
+    // sound prefix identical to the Python oracle's.
+    idb.sort_by_key(budget_sort_key);
+
+    // Effective derived cap = min of the declared count ceilings (each bounds
+    // derived quads). EDB is never counted against either ceiling.
+    let derived_cap: Option<usize> = match (max_rule_firings, max_answers) {
+        (Some(a), Some(b)) => Some((a.min(b)) as usize),
+        (Some(a), None) => Some(a as usize),
+        (None, Some(b)) => Some(b as usize),
+        (None, None) => None,
+    };
+
+    let mut exhausted = false;
+    if let Some(cap) = derived_cap {
+        if idb.len() > cap {
+            idb.truncate(cap);
             exhausted = true;
         }
     }
@@ -759,10 +759,12 @@ fn apply_budget(
         BudgetStatus::Ok
     };
 
-    quads
-        .into_iter()
-        .take(keep)
-        .map(|(mut dq, _edb)| {
+    // Emit EDB (full) + bounded IDB, all stamped with the run status. The kept
+    // set ordering is not contractual (the diff compares quad SETS, not order),
+    // but EDB-then-IDB keeps the output readable.
+    edb.into_iter()
+        .chain(idb)
+        .map(|mut dq| {
             dq.budget_status = status;
             dq
         })

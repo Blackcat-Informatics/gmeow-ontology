@@ -201,15 +201,27 @@ class BudgetState:
     firings: int = 0
     answers: int = 0
     exhausted: bool = False
+    #: Set only when the WALL-CLOCK ceiling trips.  Unlike the deterministic
+    #: count ceilings, a time cut must stop the chase immediately (runaway
+    #: protection), so it is tracked separately from :attr:`exhausted`.
+    time_exhausted: bool = False
     reason: str | None = None
     _start: float = field(default_factory=time.monotonic)
 
     def note_firing(self) -> None:
         """Record one rule firing; flag exhaustion if the firing ceiling is met.
 
-        Called *after* a derived quad is appended.  When the count reaches the
-        ceiling the chase stops at the next gate check, so the firing that hit
-        the ceiling is the last quad kept.
+        Called *after* a derived quad is appended.  Reaching the
+        ``max_rule_firings`` ceiling marks the run exhausted (so the result is
+        tagged incomplete and post-hoc truncated), but it **does not stop the
+        chase**: the count ceilings let the chase reach full fixpoint and then
+        truncate to a canonical-sort prefix of the *complete* derivation set.
+        This makes the kept set a deterministic, **evaluation-order-independent**
+        function of (program, input, budget) — the only contract under which the
+        Python oracle and the Rust engine can keep the *same* truncated quad set
+        (Principle 7).  Only :meth:`check_time` stops the chase early (runaway
+        protection); a wall-clock cut is inherently nondeterministic and is never
+        used in committed conformance fixtures.
         """
         self.firings += 1
         ceiling = self.params.max_rule_firings
@@ -219,6 +231,10 @@ class BudgetState:
 
     def note_answers(self, count: int) -> None:
         """Record the current derived-answer count; flag exhaustion if exceeded.
+
+        Like :meth:`note_firing`, reaching ``max_answers`` marks the run
+        exhausted for the incompleteness tag + post-hoc truncation, but does not
+        stop the chase — see that method for the engine-parity rationale.
 
         Args:
             count: The running number of derived answers (quads) emitted.
@@ -232,15 +248,26 @@ class BudgetState:
     def check_time(self) -> None:
         """Flag exhaustion if the elapsed wall-clock exceeds the time ceiling."""
         ceiling = self.params.time_ms
-        if ceiling is None or self.exhausted:
+        if ceiling is None or self.time_exhausted:
             return
         elapsed_ms = (time.monotonic() - self._start) * 1000.0
         if elapsed_ms >= ceiling:
+            self.time_exhausted = True
             self.exhausted = True
             self.reason = f"time_ms={ceiling} exceeded"
 
+    def should_stop_chase(self) -> bool:
+        """Return True iff the chase must stop NOW (wall-clock ceiling only).
+
+        The deterministic count ceilings (``max_rule_firings`` / ``max_answers``)
+        do **not** stop the chase — they let it reach fixpoint so the post-hoc
+        truncation is a canonical prefix of the *complete* derivation set
+        (engine-parity contract).  Only a wall-clock cut forces an early stop.
+        """
+        return self.time_exhausted
+
     def is_exhausted(self) -> bool:
-        """Return True iff a ceiling has tripped.
+        """Return True iff any ceiling has tripped.
 
         Accessor used in the chase loop guards so the exhaustion check is opaque
         to the type-narrower (the flag is mutated by :meth:`note_firing` etc.
@@ -883,10 +910,14 @@ def _chase_world(
     # facts (using the delta for the semi-naive optimization).
     # For v1 Horn rules: all body atoms are positive; no negation.
     for _round in range(10_000):  # hard iteration cap (should terminate much sooner)
-        # Budget gate: re-check wall-clock at the top of every round and stop
-        # before doing more work if any ceiling has already tripped.
+        # Budget gate: re-check wall-clock at the top of every round.  Only a
+        # WALL-CLOCK cut stops the chase early (runaway protection); the
+        # deterministic count ceilings let the chase reach fixpoint so the
+        # post-hoc truncation is a canonical prefix of the COMPLETE derivation
+        # set — the evaluation-order-independent contract required for oracle ≡
+        # engine parity (Principle 7).
         budget_state.check_time()
-        if budget_state.is_exhausted():
+        if budget_state.should_stop_chase():
             break
 
         new_delta: list[
@@ -894,7 +925,7 @@ def _chase_world(
         ] = []
 
         for rule in program.rules:
-            if budget_state.is_exhausted():
+            if budget_state.should_stop_chase():
                 break
             if not rule.body:
                 # Zero-body rules (facts-as-rules): emit head unconditionally
@@ -928,7 +959,7 @@ def _chase_world(
                 budget_state.note_firing()
                 budget_state.note_answers(len(derived_quads))
                 budget_state.check_time()
-                if budget_state.is_exhausted():
+                if budget_state.should_stop_chase():
                     break
                 continue
 
@@ -1007,11 +1038,11 @@ def _chase_world(
                 budget_state.note_firing()
                 budget_state.note_answers(len(derived_quads))
                 budget_state.check_time()
-                if budget_state.is_exhausted():
+                if budget_state.should_stop_chase():
                     break
 
-        if budget_state.is_exhausted():
-            break  # budget tripped — stop the chase (sound partial result)
+        if budget_state.should_stop_chase():
+            break  # wall-clock cut — stop the chase (sound partial result)
         if not new_delta:
             break  # fixpoint reached
         delta = new_delta
@@ -1022,20 +1053,38 @@ def _chase_world(
             "10,000 rounds. Check for non-terminating rules."
         )
 
-    # Deterministic truncation under a max_answers cap.  The chase may have
-    # appended more than the ceiling on the round where it tripped (a single
-    # round emits many quads).  Truncate to exactly ``max_answers`` derived
-    # quads using the SAME canonical sort applied to the final output
-    # (subject/predicate/obj within this fixed world), so the kept set is the
-    # canonical-sort PREFIX — reproducible run-to-run and a sound subset.
-    max_answers = budget_state.params.max_answers
-    if (
-        budget_state.is_exhausted()
-        and max_answers is not None
-        and (len(derived_quads) > max_answers)
-    ):
-        derived_quads.sort(key=lambda q: (q.subject, q.predicate, q.obj))
-        derived_quads = derived_quads[:max_answers]
+    # Deterministic truncation under the DERIVED-quad count ceilings.  Because
+    # the chase ran to FULL fixpoint (only a wall-clock cut stops it early), the
+    # derived set here is COMPLETE, so truncating it to the canonical-sort PREFIX
+    # yields an evaluation-order-independent kept set: the SAME quads the Rust
+    # engine keeps (it likewise runs to fixpoint then truncates), giving oracle ≡
+    # engine parity (Principle 7).  Both ``max_rule_firings`` and ``max_answers``
+    # bound the count of DERIVED (IDB) quads; the effective cap is the minimum of
+    # the declared ceilings.  Asserted EDB facts live in ``all_quads`` and are
+    # never truncated by a derivation budget.  The canonical key
+    # ``(graph, subject, predicate, obj)`` is byte-identical to the engine's
+    # ``budget_sort_key`` (within this fixed world ``graph`` is constant, so the
+    # prefix is stable either way).
+    derived_caps = [
+        c
+        for c in (
+            budget_state.params.max_rule_firings,
+            budget_state.params.max_answers,
+        )
+        if c is not None
+    ]
+    if derived_caps:
+        derived_cap = min(derived_caps)
+        if len(derived_quads) > derived_cap:
+            derived_quads.sort(key=lambda q: (q.graph, q.subject, q.predicate, q.obj))
+            derived_quads = derived_quads[:derived_cap]
+            # The full fixpoint exceeded the cap ⇒ exhausted, regardless of which
+            # ceiling tripped during the chase (note_firing/note_answers already
+            # set it, but a max_answers cap smaller than a single round's output
+            # is reasserted here for the rebuilt-to-fixpoint path).
+            if not budget_state.exhausted:
+                budget_state.exhausted = True
+                budget_state.reason = f"derived cap={derived_cap} exceeded at fixpoint"
 
     # Final status stamp: once a run is exhausted EVERY quad it emitted
     # (asserted + derived) carries "exhausted", so the result is unambiguously
