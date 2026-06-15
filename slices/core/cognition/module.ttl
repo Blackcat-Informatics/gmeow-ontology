@@ -192,3 +192,50 @@ gmeow:isAwareOf   gmeow:pairsWith gmeow:KnowledgeProficiency .
 gmeow:knowsAbout  gmeow:pairsWith gmeow:KnowledgeProficiency .
 gmeow:understands gmeow:pairsWith gmeow:KnowledgeProficiency .
 gmeow:hasMastered gmeow:pairsWith gmeow:KnowledgeProficiency .
+
+# =========================================================================== #
+# ATTENTION, INTEREST, AND OBJECTUAL MEMORY — the further cognitive relations.
+# An agent records not only WHAT it knows but what it attends to, is curious
+# about, and remembers about a subject (the agent-memory flagship, Principle 15).
+# All Agent → Entity (open range), vantage-indexable via the statement layer.
+# Boundaries are documented WITHOUT axiom bridges (Principle 9).
+# =========================================================================== #
+
+gmeow:attendsTo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "attends to"@x-gmeow-english ;
+    skos:definition "Directed attention or salience of an agent toward a subject — what the agent is currently focused on. NOT a goal: an attentional pull, not a teleology:Desire — the axes stay orthogonal and are never bridged by axiom (Principle 9). Whose attention it is rides gmeow:accordingTo on the statement (self-attributed vs observer-attributed coexist)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:interestedIn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "interested in"@x-gmeow-english ;
+    skos:definition "A motivational orientation of an agent toward a subject — sustained interest that makes the subject worth attending to. An attentional/affective pull, NOT a teleology:Desire (a wanted goal); the boundary is documented, never an axiom (Principle 9). Whose interest it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:curiousAbout
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:interestedIn ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "curious about"@x-gmeow-english ;
+    skos:definition "An exploratory, knowledge-seeking orientation toward a subject — interest aimed at closing a knowledge gap. A specialization of gmeow:interestedIn (curiosity is interest with an epistemic appetite). Still an attentional pull, not a teleology:Desire (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:remembers
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:isAwareOf ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "remembers"@x-gmeow-english ;
+    skos:definition "Objectual memory-of: an agent remembers a SUBJECT (a person, place, topic, or event it has encountered). Sub-property of gmeow:isAwareOf — remembering a subject entails awareness of it. Distinct from gmeow:MemoryItem (the ai slice), which is a remembered CLAIM (propositional); this is remembering the thing, not a proposition about it. Bridge, documented NOT axiomatised (Principle 9): an agent's gmeow:remembers edges are typically backed by gmeow:MemoryItem observations about the subject and surfaced by the flagship's recall — see gmeow:memoryOf. Forgetting is suppression (gmeow:displayable false / closed scope), never deletion (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+# Boundaries between the cognitive relations and neighbouring slices — documented,
+# never bridged by axiom (Principle 9).
+gmeow:attendsTo skos:scopeNote "Boundary: attention/interest (cognition) ⊥ intention (teleology). attendsTo / interestedIn / curiousAbout are attentional-affective pulls toward a subject; a teleology:Desire/Intention is a goal-directed conative mode aimed at a state of affairs. No owl:subPropertyOf or owl:disjointWith ties them — the separation is conceptual, enforced by review (Principle 9)."@x-gmeow-english .
+gmeow:remembers skos:scopeNote "Boundary: objectual gmeow:remembers (a remembered subject) ⊥ propositional gmeow:MemoryItem (a remembered claim, ai slice). The link is a documented bridge through gmeow:memoryOf, not an axiom; cognition asserts no dependency on the ai slice (Principle 9)."@x-gmeow-english .
