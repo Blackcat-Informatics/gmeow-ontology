@@ -124,6 +124,28 @@ def test_knows_about_lifts_entity_as_fact_text_as_claim() -> None:
     )
 
 
+def test_reverse_projection_mints_structured_name() -> None:
+    """A flat foaf:familyName/givenName lifts to a STRUCTURED gmeow:PersonName with
+    typed name-parts (the contextual lift the flat rule can't express). Both parts
+    hang off ONE shared PersonName (deterministic mint keyed on the person)."""
+    foaf = "http://xmlns.com/foaf/0.1/"
+    p = URIRef("https://ex/p")
+    src = Graph()
+    src.add((p, URIRef(foaf + "givenName"), Literal("Ada")))
+    src.add((p, URIRef(foaf + "familyName"), Literal("Lovelace")))
+    out = up_project(src).graph
+    apps = set(out.objects(p, URIRef(GM + "hasName")))
+    assert len(apps) == 1, "given + family must share ONE PersonName"
+    app = next(iter(apps))
+    assert (app, RDF.type, URIRef(GM + "PersonName")) in out
+    parts = set(out.objects(app, URIRef(GM + "hasNamePart")))
+    types = {
+        o for part in parts for o in out.objects(part, URIRef(GM + "namePartType"))
+    }
+    assert URIRef(GM + "namePartGiven") in types
+    assert URIRef(GM + "namePartSurname") in types
+
+
 def test_value_mapped_inversion_lifts_documentary_literal() -> None:
     """A whenValue down-cell read backwards: a documentary value literal lifts to
     its gmeow value individual as a FACT (gedcom:sex "M" → sexAssignedAtBirth

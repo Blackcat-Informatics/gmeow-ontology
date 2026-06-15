@@ -579,6 +579,8 @@ class UpProjection:
     # orphaned keyword/language strings promoted to their anchored concept entity
     tag_resolved: int = 0
     tag_resolved_terms: dict[str, int] = field(default_factory=dict)
+    # structured triples minted by the reverse-projection pass (name parts, etc.)
+    minted: int = 0
 
 
 def _emit_claim(
@@ -722,6 +724,7 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
     acc.out.bind("gmeow", GM)
     for s, p, o in source:
         _lift_edge(acc, s, p, o, lift)
+    minted = _apply_reverse(source, acc)
     tag_terms = resolve_concept_references(source, acc.out)
     retag_graph_to_internal(acc.out)
     return UpProjection(
@@ -733,4 +736,25 @@ def up_project(source: Graph, lift: LiftMap | None = None) -> UpProjection:
         claim_terms=dict(acc.claims),
         tag_resolved=sum(tag_terms.values()),
         tag_resolved_terms=tag_terms,
+        minted=minted,
     )
+
+
+def _apply_reverse(source: Graph, acc: _Acc) -> int:
+    """Mint structured GMEOW from the flat consumer vocab (reverse projection).
+
+    A flat predicate that denotes a structured gmeow shape the down-projection
+    consumes (a name part, a kinship relator) is lifted by minting that structure
+    — the contextual lift the flat per-term rule cannot express. Returns the count
+    of minted triples (all bare facts: a documentary reverse projection is
+    faithful, not inferred).
+    """
+    from gmeow_tools.up_projection_reverse import apply_reverse
+
+    minted = apply_reverse(source)
+    count = 0
+    for s, p, o in minted:
+        if (s, p, o) not in acc.out:
+            acc.out.add((s, p, o))
+            count += 1
+    return count
