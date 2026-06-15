@@ -138,7 +138,7 @@ def _qid_anchored_label_index(lifted: Graph) -> dict[str, URIRef]:
         if not isinstance(tag, URIRef):
             continue
         if str(tag).startswith(_AUTHORITY_NS) or any(
-            str(o).startswith(_AUTHORITY_NS)
+            isinstance(o, URIRef) and str(o).startswith(_AUTHORITY_NS)
             for pred in (_SKOS_EXACT, GM.authorityLink)
             for o in lifted.objects(tag, pred)
         ):

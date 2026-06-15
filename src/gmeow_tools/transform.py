@@ -90,9 +90,10 @@ def _skolemized(abox: Graph) -> Graph:
     import pyoxigraph
     from rdflib import Literal
 
+    # parse() yields Quad objects (default graph for N-Triples), which Dataset
+    # accepts directly — no per-triple Quad reconstruction needed.
     dataset = pyoxigraph.Dataset(
-        pyoxigraph.Quad(t.subject, t.predicate, t.object)
-        for t in pyoxigraph.parse(
+        pyoxigraph.parse(
             abox.serialize(format="nt", encoding="utf-8"),
             format=pyoxigraph.RdfFormat.N_TRIPLES,
         )
