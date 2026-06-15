@@ -263,7 +263,7 @@ gmeow:mapFoafDepiction a gmeow:ProjectionMapping ;
         gmeow:atom (
             [ gmeow:subjectVar "fdImg" ; gmeow:predicate gmeow:depicts ; gmeow:objectVar "fdEnt" ]
             [ gmeow:subjectVar "fdImg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ] ) ;
-        gmeow:suppressWhen [ gmeow:subjectVar "fdEnt" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "fdImg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalSource gmeow:depicts ] ;
     gmeow:hasBinding [
         gmeow:profile "foaf" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;

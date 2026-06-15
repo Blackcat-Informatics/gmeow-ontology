@@ -264,6 +264,7 @@ CONSTRUCT {{
 }}
 WHERE {{
   {{ {{ ?person schema:jobTitle ?title }} UNION {{ ?person foaf:title ?title }} }}
+  FILTER(isLiteral(?title))
   BIND(IRI(CONCAT("{_GENID}membership-",
        MD5(CONCAT(STR(?person), "|", STR(?title))))) AS ?m)
   BIND(IRI(CONCAT("{_GENID}role-",
@@ -282,6 +283,7 @@ CONSTRUCT {{
 }}
 WHERE {{
   ?proj {source_pred} ?agent .
+  FILTER(isIRI(?agent))
   BIND(IRI(CONCAT("{_GENID}contrib-{slug}-",
        MD5(CONCAT(STR(?proj), "|", STR(?agent))))) AS ?contrib)
 }}"""

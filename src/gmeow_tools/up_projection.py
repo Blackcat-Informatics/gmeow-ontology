@@ -343,25 +343,33 @@ def _value_mapped_pairs() -> dict[tuple[str, str], tuple[str, str]]:
                 or not str(gmeow_pred).startswith(str(GM))
             ):
                 continue
-            mint = graph.value(pattern, GM.mint)
-            if mint is None:
+            # value-rule inversion is only sound for the strict single-mint,
+            # single-template shape — a richer cell (several mints or template
+            # legs) is not a clean (target, literal) → (gmeow_pred, gmeow_val)
+            # bijection, so refuse to derive a rule from it.
+            mints = list(graph.objects(pattern, GM.mint))
+            if len(mints) != 1:
                 continue
+            mint = mints[0]
             bind_var = graph.value(mint, GM.bindVar)
             bind_expr = graph.value(mint, GM.bindExpr)
             if bind_var is None or bind_expr is None:
                 continue
             for binding in graph.objects(cell, GM.hasBinding):
-                for ta in _template_atoms(graph, binding):
-                    tpred = graph.value(ta, GM.tPred)
-                    if (
-                        graph.value(ta, GM.tSubj) == anchor
-                        and graph.value(ta, GM.tObj) == bind_var
-                        and isinstance(tpred, URIRef)
-                        and _in_projection_ns(str(tpred))
-                    ):
-                        candidates[(str(tpred), str(bind_expr))].add(
-                            (str(gmeow_pred), str(gmeow_val))
-                        )
+                tas = list(_template_atoms(graph, binding))
+                if len(tas) != 1:
+                    continue
+                ta = tas[0]
+                tpred = graph.value(ta, GM.tPred)
+                if (
+                    graph.value(ta, GM.tSubj) == anchor
+                    and graph.value(ta, GM.tObj) == bind_var
+                    and isinstance(tpred, URIRef)
+                    and _in_projection_ns(str(tpred))
+                ):
+                    candidates[(str(tpred), str(bind_expr))].add(
+                        (str(gmeow_pred), str(gmeow_val))
+                    )
     return {k: next(iter(v)) for k, v in candidates.items() if len(v) == 1}
 
 

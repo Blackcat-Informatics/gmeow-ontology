@@ -176,7 +176,6 @@ WHERE {
     UNION {
         ?fdImg gmeow:depicts ?fdEnt .
         ?fdImg a gmeow:MediaObject .
-        FILTER NOT EXISTS { ?fdEnt gmeow:displayable false . }
         FILTER NOT EXISTS { ?fdImg gmeow:displayable false . }
     }
 }
