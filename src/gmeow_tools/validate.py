@@ -6,11 +6,18 @@ locally and CI can gate cheaply before the heavier reasoning step.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
+import tempfile
+from collections.abc import Callable
+from contextlib import suppress
 from dataclasses import dataclass, field
-from functools import lru_cache
+from functools import lru_cache, partial
+from importlib import metadata
 from pathlib import Path
 
+import pyoxigraph
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
 from rdflib.term import Node
@@ -23,6 +30,7 @@ from gmeow_tools.config import (
     MAPPING_DSL_DIR,
     NAMESPACE,
     ONTOLOGY_IRI,
+    PROJECT_ROOT,
     SHAPES_DIR,
     SHAPES_FILE,
     SLICES_DIR,
@@ -44,6 +52,9 @@ _HOW_TO_USE = URIRef(NAMESPACE + "howToUse")
 _USE_FOR_CONSUMER = URIRef(NAMESPACE + "useForConsumer")
 _AVOID_FOR_CONSUMER = URIRef(NAMESPACE + "avoidForConsumer")
 _PROJECTION_CONTEXT = URIRef(NAMESPACE + "ProjectionContext")
+_TURTLE = pyoxigraph.RdfFormat.TURTLE
+
+type _OxParseResult = tuple[tuple[pyoxigraph.Quad, ...] | None, Exception | None]
 
 
 @lru_cache(maxsize=4)
@@ -104,24 +115,127 @@ class ValidationResult:
         self.warnings.extend(other.warnings)
 
 
-@lru_cache(maxsize=256)
-def _parse_file(path: Path) -> tuple[Graph | None, Exception | None]:
-    """Parse a single Turtle file, returning (graph, error) for caching.
+_VALIDATION_CACHE_DIR = PROJECT_ROOT / ".cache" / "validate"
 
-    Both syntax validation and the sameAs ban scan the same source files.
-    Caching the parse avoids redundant I/O when both checks run in sequence.
+
+def _cache_key(parts: list[str]) -> str:
+    """Return a short stable hash for cache-key parts."""
+    h = hashlib.sha256()
+    for part in parts:
+        h.update(part.encode("utf-8"))
+        h.update(b"\0")
+    return h.hexdigest()[:16]
+
+
+def _files_cache_key(paths: list[Path]) -> str:
+    """Return a content hash for validation cache inputs."""
+    from gmeow_tools.generator import source_hash
+
+    return source_hash(paths)
+
+
+def _validation_toolchain_salt() -> str:
+    """Return a cache salt for validator package versions."""
+    parts: list[str] = []
+    for package in ("pyshacl", "pyoxigraph", "rdflib"):
+        try:
+            version = metadata.version(package)
+        except metadata.PackageNotFoundError:
+            version = "missing"
+        parts.append(f"{package}={version}")
+    return _cache_key(parts)
+
+
+def _validation_cache_path(kind: str, key: str) -> Path:
+    """Return the validation cache path for a keyed result."""
+    safe_kind = re.sub(r"[^A-Za-z0-9_.-]+", "-", kind)
+    return _VALIDATION_CACHE_DIR / safe_kind / f"{key}.json"
+
+
+def _read_cached_result(path: Path) -> ValidationResult | None:
+    """Read a cached validation result if present and valid."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    errors = payload.get("errors")
+    warnings = payload.get("warnings")
+    if not isinstance(errors, list) or not isinstance(warnings, list):
+        return None
+    if not all(isinstance(item, str) for item in errors + warnings):
+        return None
+    return ValidationResult(errors=list(errors), warnings=list(warnings))
+
+
+def _write_cached_result(path: Path, result: ValidationResult) -> None:
+    """Persist a validation result, best-effort."""
+    tmp_path: Path | None = None
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = json.dumps(
+            {"errors": result.errors, "warnings": result.warnings},
+            sort_keys=True,
+        )
+        with tempfile.NamedTemporaryFile(
+            "w",
+            dir=path.parent,
+            encoding="utf-8",
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            tmp_path = Path(handle.name)
+            handle.write(payload)
+        tmp_path.replace(path)
+    except OSError:
+        if tmp_path is not None:
+            with suppress(OSError):
+                tmp_path.unlink(missing_ok=True)
+
+
+def _cached_result(
+    kind: str, key: str, compute: Callable[[], ValidationResult]
+) -> ValidationResult:
+    """Return a cached validation result, computing and storing on miss."""
+    path = _validation_cache_path(kind, key)
+    cached = _read_cached_result(path)
+    if cached is not None:
+        return cached
+    result = compute()
+    _write_cached_result(path, result)
+    return result
+
+
+@lru_cache(maxsize=512)
+def _parse_file_ox(path: Path) -> _OxParseResult:
+    """Parse a single Turtle file with pyoxigraph, returning (quads, error).
+
+    Syntax validation and the sameAs ban scan overlapping source files. Keeping
+    that pass on pyoxigraph avoids building short-lived rdflib graphs for gates
+    that only need parse success plus a predicate/object scan.
     """
     try:
-        return Graph().parse(path, format="turtle"), None
+        return tuple(pyoxigraph.parse(path.read_bytes(), format=_TURTLE)), None
     except Exception as exc:
         return None, exc
+
+
+def _ox_term_display(term: object) -> str:
+    """Return a readable RDF term string for pyoxigraph-backed diagnostics."""
+    if isinstance(term, pyoxigraph.NamedNode):
+        return term.value
+    if isinstance(term, pyoxigraph.BlankNode):
+        return f"_:{term.value}"
+    return str(term)
 
 
 def check_syntax() -> ValidationResult:
     """Parse every source Turtle file individually to catch syntax errors."""
     result = ValidationResult()
     for source in iter_source_files():
-        _graph, exc = _parse_file(source)
+        _quads, exc = _parse_file_ox(source)
         if exc is not None:
             result.errors.append(f"syntax error in {source}: {exc}")
     return result
@@ -163,24 +277,30 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
         raise ValueError("check_sameas_ban: paths to audit must not be empty")
     result = ValidationResult()
     for source in paths:
-        graph, exc = _parse_file(source)
+        quads, exc = _parse_file_ox(source)
         if exc is not None:
             result.errors.append(f"failed to parse {source}: {exc}")
             continue
-        assert graph is not None
-        for s, p, o in graph:
-            if p != OWL.sameAs:
+        assert quads is not None
+        for quad in quads:
+            subject = quad.subject
+            predicate = quad.predicate
+            obj_term = quad.object
+            if not isinstance(
+                predicate, pyoxigraph.NamedNode
+            ) or predicate.value != str(OWL.sameAs):
                 continue
-            if not isinstance(o, URIRef):
+            if not isinstance(obj_term, pyoxigraph.NamedNode):
                 continue
-            obj = str(o)
+            obj = obj_term.value
             if obj.startswith(NAMESPACE):
                 continue
-            if (str(s), obj) in _SAMEAS_ALLOWLIST:
+            subject_text = _ox_term_display(subject)
+            if (subject_text, obj) in _SAMEAS_ALLOWLIST:
                 continue
             result.errors.append(
                 f"{source}: banned owl:sameAs to external entity "
-                f"{s} owl:sameAs {o} (Principle 5); "
+                f"{subject_text} owl:sameAs {obj} (Principle 5); "
                 f"use skos:exactMatch or gmeow:authorityLink"
             )
     return result
@@ -590,16 +710,71 @@ def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
     return result
 
 
-def check_examples(merged: Graph) -> ValidationResult:
+def _shacl_cache_inputs(shapes_path: Path = SHAPES_FILE) -> list[Path]:
+    """Return files that affect normal SHACL validation outcomes."""
+    dsl_shapes = {
+        "mapping-dsl-shapes.ttl",
+        "statement-dsl-shapes.ttl",
+        "slice-manifest-shapes.ttl",
+        shapes_path.name,
+    }
+    return [
+        Path(__file__),
+        shapes_path,
+        *sorted(
+            extra for extra in SHAPES_DIR.glob("*.ttl") if extra.name not in dsl_shapes
+        ),
+        *sorted(GENERATED_SHAPES_DIR.glob("*.ttl")),
+        *iter_slice_shape_files(),
+    ]
+
+
+def _merged_shacl_cache_key() -> str:
+    """Return the content key for merged ontology SHACL validation."""
+    return _cache_key(
+        [
+            _files_cache_key([*iter_source_files(), *_shacl_cache_inputs()]),
+            _validation_toolchain_salt(),
+        ]
+    )
+
+
+def _dsl_shacl_cache_key(dsl_dir: Path, label: str) -> str:
+    """Return the content key for DSL SHACL validation."""
+    dsl_validate_source = PROJECT_ROOT / "src" / "gmeow_tools" / "dsl_validate.py"
+    return _cache_key(
+        [
+            _files_cache_key(
+                [
+                    Path(__file__),
+                    dsl_validate_source,
+                    *sorted(dsl_dir.rglob("*.ttl")),
+                    *sorted(SHAPES_DIR.glob("*.ttl")),
+                ]
+            ),
+            label,
+            _validation_toolchain_salt(),
+        ]
+    )
+
+
+def _run_example_shacl(merged: Graph, data: Graph) -> ValidationResult:
+    """Validate one example graph against the merged ontology graph."""
+    return run_shacl(merged + data)
+
+
+def check_examples(
+    merged: Graph, *, base_cache_key: str | None = None
+) -> ValidationResult:
     """Validate every slice example against the ontology + SHACL (#332).
 
     Examples are canonical worked data, not test scaffolding: each file is
-    parsed, merged with the ontology, and SHACL-validated in isolation (so
-    one example's IRIs can never mask another's violations). The merged
-    graph itself is gated separately, so any NEW violation here belongs to
-    the example.
+    parsed, merged with the ontology, and SHACL-validated in isolation. Results
+    are cached by ontology/shapes/example content so repeated local and CI runs
+    do not spend minutes revalidating unchanged examples.
     """
     result = ValidationResult()
+    base_cache_key = base_cache_key or _merged_shacl_cache_key()
     for example in iter_slice_example_files():
         name = example.relative_to(SLICES_DIR).as_posix()
         data = Graph()
@@ -608,7 +783,12 @@ def check_examples(merged: Graph) -> ValidationResult:
         except Exception as exc:
             result.errors.append(f"example {name}: does not parse: {exc}")
             continue
-        shacl = run_shacl(merged + data)
+        example_key = _cache_key([base_cache_key, _files_cache_key([example])])
+        shacl = _cached_result(
+            "example-shacl",
+            example_key,
+            partial(_run_example_shacl, merged, data),
+        )
         for err in shacl.errors:
             result.errors.append(f"example {name}: {err}")
         for warn in shacl.warnings:
@@ -687,8 +867,21 @@ def validate_all() -> ValidationResult:
     result.extend(slice_ownership_lint())
     result.extend(guide_anchor_lint(merged))
     result.extend(reasoning_lint(merged))
-    result.extend(run_shacl(merged))
-    result.extend(check_examples(merged))
-    result.extend(_dsl_shacl(MAPPING_DSL_DIR, "mapping"))
-    result.extend(_dsl_shacl(STATEMENT_DSL_DIR, "statement"))
+    shacl_key = _merged_shacl_cache_key()
+    result.extend(_cached_result("merged-shacl", shacl_key, lambda: run_shacl(merged)))
+    result.extend(check_examples(merged, base_cache_key=shacl_key))
+    result.extend(
+        _cached_result(
+            "dsl-shacl",
+            _dsl_shacl_cache_key(MAPPING_DSL_DIR, "mapping"),
+            lambda: _dsl_shacl(MAPPING_DSL_DIR, "mapping"),
+        )
+    )
+    result.extend(
+        _cached_result(
+            "dsl-shacl",
+            _dsl_shacl_cache_key(STATEMENT_DSL_DIR, "statement"),
+            lambda: _dsl_shacl(STATEMENT_DSL_DIR, "statement"),
+        )
+    )
     return result

@@ -362,11 +362,20 @@ def evals_run(
 
 
 @app.command(name="compliance-report")
-def compliance_report_cmd() -> None:
-    """Run the in-process gates and emit the RDF compliance report (#285)."""
+def compliance_report_cmd(
+    from_passing_check: bool = typer.Option(
+        False,
+        "--from-passing-check",
+        help=(
+            "Render pass evidence from gates already run by make check/CI "
+            "instead of rerunning the in-process gate set."
+        ),
+    ),
+) -> None:
+    """Emit the RDF compliance report, running gates unless told they passed."""
     from gmeow_tools.compliance import write_report
 
-    path = write_report()
+    path = write_report(assume_runners_passed=from_passing_check)
     console.print(f"[green]✓ compliance report written to {path}[/green]")
 
 

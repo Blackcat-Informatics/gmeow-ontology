@@ -49,6 +49,32 @@ _PRECISE_COORDS = ("51.500001", "-0.124999")
 
 
 @pytest.fixture(scope="module")
+def rendered_guarded_branches() -> dict[str, tuple[list[str], int]]:
+    """Render every guarded branch once instead of reparsing the DSL per profile."""
+    from gmeow_tools.mapping_compile import (
+        _branch,
+        _default_suppression_vocab,
+        _injected_guards,
+    )
+    from gmeow_tools.mapping_dsl import load_dsl
+
+    dsl = load_dsl()
+    vocab = _default_suppression_vocab()
+    rendered: dict[str, tuple[list[str], int]] = {
+        profile: ([], 0) for profile in PROFILES
+    }
+    for cell in dsl.projections:
+        for binding in cell.bindings:
+            if binding.profile not in rendered:
+                continue
+            branches, checked = rendered[binding.profile]
+            branches.append(_branch(cell, binding, vocab))
+            checked += len(_injected_guards(cell.pattern, vocab))
+            rendered[binding.profile] = (branches, checked)
+    return rendered
+
+
+@pytest.fixture(scope="module")
 def source() -> Graph:
     graph = load_merged_graph(include_imports=False)
     graph.parse(_CANARY_FILE, format="turtle")
@@ -98,7 +124,9 @@ def test_control_canary_proves_coverage(
 
 
 @pytest.mark.parametrize("profile", sorted(PROFILES))
-def test_every_branch_carries_its_injected_guards(profile: str) -> None:
+def test_every_branch_carries_its_injected_guards(
+    profile: str, rendered_guarded_branches: dict[str, tuple[list[str], int]]
+) -> None:
     """Structural seal: the committed artifact contains every derived guard.
 
     Re-derives the guard set from the mapping DSL (the same
@@ -106,29 +134,15 @@ def test_every_branch_carries_its_injected_guards(profile: str) -> None:
     in the committed query — the generated artifact can never silently drop
     the injection.
     """
-    from gmeow_tools.mapping_compile import (
-        _branch,
-        _default_suppression_vocab,
-        _injected_guards,
-    )
-    from gmeow_tools.mapping_dsl import load_dsl
-
     query = (PROJECTION_QUERY_DIR / f"{profile}.rq").read_text(encoding="utf-8")
-    dsl = load_dsl()
-    vocab = _default_suppression_vocab()
-    checked = 0
-    for cell in dsl.projections:
-        for binding in cell.bindings:
-            if binding.profile != profile:
-                continue
-            # The WHOLE rendered branch (guards in place) must appear verbatim
-            # in the committed query — per BRANCH, so one branch keeping a
-            # guard can never mask another branch dropping it.
-            rendered = _branch(cell, binding, vocab)
-            assert rendered in query, (
-                f"profile {profile}: a branch's rendered form (incl. its "
-                f"injected guards) is missing from the committed query"
-            )
-            checked += len(_injected_guards(cell.pattern, vocab))
+    branches, checked = rendered_guarded_branches[profile]
     if checked == 0:
         pytest.skip(f"profile {profile} has no guarded projection cells")
+    for rendered in branches:
+        # The WHOLE rendered branch (guards in place) must appear verbatim in
+        # the committed query — per BRANCH, so one branch keeping a guard can
+        # never mask another branch dropping it.
+        assert rendered in query, (
+            f"profile {profile}: a branch's rendered form (incl. its "
+            f"injected guards) is missing from the committed query"
+        )

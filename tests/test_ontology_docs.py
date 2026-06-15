@@ -4,16 +4,30 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import pytest
 
+import gmeow_tools.ontology_docs as ontology_docs
 from gmeow_tools.config import PROJECT_ROOT
-from gmeow_tools.ontology_docs import build_ontology_docs, ontology_docs_inputs
+from gmeow_tools.ontology_docs import (
+    build_ontology_docs,
+    build_ontology_docs_cached,
+    ontology_docs_inputs,
+)
 
 _TICKET_REFERENCE_RE = re.compile(r"(?i)\b(?:issue|pr)\s+#\d+|#[0-9]+")
+
+
+@pytest.fixture(scope="module")
+def ontology_docs_tree(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Build the expensive docs tree once for read-only assertions."""
+    out = tmp_path_factory.mktemp("ontology-docs")
+    build_ontology_docs_cached(out)
+    return out
 
 
 def test_ontology_docs_inputs_include_slice_design_docs() -> None:
@@ -25,11 +39,70 @@ def test_ontology_docs_inputs_include_slice_design_docs() -> None:
     assert "slices/core/logic/design/LOGIC.md" in rel_inputs
 
 
-@pytest.mark.ci_only
-def test_build_ontology_docs_creates_expected_tree(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
+def test_cached_ontology_docs_tree_reuses_complete_entry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(ontology_docs, "_ONTOLOGY_DOCS_CACHE_DIR", tmp_path / "cache")
+    monkeypatch.setattr(ontology_docs, "ontology_docs_cache_key", lambda: "cache-key")
+    calls = 0
 
+    def fake_build(outdir: Path) -> None:
+        nonlocal calls
+        calls += 1
+        outdir.mkdir(parents=True)
+        (outdir / "index.html").write_text("cached", encoding="utf-8")
+
+    monkeypatch.setattr(ontology_docs, "build_ontology_docs", fake_build)
+
+    first = ontology_docs.cached_ontology_docs_tree()
+    second = ontology_docs.cached_ontology_docs_tree()
+
+    assert first == second
+    assert calls == 1
+    assert (first / "index.html").read_text(encoding="utf-8") == "cached"
+
+
+def test_ontology_docs_cache_inputs_include_renderer_dependencies() -> None:
+    rel_inputs = {
+        path.relative_to(PROJECT_ROOT).as_posix()
+        for path in ontology_docs.ontology_docs_cache_inputs()
+        if path.is_relative_to(PROJECT_ROOT)
+    }
+    assert {
+        "src/gmeow_tools/config.py",
+        "src/gmeow_tools/export.py",
+        "src/gmeow_tools/gts_views.py",
+        "src/gmeow_tools/mapping_dsl.py",
+        "src/gmeow_tools/slices.py",
+    }.issubset(rel_inputs)
+
+
+def test_cached_ontology_docs_tree_recovers_stale_lock(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cache_dir = tmp_path / "cache"
+    lock = cache_dir / ".lock-cache-key"
+    lock.mkdir(parents=True)
+    os.utime(lock, (0, 0))
+    monkeypatch.setattr(ontology_docs, "_ONTOLOGY_DOCS_CACHE_DIR", cache_dir)
+    monkeypatch.setattr(ontology_docs, "_ONTOLOGY_DOCS_CACHE_LOCK_STALE_SECONDS", 0.0)
+    monkeypatch.setattr(ontology_docs, "ontology_docs_cache_key", lambda: "cache-key")
+
+    def fake_build(outdir: Path) -> None:
+        outdir.mkdir(parents=True)
+        (outdir / "index.html").write_text("cached", encoding="utf-8")
+
+    monkeypatch.setattr(ontology_docs, "build_ontology_docs", fake_build)
+
+    tree = ontology_docs.cached_ontology_docs_tree()
+
+    assert not lock.exists()
+    assert (tree / "index.html").read_text(encoding="utf-8") == "cached"
+
+
+@pytest.mark.ci_only
+def test_build_ontology_docs_creates_expected_tree(ontology_docs_tree: Path) -> None:
+    out = ontology_docs_tree
     docs = out / "markdown"
     assert (out / "site" / "index.html").exists()
     assert (out / "site" / "assets" / "simple.css").exists()
@@ -84,10 +157,11 @@ def test_build_ontology_docs_creates_expected_tree(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_build_ontology_docs_is_deterministic(tmp_path: Path) -> None:
-    out1 = tmp_path / "tree1"
+def test_build_ontology_docs_is_deterministic(
+    ontology_docs_tree: Path, tmp_path: Path
+) -> None:
+    out1 = ontology_docs_tree
     out2 = tmp_path / "tree2"
-    build_ontology_docs(out1)
     build_ontology_docs(out2)
 
     files1 = sorted(p.relative_to(out1) for p in out1.rglob("*") if p.is_file())
@@ -98,10 +172,10 @@ def test_build_ontology_docs_is_deterministic(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_index_contains_ontology_header_and_slice_stats(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-    index = (out / "markdown" / "index.md").read_text(encoding="utf-8")
+def test_index_contains_ontology_header_and_slice_stats(
+    ontology_docs_tree: Path,
+) -> None:
+    index = (ontology_docs_tree / "markdown" / "index.md").read_text(encoding="utf-8")
 
     assert "GMEOW" in index
     assert "Namespace:" in index
@@ -121,10 +195,8 @@ def test_index_contains_ontology_header_and_slice_stats(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_slice_index_lists_manifest_metadata(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-    slices_index = (out / "markdown" / "slices" / "index.md").read_text(
+def test_slice_index_lists_manifest_metadata(ontology_docs_tree: Path) -> None:
+    slices_index = (ontology_docs_tree / "markdown" / "slices" / "index.md").read_text(
         encoding="utf-8"
     )
 
@@ -134,12 +206,11 @@ def test_slice_index_lists_manifest_metadata(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_reference_pages_have_term_metadata(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
+def test_reference_pages_have_term_metadata(ontology_docs_tree: Path) -> None:
     # gmeow:Person is a core class that should always exist.
-    person = out / "markdown" / "reference" / "classes" / "gmeow-Person.md"
+    person = (
+        ontology_docs_tree / "markdown" / "reference" / "classes" / "gmeow-Person.md"
+    )
     assert person.exists()
     text = person.read_text(encoding="utf-8")
     assert "gmeow:Person" in text
@@ -152,11 +223,12 @@ def test_reference_pages_have_term_metadata(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_reference_pages_surface_advisory_usage_metadata(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    name_usage = out / "markdown" / "reference" / "classes" / "gmeow-NameUsage.md"
+def test_reference_pages_surface_advisory_usage_metadata(
+    ontology_docs_tree: Path,
+) -> None:
+    name_usage = (
+        ontology_docs_tree / "markdown" / "reference" / "classes" / "gmeow-NameUsage.md"
+    )
     text = name_usage.read_text(encoding="utf-8")
 
     assert "## Usage Advice" in text
@@ -177,10 +249,8 @@ def test_reference_pages_surface_advisory_usage_metadata(tmp_path: Path) -> None
 
 
 @pytest.mark.ci_only
-def test_public_identifier_references_are_linked(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
+def test_public_identifier_references_are_linked(ontology_docs_tree: Path) -> None:
+    out = ontology_docs_tree
     article_md = (
         out / "markdown" / "reference" / "classes" / "gmeow-Article.md"
     ).read_text(encoding="utf-8")
@@ -233,18 +303,19 @@ def test_public_identifier_references_are_linked(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_external_catalogs_explain_linked_targets(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    ontologies = (out / "markdown" / "external" / "ontologies.md").read_text(
+def test_external_catalogs_explain_linked_targets(ontology_docs_tree: Path) -> None:
+    ontologies = (
+        ontology_docs_tree / "markdown" / "external" / "ontologies.md"
+    ).read_text(encoding="utf-8")
+    terms = (ontology_docs_tree / "markdown" / "external" / "terms.md").read_text(
         encoding="utf-8"
     )
-    terms = (out / "markdown" / "external" / "terms.md").read_text(encoding="utf-8")
-    getting_started = (out / "markdown" / "getting-started.md").read_text(
+    getting_started = (
+        ontology_docs_tree / "markdown" / "getting-started.md"
+    ).read_text(encoding="utf-8")
+    gts = (ontology_docs_tree / "markdown" / "slices" / "gts.md").read_text(
         encoding="utf-8"
     )
-    gts = (out / "markdown" / "slices" / "gts.md").read_text(encoding="utf-8")
 
     assert "PROV-O (`prov`)" in ontologies
     assert "P-Plan (`pplan`)" in ontologies
@@ -262,11 +333,10 @@ def test_external_catalogs_explain_linked_targets(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_linkages_page_summarizes_mapping_dsl(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    linkages = (out / "markdown" / "linkages" / "index.md").read_text(encoding="utf-8")
+def test_linkages_page_summarizes_mapping_dsl(ontology_docs_tree: Path) -> None:
+    linkages = (ontology_docs_tree / "markdown" / "linkages" / "index.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "# Linkages" in linkages
     assert "dsl/mappings/" in linkages
@@ -279,15 +349,18 @@ def test_linkages_page_summarizes_mapping_dsl(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_adoption_target_pages_are_generated_from_linkages(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    index = (out / "markdown" / "adoption" / "index.md").read_text(encoding="utf-8")
-    schema = (out / "markdown" / "adoption" / "schema.md").read_text(encoding="utf-8")
-    html = (out / "site" / "adoption" / "schema" / "index.html").read_text(
+def test_adoption_target_pages_are_generated_from_linkages(
+    ontology_docs_tree: Path,
+) -> None:
+    index = (ontology_docs_tree / "markdown" / "adoption" / "index.md").read_text(
         encoding="utf-8"
     )
+    schema = (ontology_docs_tree / "markdown" / "adoption" / "schema.md").read_text(
+        encoding="utf-8"
+    )
+    html = (
+        ontology_docs_tree / "site" / "adoption" / "schema" / "index.html"
+    ).read_text(encoding="utf-8")
 
     assert "# Adoption Targets" in index
     assert "[Schema.org](schema.md) (`schema`)" in index
@@ -302,14 +375,15 @@ def test_adoption_target_pages_are_generated_from_linkages(tmp_path: Path) -> No
 
 
 @pytest.mark.ci_only
-def test_references_page_uses_generated_citation_ledger(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    references = (out / "markdown" / "references" / "index.md").read_text(
+def test_references_page_uses_generated_citation_ledger(
+    ontology_docs_tree: Path,
+) -> None:
+    references = (
+        ontology_docs_tree / "markdown" / "references" / "index.md"
+    ).read_text(encoding="utf-8")
+    html = (ontology_docs_tree / "site" / "references" / "index.html").read_text(
         encoding="utf-8"
     )
-    html = (out / "site" / "references" / "index.html").read_text(encoding="utf-8")
 
     assert "# References" in references
     assert "metadata/references.ttl" in references
@@ -324,14 +398,15 @@ def test_references_page_uses_generated_citation_ledger(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_slice_design_docs_are_rendered_and_linked(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    logic = (out / "markdown" / "slices" / "logic.md").read_text(encoding="utf-8")
-    design = (out / "markdown" / "slices" / "logic" / "design" / "LOGIC.md").read_text(
+def test_slice_design_docs_are_rendered_and_linked(
+    ontology_docs_tree: Path,
+) -> None:
+    logic = (ontology_docs_tree / "markdown" / "slices" / "logic.md").read_text(
         encoding="utf-8"
     )
+    design = (
+        ontology_docs_tree / "markdown" / "slices" / "logic" / "design" / "LOGIC.md"
+    ).read_text(encoding="utf-8")
 
     assert "## Design Documents" in logic
     assert "GMEOW Logic" in logic
@@ -343,14 +418,15 @@ def test_slice_design_docs_are_rendered_and_linked(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_recipes_and_examples_are_generated_from_slice_sources(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    recipe = (out / "markdown" / "recipes" / "person-names-and-display.md").read_text(
+def test_recipes_and_examples_are_generated_from_slice_sources(
+    ontology_docs_tree: Path,
+) -> None:
+    recipe = (
+        ontology_docs_tree / "markdown" / "recipes" / "person-names-and-display.md"
+    ).read_text(encoding="utf-8")
+    names = (ontology_docs_tree / "markdown" / "slices" / "names.md").read_text(
         encoding="utf-8"
     )
-    names = (out / "markdown" / "slices" / "names.md").read_text(encoding="utf-8")
 
     assert "# Model Person Names Without a Preferred-Name Slot" in recipe
     assert "slices/core/names/examples/person-names.ttl" in recipe
@@ -362,12 +438,15 @@ def test_recipes_and_examples_are_generated_from_slice_sources(tmp_path: Path) -
 
 
 @pytest.mark.ci_only
-def test_examples_catalog_links_slice_sources_and_terms(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    examples = (out / "markdown" / "examples" / "index.md").read_text(encoding="utf-8")
-    html = (out / "site" / "examples" / "index.html").read_text(encoding="utf-8")
+def test_examples_catalog_links_slice_sources_and_terms(
+    ontology_docs_tree: Path,
+) -> None:
+    examples = (ontology_docs_tree / "markdown" / "examples" / "index.md").read_text(
+        encoding="utf-8"
+    )
+    html = (ontology_docs_tree / "site" / "examples" / "index.html").read_text(
+        encoding="utf-8"
+    )
 
     assert "# Examples" in examples
     assert "slices/**/examples/*.ttl" in examples
@@ -381,15 +460,14 @@ def test_examples_catalog_links_slice_sources_and_terms(tmp_path: Path) -> None:
 
 @pytest.mark.ci_only
 def test_learning_paths_sequence_recipes_examples_terms_and_targets(
-    tmp_path: Path,
+    ontology_docs_tree: Path,
 ) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    learning_paths = (out / "markdown" / "learning-paths" / "index.md").read_text(
+    learning_paths = (
+        ontology_docs_tree / "markdown" / "learning-paths" / "index.md"
+    ).read_text(encoding="utf-8")
+    html = (ontology_docs_tree / "site" / "learning-paths" / "index.html").read_text(
         encoding="utf-8"
     )
-    html = (out / "site" / "learning-paths" / "index.html").read_text(encoding="utf-8")
 
     assert "# Learning Paths" in learning_paths
     assert "Model a Person Without Flattening Identity" in learning_paths
@@ -404,13 +482,14 @@ def test_learning_paths_sequence_recipes_examples_terms_and_targets(
 
 @pytest.mark.ci_only
 def test_term_pages_include_example_snippets_from_canonical_sources(
-    tmp_path: Path,
+    ontology_docs_tree: Path,
 ) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
     person_name = (
-        out / "markdown" / "reference" / "classes" / "gmeow-PersonName.md"
+        ontology_docs_tree
+        / "markdown"
+        / "reference"
+        / "classes"
+        / "gmeow-PersonName.md"
     ).read_text(encoding="utf-8")
 
     assert "## Example Snippets" in person_name
@@ -423,12 +502,15 @@ def test_term_pages_include_example_snippets_from_canonical_sources(
 
 
 @pytest.mark.ci_only
-def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    search_index = (out / "site" / "search-index.json").read_text(encoding="utf-8")
-    llms_docs = (out / "site" / "llms-docs.txt").read_text(encoding="utf-8")
+def test_static_search_indexes_include_terms_slices_and_recipes(
+    ontology_docs_tree: Path,
+) -> None:
+    search_index = (ontology_docs_tree / "site" / "search-index.json").read_text(
+        encoding="utf-8"
+    )
+    llms_docs = (ontology_docs_tree / "site" / "llms-docs.txt").read_text(
+        encoding="utf-8"
+    )
 
     assert '"curie": "gmeow:PersonName"' in search_index
     assert '"kind": "learning-path"' in search_index
@@ -457,22 +539,21 @@ def test_static_search_indexes_include_terms_slices_and_recipes(tmp_path: Path) 
 
 
 @pytest.mark.ci_only
-def test_public_markdown_hides_internal_ticket_references(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    for path in sorted((out / "markdown").rglob("*.md")):
+def test_public_markdown_hides_internal_ticket_references(
+    ontology_docs_tree: Path,
+) -> None:
+    for path in sorted((ontology_docs_tree / "markdown").rglob("*.md")):
         text = path.read_text(encoding="utf-8")
         assert _TICKET_REFERENCE_RE.search(text) is None, path
 
 
-def test_external_ontology_catalog_has_specific_descriptions(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
-    catalog = (out / "markdown" / "external" / "ontologies.md").read_text(
-        encoding="utf-8"
-    )
+@pytest.mark.ci_only
+def test_external_ontology_catalog_has_specific_descriptions(
+    ontology_docs_tree: Path,
+) -> None:
+    catalog = (
+        ontology_docs_tree / "markdown" / "external" / "ontologies.md"
+    ).read_text(encoding="utf-8")
 
     assert "External vocabulary or concept scheme used as a linkage" not in catalog
     assert "Basic Formal Ontology 2020" in catalog
@@ -480,10 +561,8 @@ def test_external_ontology_catalog_has_specific_descriptions(tmp_path: Path) -> 
 
 
 @pytest.mark.ci_only
-def test_html_links_are_directory_index_safe(tmp_path: Path) -> None:
-    out = tmp_path / "ontology-docs"
-    build_ontology_docs(out)
-
+def test_html_links_are_directory_index_safe(ontology_docs_tree: Path) -> None:
+    out = ontology_docs_tree
     index = (out / "site" / "index.html").read_text(encoding="utf-8")
     assert 'href="favicon.svg"' in index
     assert 'href="assets/simple.css"' in index

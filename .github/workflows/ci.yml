@@ -85,7 +85,46 @@ jobs:
       # the gmeow_logic extension above ensures importorskip no longer skips
       # (AC2/AC4 and the oracle≡engine parity gate run in every CI build).
       - name: Unit tests (pure Python)
-        run: uv run pytest -q -n auto -m "not docker and not pyoxigraph_ci"
+        timeout-minutes: 60
+        run: uv run pytest -q -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci"
+
+  python-heavy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Cache ontology-docs build outputs
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache/ontology-docs
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          restore-keys: |
+            ontology-docs-${{ runner.os }}-
+
+      - name: Cache validation results
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache/validate
+          key: validate-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/validate.py', 'src/gmeow_tools/dsl_validate.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'generated/shapes/**/*.ttl') }}
+          restore-keys: |
+            validate-${{ runner.os }}-
+
+      - name: Sync environment
+        run: uv sync --all-packages --frozen
+
+      # CI-only Python tests cover heavyweight generated docs, GTS snapshot
+      # determinism, and secondary export surfaces. Keep module scopes together
+      # so expensive module fixtures are not rebuilt once per xdist worker.
+      - name: CI-heavy Python tests
+        timeout-minutes: 60
+        run: uv run pytest -q -n auto --dist loadscope -m "ci_only and not docker and not pyoxigraph_ci"
 
       # Logic conformance suite: Python oracle self-consistency over the corpus.
       # Verifies that every committed golden artifact matches the live runner
@@ -181,6 +220,22 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Cache generator stamps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .stamps/generators
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          restore-keys: |
+            generator-stamps-${{ runner.os }}-
+
+      - name: Cache ontology-docs build outputs
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache/ontology-docs
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          restore-keys: |
+            ontology-docs-${{ runner.os }}-
+
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
@@ -212,7 +267,7 @@ jobs:
         run: uv run --package gmeow-dev gmeow-dev audit tests/fixtures/coverage/hallucination-kg.ttl
 
       - name: Compliance report (per-principle gate evidence)
-        run: uv run --package gmeow-dev gmeow-dev compliance-report
+        run: uv run --package gmeow-dev gmeow-dev compliance-report --from-passing-check
 
   reason:
     runs-on: ubuntu-latest
@@ -341,7 +396,7 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   quality:
-    needs: [lint, python, rust, go, ontology, reason, reason-hermit, reasoning-tests, statements, statements-pyoxigraph]
+    needs: [lint, python, python-heavy, rust, go, ontology, reason, reason-hermit, reasoning-tests, statements, statements-pyoxigraph]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -349,6 +404,7 @@ jobs:
         env:
           LINT: ${{ needs.lint.result }}
           PYTHON: ${{ needs.python.result }}
+          PYTHON_HEAVY: ${{ needs.python-heavy.result }}
           RUST: ${{ needs.rust.result }}
           GO: ${{ needs.go.result }}
           ONTOLOGY: ${{ needs.ontology.result }}
@@ -358,8 +414,8 @@ jobs:
           STATEMENTS: ${{ needs.statements.result }}
           STATEMENTS_PYOXIGRAPH: ${{ needs.statements-pyoxigraph.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON rust=$RUST go=$GO ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT reasoning-tests=$REASONING_TESTS statements=$STATEMENTS statements-pyoxigraph=$STATEMENTS_PYOXIGRAPH"
-          for r in "$LINT" "$PYTHON" "$RUST" "$GO" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$REASONING_TESTS" "$STATEMENTS" "$STATEMENTS_PYOXIGRAPH"; do
+          echo "results: lint=$LINT python=$PYTHON python-heavy=$PYTHON_HEAVY rust=$RUST go=$GO ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT reasoning-tests=$REASONING_TESTS statements=$STATEMENTS statements-pyoxigraph=$STATEMENTS_PYOXIGRAPH"
+          for r in "$LINT" "$PYTHON" "$PYTHON_HEAVY" "$RUST" "$GO" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$REASONING_TESTS" "$STATEMENTS" "$STATEMENTS_PYOXIGRAPH"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1
