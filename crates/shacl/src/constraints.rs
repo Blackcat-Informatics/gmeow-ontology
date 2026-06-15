@@ -606,7 +606,7 @@ fn is_xsd_decimal_lexical(s: &str) -> bool {
 /// with an optional [eE][+-]?digits exponent.
 fn is_xsd_double_lexical(s: &str) -> bool {
     let s = s.trim();
-    if matches!(s, "INF" | "-INF" | "+INF" | "NaN") {
+    if matches!(s, "INF" | "-INF" | "NaN") {
         return true;
     }
     // Split optional exponent.
@@ -1506,6 +1506,17 @@ mod tests {
         assert!(
             check_datatype(&value, &dt_iri),
             "INF should conform for xsd:double"
+        );
+    }
+
+    #[test]
+    fn xsd_double_rejects_plus_inf() {
+        // "+INF" is NOT in the xsd:double/float lexical space (only INF, -INF, NaN).
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}double"));
+        let value = Term::Literal(Literal::new_typed_literal("+INF", dt_iri.clone()));
+        assert!(
+            !check_datatype(&value, &dt_iri),
+            "+INF must not conform for xsd:double"
         );
     }
 
