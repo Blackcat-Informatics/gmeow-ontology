@@ -105,7 +105,7 @@ impl ValidationReport {
     pub fn to_ntriples(&self) -> String {
         let store = Store::new().expect("in-memory store creation is infallible");
 
-        let report_bnode = BlankNode::default();
+        let report_bnode = BlankNode::new_unchecked("report");
         let report_subj = NamedOrBlankNode::BlankNode(report_bnode);
 
         // _:report rdf:type sh:ValidationReport
