@@ -10,6 +10,9 @@
 # Compiled to mappings/gmeow-sensory.sssom.tsv by `gmeow compile-mappings`.
 
 gmeow:mapsetSensory a gmeow:MappingSet ;
+    rdfs:label "Sensory mapping set"@x-gmeow-english ;
+    skos:definition "Mapping-set metadata for sensory extension alignments to external audio feature ontologies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     gmeow:sssomFile "gmeow-sensory.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/sensory" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
