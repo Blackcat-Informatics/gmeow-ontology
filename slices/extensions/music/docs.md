@@ -277,6 +277,34 @@ Wikidata Q188451 bridge for `gmeow:Genre` already lives in the core
 those additional music-specific external dependencies out of core
 (Principle 16).
 
+## Timbre and sensory bridge (issue #317)
+
+A `gmeow:TimbreDescriptor` is an open value vocabulary of perceived timbre
+qualities (bright, dark, breathy, gritty, hollow, ...). It is a
+`gufo:QualityValue`, not a subclass tree (Principle 9).
+
+### `gmeow:TimbreDescriptor`
+
+The `gmeow:toneEventTimbre` shortcut assigns a single descriptor to a
+`ToneEvent`. Where provenance or contest matters, use reified
+`gmeow:Observation`s:
+
+- `gmeow:observedFeature` → the `ToneEvent`.
+- `gmeow:vantage` → the listener or MIR extractor (`gmeow:Agent`).
+- `gmeow:observationMethod` / `gmeow:observationType` → direct observation vs.
+  computational model.
+- `gmeow:timbreObservationResult` → the `TimbreDescriptor`.
+
+### `gmeow:timbreObservationResult`
+
+This property plays the `gmeow:observationResult` role but is **not** declared
+`rdfs:subPropertyOf` `gmeow:observationResult`, because `TimbreDescriptor` is a
+`gufo:QualityValue` and therefore disjoint from `gmeow:Entity`, the range of
+`observationResult` (the `claimModality` / `conditionVerdict` precedent).
+
+Low-level spectral vectors, MFCCs, and embedding arrays live outside the graph
+and are referenced by identifier (Principle 12).
+
 ## Consumer
 
 - The **GTS `music-package`** single-file format.
