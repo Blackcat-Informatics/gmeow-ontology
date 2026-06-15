@@ -9801,6 +9801,12 @@ type Instant
     instantValue: String
   }
 
+type InstantMessageAddress
+  {
+    contactPointProvider: [Agent]
+    contactPointType: [ContactPointType]
+  }
+
 type InstrumentConfiguration
   {
     configurationInstrumentType: InstrumentType

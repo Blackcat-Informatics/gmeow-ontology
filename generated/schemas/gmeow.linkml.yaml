@@ -1522,6 +1522,10 @@ classes:
     slots:
     - inTemporalFrame
     - instantValue
+  InstantMessageAddress:
+    class_uri: https://blackcatinformatics.ca/gmeow/InstantMessageAddress
+    title: Instant Message Address
+    is_a: ContactPoint
   InstrumentConfiguration:
     class_uri: https://blackcatinformatics.ca/gmeow/InstrumentConfiguration
     title: Instrument Configuration

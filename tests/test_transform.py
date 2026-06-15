@@ -105,6 +105,41 @@ def test_standalone_projection_is_a_subset(rights_out: Path) -> None:
             assert (s, p, o) in maximal, f"{profile}: {(s, p, o)}"
 
 
+def test_claim_layer_projects_back_to_source_vocab(tmp_path: Path) -> None:
+    """A closeMatch up-lift parks a gmeow term in a StatementMetadata claim, never
+    asserted G. P(G) still reproduces the source's own vocab term by projecting
+    over the materialized claim layer (#552 option 1) — the round trip hands back
+    what came in — WITHOUT asserting the claimed gmeow term itself."""
+    from rdflib import RDF
+
+    from gmeow_tools.transform import transform_graph
+
+    gm = NAMESPACE
+    doap = "http://usefulinc.com/ns/doap#"
+    proj = URIRef("https://ex.org/proj")
+    g = Graph()
+    g.parse(
+        data=f"""
+        @prefix gmeow: <{gm}> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix doap: <{doap}> .
+        [] a gmeow:StatementMetadata ;
+           gmeow:qSubject <{proj}> ;
+           gmeow:qPredicate rdf:type ;
+           gmeow:qObject gmeow:SoftwareProject ;
+           gmeow:annotation [ gmeow:annProperty gmeow:mappedFrom ;
+                              gmeow:annValue doap:Project ] .
+        """,
+        format="turtle",
+    )
+    transform_graph(g, "claim", out_dir=tmp_path, profiles=["doap"])
+    out = Graph().parse(tmp_path / "index.ttl", format="turtle")
+    # the source's own vocab term round-trips (projected from the claim)
+    assert (proj, RDF.type, URIRef(doap + "Project")) in out
+    # but the claimed gmeow term is NOT asserted — it stays a claim
+    assert (proj, RDF.type, URIRef(gm + "SoftwareProject")) not in out
+
+
 def test_suppression_canary_never_leaks(tmp_path: Path) -> None:
     """No output form of MAXIMAL(G) carries a suppressed literal (#282)."""
     out = tmp_path / "canary"

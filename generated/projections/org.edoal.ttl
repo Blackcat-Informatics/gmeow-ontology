@@ -18,6 +18,14 @@
             align:relation "=" ;
             edoal:measure 9.5e-01 ],
         [ a align:Cell ;
+            rdfs:label "hasMember → org:member"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasMember ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri org:member ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Membership relator → org:Membership (member/organization/role)"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:Membership ] ;
