@@ -8,8 +8,11 @@ trees. Repository maintenance lives in :mod:`gmeow_tools.cli_dev`.
 
 from __future__ import annotations
 
+import shutil
+import subprocess
+import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from rich.console import Console
@@ -743,6 +746,28 @@ def gts_to_duckdb(
 ) -> None:
     """Transform a GTS file to a DuckDB database."""
     _gts_to_db(file, out, ".duckdb", "duckdb")
+
+
+@app.command(name="music")
+def music_command(
+    args: Annotated[list[str], typer.Argument(help="Arguments passed to gmeow-music.")],
+) -> None:
+    """Dispatch to the gmeow-music extension CLI.
+
+    ``gmeow music`` does not import extension code at module load time; it
+    delegates to the ``gmeow-music`` console script installed with the package
+    (or via ``pip install gmeow[music]``).
+    """
+    exe = shutil.which("gmeow-music")
+    if exe is None:
+        raise _fail(
+            "gmeow-music not found. Install the music extra: pip install gmeow[music]"
+        )
+    try:
+        result = subprocess.run([exe, *args], check=False)
+    except OSError as exc:
+        raise _fail(f"failed to run gmeow-music: {exc}") from exc
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":  # pragma: no cover
