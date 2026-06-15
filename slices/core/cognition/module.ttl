@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/cognition>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Cognition Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Cognition Module — an agent's objectual cognitive relations to subjects, beginning with the graded knowledge spectrum (issue: core/cognition slice)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:comment """An agent's COGNITIVE relations to a subject — how an agent stands toward the things it knows, attends to, and grasps. The objectual companion to the standpoint slice (which carries PROPOSITIONAL attitudes toward claims): cognition relates an agent to an entity, not to a proposition.
+
+This minimal core seeds the slice with one axis — the knowledge spectrum — and is deliberately small; belief, justification, and knowledge-that (the propositional epistemic relations) belong to the sibling epistemics slice, not here.
+
+DOCTRINE.
+  * The knowledge spectrum is four ORDINAL levels of epistemic depth toward a subject — isAwareOf ⊑ knowsAbout ⊑ understands ⊑ hasMastered — chained by rdfs:subPropertyOf so the deeper level entails every shallower one. One deep claim materialises the whole tail, so a query at any level catches every agent at that depth or deeper. This entailment IS the reasoning value of the spectrum (Principle 12: the levels are recorded; threshold judgements are solver-side).
+  * The boundaries between levels are deliberately VAGUE. Only the ORDER is asserted; no crisp cutoff is claimed. The subproperty chain needs none — it encodes the ordering, not a partition.
+  * Comprehension is NOT competency. The spectrum is the 'knows' axis; gmeow:hasSkill (expertise slice) is the 'can do' axis. A skill entails knowing about its subject (gmeow:hasSkill ⊑ gmeow:knowsAbout, asserted by the expertise slice), but neither understanding nor mastery — the axes stay orthogonal and are never silently bridged (Principle 9).
+  * Whose knowledge it is, and how deep, is a vantage-indexed claim through the statement layer (Principle 9): knowledge attributed to an agent by an observer and knowledge avowed by the agent coexist; a contested depth is two coexisting claims, never a global verdict.
+  * Range is open (gmeow:Entity): an agent may know a topic, a person, a place, or an event."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Knowledge spectrum — an agent's epistemic depth toward a subject
+# =========================================================================== #
+#
+# Four ordinal levels, chained by rdfs:subPropertyOf so each deeper level
+# ENTAILS every shallower one:
+#
+#     hasMastered ⊑ understands ⊑ knowsAbout ⊑ isAwareOf
+#
+# Domain gmeow:Agent, range gmeow:Entity (open). The order is asserted; the
+# boundaries are vague.
+
+gmeow:isAwareOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "is aware of"@x-gmeow-english ;
+    skos:definition "Faintest level of the knowledge spectrum: the agent has encountered the subject and knows it exists, without necessarily knowing facts about it. Entailed by every deeper level (knowsAbout, understands, hasMastered) and by gmeow:hasSkill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:knowsAbout
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:isAwareOf ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "knows about"@x-gmeow-english ;
+    skos:definition "Second level of the knowledge spectrum: the agent knows facts about the subject and can describe it — familiarity, not yet working comprehension. The exactMatch anchor for schema:knowsAbout. Entails gmeow:isAwareOf; entailed by gmeow:understands, gmeow:hasMastered and gmeow:hasSkill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:understands
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:knowsAbout ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "understands"@x-gmeow-english ;
+    skos:definition "Third level of the knowledge spectrum: the agent comprehends the subject and can reason with and apply it, beyond reciting facts. Entails gmeow:knowsAbout (and transitively gmeow:isAwareOf); entailed by gmeow:hasMastered."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+gmeow:hasMastered
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:understands ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "has mastered"@x-gmeow-english ;
+    skos:definition "Deepest level of the knowledge spectrum: the agent has expert command of the subject and can extend, teach or innovate on it. Entails gmeow:understands (and transitively gmeow:knowsAbout and gmeow:isAwareOf)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .

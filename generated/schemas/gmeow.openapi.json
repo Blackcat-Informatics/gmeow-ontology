@@ -762,6 +762,15 @@
                   "null"
                 ]
               },
+              "hasMastered": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasMet": {
                 "items": {
                   "$ref": "#/$defs/Agent"
@@ -819,6 +828,24 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAwareOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "knowsAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -891,6 +918,15 @@
               "telephone": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "understands": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -11575,6 +11611,15 @@
                   "null"
                 ]
               },
+              "hasMastered": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasMet": {
                 "items": {
                   "$ref": "#/$defs/Agent"
@@ -11632,6 +11677,24 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAwareOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "knowsAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -11704,6 +11767,15 @@
               "telephone": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "understands": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -91648,6 +91720,15 @@
                   "null"
                 ]
               },
+              "hasMastered": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasMember": {
                 "items": {
                   "$ref": "#/$defs/Agent"
@@ -91741,6 +91822,24 @@
               "industryClassification": {
                 "items": {
                   "$ref": "#/$defs/Identifier"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAwareOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "knowsAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -91858,6 +91957,15 @@
               "telephone": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "understands": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -96640,6 +96748,15 @@
                   "null"
                 ]
               },
+              "hasMastered": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasMet": {
                 "items": {
                   "$ref": "#/$defs/Agent"
@@ -96802,6 +96919,24 @@
                   "null"
                 ]
               },
+              "isAwareOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "knowsAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "knowsLanguage": {
                 "items": {
                   "$ref": "#/$defs/Language"
@@ -96886,6 +97021,15 @@
               "telephone": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "understands": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -125312,6 +125456,15 @@
                   "null"
                 ]
               },
+              "hasMastered": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasMet": {
                 "items": {
                   "$ref": "#/$defs/Agent"
@@ -125369,6 +125522,24 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAwareOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "knowsAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -125441,6 +125612,15 @@
               "telephone": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "understands": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -133385,6 +133565,15 @@
                   "null"
                 ]
               },
+              "hasMastered": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "hasMet": {
                 "items": {
                   "$ref": "#/$defs/Agent"
@@ -133442,6 +133631,24 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAwareOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "knowsAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",
@@ -133514,6 +133721,15 @@
               "telephone": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "understands": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
                 },
                 "type": [
                   "array",

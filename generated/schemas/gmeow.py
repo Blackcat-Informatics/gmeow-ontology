@@ -3020,6 +3020,9 @@ class Agent(ConfiguredBaseModel):
     hasGoal: Optional[list[Goal]] = Field(default=None, title="has goal", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasGoal'} })
+    hasMastered: Optional[list[Entity]] = Field(default=None, title="has mastered", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMastered'} })
     hasMet: Optional[list[Agent]] = Field(default=None, title="has met", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMet'} })
@@ -3041,6 +3044,12 @@ class Agent(ConfiguredBaseModel):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    isAwareOf: Optional[list[Entity]] = Field(default=None, title="is aware of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAwareOf'} })
+    knowsAbout: Optional[list[Entity]] = Field(default=None, title="knows about", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsAbout'} })
     knowsLanguage: Optional[list[Language]] = Field(default=None, title="knows language", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsLanguage'} })
@@ -3065,6 +3074,9 @@ class Agent(ConfiguredBaseModel):
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
+    understands: Optional[list[Entity]] = Field(default=None, title="understands", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/understands'} })
 
 
 class AggregationFunction(ConfiguredBaseModel):
@@ -29041,6 +29053,9 @@ class Organization(Agent):
     hasGoal: Optional[list[Goal]] = Field(default=None, title="has goal", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasGoal'} })
+    hasMastered: Optional[list[Entity]] = Field(default=None, title="has mastered", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMastered'} })
     hasMet: Optional[list[Agent]] = Field(default=None, title="has met", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMet'} })
@@ -29062,6 +29077,12 @@ class Organization(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    isAwareOf: Optional[list[Entity]] = Field(default=None, title="is aware of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAwareOf'} })
+    knowsAbout: Optional[list[Entity]] = Field(default=None, title="knows about", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsAbout'} })
     knowsLanguage: Optional[list[Language]] = Field(default=None, title="knows language", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsLanguage'} })
@@ -29086,6 +29107,9 @@ class Organization(Agent):
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
+    understands: Optional[list[Entity]] = Field(default=None, title="understands", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/understands'} })
 
 
 class OrganizationName(Appellation):
@@ -30286,6 +30310,9 @@ class Person(Agent):
     hasGoal: Optional[list[Goal]] = Field(default=None, title="has goal", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasGoal'} })
+    hasMastered: Optional[list[Entity]] = Field(default=None, title="has mastered", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMastered'} })
     hasMet: Optional[list[Agent]] = Field(default=None, title="has met", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMet'} })
@@ -30307,6 +30334,12 @@ class Person(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    isAwareOf: Optional[list[Entity]] = Field(default=None, title="is aware of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAwareOf'} })
+    knowsAbout: Optional[list[Entity]] = Field(default=None, title="knows about", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsAbout'} })
     knowsLanguage: Optional[list[Language]] = Field(default=None, title="knows language", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsLanguage'} })
@@ -30331,6 +30364,9 @@ class Person(Agent):
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
+    understands: Optional[list[Entity]] = Field(default=None, title="understands", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/understands'} })
 
 
 class PersonName(Appellation):
@@ -40508,6 +40544,9 @@ class Sensor(Agent):
     hasGoal: Optional[list[Goal]] = Field(default=None, title="has goal", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasGoal'} })
+    hasMastered: Optional[list[Entity]] = Field(default=None, title="has mastered", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMastered'} })
     hasMet: Optional[list[Agent]] = Field(default=None, title="has met", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMet'} })
@@ -40529,6 +40568,12 @@ class Sensor(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    isAwareOf: Optional[list[Entity]] = Field(default=None, title="is aware of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAwareOf'} })
+    knowsAbout: Optional[list[Entity]] = Field(default=None, title="knows about", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsAbout'} })
     knowsLanguage: Optional[list[Language]] = Field(default=None, title="knows language", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsLanguage'} })
@@ -40553,6 +40598,9 @@ class Sensor(Agent):
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
+    understands: Optional[list[Entity]] = Field(default=None, title="understands", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/understands'} })
 
 
 class SensorPlatform(Entity):
@@ -43462,6 +43510,9 @@ class SoftwareAgent(Agent):
     hasGoal: Optional[list[Goal]] = Field(default=None, title="has goal", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasGoal'} })
+    hasMastered: Optional[list[Entity]] = Field(default=None, title="has mastered", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMastered'} })
     hasMet: Optional[list[Agent]] = Field(default=None, title="has met", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMet'} })
@@ -43483,6 +43534,12 @@ class SoftwareAgent(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    isAwareOf: Optional[list[Entity]] = Field(default=None, title="is aware of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAwareOf'} })
+    knowsAbout: Optional[list[Entity]] = Field(default=None, title="knows about", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsAbout'} })
     knowsLanguage: Optional[list[Language]] = Field(default=None, title="knows language", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsLanguage'} })
@@ -43507,6 +43564,9 @@ class SoftwareAgent(Agent):
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
+    understands: Optional[list[Entity]] = Field(default=None, title="understands", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/understands'} })
 
 
 class Builder(SoftwareAgent):
@@ -43532,6 +43592,9 @@ class Builder(SoftwareAgent):
     hasGoal: Optional[list[Goal]] = Field(default=None, title="has goal", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasGoal'} })
+    hasMastered: Optional[list[Entity]] = Field(default=None, title="has mastered", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMastered'} })
     hasMet: Optional[list[Agent]] = Field(default=None, title="has met", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMet'} })
@@ -43553,6 +43616,12 @@ class Builder(SoftwareAgent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    isAwareOf: Optional[list[Entity]] = Field(default=None, title="is aware of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAwareOf'} })
+    knowsAbout: Optional[list[Entity]] = Field(default=None, title="knows about", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsAbout'} })
     knowsLanguage: Optional[list[Language]] = Field(default=None, title="knows language", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/knowsLanguage'} })
@@ -43577,6 +43646,9 @@ class Builder(SoftwareAgent):
     telephone: Optional[list[str]] = Field(default=None, title="telephone", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/telephone'} })
+    understands: Optional[list[Entity]] = Field(default=None, title="understands", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/understands'} })
 
 
 class SoftwareName(Appellation):

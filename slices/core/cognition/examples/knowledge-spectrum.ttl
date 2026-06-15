@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the knowledge spectrum. An agent's epistemic depth toward a
+# subject is one of four ordinal levels chained by rdfs:subPropertyOf, so the
+# deepest assertion entails every shallower one. Here one agent has MASTERED
+# Python (so a reasoner also derives understands / knowsAbout / isAwareOf of it),
+# UNDERSTANDS category theory, KNOWS ABOUT bioinformatics, and IS only AWARE OF
+# quantum computing. Subjects are wikidata QID entities — the curated bridge.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/cognition/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+ex:ada a gmeow:Person ;
+    gmeow:hasMastered  wd:Q28865 ;   # Python — entails understands ⊑ knowsAbout ⊑ isAwareOf
+    gmeow:understands  wd:Q217413 ;  # category theory
+    gmeow:knowsAbout   wd:Q189436 ;  # bioinformatics
+    gmeow:isAwareOf    wd:Q192995 .  # quantum computing — bare awareness only
+
+# The subjects are first-class entities identified by their wikidata QID; the
+# spectrum says nothing about them beyond that ex:ada stands toward each at the
+# stated depth. A reasoner materialises, e.g., ex:ada gmeow:knowsAbout wd:Q28865
+# from the hasMastered assertion via the subproperty chain.

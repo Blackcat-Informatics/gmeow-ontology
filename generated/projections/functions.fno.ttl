@@ -901,9 +901,9 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:functionParameter gmeow:paramLongitude ;
             fnom:implementationProperty "lon" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            rdfs:label "fnLatLongToGeoUri output ↦ ?geoNode"@en ;
+            rdfs:label "fnLatLongToGeoUri output ↦ ?lonDec"@en ;
             fnom:functionOutput gmeow:outLatLongToGeoUri ;
-            fnom:implementationProperty "geoNode" ] .
+            fnom:implementationProperty "lonDec" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnLatLongToWktPoint → geosparql (FnO mapping)"@en ;

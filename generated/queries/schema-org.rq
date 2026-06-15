@@ -3,6 +3,7 @@
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX schema: <https://schema.org/>
 
@@ -40,13 +41,13 @@ CONSTRUCT {
     ?place schema:containedInPlace ?parent .
     ?place schema:geo ?coords .
     ?coords a schema:GeoCoordinates .
-    ?coords schema:latitude ?lat .
-    ?coords schema:longitude ?lon .
+    ?coords schema:latitude ?latDec .
+    ?coords schema:longitude ?lonDec .
     ?coords schema:elevation ?elev .
     ?place schema:geo ?coarseGeo .
     ?coarseGeo a schema:GeoCoordinates .
-    ?coarseGeo schema:latitude ?lat .
-    ?coarseGeo schema:longitude ?lon .
+    ?coarseGeo schema:latitude ?latDec .
+    ?coarseGeo schema:longitude ?lonDec .
     ?part schema:isPartOf ?whole .
     ?whole schema:hasPart ?part .
     ?ent schema:sameAs ?auth .
@@ -338,6 +339,8 @@ WHERE {
         OPTIONAL {
             ?coords gmeow:elevation ?elev .
         }
+        BIND ( xsd:decimal(?lat) AS ?latDec )
+        BIND ( xsd:decimal(?lon) AS ?lonDec )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
         FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
@@ -354,6 +357,8 @@ WHERE {
             ?ccoords gmeow:longitude ?lon .
         }
         BIND ( IRI(CONCAT(STR(?place), "-geo-coarsened")) AS ?coarseGeo )
+        BIND ( xsd:decimal(?lat) AS ?latDec )
+        BIND ( xsd:decimal(?lon) AS ?lonDec )
         FILTER NOT EXISTS { ?place gmeow:displayable false . }
         FILTER NOT EXISTS { ?coarse gmeow:displayable false . }
         FILTER NOT EXISTS { ?coarse gmeow:coarsenTo [] . }
@@ -707,6 +712,8 @@ WHERE {
         OPTIONAL {
             ?coords gmeow:elevation ?elev .
         }
+        BIND ( xsd:decimal(?lat) AS ?latDec )
+        BIND ( xsd:decimal(?lon) AS ?lonDec )
         FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
         FILTER NOT EXISTS { ?obs gmeow:displayable false . }
         FILTER NOT EXISTS { ?place gmeow:displayable false . }
