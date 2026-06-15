@@ -129,6 +129,16 @@ _TARGET_META: dict[str, tuple[PreservationKind, str, tuple[str, ...]]] = {
         "N/A (identity serialization)",
         (),
     ),
+    "nemo": (
+        PreservationKind.EXACT,
+        "PTIME/datalog",
+        (
+            "IRI arguments encoded as Nemo <iri> constants "
+            "(angle-bracket syntax — equivalent semantics to Datalog string form)",
+            "context (third arity slot) encoded as Nemo string constant "
+            '"default" for unscoped axioms or modality value for scoped axioms',
+        ),
+    ),
 }
 
 # --------------------------------------------------------------------------- #
@@ -1039,6 +1049,222 @@ def project_canonical_rdf12(
         complexity=meta_cx,
         lossy_drops=meta_drops,
         actual_drops=[],
+    )
+
+
+def project_nemo(
+    program: LogicProgram,
+    *,
+    path: Path | None = None,
+) -> ProjectionResult:
+    """Project a :class:`~.logic_ir.LogicProgram` to Nemo ``.rls`` rule source.
+
+    Emits a Nemo rules program where:
+
+    * Each :class:`~.logic_ir.LogicAxiom` becomes a ground EDB fact with
+      **uniform arity 3**: ``pred(<subject>, <object>, "context").``
+
+      - IRI arguments are written as ``<iri>`` (Nemo angle-bracket syntax).
+      - String literal arguments are written as ``"value"`` (double-quoted).
+      - The context (third argument) is always a string constant ``"default"``
+        for unscoped axioms or the modality value string for scoped axioms.
+
+    * Each :class:`~.logic_ir.LogicRule` becomes a Nemo rule:
+      ``head_pred(?S, ?O, ?C) :- body_pred0(?S, ?O0, ?C0), ... .``
+
+      Variables use the ``?VarName`` Nemo convention.  Body atoms each carry
+      their own context variable (``?C0``, ``?C1``, …) to preserve the
+      uniform arity-3 convention independently per atom.
+
+    The emitted ``.rls`` is **syntactically valid Nemo** — parseable by
+    ``nemo::api::load_string`` — and encodes the **same rule semantics** as
+    :func:`project_datalog` and the :mod:`logic_materialize` oracle: positive
+    Horn forward monotonic evaluation over the arity-3 ternary encoding.
+
+    Output is **deterministic** (sorted output, same sort keys as
+    :func:`project_datalog`).
+
+    Arity convention (enforced uniformly — CRITICAL for Nemo):
+    - Unscoped axiom:  ``pred(<subj>, <obj>, "default").``
+    - Scoped axiom:    ``pred(<subj>, <obj>, "modality-value").``
+    - Rule head:       ``pred(?S, ?O, ?C) :- ...``
+    - Rule body atom:  ``pred(?S_i, ?O_i, ?Ci)``
+
+    Preservation kind
+    -----------------
+    Nemo executes positive Horn Datalog (PositiveHornProfile) in PTIME/data
+    via forward chaining.  The arity-3 encoding is faithful: every atom from
+    the oracle's chase is present in the Nemo output, and the rule semantics
+    are identical.  This is therefore ``ExactPreservation`` for the declared
+    PositiveHornProfile query class — the engine's chase *must* match the
+    oracle (Principle 7).
+
+    The structural ``lossy_drops`` notes record encoding decisions (IRI vs
+    string ctx) that do not change the semantics but are visible in the
+    serialized form.
+
+    Args:
+        program: The compiled logic program.
+        path: Optional output path; when given, the ``.rls`` text is written.
+
+    Returns:
+        A :class:`ProjectionResult` with ``target="nemo"``.
+
+    Raises:
+        ValueError: If a rule head contains a variable that does not appear
+            in any body atom (safety violation — Nemo rejects unsafe rules).
+    """
+    meta_kind, meta_cx, meta_drops = _TARGET_META["nemo"]
+    actual_drops: list[str] = []
+    lines: list[str] = []
+
+    rdf_type_str = str(RDF.type)
+
+    def _local(iri: str) -> str:
+        """Extract a safe Nemo predicate name from an IRI.
+
+        Reuses the same logic as project_datalog so predicate names
+        match across both back-ends — required for Principle 7 parity.
+        """
+        for ns in (LOGIC_NAMESPACE, NAMESPACE, str(RDF), str(OWL), str(RDFS)):
+            if iri.startswith(ns):
+                raw = iri[len(ns) :]
+                return raw.replace("-", "_").replace(".", "_").replace("#", "_")
+        return iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+
+    def _nemo_iri(iri: str) -> str:
+        """Encode an IRI as a Nemo IRI constant: ``<iri>``."""
+        return f"<{iri}>"
+
+    def _nemo_literal(value: str) -> str:
+        """Encode a literal string as a Nemo string constant: ``"value"``.
+
+        Double-quotes inside the value are escaped with backslash.
+        """
+        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
+
+    def _nemo_ctx(axiom: LogicAxiom) -> str:
+        """Return the context string constant for a ground axiom fact."""
+        if _is_modal_or_scoped(axiom):
+            ctx = (
+                axiom.scope.modality.value
+                if axiom.scope.modality != LogicModality.NONE
+                else "default"
+            )
+        else:
+            ctx = "default"
+        return _nemo_literal(ctx)
+
+    lines.append("% GENERATED by `gmeow logic compile` — DO NOT EDIT.")
+    lines.append("% Nemo (.rls) projection of the canonical logic: program.")
+    lines.append("")
+
+    # Ground facts from axioms
+    lines.append("% === Ground facts (axioms) ===")
+    for axiom in sorted(program.axioms, key=lambda a: a._sort_key()):
+        pred_str = axiom.predicate
+        if pred_str == rdf_type_str:
+            pred_nemo = "type"
+        elif pred_str.startswith(LOGIC_NAMESPACE):
+            pred_nemo = _local(pred_str)
+        else:
+            pred_nemo = _local(pred_str)
+
+        subj_nemo = _nemo_iri(axiom.subject)
+        if axiom.obj_is_literal:
+            obj_nemo = _nemo_literal(axiom.obj)
+        else:
+            obj_nemo = _nemo_iri(axiom.obj)
+        ctx_nemo = _nemo_ctx(axiom)
+
+        # Arity-3 ground fact: pred(<subj>, <obj_or_lit>, "ctx").
+        lines.append(f"{pred_nemo}({subj_nemo}, {obj_nemo}, {ctx_nemo}).")
+
+    lines.append("")
+    lines.append("% === Rules ===")
+
+    for rule in sorted(program.rules, key=lambda r: r._sort_key()):
+        head = rule.head
+        head_pred = "type" if head.predicate == rdf_type_str else _local(head.predicate)
+
+        # Head uses named variable ?S for subject, ?O for object, ?C for ctx.
+        head_subj_nemo: str
+        head_obj_nemo: str
+        if head.subject.startswith("?"):
+            head_subj_nemo = head.subject  # already a variable
+        else:
+            head_subj_nemo = _nemo_iri(head.subject)
+
+        if head.obj.startswith("?"):
+            head_obj_nemo = head.obj
+        elif head.obj_is_literal:
+            head_obj_nemo = _nemo_literal(head.obj)
+        else:
+            head_obj_nemo = _nemo_iri(head.obj)
+
+        # Safety check: variables in head must appear in body
+        head_vars: set[str] = set()
+        if head.subject.startswith("?"):
+            head_vars.add(head.subject)
+        if head.obj.startswith("?"):
+            head_vars.add(head.obj)
+
+        body_vars: set[str] = set()
+        for ba in rule.body:
+            if ba.subject.startswith("?"):
+                body_vars.add(ba.subject)
+            if ba.obj.startswith("?"):
+                body_vars.add(ba.obj)
+
+        unbound = head_vars - body_vars
+        if unbound:
+            raise ValueError(
+                f"Nemo safety violation: rule head variables {sorted(unbound)} "
+                f"do not appear in any body atom. "
+                f"Head: {head.subject} {head.predicate} {head.obj}"
+            )
+
+        body_parts: list[str] = []
+        for idx, body_atom in enumerate(sorted(rule.body, key=lambda a: a._sort_key())):
+            ba_pred = body_atom.predicate
+            bp = "type" if ba_pred == rdf_type_str else _local(ba_pred)
+
+            if body_atom.subject.startswith("?"):
+                bs = body_atom.subject
+            else:
+                bs = _nemo_iri(body_atom.subject)
+
+            if body_atom.obj.startswith("?"):
+                bo = body_atom.obj
+            elif body_atom.obj_is_literal:
+                bo = _nemo_literal(body_atom.obj)
+            else:
+                bo = _nemo_iri(body_atom.obj)
+
+            body_parts.append(f"{bp}({bs}, {bo}, ?C{idx})")
+
+        if body_parts:
+            body_str = ",\n    ".join(body_parts)
+            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C) :-")
+            lines.append(f"    {body_str} .")
+        else:
+            # Zero-body rule: emit as a ground fact (no :- needed)
+            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C).")
+
+    content = "\n".join(lines) + "\n"
+    if path is not None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+
+    return ProjectionResult(
+        target="nemo",
+        content=content,
+        graph=None,
+        preservation=meta_kind,
+        complexity=meta_cx,
+        lossy_drops=meta_drops,
+        actual_drops=actual_drops,
     )
 
 
