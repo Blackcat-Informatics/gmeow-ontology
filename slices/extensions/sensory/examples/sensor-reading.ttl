@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a sensor reading on the observation stack (#443). A
+# gmeow:SensoryObservation records WHAT was sensed (gmeow:sensoryObservationOf),
+# WHICH gmeow:ObservableProperty (humidity), and the gmeow:SensoryQuantity result.
+# A gmeow:Sensor is a gufo functional complex that is also an Agent, so it is the
+# observation's gmeow:vantage — the SensoryObservation is an Observation like any
+# other, just produced by an instrument on a gmeow:SensorPlatform at a location.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:greenhouse a gmeow:Place ;
+    gmeow:name "Greenhouse Bay 3"@x-gmeow-english ;
+    gmeow:hasSensoryObservation ex:obs .
+
+ex:dht22 a gmeow:Sensor ; gmeow:name "DHT22 humidity sensor"@x-gmeow-english .
+
+ex:platform a gmeow:SensorPlatform ;
+    gmeow:platformLocation ex:greenhouse .
+
+ex:humidity a gmeow:ObservableProperty ; rdfs:label "relative humidity"@x-gmeow-english .
+
+# --- The reading: what, which property, the result, the sensor as vantage, and
+#     the method (a SensoryObservation is a core Observation — it records its
+#     gmeow:observationMethod like any other).
+ex:obs a gmeow:SensoryObservation ;
+    gmeow:sensoryObservationOf ex:greenhouse ;
+    gmeow:sensoryProperty      ex:humidity ;
+    gmeow:sensoryResult        ex:quantity ;
+    gmeow:vantage              ex:dht22 ;
+    gmeow:observationMethod    gmeow:methodInstrumentalReading .
+
+ex:quantity a gmeow:SensoryQuantity ; rdfs:label "65 %RH"@x-gmeow-english .
