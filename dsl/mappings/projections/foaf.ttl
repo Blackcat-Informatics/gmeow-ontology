@@ -240,6 +240,22 @@ gmeow:mapFoafMbox a gmeow:ProjectionMapping ;
         gmeow:profile "foaf" ; gmeow:toPredicate foaf:mbox ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "contact-point usage context and validity drop; the bare mbox edge survives" ] .
 
+gmeow:mapFoafTitle a gmeow:ProjectionMapping ;
+    rdfs:label "membership role label → foaf:title (job/honorific title)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ftMember" ; gmeow:value "ftTitle" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ftM" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Membership ]
+            [ gmeow:subjectVar "ftM" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "ftMember" ]
+            [ gmeow:subjectVar "ftM" ; gmeow:predicate gmeow:hasRole ; gmeow:objectVar "ftRole" ]
+            [ gmeow:subjectVar "ftRole" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( rdfs:label gmeow:name ) ] ;
+              gmeow:objectVar "ftTitle" ] ) ;
+        gmeow:edoalSource gmeow:hasRole ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:title ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the membership's organization, period and compensation drop; the bare title string survives" ] .
+
 gmeow:mapFoafDepiction a gmeow:ProjectionMapping ;
     rdfs:label "depicting MediaObject → foaf:depiction (entity → image)"@x-gmeow-english ;
     gmeow:hasMappingPattern [

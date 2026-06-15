@@ -267,6 +267,24 @@ _CONTRIBUTIONS: tuple[tuple[str, str, str], ...] = (
 )
 
 
+#: Job-title sources → a Membership relator whose Role's label carries the title
+#: (the down-projection reads Membership/hasRole/role-label → schema:jobTitle etc.).
+_JOB_TITLE_QUERY = f"""{_PREFIXES}
+CONSTRUCT {{
+  ?m rdf:type gmeow:Membership .
+  ?m gmeow:membershipMember ?person .
+  ?m gmeow:hasRole ?role .
+  ?role rdfs:label ?title .
+}}
+WHERE {{
+  {{ {{ ?person schema:jobTitle ?title }} UNION {{ ?person foaf:title ?title }} }}
+  BIND(IRI(CONCAT("{_GENID}membership-",
+       MD5(CONCAT(STR(?person), "|", STR(?title))))) AS ?m)
+  BIND(IRI(CONCAT("{_GENID}role-",
+       MD5(CONCAT(STR(?person), "|", STR(?title))))) AS ?role)
+}}"""
+
+
 def _contribution_query(source_pred: str, slug: str, role: str) -> str:
     """A CONSTRUCT minting a gmeow:Contribution relator from a flat role edge."""
     return f"""{_PREFIXES}
@@ -296,6 +314,7 @@ def _reverse_queries() -> list[str]:
         + [_pred_rewrite_query(s, g) for s, g in _PRED_REWRITES]
         + [_inverse_rewrite_query(s, g) for s, g in _INVERSE_REWRITES]
         + [_object_type_query(s, g) for s, g in _OBJECT_TYPES]
+        + [_JOB_TITLE_QUERY]
     )
 
 

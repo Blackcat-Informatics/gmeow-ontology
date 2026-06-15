@@ -130,7 +130,15 @@
                     edoal:uri gmeow:Place ] ;
             align:entity2 [ a edoal:Class ;
                     edoal:uri wgs84:SpatialThing ] ;
-            align:relation "<=" ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "membership role label → foaf:title (job/honorific title)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasRole ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:title ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
     align:onto2 [ a align:Ontology ;
