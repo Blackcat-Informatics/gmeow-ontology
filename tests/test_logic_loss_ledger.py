@@ -244,6 +244,9 @@ def test_narrowing_program_loss_entries_have_sound_under_preservation() -> None:
     prog = _narrowing_program()
     cg = _single_world_graph()  # one world needed for chase to run
     result = materialize_program(prog, cg)
+    assert result.loss_entries, (
+        "Expected at least one loss entry for narrowing program; loop would be vacuous"
+    )
     for entry in result.loss_entries:
         assert entry.preservation_kind == PreservationKind.SOUND_UNDER, (
             f"Expected SOUND_UNDER on loss entry, got {entry.preservation_kind}"
@@ -309,6 +312,9 @@ def test_narrowing_drop_contains_construct_and_reason() -> None:
     mat_drops = [d for d in nemo_drops if d.startswith("materialization: ")]
 
     # Each drop must encode the construct and reason from the LossEntry
+    assert mat_result.loss_entries, (
+        "Expected at least one loss entry for narrowing program; loop would be vacuous"
+    )
     for entry in mat_result.loss_entries:
         found = any(entry.construct in d and entry.reason in d for d in mat_drops)
         assert found, (
@@ -342,6 +348,9 @@ def test_narrowing_drop_contains_preservation_kind() -> None:
     nemo_drops = _all_drops_on_nemo(report_g)
     mat_drops = [d for d in nemo_drops if d.startswith("materialization: ")]
 
+    assert mat_result.loss_entries, (
+        "Expected at least one loss entry for narrowing program; loop would be vacuous"
+    )
     for entry in mat_result.loss_entries:
         found = any(entry.preservation_kind.value in d for d in mat_drops)
         assert found, (
