@@ -8,7 +8,7 @@ and are never committed.
 
 | File | Purpose |
 |------|---------|
-| `gmeow-release-key.asc` | Armored OpenPGP Ed25519 public key used to sign `gmeow-full.gts` releases. |
+| `gmeow-release-key.asc` | Armored OpenPGP Ed25519 public key used to sign `gmeow.gts` releases. |
 | `*.secret.asc`, `*.secret` | Git-ignored secret-key material.  Do not commit. |
 
 ## Current release key
@@ -20,7 +20,7 @@ Algorithm: EDDSA (Ed25519)
 ```
 
 The key fingerprint is also the GTS signing `kid` embedded in every signed
-`gmeow-full.gts` file.
+`gmeow.gts` file.
 
 ## Verifying a release snapshot
 
@@ -28,7 +28,7 @@ The key fingerprint is also the GTS signing `kid` embedded in every signed
 
 ```bash
 pip install gmeow
-python -m gmeow_tools.cli gts verify path/to/gmeow-full.gts
+python -m gmeow_tools.cli gts verify path/to/gmeow.gts
 ```
 
 The CLI extracts the embedded transport public key, checks its fingerprint
@@ -40,7 +40,7 @@ against the committed `keys/gmeow-release-key.asc` if you pass
 1. Extract the embedded public key:
 
    ```bash
-   gmeow gts extract-key gmeow-full.gts -o /tmp/embedded.asc
+   gmeow gts extract-key gmeow.gts -o /tmp/embedded.asc
    ```
 
 2. Compare its fingerprint with the committed release key:

@@ -13,9 +13,9 @@ plainer, lossy-but-useful views for consumers that don't speak RDF/OWL:
   **SKOS** / **OBO Graphs** / **ShEx** projections.
 
 Everything is generated from the committed GTS snapshot (the narrow waist,
-#267): the asserted merged graph in its default graph plus the SSSOM
-alignment axioms in their named graph — no reasoning, no Docker, no RDF
-parser in this module at all.
+#267): the authored import-free ontology in its default graph plus statements,
+alignments, imports, and metadata in named graphs — no reasoning, no Docker,
+no RDF parser in this module at all.
 These views flatten reified relators and the RDF-star validity/provenance layer;
 they are an entry point to the vocabulary, not a substitute for the OWL source.
 """
@@ -686,8 +686,8 @@ def write_trig(view: FoldView, dist_dir: Path) -> Path:
     """Write the dataset as TriG 1.2 (``gmeow.trig``).
 
     Same content as ``gmeow.nq`` (LOSSLESS, same term renderer): the default
-    graph carries the ontology base plus the reifier/annotation statement
-    layer; the statements and alignments named graphs become labeled blocks.
+    graph carries the authored import-free ontology plus the reifier/annotation
+    statement layer; named graphs become labeled blocks.
     """
     g = view.graph
     lang_map = view.tag_map()
@@ -711,8 +711,8 @@ def write_trig(view: FoldView, dist_dir: Path) -> Path:
 
     blocks = [
         "# The GMEOW dataset as TriG 1.2 — same content as gmeow.nq (lossless).",
-        "# Default graph: ontology base + RDF 1.2 statement layer;",
-        "# named graphs: statements / alignments partitions.",
+        "# Default graph: authored import-free ontology + RDF 1.2 statement layer;",
+        "# named graphs: statements / alignments / imports / metadata partitions.",
         "",
         *default_lines,
     ]

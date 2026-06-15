@@ -57,7 +57,7 @@ build-backend = "hatchling.build"
 packages = ["src/gmeow_tools"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"generated/dist/gmeow-full.gts" = "generated/dist/gmeow-full.gts"
+"generated/dist/gmeow.gts" = "generated/dist/gmeow.gts"
 
 [tool.ruff]
 line-length = 88

@@ -143,7 +143,7 @@ def test_projection_conformance(case_dir: Path) -> None:
     case_name = case_dir.name
 
     # ---- Parse logic: source -----------------------------------------------
-    program, diagnostics = parse_logic_source(input_path)
+    program, _diagnostics = parse_logic_source(input_path)
     assert len(program.axioms) > 0, f"{case_name}: input.logic.ttl produced no axioms"
 
     # ---- Run all 6 projection back-ends ------------------------------------

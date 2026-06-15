@@ -9,8 +9,8 @@ narrow-waist parcel port mechanically. This module speaks ONLY ``gts.model``:
 no rdflib, no pyoxigraph (the whole point of the waist).
 
 Scopes: every quad-access method takes a ``scope`` — ``DEFAULT`` (the default
-graph: the ontology base), a named-graph IRI string (``GTS_GRAPH_STATEMENTS``
-/ ``GTS_GRAPH_ALIGNMENTS``), or ``ALL``.
+graph: the authored import-free ontology), a named-graph IRI string, or
+``ALL``.
 """
 
 from __future__ import annotations
@@ -259,12 +259,12 @@ class FoldView:
     # -- language boundary -----------------------------------------------------
 
     def tag_map(self) -> dict[str, str]:
-        """Internal language tag → BCP-47, from the fold's Language individuals."""
+        """Internal language tag → BCP-47, from all bundled Language individuals."""
         if self._tag_map is None:
             out: dict[str, str] = {}
-            for lang_tid in self.subjects_by_type(_LANGUAGE_CLASS):
-                internal = self.value(lang_tid, _LANGUAGE_TAG)
-                bcp = self.value(lang_tid, _BCP47_TAG)
+            for lang_tid in self.subjects_by_type(_LANGUAGE_CLASS, scope=ALL):
+                internal = self.value(lang_tid, _LANGUAGE_TAG, scope=ALL)
+                bcp = self.value(lang_tid, _BCP47_TAG, scope=ALL)
                 if internal is not None and bcp is not None:
                     out[self.lex(internal)] = self.lex(bcp)
             self._tag_map = out

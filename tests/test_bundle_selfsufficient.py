@@ -6,7 +6,7 @@ The CLI razor is ``gmeow`` does not need a repo. These tests PROVE it for the
 transpile path by running it in a child process with **every repo source path
 pointed at a nonexistent directory** — so the up-projection lift map, the
 projection queries, the equivalence/projection cells, the merged ontology graph,
-and the saturation refusal set must ALL come from ``generated/dist/gmeow-full.gts``.
+and the saturation refusal set must ALL come from ``generated/dist/gmeow.gts``.
 
 A fresh child process per run is the honest test: an in-process patch could be
 fooled by a loader cache populated from the repo on an earlier call.
