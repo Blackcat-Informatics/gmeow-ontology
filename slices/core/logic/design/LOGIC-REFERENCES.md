@@ -10,7 +10,7 @@
 
 ## Relationship to the citation ledger
 
-Per [`docs/CITATIONS.md`](../../../../docs/CITATIONS.md) (issue #491), the **canonical** citation
+Per [`docs/CITATIONS.md`](../../../../docs/CITATIONS.md), the **canonical** citation
 record is the Turtle ledger `metadata/references.ttl`; Markdown, CSL JSON, and BibTeX are generated
 lossy projections (Principle 4). This appendix is therefore a **staging surface**: correct,
 identifiable references with stable URLs that `gmeow references-backfill` harvests from authored
@@ -24,7 +24,7 @@ map directly to the two citation intents:
 - **Foundational theory** → `gmeow:intentCitesAsDataSource` (relied on as the source for a design
   claim — AGM revision, decidability-as-projection, the chase, and so on).
 
-Internal references (`#277`, `#491`, the statement layer, the slices) are **not** bibliography items
+Internal references (`GTS conformance design`, `references ledger`, the statement layer, the slices) are **not** bibliography items
 unless they themselves cite an external work; they are cross-references within GMEOW.
 
 ## Standards and specifications (`intentBridgedByReference`)
@@ -93,25 +93,25 @@ unless they themselves cite an external work; they are cross-references within G
 
 ## Engines and tools (`intentBridgedByReference`)
 
-- Oxigraph — an RDF store with SPARQL and RDF 1.2 support (Rust). <https://github.com/oxigraph/oxigraph>
+- Oxigraph — an RDF store with SPARQL and RDF 1.2 support (Rust). <https://oxigraph.org/>
 - Nemo — a Datalog-based rule engine with existential rules and stratified negation (knowsys, Rust).
-  <https://github.com/knowsys/nemo>
+  <https://knowsys.github.io/nemo/>
 - Soufflé — Jordan, H., Scholz, B. & Subotić, P. (2016). *Soufflé: On Synthesis of Program
   Analyzers.* CAV. <https://souffle-lang.github.io/>
 - RDFox — Nenov, Y., Piro, R., Motik, B., Horrocks, I., Wu, Z. & Banerjee, J. (2015). *RDFox: A
   Highly-Scalable RDF Store.* ISWC. (Cited as prior art only; not a dependency — Principle 5.)
-- Scryer Prolog — an ISO Prolog system in Rust. <https://github.com/mthom/scryer-prolog>
-- Trealla Prolog — a compact ISO Prolog in C/Rust bindings. <https://github.com/trealla-prolog/trealla>
+- Scryer Prolog — an ISO Prolog system in Rust. <https://www.scryer.pl/>
+- Trealla Prolog — a compact ISO Prolog in C/Rust bindings. <https://trealla-prolog.github.io/>
 - ProbLog — De Raedt, L., Kimmig, A. & Toivonen, H. (2007). *ProbLog: A Probabilistic Prolog and Its
   Application in Link Discovery.* IJCAI.
-- EYE — the Euler Yet another proof Engine (N3 reasoning). <https://github.com/eyereasoner/eye>
+- EYE — the Euler Yet another proof Engine (N3 reasoning). <https://eyereasoner.github.io/eye/>
 - cwm — the Closed World Machine (N3 rules). <https://www.w3.org/2000/10/swap/doc/cwm.html>
 - ELK — Kazakov, Y., Krötzsch, M. & Simančík, F. (2014). *The Incredible ELK.* Journal of Automated
   Reasoning 53.
 - HermiT — Glimm, B., Horrocks, I., Motik, B., Stoilos, G. & Wang, Z. (2014). *HermiT: An OWL 2
   Reasoner.* Journal of Automated Reasoning 53.
-- OWL-RL — a Python OWL 2 RL/RDFS reasoner (cross-check oracle). <https://github.com/RDFLib/OWL-RL>
-- PyO3 / maturin — Rust bindings for Python. <https://github.com/PyO3/pyo3>
+- OWL-RL — a Python OWL 2 RL/RDFS reasoner (cross-check oracle). <https://owl-rl.readthedocs.io/>
+- PyO3 / maturin — Rust bindings for Python. <https://pyo3.rs/>
 - WebAssembly. <https://webassembly.org/>
 
 ## Design influence (`intentCitesAsDataSource`)

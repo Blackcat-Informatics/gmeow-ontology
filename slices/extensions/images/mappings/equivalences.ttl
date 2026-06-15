@@ -11,7 +11,7 @@
 @prefix iiif: <http://iiif.io/api/presentation/3#> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 
-# Image super-ontology alignments (issue #22).
+# Image super-ontology alignments.
 # Compiled to mappings/gmeow-images.sssom.tsv by `gmeow compile-mappings`.
 
 gmeow:mapsetImages a gmeow:MappingSet ;

@@ -9,7 +9,7 @@
 @prefix wd:     <http://www.wikidata.org/entity/> .
 
 
-# Term equivalences for the deception / falsehood / misinformation facility (#213) —
+# Term equivalences for the deception / falsehood / misinformation facility —
 # GMEOW authoring source. Compiled to mappings/gmeow-deception.sssom.tsv by
 # `gmeow compile-mappings`. All alignments are BY REFERENCE (Principle 5); GMEOW
 # never imports an external axiom. See docs/deception.md.
@@ -18,7 +18,7 @@ gmeow:mapsetDeception a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/deception" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Deception / falsehood / misinformation alignments (#213).
+    gmeow:setComment """Deception / falsehood / misinformation alignments.
         FORMAL GROUNDING: gmeow:heldStandpoint / gmeow:projectedStandpoint realise the divergence model of deception as standpoint-indexed claims; gmeow:bullshit is the Frankfurt modality integrated into the Standpoint-Logic value space.
         schema.org: ClaimReview is an attestation act (not a truth verdict); Rating is a lossy projection to VerificationResult.
         CRMinf: I6_Belief_Value aligns to gmeow:StandpointModality (including the bullshit modality); I1_Argumentation is referenced for the solver-layer argument-acceptability function.
@@ -94,7 +94,7 @@ gmeow:eqDeception007 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-deception.sssom.tsv" .
 
 # ---------------------------------------------------------------------------
-# Issue #215 — Speech-act deception event types (Wikidata QIDs re-curled 2026-06-09).
+# the design — Speech-act deception event types (Wikidata QIDs re-curled 2026-06-09).
 # ---------------------------------------------------------------------------
 
 gmeow:eqDeception008 a gmeow:TermEquivalence ;
@@ -153,7 +153,7 @@ gmeow:eqDeception013 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-deception.sssom.tsv" .
 
 # ---------------------------------------------------------------------------
-# Issue #216 — Carrier deception event types (Wikidata QIDs re-curled 2026-06-10).
+# the design — Carrier deception event types (Wikidata QIDs re-curled 2026-06-10).
 # ---------------------------------------------------------------------------
 
 gmeow:eqDeception014 a gmeow:TermEquivalence ;
@@ -202,7 +202,7 @@ gmeow:eqDeception018 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-deception.sssom.tsv" .
 
 # ---------------------------------------------------------------------------
-# Issue #217 — Disinformation campaign + misinformation (Wikidata QIDs re-curled 2026-06-10).
+# the design — Disinformation campaign + misinformation (Wikidata QIDs re-curled 2026-06-10).
 # ---------------------------------------------------------------------------
 
 gmeow:eqDeception019 a gmeow:TermEquivalence ;

@@ -13,7 +13,7 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:comment """Organizational roles and memberships (the ORG-superset layer).
 
-STANDPOINT DOCTRINE (#51). Contested facts in the organization slice — disputed membership, rival succession claims, contested recognition of legitimacy — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested membership is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Membership relators each carrying gmeow:accordingTo. A contested succession (post-merger, post-coup) is two gmeow:accordingTo-annotated gmeow:subOrganizationOf claims. Recognition granted and later withdrawn is modelled as a gmeow:StandpointTenure with gmeow:displayable false, never deletion (Principle 10). There is NO organization-specific dispute mechanism, no primaryMember, no preferredSuccessor — only the cross-cutting #43 facility."""@x-gmeow-english ;
+STANDPOINT DOCTRINE. Contested facts in the organization slice — disputed membership, rival succession claims, contested recognition of legitimacy — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested membership is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Membership relators each carrying gmeow:accordingTo. A contested succession (post-merger, post-coup) is two gmeow:accordingTo-annotated gmeow:subOrganizationOf claims. Recognition granted and later withdrawn is modelled as a gmeow:StandpointTenure with gmeow:displayable false, never deletion (Principle 10). There is NO organization-specific dispute mechanism, no primaryMember, no preferredSuccessor — only the cross-cutting standpoint facility."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Role
@@ -85,7 +85,7 @@ gmeow:subOrganizationOf
 gmeow:memberOf owl:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) .
 
 # --------------------------------------------------------------------------- #
-# Founding and ownership (#411). Flat edges (P4 reify-on-demand): promote to a
+# Founding and ownership. Flat edges (P4 reify-on-demand): promote to a
 # founding Event / an ownership relator when date, share, or standpoint matters.
 # --------------------------------------------------------------------------- #
 
@@ -247,7 +247,7 @@ gmeow:successorOrganization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 # =========================================================================== #
-# Identifier — the UNIVERSAL reified external-identifier record (#409). Reified
+# Identifier — the UNIVERSAL reified external-identifier record. Reified
 # to avoid conflation when an entity carries multiple codes (an organization's
 # LEI + ROR + NAICS; a person's ORCID + geni + nip05). The scheme binds to the
 # Identifier node, not the bearer, so SPARQL projections pair the correct value
@@ -289,7 +289,7 @@ gmeow:identifierUrl
 # gmeow:Appellation borne by an entity — the names slice). So it rides the
 # universal rdfs:label on the gmeow:Identifier node rather than a bespoke
 # *Name property; the schema:PropertyValue projection reads rdfs:label →
-# schema:name (#409).
+# schema:name.
 
 gmeow:legalIdentifier
     a owl:ObjectProperty ;
@@ -334,7 +334,7 @@ gmeow:jurisdiction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 # =========================================================================== #
-# Commercial / business facet (full schema:Organization coverage, #449).
+# Commercial / business facet (full schema:Organization coverage, business organization facet).
 # A tax ID is NOT a new term — it is a gmeow:Identifier whose
 # gmeow:identifierScheme is "tax" (the LEI/NAICS idiom), projected to
 # schema:taxID by a scheme-guarded cell.
@@ -396,7 +396,7 @@ gmeow:organizationPurpose
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 # =========================================================================== #
-# OCCUPATION (from the expertise module) (#287 dependency surgery — promoted to core)
+# OCCUPATION (from the expertise module) (slice-dependency doctrine dependency refactor — promoted to core)
 # The shared what-one-does concept both employment and expertise
 # reference; as sibling extensions they may not reference each other, so
 # the concept lives in core beside roles and posts.
@@ -410,7 +410,7 @@ gmeow:Occupation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 # =========================================================================== #
-# Commercial offerings (#413). A minimal offerings surface: an agent makesOffer
+# Commercial offerings (project homepage and language). A minimal offerings surface: an agent makesOffer
 # an gmeow:Offering of some itemOffered (a gmeow:ServiceOffering or any entity);
 # services carry an open serviceType and an areaServed; opening hours are a
 # small specification. P15 consumer: the bii organization profile. Open value
@@ -428,7 +428,7 @@ gmeow:ServiceOffering
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Service Offering"@x-gmeow-english ;
-    skos:definition "A service an agent provides — consulting, support, hosting (#413). Distinct from gmeow:Service (the documents-slice creative-work sense); this is the commercial service. Its kind is an open gmeow:ServiceType value; projects to schema:Service."@x-gmeow-english ;
+    skos:definition "A service an agent provides — consulting, support, hosting (project homepage and language). Distinct from gmeow:Service (the documents-slice creative-work sense); this is the commercial service. Its kind is an open gmeow:ServiceType value; projects to schema:Service."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 gmeow:makesOffer

@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # The Agentic extension — the agent's actions as auditable provenance
 
 The graphrag extension made the *pipeline* auditable; this slice makes the *agent's
-actions* auditable (issue #390). A tool call is an event in the same provenance graph as
+actions* auditable. A tool call is an event in the same provenance graph as
 the claims it produces: `gmeow:ToolCall` follows the ModelInvocation idiom exactly — a
 `gufo:EventType` under `gmeow:Activity` with one functional agent link and verbatim call
 payloads — so "which tool, called by which invocation, with what arguments, at what
@@ -81,6 +81,6 @@ result record per call — both optional (functional, with closed-world twins).
 provenance alignment set). Wikidata's nearest stable entity is the *mechanism*, not the
 event (`wd:Q62270`, remote procedure call — relatedMatch). OpenAI function-calling,
 Anthropic `tool_use`, and MCP tool schemas are JSON specifications with no stable RDF
-namespace: bridging them is a projection concern (#58 Workflow Run Crate, the
+namespace: bridging them is a projection concern (Lillith worked example Workflow Run Crate, the
 OpenLineage precedent), recorded as REFUSED cells in the mapping trailer rather than
 papered over.

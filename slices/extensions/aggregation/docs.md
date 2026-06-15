@@ -13,8 +13,8 @@ result, confidence, granularity, and temporal scope are inherited without duplic
 (Principle 4: one observation spine, reused everywhere). The aggregation region is the
 `observedFeature`; the result is a `gmeow:ScalarQuantity`. The actual arithmetic —
 counting, density, centroid, binning — is performed by the solver layer (Principle 12),
-never materialised as asserted triples in the OWL core. The slice realises the issue #42
-Location-as-reference-frame epic and the issue #101 cross-cutting aggregation concern.
+never materialised as asserted triples in the OWL core. The slice realises the the design
+Location-as-reference-frame design and the centroid shortcut cross-cutting aggregation concern.
 
 Its Principle-15 consumer, declared in the manifest: **spatial aggregation (count,
 density, k-anonymity) in the solver layer over places** — the slice exists so the solver

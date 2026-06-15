@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Archaeological Evidence Module"@x-gmeow-english ;
     skos:definition "The GMEOW Archaeological Evidence Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
-    rdfs:comment """Language-facing hooks for archaeological and cultural-heritage evidence: inscriptions, physical carriers, readings, transliterations, translations, script/language attributions, and find context. Keeps the physical carrier, the sign-bearing inscription, the documentation event, the reading, the transliteration, the translation, the dating evidence, the stratigraphic/find context, and the linguistic interpretation as separable, standpoint-scoped claims (Principle 9). Reuses the universal Observation stack, TemporalMeasurement, Place, Event, and the lexicon/attestation layer. Defers general archaeological domain modeling to #129."""@x-gmeow-english ;
+    rdfs:comment """Language-facing hooks for archaeological and cultural-heritage evidence: inscriptions, physical carriers, readings, transliterations, translations, script/language attributions, and find context. Keeps the physical carrier, the sign-bearing inscription, the documentation event, the reading, the transliteration, the translation, the dating evidence, the stratigraphic/find context, and the linguistic interpretation as separable, standpoint-scoped claims (Principle 9). Reuses the universal Observation stack, TemporalMeasurement, Place, Event, and the lexicon/attestation layer. Defers general archaeological domain modeling to archaeological-domain model."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -125,7 +125,7 @@ gmeow:readingOf
 gmeow:readingResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionReading ;
-    rdfs:range gmeow:InformationObject ;  # weakened from lexicon's LexicalForm (#287: sibling extensions stay independent; the slice's shapes narrow when lexicon is loaded) ;
+    rdfs:range gmeow:InformationObject; # weakened from lexicon's LexicalForm (slice-dependency doctrine: sibling extensions stay independent; the slice's shapes narrow when lexicon is loaded);
     rdfs:label "reading result"@x-gmeow-english ;
     skos:definition "The lexical form(s) produced by a reading. Non-functional: a single reading may yield multiple coexisting forms (e.g. ambiguous or damaged signs interpreted differently within the same analytical frame), and competing result claims from different readings coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> .
@@ -145,7 +145,7 @@ gmeow:transliterationOf
 gmeow:transliterationResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTransliteration ;
-    rdfs:range gmeow:InformationObject ;  # weakened from lexicon's LexicalForm (#287: sibling extensions stay independent; the slice's shapes narrow when lexicon is loaded) ;
+    rdfs:range gmeow:InformationObject; # weakened from lexicon's LexicalForm (slice-dependency doctrine: sibling extensions stay independent; the slice's shapes narrow when lexicon is loaded);
     rdfs:label "transliteration result"@x-gmeow-english ;
     skos:definition "The lexical form(s) produced by a transliteration. Non-functional: competing transliteration schemes may produce different forms for the same inscription, and those claims coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> .
@@ -165,7 +165,7 @@ gmeow:translationOf
 gmeow:translationResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTranslation ;
-    rdfs:range gmeow:InformationObject ;  # weakened from lexicon's LexicalForm (#287: sibling extensions stay independent; the slice's shapes narrow when lexicon is loaded) ;
+    rdfs:range gmeow:InformationObject; # weakened from lexicon's LexicalForm (slice-dependency doctrine: sibling extensions stay independent; the slice's shapes narrow when lexicon is loaded);
     rdfs:label "translation result"@x-gmeow-english ;
     skos:definition "The lexical form(s) produced by a translation. Non-functional: competing translations of the same inscription coexist without privilege (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> .
@@ -201,7 +201,7 @@ gmeow:attributedScript
 gmeow:attributedNotation
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
-    rdfs:range gmeow:InformationObject ;  # weakened from notation's NotationSystem (#287: same convention as the LexicalForm ranges) ;
+    rdfs:range gmeow:InformationObject; # weakened from notation's NotationSystem (slice-dependency doctrine: same convention as the LexicalForm ranges);
     rdfs:label "attributed notation"@x-gmeow-english ;
     skos:definition "The notation system assigned to an undeciphered or symbol-classified inscription. Non-functional: used when the inscription is not yet linked to a known language or writing system (e.g. Linear A, Rongorongo, proto-cuneiform)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> .
@@ -231,7 +231,7 @@ gmeow:findContextStratigraphy
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:range gmeow:Entity ;
     rdfs:label "find context stratigraphy"@x-gmeow-english ;
-    skos:definition "The stratigraphic unit or layer associated with a carrier's find context. Range is gmeow:Entity (opaque reference) because general stratigraphic domain modeling is deferred to #129; this property provides the language-facing hook. Non-functional: competing stratigraphic interpretations coexist."@x-gmeow-english ;
+    skos:definition "The stratigraphic unit or layer associated with a carrier's find context. Range is gmeow:Entity (opaque reference) because general stratigraphic domain modeling is deferred to archaeological-domain model; this property provides the language-facing hook. Non-functional: competing stratigraphic interpretations coexist."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> .
 
 gmeow:findContextDating
@@ -309,7 +309,7 @@ gmeow:carrierWood            a gmeow:PhysicalCarrierType ; rdfs:label "wood"@x-g
 # =========================================================================== #
 
 # =========================================================================== #
-# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# OBSERVATION-SPINE BRIDGES (slice-dependency doctrine dependency refactor)
 # Declared HERE, in the slice that owns these properties: a dependent slice
 # knows the core observation spine; the spine never knows the slice. The
 # super-properties (observedFeature / vantage / observationResult) live in

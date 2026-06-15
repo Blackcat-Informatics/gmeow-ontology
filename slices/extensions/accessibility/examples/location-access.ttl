@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: accessibility as MATCHABLE facets (#443). One open vocabulary of
+# Worked example: accessibility as MATCHABLE facets. One open vocabulary of
 # gmeow:AccessibilityFacets (wheelchair, step-free, visual, auditory, cognitive …)
 # is used across three relations: what a location HAS
 # (gmeow:hasAccessibilityFeature), what it lacks as a gmeow:hasBarrier, and what an

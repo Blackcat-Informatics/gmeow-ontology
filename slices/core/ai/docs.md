@@ -29,7 +29,7 @@ re-asserted by a person sheds nothing but that provenance.
 ## 2. Hallucination: flagged, never deleted — and named honestly
 
 A claim node with no `gmeow:groundedIn` span (new) is a flagged hallucination
-(P10: retained, surfaced by #55's audit gates). The VERDICT about it is itself a
+(P10: retained, surfaced by EvidenceSpan audit machinery's audit gates). The VERDICT about it is itself a
 claim from a vantage:
 
 - the auditor's `gmeow:claimModality gmeow:bullshit` — Frankfurt's category is
@@ -45,7 +45,7 @@ claim from a vantage:
 `gmeow:Assessment ⊑ gmeow:Observation` (norms): *an LLM judge is just a
 vantage*; two judges disagreeing are two coexisting cells with no winner. The
 RAGAS/AIS metric family ships as a published `gmeow:Rubric` with `Criterion`
-individuals in the eval suite (#298) — instance data, never TBox. This core
+individuals in the eval suite — instance data, never TBox. This core
 slice deliberately mints NO evaluation machinery.
 
 ## 4. Hallucination as hazard (risk extension, instance data)
@@ -75,7 +75,7 @@ Agents have `gmeow:hasGoal`; an `gmeow:Intention` `gmeow:motivates` a
 `gmeow:ModelInvocation` (an Activity ⊑ Event) — whose reading of the motive it
 is rides `accordingTo` on the statement, like every attributed-motive claim.
 
-## The spine (#55 preview)
+## The spine (EvidenceSpan audit machinery preview)
 
 ```text
 source ─(chunkOf)─ Chunk ─(spanOfChunk)─ EvidenceSpan ─(groundedIn⁻¹, polarity)─ claim node

@@ -101,7 +101,7 @@ gmeow:recordedNoLaterThan
 gmeow:recordedNoLaterThan gmeow:docsConcern gmeow:concernStatementMetadata, gmeow:concernProvenanceEvidence .
 
 # =========================================================================== #
-# TEMPORAL FRAME PROFILE — mirrors the spatial ReferenceFrame (#65)
+# TEMPORAL FRAME PROFILE — mirrors the spatial ReferenceFrame (reference-frame profile)
 # =========================================================================== #
 
 gmeow:TemporalFrame
@@ -262,7 +262,7 @@ gmeow:temporalFrameTDBGregorian
 gmeow:temporalFrameTDBGregorian skos:definition "The tdb gregorian temporal frame — a named combination of timescale and calendar used to interpret temporal coordinates."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
 
-# Canonical civil-time frames for the non-Gregorian calendar systems (#443):
+# Canonical civil-time frames for the non-Gregorian calendar systems:
 # each is the same UTC-based civil clock interpreted on a different calendar, so
 # a date expressed in any of these calendars has an explicit TemporalFrame (P11)
 # and every CalendarSystem value is wired into a profile descriptor.
@@ -381,7 +381,7 @@ gmeow:temporalFrameUTCISOWeek
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
 
 # The remaining atomic/rotational time scales paired with the Gregorian calendar
-# (#443) — so GPS and UT1 are each wired into a profile descriptor.
+# — so GPS and UT1 are each wired into a profile descriptor.
 gmeow:temporalFrameGPSGregorian
     a gmeow:TemporalFrame ;
     rdfs:label "GPS Gregorian (satellite time)"@x-gmeow-english ;
@@ -751,7 +751,7 @@ gmeow:datingMethodPaleomagnetism skos:definition "The paleomagnetism dating meth
 gmeow:datingMethodStratigraphicCorrelation           a gmeow:DatingMethod ; rdfs:label "stratigraphic correlation"@x-gmeow-english .
 
 # =========================================================================== #
-# ALLEN INTERVAL RELATIONS — over TimeInterval (JEPD, mirroring events #41)
+# ALLEN INTERVAL RELATIONS — over TimeInterval (JEPD, mirroring events event/temporal design)
 # =========================================================================== #
 gmeow:datingMethodStratigraphicCorrelation skos:definition "The stratigraphic correlation dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
@@ -874,7 +874,7 @@ gmeow:intervalCoincidesWith
 # (queries/verify/no-jepd-violation.rq) and the solver layer (Principle 12).
 
 # =========================================================================== #
-# GRANULARITY LEVEL — temporal resolution axis (retained from #79)
+# GRANULARITY LEVEL — temporal resolution axis (retained from spatial-resolution axis)
 # =========================================================================== #
 
 gmeow:granularityCentury a gmeow:GranularityLevel ; rdfs:label "century level"@x-gmeow-english ;

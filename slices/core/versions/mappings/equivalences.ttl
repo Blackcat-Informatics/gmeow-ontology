@@ -4,7 +4,7 @@
 @prefix doap:   <http://usefulinc.com/ns/doap#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 
-# Term equivalences for the cross-cutting version-set layer (#161).
+# Term equivalences for the cross-cutting version-set layer.
 # The reified VersionMembership relator has no direct 1:1 equivalent in surface
 # vocabularies; it projects via the EDOAL+FnO layer (flattening to flat edges).
 # This file captures the direct term-level alignments only.
@@ -13,7 +13,7 @@ gmeow:mapsetVersions a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-versions.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/versions" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Cross-cutting version-set alignments (#161). VersionMembership is a reified relator with no direct flat equivalent; role claims project lossily to schema:version / doap:revision on the member entity." .
+    gmeow:setComment "Cross-cutting version-set alignments. VersionMembership is a reified relator with no direct flat equivalent; role claims project lossily to schema:version / doap:revision on the member entity.".
 
 gmeow:eqVersions001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:versionLabel ;

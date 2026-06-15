@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a web presence on the WEMI spine (#410, #443). A WebSite and
+# Worked example: a web presence on the WEMI spine. A WebSite and
 # its WebPages are concrete gmeow:Manifestations — so each embodies an Expression
 # that realizes a Work, the same four-tier backing every published artifact
 # carries. Pages belong to the site via gmeow:pageOfSite (⊑ partOf). The about

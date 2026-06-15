@@ -15,10 +15,10 @@ machine-readable: the module asserts `gmeow:depicts gmeow:pairsWith gmeow:Depict
 so tooling knows the flat form and the reified form are the same fact at two fidelities.
 There is **no primary or preferred depiction** (Principle 9): co-equal depictions coexist,
 and a superseded one is suppressed with `gmeow:displayable false`, never deleted
-(Principle 10). The slice builds on the WEMI spine (issue #208) — a visual work is a
+(Principle 10). The slice builds on the WEMI spine — a visual work is a
 `gmeow:Work`, the file a `gmeow:Manifestation`/`MediaObject` — and exists for its
 Principle-15 consumer: **high-fidelity depiction (regions, scene graphs) atop the core
-MediaObject, driven by the `gmeow-image` CLI (issue #326)**.
+MediaObject, driven by the `gmeow-image` CLI (CLI roll-up design)**.
 
 ## Layer 1 — contextual depiction
 
@@ -88,7 +88,7 @@ mask parsing, coordinate-space conversion, scene-graph inference, and IIIF Prese
 API 3 rendering (Layer 3 of the design is *purely projection* — Canvas/Annotation mapping
 adds no ontology terms). Technical metadata (`pixelWidth`, `captureDevice`, colourspace
 via `gmeow:hasReferenceFrame`) lives on `MediaObject` in the documents slice; rights reuse
-the issue #21 facility; provenance reuses `wasGeneratedBy`/`wasDerivedFrom`.
+the rights facility; provenance reuses `wasGeneratedBy`/`wasDerivedFrom`.
 
 ## Alignment & dependencies
 
@@ -97,7 +97,7 @@ IIIF, W3C Web Annotation, W3C EXIF Ontology, XMP, IPTC, and CIDOC-CRM/CRMdig. De
 `kernel`, `documents` (MediaObject), `observations` (the claim stack DepictionUsage sits
 in), and `temporal` (depiction intervals).
 
-## EXIF tags (#413)
+## EXIF tags (project homepage and language)
 
 ### gmeow:ExifTag · gmeow:hasExifTag · gmeow:exifTagId · gmeow:exifTagValue
 
@@ -110,7 +110,7 @@ property per tag (P9). The meaningful facts (capture device/time, GPS, colourspa
 ride their typed properties; the ExifTag set is the complete, faithful carrier, projected
 to `schema:exifData`.
 
-## Logo (#410 follow-through)
+## Logo ( follow-through)
 
 ### gmeow:hasLogo
 

@@ -25,4 +25,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/rights> ,
         <https://blackcatinformatics.ca/gmeow/slices/tags> ;
-    gmeow:sliceConsumer "The five-facet software model (#231): git-as-provenance, verifiable releases, this repo itself."@x-gmeow-english .
+    gmeow:sliceConsumer "The five-facet software model (five-facet software model): git-as-provenance, verifiable releases, this repo itself."@x-gmeow-english.

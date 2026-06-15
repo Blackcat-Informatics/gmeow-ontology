@@ -11,7 +11,7 @@ is **no `isFalse`, no `isDeceptive`, and no truth datatype property** anywhere i
 A falsehood is a frame-relative `gmeow:StandpointClaim` whose `claimModality` is
 `gmeow:refuted` — settled-false *per a designated reference frame* — and a deception is not
 a verdict at all but a **structural divergence**: an event in which the standpoint a party
-*holds* differs from the standpoint they *project*. The gap is the act (EPIC #212).
+*holds* differs from the standpoint they *project*. The gap is the act.
 
 Three corollaries shape everything below. **Intent stays out of the logic** — deceptive
 intent is an attributed, defeasible claim by an assessor, never entailed by the reasoner,
@@ -59,7 +59,7 @@ unequivocal in another. `veridicalityLicensedFalsehood` is the safety property: 
 satire, and sarcasm assert nothing because the audience understands the non-truth-asserting
 frame — licensed, not deceptive (Principle 1).
 
-## The mechanism inventory (issue #215)
+## The mechanism inventory
 
 ### gmeow:eventTypeLie · gmeow:eventTypePaltering · gmeow:eventTypeOmission · gmeow:eventTypeDistortion · gmeow:eventTypeBullshit · gmeow:eventTypeSelfDeception
 
@@ -83,7 +83,7 @@ The paltering hook: relates a deceptive event to the proposition its literally-t
 statement misleadingly implies. Deliberately without reasoner semantics — implicature is a
 pragmatics computation, not an OWL entailment (Principle 12).
 
-## Carrier deception (issue #216)
+## Carrier deception
 
 ### gmeow:eventTypeFabrication · gmeow:eventTypeForgery · gmeow:eventTypeImpersonation
 
@@ -104,7 +104,7 @@ configuration where deceiver = deceived; the dupe is the unwitting conduit; the 
 is specific to distortion events. No role implies guilt — roles are structure, intent is an
 attribution.
 
-## Propagation and the per-node boundary (issue #217)
+## Propagation and the per-node boundary
 
 ### gmeow:eventTypeDisinformation
 
@@ -132,7 +132,7 @@ ClaimReview via the fact-check attestation kind, AIF for argument scores — wit
 deferred to the alignment window. DL-cleanliness is by construction: simple object
 properties only, no transitivity, chains, or inverses (Principle 3).
 
-## Bridge: aboutness (kernel, #349)
+## Bridge: aboutness (kernel, )
 
 `gmeow:veridicalityLicensedFalsehood` (fiction, satire, sarcasm) is the
 special case where the kernel's aboutness axis meets veridicality: a fictional

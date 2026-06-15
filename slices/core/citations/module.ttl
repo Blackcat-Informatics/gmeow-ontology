@@ -81,7 +81,7 @@ gmeow:Selector
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:EvidenceSpan ;
     rdfs:label "Selector"@x-gmeow-english ;
-    skos:definition "A pinpoint reference into a cited creative work — a page number, text position, text quote, or generic locator. Replaces the retired gmeow:Citation (which collided with scholarly citation). A specialization of gmeow:EvidenceSpan: a citation selector is an anchored target within a cited work. Coordinated with #55's EvidenceSpan mechanism and reused by #63's annotation target span."@x-gmeow-english ;
+    skos:definition "A pinpoint reference into a cited creative work — a page number, text position, text quote, or generic locator. Replaces the retired gmeow:Citation (which collided with scholarly citation). A specialization of gmeow:EvidenceSpan: a citation selector is an anchored target within a cited work. Coordinated with EvidenceSpan audit machinery's EvidenceSpan mechanism and reused by annotation target span's annotation target span."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> .
 
 gmeow:selectorPage
@@ -165,7 +165,7 @@ gmeow:SourceRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> .
 
 # =========================================================================== #
-# FLAT REFERENCES (#287 dependency surgery — gathered from email and
+# FLAT REFERENCES (slice-dependency doctrine dependency refactor — gathered from email and
 # creative-works, which each held half of the inverse pair)
 # The generic Entity→Entity references pair is the FLAT-FIRST companion of
 # the typed citation machinery in this module (promote to a typed citation
@@ -190,5 +190,5 @@ gmeow:isReferencedBy
     skos:definition "A related resource that references, cites, or otherwise points to the described resource. Inverse of gmeow:references."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:cites gmeow:pairsWith gmeow:CitationAct .

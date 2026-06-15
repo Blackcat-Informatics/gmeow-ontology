@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: the four agent sortals (#443). A small consultancy, two of its
+# Worked example: the four agent sortals. A small consultancy, two of its
 # people, an informal working group, and its CI bot — each a distinct gufo:Kind
 # beneath the kernel's gmeow:Agent. The flat naming tier (gmeow:name) carries the
 # 80% case here; anything that needs structure — a reified PersonName, a contact

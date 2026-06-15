@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:sliceConsumer "Symbolic/notation systems for the language family and the music slice's projections (#318)."@x-gmeow-english .
+    gmeow:sliceConsumer "Symbolic/notation systems for the language family and the music slice's projections."@x-gmeow-english.

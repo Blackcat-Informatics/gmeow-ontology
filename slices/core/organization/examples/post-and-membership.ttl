@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: the seat is not the sitter (#443). GMEOW de-conflates the two
+# Worked example: the seat is not the sitter. GMEOW de-conflates the two
 # things surface vocabularies collapse into "CFO": the gmeow:Post (the seat, a
 # RoleMixin that exists whether or not anyone fills it) and the gmeow:Membership
 # (a person's tenure occupying it). The membership gmeow:fillsPost the post, so a

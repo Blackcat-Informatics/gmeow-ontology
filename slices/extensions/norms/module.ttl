@@ -9,17 +9,17 @@
 <https://blackcatinformatics.ca/gmeow/slices/norms>
     a owl:Ontology ;
     rdfs:label "GMEOW Norms Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Norms Module — generalized deontics with indexed authority (issues #351 / #352, EPIC #348)."@x-gmeow-english ;
+    skos:definition "The GMEOW Norms Module — generalized deontics with indexed authority."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:comment """Generalized deontics with indexed authority — the constitutional keystone of the normative stack (EPIC #348).
+    rdfs:comment """Generalized deontics with indexed authority — the constitutional keystone of the normative stack.
 
 DOCTRINE.
   * THERE IS NO OUGHT, ONLY OUGHT-ACCORDING-TO. Every norm names its issuer (gmeow:normIssuer); an ought without an issuer is the deontic analogue of a global truth axiom and is forbidden by SHACL. Two contradictory normative systems coexist without inconsistency because neither is asserted — both are recorded as issued (Principles 1, 9; the deception module's held/projected move applied to oughts). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised, because accordingTo is an AnnotationProperty and normIssuer is an ObjectProperty — the vantage ⊑ accordingTo precedent (standpoint module).
   * PRECEDENCE IS DATA, NOT SEMANTICS. gmeow:overrides is pairwise and deliberately NOT transitive: lex-superior chains are solver inferences, never reasoner entailments. AuthorityLevel is an ordered value vocabulary (the kernel GranularityLevel pattern — third use); ordering comparisons are solver work (Principle 12). 'Tier 2 overrode X until v3.5' is a gmeow:PrecedenceTenure — the StandpointTenure idiom (Principle 10: withdrawal by suppression, never deletion).
   * CONDITIONS ARE STORED, NEVER EXECUTED. A gmeow:Condition is an InformationObject whose canonical form is prose (conditionText); formalizations (SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL) attach as ConditionExpressions, and EACH FORMALIZATION IS A CLAIM of equivalence to the prose, challengeable through the statement layer. Whether a condition held is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. No CI step, test, or tool may evaluate a ConditionExpression against the graph as part of validation (the Principle 12 boundary made operational; see docs.md).
-  * THE RIGHTS GRAFT (#352) lands here, extension-side, with ZERO core churn: gmeow:Rule ⊑ gmeow:Norm plus subproperty grafts. The deontic trio (Permission / Prohibition / Duty) is NOT an inferior duplicate of Norm + deonticModality — it is a rigid subkind partition (fixed modality per subkind) under the open modality axis, kept for the asset case and its projection affordances. When this extension is absent, the core rights slice behaves exactly as before.
-  * Deontic force ranges over teleology: gmeow:prescribedConduct points at event types, goals (#350), situations, or rights actions; its range is intentionally open (the tenurePosition precedent) so the graft needs no dual-typing and the generated schema surface keeps a clean property.
-  * ALIGNMENTS DEFERRED to the compiler-arc window (the wip-aboutness-349 precedent): ODRL 2.2 (EDOAL — odrl:Constraint ↔ Condition is structural), LegalRuleML (<Override> ↔ overrides/PrecedenceTenure — the one target where precedence survives round-trip), LKIF-Core, DPV, SUMO normative attributes, UFO-L. Target list is fixed in #351."""@x-gmeow-english ;
+  * THE RIGHTS GRAFT (rights graft) lands here, extension-side, with ZERO core churn: gmeow:Rule ⊑ gmeow:Norm plus subproperty grafts. The deontic trio (Permission / Prohibition / Duty) is NOT an inferior duplicate of Norm + deonticModality — it is a rigid subkind partition (fixed modality per subkind) under the open modality axis, kept for the asset case and its projection affordances. When this extension is absent, the core rights slice behaves exactly as before.
+  * Deontic force ranges over teleology: gmeow:prescribedConduct points at event types, goals (teleology design), situations, or rights actions; its range is intentionally open (the tenurePosition precedent) so the graft needs no dual-typing and the generated schema surface keeps a clean property.
+  * ALIGNMENTS DEFERRED to the compiler-arc window (the aboutness-axis precedent): ODRL 2.2 (EDOAL — odrl:Constraint ↔ Condition is structural), LegalRuleML (<Override> ↔ overrides/PrecedenceTenure — the one target where precedence survives round-trip), LKIF-Core, DPV, SUMO normative attributes, UFO-L. Target list is fixed in the alignment ledger."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -30,7 +30,7 @@ gmeow:Norm
     a owl:Class, gufo:Category ;
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Norm"@x-gmeow-english ;
-    skos:definition "A prescription existing by social convention — an obligation, prohibition, permission, or recommendation issued by an agent or standpoint over some conduct. A norm asserts nothing about the world: it records that an issuer prescribes. Whether anything complies is a vantage-indexed ComplianceAssessment; what wins when norms conflict is solver work over the recorded precedence claims (Principle 12). Every modality-bearing norm must name its issuer (SHACL): there is no ought, only ought-according-to (Principles 1, 9). GROUNDING: a gufo:Category at Entity level — the IntentionalMoment precedent — because the #352 graft places gmeow:Rule (⊑ gufo:Relator) beneath it while plain standalone norms are object-like social descriptions; committing Norm to gufo:Object OR gufo:Relator would make one branch inconsistent (Object ⟂ Aspect), and a Kind would stack identities under the rights trio (OntoUML MixIden). The social-convention reading lives on the concrete classes: NormativeSystem ⊑ SocialObject, the trio ⊑ Relator."@x-gmeow-english ;
+    skos:definition "A prescription existing by social convention — an obligation, prohibition, permission, or recommendation issued by an agent or standpoint over some conduct. A norm asserts nothing about the world: it records that an issuer prescribes. Whether anything complies is a vantage-indexed ComplianceAssessment; what wins when norms conflict is solver work over the recorded precedence claims (Principle 12). Every modality-bearing norm must name its issuer (SHACL): there is no ought, only ought-according-to (Principles 1, 9). GROUNDING: a gufo:Category at Entity level — the IntentionalMoment precedent — because the rights graft places gmeow:Rule (⊑ gufo:Relator) beneath it while plain standalone norms are object-like social descriptions; committing Norm to gufo:Object OR gufo:Relator would make one branch inconsistent (Object ⟂ Aspect), and a Kind would stack identities under the rights trio (OntoUML MixIden). The social-convention reading lives on the concrete classes: NormativeSystem ⊑ SocialObject, the trio ⊑ Relator."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:DeonticModality
@@ -65,7 +65,7 @@ gmeow:deonticModality
 gmeow:normIssuer
     a owl:ObjectProperty ;
     rdfs:label "norm issuer"@x-gmeow-english ;
-    skos:definition "The agent or standpoint according to which this norm holds — the constitutional keystone: there is no ought, only ought-according-to. DOMAIN-FREE on purpose: gmeow:systemIssuer specializes this property for NormativeSystems, and a domain of Norm would leak gmeow:Norm typing onto every system through the subproperty (PR #369 review); issuance applies to norms, systems, and future deontic carriers alike. The range is intentionally open (a gmeow:Agent or a gmeow:Standpoint individual, the accordingTo convention). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised (accordingTo is an AnnotationProperty; the vantage precedent). NOT functional: co-issued norms (a treaty, a joint policy) carry several issuers, and those claims coexist (Principle 9)."@x-gmeow-english ;
+    skos:definition "The agent or standpoint according to which this norm holds — the constitutional keystone: there is no ought, only ought-according-to. DOMAIN-FREE on purpose: gmeow:systemIssuer specializes this property for NormativeSystems, and a domain of Norm would leak gmeow:Norm typing onto every system through the subproperty design review; issuance applies to norms, systems, and future deontic carriers alike. The range is intentionally open (a gmeow:Agent or a gmeow:Standpoint individual, the accordingTo convention). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised (accordingTo is an AnnotationProperty; the vantage precedent). NOT functional: co-issued norms (a treaty, a joint policy) carry several issuers, and those claims coexist (Principle 9)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:normBearer
@@ -80,7 +80,7 @@ gmeow:prescribedConduct
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:label "prescribed conduct"@x-gmeow-english ;
-    skos:definition "The conduct the norm is about — an event type, a goal (#350), a situation, or a rights action (via the #352 graft). The range is intentionally open (the tenurePosition precedent): asserting a closed range union would either dangle across module boundaries or vanish from the generated schema surface, and the graft would force dual-typing of the RightsAction vocabulary. NOT functional: one norm may govern several conducts jointly."@x-gmeow-english ;
+    skos:definition "The conduct the norm is about — an event type, a goal (teleology design), a situation, or a rights action (via the rights graft). The range is intentionally open (the tenurePosition precedent): asserting a closed range union would either dangle across module boundaries or vanish from the generated schema surface, and the graft would force dual-typing of the RightsAction vocabulary. NOT functional: one norm may govern several conducts jointly."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:NormativeSystem
@@ -189,7 +189,7 @@ gmeow:Condition
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Condition"@x-gmeow-english ;
-    skos:definition "A describable circumstance — the trigger of a conditional norm, the activation context of a persona (#355), the antecedent of a causal link (#354). The canonical form is PROSE (gmeow:conditionText, mandatory by SHACL); machine formalizations attach via gmeow:formalizedAs, and each formalization is a claim of equivalence to the prose, challengeable through the statement layer. Whether the condition held at some moment is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. The ontology stores conditions; it never executes them (Principle 12)."@x-gmeow-english ;
+    skos:definition "A describable circumstance — the trigger of a conditional norm, the activation context of a persona, the antecedent of a causal link (risk design). The canonical form is PROSE (gmeow:conditionText, mandatory by SHACL); machine formalizations attach via gmeow:formalizedAs, and each formalization is a claim of equivalence to the prose, challengeable through the statement layer. Whether the condition held at some moment is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. The ontology stores conditions; it never executes them (Principle 12)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:conditionText
@@ -362,7 +362,7 @@ gmeow:evaluatedCondition
     rdfs:domain gmeow:ConditionEvaluation ;
     rdfs:range gmeow:Condition ;
     rdfs:label "evaluated condition"@x-gmeow-english ;
-    skos:definition "The condition this evaluation reports on (⊑ observedFeature — the #69 bridge idiom). Functional: one evaluation, one condition; group members get their own evaluations."@x-gmeow-english ;
+    skos:definition "The condition this evaluation reports on (⊑ observedFeature — the observation-spine bridge idiom). Functional: one evaluation, one condition; group members get their own evaluations."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:EvaluationVerdict
@@ -439,7 +439,7 @@ gmeow:complianceVerdict
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 # =========================================================================== #
-# THE RIGHTS GRAFT (#352) — Rule ⊑ Norm, asserted extension-side, zero core churn
+# THE RIGHTS GRAFT (rights graft) — Rule ⊑ Norm, asserted extension-side, zero core churn
 #
 # The deontic trio (Permission / Prohibition / Duty) stays a rigid subkind
 # partition in the core rights slice. This section grafts it under Norm so
@@ -459,7 +459,7 @@ gmeow:ruleAssignee rdfs:subPropertyOf gmeow:normBearer .
 gmeow:ruleAction rdfs:subPropertyOf gmeow:prescribedConduct .
 
 # =========================================================================== #
-# RUBRICS — reified evaluation frameworks (issue #353, EPIC #348)
+# RUBRICS — reified evaluation frameworks (rubrics design, goal hierarchy design)
 #
 # A rubric IS a norm for judging: Rubric ⊑ Norm, so normIssuer, overrides,
 # AuthorityLevel, and PrecedenceTenure come free. Rubric CONTENT is fully
@@ -468,7 +468,7 @@ gmeow:ruleAction rdfs:subPropertyOf gmeow:prescribedConduct .
 # anchors in, score Assessments out, and the function between them is never
 # triples. An LLM judge is just a vantage (Principle 9): two models
 # disagreeing on a score are two coexisting Assessments, no winner. The
-# kernel aboutness axis (#349) carries the phase-gate distinction on
+# kernel aboutness axis carries the phase-gate distinction on
 # exemplars: a passage that DESCRIBES trust is source material; one that
 # ENACTS it is embodiment — same selector, different aboutness, different
 # score. Scoring-density guidance by assessed granularity reuses the kernel
@@ -479,7 +479,7 @@ gmeow:ruleAction rdfs:subPropertyOf gmeow:prescribedConduct .
 # deontic family. Alignments/projections (EARL via EDOAL, DQV, schema.org
 # Rating/Review, 1EdTech CASE, lm-eval task YAML; CiTO arrives free through
 # Exemplar ⊑ CitationAct) are deferred to the compiler-arc window; the
-# target list is fixed in #353.
+# target list is fixed in the alignment ledger.
 # =========================================================================== #
 
 gmeow:Rubric
@@ -632,7 +632,7 @@ gmeow:anchorMeaning
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
     rdfs:label "anchor meaning"@x-gmeow-english ;
-    skos:definition "What scores in this range MEAN — the calibration prose. NOT functional and range-open (PR #376 review): localizable prose may carry one meaning per language tag (sh:uniqueLang, SHACL) — a French and an English calibration coexist; two same-language meanings do not. Mandatory: an anchor without a meaning is just an interval."@x-gmeow-english ;
+    skos:definition "What scores in this range MEAN — the calibration prose. NOT functional and range-open (localizable-prose convention): localizable prose may carry one meaning per language tag (sh:uniqueLang, SHACL) — a French and an English calibration coexist; two same-language meanings do not. Mandatory: an anchor without a meaning is just an interval."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:anchorExemplar
@@ -651,7 +651,7 @@ gmeow:Exemplar
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CitationAct ;
     rdfs:label "Exemplar"@x-gmeow-english ;
-    skos:definition "A citation act that holds something up as an example — positively, negatively, or as a cautionary boundary case. Pins into the cited work via the citation Selector machinery (page, quote, locator) AND/OR names an entity subject (gmeow:exemplarSubject — a character's conduct across a whole work, EPIC #358 coordination): at least one of the two (SHACL). The kernel aboutness axis (#349) carries the phase-gate: an exemplar whose span DESCRIBES trust is source material; one whose span ENACTS it is embodiment — same selector, different gmeow:hasAboutness, different anchored range. CiTO alignment arrives free through CitationAct."@x-gmeow-english ;
+    skos:definition "A citation act that holds something up as an example — positively, negatively, or as a cautionary boundary case. Pins into the cited work via the citation Selector machinery (page, quote, locator) AND/OR names an entity subject (gmeow:exemplarSubject — a character's conduct across a whole work, foundation-corpus coordination): at least one of the two (SHACL). The kernel aboutness axis carries the phase-gate: an exemplar whose span DESCRIBES trust is source material; one whose span ENACTS it is embodiment — same selector, different gmeow:hasAboutness, different anchored range. CiTO alignment arrives free through CitationAct."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:ExemplarPolarity
@@ -683,7 +683,7 @@ gmeow:exemplarSubject
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Exemplar ;
     rdfs:label "exemplar subject"@x-gmeow-english ;
-    skos:definition "The entity whose pattern the exemplar evidences — a frame-scoped character whose conduct across the cited work is the example (EPIC #358: 823 such links in the foundation corpus), an organization, a person. Range intentionally open. NOT functional, optional: span-pinned exemplars need no subject, and subject + selector may coexist (the span shows one instance of the pattern; the subject names its bearer). At least one of viaSelector / exemplarSubject (SHACL)."@x-gmeow-english ;
+    skos:definition "The entity whose pattern the exemplar evidences — a frame-scoped character whose conduct across the cited work is the example (design context: 823 such links in the foundation corpus), an organization, a person. Range intentionally open. NOT functional, optional: span-pinned exemplars need no subject, and subject + selector may coexist (the span shows one instance of the pattern; the subject names its bearer). At least one of viaSelector / exemplarSubject (SHACL)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:exemplarRedirect
@@ -698,7 +698,7 @@ gmeow:exemplarRationale
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Exemplar ;
     rdfs:label "exemplar rationale"@x-gmeow-english ;
-    skos:definition "Why this is an exemplar — the judgement prose. NOT functional and range-open (PR #376 review): localizable, one rationale per language tag; whose judgement it is rides the statement layer."@x-gmeow-english ;
+    skos:definition "Why this is an exemplar — the judgement prose. NOT functional and range-open (localizable-prose convention): localizable, one rationale per language tag; whose judgement it is rides the statement layer."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 # --------------------------------------------------------------------------- #
@@ -717,7 +717,7 @@ gmeow:assessmentTarget
     rdfs:subPropertyOf gmeow:observedFeature ;
     rdfs:domain gmeow:Assessment ;
     rdfs:label "assessment target"@x-gmeow-english ;
-    skos:definition "What is being scored — a work, an expression, a content segment, a chunk (⊑ observedFeature, the #69 bridge idiom). Range intentionally open. Functional: one assessment, one target."@x-gmeow-english ;
+    skos:definition "What is being scored — a work, an expression, a content segment, a chunk (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one assessment, one target."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:assessmentCriterion
@@ -745,16 +745,16 @@ gmeow:assessmentScoreValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 # =========================================================================== #
-# REGISTERS & PERSONAS — context-activated expression (issue #355, EPIC #348)
+# REGISTERS & PERSONAS — context-activated expression
 #
 # Same agent, same norms, different expression by context. A persona is not
 # a different self and not a deception — where projected and held standpoints
-# DIVERGE, that is the deception module's territory (#212; the boundary
+# DIVERGE, that is the deception module's territory; the boundary
 # between register-switching and impersonation is documented there and here,
 # never axiomatized). A persona that merely switches register deceives
 # nobody.
 #
-# GROUNDING DECISION (deviation from the #355 sketch, recorded): Persona is
+# GROUNDING DECISION (deviation from the register/persona sketch, recorded): Persona is
 # a RELATOR (the NameUsage / Participation / DepictionUsage idiom), not a
 # gufo:Role class. gUFO roles CLASSIFY endurants — one individual under
 # contingent classification — but a persona needs its own identity: PRIMARY
@@ -780,7 +780,7 @@ gmeow:Persona
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Persona"@x-gmeow-english ;
-    skos:definition "A reified expression policy of one agent — the relator binding {bearer} × {register(s)} × {expressed norms} × {activation context}. PRIMARY and PRIVATE are two Personas of one agent; 'Dr. Chen at the clinic' and 'Mom at home' are two of another. No primaryPersona exists or ever will (Principle 9): personas are co-equal, context-activated, and withdrawn by suppression, never deletion (Principle 10). Register-switching is not deception — divergence of held and projected standpoints is the deception module's territory (#212), a documented boundary with no axiom coupling."@x-gmeow-english ;
+    skos:definition "A reified expression policy of one agent — the relator binding {bearer} × {register(s)} × {expressed norms} × {activation context}. PRIMARY and PRIVATE are two Personas of one agent; 'Dr. Chen at the clinic' and 'Mom at home' are two of another. No primaryPersona exists or ever will (Principle 9): personas are co-equal, context-activated, and withdrawn by suppression, never deletion (Principle 10). Register-switching is not deception — divergence of held and projected standpoints is the deception module's territory, a documented boundary with no axiom coupling."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:personaBearer
@@ -822,7 +822,7 @@ gmeow:StyleGuide
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Style Guide"@x-gmeow-english ;
-    skos:definition "The voice payload of a persona or register — prose whose REGISTER IS THE CONTENT. The prose-voice doctrine (EPIC #348 gap analysis): voice documents attach byte-perfect via gmeow:exemplifiedBy (content-digested Documents carrying gmeow:hasAboutness gmeow:aboutnessEnacts — the document does not describe the voice, it IS the voice), never shredded into pseudo-quantified style triples. Style dimensions, when stated, are prose."@x-gmeow-english ;
+    skos:definition "The voice payload of a persona or register — prose whose REGISTER IS THE CONTENT. The prose-voice doctrine (gap analysis): voice documents attach byte-perfect via gmeow:exemplifiedBy (content-digested Documents carrying gmeow:hasAboutness gmeow:aboutnessEnacts — the document does not describe the voice, it IS the voice), never shredded into pseudo-quantified style triples. Style dimensions, when stated, are prose."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:styleGuideFor
@@ -837,7 +837,7 @@ gmeow:exemplifiedBy
     rdfs:domain gmeow:StyleGuide ;
     rdfs:range gmeow:Document ;
     rdfs:label "exemplified by"@x-gmeow-english ;
-    skos:definition "A document whose prose EXEMPLIFIES the voice — byte-perfect, carrying gmeow:contentDigest (SHACL: an undigested exemplar can drift silently) and gmeow:hasAboutness gmeow:aboutnessEnacts (#349: it does not describe the voice, it performs it). NOT functional: several exemplifying documents coexist."@x-gmeow-english ;
+    skos:definition "A document whose prose EXEMPLIFIES the voice — byte-perfect, carrying gmeow:contentDigest (SHACL: an undigested exemplar can drift silently) and gmeow:hasAboutness gmeow:aboutnessEnacts (it does not describe the voice, it performs it). NOT functional: several exemplifying documents coexist."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 # Persona-facing Register individuals (the names-core spine, extended here).
@@ -857,7 +857,7 @@ gmeow:registerBrandVoice a gmeow:Register ; rdfs:label "brand voice"@x-gmeow-eng
     skos:definition "The brand-voice register — an organization's curated public expression identity."@x-gmeow-english .
 gmeow:registerBrandVoice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:overrides gmeow:pairsWith gmeow:PrecedenceTenure .
 gmeow:violates gmeow:pairsWith gmeow:ComplianceAssessment .
 gmeow:complies gmeow:pairsWith gmeow:ComplianceAssessment .

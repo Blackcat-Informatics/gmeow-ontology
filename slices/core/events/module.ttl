@@ -18,7 +18,7 @@ DOCTRINE (the no-mess rules).
   * Role is a VALUE on a relator, not a subproperty: participation is reified as gmeow:Participation (the NameUsage / IdentityFacet idiom), and the role is a gmeow:ParticipantRole value — never a hasWitness-style subproperty.
   * Four orthogonal axes, no inferential bridge: eventType ⟂ participationRole ⟂ temporal ⟂ location.
   * Flat-first, reify on demand: a flat gmeow:hasParticipant covers the 80% case; promote to a gmeow:Participation when role / period / confidence / evidence is needed (the hasMet / InterpersonalRelationship duality).
-  * Co-equal conflicting claims coexist: no primary date / canonical occurrence; competing dates, types and roles are confidence-weighted, standpoint-indexed statements (consume the standpoint module, #43), never one ground truth. Corrections use gmeow:displayable false, never deletion (Principle 10).
+  * Co-equal conflicting claims coexist: no primary date / canonical occurrence; competing dates, types and roles are confidence-weighted, standpoint-indexed statements (consume the standpoint module, standpoint facility), never one ground truth. Corrections use gmeow:displayable false, never deletion (Principle 10).
   * DL-clean time (Principle 3): base-triple datatypes are xsd:dateTime, never xsd:date; fuzzy / approximate time is carried by gmeow:earliestStart / gmeow:latestEnd bounds + a gmeow:temporalPrecision value, not a free-text date.
 
 This module ABSORBS the former genealogy event hierarchy (Principle 6 — refactor forward): the ~30 gmeow:LifeEvent subclasses became gmeow:eventType value individuals and the hasPrincipal / hasWitness / hasOfficiant subproperties became gmeow:ParticipantRole values."""@x-gmeow-english ;
@@ -138,7 +138,7 @@ gmeow:eventTypeNameChange     a gmeow:EventType ; rdfs:label "name change"@x-gme
 gmeow:eventTypeNameChange rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:eventTypeOrdination     a gmeow:EventType ; rdfs:label "ordination"@x-gmeow-english ;     skos:definition "Ordination into religious office."@x-gmeow-english .
 
-# Observational activity event types (#128) — value individuals, never subclasses.
+# Observational activity event types (observation-linkage design) — value individuals, never subclasses.
 # gmeow:eventTypeCensus (Lifecycle event types, line 98) remains a person's
 # enumeration in a census. The census activity itself — the systematic data-
 # collection operation — is modelled separately here as gmeow:eventTypeCensusActivity
@@ -156,7 +156,7 @@ gmeow:eventTypeClinicalTrial  a gmeow:EventType ; rdfs:label "clinical trial"@x-
 
 # --------------------------------------------------------------------------- #
 # Lifecycle event types — universal creation / destruction / supersession for any
-# entity (issue #81). Coexist with the person-scoped birth/death: a birth IS a
+# entity (person event design). Coexist with the person-scoped birth/death: a birth IS a
 # creation, a death IS a destruction — multiple type values on one event are
 # expected and non-functional (Principle 9).
 # --------------------------------------------------------------------------- #
@@ -171,7 +171,7 @@ gmeow:eventTypeSupersession rdfs:isDefinedBy <https://blackcatinformatics.ca/gme
 gmeow:eventTypeDissolution    a gmeow:EventType ; rdfs:label "dissolution"@x-gmeow-english ;    skos:definition "The formal dissolution of a structured entity — an organization, agreement, polity, or marriage. Distinct from general destruction in carrying legal or procedural formality."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Multi-organization change event types (issue #258). Reuse the universal Event
+# Multi-organization change event types (organization-change design). Reuse the universal Event
 # machinery; predecessor/successor organizations are linked via
 # gmeow:predecessorOrganization / gmeow:successorOrganization on the event.
 # Founding/dissolution are NOT duplicated — they use the universal
@@ -190,7 +190,7 @@ gmeow:eventTypeAcquisition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeo
 gmeow:eventTypeRename       a gmeow:EventType ; rdfs:label "rename"@x-gmeow-english ;      skos:definition "The event of an organization changing its name, while remaining the same legal entity. Reuses the names module for the new name plus a temporal tenure (e.g. Facebook → Meta)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Creative-work creation event types — WEMI spine (#208). These specialize the
+# Creative-work creation event types — WEMI spine. These specialize the
 # universal gmeow:eventTypeCreation for the bibliographic/cultural-heritage
 # domain. They are values, not Event subclasses (Principle 12).
 # --------------------------------------------------------------------------- #
@@ -203,7 +203,7 @@ gmeow:eventTypeExpressionCreation rdfs:isDefinedBy <https://blackcatinformatics.
 gmeow:eventTypeManifestationProduction a gmeow:EventType ; rdfs:label "manifestation production"@x-gmeow-english ; skos:definition "The event of producing a concrete edition, format, or release — the act that brings a gmeow:Manifestation into existence (printing, pressing, digital publishing)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# Image event types — values, not Event subclasses (Principle 9; issue #22)
+# Image event types — values, not Event subclasses (Principle 9; the design)
 # --------------------------------------------------------------------------- #
 gmeow:eventTypeManifestationProduction rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
@@ -248,7 +248,7 @@ gmeow:eventTypeTermination rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeo
 
 # --------------------------------------------------------------------------- #
 # Musical performance event types — values, not Event subclasses (Principle 9;
-# issue #313). A performance is an Event whose gmeow:eventType carries one or
+# performance events and participation). A performance is an Event whose gmeow:eventType carries one or
 # more of these values; there is no MusicalPerformance class.
 # --------------------------------------------------------------------------- #
 
@@ -270,7 +270,7 @@ gmeow:eventTypeSoundcheck       a gmeow:EventType ; rdfs:label "soundcheck"@x-gm
 gmeow:eventTypeSoundcheck rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:eventTypeDJSet            a gmeow:EventType ; rdfs:label "DJ set"@x-gmeow-english ;            skos:definition "A performance in which a DJ selects and plays recorded music."@x-gmeow-english .
 gmeow:eventTypeDJSet rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
-gmeow:eventTypeTransmission     a gmeow:EventType ; rdfs:label "transmission"@x-gmeow-english ;     skos:definition "An oral-tradition teaching event in which musical knowledge is passed from one agent to another (see issue #316)."@x-gmeow-english .
+gmeow:eventTypeTransmission a gmeow:EventType; rdfs:label "transmission"@x-gmeow-english; skos:definition "An oral-tradition teaching event in which musical knowledge is passed from one agent to another (see oral-tradition transmission)."@x-gmeow-english.
 
 # --------------------------------------------------------------------------- #
 # Participant role — an OPEN value vocabulary. Generalizes the former genealogy
@@ -323,9 +323,9 @@ gmeow:roleSessionMusician      a gmeow:ParticipantRole ; rdfs:label "session mus
 gmeow:roleSessionMusician rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 gmeow:roleImproviser           a gmeow:ParticipantRole ; rdfs:label "improviser"@x-gmeow-english ;          skos:definition "A performer whose participation is primarily improvisatory."@x-gmeow-english .
 gmeow:roleImproviser rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
-gmeow:roleTransmitter          a gmeow:ParticipantRole ; rdfs:label "transmitter"@x-gmeow-english ;         skos:definition "An agent who transmits musical knowledge in an oral-tradition teaching event (see issue #316)."@x-gmeow-english .
+gmeow:roleTransmitter a gmeow:ParticipantRole; rdfs:label "transmitter"@x-gmeow-english; skos:definition "An agent who transmits musical knowledge in an oral-tradition teaching event (see oral-tradition transmission)."@x-gmeow-english.
 gmeow:roleTransmitter rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
-gmeow:roleLearner              a gmeow:ParticipantRole ; rdfs:label "learner"@x-gmeow-english ;             skos:definition "An agent who receives musical knowledge in an oral-tradition teaching event (see issue #316)."@x-gmeow-english .
+gmeow:roleLearner a gmeow:ParticipantRole; rdfs:label "learner"@x-gmeow-english; skos:definition "An agent who receives musical knowledge in an oral-tradition teaching event (see oral-tradition transmission)."@x-gmeow-english.
 
 # --------------------------------------------------------------------------- #
 # Temporal precision — an OPEN value vocabulary for the granularity of an event's
@@ -498,7 +498,7 @@ gmeow:eventTrajectory
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:Trajectory ;
     rdfs:label "event trajectory"@x-gmeow-english ;
-    skos:definition "The trajectory of a moving event — a parade, march, migration, or procession — describing its continuous space-time path. Reuses the gmeow:Trajectory facility from the locations module (#94). Non-functional: competing trajectory claims from different sources coexist (Principle 9)."@x-gmeow-english ;
+    skos:definition "The trajectory of a moving event — a parade, march, migration, or procession — describing its continuous space-time path. Reuses the gmeow:Trajectory facility from the locations module (trajectory design). Non-functional: competing trajectory claims from different sources coexist (Principle 9)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventSpacetime
@@ -539,7 +539,7 @@ gmeow:hasSubEvent
 gmeow:eventLocation owl:propertyChainAxiom ( gmeow:eventLocation gmeow:containedInLocation ) .
 
 # --------------------------------------------------------------------------- #
-# Observation linkage (#128) — unify the event and observation stacks.
+# Observation linkage (observation-linkage design) — unify the event and observation stacks.
 # An ObservationalActivity generates observations; an Event bears observations
 # made during or about it.  The property chain makes the activity associated
 # with the vantage of its generated observations (DL-regular, forward-only).
@@ -601,10 +601,10 @@ gmeow:occurrenceOfSeries
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38) — relator mediation. A participation mediates at
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — relator mediation. A participation mediates at
 # least its event and its participant (EL someValuesFrom, open-world); the
 # closed-world "exactly one event, at least one participant" cardinality is
-# SHACL's (gmeow:ParticipationHasPlayersShape, #39). Mirrors gmeow:NameUsage and
+# SHACL's (gmeow:ParticipationHasPlayersShape, SHACL closure gate). Mirrors gmeow:NameUsage and
 # gmeow:ParentChildRelationship.
 # =========================================================================== #
 
@@ -613,7 +613,7 @@ gmeow:Participation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:someValuesFrom gmeow:Entity ] .
 
 # =========================================================================== #
-# TEMPORAL RELATIONS — Allen's interval algebra over events (#41 temporal
+# TEMPORAL RELATIONS — Allen's interval algebra over events (event/temporal design temporal
 # deepening). The qualitative ordering layer that OWL-Time, CIDOC-CRM, ISO-TimeML
 # (TLINK) and the Time Event Ontology (TEO) all build on, here related directly
 # between gmeow:Event occurrences (the TimeML TLINK / TEO event-event idiom) — the
@@ -854,7 +854,7 @@ gmeow:eventAspect
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # =========================================================================== #
-# TEMPORAL FRAME LINKAGE (#67)
+# TEMPORAL FRAME LINKAGE
 #
 # Events carry their temporal frame explicitly when the event's interval is
 # expressed in a non-default frame (non-Gregorian calendar, astronomical scale,
@@ -876,7 +876,7 @@ gmeow:eventTemporalFrame
 # Allen relations. An event occurrence cannot simultaneously stand in an event
 # relation (which is about the occurrence) and an interval relation (which is
 # about the extent) to the same target. Within each family, transitivity and
-# inverses hold; between the families, they are disjoint (#67).
+# inverses hold; between the families, they are disjoint.
 # =========================================================================== #
 
 # Event-level and interval-level Allen relations are intentionally kept in
@@ -886,7 +886,7 @@ gmeow:eventTemporalFrame
 # DisjointObjectProperties over non-simple properties.  Cross-family separation
 # is enforced by SHACL verify queries and the solver layer (Principle 12).
 
-# --- DC temporal coverage (issue #60) -------------------------------------- #
+# --- DC temporal coverage -------------------------------------- #
 
 gmeow:temporalCoverage
     a owl:ObjectProperty ;
@@ -896,5 +896,5 @@ gmeow:temporalCoverage
     skos:definition "The temporal extent or scope of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:hasParticipant gmeow:pairsWith gmeow:Participation .

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: versioning as an authority-scoped claim (#443, P10). A
+# Worked example: versioning as an authority-scoped claim (Principle 10). A
 # gmeow:VersionMembership is a reified Observation: it asserts that an entity
 # (gmeow:versionMember) belongs to a gmeow:VersionSet with a gmeow:versionRole
 # (canonical / stable / LTS / deprecated / yanked …) and a gmeow:versionScale

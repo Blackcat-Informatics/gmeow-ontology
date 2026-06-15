@@ -98,7 +98,7 @@ Optional `gmeow:jurisdiction` links to a `gmeow:Location`.
 ### gmeow:Identifier as the universal external-identifier record
 
 `gmeow:Identifier` is **not** organization-only — it is the universal reified
-external-identifier record (#409). `gmeow:hasIdentifier` has domain `gmeow:Entity`,
+external-identifier record. `gmeow:hasIdentifier` has domain `gmeow:Entity`,
 so a person carries an ORCID, a geni profile id, and a Nostr `nip05` the same way
 an organization carries a LEI. It is the **structured sibling** of
 `gmeow:authorityLink` (coreference): a flat `authorityLink` points at an external
@@ -139,7 +139,7 @@ The mapping layer extends the existing shared alignment files:
 All alignments are by reference (SSSOM / EDOAL / SPARQL projection) — never
 axiom copying (Principle 5).
 
-## Founding, ownership, and offerings (#411, #413)
+## Founding, ownership, and offerings ( project homepage and language)
 
 ### gmeow:foundedBy · gmeow:ownerOf
 
@@ -151,7 +151,7 @@ ownership relator when date, share, or jurisdiction matter. Project to `schema:f
 
 ### gmeow:Offering · gmeow:ServiceOffering · gmeow:OpeningHoursSpecification
 
-The minimal commercial-offerings surface (#413, P15 consumer: the bii profile). An
+The minimal commercial-offerings surface (project homepage and language, P15 consumer: the bii profile). An
 agent `gmeow:makesOffer` an `gmeow:Offering` of some `gmeow:itemOffered` (a
 `gmeow:ServiceOffering` or any entity), provided by `gmeow:offeringProvider`. A service
 carries an open `gmeow:serviceType` and a `gmeow:areaServed`; opening hours are a

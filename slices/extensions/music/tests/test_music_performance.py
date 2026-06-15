@@ -1,4 +1,4 @@
-"""Musical-performance layer guards (issue #312).
+"""Musical-performance layer guards (performance constraints).
 
 Principles 4, 9, 10, 11, 12, 16.
 """

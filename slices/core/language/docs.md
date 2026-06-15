@@ -16,7 +16,7 @@ committee-issued code — a conlang, an Indigenous language absent from a Wester
 or an AI-generated language is exactly as first-class as English — and a richly-coded
 language is not flattened to whichever single tag a schema happened to standardize.
 Language sits in **core** (Principle 16) because every GMEOW literal depends on it: this is
-the slim half of the #287 dependency split, with the rich sociolinguistic machinery
+the slim half of the slice-dependency doctrine dependency split, with the rich sociolinguistic machinery
 (proficiency, varieties, diachronic states, conlang lineage) in the `languages` extension.
 
 Internally, GMEOW's own literals carry **private-use tags** (`@x-gmeow-english`, never
@@ -71,7 +71,7 @@ registries at once, and a code-less language carries none and loses nothing.
 The languages the framework itself speaks — the individuals anchoring `x-gmeow-english`,
 `x-gmeow-mandarin`, and `x-gmeow-french` on GMEOW's own labels and definitions. They are
 ordinary data, not schema: any slice or dataset mints further languages the same way (the
-exhaustive reference catalog is issue #111).
+exhaustive reference catalog is the design).
 
 ```turtle
 ex:langKlingon a gmeow:Language ;            # code-less, fully first-class

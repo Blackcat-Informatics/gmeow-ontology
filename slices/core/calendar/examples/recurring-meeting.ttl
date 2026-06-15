@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a recurring meeting with invitations (#443). A gmeow:EventSchedule
+# Worked example: a recurring meeting with invitations. A gmeow:EventSchedule
 # repeats a TEMPLATE event by a gmeow:RecurrenceRule (an RFC 5545 RRULE string),
 # all anchored in an explicit gmeow:TimeZone (IANA id) — so "every Monday 09:00"
 # is unambiguous across DST. Invitations are reified gmeow:EventInvitations

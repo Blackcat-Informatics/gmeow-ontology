@@ -11,13 +11,13 @@
 <https://blackcatinformatics.ca/gmeow/slices/ai>
     a owl:Ontology ;
     rdfs:label "GMEOW AI Claim Module"@x-gmeow-english ;
-    skos:definition "The AI claim layer (#54), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints ONLY what is genuinely absent: the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
+    skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints ONLY what is genuinely absent: the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english;
     rdfs:comment "A GeneratedClaim is a QUERY, not a class: a StandpointClaim whose vantage is a SoftwareAgent and which gmeow:wasGeneratedBy a ModelInvocation — a direct triple on the claim individual; on the reified RDF 1.2 statement form the invocation link is gmeow:mappedFrom, keeping axiom annotations AnnotationProperty-clean for the DL downcast (P3). A hallucination is a claim node with no gmeow:groundedIn span — flagged (P10), never deleted. Pipeline observability (corpus, embeddings, indexes, retrievals, GraphRAG artifacts) lives in extensions/graphrag, consumer-named per P15."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 # --------------------------------------------------------------------------- #
 # The retrieval segment. The ONE genuinely missing information-object kind in
-# the Source → Chunk → EvidenceSpan → claim spine (#55): sources, evidence
+# the Source → Chunk → EvidenceSpan → claim spine (EvidenceSpan audit machinery): sources, evidence
 # spans, selectors, content digests, and extraction activities all exist.
 # --------------------------------------------------------------------------- #
 
@@ -42,7 +42,7 @@ gmeow:spanStart
     a owl:DatatypeProperty ;
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "span start"@x-gmeow-english ;
-    skos:definition "The starting character offset (unicode code points, zero-based, inclusive) of a span — a Chunk within its source, or an EvidenceSpan within a chunk. Domain-free: one span idiom for the retrieval substrate and the evidence layer. The TYPED sharpening of the citations slice's gmeow:selectorTextPosition (which remains the home of non-numeric position locators); mechanical AIS checking (#55) needs integers, not prose."@x-gmeow-english ;
+    skos:definition "The starting character offset (unicode code points, zero-based, inclusive) of a span — a Chunk within its source, or an EvidenceSpan within a chunk. Domain-free: one span idiom for the retrieval substrate and the evidence layer. The TYPED sharpening of the citations slice's gmeow:selectorTextPosition (which remains the home of non-numeric position locators); mechanical AIS checking (EvidenceSpan audit machinery) needs integers, not prose."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:spanEnd
@@ -156,7 +156,7 @@ gmeow:samplingMaxTokens
 
 # --------------------------------------------------------------------------- #
 # The prompt artifact. Content-addressed via the existing gmeow:contentDigest;
-# #55 publishes the extraction PromptTemplate as data, and the system-prompt ↔
+# EvidenceSpan audit machinery publishes the extraction PromptTemplate as data, and the system-prompt ↔
 # persona seam lives in the norms extension (Persona/StyleGuide) as doctrine.
 # --------------------------------------------------------------------------- #
 
@@ -171,7 +171,7 @@ gmeow:PromptTemplate
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Prompt ;
     rdfs:label "Prompt Template"@x-gmeow-english ;
-    skos:definition "A reusable, versioned prompt with unfilled variables — the published artifact (#55 ships the claim-extraction template as data, not code). Concrete prompts link back via gmeow:filledFrom."@x-gmeow-english ;
+    skos:definition "A reusable, versioned prompt with unfilled variables — the published artifact (EvidenceSpan audit machinery ships the claim-extraction template as data, not code). Concrete prompts link back via gmeow:filledFrom."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:filledFrom
@@ -248,7 +248,7 @@ gmeow:modelVersionTag
     rdfs:domain gmeow:ModelCard ;
     rdfs:range xsd:string ;
     rdfs:label "model version tag"@x-gmeow-english ;
-    skos:definition "The provider's wire-level version identifier for the described snapshot. Citation-grade version identity rides #44's DOI machinery."@x-gmeow-english ;
+    skos:definition "The provider's wire-level version identifier for the described snapshot. Citation-grade version identity rides DOI/version identity machinery's DOI machinery."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:modelContextWindow

@@ -2,7 +2,7 @@
 # fact must hold) and ?asOf (the observation cutoff — only claims asserted by then).
 # Over the reified owl:Axiom statement form: a claim qualifies when its valid-time
 # window contains ?validAt and it was asserted no later than ?asOf. Standpoint is
-# returned so coexisting frames stay distinct (no winner — #43).
+# returned so coexisting frames stay distinct (no winner — standpoint facility).
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 

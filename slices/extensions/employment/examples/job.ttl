@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: employment specializes membership (#443). A gmeow:Employment is
+# Worked example: employment specializes membership. A gmeow:Employment is
 # a gmeow:Membership (the person is a member of the employer), refined with the
 # facets a job adds: an open gmeow:employmentType (full-time / contract / intern /
 # volunteer …), a gmeow:employmentSeniority, the gmeow:employmentOccupation it

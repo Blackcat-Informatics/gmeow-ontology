@@ -6,7 +6,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix org:   <http://www.w3.org/ns/org#> .
 
-# Projection mappings: GMEOW organizations → W3C ORG (#34 phase 3). Compiled
+# Projection mappings: GMEOW organizations → W3C ORG (PROV activity alignment phase 3). Compiled
 # to projections/org.edoal.ttl + queries/org.rq by the mapping compiler.
 # The Membership relator survives REIFIED (org:Membership is itself a
 # relator — the rare lossless-shaped target); the flat memberOf edge and the

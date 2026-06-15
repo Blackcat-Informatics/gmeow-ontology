@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: existence over time, where deletion does not exist (#443). A
+# Worked example: existence over time, where deletion does not exist. A
 # company is founded, then dissolved — but it STAYS in the graph, marked no
 # longer extant, because the past is data (Principle 10: destruction is an ontic
 # fact, suppression is a display contract, deletion does not exist). The creation

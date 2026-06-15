@@ -2,7 +2,7 @@
 
 > **Mapping target:** OntoLex-Lemon, LIME, Lexicog, Morph, FrAC, SKOS/SKOS-XL, PROV-O, Web Annotation, CRMinf
 
-GMEOW's lexicon module provides first-class modeling for lexical items, concrete forms, usage attestations, and etymological derivations. It builds on the language-state/variety layer (#170) and the universal observation stack (#43).
+GMEOW's lexicon module provides first-class modeling for lexical items, concrete forms, usage attestations, and etymological derivations. It builds on the language-state/variety layer and the universal observation stack (standpoint facility).
 
 ## LexicalItem & LexicalForm
 

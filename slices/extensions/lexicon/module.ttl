@@ -21,7 +21,7 @@
     Etymology is modeled as a graph of provenance-rich, standpointed claims,
     not as a flat origin string (Principle 9). Aligns to OntoLex-Lemon by
     reference (Principle 5). Builds on the language-state/variety layer in
-    #170 and the universal observation stack (#43)."""@x-gmeow-english ;
+     and the universal observation stack (standpoint facility)."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -149,7 +149,7 @@ gmeow:attestedInSource
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "attested in source"@x-gmeow-english ;
-    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Targets a CreativeWork (the retired Source Kind was greenfield-refactored in #211)."@x-gmeow-english ;
+    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Targets a CreativeWork (the retired Source Kind was greenfield-refactored in source/claim refactor)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
 
 gmeow:attestedInContext
@@ -165,7 +165,7 @@ gmeow:attestedOnCarrier
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:PhysicalObject ;
     rdfs:label "attested on carrier"@x-gmeow-english ;
-    skos:definition "The physical archaeological carrier on which an attested form was observed — a tablet, ostracon, seal, coin, manuscript, or wall. NON-FUNCTIONAL: an attestation may reference multiple carriers (e.g. duplicate impressions), and competing carrier attributions coexist (Principle 9). This is the language-facing hook from UsageAttestation to archaeological evidence (#173)."@x-gmeow-english ;
+    skos:definition "The physical archaeological carrier on which an attested form was observed — a tablet, ostracon, seal, coin, manuscript, or wall. NON-FUNCTIONAL: an attestation may reference multiple carriers (e.g. duplicate impressions), and competing carrier attributions coexist (Principle 9). This is the language-facing hook from UsageAttestation to archaeological evidence."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
 
 gmeow:attestationInterval
@@ -365,7 +365,7 @@ gmeow:derivationReconstruction
 # =========================================================================== #
 
 # =========================================================================== #
-# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# OBSERVATION-SPINE BRIDGES (slice-dependency doctrine dependency refactor)
 # Declared HERE, in the slice that owns these properties: a dependent slice
 # knows the core observation spine; the spine never knows the slice. The
 # super-properties (observedFeature / vantage / observationResult) live in

@@ -3,7 +3,7 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-This document describes the GMEOW calendar and scheduling slice (#62): the mapping
+This document describes the GMEOW calendar and scheduling slice (calendar and scheduling design): the mapping
 between GMEOW's canonical scheduling layer and external calendar vocabularies —
 iCalendar (RFC 5545/5546/6047), jCal (RFC 7265), xCal (RFC 6321), CalDAV (RFC
 4791/6638/7809), schema.org `Schedule`/`EventSeries`, OWL-Time, and Wikidata.
@@ -23,7 +23,7 @@ iCalendar (RFC 5545/5546/6047), jCal (RFC 7265), xCal (RFC 6321), CalDAV (RFC
    in-progress / completed / cancelled).
 4. **Cancelled ≠ deleted (Principle 10).** A cancelled/rescheduled occurrence is
    `displayable false` + a `ScheduleException`, retained, never erased.
-5. **Contested times coexist (#43).** A disputed time/date is standpoint-indexed
+5. **Contested times coexist (standpoint facility).** A disputed time/date is standpoint-indexed
    via `accordingTo`; no single winner.
 
 ## Core Classes

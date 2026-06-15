@@ -23,7 +23,7 @@ gmeow:mapsetMusic a gmeow:MappingSet ;
     gmeow:setComment "Music extension alignments to external music ontologies, symbolic encoding standards, and Wikidata. All bridges are by reference (Principle 5)." .
 
 # --------------------------------------------------------------------------- #
-# Wikidata — pitch / tuning terms (issue #308)
+# Wikidata — pitch / tuning terms (pitch frames)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu001 a gmeow:TermEquivalence ;
@@ -99,7 +99,7 @@ gmeow:eqMu006 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Wikidata — pitch collections & spelling (issue #309)
+# Wikidata — pitch collections & spelling (pitch collections and spelling)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu007 a gmeow:TermEquivalence ;
@@ -175,7 +175,7 @@ gmeow:eqMu012 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Wikidata — musical time / meter / tuplet (issue #310)
+# Wikidata — musical time / meter / tuplet (musical time)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu013 a gmeow:TermEquivalence ;
@@ -227,7 +227,7 @@ gmeow:eqMu016 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Wikidata — form, process & indeterminacy (issue #312)
+# Wikidata — form, process & indeterminacy (performance constraints)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu017 a gmeow:TermEquivalence ;
@@ -255,7 +255,7 @@ gmeow:eqMu018 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Wikidata — performance events & participation (issue #313)
+# Wikidata — performance events & participation (performance events and participation)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu019 a gmeow:TermEquivalence ;
@@ -295,7 +295,7 @@ gmeow:eqMu021 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# External vocabularies — performance events & participation (issue #313)
+# External vocabularies — performance events & participation (performance events and participation)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu022 a gmeow:TermEquivalence ;
@@ -335,7 +335,7 @@ gmeow:eqMu024 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-music.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Wikidata — instruments & configurations (issue #314)
+# Wikidata — instruments & configurations (instruments and configurations)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu025 a gmeow:TermEquivalence ;
@@ -484,7 +484,7 @@ gmeow:eqMu036 a gmeow:TermEquivalence ;
 
 
 # --------------------------------------------------------------------------- #
-# Genre doctrine alignments (issue #315)
+# Genre doctrine alignments
 # --------------------------------------------------------------------------- #
 
 gmeow:eqMu037 a gmeow:TermEquivalence ;

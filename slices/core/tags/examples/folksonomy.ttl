@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: tagging is flat-first, reified on demand (#443, P4). A bare
+# Worked example: tagging is flat-first, reified on demand ( P4). A bare
 # gmeow:hasTag covers "this is tagged X". Tags themselves form a SKOS-style poly-
 # hierarchy (gmeow:broaderTag / gmeow:narrowerTag / gmeow:relatedTag) inside a
 # gmeow:TagScheme. When the PROVENANCE of a tagging matters — who applied it, in

@@ -11,14 +11,14 @@
     rdfs:label "GMEOW Calendar and Scheduling Module"@x-gmeow-english ;
     skos:definition "The GMEOW Calendar and Scheduling Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
-    rdfs:comment """The calendar and scheduling slice: recurrence, availability, RSVP, reminders, tasks, and time zones on top of events. Builds on the events module (#41) and temporal module, reusing Event, Participation, EventSeries/RecurrenceRule, TimeInterval, and the four clocks. Aligns to iCalendar RFC 5545/5546/6047/4791/6638/7809, jCal RFC 7265, xCal RFC 6321, schema.org Schedule/EventSeries, OWL-Time, and Wikidata by reference.
+    rdfs:comment """The calendar and scheduling slice: recurrence, availability, RSVP, reminders, tasks, and time zones on top of events. Builds on the events module (event/temporal design) and temporal module, reusing Event, Participation, EventSeries/RecurrenceRule, TimeInterval, and the four clocks. Aligns to iCalendar RFC 5545/5546/6047/4791/6638/7809, jCal RFC 7265, xCal RFC 6321, schema.org Schedule/EventSeries, OWL-Time, and Wikidata by reference.
 
 DESIGN PRINCIPLES.
   * Schedule ≠ occurrence: an EventSchedule (rule + anchor + time zone) GENERATES Event occurrences; it is not itself the occurrence (Principle 1).
   * Reify social acts as relators: EventInvitation and Availability use the Participation idiom — never flat properties.
   * Open value vocabularies, not subclasses: invitationStatus, rsvpStatus, availabilityStatus, reminderAction, taskStatus, exceptionType are individuals, never Event/Task subclasses (Principle 9).
   * Cancelled ≠ deleted (Principle 10): a cancelled/rescheduled occurrence is displayable false + a ScheduleException, retained, never erased.
-  * Contested times coexist (#43): disputed times are standpoint-indexed via accordingTo; no single winner.
+  * Contested times coexist (standpoint facility): disputed times are standpoint-indexed via accordingTo; no single winner.
   * DL-clean time: datetimes are xsd:dateTime, durations xsd:duration; recurrence as a literal rule (RFC 5545 text) + structured form, kept out of OWL cardinality."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

@@ -131,7 +131,7 @@ gmeow:eqLanguages014 a gmeow:TermEquivalence ;
     gmeow:confidence 0.6 ;
     gmeow:sssomFile "gmeow-languages.sssom.tsv" .
 
-# Issue #70 — Linguistic reference frames (Lexvo alignment).
+# temporal-frame design — Linguistic reference frames (Lexvo alignment).
 # Contextual: a gmeow:ReferenceFrame whose frameRealm is gmeow:frameRealmLinguistic
 # corresponds to a lvont:Language.
 

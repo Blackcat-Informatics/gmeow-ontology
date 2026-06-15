@@ -12,7 +12,7 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:comment """Employment relationships, compensation, and career events (the ResumeRDF / Europass / schema.org / ESCO / CTDL superset layer).
 
-STANDPOINT DOCTRINE (#51). Contested facts in the employment slice — disputed tenure, rival role claims, contested termination — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested employment is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Employment relators each carrying gmeow:accordingTo. A withdrawn employment record is modelled with gmeow:displayable false, never deletion (Principle 10). There is NO employment-specific dispute mechanism, no primaryEmployment, no preferredJob — only the cross-cutting #43 facility.
+STANDPOINT DOCTRINE. Contested facts in the employment slice — disputed tenure, rival role claims, contested termination — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested employment is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Employment relators each carrying gmeow:accordingTo. A withdrawn employment record is modelled with gmeow:displayable false, never deletion (Principle 10). There is NO employment-specific dispute mechanism, no primaryEmployment, no preferredJob — only the cross-cutting standpoint facility.
 
 DOCTRINE.
   * Employment is a Membership: a reified gufo:Relator connecting an agent to an organization, optionally founded on an Agreement (Principle 4).
