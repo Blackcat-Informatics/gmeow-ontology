@@ -65,11 +65,12 @@ def test_logic_generator_inputs_include_source() -> None:
     )
 
 
-def test_logic_generator_outputs_all_seven() -> None:
+def test_logic_generator_outputs_all_eight() -> None:
     from gmeow_tools.logic_compile import (
         LOGIC_DATALOG_FILE,
         LOGIC_GUFO_FILE,
         LOGIC_N3_FILE,
+        LOGIC_NEMO_FILE,
         LOGIC_OWL_DL_FILE,
         LOGIC_OWL_EL_FILE,
         LOGIC_RDF12_FILE,
@@ -78,7 +79,7 @@ def test_logic_generator_outputs_all_seven() -> None:
 
     gen = _get_logic_gen()
     outputs = list(gen.outputs)
-    assert len(outputs) == 7, f"Expected 7 outputs, got {len(outputs)}: {outputs}"
+    assert len(outputs) == 8, f"Expected 8 outputs, got {len(outputs)}: {outputs}"
     output_strs = {str(p) for p in outputs}
     for expected in [
         LOGIC_OWL_DL_FILE,
@@ -87,6 +88,7 @@ def test_logic_generator_outputs_all_seven() -> None:
         LOGIC_N3_FILE,
         LOGIC_GUFO_FILE,
         LOGIC_RDF12_FILE,
+        LOGIC_NEMO_FILE,
         LOGIC_REPORT_FILE,
     ]:
         assert str(expected) in output_strs, f"{expected} not in outputs: {output_strs}"
