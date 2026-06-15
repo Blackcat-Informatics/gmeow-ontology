@@ -250,18 +250,27 @@ fn rule_conclusion_string(rule_application: &TraceTreeRuleApplication) -> String
     }
 }
 
-/// Recursively extract provenance from an [`ExecutionTraceTree`].
+/// Extract provenance from one level of an [`ExecutionTraceTree`] node.
 ///
-/// Returns `(is_edb, rule_name, antecedent_rows)`.
-fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> ChaseProvenance {
+/// For an EDB (`Fact`) leaf, returns a provenance record with `is_edb: true`
+/// and no antecedents.  For an IDB (`Rule`) node, collects the immediate
+/// children (the direct premises of the rule firing) as [`ChaseRow`]s.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if any immediate antecedent fact string cannot be
+/// decoded by [`extract_row_from_fact_string`] — this is a hard failure per
+/// the no-optionality doctrine; silently dropping an undecodable antecedent
+/// would fabricate provenance metadata.
+fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProvenance, String> {
     match tree {
         ExecutionTraceTree::Fact(_ground_atom) => {
             // EDB (asserted) fact — no rule fired, no antecedents.
-            ChaseProvenance {
+            Ok(ChaseProvenance {
                 is_edb: true,
                 rule_name: None,
                 antecedent_rows: vec![],
-            }
+            })
         }
         ExecutionTraceTree::Rule(rule_application, subtrees) => {
             // IDB (derived) fact.
@@ -271,7 +280,7 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> ChaseProvenance {
             // represents — the GroundAtom or derived fact, one level down).
             let antecedent_rows: Vec<ChaseRow> = subtrees
                 .iter()
-                .filter_map(|subtree| {
+                .map(|subtree| {
                     let fact_str = match subtree {
                         ExecutionTraceTree::Fact(ga) => ga.to_string(),
                         ExecutionTraceTree::Rule(app, _) => {
@@ -280,15 +289,17 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> ChaseProvenance {
                             rule_conclusion_string(app)
                         }
                     };
-                    extract_row_from_fact_string(&fact_str)
+                    extract_row_from_fact_string(&fact_str).ok_or_else(|| {
+                        format!("nemo trace error: could not decode antecedent fact {fact_str:?}")
+                    })
                 })
-                .collect();
+                .collect::<Result<Vec<ChaseRow>, String>>()?;
 
-            ChaseProvenance {
+            Ok(ChaseProvenance {
                 is_edb: false,
                 rule_name,
                 antecedent_rows,
-            }
+            })
         }
     }
 }
@@ -420,7 +431,7 @@ pub fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
 
                 for ((row_idx, _), handle) in parseable_facts.iter().zip(handles.iter()) {
                     if let Some(tree) = trace.tree(*handle) {
-                        provenance_map[*row_idx] = extract_provenance_from_tree(&tree);
+                        provenance_map[*row_idx] = extract_provenance_from_tree(&tree)?;
                     }
                     // tree == None means Nemo could not find the fact in the
                     // trace; that is also a faithfulness failure — propagate it.
