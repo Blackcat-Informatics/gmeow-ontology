@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a commit DAG with identity canonicalization and build provenance
+# (#443). Commits form a directed graph via gmeow:commitAncestor. Each commit's
+# author is recorded as a gmeow:AuthorIdentity — the as-committed git identity
+# (one of possibly many emails) — which gmeow:canonicalizedIdentity resolves to
+# the real gmeow:Agent, so "same person, three git emails" is one agent without
+# rewriting history. A gmeow:BuildActivity ties a source commit (gmeow:buildSource)
+# to the gmeow:Distribution it produced (gmeow:buildOutput): verifiable provenance
+# from source to artifact.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/software/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
+
+ex:repo a gmeow:Repository ;
+    rdfs:label           "myapp.git"@x-gmeow-english ;
+    gmeow:repositoryType gmeow:repoTypeGit .
+
+# --- The author's git identity, canonicalized to the real agent.
+ex:danaGitId a gmeow:AuthorIdentity ;
+    gmeow:canonicalizedIdentity ex:dana .
+
+# --- Two commits forming a DAG (commit2's ancestor is commit1). Each commit is
+#     content-addressed by its git hash (gmeow:contentDigest).
+ex:commit1 a gmeow:Commit ;
+    gmeow:commitInRepository   ex:repo ;
+    gmeow:commitAuthorIdentity ex:danaGitId ;
+    gmeow:contentDigest        "git:9f4d2a1c8e7b6f5a0d3c2b1e9f8a7d6c5b4a3e2f" .
+
+ex:commit2 a gmeow:Commit ;
+    gmeow:commitInRepository   ex:repo ;
+    gmeow:commitAuthorIdentity ex:danaGitId ;
+    gmeow:commitAncestor       ex:commit1 ;
+    gmeow:contentDigest        "git:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b" .
+
+# --- Build provenance: source commit → output distribution.
+ex:build a gmeow:BuildActivity ;
+    gmeow:buildSource ex:commit2 ;
+    gmeow:buildOutput ex:dist .
+
+ex:dist a gmeow:Distribution ; rdfs:label "myapp-1.0.0.tar.gz"@x-gmeow-english .
