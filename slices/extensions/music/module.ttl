@@ -4794,3 +4794,146 @@ gmeow:fixtureAnalystA
     rdfs:label "fixture analyst A"@x-gmeow-english ;
     skos:definition "A placeholder analyst used in the MusicAnalysisClaim fixture."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# FIXTURES — Oral tradition & performance lineage (issue #316)
+# --------------------------------------------------------------------------- #
+
+# A retrospectively-minted Work for an oral tradition — determinacy is honest.
+gmeow:fixtureOralRagaYamanWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Raga Yaman — oral tradition work fixture"@x-gmeow-english ;
+    skos:definition "A placeholder MusicalWork for Raga Yaman as an oral tradition, minted retrospectively and declared vague in ontic determinacy (Principle 9)."@x-gmeow-english ;
+    gmeow:hasDeterminacy gmeow:determinacyVague ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Four non-notated Expressions of the work (oral + performed + improvised + performed).
+gmeow:fixtureRagaYamanOralExpression
+    a gmeow:Expression ;
+    rdfs:label "Raga Yaman oral expression"@x-gmeow-english ;
+    skos:definition "An oral-tradition Expression of Raga Yaman with no required notated form."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
+    gmeow:realizationMode gmeow:realizationModeOral ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanPerformed1960
+    a gmeow:Expression ;
+    rdfs:label "Raga Yaman performed expression, 1960"@x-gmeow-english ;
+    skos:definition "A performed Expression of Raga Yaman from 1960."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
+    gmeow:realizationMode gmeow:realizationModePerformed ;
+    gmeow:wasDerivedFrom gmeow:fixtureRagaYamanOralExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanImprovised1975
+    a gmeow:Expression ;
+    rdfs:label "Raga Yaman improvised expression, 1975"@x-gmeow-english ;
+    skos:definition "An improvised Expression of Raga Yaman from 1975."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
+    gmeow:realizationMode gmeow:realizationModeImprovised ;
+    gmeow:wasDerivedFrom gmeow:fixtureRagaYamanPerformed1960 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanPerformed1980
+    a gmeow:Expression ;
+    rdfs:label "Raga Yaman performed expression, 1980"@x-gmeow-english ;
+    skos:definition "A performed Expression of Raga Yaman from 1980."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
+    gmeow:realizationMode gmeow:realizationModePerformed ;
+    gmeow:wasDerivedFrom gmeow:fixtureRagaYamanImprovised1975 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Standpoints for the Kirana gharana and a rival scholar claim.
+gmeow:fixtureKiranaGharanaStandpoint
+    a gmeow:Agent ;
+    rdfs:label "Kirana gharana standpoint fixture"@x-gmeow-english ;
+    skos:definition "A placeholder standpoint/agent representing the Kirana gharana tradition."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRivalScholarStandpoint
+    a gmeow:Agent ;
+    rdfs:label "rival scholar standpoint fixture"@x-gmeow-english ;
+    skos:definition "A placeholder standpoint/agent representing a rival scholar's contested claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# The tune family as a VersionSet.
+gmeow:fixtureRagaYamanKiranaSet
+    a gmeow:VersionSet ;
+    rdfs:label "Raga Yaman as performed in the Kirana gharana"@x-gmeow-english ;
+    skos:definition "A VersionSet representing the Raga Yaman tune family / performance lineage in the Kirana gharana."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Membership relators — co-equal, confidence-weighted, standpoint-indexed.
+gmeow:fixtureRagaYamanKiranaMembership1960
+    a gmeow:VersionMembership ;
+    rdfs:label "Raga Yaman 1960 Kirana gharana membership"@x-gmeow-english ;
+    skos:definition "Kirana gharana standpoint asserting the 1960 performance belongs to the Raga Yaman lineage."@x-gmeow-english ;
+    gmeow:versionMember gmeow:fixtureRagaYamanPerformed1960 ;
+    gmeow:versionSet gmeow:fixtureRagaYamanKiranaSet ;
+    gmeow:membershipAuthority gmeow:fixtureKiranaGharanaStandpoint ;
+    gmeow:confidence "0.92"^^xsd:decimal ;
+    gmeow:displayable true ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanKiranaMembership1975
+    a gmeow:VersionMembership ;
+    rdfs:label "Raga Yaman 1975 Kirana gharana membership"@x-gmeow-english ;
+    skos:definition "Kirana gharana standpoint asserting the 1975 improvisation belongs to the Raga Yaman lineage."@x-gmeow-english ;
+    gmeow:versionMember gmeow:fixtureRagaYamanImprovised1975 ;
+    gmeow:versionSet gmeow:fixtureRagaYamanKiranaSet ;
+    gmeow:membershipAuthority gmeow:fixtureKiranaGharanaStandpoint ;
+    gmeow:confidence "0.88"^^xsd:decimal ;
+    gmeow:displayable true ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanKiranaMembership1980
+    a gmeow:VersionMembership ;
+    rdfs:label "Raga Yaman 1980 Kirana gharana membership"@x-gmeow-english ;
+    skos:definition "Kirana gharana standpoint asserting the 1980 performance belongs to the Raga Yaman lineage."@x-gmeow-english ;
+    gmeow:versionMember gmeow:fixtureRagaYamanPerformed1980 ;
+    gmeow:versionSet gmeow:fixtureRagaYamanKiranaSet ;
+    gmeow:membershipAuthority gmeow:fixtureKiranaGharanaStandpoint ;
+    gmeow:confidence "0.90"^^xsd:decimal ;
+    gmeow:displayable true ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# A contested membership, suppressed by displayable false (Principle 10).
+gmeow:fixtureRagaYamanContestedMembership
+    a gmeow:VersionMembership ;
+    rdfs:label "Raga Yaman contested membership (suppressed)"@x-gmeow-english ;
+    skos:definition "A rival scholar's contested membership claim, retained but suppressed from display."@x-gmeow-english ;
+    gmeow:versionMember gmeow:fixtureRagaYamanImprovised1975 ;
+    gmeow:versionSet gmeow:fixtureRagaYamanKiranaSet ;
+    gmeow:membershipAuthority gmeow:fixtureRivalScholarStandpoint ;
+    gmeow:confidence "0.35"^^xsd:decimal ;
+    gmeow:displayable false ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Transmission event: teacher → learner.
+gmeow:fixtureKiranaTransmissionEvent
+    a gmeow:Event ;
+    rdfs:label "Kirana gharana transmission event fixture"@x-gmeow-english ;
+    skos:definition "An oral-tradition teaching event in which Raga Yaman is transmitted from teacher to learner."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeTransmission ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "1955-03-15T09:00:00Z"^^xsd:dateTime ;
+    gmeow:performanceOf gmeow:fixtureOralRagaYamanWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKiranaTransmitterParticipation
+    a gmeow:Participation ;
+    rdfs:label "Kirana transmission transmitter participation"@x-gmeow-english ;
+    skos:definition "The teacher participant in the Kirana transmission fixture."@x-gmeow-english ;
+    gmeow:participationEvent gmeow:fixtureKiranaTransmissionEvent ;
+    gmeow:participationParticipant gmeow:fixtureKiranaGharanaStandpoint ;
+    gmeow:participationRole gmeow:roleTransmitter ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureKiranaLearnerParticipation
+    a gmeow:Participation ;
+    rdfs:label "Kirana transmission learner participation"@x-gmeow-english ;
+    skos:definition "The learner participant in the Kirana transmission fixture."@x-gmeow-english ;
+    gmeow:participationEvent gmeow:fixtureKiranaTransmissionEvent ;
+    gmeow:participationParticipant gmeow:fixtureRivalScholarStandpoint ;
+    gmeow:participationRole gmeow:roleLearner ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
