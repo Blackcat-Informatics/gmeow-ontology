@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: relator-mediation
+# Exercises relation/relator projection: a Relator that mediates two Kinds,
+# with a mediates relation plus domain/range axioms.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/relator-mediation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Sorts
+ex:Person       a logic:Kind .
+ex:Organization a logic:Kind .
+ex:Employment   a logic:Relator .
+
+# Structural axioms: Employment mediates Person and Organization
+ex:employs      a logic:Role .
+ex:employs      logic:domain ex:Employment .
+ex:employs      logic:range  ex:Person .
+
+ex:employedBy   a logic:Role .
+ex:employedBy   logic:domain ex:Employment .
+ex:employedBy   logic:range  ex:Organization .
+
+# inverseOf to express the bidirectional relation
+ex:employs logic:inverseOf ex:employedBy .
