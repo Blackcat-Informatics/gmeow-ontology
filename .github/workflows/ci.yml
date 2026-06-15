@@ -80,6 +80,7 @@ jobs:
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
         with:
           components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -92,6 +93,9 @@ jobs:
 
       - name: Conformance corpus + CLI tests
         run: cargo test
+
+      - name: wasm target builds (gmeow-logic in-browser reasoner)
+        run: cargo build -p gmeow-logic --target wasm32-unknown-unknown
 
   # The Go GTS engine (go/gts, #339) gates against the same frozen corpus and
   # exposes the same files-profile CLI surface as the Rust engine.
