@@ -63,6 +63,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Agent
     title: Agent
     slots:
+    - accepts
+    - believes
+    - doubts
     - email
     - endorses
     - founderOf
@@ -80,12 +83,14 @@ classes:
     - isAwareOf
     - knowsAbout
     - knowsLanguage
+    - knowsThat
     - mailmapEntry
     - makesOffer
     - memberOf
     - nativeLanguage
     - ownerOf
     - slogan
+    - suspendsJudgementOn
     - telephone
     - understands
   AggregationFunction:
@@ -2787,6 +2792,10 @@ classes:
     - pronounPossessiveDeterminer
     - pronounReflexive
     - pronounSubject
+  Proposition:
+    class_uri: https://blackcatinformatics.ca/gmeow/Proposition
+    title: Proposition
+    is_a: SocialObject
   ProximityMeasurement:
     class_uri: https://blackcatinformatics.ca/gmeow/ProximityMeasurement
     title: Proximity Measurement
@@ -3772,6 +3781,12 @@ slots:
     range: string
     domain: CreativeWork
     multivalued: true
+  accepts:
+    slot_uri: https://blackcatinformatics.ca/gmeow/accepts
+    title: accepts
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
   acceptsCurrency:
     slot_uri: https://blackcatinformatics.ca/gmeow/acceptsCurrency
     title: accepts currency
@@ -4457,6 +4472,12 @@ slots:
     title: before
     range: Event
     domain: Event
+    multivalued: true
+  believes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/believes
+    title: believes
+    range: uriorcurie
+    domain: Agent
     multivalued: true
   bibliographicCitation:
     slot_uri: https://blackcatinformatics.ca/gmeow/bibliographicCitation
@@ -5665,6 +5686,12 @@ slots:
     range: string
     domain: EmailAddress
     multivalued: false
+  doubts:
+    slot_uri: https://blackcatinformatics.ca/gmeow/doubts
+    title: doubts
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
   downloadPage:
     slot_uri: https://blackcatinformatics.ca/gmeow/downloadPage
     title: download page
@@ -7980,6 +8007,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/knowsLanguage
     title: knows language
     range: Language
+    domain: Agent
+    multivalued: true
+  knowsThat:
+    slot_uri: https://blackcatinformatics.ca/gmeow/knowsThat
+    title: knows that
+    range: uriorcurie
     domain: Agent
     multivalued: true
   languageCode:
@@ -11124,6 +11157,12 @@ slots:
     title: supports notability
     range: boolean
     domain: CitationAct
+    multivalued: true
+  suspendsJudgementOn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/suspendsJudgementOn
+    title: suspends judgement on
+    range: uriorcurie
+    domain: Agent
     multivalued: true
   symbolicSystemKind:
     slot_uri: https://blackcatinformatics.ca/gmeow/symbolicSystemKind

@@ -3173,6 +3173,9 @@ export interface AestheticQuality {
 
 
 export interface Agent {
+    accepts?: string[],
+    believes?: string[],
+    doubts?: string[],
     email?: string[],
     endorses?: Agent[],
     founderOf?: Organization[],
@@ -3190,12 +3193,14 @@ export interface Agent {
     isAwareOf?: Entity[],
     knowsAbout?: Entity[],
     knowsLanguage?: Language[],
+    knowsThat?: string[],
     mailmapEntry?: string[],
     makesOffer?: Offering[],
     memberOf?: Organization[],
     nativeLanguage?: Language[],
     ownerOf?: Entity[],
     slogan?: string[],
+    suspendsJudgementOn?: string[],
     telephone?: string[],
     understands?: Entity[],
 }
@@ -6293,6 +6298,11 @@ export interface PronounSet extends InformationObject {
     pronounPossessiveDeterminer?: string,
     pronounReflexive?: string,
     pronounSubject?: string,
+}
+
+
+
+export interface Proposition extends SocialObject {
 }
 
 

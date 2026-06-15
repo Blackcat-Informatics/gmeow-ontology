@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the flat doxastic spine. An agent knowsThat one proposition
+# (which ENTAILS believes by the keystone), believes a second, pragmatically
+# accepts a third without believing it, and suspends judgement on a fourth.
+# No truth bit anywhere; modality and vantage would ride the statement layer.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:earthOrbitsSun  a gmeow:Proposition ; rdfs:label "the Earth orbits the Sun"@x-gmeow-english .
+ex:coffeeIsHealthy a gmeow:Proposition ; rdfs:label "coffee is healthy"@x-gmeow-english .
+ex:nullHypothesis  a gmeow:Proposition ; rdfs:label "the null hypothesis, assumed for the test"@x-gmeow-english .
+ex:lifeOnEuropa    a gmeow:Proposition ; rdfs:label "there is life on Europa"@x-gmeow-english .
+
+ex:ada a gmeow:Agent ;
+    gmeow:knowsThat            ex:earthOrbitsSun ;   # entails gmeow:believes ex:earthOrbitsSun
+    gmeow:believes            ex:coffeeIsHealthy ;
+    gmeow:accepts             ex:nullHypothesis ;   # a working premise — NOT believed
+    gmeow:suspendsJudgementOn ex:lifeOnEuropa .

@@ -3215,6 +3215,9 @@ type AestheticQuality
 
 type Agent
   {
+    accepts: [String]
+    believes: [String]
+    doubts: [String]
     email: [String]
     endorses: [Agent]
     founderOf: [Organization]
@@ -3232,12 +3235,14 @@ type Agent
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
+    knowsThat: [String]
     mailmapEntry: [String]
     makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
     slogan: [String]
+    suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
   }
@@ -4526,6 +4531,9 @@ type BuildActivity
 
 type Builder
   {
+    accepts: [String]
+    believes: [String]
+    doubts: [String]
     email: [String]
     endorses: [Agent]
     founderOf: [Organization]
@@ -4543,12 +4551,14 @@ type Builder
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
+    knowsThat: [String]
     mailmapEntry: [String]
     makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
     slogan: [String]
+    suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
   }
@@ -14180,6 +14190,9 @@ type OrderStatus
 
 type Organization
   {
+    accepts: [String]
+    believes: [String]
+    doubts: [String]
     email: [String]
     endorses: [Agent]
     founderOf: [Organization]
@@ -14197,12 +14210,14 @@ type Organization
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
+    knowsThat: [String]
     mailmapEntry: [String]
     makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
     slogan: [String]
+    suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
     acceptsCurrency: [ReferenceFrame]
@@ -14710,6 +14725,9 @@ type Permission
 
 type Person
   {
+    accepts: [String]
+    believes: [String]
+    doubts: [String]
     email: [String]
     endorses: [Agent]
     founderOf: [Organization]
@@ -14727,12 +14745,14 @@ type Person
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
+    knowsThat: [String]
     mailmapEntry: [String]
     makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
     slogan: [String]
+    suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
     alumniOf: [Organization]
@@ -16428,6 +16448,63 @@ type PronounSet
     pronounPossessiveDeterminer: String
     pronounReflexive: String
     pronounSubject: String
+  }
+
+type Proposition
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
   }
 
 type ProximityMeasurement
@@ -18133,6 +18210,9 @@ type SensitivityLevel
 
 type Sensor
   {
+    accepts: [String]
+    believes: [String]
+    doubts: [String]
     email: [String]
     endorses: [Agent]
     founderOf: [Organization]
@@ -18150,12 +18230,14 @@ type Sensor
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
+    knowsThat: [String]
     mailmapEntry: [String]
     makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
     slogan: [String]
+    suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
   }
@@ -19176,6 +19258,9 @@ type SocialObject
 
 type SoftwareAgent
   {
+    accepts: [String]
+    believes: [String]
+    doubts: [String]
     email: [String]
     endorses: [Agent]
     founderOf: [Organization]
@@ -19193,12 +19278,14 @@ type SoftwareAgent
     isAwareOf: [Entity]
     knowsAbout: [Entity]
     knowsLanguage: [Language]
+    knowsThat: [String]
     mailmapEntry: [String]
     makesOffer: [Offering]
     memberOf: [Organization]
     nativeLanguage: [Language]
     ownerOf: [Entity]
     slogan: [String]
+    suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
   }
