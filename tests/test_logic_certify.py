@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 
+import pytest
 from rdflib.namespace import RDF
 
 from gmeow_tools.logic_certify import (
@@ -335,6 +336,31 @@ def test_certify_invariants_matches_verdict_violations() -> None:
     flat = certify_invariants(program, SemanticProfileId.STRATIFIED_NAF)
     verdict = certify_program(program, SemanticProfileId.STRATIFIED_NAF)
     assert flat == list(verdict.violations)
+
+
+# --------------------------------------------------------------------------- #
+# Type-guard negative-path tests (issue #502, Gap 3)
+# --------------------------------------------------------------------------- #
+
+
+def test_certify_program_rejects_non_logic_program() -> None:
+    """certify_program raises TypeError when the first arg is not a LogicProgram."""
+    with pytest.raises(TypeError, match="program"):
+        certify_program("not a program", SemanticProfileId.STRATIFIED_NAF)  # type: ignore[arg-type]
+
+
+def test_certify_program_rejects_bad_profile() -> None:
+    """certify_program raises TypeError for a non-SemanticProfileId declared_profile."""
+    program = _stratified_program()
+    with pytest.raises(TypeError, match="declared_profile"):
+        certify_program(program, "PositiveHorn")  # type: ignore[arg-type]
+
+
+def test_certify_program_rejects_none_profile() -> None:
+    """certify_program raises TypeError when declared_profile is None."""
+    program = _stratified_program()
+    with pytest.raises(TypeError, match="declared_profile"):
+        certify_program(program, None)  # type: ignore[arg-type]
 
 
 def test_rdf_type_class_level_self_cycle_through_negation_flagged() -> None:

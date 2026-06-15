@@ -737,7 +737,18 @@ def certify_program(
     Returns:
         A :class:`CertificationVerdict` whose ``certified`` field is
         ``not violations``.
+
+    Raises:
+        TypeError: If ``program`` is not a :class:`LogicProgram` or
+            ``declared_profile`` is not a :class:`SemanticProfileId`.
     """
+    if not isinstance(program, LogicProgram):
+        raise TypeError(f"program must be a LogicProgram, got {type(program).__name__}")
+    if not isinstance(declared_profile, SemanticProfileId):
+        raise TypeError(
+            "declared_profile must be a SemanticProfileId, got "
+            f"{type(declared_profile).__name__}"
+        )
     violations: list[str] = []
     if declared_profile is SemanticProfileId.POSITIVE_HORN:
         violations += certify_positive_horn(program)
