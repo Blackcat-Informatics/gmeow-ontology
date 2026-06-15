@@ -241,25 +241,6 @@ WHERE {{
   {{ ?c gedcom:childIn ?fam }} UNION {{ ?fam gedcom:child ?c }}
   {{ ?fam gedcom:husband ?parent }} UNION {{ ?fam gedcom:wife ?parent }}
 }}""",
-    # the marriage event's date/place: the couple gains a gmeow:Event (eventType
-    # Marriage) bearing eventTime/eventLocation, keyed on the family so it joins the
-    # CoupleRelationship and the down-projection flattens it onto the Marriage node.
-    f"""{_PREFIXES}
-CONSTRUCT {{
-  ?cr gmeow:hasCoupleEvent ?evt .
-  ?evt rdf:type gmeow:Event .
-  ?evt gmeow:eventType gmeow:eventTypeMarriage .
-  ?evt gmeow:eventTime ?d .
-  ?evt gmeow:eventLocation ?pl .
-  ?pl rdfs:label ?placeName .
-}}
-WHERE {{
-  ?fam gedcom:husband ?h . ?fam gedcom:wife ?w . ?fam gedcom:marriage ?m .
-  OPTIONAL {{ ?m gedcom:date ?d }}
-  OPTIONAL {{ ?m gedcom:place ?pl . OPTIONAL {{ ?pl schema:name ?placeName }} }}
-  BIND(IRI(CONCAT("{_GENID}couple-", MD5(STR(?fam)))) AS ?cr)
-  BIND(IRI(CONCAT("{_GENID}cevent-", MD5(STR(?fam)))) AS ?evt)
-}}""",
 )
 
 
@@ -327,7 +308,9 @@ def apply_reverse(source: Graph) -> Graph:
     """Run every reverse-projection query over ``source`` → pure-GMEOW structure.
 
     The result is added to the up-projection as bare facts (a documentary
-    reverse-projection is faithful, not inferred). Idempotent and deterministic.
+    reverse-projection is faithful, not inferred). Any blank node this emits (a
+    place node, a time entity passed through from the source) is given a stable
+    label by the transform's RDFC-1.0 canonicalization, so reruns are identical.
     """
     store = pyoxigraph.Store()
     store.bulk_load(
