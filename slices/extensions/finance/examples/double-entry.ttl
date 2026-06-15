@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: money is frame-relative, and the ledger is double-entry (#443,
+# P11). Every gmeow:MonetaryAmount carries its gmeow:currency as a REFERENCE FRAME
+# — "5000" is meaningless; "5000 in the CAD frame" is a coordinate. An invoice is
+# recorded as a balanced gmeow:JournalEntry: two gmeow:Postings to gmeow:Ledger-
+# Accounts, one DEBIT and one CREDIT of the same amount, so the books balance by
+# construction. Debit Accounts-Receivable (an asset), credit Revenue.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/finance/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:acme   a gmeow:Organization ; gmeow:name "Acme Robotics Inc."@x-gmeow-english .
+ex:client a gmeow:Organization ; gmeow:name "Northwind Traders"@x-gmeow-english .
+
+# --- The invoice and its amount, in an explicit currency frame (P11).
+ex:invoice a gmeow:Invoice ;
+    gmeow:invoiceIssuer    ex:acme ;
+    gmeow:invoiceRecipient ex:client ;
+    gmeow:invoiceAmount    ex:amount ;
+    gmeow:invoiceStatus    gmeow:invoiceStatusSent .
+
+ex:amount a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "5000.00"^^xsd:decimal ;
+    gmeow:currency      gmeow:referenceFrameCAD .
+
+# --- The same fact as a balanced double-entry journal: debit AR, credit Revenue.
+ex:journal a gmeow:JournalEntry ;
+    gmeow:journalEntryPostings ex:debitAR , ex:creditRevenue .
+
+ex:debitAR a gmeow:Posting ;
+    gmeow:postingJournalEntry ex:journal ;
+    gmeow:postingAccount   ex:accountsReceivable ;
+    gmeow:postingDirection gmeow:postingDirectionDebit ;
+    gmeow:postingAmount    ex:amount .
+
+ex:creditRevenue a gmeow:Posting ;
+    gmeow:postingJournalEntry ex:journal ;
+    gmeow:postingAccount   ex:revenue ;
+    gmeow:postingDirection gmeow:postingDirectionCredit ;
+    gmeow:postingAmount    ex:amount .
+
+ex:accountsReceivable a gmeow:LedgerAccount ;
+    gmeow:ledgerAccountType     gmeow:ledgerAccountTypeAsset ;
+    gmeow:ledgerAccountHolder   ex:acme ;
+    gmeow:ledgerAccountCurrency gmeow:referenceFrameCAD .
+
+ex:revenue a gmeow:LedgerAccount ;
+    gmeow:ledgerAccountType     gmeow:ledgerAccountTypeRevenue ;
+    gmeow:ledgerAccountHolder   ex:acme ;
+    gmeow:ledgerAccountCurrency gmeow:referenceFrameCAD .

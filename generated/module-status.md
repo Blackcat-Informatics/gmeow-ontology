@@ -31,7 +31,7 @@ Tier-2 uplift backlog.
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 0/10 | full |
 | expertise | core | core | 4 | 6 | 11 | 0 | 1 | 0/17 | full |
-| finance | extension | extensions | 9 | 21 | 38 | 0 | 0 | - | full |
+| finance | extension | extensions | 9 | 21 | 38 | 0 | 1 | - | full |
 | gender | core | core | 5 | 6 | 7 | 0 | 1 | 0/13 | full |
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
@@ -48,7 +48,7 @@ Tier-2 uplift backlog.
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 0 | - | full |
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 0 | - | full |
 | notation | extension | extensions | 4 | 5 | 9 | 0 | 0 | - | full |
-| notes | extension | extensions | 2 | 6 | 15 | 0 | 0 | - | full |
+| notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 1 | 0/30 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 0/51 | full |
 | places | core | core | 7 | 46 | 140 | 0 | 1 | 0/186 | full |
