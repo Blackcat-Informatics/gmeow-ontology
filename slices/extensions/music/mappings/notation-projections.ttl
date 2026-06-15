@@ -443,7 +443,7 @@ gmeow:mapLRMooWork a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
         gmeow:edoalSource gmeow:MusicalWork ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
-        gmeow:profile "crmarchaeo" ; gmeow:relation "<=" ;
+        gmeow:profile "lrmoo" ; gmeow:relation "<=" ;
         gmeow:toClass lrmoo:F1_Work ;
         gmeow:edoalTarget lrmoo:F1_Work ; gmeow:edoalTargetKind "class" ;
         gmeow:lossyDrop "GMEOW's frame-relative content, tuning systems, and declared losses have no LRMoo home" ] .
@@ -458,7 +458,7 @@ gmeow:mapLRMooExpression a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "expr" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Expression ] ) ;
         gmeow:edoalSource gmeow:Expression ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
-        gmeow:profile "crmarchaeo" ; gmeow:relation "<=" ;
+        gmeow:profile "lrmoo" ; gmeow:relation "<=" ;
         gmeow:toClass lrmoo:F2_Expression ;
         gmeow:edoalTarget lrmoo:F2_Expression ; gmeow:edoalTargetKind "class" ;
         gmeow:lossyDrop "the notation-system reference frame and loss manifest are not part of LRMoo" ] .
@@ -474,7 +474,7 @@ gmeow:mapLRMooPerformance a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "perf" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeMusicalPerformance ] ) ;
         gmeow:edoalSource gmeow:eventTypeMusicalPerformance ; gmeow:edoalSourceKind "relation" ] ;
     gmeow:hasBinding [
-        gmeow:profile "crmarchaeo" ; gmeow:relation "<=" ;
+        gmeow:profile "lrmoo" ; gmeow:relation "<=" ;
         gmeow:toClass lrmoo:F31_Performance ;
         gmeow:edoalTarget lrmoo:F31_Performance ; gmeow:edoalTargetKind "class" ;
         gmeow:lossyDrop "performance-as-expression-creation flattens improvisation and standpoint-indexed participation claims" ] .
@@ -489,7 +489,7 @@ gmeow:mapMusicOntologyWork a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
         gmeow:edoalSource gmeow:MusicalWork ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
-        gmeow:profile "crmarchaeo" ; gmeow:relation "<=" ;
+        gmeow:profile "mo" ; gmeow:relation "<=" ;
         gmeow:toClass mo:MusicalWork ;
         gmeow:edoalTarget mo:MusicalWork ; gmeow:edoalTargetKind "class" ;
         gmeow:lossyDrop "Music Ontology has no note-level model, no tuning frame, and a composition-first cultural bias" ] .
@@ -504,7 +504,7 @@ gmeow:mapPONWork a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "work" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MusicalWork ] ) ;
         gmeow:edoalSource gmeow:MusicalWork ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
-        gmeow:profile "crmarchaeo" ; gmeow:relation "<=" ;
+        gmeow:profile "pon" ; gmeow:relation "<=" ;
         gmeow:toClass pon:Work ;
         gmeow:edoalTarget pon:Work ; gmeow:edoalTargetKind "class" ;
         gmeow:lossyDrop "PON's annotation model presumes Western categories and has no tuning math" ] .
@@ -520,7 +520,7 @@ gmeow:mapJAMSSegment a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "claim" ; gmeow:predicate gmeow:analysisProperty ; gmeow:objectValue gmeow:analysisPropertySegment ] ) ;
         gmeow:edoalSource gmeow:MusicAnalysisClaim ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
-        gmeow:profile "crmarchaeo" ; gmeow:relation "<=" ;
+        gmeow:profile "jams" ; gmeow:relation "<=" ;
         gmeow:toClass jams:Segment ;
         gmeow:edoalTarget jams:Segment ; gmeow:edoalTargetKind "class" ;
         gmeow:lossyDrop "JAMS annotations are audio-time anchored, not score-anchored; vantage and theory frame are lost" ] .

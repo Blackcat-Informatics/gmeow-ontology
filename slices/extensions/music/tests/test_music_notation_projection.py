@@ -127,6 +127,8 @@ def test_every_music_notation_system_has_profile() -> None:
         for ns in g.subjects(RDF.type, GM.NotationSystem)
         if str(ns).startswith(str(GM))
     }
+    assert notation_systems, "No music-domain NotationSystem individuals found"
+
     profile_counts = dict.fromkeys(notation_systems, 0)
     for ns in g.objects(None, GM.notationSystemOf):
         if ns in profile_counts:
