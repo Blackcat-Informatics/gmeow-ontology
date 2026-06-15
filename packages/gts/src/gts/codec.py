@@ -83,7 +83,7 @@ def _encode_one(name: str, data: bytes) -> bytes:
     if name == "identity":
         return data
     if name == "gzip":
-        return gzip.compress(data)
+        return gzip.compress(data, mtime=0)
     if name == "zstd":
         return _ZSTD_C.compress(data)
     if name == "zstd-rsyncable":
