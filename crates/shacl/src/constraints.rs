@@ -573,11 +573,65 @@ fn term_as_subject_ref(term: &Term) -> Option<NamedOrBlankNodeRef<'_>> {
     }
 }
 
+/// `xsd:integer` lexical space: optional sign then one-or-more ASCII digits.
+/// Unbounded — no native-int overflow.
+fn is_xsd_integer_lexical(s: &str) -> bool {
+    let s = s.trim();
+    let digits = s.strip_prefix(['+', '-']).unwrap_or(s);
+    !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
+}
+
+/// `xsd:decimal` lexical space: optional sign then digits with an optional
+/// single '.' — NO exponent. At least one digit must be present.
+fn is_xsd_decimal_lexical(s: &str) -> bool {
+    let s = s.trim();
+    let body = s.strip_prefix(['+', '-']).unwrap_or(s);
+    if body.is_empty() {
+        return false;
+    }
+    let mut seen_dot = false;
+    let mut seen_digit = false;
+    for b in body.bytes() {
+        match b {
+            b'0'..=b'9' => seen_digit = true,
+            b'.' if !seen_dot => seen_dot = true,
+            _ => return false, // rejects 'e'/'E' (scientific notation) and any other char
+        }
+    }
+    seen_digit
+}
+
+/// `xsd:double`/`xsd:float` lexical space: the three special values exactly
+/// (INF, -INF, NaN — case-sensitive per XSD), or a mantissa (decimal lexical)
+/// with an optional [eE][+-]?digits exponent.
+fn is_xsd_double_lexical(s: &str) -> bool {
+    let s = s.trim();
+    if matches!(s, "INF" | "-INF" | "+INF" | "NaN") {
+        return true;
+    }
+    // Split optional exponent.
+    let (mantissa, exponent) = match s.split_once(['e', 'E']) {
+        Some((m, e)) => (m, Some(e)),
+        None => (s, None),
+    };
+    if !is_xsd_decimal_lexical(mantissa) {
+        return false;
+    }
+    match exponent {
+        None => true,
+        Some(exp) => {
+            let digits = exp.strip_prefix(['+', '-']).unwrap_or(exp);
+            !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
+        }
+    }
+}
+
 /// Check that a `Term` satisfies `sh:datatype` requirements.
 ///
 /// - Must be a `Literal` whose `.datatype()` IRI equals `dt_iri`.
-/// - Additionally validates lexical form for common XSD numeric/boolean
-///   datatypes (xsd:integer, xsd:decimal, xsd:double, xsd:boolean).
+/// - Additionally validates the lexical form (not native-parse) for common XSD
+///   numeric/boolean datatypes: xsd:integer (unbounded, no overflow),
+///   xsd:decimal (no scientific notation), xsd:double, xsd:float, xsd:boolean.
 fn check_datatype(value: &Term, dt_iri: &NamedNode) -> bool {
     let Term::Literal(lit) = value else {
         return false;
@@ -588,12 +642,10 @@ fn check_datatype(value: &Term, dt_iri: &NamedNode) -> bool {
     // Lexical validity check for common XSD types.
     let lex = lit.value();
     match dt_iri.as_str() {
-        "http://www.w3.org/2001/XMLSchema#integer" => lex.trim().parse::<i64>().is_ok(),
-        "http://www.w3.org/2001/XMLSchema#decimal" => lex.trim().parse::<f64>().is_ok(),
-        "http://www.w3.org/2001/XMLSchema#double" => {
-            // Accept xsd:double special values INF, -INF, NaN too.
-            matches!(lex.trim(), "INF" | "-INF" | "NaN") || lex.trim().parse::<f64>().is_ok()
-        }
+        "http://www.w3.org/2001/XMLSchema#integer" => is_xsd_integer_lexical(lex),
+        "http://www.w3.org/2001/XMLSchema#decimal" => is_xsd_decimal_lexical(lex),
+        "http://www.w3.org/2001/XMLSchema#double" => is_xsd_double_lexical(lex),
+        "http://www.w3.org/2001/XMLSchema#float" => is_xsd_double_lexical(lex),
         "http://www.w3.org/2001/XMLSchema#boolean" => {
             matches!(lex.trim(), "true" | "false" | "1" | "0")
         }
@@ -1324,6 +1376,88 @@ mod tests {
         let results = validate_shape(&store, &ex("orphan"), &shape);
         assert_eq!(results.len(), 1);
         assert!(component_iri(&results)[0].contains("MinCount"));
+    }
+
+    // ── xsd lexical validators (Gap D fix) ────────────────────────────────────
+
+    #[test]
+    fn xsd_integer_accepts_large_value() {
+        // A valid xsd:integer beyond i64::MAX must PASS (no overflow rejection).
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}integer"));
+        let value = Term::Literal(Literal::new_typed_literal(
+            "99999999999999999999999",
+            dt_iri.clone(),
+        ));
+        assert!(
+            check_datatype(&value, &dt_iri),
+            "large integer should conform"
+        );
+    }
+
+    #[test]
+    fn xsd_integer_rejects_decimal_point() {
+        // "3.5"^^xsd:integer is lexically invalid.
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}integer"));
+        let value = Term::Literal(Literal::new_typed_literal("3.5", dt_iri.clone()));
+        assert!(
+            !check_datatype(&value, &dt_iri),
+            "decimal point in integer should violate"
+        );
+    }
+
+    #[test]
+    fn xsd_decimal_rejects_scientific_notation() {
+        // "1e3"^^xsd:decimal is NOT a valid xsd:decimal lexical form.
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}decimal"));
+        let value = Term::Literal(Literal::new_typed_literal("1e3", dt_iri.clone()));
+        assert!(
+            !check_datatype(&value, &dt_iri),
+            "scientific notation should violate xsd:decimal"
+        );
+    }
+
+    #[test]
+    fn xsd_decimal_accepts_plain() {
+        // "3.14"^^xsd:decimal is valid.
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}decimal"));
+        let value = Term::Literal(Literal::new_typed_literal("3.14", dt_iri.clone()));
+        assert!(
+            check_datatype(&value, &dt_iri),
+            "plain decimal should conform"
+        );
+    }
+
+    #[test]
+    fn xsd_double_accepts_scientific() {
+        // "1e3"^^xsd:double is valid (scientific notation is allowed for double).
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}double"));
+        let value = Term::Literal(Literal::new_typed_literal("1e3", dt_iri.clone()));
+        assert!(
+            check_datatype(&value, &dt_iri),
+            "scientific notation should conform for xsd:double"
+        );
+    }
+
+    #[test]
+    fn xsd_double_accepts_inf() {
+        // "INF"^^xsd:double is a valid XSD special value.
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}double"));
+        let value = Term::Literal(Literal::new_typed_literal("INF", dt_iri.clone()));
+        assert!(
+            check_datatype(&value, &dt_iri),
+            "INF should conform for xsd:double"
+        );
+    }
+
+    #[test]
+    fn xsd_float_accepts_scientific() {
+        // "1e3"^^xsd:float is valid — same lexical space as double.
+        let dt_iri = NamedNode::new_unchecked(format!("{XSD}float"));
+        let value = Term::Literal(Literal::new_typed_literal("1e3", dt_iri.clone()));
+        assert!(
+            check_datatype(&value, &dt_iri),
+            "scientific notation should conform for xsd:float"
+        );
     }
 
     // ── deactivated shape ──────────────────────────────────────────────────────
