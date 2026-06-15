@@ -4222,9 +4222,18 @@ def build_ontology_docs(
 
 
 def ontology_docs_inputs() -> Sequence[Path]:
-    """Canonical sources that drive the generated docs bundle."""
+    """Canonical sources that drive the generated docs bundle.
+
+    Must list EVERY file whose content reaches the rendered docs — the docs
+    fold into the GTS bundle (#bundle), and the drift gate skips regeneration
+    when this hash is unchanged. An omission here is silent staleness: a
+    rendered input changes, the hash does not, the committed snapshot is never
+    rebuilt. ``examples/*.ttl`` (rendered verbatim by :func:`_collect_examples`)
+    and the vendored ``simple.css`` (copied into every page) were such holes.
+    """
     return [
         PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
+        Path(__file__).with_name("assets") / "simple.css",
         ONTOLOGY_DOCS_GRAPH_INPUT,
         REFERENCES_MD_FILE,
         STATEMENT_RDF12_FILE,
@@ -4233,4 +4242,5 @@ def ontology_docs_inputs() -> Sequence[Path]:
         *sorted(SLICES_DIR.glob("*/*/manifest.ttl")),
         *sorted(SLICES_DIR.glob("*/*/docs.md")),
         *sorted(SLICES_DIR.glob("*/*/design/*.md")),
+        *sorted(SLICES_DIR.glob("*/*/examples/*.ttl")),
     ]
