@@ -98,6 +98,23 @@ gmeow:observablePropertyRadiationLevel        a gmeow:ObservableProperty ; rdfs:
 gmeow:observablePropertyRadiationLevel skos:definition "The radiation level observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
 
+# Seeds — musical / auditory observable properties (issue #317)
+gmeow:observablePropertyTimbre          a gmeow:ObservableProperty ; rdfs:label "timbre"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyTimbre skos:definition "The timbre observable property — the perceived tonal quality of a sound (bright, dark, breathy, gritty, hollow, ...) that can be observed by a human listener or measured by an audio feature extractor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
+gmeow:observablePropertyLoudness        a gmeow:ObservableProperty ; rdfs:label "loudness"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyLoudness skos:definition "The loudness observable property — the perceived intensity of a sound that can be observed by a listener or measured by a level meter."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
+gmeow:observablePropertyRoughness       a gmeow:ObservableProperty ; rdfs:label "roughness"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyRoughness skos:definition "The roughness observable property — the perceived sensory dissonance or rapid amplitude modulation of a sound that can be observed or measured."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
+gmeow:observablePropertyTimingDeviation a gmeow:ObservableProperty ; rdfs:label "timing deviation"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyTimingDeviation skos:definition "The timing deviation observable property — the expressive or erroneous offset of an onset from a reference time grid, observable by a listener or measurable from an onset detection function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
 gmeow:SensoryQuantity
     a owl:Class, gufo:Kind ;
     owl:equivalentClass gmeow:ScalarQuantity ;
