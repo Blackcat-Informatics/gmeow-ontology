@@ -31,7 +31,7 @@
   "gmeow-languages.sssom.tsv": 16,
   "gmeow-lexicon.sssom.tsv": 9,
   "gmeow-lifecycle.sssom.tsv": 8,
-  "gmeow-music.sssom.tsv": 38,
+  "gmeow-music.sssom.tsv": 39,
   "gmeow-names.sssom.tsv": 55,
   "gmeow-narrative.sssom.tsv": 14,
   "gmeow-norms.sssom.tsv": 2,
@@ -48,6 +48,7 @@
   "gmeow-rights.sssom.tsv": 201,
   "gmeow-schema-org-finance.sssom.tsv": 12,
   "gmeow-sensory-environment.sssom.tsv": 9,
+  "gmeow-sensory.sssom.tsv": 5,
   "gmeow-sexuality.sssom.tsv": 19,
   "gmeow-software.sssom.tsv": 18,
   "gmeow-standpoint.sssom.tsv": 23,
@@ -57,8 +58,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1670,
+ "equivalences": 1676,
  "functions": 38,
- "mapping_sets": 56,
+ "mapping_sets": 57,
  "projections": 512
 }
