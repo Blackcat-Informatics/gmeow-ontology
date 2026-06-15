@@ -72,4 +72,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
-**62 slices** · documentation: 62 full guides, 0 stubs remaining (#325); advisory coverage: 3/1083 core class/property terms (#471).
+**63 slices** · documentation: 63 full guides, 0 stubs remaining (#325); advisory coverage: 3/1114 core class/property terms (#471).
