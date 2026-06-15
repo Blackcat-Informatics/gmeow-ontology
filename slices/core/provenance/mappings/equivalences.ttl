@@ -105,7 +105,7 @@ gmeow:eqProvenance011 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Issue #128 — generatedObservation provenance link.
+# observation-linkage design — generatedObservation provenance link.
 # --------------------------------------------------------------------------- #
 
 gmeow:eqProvenance013 a gmeow:TermEquivalence ;
@@ -123,5 +123,5 @@ gmeow:eqProvenance014 a gmeow:TermEquivalence ;
     gmeow:alignObject prov:wasDerivedFrom ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "the same derivation relation; gmeow's is deliberately domain-free so events and endurants may participate (#34 phase 2)" ;
+    gmeow:comment "the same derivation relation; gmeow's is deliberately domain-free so events and endurants may participate (PROV activity alignment phase 2)";
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .

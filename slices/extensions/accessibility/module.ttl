@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Accessibility Module"@x-gmeow-english ;
     skos:definition "The GMEOW Accessibility Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
-    rdfs:comment """Cross-cutting accessibility layer — whether an entity can reach or use a location under constraints (wheelchair/step-free, sensory, clearance, life-support). Accessibility features, barriers, and needs are modelled as orthogonal, co-equal value facets (Principle 9). The flat shortcuts (hasAccessibilityFeature, hasBarrier, hasAccessibilityNeed) cover the 80 % case; promote to AccessibilityAssertion when provenance, confidence, temporal scope, or suppression matter (Principle 10). Accessible routes are computed by the solver layer, not asserted in OWL (Principle 12). Part of the #42 Location-as-reference-frame epic."""@x-gmeow-english ;
+    rdfs:comment """Cross-cutting accessibility layer — whether an entity can reach or use a location under constraints (wheelchair/step-free, sensory, clearance, life-support). Accessibility features, barriers, and needs are modelled as orthogonal, co-equal value facets (Principle 9). The flat shortcuts (hasAccessibilityFeature, hasBarrier, hasAccessibilityNeed) cover the 80 % case; promote to AccessibilityAssertion when provenance, confidence, temporal scope, or suppression matter (Principle 10). Accessible routes are computed by the solver layer, not asserted in OWL (Principle 12). Part of the Location-as-reference-frame design."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #

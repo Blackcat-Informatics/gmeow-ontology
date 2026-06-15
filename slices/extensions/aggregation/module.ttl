@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Spatial Aggregation Module"@x-gmeow-english ;
     skos:definition "The GMEOW Spatial Aggregation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
-    rdfs:comment """Spatial aggregation and statistical summarisation over places — count, sum, average, density, centroid, and binning. Realises the #42 Location-as-reference-frame epic and the #101 cross-cutting aggregation concern.
+    rdfs:comment """Spatial aggregation and statistical summarisation over places — count, sum, average, density, centroid, and binning. Realises the Location-as-reference-frame design and the centroid shortcut cross-cutting aggregation concern.
 
 Every aggregation is a gmeow:Measurement (the universal observation stack), so vantage, observedFeature, observationResult, confidence, granularity, and temporal scope are inherited without duplication (Principle 4). The aggregation region is the observedFeature; the result is a gmeow:ScalarQuantity. The actual arithmetic — counting, density computation, centroid calculation, binning — is performed by the solver layer (Principle 12), never materialised as asserted triples in the OWL core.
 

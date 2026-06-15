@@ -1,7 +1,7 @@
 """Consumer command-line entry point for the bundled GMEOW package.
 
 The public ``gmeow`` CLI is the PyPI-facing surface. Every command registered
-here must work from the bundled ``generated/dist/gmeow-full.gts`` snapshot,
+here must work from the bundled ``generated/dist/gmeow.gts`` snapshot,
 without the source checkout, Docker, generator inputs, or repo-local query
 trees. Repository maintenance lives in :mod:`gmeow_tools.cli_dev`.
 """
@@ -18,7 +18,7 @@ from rich.table import Table
 
 import gts
 from gmeow_tools import __version__
-from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, NAMESPACE
+from gmeow_tools.config import GTS_GRAPH_METADATA, GTS_SNAPSHOT_FILE, NAMESPACE
 from gmeow_tools.gts_views import FoldView
 
 if TYPE_CHECKING:
@@ -43,8 +43,8 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
 
 
 def _default_gts_file() -> Path:
-    """The bundled full ontology snapshot."""
-    return GTS_FULL_SNAPSHOT_FILE
+    """The bundled ontology snapshot."""
+    return GTS_SNAPSHOT_FILE
 
 
 def _read_gts_or_fail(path: Path) -> gts.Graph:
@@ -96,7 +96,7 @@ def _read_turtle(source: Path) -> tuple[Graph, str]:
 
 @app.callback()
 def main() -> None:
-    """Consumer-safe GMEOW commands backed by gmeow-full.gts."""
+    """Consumer-safe GMEOW commands backed by gmeow.gts."""
 
 
 @app.command()
@@ -109,7 +109,7 @@ def version() -> None:
 def info(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS snapshot to inspect (default: bundled gmeow-full.gts).",
+        help="GTS snapshot to inspect (default: bundled gmeow.gts).",
     ),
 ) -> None:
     """Show a summary of the bundled GMEOW ontology snapshot."""
@@ -164,7 +164,7 @@ def _bundle_checks(graph: gts.Graph) -> list[tuple[str, bool, str]]:
 def verify(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS snapshot to verify (default: bundled gmeow-full.gts).",
+        help="GTS snapshot to verify (default: bundled gmeow.gts).",
     ),
     trusted_key: Path | None = typer.Option(  # noqa: B008
         None,
@@ -275,14 +275,14 @@ def build(
     graph = _read_gts_or_fail(path)
     out.mkdir(parents=True, exist_ok=True)
 
-    nq_path = out / "gmeow-full.nq"
+    nq_path = out / "gmeow.nq"
     nq_path.write_text(gts.to_nquads(graph), encoding="utf-8")
     console.print(f"[green]wrote[/green] {nq_path}")
 
     plain = load_graph_from_gts(path)
     bind_prefixes(plain)
     for suffix, fmt in (("ttl", "turtle"), ("nt", "nt"), ("jsonld", "json-ld")):
-        target = out / f"gmeow-full.{suffix}"
+        target = out / f"gmeow.{suffix}"
         plain.serialize(destination=target, format=fmt)
         console.print(f"[green]wrote[/green] {target}")
 
@@ -459,7 +459,7 @@ def docs(
     ),
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS snapshot to document (default: bundled gmeow-full.gts).",
+        help="GTS snapshot to document (default: bundled gmeow.gts).",
     ),
     force: bool = typer.Option(
         False,
@@ -496,7 +496,9 @@ def crossref(
     from gmeow_tools.describe import load_graph_from_gts
     from gmeow_tools.self_desc import load_self_description_from_graph
 
-    graph = load_graph_from_gts(file or _default_gts_file())
+    graph = load_graph_from_gts(
+        file or _default_gts_file(), graph_names={GTS_GRAPH_METADATA}
+    )
     try:
         meta = load_self_description_from_graph(graph)
     except ValueError as exc:
@@ -525,7 +527,7 @@ app.add_typer(gts_app, name="gts")
 def gts_info(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to summarise (default: bundled gmeow-full.gts).",
+        help="GTS file to summarise (default: bundled gmeow.gts).",
     ),
     no_verify: bool = typer.Option(
         False, "--no-verify", help="Skip embedded-signature verification."
@@ -573,7 +575,7 @@ def gts_info(
 def gts_verify(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to verify (default: bundled gmeow-full.gts).",
+        help="GTS file to verify (default: bundled gmeow.gts).",
     ),
     trusted_key: Path | None = typer.Option(  # noqa: B008
         None,
@@ -620,7 +622,7 @@ def gts_verify(
 def gts_extract_key(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to extract the key from (default: bundled gmeow-full.gts).",
+        help="GTS file to extract the key from (default: bundled gmeow.gts).",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "--out", "-o", help="Write the armored public key here (else stdout)."
@@ -648,7 +650,7 @@ def gts_extract_key(
 def gts_to_nq(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to project (default: bundled gmeow-full.gts).",
+        help="GTS file to project (default: bundled gmeow.gts).",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "--out", "-o", help="Write N-Quads here (else stdout)."
@@ -719,7 +721,7 @@ def _gts_to_db(file: Path | None, out: Path | None, suffix: str, kind: str) -> N
 def gts_to_sqlite(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to convert (default: bundled gmeow-full.gts).",
+        help="GTS file to convert (default: bundled gmeow.gts).",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "--out", "-o", help="Output database path."
@@ -733,7 +735,7 @@ def gts_to_sqlite(
 def gts_to_duckdb(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to convert (default: bundled gmeow-full.gts).",
+        help="GTS file to convert (default: bundled gmeow.gts).",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "--out", "-o", help="Output database path."

@@ -11,11 +11,11 @@
     rdfs:label "GMEOW Notes & Annotation Module"@x-gmeow-english ;
     skos:definition "The GMEOW Notes & Annotation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
-    rdfs:comment """First-class annotation and personal-knowledge-management layer — notes, highlights, bookmarks, comments, and the bidirectional backlink graph (the RDF gap GMEOW fills). Reuses, never duplicates: EvidenceSpan/Selector for anchored targets (#55), aboutness/Tagging for topics (#27), accordingTo for standpoint (#43), displayable for suppression (P10). Grounded in gUFO; aligned to W3C Web Annotation, schema.org, ActivityStreams, and SIOC by reference (P5)."""@x-gmeow-english ;
+    rdfs:comment """First-class annotation and personal-knowledge-management layer — notes, highlights, bookmarks, comments, and the bidirectional backlink graph (the RDF gap GMEOW fills). Reuses, never duplicates: EvidenceSpan/Selector for anchored targets (EvidenceSpan audit machinery), aboutness/Tagging for topics, accordingTo for standpoint (standpoint facility), displayable for suppression (P10). Grounded in gUFO; aligned to W3C Web Annotation, schema.org, ActivityStreams, and SIOC by reference (P5)."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# EVIDENCE SPAN — generalized anchored target (coordinated with #55 Selector)
+# EVIDENCE SPAN — generalized anchored target (coordinated with EvidenceSpan audit machinery Selector)
 # =========================================================================== #
 
 # =========================================================================== #

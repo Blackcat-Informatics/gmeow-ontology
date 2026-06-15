@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: rights are flat-first, promoted on demand (#443, P4). The
+# Worked example: rights are flat-first, promoted on demand ( P4). The
 # common case is a single gmeow:hasLicense + gmeow:hasCopyright edge — no relator
 # needed. Only when the deontic RULES matter (who may do what, under which duty,
 # what is forbidden) is the flat form PROMOTED to a gmeow:RightsStatement bearing

@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: "Cross-cutting version-set alignments (#161). VersionMembership is a reified relator with no direct flat equivalent; role claims project lossily to schema:version / doap:revision on the member entity."
+# comment: "Cross-cutting version-set alignments. VersionMembership is a reified relator with no direct flat equivalent; role claims project lossily to schema:version / doap:revision on the member entity."
 # curie_map:
 #   doap: http://usefulinc.com/ns/doap#
 #   gmeow: https://blackcatinformatics.ca/gmeow/

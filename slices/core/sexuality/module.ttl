@@ -142,11 +142,11 @@ gmeow:romanticQuestioning    a gmeow:RomanticOrientationValue ; rdfs:label "ques
 gmeow:romanticQuestioning skos:definition "The questioning romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38). The cross-module disjointness of the orientation
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine). The cross-module disjointness of the orientation
 # axes (SexualOrientation / RomanticOrientation) and their value spaces is
 # asserted with the rest of the seven-axis matrix in gender.ttl. Here we add the
 # relator-mediation existentials for the two orientation facets — EL, open-world
-# (the closed-world "exactly one value" is SHACL's job, #39).
+# (the closed-world "exactly one value" is SHACL's job, SHACL closure gate).
 # =========================================================================== #
 
 gmeow:SexualOrientation rdfs:subClassOf

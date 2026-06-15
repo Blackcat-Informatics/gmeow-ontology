@@ -2,20 +2,21 @@
 # SPDX-License-Identifier: Apache-2.0
 """Bundle-backed access to the folded ontology surface and its transforms.
 
-The `gmeow` wheel ships ONE artifact — `generated/dist/gmeow-full.gts` — that folds
+The `gmeow` wheel ships ONE artifact — `generated/dist/gmeow.gts` — that folds
 the **complete useful ontology surface AND its transforms**: the SSSOM lift maps,
-the compiled projection queries, the equivalence/projection cells, and the merged
-ontology graph (with and without imports). This module reads them back so the
+the compiled projection queries, the equivalence/projection cells, and the
+ontology/import named graphs. This module reads them back so the
 consumer loaders (`build_lift_map`, `project_graph`, `load_cells`,
 `_build_merged_graph`) can run **from the wheel alone, with no repo checkout** —
 the CLI razor: `gmeow` does not need a repo, `gmeow-dev` does.
 
 Each input group rides as a deterministic tar blob keyed by a representation label
-(the `docs:`-archive precedent), except the two merged graphs, which ride as single
-canonical N-Triples blobs. The repo path stays the dev fast-path; the bundle is the
-shipped path. The loaders try the repo first, falling back here when no source tree.
+(the `docs:`-archive precedent). The merged graph fallback is reconstructed from
+the GTS default graph plus ``gmeow:graph/imports``. The repo path stays the dev
+fast-path; the bundle is the shipped path. The loaders try the repo first,
+falling back here when no source tree.
 
-Read side only — the generator (`gts_full_gen`) builds the blobs.
+Read side only — the ``gts`` generator builds the blobs.
 """
 
 from __future__ import annotations
@@ -24,16 +25,21 @@ import io
 import tarfile
 from functools import lru_cache
 
-from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, ONTOLOGY_FILE
+from gmeow_tools.config import (
+    GTS_GRAPH_IMPORTS,
+    GTS_SNAPSHOT_FILE,
+    NAMESPACE,
+    ONTOLOGY_FILE,
+)
+from gts.model import Graph as GtsGraph
 
 #: Representation labels for the folded transform blobs (the `rep` field in
 #: ``graph.blob_meta``). Kept in lock-step with the generator that writes them.
 REP_MAPPINGS = "mappings-archive"  # tar of generated/mappings/*.sssom.tsv
 REP_QUERIES = "queries-archive"  # tar of generated/queries/*.rq
 REP_CELLS = "cells-archive"  # tar of the cell/projection TTL sources (repo-rel paths)
-REP_MERGED_IMPORTS = "merged:imports"  # N-Triples of load_merged_graph(imports=True)
-REP_MERGED_NOIMPORTS = "merged:noimports"  # N-Triples of include_imports=False
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
+_GUIDE_BLOB = NAMESPACE + "guideBlob"
 
 
 def repo_sources_present() -> bool:
@@ -46,19 +52,19 @@ def repo_sources_present() -> bool:
 
 
 @lru_cache(maxsize=1)
-def _bundle_graph() -> object:
-    """The parsed default bundle (`gmeow-full.gts`), cached for the process."""
+def _bundle_graph() -> GtsGraph:
+    """The parsed default bundle (`gmeow.gts`), cached for the process."""
     import gts
 
-    return gts.read(GTS_FULL_SNAPSHOT_FILE.read_bytes())
+    return gts.read(GTS_SNAPSHOT_FILE.read_bytes())
 
 
 def _blob_by_rep(rep: str) -> bytes | None:
     """The decoded payload of the single blob carrying *rep*, or ``None``."""
     graph = _bundle_graph()
-    for digest, meta in graph.blob_meta.items():  # type: ignore[attr-defined]
+    for digest, meta in graph.blob_meta.items():
         if meta.get("rep") == rep:
-            payload: bytes | None = graph.blobs.get(digest)  # type: ignore[attr-defined]
+            payload: bytes | None = graph.blobs.get(digest)
             return payload
     return None
 
@@ -127,9 +133,25 @@ def bundled_cells_under(prefix: str) -> dict[str, bytes]:
 
 
 def bundled_merged_ttl(*, include_imports: bool) -> bytes | None:
-    """The folded merged-ontology N-Triples (with or without imports), or ``None``."""
-    rep = REP_MERGED_IMPORTS if include_imports else REP_MERGED_NOIMPORTS
-    return _blob_by_rep(rep)
+    """Reconstruct merged-ontology N-Triples from the bundled named graphs."""
+    from gts.nquads import term_token
+
+    graph = _bundle_graph()
+    scopes: set[str | None] = {None}
+    if include_imports:
+        scopes.add(GTS_GRAPH_IMPORTS)
+    lines: list[str] = []
+    for s, p, o, graph_id in graph.quads:
+        scope = graph.terms[graph_id].value if graph_id is not None else None
+        if scope not in scopes:
+            continue
+        predicate = graph.terms[p].value
+        if predicate == _GUIDE_BLOB:
+            continue
+        lines.append(
+            f"{term_token(graph, s)} {term_token(graph, p)} {term_token(graph, o)} ."
+        )
+    return ("\n".join(sorted(lines)) + "\n").encode("utf-8")
 
 
 def bundled_denied_cells() -> list[tuple[str, str, str]] | None:

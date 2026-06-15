@@ -92,9 +92,9 @@ def version() -> None:
 @app.command()
 def info() -> None:
     """Show a summary of the bundled GMEOW ontology snapshot."""
-    from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE
+    from gmeow_tools.config import GTS_SNAPSHOT_FILE
 
-    path = GTS_FULL_SNAPSHOT_FILE
+    path = GTS_SNAPSHOT_FILE
     graph = _read_gts_or_fail(path)
     console.print(
         f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
@@ -1297,17 +1297,17 @@ app.add_typer(gts_app, name="gts")
 
 
 def _default_gts_file() -> Path:
-    """The bundled full ontology snapshot (offline wheel default)."""
-    from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE
+    """The bundled ontology snapshot (offline wheel default)."""
+    from gmeow_tools.config import GTS_SNAPSHOT_FILE
 
-    return GTS_FULL_SNAPSHOT_FILE
+    return GTS_SNAPSHOT_FILE
 
 
 @gts_app.command("info")
 def gts_info(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to summarise (default: bundled gmeow-full.gts).",
+        help="GTS file to summarise (default: bundled gmeow.gts).",
     ),
     no_verify: bool = typer.Option(
         False, "--no-verify", help="Skip embedded-signature verification."
@@ -1360,7 +1360,7 @@ def gts_info(
 def gts_verify(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to verify (default: bundled gmeow-full.gts).",
+        help="GTS file to verify (default: bundled gmeow.gts).",
     ),
     trusted_key: Path | None = typer.Option(  # noqa: B008
         None,
@@ -1419,7 +1419,7 @@ def gts_verify(
 def gts_extract_key(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to extract the key from (default: bundled gmeow-full.gts).",
+        help="GTS file to extract the key from (default: bundled gmeow.gts).",
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "--out", "-o", help="Write the armored public key here (else stdout)."
@@ -1453,7 +1453,7 @@ _GTS_OUT_OPTION = typer.Option(
 def gts_to_nq(
     file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to project (default: bundled gmeow-full.gts).",
+        help="GTS file to project (default: bundled gmeow.gts).",
     ),
     out: Path | None = _GTS_OUT_OPTION,
 ) -> None:
@@ -1554,7 +1554,7 @@ def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
 
 
 _GTS_FULL_OUT = typer.Option(
-    None, "--out", "-o", help="Output .gts path (default: dist/gmeow-full.gts)."
+    None, "--out", "-o", help="Output .gts path (default: dist/gmeow.gts)."
 )
 
 
@@ -1568,19 +1568,19 @@ def gts_compile_full(
         None, "--public-key", help="Armored OpenPGP public key file to embed."
     ),
 ) -> None:
-    """Compile the offline-ready GMEOW full snapshot.
+    """Compile the offline-ready unified GMEOW snapshot.
 
-    The registered ``gts-full`` generator already emits an unsigned snapshot to
-    ``generated/dist/gmeow-full.gts``. This command is the release path: it
-    compiles the same snapshot, optionally signs every frame, and embeds the
-    armored transport public key in the first ``meta`` frame.
+    The registered ``gts`` generator emits an unsigned snapshot to
+    ``generated/dist/gmeow.gts``. This command is the release path: it compiles
+    the same snapshot, optionally signs every frame, and embeds the armored
+    transport public key in the first ``meta`` frame.
 
     When ``--sign-key`` and ``--public-key`` are supplied, the ``kid`` is the
     OpenPGP fingerprint of the secret key and the public key armor is embedded
     as the file's transport key.
     """
     from gmeow_tools.config import DIST_DIR
-    from gmeow_tools.gts_full_gen import compile_full_snapshot
+    from gmeow_tools.gts_gen import compile_full_snapshot
 
     signer: gts.Signer | None = None
     public_key_armor: str | None = None
@@ -1601,7 +1601,7 @@ def gts_compile_full(
             raise _fail(f"cannot load signer from {sign_key}: {exc}") from exc
 
     data = compile_full_snapshot(signer=signer, public_key_armor=public_key_armor)
-    target = out or (DIST_DIR / "gmeow-full.gts")
+    target = out or (DIST_DIR / "gmeow.gts")
     target.parent.mkdir(parents=True, exist_ok=True)
     try:
         target.write_bytes(data)
@@ -1663,16 +1663,16 @@ def describe(
     Composes definition, stereotype, slice + tier, alignments, scope notes,
     examples, and the flat-first/reify-on-demand pairing. Works offline
     against any .gts file. Defaults to the repo graph when run inside the
-    checkout; otherwise falls back to the bundled gmeow-full.gts.
+    checkout; otherwise falls back to the bundled gmeow.gts.
     """
     from gmeow_tools.describe import describe as _describe
 
     gts_path = gts
     if gts_path is None:
-        from gmeow_tools.config import GTS_FULL_SNAPSHOT_FILE, ONTOLOGY_FILE
+        from gmeow_tools.config import GTS_SNAPSHOT_FILE, ONTOLOGY_FILE
 
         if not ONTOLOGY_FILE.exists():
-            gts_path = GTS_FULL_SNAPSHOT_FILE
+            gts_path = GTS_SNAPSHOT_FILE
     text, code = _describe(term, gts_path)
     console.print(text)
     if code:
@@ -1683,7 +1683,7 @@ def describe(
 def create_docs_cmd(
     gts_file: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="GTS file to project (default: bundled gmeow-full.gts).",
+        help="GTS file to project (default: bundled gmeow.gts).",
     ),
     directory: Path = typer.Option(  # noqa: B008
         ...,

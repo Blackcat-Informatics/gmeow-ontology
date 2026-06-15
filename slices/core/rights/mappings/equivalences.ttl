@@ -12,7 +12,7 @@
 @prefix spdx:    <http://spdx.org/rdf/terms#> .
 @prefix ma:      <http://www.w3.org/ns/ma-ont#> .
 
-# Term equivalences for the rights / IP / trademark / licensing facility (#21) —
+# Term equivalences for the rights / IP / trademark / licensing facility (rights facility) —
 # GMEOW authoring source. Compiled to mappings/gmeow-rights.sssom.tsv by
 # `gmeow compile-mappings`. All alignments are BY REFERENCE (Principle 5); GMEOW
 # never imports an external axiom. This linkage layer ALSO declares every odrl:/cc:
@@ -25,7 +25,7 @@ gmeow:mapsetRights a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/rights" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Rights / IP / trademark / licensing alignments (#21).
+    gmeow:setComment """Rights / IP / trademark / licensing alignments (rights facility).
         MACHINE-READABLE RIGHTS: gmeow:RightsStatement is the canonical superset of an ODRL Policy / Set (W3C ODRL 2.2); gmeow:Permission / gmeow:Prohibition / gmeow:Duty are the odrl:Permission / odrl:Prohibition / odrl:Duty rule trio, and gmeow:ruleAction values (reproduce / distribute / derive / commercialize / attribute / share-alike / …) are the odrl:action vocabulary, exactMatch the CC REL permission/requirement/prohibition classes (cc:Reproduction, cc:DerivativeWorks, cc:Attribution, cc:ShareAlike, cc:CommercialUse). The full ODRL policy and CC REL licence are GENERATED projections (queries/projections/odrl.rq, cc.rq).
         LICENCE-IS-AGREEMENT: gmeow:License (⊑ gmeow:Agreement) closeMatch cc:License / odrl:Offer / dcterms:LicenseDocument; gmeow:hasLicense exactMatch dcterms:license, closeMatch schema:license / cc:license.
         ATTRIBUTION REUSE: gmeow:copyrightHolder / gmeow:trademarkHolder (⊑ gmeow:wasAttributedTo) exactMatch dcterms:rightsHolder, closeMatch schema:copyrightHolder; gmeow:attributionText closeMatch schema:creditText / cc:attributionName.
@@ -457,7 +457,7 @@ gmeow:eqRights068 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-rights.sssom.tsv" .
 
 
-# --- ODRL constraint algebra + deontic logic (the rights LOGIC, #21) --- #
+# --- ODRL constraint algebra + deontic logic (the rights LOGIC, rights facility) --- #
 
 
 gmeow:eqRights069 a gmeow:TermEquivalence ;

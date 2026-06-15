@@ -1,4 +1,4 @@
-"""Musical-performance events & participation guards (issue #313).
+"""Musical-performance event and participation guards.
 
 Principles 4, 5, 6, 9, 11, 12, 15, 16.
 """
@@ -29,7 +29,7 @@ def _error_text(result: ValidationResult) -> str:
 
 
 def test_performance_events_classes_exist() -> None:
-    """#313 classes are declared as owl:Class."""
+    """performance events and participation classes are declared as owl:Class."""
     graph = _graph()
     for term in (
         "PerformanceParticipation",
@@ -54,7 +54,7 @@ def test_performance_participation_is_participation_subkind() -> None:
 
 
 def test_performance_event_properties_exist() -> None:
-    """#313 properties have the intended OWL characteristics.
+    """Performance properties carry intended OWL characteristics.
 
     participationInstrument is deliberately non-functional: the SHACL shape
     issues a warning for >1 instrument so that deployments can mint multiple

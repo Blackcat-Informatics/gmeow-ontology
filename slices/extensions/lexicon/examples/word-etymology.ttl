@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a word, its forms, and its etymology (#443). A gmeow:LexicalItem
+# is a lexeme in a language; its written/spoken/signed surface strings are
+# separate gmeow:LexicalForms (gmeow:hasLexicalForm), so the same lexeme can carry
+# many forms across scripts and registers. A gmeow:EtymologicalDerivation reifies
+# WHERE a word came from — source → target with a gmeow:derivationKind
+# (inheritance / borrowing / calque / sound-change …) — so "English 'ontology'
+# was BORROWED from Greek" is a first-class, typed claim, not a free-text note.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lexicon/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The English lexeme and its written form.
+ex:ontology a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage gmeow:langEnglish ;
+    gmeow:hasLexicalForm      ex:ontologyForm .
+
+ex:ontologyForm a gmeow:LexicalForm ;
+    gmeow:formOf             ex:ontology ;
+    gmeow:formRepresentation "ontology" ;
+    gmeow:formType           gmeow:formWritten .
+
+# --- The Greek source lexeme it derives from.
+ex:greek a gmeow:Language ; rdfs:label "Ancient Greek"@x-gmeow-english ; gmeow:bcp47Tag "grc" .
+
+ex:greekOntos a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage ex:greek ;
+    gmeow:hasLexicalForm      ex:ontosForm .
+
+ex:ontosForm a gmeow:LexicalForm ;
+    gmeow:formOf             ex:greekOntos ;
+    gmeow:formRepresentation "ὄντος" ;
+    gmeow:formType           gmeow:formWritten .
+
+# --- The etymology: a typed derivation (borrowing) from Greek into English.
+ex:etymology a gmeow:EtymologicalDerivation ;
+    gmeow:derivationSource ex:greekOntos ;
+    gmeow:derivationTarget ex:ontology ;
+    gmeow:derivationKind   gmeow:derivationBorrowing .

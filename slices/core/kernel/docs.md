@@ -32,7 +32,7 @@ would turn benign overlap into inconsistency (Principle 9).
 
 ### gmeow:partOf · gmeow:hasPart · gmeow:connectsTo
 
-The universal transitive part/whole spine (#76) and the traversable-link spine (#80).
+The universal transitive part/whole spine and the traversable-link spine (connectivity spine).
 Domain properties (geographic containment, sub-organizations, spatial links, kinship,
 citation edges) keep their exact meanings and specialize these so generic consumers can
 ask for parthood or connectivity without collapsing semantics. No domain/range is
@@ -55,7 +55,7 @@ properties they form the six-way matrix every projection consults:
 | (Confidence) | `gmeow:confidence` | How sure is the asserter? | epistemic |
 | (Standpoint modality) | `gmeow:standpointModality` | What belief value does the frame assign? | doxastic |
 
-**Aboutness** (#349) is the mention/use distinction made first-class: a chunk
+**Aboutness** is the mention/use distinction made first-class: a chunk
 *defining* a trust framework describes trust; a covenant *demanding* trust
 enacts it. Text about deception is not text that deceives. A carrier may
 describe one subject while enacting another, and vantages may disagree via
@@ -106,7 +106,7 @@ granularity level; when both marks apply, withhold wins. Geomask math is solver-
 
 ### gmeow:eligibleForConsumer · gmeow:hasDisclosurePolicy
 
-The *who* and *what* layers of disclosure control (#225): the `gmeow:ProjectionContext`
+The *who* and *what* layers of disclosure control: the `gmeow:ProjectionContext`
 targets a fact may reach (internal archive, agent memory, Wikidata, public site, …) and
 its `gmeow:DisclosurePolicy` release posture. `policyPublicOnlyWithIndependentSource`
 resolves against the evidence module's `sourceIndependence` in the solver layer (P12).
@@ -114,16 +114,16 @@ Both are domain-free and non-functional: competing claims coexist (Principle 9).
 
 ### gmeow:coequalFacet · gmeow:requiresFrame · gmeow:coarsenGuarded
 
-Compliance by construction (#278): annotations with no logical semantics that *declare
+Compliance by construction: annotations with no logical semantics that *declare
 which invariants the toolchain must generate*. `coequalFacet` puts a property under the
 Principle 9 orthogonality lint (own range, no bridges between axes, never functional,
 jointly disjoint ranges). `requiresFrame` generates the Principle 11 frame-relativity
 SHACL shape, tunable via `frameRequirementSeverity` and `frameCardinality`.
 `coarsenGuarded` marks precision-bearing properties so the compiler injects coarsen
-guards into every generated projection (#282); `gmeow:namingNote` records the
+guards into every generated projection (precision guard); `gmeow:namingNote` records the
 lint-visible justification for a legitimately primary-style value-vocabulary name.
 
-## Documentation doctrine (issue #325)
+## Documentation doctrine
 
 ### gmeow:pairsWith · gmeow:useWhen · gmeow:howToUse · gmeow:guideBlob
 

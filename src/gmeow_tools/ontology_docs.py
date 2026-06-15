@@ -8,7 +8,7 @@ network calls, and client-side JavaScript. It reads the committed GTS fold
 (``generated/dist/gmeow.gts``) plus canonical slice guides, then emits a stable
 Markdown tree and a static HTML site under ``dist/ontology-docs/``.
 
-The same :func:`build_ontology_docs` function is used by the ``gts-full``
+The same :func:`build_ontology_docs` function is used by the ``gts``
 generator, so the official web site and the offline bundled docs are generated
 from the same data path.
 """
@@ -2328,7 +2328,7 @@ def _landing(model: DocsModel) -> Page:
         "",
         "## Distribution",
         "",
-        "The same documentation is bundled inside `gmeow-full.gts` and can be "
+        "The same documentation is bundled inside `gmeow.gts` and can be "
         "exported offline with `gmeow export-docs --directory docs-out`.",
         "",
         "## Static Indexes",

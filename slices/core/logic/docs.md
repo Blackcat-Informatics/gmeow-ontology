@@ -18,7 +18,7 @@ the foundation relations (`rigidlyAppliesTo`/`suppliesIdentity`/`mediates`), the
 (`probability`/`confidence`/`weight`/`evidenceStrength`), and the preservation-polarity vocabulary
 (`PreservationKind`/`preservationKind`/`complexityClass` and their named individuals) are all declared
 as **bare standalone terms that add no axioms to the reasoned core**. The rules, solver, generators,
-runtime, and full conformance corpus remain deferred to later rungs of the Logic EPIC.
+runtime, and full conformance corpus remain deferred to later rungs of the logic roadmap.
 
 ## The design set
 
@@ -32,7 +32,7 @@ implemented against rather than only read:
 | [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | solver architecture, the Nemo–Prolog seam, graph versioning, generated artifacts, CLI |
 | [`design/LOGIC-MIGRATION.md`](./design/LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
 | [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
-| [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger (#491) |
+| [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
 ## What it commits to
 
@@ -44,7 +44,7 @@ implemented against rather than only read:
   discipline that lives in external lint becomes actual axioms, with the lints retained as
   projection-conformance tests.
 - **Verified by construction.** A slow, correct Python oracle and a fast Rust core (oxigraph + Nemo +
-  an embedded Prolog, bound by PyO3/wasm — the #277 model) must pass one shared, language-neutral
+  an embedded Prolog, bound by PyO3/wasm — the GTS model) must pass one shared, language-neutral
   conformance corpus identically (Principle 7).
 
 ## Status
@@ -53,5 +53,5 @@ Foundation vocabulary minted; implementation deferred. The `logic:` namespace an
 surface — 37 bare term declarations — have landed. The reasoned core is unchanged because the minted
 terms carry no axioms. The solver, generators, runtime, full conformance corpus, and the matching
 enforcement gates in [`governance/constitution.ttl`](../../../governance/constitution.ttl) land in
-later rungs of the Logic EPIC. Until then, Principle 17 is enforced by design-review practice and
+later rungs of the logic roadmap. Until then, Principle 17 is enforced by design-review practice and
 surfaces as a warning, never silently.

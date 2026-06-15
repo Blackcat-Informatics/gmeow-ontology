@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Deception Module"@x-gmeow-english ;
     skos:definition "The GMEOW Deception Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
-    rdfs:comment """Cross-cutting deception, falsehood, and misinformation facility. Builds on the standpoint module (#43) and the event module (#41) to model deceptive acts as standpoint-indexed divergences between what a party holds true and what they project. Part of the Deception EPIC (#212).
+    rdfs:comment """Cross-cutting deception, falsehood, and misinformation facility. Builds on the standpoint module (standpoint facility) and the event module (event/temporal design) to model deceptive acts as standpoint-indexed divergences between what a party holds true and what they project. Part of the Deception design.
 
 DOCTRINE.
   * No isFalse / isDeceptive axiom and no boolean truth datatype property (Principles 1, 12). A falsehood is a frame-relative gmeow:StandpointClaim whose claimModality = gmeow:refuted (settled-false per a designated reference frame). Deceptiveness is asserted as a standpoint-indexed, attributed, confidence-weighted claim that coexists with its denial (Principle 9).
@@ -208,7 +208,7 @@ gmeow:argumentAcceptability
 # =========================================================================== #
 # SPEECH-ACT DECEPTION TYPES — six mechanisms where held↔projected divergence
 # lives in a speech act. Each is one open gmeow:eventType value individual,
-# never a subclass (events.ttl doctrine). Issue #215.
+# never a subclass (events.ttl doctrine). the design.
 # =========================================================================== #
 
 gmeow:eventTypeLie
@@ -248,7 +248,7 @@ gmeow:eventTypeSelfDeception
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #
-# ADDITIONAL DECEPTION ROLES — issue #215.
+# ADDITIONAL DECEPTION ROLES — the design.
 # =========================================================================== #
 
 gmeow:roleSpinDoctor
@@ -259,7 +259,7 @@ gmeow:roleSpinDoctor
 
 # =========================================================================== #
 # GRICEAN MAXIM VIOLATION TYPE VALUES — closed vocabulary for the four
-# conversational maxims (Quality, Quantity, Relation, Manner). Issue #215.
+# conversational maxims (Quality, Quantity, Relation, Manner). the design.
 # =========================================================================== #
 
 gmeow:maximViolationQuality
@@ -288,7 +288,7 @@ gmeow:maximViolationManner
 
 # =========================================================================== #
 # CARRIER DECEPTION TYPES — divergence borne by an artifact or identity
-# binding rather than a bare utterance. Issue #216.
+# binding rather than a bare utterance. the design.
 # =========================================================================== #
 
 gmeow:eventTypeFabrication
@@ -311,7 +311,7 @@ gmeow:eventTypeImpersonation
 
 # =========================================================================== #
 # DISINFORMATION CAMPAIGN — coordinated, propagated deception.
-# Issue #217. Aggregates constituent deception events along a propagation
+# the design. Aggregates constituent deception events along a propagation
 # chain; the misinformation↔disinformation boundary is per-node.
 # =========================================================================== #
 

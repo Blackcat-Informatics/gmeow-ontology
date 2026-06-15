@@ -11,7 +11,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/graphrag>
     a owl:Ontology ;
     rdfs:label "GMEOW GraphRAG Module"@x-gmeow-english ;
-    skos:definition "Pipeline observability for retrieval-augmented and GraphRAG systems (#54 facets A/B/F): the corpus, embedding, index, and retrieval substrate, and the derived entity-graph artifacts (extracted entities/relationships, communities, community summaries) — every artifact content-addressed, every step an attributed activity, so the derived graph is AUDITABLE and revisable rather than a black box (GraphRAG, arXiv:2404.16130). Claims extracted by the pipeline are the CORE ai slice's business (a StandpointClaim with model vantage); this extension carries the machinery around them. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english ;
+    skos:definition "Pipeline observability for retrieval-augmented and GraphRAG systems (GraphRAG provenance design facets A/B/F): the corpus, embedding, index, and retrieval substrate, and the derived entity-graph artifacts (extracted entities/relationships, communities, community summaries) — every artifact content-addressed, every step an attributed activity, so the derived graph is AUDITABLE and revisable rather than a black box (GraphRAG, arXiv:2404.16130). Claims extracted by the pipeline are the CORE ai slice's business (a StandpointClaim with model vantage); this extension carries the machinery around them. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english;
     rdfs:comment "Per-result epistemics (a retrieval's score for ONE chunk) ride RDF 1.2 statement annotations on the gmeow:retrievedChunk triple (gmeow:retrievalScore) — competing re-ranker scores coexist attributed, never overwritten (P9, P3)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
 
@@ -44,7 +44,7 @@ gmeow:Embedding
         [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:someValuesFrom gmeow:SoftwareAgent ] ,
         [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:someValuesFrom gmeow:DistanceMetric ] ;
     rdfs:label "Embedding"@x-gmeow-english ;
-    skos:definition "A vector representation of an information object (usually a core gmeow:Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (#54): model, dimensionality, and metric have no agreed RDF representation, so the refusal is recorded in the alignment trailer rather than papered over. The vector payload stays OUTSIDE the graph (gmeow:vectorRef, P12); the graph carries the provenance that makes it auditable."@x-gmeow-english ;
+    skos:definition "A vector representation of an information object (usually a core gmeow:Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (GraphRAG provenance design): model, dimensionality, and metric have no agreed RDF representation, so the refusal is recorded in the alignment trailer rather than papered over. The vector payload stays OUTSIDE the graph (gmeow:vectorRef, P12); the graph carries the provenance that makes it auditable."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
 
 gmeow:embeddingOf

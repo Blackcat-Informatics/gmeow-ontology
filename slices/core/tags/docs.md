@@ -52,8 +52,8 @@ axiomatised: every Tagging has some tagged entity, some tag, and some tagger.
 The 80 % flat shortcut: entity → tag, non-functional, all tags co-equal. Period,
 confidence, tagger, and suppression ride RDF-star statement annotations on the shortcut;
 promote to a `Tagging` relator when the act itself must be a node. The pairing is
-machine-usable — `gmeow:hasTag gmeow:pairsWith gmeow:Tagging` is asserted in the module
-(issue #325), so `gmeow describe` renders the promotion path from structure.
+machine-usable — `gmeow:hasTag gmeow:pairsWith gmeow:Tagging` is asserted in the module,
+so `gmeow describe` renders the promotion path from structure.
 
 ### gmeow:isAbout
 

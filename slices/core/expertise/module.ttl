@@ -158,11 +158,11 @@ gmeow:SkillProficiency rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:skillProficiencyScale ; owl:someValuesFrom gmeow:ProficiencyScale ] .
 
 # =========================================================================== #
-# GENERIC PROFICIENCY MACHINERY (#287 surgery — from the languages extension)
-# SkillProficiency (#263) generalized the languages rating pattern; the
+# GENERIC PROFICIENCY MACHINERY (slice-dependency doctrine refactor — from the languages extension)
+# SkillProficiency generalized the languages rating pattern; the
 # generic scale/level/modality machinery lives WITH the generalization.
 # Languages' LanguageProficiency specializes it. Expertise is core: a
-# cross-cutting claim, per the #287 classification.
+# cross-cutting claim, per the slice-dependency doctrine classification.
 # =========================================================================== #
 
 gmeow:ProficiencyModality

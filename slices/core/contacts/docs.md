@@ -23,7 +23,7 @@ This slice is the superset layer over schema.org `ContactPoint`/`PostalAddress`,
 the REL vocabulary (Principle 5: model it correctly, bridge by reference); identity *trust*
 between contacts (keys, certifications, owner-trust) lives in the cross-cutting trust
 module, and the email *message* model lives in the email extension — this slice is the
-contact half of the #287 email split.
+contact half of the slice-dependency doctrine email split.
 
 ## Channels
 
@@ -40,7 +40,7 @@ The structured channel: `addressValue` (the normalized addr-spec), `localPart`,
 `domainPart` — all functional. `deliversToAccount` is the seam to the accounts slice: an
 *address* is held by an agent; the *account* it delivers to is where messages reside. The
 mail corpus's address book is this slice's named consumer (Principle 15). Envelope display
-names and internationalized addresses are tracked by issue #134 and land here.
+names and internationalized addresses are tracked by the design and land here.
 
 ### gmeow:PostalAddress
 
@@ -91,8 +91,8 @@ Subkinds `ProfessionalRelationship` (reified `hasWorkedWith`) and
 ### gmeow:relationshipParty · gmeow:relationshipInterval
 
 `relationshipParty` is non-functional — typically two parties, deliberately open for group
-ties; the EL mediation axiom (issue #38) makes "a relationship mediates at least one agent"
-a reasoner-visible fact, while the closed-world "exactly two" is SHACL's job (issue #39).
+ties; the EL mediation axiom (relator-mediation doctrine) makes "a relationship mediates at least one agent"
+a reasoner-visible fact, while the closed-world "exactly two" is SHACL's job (SHACL closure gate).
 `relationshipInterval` carries the tie's period as a first-class `TimeInterval` (relators
 carry intervals this way; `duringInterval` is reserved for situation-based time-scoped
 relations).
@@ -119,7 +119,7 @@ Depends on `kernel`, `temporal` (clocks, intervals, `TimeScopedRelation`), `plac
 (`addressPlace` and the place hierarchy), `accounts` (`deliversToAccount`), `agreements`,
 and `observations`. Consumed by the mail corpus's address book and the email extension.
 
-## Contact-point usage (#411, #417)
+## Contact-point usage
 
 ### gmeow:ContactPointType · gmeow:contactPointType · gmeow:contactPointProvider
 

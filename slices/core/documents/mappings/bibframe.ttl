@@ -6,7 +6,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix bf:    <http://id.loc.gov/ontologies/bibframe/> .
 
-# Projection mappings: GMEOW publications → BIBFRAME (#34 phase 3). The
+# Projection mappings: GMEOW publications → BIBFRAME (PROV activity alignment phase 3). The
 # library-facing view of the WEMI spine: gmeow:Work IS the bibliographic
 # work; the flat title literal flattens to bf:title; the structured
 # CreativeWorkTitle relator survives as a bf:Title node (REUSED, not

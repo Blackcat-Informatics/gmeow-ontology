@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: skill, proficiency, and credentials (#443). A flat gmeow:hasSkill
+# Worked example: skill, proficiency, and credentials. A flat gmeow:hasSkill
 # says an agent HAS a skill; the reified gmeow:SkillProficiency says HOW WELL, and
 # crucially on WHICH SCALE — a proficiency level is meaningless without the scale
 # it is read against (P11 in spirit: a value carries its frame). A gmeow:Credential

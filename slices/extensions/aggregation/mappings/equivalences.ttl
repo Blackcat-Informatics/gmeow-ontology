@@ -14,7 +14,7 @@ gmeow:mapsetAggregation a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-aggregation.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/aggregation" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Aggregation and statistics alignments — RDF Data Cube (QB) spatial observations and GeoSPARQL topological relations. Bridges the #101 spatial-aggregation concern to external vocabularies by reference (Principle 5)." .
+    gmeow:setComment "Aggregation and statistics alignments — RDF Data Cube (QB) spatial observations and GeoSPARQL topological relations. Bridges the centroid shortcut spatial-aggregation concern to external vocabularies by reference (Principle 5).".
 
 # --------------------------------------------------------------------------- #
 # RDF Data Cube (QB)

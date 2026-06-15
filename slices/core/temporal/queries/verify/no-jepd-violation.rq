@@ -1,4 +1,4 @@
-# ROBOT verify QC (#67) — JEPD integrity of Allen interval relations.
+# ROBOT verify QC — JEPD integrity of Allen interval relations.
 # No TimeInterval may stand in two different Allen relations to the same
 # other interval.  The 13 relations are listed explicitly because
 # owl:AllDisjointProperties was removed for OWL 2 DL safety (transitive

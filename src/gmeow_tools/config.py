@@ -199,13 +199,15 @@ def _find_bundled_file(relative: str) -> Path:
 # every data-graph exporter consumes this fold instead of re-reading sources.
 # Own directory: the generator framework gives each generator exclusive
 # ownership of its output directories (orphans there are DELETED).
-GTS_SNAPSHOT_FILE = GENERATED_DIR / "dist" / "gmeow.gts"
-#: The reasoned import-closure snapshot, bundled for offline use.
-GTS_FULL_SNAPSHOT_FILE = _find_bundled_file("generated/dist/gmeow-full.gts")
+GTS_SNAPSHOT_FILE = _find_bundled_file("generated/dist/gmeow.gts")
+#: Backwards-compatible internal alias for code paths still saying "full".
+GTS_FULL_SNAPSHOT_FILE = GTS_SNAPSHOT_FILE
 # Named graphs partitioning the snapshot's sources (the fold keeps them apart
 # so consumers can scope to exactly the layer they need):
 GTS_GRAPH_STATEMENTS = NAMESPACE + "graph/statements"
 GTS_GRAPH_ALIGNMENTS = NAMESPACE + "graph/alignments"
+GTS_GRAPH_IMPORTS = NAMESPACE + "graph/imports"
+GTS_GRAPH_METADATA = NAMESPACE + "graph/metadata"
 
 # IRI-addressable ontology profiles (#330): the root IRI is the CORE profile
 # (generated imports of every tierCore slice); the full aggregation and any
@@ -367,6 +369,9 @@ PREFIXES: dict[str, str] = {
     "mbz": "https://musicbrainz.org/",
     # Discogs style pages (reference-only — link by IRI only)
     "discogs": "https://www.discogs.com/",
+    # Audio Feature Ontology / Vocabulary (MIR feature provenance, issue #317)
+    "afo": "https://w3id.org/afo/onto/1.1#",
+    "afv": "https://w3id.org/afo/vocab/1.1#",
     # MIMO instrument vocabulary (bridged by reference only)
     "mimo": "http://www.mimo-db.eu/InstrumentsKeywords/",
     # Workflow / process alignment (#226)
@@ -616,6 +621,12 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "mbz": AlignmentTarget("MusicBrainz", PREFIXES["mbz"], "CC0-1.0", "schema"),
     "discogs": AlignmentTarget(
         "Discogs", PREFIXES["discogs"], "REFERENCE_ONLY", "schema"
+    ),
+    "afo": AlignmentTarget(
+        "Audio Feature Ontology", PREFIXES["afo"], "Unknown", "schema"
+    ),
+    "afv": AlignmentTarget(
+        "Audio Feature Vocabulary", PREFIXES["afv"], "Unknown", "concept_scheme"
     ),
     "gedcom": AlignmentTarget(
         "W3C GEDCOM", PREFIXES["gedcom"], "W3C-Document", "schema"

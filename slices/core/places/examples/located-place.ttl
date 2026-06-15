@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example: places as first-class located things, not address strings
-# (#443). A containment hierarchy (country ⊃ region ⊃ city ⊃ site) carries
+#. A containment hierarchy (country ⊃ region ⊃ city ⊃ site) carries
 # placeType, gazetteer coreference (authorityLink + skos:exactMatch, never
 # owl:sameAs — P5), and coordinates two ways: the flat gmeow:hasCoordinates for
 # the 80% case, and a reified gmeow:CoordinateObservation that makes the Principle

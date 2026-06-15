@@ -15,7 +15,9 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
                               |
                     generated/dist/gmeow.gts
                     (default graph | gmeow:graph/statements
-                     | gmeow:graph/alignments)
+                     | gmeow:graph/alignments
+                     | gmeow:graph/imports
+                     | gmeow:graph/metadata)
                               |
             +---------+------+--------+----------+
             |         |               |          |
@@ -44,6 +46,12 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
 4. **Equivalence before deletion.** Each re-point (PRs #370/#371/#373/#374)
    proved value-equivalence against the old implementation inside its own
    PR before the old path was deleted — no compatibility shims survive.
+5. **Committed without rebase pain.** `generated/dist/gmeow.gts` stays
+   committed for reviewability and drift-gate visibility, but `.gitattributes`
+   marks it `merge=ours -diff`. Running `make install` bootstraps the local
+   Git merge driver (`merge.ours.driver=true`); after a merge or rebase,
+   regenerate/check the bundle from canonical sources rather than resolving the
+   binary file by hand.
 
 ## Why
 

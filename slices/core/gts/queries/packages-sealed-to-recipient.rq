@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Competency (#267): which GTS documents carry content sealed to a recipient —
+# Competency (GTS transport design): which GTS documents carry content sealed to a recipient —
 # and which frames could a given agent NOT read (missing-key opacity)?
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 SELECT ?document ?segment ?frame ?recipient WHERE {

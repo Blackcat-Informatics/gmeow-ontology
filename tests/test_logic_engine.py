@@ -1,0 +1,233 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+"""Tests for the PyO3 gmeow_logic.materialize binding (issue #499, Task 4).
+
+Covers:
+* AC#2 — round-trip: every input quad comes back with the correct world and
+  all derivation metadata fields present and well-typed.
+* AC#4 — empty-case oracle parity: materialize on empty input → empty result,
+  and the Python oracle (gmeow_tools.logic_frontend + LogicProgram) also
+  produces an empty canonical output for empty logic source.
+
+The module is skipped cleanly (pytest.importorskip) when the native extension
+has not been installed, which allows the test suite to run in environments
+where maturin develop has not been executed yet (e.g. pure-Python CI lanes).
+"""
+
+from __future__ import annotations
+
+import pytest
+
+gmeow_logic = pytest.importorskip(
+    "gmeow_logic",
+    reason=("gmeow_logic native extension not installed — run 'make logic-py' first"),
+)
+
+# ── Fixtures ──────────────────────────────────────────────────────────────────
+
+
+# N-Quads covering two distinct named-graph worlds.
+# Each line is a quad: <subject> <predicate> <object> <graph> .
+_S1 = "<http://example.org/s/1>"
+_S2 = "<http://example.org/s/2>"
+_S3 = "<http://example.org/s/3>"
+_P_TYPE = "<http://example.org/p/type>"
+_P_NAME = "<http://example.org/p/name>"
+_O_THING = "<http://example.org/o/Thing>"
+_O_FOO = "<http://example.org/o/Foo>"
+_O_BAR = "<http://example.org/o/Bar>"
+_W_ALPHA = "<http://world/Alpha>"
+_W_BETA = "<http://world/Beta>"
+
+_TWO_WORLD_NQUADS = (
+    f"{_S1} {_P_TYPE} {_O_THING} {_W_ALPHA} .\n"
+    f"{_S2} {_P_NAME} {_O_FOO} {_W_ALPHA} .\n"
+    f"{_S3} {_P_TYPE} {_O_BAR} {_W_BETA} .\n"
+)
+
+_EXPECTED_SUBJECTS = {
+    "<http://example.org/s/1>",
+    "<http://example.org/s/2>",
+    "<http://example.org/s/3>",
+}
+
+_EXPECTED_WORLDS = {"http://world/Alpha", "http://world/Beta"}
+
+_REQUIRED_META_FIELDS = {
+    "graph",
+    "subject",
+    "predicate",
+    "object",
+    "graph_component",
+    "derivation_id",
+    "rule_iri",
+    "source_quad_ids",
+    "profile",
+    "budget_status",
+}
+
+
+# ── AC#2: round-trip with derivation metadata ────────────────────────────────
+
+
+def test_materialize_returns_all_input_quads() -> None:
+    """Every input quad must appear in the result (subject round-trips)."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    assert isinstance(result, list), f"expected list, got {type(result)}"
+    assert len(result) == 3, f"expected 3 quads back, got {len(result)}"
+    returned_subjects = {r["subject"] for r in result}
+    assert returned_subjects == _EXPECTED_SUBJECTS, (
+        f"subject set mismatch: {returned_subjects!r} != {_EXPECTED_SUBJECTS!r}"
+    )
+
+
+def test_materialize_all_metadata_fields_present() -> None:
+    """Every result dict must contain all required metadata fields."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        missing = _REQUIRED_META_FIELDS - set(quad_dict.keys())
+        assert not missing, f"quad[{i}] missing metadata fields: {missing!r}"
+
+
+def test_materialize_graph_field_is_correct_world() -> None:
+    """The 'graph' field must match the named-graph IRI in the input quad."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    returned_worlds = {r["graph"] for r in result}
+    assert returned_worlds == _EXPECTED_WORLDS, (
+        f"world set mismatch: {returned_worlds!r} != {_EXPECTED_WORLDS!r}"
+    )
+
+
+def test_materialize_graph_equals_graph_component() -> None:
+    """'graph' and 'graph_component' must be identical on every quad."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        assert quad_dict["graph"] == quad_dict["graph_component"], (
+            f"quad[{i}]: graph={quad_dict['graph']!r} != "
+            f"graph_component={quad_dict['graph_component']!r}"
+        )
+
+
+def test_materialize_budget_status_is_ok() -> None:
+    """All asserted (input) quads must carry budget_status='ok'."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        assert quad_dict["budget_status"] == "ok", (
+            f"quad[{i}]: expected budget_status='ok', "
+            f"got {quad_dict['budget_status']!r}"
+        )
+
+
+def test_materialize_derivation_id_is_nonempty_string() -> None:
+    """derivation_id must be a non-empty IRI string on every quad."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        assert isinstance(quad_dict["derivation_id"], str), (
+            f"quad[{i}]: derivation_id is not a str"
+        )
+        assert quad_dict["derivation_id"], f"quad[{i}]: derivation_id is empty"
+
+
+def test_materialize_rule_iri_is_nonempty_string() -> None:
+    """rule_iri must be a non-empty string on every quad."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        assert isinstance(quad_dict["rule_iri"], str), (
+            f"quad[{i}]: rule_iri is not a str"
+        )
+        assert quad_dict["rule_iri"], f"quad[{i}]: rule_iri is empty"
+
+
+def test_materialize_source_quad_ids_is_list() -> None:
+    """source_quad_ids must be a list on every quad."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        got_type = type(quad_dict["source_quad_ids"])
+        assert isinstance(quad_dict["source_quad_ids"], list), (
+            f"quad[{i}]: source_quad_ids is not a list, got {got_type}"
+        )
+
+
+def test_materialize_profile_is_nonempty_string() -> None:
+    """profile must be a non-empty string on every quad."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    for i, quad_dict in enumerate(result):
+        assert isinstance(quad_dict["profile"], str), f"quad[{i}]: profile is not a str"
+        assert quad_dict["profile"], f"quad[{i}]: profile is empty"
+
+
+def test_materialize_world_isolation() -> None:
+    """Alpha-world quads must not appear in Beta-world quads."""
+    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
+    alpha_quads = [r for r in result if r["graph"] == "http://world/Alpha"]
+    beta_quads = [r for r in result if r["graph"] == "http://world/Beta"]
+    assert len(alpha_quads) == 2, f"expected 2 Alpha quads, got {len(alpha_quads)}"
+    assert len(beta_quads) == 1, f"expected 1 Beta quad, got {len(beta_quads)}"
+
+    alpha_subjects = {r["subject"] for r in alpha_quads}
+    beta_subjects = {r["subject"] for r in beta_quads}
+    assert not alpha_subjects & beta_subjects, (
+        f"cross-world subject leak: {alpha_subjects & beta_subjects!r}"
+    )
+
+
+# ── AC#4: empty-case oracle parity ───────────────────────────────────────────
+
+
+def test_materialize_empty_input_returns_empty_list() -> None:
+    """materialize on empty input must return an empty list."""
+    result = gmeow_logic.materialize("", "")
+    assert result == [], f"expected [], got {result!r}"
+
+
+def test_materialize_whitespace_only_input_returns_empty_list() -> None:
+    """materialize on whitespace-only input must return an empty list."""
+    result = gmeow_logic.materialize("", "   \n  \t  ")
+    assert result == [], f"expected [], got {result!r}"
+
+
+def test_empty_case_oracle_parity() -> None:
+    """AC#4: empty materialize output == empty LogicProgram canonical output.
+
+    The Python oracle (parse_logic_source) raises LogicParseError on empty
+    graphs, so the canonical empty-program state is constructed directly
+    (zero axioms, rules, profiles).  Both the Rust materialize and the Python
+    oracle must agree: empty in → empty/zero out.
+    """
+    from gmeow_tools.logic_frontend import LogicParseError
+    from gmeow_tools.logic_ir import LogicProgram
+
+    # Rust side: empty input → empty result list.
+    rust_result = gmeow_logic.materialize("", "")
+    assert rust_result == [], "Rust materialize: empty input must return empty list"
+
+    # Python oracle side: an empty graph raises LogicParseError; the canonical
+    # empty LogicProgram (no axioms/rules/profiles) represents the zero state.
+    empty_program = LogicProgram(axioms=(), rules=(), profiles=())
+    canonical = empty_program.canonical()
+
+    assert canonical["axioms"] == [], (
+        f"oracle: empty LogicProgram should have no axioms, got {canonical['axioms']!r}"
+    )
+    assert canonical["rules"] == [], (
+        f"oracle: empty LogicProgram should have no rules, got {canonical['rules']!r}"
+    )
+    assert canonical["profiles"] == [], (
+        f"oracle: empty LogicProgram should have no profiles, "
+        f"got {canonical['profiles']!r}"
+    )
+
+    # The parity assertion: both sides agree on the empty/trivial case.
+    # Rust: 0 materialized quads.  Python: 0 axioms, 0 rules, 0 profiles.
+    assert len(rust_result) == 0
+    assert len(canonical["axioms"]) == 0
+    assert len(canonical["rules"]) == 0
+    assert len(canonical["profiles"]) == 0
+
+    # Confirm the oracle would raise on empty graph input (fail-fast contract).
+    from rdflib import Graph
+
+    with pytest.raises(LogicParseError, match="empty"):
+        from gmeow_tools.logic_frontend import parse_logic_source
+
+        parse_logic_source(Graph())

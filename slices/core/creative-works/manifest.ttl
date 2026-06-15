@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ;
-    gmeow:sliceConsumer "The WEMI spine under documents, software products, citations, and the music slice (#306)."@x-gmeow-english .
+    gmeow:sliceConsumer "The WEMI spine under documents, software products, citations, and the music slice (music design)."@x-gmeow-english.

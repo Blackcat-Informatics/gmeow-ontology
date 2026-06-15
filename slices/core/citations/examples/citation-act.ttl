@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: citation is flat-first, reified on demand (#443, P4 — the same
+# Worked example: citation is flat-first, reified on demand ( P4 — the same
 # promotion pattern as rights). A bare gmeow:cites edge covers "A references B".
 # When the citation's INTENT and exact LOCATION matter, it is promoted to a
 # gmeow:CitationAct relator binding gmeow:citingEntity × gmeow:citedEntity ×

@@ -13,7 +13,7 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:comment """Sources, citations, and the evidence layer — a cross-cutting facility
 (reused by genealogy and every other slice) for evidence-based, source-cited claims.
-Refactored in #211: the anti-rigid Source Kind is retired; source-hood is mediated by
+Refactored in source/claim refactor: the anti-rigid Source Kind is retired; source-hood is mediated by
 CitationAct or borne as SourceRole. The Citation locator is retired in favor of Selector
 (in the citations module). Carrier metadata now applies to Manifestation/Item."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
@@ -22,7 +22,7 @@ CitationAct or borne as SourceRole. The Citation locator is retired in favor of 
 # bundle of claims), these describe the artifact itself, not the claims. The
 # carrier's modification time is a terminus-ante-quem on the recording of its
 # claims (see gmeow:recordedNoLaterThan), never their tenure or observation time.
-# Re-homed from the retired gmeow:Source Kind to CreativeWork (#211);
+# Re-homed from the retired gmeow:Source Kind to CreativeWork (source/claim refactor);
 # typically asserted on Manifestation or Item.
 
 gmeow:sourceModifiedAt

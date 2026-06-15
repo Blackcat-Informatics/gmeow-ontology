@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: "Expanded temporal kernel alignments (#67) \u2014 TemporalFrame / Instant / NamedPeriod / TemporalMeasurement / interval-level Allen JEPD, supersetting OWL-Time, CIDOC-CRM E52/E16, CRMgeo, EDTF Ontology, PeriodO, ICS Geologic Timescale, QUDT, IVOA, and Wikidata BY REFERENCE. TEMPORAL FRAME: GMEOW's TemporalFrame is the temporal counterpart of the spatial ReferenceFrame (#65), decomposed into TimeScale + optional CalendarSystem + optional ReferencePosition. It aligns to OWL-Time TRS, CIDOC-CRM E52 Time-Span, and CRMgeo spatiotemporal reference systems. Also includes contextual alignments from #70: ReferenceFrame\u2194time:TRS and hasReferenceFrame\u2194time:hasTRS when frameRealm is temporal. INSTANT / EDTF: crisp instantValue is xsd:dateTime; edtfValue is a plain literal (EDTF parsing is solver-layer, P12). Aligned to OWL-Time time:Instant and EDTF Ontology by reference. NAMED PERIOD: aligned to OWL-Time time:ProperInterval, PeriodO periods, and ICS geologic timescale concepts. Geologic period seeds carry skos:exactMatch to ICS by reference. TEMPORAL MEASUREMENT: aligned to CIDOC-CRM E16 Measurement and CRMgeo; dating methods are a value vocabulary mapped to Wikidata QIDs. ALLEN JEPD: interval-level Allen relations are pairwise disjoint; event-level relations are disjoint from interval-level relations. Exhaustiveness lives in the solver layer (P12). CO-EQUAL CALENDARS: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, and ISO week (Principle 9)."
+# comment: "Expanded temporal kernel alignments \u2014 TemporalFrame / Instant / NamedPeriod / TemporalMeasurement / interval-level Allen JEPD, supersetting OWL-Time, CIDOC-CRM E52/E16, CRMgeo, EDTF Ontology, PeriodO, ICS Geologic Timescale, QUDT, IVOA, and Wikidata BY REFERENCE. TEMPORAL FRAME: GMEOW's TemporalFrame is the temporal counterpart of the spatial ReferenceFrame (reference-frame profile), decomposed into TimeScale + optional CalendarSystem + optional ReferencePosition. It aligns to OWL-Time TRS, CIDOC-CRM E52 Time-Span, and CRMgeo spatiotemporal reference systems. Also includes contextual alignments from temporal-frame design: ReferenceFrame\u2194time:TRS and hasReferenceFrame\u2194time:hasTRS when frameRealm is temporal. INSTANT / EDTF: crisp instantValue is xsd:dateTime; edtfValue is a plain literal (EDTF parsing is solver-layer, P12). Aligned to OWL-Time time:Instant and EDTF Ontology by reference. NAMED PERIOD: aligned to OWL-Time time:ProperInterval, PeriodO periods, and ICS geologic timescale concepts. Geologic period seeds carry skos:exactMatch to ICS by reference. TEMPORAL MEASUREMENT: aligned to CIDOC-CRM E16 Measurement and CRMgeo; dating methods are a value vocabulary mapped to Wikidata QIDs. ALLEN JEPD: interval-level Allen relations are pairwise disjoint; event-level relations are disjoint from interval-level relations. Exhaustiveness lives in the solver layer (P12). CO-EQUAL CALENDARS: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, and ISO week (Principle 9)."
 # curie_map:
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
@@ -34,7 +34,7 @@ gmeow:ReferencePosition	skos:relatedMatch	time:TimeZone	semapv:ManualMappingCura
 gmeow:TemporalFrame	skos:closeMatch	crmgeo:SP13_Temporal_Reference_System	semapv:ManualMappingCuration	0.8	CRMgeo spatiotemporal reference system (temporal aspect)
 gmeow:TemporalFrame	skos:closeMatch	time:TemporalReferenceSystem	semapv:ManualMappingCuration	0.85	OWL-Time Temporal Reference System — GMEOW decomposes it into scale+calendar+position
 gmeow:TemporalFrame	skos:relatedMatch	crm:E52_Time-Span	semapv:ManualMappingCuration	0.6	CIDOC E52 Time-Span carries the frame implicitly via its time primitives
-gmeow:TemporalMeasurement	skos:closeMatch	crm:E16_Measurement	semapv:ManualMappingCuration	0.8	CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW (#124)
+gmeow:TemporalMeasurement	skos:closeMatch	crm:E16_Measurement	semapv:ManualMappingCuration	0.8	CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW
 gmeow:TimeScale	skos:closeMatch	time:TRS	semapv:ManualMappingCuration	0.85	OWL-Time Temporal Reference System when scale-only
 gmeow:calendarChinese	skos:exactMatch	wd:Q1851	semapv:ManualMappingCuration	0.95	Chinese calendar (Q1851)
 gmeow:calendarGregorian	skos:exactMatch	wd:Q12132	semapv:ManualMappingCuration	0.95	Gregorian calendar (Q12132)
@@ -47,7 +47,7 @@ gmeow:datingMethodPotassiumArgon	skos:exactMatch	wd:Q899981	semapv:ManualMapping
 gmeow:datingMethodRadiocarbon	skos:exactMatch	wd:Q180454	semapv:ManualMappingCuration	0.95	radiocarbon dating (Q180454)
 gmeow:datingMethodUraniumLead	skos:exactMatch	wd:Q424428	semapv:ManualMappingCuration	0.95	uranium-lead dating (Q424428)
 gmeow:edtfValue	skos:relatedMatch	edtf:EDTF	semapv:ManualMappingCuration	0.75	GMEOW stores EDTF as plain literal; the EDTF Ontology treats it as a datatype. Alignment is by reference/convention.
-gmeow:endedAtTime	skos:exactMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85	the end-boundary twin of eqTemporal053 (#34 phase 2)
+gmeow:endedAtTime	skos:exactMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85	the end-boundary twin of eqTemporal053 (PROV activity alignment phase 2)
 gmeow:hasReferenceFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.85	links a temporal position to its calendar/timescale frame
 gmeow:hasUnit	skos:closeMatch	qudt:hasUnit	semapv:ManualMappingCuration	0.9	QUDT unit linkage
 gmeow:inTemporalFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.8	links an instant to its temporal reference system/frame
@@ -76,7 +76,7 @@ gmeow:periodPartOf	skos:closeMatch	gts:rank	semapv:ManualMappingCuration	0.6	ICS
 gmeow:periodPhanerozoic	skos:exactMatch	wd:Q80125	semapv:ManualMappingCuration	0.95	Wikidata Phanerozoic (Q80125)
 gmeow:periodQuaternary	skos:exactMatch	wd:Q25097	semapv:ManualMappingCuration	0.95	Wikidata Quaternary (Q25097)
 gmeow:periodStart	skos:closeMatch	time:hasBeginning	semapv:ManualMappingCuration	0.85	
-gmeow:startedAtTime	skos:exactMatch	prov:startedAtTime	semapv:ManualMappingCuration	0.85	the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (#34 phase 2)
+gmeow:startedAtTime	skos:exactMatch	prov:startedAtTime	semapv:ManualMappingCuration	0.85	the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (PROV activity alignment phase 2)
 gmeow:timeScaleGPS	skos:closeMatch	ivoa:timescale/GPS	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTAI	skos:closeMatch	ivoa:timescale/TAI	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTAI	skos:exactMatch	wd:Q12149	semapv:ManualMappingCuration	0.95	International Atomic Time (Q12149)

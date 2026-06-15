@@ -38,6 +38,11 @@ yellow `#fbbc05`, green `#34a853`) are isolated to the graph edges for theming.
 
 ## Logo assets
 
+The machine-readable project and brand self-description lives in
+[`metadata/gmeow-self.ttl`](../metadata/gmeow-self.ttl). It describes the GMEOW
+software project, repository, canonical logo, and social-preview assets using
+GMEOW's own `SoftwareProject`, `Repository`, `MediaObject`, and `hasLogo` terms.
+
 - `docs/gmeow-logo.svg` — the canonical GMEOW logo (cat + knowledge graph).
 - `docs/social-preview.svg` — the editable GitHub sharing-card source (1280×640).
 - `docs/social-preview.png` — the rendered 1280×640 GitHub social preview.

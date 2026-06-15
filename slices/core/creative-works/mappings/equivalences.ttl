@@ -521,7 +521,7 @@ gmeow:eqCw052 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Wikidata — music-specific universal terms added by #307
+# Wikidata — music-specific universal terms added by music universal terms
 # --------------------------------------------------------------------------- #
 
 gmeow:eqCw057 a gmeow:TermEquivalence ;
@@ -595,5 +595,5 @@ gmeow:eqCw055 a gmeow:TermEquivalence ;
     gmeow:alignObject foaf:made ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "linkage row declaring the foaf projection's made inverse (work-to-agent vs agent-to-work — close, deliberately not strong; the projection emits the inverse template, #34 phase 3)" ;
+    gmeow:comment "linkage row declaring the foaf projection's made inverse (work-to-agent vs agent-to-work — close, deliberately not strong; the projection emits the inverse template, PROV activity alignment phase 3)";
     gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .

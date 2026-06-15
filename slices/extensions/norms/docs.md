@@ -5,8 +5,8 @@
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/norms` · **tier: extension**
 
-Generalized deontics with indexed authority (#351) plus the rights graft
-(#352) — the constitutional keystone of the normative stack (EPIC #348).
+Generalized deontics with indexed authority plus the rights graft
+(rights graft) — the constitutional keystone of the normative stack.
 
 **Grounding note:** `Norm` is a `gufo:Category` at Entity level (the
 `IntentionalMoment` precedent), not a Kind under `SocialObject` — the graft
@@ -61,7 +61,7 @@ Compliance follows the same shape: flat `violates`/`complies` shortcuts,
 promoted to `ComplianceAssessment ⊑ Observation` when the assessor matters.
 Violation is always somebody's judgement; it is never entailed.
 
-## The rights graft (#352) — zero core churn
+## The rights graft — zero core churn
 
 Asserted in this module, never in core: `Rule ⊑ Norm`,
 `ruleAssignee ⊑ normBearer`, `ruleAction ⊑ prescribedConduct`, plus SHACL
@@ -88,10 +88,10 @@ structural; LegalRuleML `<Override>` — the only target where precedence
 survives round-trip; LKIF-Core, DPV, SUMO normative attributes, UFO-L) and
 projections (ODRL JSON-LD, OPA/Rego, Cedar, XACML, LegalRuleML XML, each
 with declared-loss manifests — enforcement flattens the issuer index, said
-loudly). Target list fixed in #351; the `wip-aboutness-349` mapping-set
+loudly). Target list fixed in norms extension; the `wip-aboutness-349` mapping-set
 precedent applies.
 
-## The rubrics facility (#353)
+## The rubrics facility
 
 A rubric **is** a norm for judging: `Rubric ⊑ Norm`, so `normIssuer` (no
 anonymous evaluation standards), `overrides`, `AuthorityLevel`, and
@@ -105,10 +105,10 @@ family.
   `ScoreAnchor` (range × meaning × exemplars; interpolation is solver work).
 - **`Exemplar ⊑ CitationAct`** — CiTO alignment free; pins by Selector span
   AND/OR `exemplarSubject` (the entity-pattern case: a character's conduct
-  across a whole work — EPIC #358's 823 corpus links; at least one pin,
+  across a whole work — design context's 823 corpus links; at least one pin,
   SHACL). Closed polarity trichotomy (positive / negative / cautionary) with
   `exemplarRedirect` for the anti-pattern's correct-criterion correction.
-  The kernel aboutness axis (#349) carries the **phase-gate**: a span that
+  The kernel aboutness axis carries the **phase-gate**: a span that
   *describes* trust is source material; one that *enacts* it is embodiment —
   same selector, different `hasAboutness`, different anchored range.
 - **`Assessment ⊑ Observation`** — the judge is a vantage; an LLM judge is
@@ -122,15 +122,15 @@ family.
 - **Deferred to the compiler-arc window**: EARL (EDOAL — Assertion ↔
   Assessment is structural), DQV, schema.org `Rating`/`Review`, 1EdTech
   CASE, and the lm-eval task-YAML projection; judge outputs ingest back as
-  vantage-indexed Assessments. Target list fixed in #353.
+  vantage-indexed Assessments. Target list fixed in the alignment ledger.
 
-## The registers & personas facility (#355)
+## The registers & personas facility
 
 Same agent, same norms, different expression by context — and
 register-switching is **not** deception (the held/projected divergence is
-issue #212's territory; documented boundary, no axiom coupling).
+the design's territory; documented boundary, no axiom coupling).
 
-- **Grounding decision (deviation from the #355 sketch, recorded):**
+- **Grounding decision (deviation from the register/persona sketch, recorded):**
   `Persona` is a **relator** (the NameUsage idiom), not a `gufo:Role` class —
   roles classify, they don't reify, and a persona needs its own identity for
   registers, style guides, activation conditions, and suppressible tenure.
@@ -156,4 +156,4 @@ issue #212's territory; documented boundary, no axiom coupling).
 - **Deferred to the compiler-arc window**: system-prompt assembly
   (Persona × Norms × StyleGuide — the projection that replaces
   principia.yaml's Jinja2 role), AI character-card JSON, LexInfo/OLiA/DUL
-  alignment rows. Target list fixed in #355.
+  alignment rows. Target list fixed in the alignment ledger.

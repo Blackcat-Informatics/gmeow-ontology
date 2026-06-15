@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: online accounts, decentralized identity, and P10 (#443). An
+# Worked example: online accounts, decentralized identity, and P10. An
 # agent gmeow:holdsAccount one or more gmeow:OnlineAccounts, each on a
 # gmeow:OnlineService. Decentralized identities are first-class: a Mastodon
 # account carries its gmeow:activityPubActor URI, a Nostr account its

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
-"""Tests for the GTS transport slice (#267 workstream B)."""
+"""Tests for the GTS transport slice (GTS transport design workstream B)."""
 
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ def test_every_codec_carries_a_codec_class() -> None:
 
 def test_no_parallel_signature_or_digest_mechanism() -> None:
     """The slice must reuse attestation/sources — never mint its own
-    signature or byte-digest terms (#267 acceptance)."""
+    signature or byte-digest terms (GTS transport design acceptance)."""
     module = (SLICE_DIR / "module.ttl").read_text(encoding="utf-8")
     g = Graph()
     g.parse(data=module, format="turtle")

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# SHACL validation shapes for the Music extension slice (issues #308, #310, #311, #312, #313, #314, #315).
+# SHACL validation shapes for the Music extension slice (pitch frames, musical time, structure graph, performance constraints, performance events and participation, instruments and configurations, and music analysis standpoints).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
@@ -256,7 +256,7 @@ gmeow:PitchSpellingShape
     ] .
 
 # =========================================================================== #
-# TIME FRAMES — issue #310 SHACL shapes
+# TIME FRAMES — musical time SHACL shapes
 # =========================================================================== #
 
 gmeow:MusicalTimeFrameShape
@@ -631,7 +631,7 @@ gmeow:GrooveProfileShape
         sh:message "A GrooveProfile must apply to exactly one MusicalTimeFrame." ;
     ] .
 #
-# STRUCTURE GRAPH SHAPES — issue #311
+# STRUCTURE GRAPH SHAPES — structure graph
 #
 
 gmeow:MusicalSegmentShape
@@ -658,7 +658,7 @@ gmeow:MusicalSegmentShape
 gmeow:ToneEventShape
     a sh:NodeShape ;
     rdfs:label "Tone event shape"@x-gmeow-english ;
-    skos:definition "A ToneEvent is a MusicalSegment with at most one pitch-content mode and optional dynamics/articulation."@x-gmeow-english ;
+    skos:definition "A ToneEvent is a MusicalSegment with at most one pitch-content mode and optional dynamics, articulation, and timbre."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     sh:targetClass gmeow:ToneEvent ;
     sh:property [
@@ -701,6 +701,13 @@ gmeow:ToneEventShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "A ToneEvent may have at most one articulation value." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:toneEventTimbre ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A ToneEvent may have at most one timbre descriptor." ;
     ] .
 
 gmeow:PitchTrajectoryShape
@@ -877,7 +884,7 @@ gmeow:TransformationTypeShape
     ] .
 
 # =========================================================================== #
-# PERFORMANCE SHAPES — issue #312
+# PERFORMANCE SHAPES — performance constraints
 # =========================================================================== #
 
 gmeow:DegreeOfFreedomShape
@@ -1073,7 +1080,7 @@ gmeow:OrnamentProfileShape
     ] .
 
 # --------------------------------------------------------------------------- #
-# VALUE-VOCABULARY NO-SUBCLASS SHAPES — issue #312
+# VALUE-VOCABULARY NO-SUBCLASS SHAPES — performance constraints
 # --------------------------------------------------------------------------- #
 
 gmeow:MusicalParameterShape
@@ -1149,7 +1156,7 @@ gmeow:OrnamentProfileKindShape
     ] .
 
 # =========================================================================== #
-# PERFORMANCE EVENTS & PARTICIPATION SHAPES — issue #313
+# PERFORMANCE EVENTS & PARTICIPATION SHAPES — performance events and participation
 # =========================================================================== #
 
 gmeow:PerformanceParticipationShape
@@ -1252,7 +1259,7 @@ gmeow:PlayingTechniqueShape
     ] .
 
 # =========================================================================== #
-# INSTRUMENT CONFIGURATION SHAPES — issue #314
+# INSTRUMENT CONFIGURATION SHAPES — instruments and configurations
 # =========================================================================== #
 
 gmeow:InstrumentConfigurationShape
@@ -1321,7 +1328,7 @@ gmeow:InstrumentModificationShape
     ] .
 
 # =========================================================================== #
-# ANALYSIS STANDPOINTS — issue #315 SHACL shapes
+# ANALYSIS STANDPOINTS — music analysis standpoint SHACL shapes
 # =========================================================================== #
 
 gmeow:MusicAnalysisClaimShape

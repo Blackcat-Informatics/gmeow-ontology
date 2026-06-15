@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: accessibility as MATCHABLE facets. One open vocabulary of
+# gmeow:AccessibilityFacets (wheelchair, step-free, visual, auditory, cognitive …)
+# is used across three relations: what a location HAS
+# (gmeow:hasAccessibilityFeature), what it lacks as a gmeow:hasBarrier, and what an
+# agent NEEDS (gmeow:hasAccessibilityNeed). Because need and feature draw on the
+# same vocabulary, "Dana needs wheelchair access" and "the library has wheelchair
+# access" MATCH directly. A reified gmeow:AccessibilityAssertion records who
+# claims which facet, with a gmeow:assertionPolarity (feature / barrier / limited).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accessibility/> .
+
+# --- A location with a feature and a barrier (facets are per-location facts).
+ex:library a gmeow:Place ;
+    gmeow:name                    "City Library"@x-gmeow-english ;
+    gmeow:hasAccessibilityFeature gmeow:facetWheelchair ;
+    gmeow:hasBarrier              gmeow:facetVisual .
+
+# --- An agent's need, drawn from the SAME facet vocabulary → directly matchable
+#     against the library's feature.
+ex:dana a gmeow:Person ;
+    gmeow:name               "Dana Reyes"@x-gmeow-english ;
+    gmeow:hasAccessibilityNeed gmeow:facetWheelchair .
+
+# --- A reified assertion: a surveyor claims the library is step-free (a feature).
+ex:assertion a gmeow:AccessibilityAssertion ;
+    gmeow:assertionSubject  ex:library ;
+    gmeow:assertionFacet    gmeow:facetStepFree ;
+    gmeow:assertionPolarity gmeow:polarityFeature .

@@ -47,7 +47,7 @@ Derived artifacts (text extraction, AI summary, embedding) are separate
 `gmeow:InformationObject`s linked to the attachment/body by `gmeow:wasDerivedFrom`,
 carrying `gmeow:confidence` and `gmeow:wasGeneratedBy` (a `gmeow:SoftwareAgent`).
 
-## Raw message provenance (issue #135)
+## Raw message provenance
 
 The complete RFC 5322 byte stream — the "envelope" from which headers, body, and
 attachments are parsed — is itself a first-class artifact. It is **not** a
@@ -118,7 +118,7 @@ identifier property:
 | Archive path / maildir name | `gmeow:sourceLocation` |
 | Provider version string | `gmeow:identifier` (with standpoint/provenance annotation) |
 
-### MIME body part metadata (issue #133)
+### MIME body part metadata
 
 GMEOW models the MIME body-part tree using the existing `BodyPart` / `Attachment` / `hasBodyPart` spine, with the universal `hasPart` / `partOf` relation for internal multipart structure (Principle 12: decoding and reconstruction are computations, not OWL entailments).
 
@@ -139,7 +139,7 @@ GMEOW models the MIME body-part tree using the existing `BodyPart` / `Attachment
 
 **Decoded content.** Decoded plain-text or HTML body content is not stored as a literal property on the part. Instead, it is modeled as a derived `gmeow:InformationObject` (typically `gmeow:TextExtraction`) linked to the source `BodyPart` by `gmeow:wasDerivedFrom`, carrying provenance and confidence (Principle 12).
 
-### JMAP structural identifiers (issue #140)
+### JMAP structural identifiers
 
 JMAP (RFC 8620 / RFC 8621) exposes `blobId`, `partId`, and `bodyStructure` as message-addressing identifiers. GMEOW maps them without letting the JMAP projection become a competing canonical model:
 
@@ -147,7 +147,7 @@ JMAP (RFC 8620 / RFC 8621) exposes `blobId`, `partId`, and `bodyStructure` as me
 |---|---|---|---|
 | JMAP Email `blobId` | `gmeow:blobId` | `rdfs:Literal` | Opaque provider-scoped identifier for the full message bytes |
 | JMAP BodyPart `blobId` | `gmeow:blobId` | `rdfs:Literal` | Opaque provider-scoped identifier for a part's raw bytes |
-| JMAP BodyPart `partId` | `gmeow:partId` | `rdfs:Literal` | Scoped to the message; not globally unique (already in issue #133) |
+| JMAP BodyPart `partId` | `gmeow:partId` | `rdfs:Literal` | Scoped to the message; not globally unique (already in the design) |
 | JMAP Email `bodyStructure` | `gmeow:bodyStructure` | `rdfs:Literal` | Serialized JSON of the JMAP BodyStructure object |
 | Decoded body content object | `gmeow:BodyValue` | → `gmeow:InformationObject` | Derived from a `BodyPart` via `gmeow:wasDerivedFrom` |
 
@@ -155,7 +155,7 @@ JMAP (RFC 8620 / RFC 8621) exposes `blobId`, `partId`, and `bodyStructure` as me
 
 **Message-scoped `partId`.** A `partId` such as `1.2` identifies a part only within its containing `EmailMessage` / `BodyStructure`. The same raw content can carry different `partId`s in different messages.
 
-**`bodyStructure` is a projection.** The serialized JMAP BodyStructure is preserved for importer round-tripping, but the canonical semantic MIME tree remains the `hasBodyPart` / `hasPart` / `partOf` spine from issue #133. Do not model the same structure twice.
+**`bodyStructure` is a projection.** The serialized JMAP BodyStructure is preserved for importer round-tripping, but the canonical semantic MIME tree remains the `hasBodyPart` / `hasPart` / `partOf` spine from the design. Do not model the same structure twice.
 
 **Decoded content as object.** A `gmeow:BodyValue` is a decoded content object linked to its source `BodyPart` by the existing `wasDerivedFrom` provenance property. It is not a literal on the part, and it is not a separate competing tree.
 
@@ -245,7 +245,7 @@ The existing flat properties (`gmeow:from`, `gmeow:to`, `gmeow:cc`, `gmeow:bcc`,
   `gmeow:residesIn` may carry `gmeow:validFrom`/`gmeow:validUntil` as RDF-star
   annotations for the current/simple case.
 
-## Behavioral metadata — MessageKind and raw-header facets (issue #137)
+## Behavioral metadata — MessageKind and raw-header facets
 
 Gmeow ingests complete mail archives including delivery status notifications,
 abuse reports, read receipts, and auto-generated responses. These categories
@@ -306,7 +306,7 @@ header (Principle 9). The canonical underlying fact is the
 `gmeow:dispositionNotificationTo` address (or addresses). The raw header is
 also preserved in `rfc822_headers`.
 
-### Resent header facets (issue #134)
+### Resent header facets
 
 RFC 5322 allows a message to be resent by an intermediary, producing a
 `Resent-*` trace block. Address roles (`Resent-From`, `Resent-To`,
@@ -322,7 +322,7 @@ role values. The non-address trace fields are convenience projections:
 The raw `Resent-Date` and `Resent-Message-ID` values also remain on
 `gmeow:MessageHeader` (Principle 4).
 
-## Mailbox hierarchy (issue #132)
+## Mailbox hierarchy
 
 Mailboxes form a tree within an account. The canonical hierarchy spine is
 `gmeow:parentMailbox` / `gmeow:childMailbox`, which specialize the universal
@@ -371,7 +371,7 @@ System/user origin is a **projection concern**; the canonical signal is
 `sent`, `trash`, `junk`, `templates`). A mailbox without a role is treated as
 user-created by convention.
 
-## Mailing-list headers (issue #131)
+## Mailing-list headers
 
 RFC 2369 and RFC 2919 define a family of mailing-list headers that carry
 metadata about subscription, posting, help, archiving, and list identity.
@@ -422,7 +422,7 @@ ex:msg a gmeow:EmailMessage ;
 ex:listOwnerAddress a gmeow:EmailAddress .
 ```
 
-## Calendar invitations and event descriptions (issue #139)
+## Calendar invitations and event descriptions (mail-corpus invitation consumer)
 
 When gmeow ingests an email with a `text/calendar` MIME part or a `.ics`
 attachment, the message and the event it describes are structurally linked in
@@ -461,11 +461,11 @@ remains in the store with its `hasCalendarMethod gmeow:calendarMethodCancel`
 and the original `describesEvent` link intact. Suppression (hiding from UI)
 is handled through the projection layer, never by deletion.
 
-## Versioning, variants, and patch diffs (issue #136)
+## Versioning, variants, and patch diffs
 
 Gmeow's mail store tracks Message-ID collisions, body variants, and patch diffs
 between a variant message and its canonical counterpart. The cross-cutting
-version-set layer in `ontology/modules/versions.ttl` (#161) provides the generic
+version-set layer in `ontology/modules/versions.ttl` provides the generic
 lineage machinery; the email module adds only the email-specific identity keys,
 collision flags, fingerprints, and patch-diff artifact type.
 

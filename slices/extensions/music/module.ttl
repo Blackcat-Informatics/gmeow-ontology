@@ -16,17 +16,17 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:comment """Frame-relative musical content; every notation is a lossy projection.
 
-This module implements the music extension slice: pitch frames (issue #308),
-pitch collections and spelling (issue #309), musical time (issue #310), the
-structure graph (issue #311), performance events & participation (issue #313),
-and instruments & configurations (issue #314): InstrumentType,
+This module implements the music extension slice: pitch frames (pitch frames),
+pitch collections and spelling (pitch collections and spelling), musical time (musical time), the
+structure graph (structure graph), performance events & participation (performance events and participation),
+and instruments & configurations (instruments and configurations): InstrumentType,
 InstrumentConfiguration, InstrumentModification, PlayingTechnique, and the
 Cage prepared-piano / drop-D guitar fixtures. Bulk note-level data lives in
 GTS music-package bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# PITCH FRAMES — issue #308 (TuningSystem, PitchValue, PitchInterval, ...)
+# PITCH FRAMES (TuningSystem, PitchValue, PitchInterval, ...)
 # =========================================================================== #
 
 # --------------------------------------------------------------------------- #
@@ -583,7 +583,7 @@ gmeow:pitchCollectionExample
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# PITCH COLLECTIONS & SPELLING — issue #309
+# PITCH COLLECTIONS & SPELLING — pitch collections and spelling
 # =========================================================================== #
 
 # --------------------------------------------------------------------------- #
@@ -1478,7 +1478,7 @@ gmeow:pitchSpellingPlus7Johnston a gmeow:PitchSpelling ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# TIME FRAMES — issue #310 (MusicalTimeFrame, TimeMapping, TempoMap, meter)
+# TIME FRAMES — musical time (MusicalTimeFrame, TimeMapping, TempoMap, meter)
 # =========================================================================== #
 
 # --------------------------------------------------------------------------- #
@@ -2296,7 +2296,7 @@ gmeow:polymeterPattern
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# STRUCTURE GRAPH — issue #311 (MusicalSegment, ToneEvent, Voice,
+# STRUCTURE GRAPH — structure graph (MusicalSegment, ToneEvent, Voice,
 #                                 PitchTrajectory, SegmentTransformation)
 # =========================================================================== #
 
@@ -2382,10 +2382,10 @@ gmeow:DynamicsValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:TimbreDescriptor
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Timbre Descriptor"@x-gmeow-english ;
-    skos:definition "A placeholder class for a timbre descriptor applied to a ToneEvent; the full sensory bridge lands in M11 (#317)."@x-gmeow-english ;
+    skos:definition "A perceived timbre quality applied to a ToneEvent — bright, dark, breathy, gritty, hollow, etc. A value vocabulary of individuals; never subclassed (Principle 9). Contested descriptors are coexisting standpoints, each in its own observation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
@@ -2437,7 +2437,15 @@ gmeow:toneEventTimbre
     rdfs:domain gmeow:ToneEvent ;
     rdfs:range gmeow:TimbreDescriptor ;
     rdfs:label "tone event timbre"@x-gmeow-english ;
-    skos:definition "A timbre descriptor applied to this ToneEvent; the full sensory bridge lands in M11 (#317)."@x-gmeow-english ;
+    skos:definition "A timbre descriptor applied to this ToneEvent. This shortcut asserts one descriptor without provenance context; contested or attributed descriptors are modelled as coexisting observations (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreObservationResult
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Observation ;
+    rdfs:range gmeow:TimbreDescriptor ;
+    rdfs:label "timbre observation result"@x-gmeow-english ;
+    skos:definition "The timbre descriptor assigned to an observed ToneEvent by this Observation. Semantically plays the gmeow:observationResult role, but it is NOT declared rdfs:subPropertyOf gmeow:observationResult because gmeow:TimbreDescriptor is a gufo:QualityValue (abstract individual) and therefore disjoint from gmeow:Entity, the range of gmeow:observationResult (the claimModality precedent, standpoint and norms modules)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:trajectoryControlPoint
@@ -2790,6 +2798,35 @@ gmeow:articulationHarmonic a gmeow:ArticulationKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
+# VALUE VOCABULARY — TimbreDescriptor (issue #317)
+# --------------------------------------------------------------------------- #
+
+gmeow:timbreDescriptorBright a gmeow:TimbreDescriptor ;
+    rdfs:label "bright"@x-gmeow-english ;
+    skos:definition "A bright timbre — emphasis on high-frequency energy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorDark a gmeow:TimbreDescriptor ;
+    rdfs:label "dark"@x-gmeow-english ;
+    skos:definition "A dark timbre — emphasis on low-frequency energy, muted highs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorBreathy a gmeow:TimbreDescriptor ;
+    rdfs:label "breathy"@x-gmeow-english ;
+    skos:definition "A breathy timbre — audible noise-like aspiration mixed with the tone."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorGritty a gmeow:TimbreDescriptor ;
+    rdfs:label "gritty"@x-gmeow-english ;
+    skos:definition "A gritty timbre — rough, distorted, or noisy texture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:timbreDescriptorHollow a gmeow:TimbreDescriptor ;
+    rdfs:label "hollow"@x-gmeow-english ;
+    skos:definition "A hollow timbre — a scooped-out or filtered quality with weak midrange."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
 # VALUE VOCABULARY — DynamicsValue
 # --------------------------------------------------------------------------- #
 
@@ -2958,7 +2995,7 @@ gmeow:fixtureStructureVoiceBass
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# PERFORMANCE — issue #312 (DegreeOfFreedom, TraversalConstraint,
+# PERFORMANCE — performance constraints (DegreeOfFreedom, TraversalConstraint,
 #                           GenerativeProcess, OrnamentProfile)
 # =========================================================================== #
 
@@ -3655,7 +3692,7 @@ gmeow:standpointTranscriberA
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# PERFORMANCE EVENTS & PARTICIPATION — issue #313
+# PERFORMANCE EVENTS & PARTICIPATION — performance events and participation
 # =========================================================================== #
 
 # --------------------------------------------------------------------------- #
@@ -3680,7 +3717,7 @@ gmeow:InstrumentConfiguration
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Instrument Configuration"@x-gmeow-english ;
-    skos:definition "A configured instrument setup — a relator binding an instrument item or type, one or more modifications, a tuning frame, and an interval. The prepared-piano / drop-tuning answer (issue #314). A physical instrument and a software instrument are both first-class subjects; no new instrument-item class is minted (Principles 4, 9, 11)."@x-gmeow-english ;
+    skos:definition "A configured instrument setup — a relator binding an instrument item or type, one or more modifications, a tuning frame, and an interval. The prepared-piano / drop-tuning answer (instruments and configurations). A physical instrument and a software instrument are both first-class subjects; no new instrument-item class is minted (Principles 4, 9, 11)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:InstrumentModification
@@ -3722,7 +3759,7 @@ gmeow:participationInstrumentItem
     rdfs:domain gmeow:PerformanceParticipation ;
     rdfs:range gmeow:Entity ;
     rdfs:label "participation instrument item"@x-gmeow-english ;
-    skos:definition "The specific instrument item used in this participation — the particular 1959 Les Paul (a PhysicalObject), a synth plugin (an InformationObject), the named drum kit, etc. Ranges over Entity so that any item-kind can be named without minting a new class (issue #314; Principle 9). Functional per relator."@x-gmeow-english ;
+    skos:definition "The specific instrument item used in this participation — the particular 1959 Les Paul (a PhysicalObject), a synth plugin (an InformationObject), the named drum kit, etc. Ranges over Entity so that any item-kind can be named without minting a new class (instruments and configurations; Principle 9). Functional per relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:participationConfiguration
@@ -3730,7 +3767,7 @@ gmeow:participationConfiguration
     rdfs:domain gmeow:PerformanceParticipation ;
     rdfs:range gmeow:InstrumentConfiguration ;
     rdfs:label "participation configuration"@x-gmeow-english ;
-    skos:definition "The instrument configuration used in this participation. Functional per relator. Range elaborated in issue #314."@x-gmeow-english ;
+    skos:definition "The instrument configuration used in this participation. Functional per relator. Range elaborated in instruments and configurations."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:participationPart
@@ -3749,7 +3786,7 @@ gmeow:participationTechnique
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
-# INSTRUMENT CONFIGURATION PROPERTIES — issue #314
+# INSTRUMENT CONFIGURATION PROPERTIES — instruments and configurations
 # --------------------------------------------------------------------------- #
 
 gmeow:configurationOf
@@ -3793,7 +3830,7 @@ gmeow:configurationInterval
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
-# INSTRUMENT TYPE ANCILLARY PROPERTIES — issue #314
+# INSTRUMENT TYPE ANCILLARY PROPERTIES — instruments and configurations
 # --------------------------------------------------------------------------- #
 
 gmeow:hsNumber
@@ -3994,7 +4031,7 @@ gmeow:playingTechniqueHarmonics a gmeow:PlayingTechnique ;
 gmeow:fnParticipationToContribution
     a fno:Function ;
     rdfs:label "participation to contribution"@x-gmeow-english ;
-    skos:definition "Derives a gmeow:Contribution on a resulting Recording from the gmeow:PerformanceParticipation cells of the event(s) that generated or contributed to it. A solver-layer projection rule, not an OWL chain (Principle 12). Full cataloguing lands with the projection toolchain (#319)."@x-gmeow-english ;
+    skos:definition "Derives a gmeow:Contribution on a resulting Recording from the gmeow:PerformanceParticipation cells of the event(s) that generated or contributed to it. A solver-layer projection rule, not an OWL chain (Principle 12). Full cataloguing lands with the projection toolchain (projection toolchain)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
@@ -4150,7 +4187,7 @@ gmeow:fixtureTake3DrumParticipation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # =========================================================================== #
-# INSTRUMENT CONFIGURATION FIXTURES — issue #314
+# INSTRUMENT CONFIGURATION FIXTURES — instruments and configurations
 # =========================================================================== #
 
 # A tablature-relative frame for a guitar tuned to drop-D. It is hosted by the
@@ -4158,7 +4195,7 @@ gmeow:fixtureTake3DrumParticipation
 gmeow:tuningSystemGuitarDropD
     a gmeow:TuningSystem ;
     rdfs:label "guitar drop-D tablature frame"@x-gmeow-english ;
-    skos:definition "A tablature-relative tuning frame for a six-string guitar whose lowest string is tuned down a major second to D, used by the drop-D configuration fixture (issue #314)."@x-gmeow-english ;
+    skos:definition "A tablature-relative tuning frame for a six-string guitar whose lowest string is tuned down a major second to D, used by the drop-D configuration fixture (instruments and configurations)."@x-gmeow-english ;
     gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
     gmeow:hasAxis gmeow:axisPitch ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -4207,7 +4244,7 @@ gmeow:fixtureDropDGuitarConfiguration
 gmeow:fixture1959LesPaul
     a gmeow:PhysicalObject ;
     rdfs:label "1959 Les Paul fixture"@x-gmeow-english ;
-    skos:definition "A placeholder physical instrument item used to test the participationInstrumentItem Entity range (issue #314)."@x-gmeow-english ;
+    skos:definition "A placeholder physical instrument item used to test the participationInstrumentItem Entity range (instruments and configurations)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # Item-level configuration for the 1959 Les Paul fixture: it exercises the
@@ -4215,14 +4252,14 @@ gmeow:fixture1959LesPaul
 gmeow:fixture1959LesPaulConfiguration
     a gmeow:InstrumentConfiguration ;
     rdfs:label "1959 Les Paul stage configuration"@x-gmeow-english ;
-    skos:definition "An item-level configuration fixture binding the 1959 Les Paul instrument item to an electrified modification and the 12-EDO tuning frame (issue #314)."@x-gmeow-english ;
+    skos:definition "An item-level configuration fixture binding the 1959 Les Paul instrument item to an electrified modification and the 12-EDO tuning frame (instruments and configurations)."@x-gmeow-english ;
     gmeow:configurationOf gmeow:fixture1959LesPaul ;
     gmeow:configurationModification gmeow:instrumentModificationElectrified ;
     gmeow:configurationTuningFrame gmeow:tuningSystem12EDO ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
-# ANALYSIS STANDPOINTS — issue #315
+# ANALYSIS STANDPOINTS
 # --------------------------------------------------------------------------- #
 
 # Reference-frame profile helpers for music-theory frames (Principle 11).
@@ -4773,14 +4810,14 @@ gmeow:genreDisco           gmeow:wasDerivedFrom gmeow:genreFunk ;
 gmeow:fixtureMathRockWork
     a gmeow:MusicalWork ;
     rdfs:label "fixture math-rock work"@x-gmeow-english ;
-    skos:definition "A placeholder musical work used to demonstrate contested genre attribution (issue #315)."@x-gmeow-english ;
+    skos:definition "A placeholder musical work used to demonstrate contested genre attribution (music analysis standpoints)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # Fixture for a reified analysis claim (complements the statement-layer cells).
 gmeow:fixtureRomanNumeralClaim
     a gmeow:MusicAnalysisClaim ;
     rdfs:label "fixture Roman-numeral dominant claim"@x-gmeow-english ;
-    skos:definition "A sample MusicAnalysisClaim asserting a dominant-function harmony in Roman-numeral frame (issue #315)."@x-gmeow-english ;
+    skos:definition "A sample MusicAnalysisClaim asserting a dominant-function harmony in Roman-numeral frame (music analysis standpoints)."@x-gmeow-english ;
     gmeow:analysisTarget   gmeow:fixtureSessionTake3Event ;
     gmeow:analysisProperty gmeow:analysisPropertyHarmonyLabel ;
     gmeow:analysisResult   gmeow:harmonicFunctionDominant ;
@@ -4796,7 +4833,7 @@ gmeow:fixtureAnalystA
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
-# FIXTURES — Oral tradition & performance lineage (issue #316)
+# FIXTURES — Oral tradition & performance lineage (oral-tradition transmission)
 # --------------------------------------------------------------------------- #
 
 # A retrospectively-minted Work for an oral tradition — determinacy is honest.
@@ -4936,4 +4973,60 @@ gmeow:fixtureKiranaLearnerParticipation
     gmeow:participationEvent gmeow:fixtureKiranaTransmissionEvent ;
     gmeow:participationParticipant gmeow:fixtureRivalScholarStandpoint ;
     gmeow:participationRole gmeow:roleLearner ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+
+# =========================================================================== #
+# TIMBRE & SENSORY BRIDGE FIXTURE — issue #317
+#
+# One tone event, two co-equal attributed timbre observations:
+# - a human listener calls it "bright"
+# - a MIR extractor calls it "gritty"
+# Neither observation is privileged (Principle 9).
+# =========================================================================== #
+
+gmeow:fixtureTimbreToneEvent
+    a gmeow:ToneEvent ;
+    rdfs:label "fixture timbre tone event"@x-gmeow-english ;
+    skos:definition "A worked tone-event fixture for the timbre / sensory bridge."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentSpan gmeow:musicalTimeSpanBarOne ;
+    gmeow:segmentOf gmeow:fixtureStructureWork ;
+    gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureHumanListener
+    a gmeow:Agent ;
+    rdfs:label "human listener fixture"@x-gmeow-english ;
+    skos:definition "A human listener vantage for the timbre fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMIRAgent
+    a gmeow:Agent ;
+    rdfs:label "MIR extractor fixture"@x-gmeow-english ;
+    skos:definition "A machine listening / MIR extractor vantage for the timbre fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureHumanTimbreObservation
+    a gmeow:Observation ;
+    rdfs:label "human timbre observation fixture"@x-gmeow-english ;
+    skos:definition "A human listener attributes a bright timbre to the fixture tone event; co-equal with the MIR observation."@x-gmeow-english ;
+    gmeow:observedFeature gmeow:fixtureTimbreToneEvent ;
+    gmeow:vantage gmeow:fixtureHumanListener ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:observationType gmeow:observationTypeSensory ;
+    gmeow:timbreObservationResult gmeow:timbreDescriptorBright ;
+    gmeow:confidence "0.85"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMIRTimbreObservation
+    a gmeow:Observation ;
+    rdfs:label "MIR timbre observation fixture"@x-gmeow-english ;
+    skos:definition "A machine extractor attributes a gritty timbre to the fixture tone event; co-equal with the human observation."@x-gmeow-english ;
+    gmeow:observedFeature gmeow:fixtureTimbreToneEvent ;
+    gmeow:vantage gmeow:fixtureMIRAgent ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:observationType gmeow:observationTypeDerived ;
+    gmeow:timbreObservationResult gmeow:timbreDescriptorGritty ;
+    gmeow:confidence "0.72"^^xsd:decimal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

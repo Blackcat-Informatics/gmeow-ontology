@@ -34,7 +34,7 @@ There are two CLIs, and a single razor decides where a command belongs:
 
 > **`gmeow` does not need a repo; `gmeow-dev` does.**
 
-* **`gmeow`** ([src/gmeow_tools/cli.py](./src/gmeow_tools/cli.py)) is the public, PyPI-facing surface. Every command must work from the installed wheel alone — backed by the bundled `generated/dist/gmeow-full.gts` snapshot — with **no source checkout, Docker, generator inputs, or repo-local query trees**. Transpiling a user's own RDF, describing a term, verifying the bundle: consumer operations, so `gmeow`.
+* **`gmeow`** ([src/gmeow_tools/cli.py](./src/gmeow_tools/cli.py)) is the public, PyPI-facing surface. Every command must work from the installed wheel alone — backed by the bundled `generated/dist/gmeow.gts` snapshot — with **no source checkout, Docker, generator inputs, or repo-local query trees**. Transpiling a user's own RDF, describing a term, verifying the bundle: consumer operations, so `gmeow`.
 * **`gmeow-dev`** ([src/gmeow_tools/cli_dev.py](./src/gmeow_tools/cli_dev.py)) is repository maintenance. It may read anything in the tree — `dsl/`, `generated/`, `imports/`, `tests/fixtures/` — because it only ever runs inside a checkout. Regenerating artifacts, scoring coverage against the dev corpus, refreshing vendored snapshots: developer operations, so `gmeow-dev`.
 
 When adding a command, ask the razor first. If it needs a repo path that the wheel does not bundle, it is `gmeow-dev` — or the data it needs must first be bundled so it can be `gmeow`.
@@ -42,10 +42,16 @@ When adding a command, ask the razor first. If it needs a repo path that the whe
 ### Environment & Formatting
 
 ```bash
-make install         # Sync the uv environment (runtime + dev dependencies)
+make install         # Sync uv and configure repo-local Git merge drivers
 make fmt             # Auto-format Python files with ruff
 make lint            # Run ruff check, ruff format --check, and mypy
 ```
+
+`make install` also runs `scripts/bootstrap-git-merge-drivers.sh`, which sets
+`merge.ours.driver=true` in the local Git config. That driver backs the
+`.gitattributes` rule for `generated/dist/gmeow.gts`: Git keeps the current
+side during binary bundle merges/rebases, and the developer regenerates/checks
+the bundle from canonical sources afterward.
 
 ### Validation & Compilation
 
@@ -205,7 +211,7 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 **The one rule (#287):** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
-**Exception (#440):** `ontology-docs/` at the repository root is a committed generated artifact owned by the `ontology-docs` registered generator. It lives outside `generated/` so it can be hosted directly (e.g. GitHub Pages). The same generator code rebuilds the site independently inside the `gts-full` generator and embeds it in `generated/dist/gmeow-full.gts`, so the offline snapshot does not depend on the committed `ontology-docs/` directory.
+**Exception (#440):** `ontology-docs/` at the repository root is a committed generated artifact owned by the `ontology-docs` registered generator. It lives outside `generated/` so it can be hosted directly (e.g. GitHub Pages). The same generator code rebuilds the site independently inside the `gts` generator and embeds it in `generated/dist/gmeow.gts`, so the offline snapshot does not depend on the committed `ontology-docs/` directory.
 
 ```text
 slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment

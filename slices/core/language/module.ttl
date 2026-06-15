@@ -14,7 +14,7 @@
     rdfs:label "GMEOW Language Core Module"@x-gmeow-english ;
     skos:definition "The slim language foundation every slice depends on: the Language and WritingSystem classes, the private-use/BCP-47 tag machinery, and the seed Language individuals that anchor the framework's own literals."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
-    rdfs:comment "The CORE half of the languages split (#287 dependency surgery): gmeow:Language and gmeow:WritingSystem as first-class, registry-independent classes; gmeow:languageTag / gmeow:bcp47Tag / gmeow:languageCode (the x-gmeow-* private-use anchor machinery); and the three seed individuals — English, Mandarin, French — that back the framework's own language-tagged literals (Canadian + US + European + Chinese coverage). The rich sociolinguistic machinery (proficiency, writing-system usage, varieties, diachronic states, version lineage, conlangs) lives in the languages extension slice, which extends these classes."@x-gmeow-english ;
+    rdfs:comment "The CORE half of the languages split (slice-dependency doctrine dependency refactor): gmeow:Language and gmeow:WritingSystem as first-class, registry-independent classes; gmeow:languageTag / gmeow:bcp47Tag / gmeow:languageCode (the x-gmeow-* private-use anchor machinery); and the three seed individuals — English, Mandarin, French — that back the framework's own language-tagged literals (Canadian + US + European + Chinese coverage). The rich sociolinguistic machinery (proficiency, writing-system usage, varieties, diachronic states, version lineage, conlangs) lives in the languages extension slice, which extends these classes."@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -72,7 +72,7 @@ gmeow:languageCode
 # Seed Language individuals — the languages the framework itself speaks.
 # These anchor the private-use tags used on every GMEOW literal; further
 # languages are first-class data, minted by any slice or dataset (an
-# exhaustive reference catalog is tracked as issue #111).
+# exhaustive reference catalog is tracked as the design).
 # =========================================================================== #
 
 gmeow:langEnglish
@@ -111,7 +111,7 @@ gmeow:langFrench
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 # =========================================================================== #
-# FORMAL & PROGRAMMING LANGUAGES + TRANSLITERATION (#287 surgery — from the
+# FORMAL & PROGRAMMING LANGUAGES + TRANSLITERATION (slice-dependency doctrine refactor — from the
 # languages extension)
 # The software slice's writtenInLanguage needs ProgrammingLanguage in core;
 # transliteration schemes back the names module's romanizations and the
@@ -148,7 +148,7 @@ gmeow:TransliterationScheme
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 # =========================================================================== #
-# CONTENT LANGUAGE (#287 surgery — generalized from the software module)
+# CONTENT LANGUAGE (slice-dependency doctrine refactor — generalized from the software module)
 # The generic written-in relation GMEOW never minted (its own languages
 # doctrine names `inLanguage "ja"` as the anti-pattern, yet only a
 # software-shaped writtenInLanguage existed). FRBR's language-of-expression,

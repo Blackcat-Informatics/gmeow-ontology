@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Rights & IP Module"@x-gmeow-english ;
     skos:definition "The GMEOW Rights & IP Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
-    rdfs:comment """Cross-cutting, foundational, INSTANCE-level rights / IP / trademark / licensing facility (#21) — the machine-readable rights superset layer (ODRL, CC REL, dcterms, schema.org, RightsStatements.org, WIPO). Distinct from the ontology-ALIGNMENT license policy in src/gmeow_tools/config.py (LinkPolicy / policy_for_license), which governs whether an external vocabulary's AXIOMS may be copied INTO GMEOW; this module governs the rights of the INSTANCES GMEOW describes. It generalises the metadata-level dcterms:license / dc:rights on the root ontology to arbitrary works, images, brands, software and data. The Images super-ontology and the Employment / publication block build on it, so it ships first.
+    rdfs:comment """Cross-cutting, foundational, INSTANCE-level rights / IP / trademark / licensing facility (rights facility) — the machine-readable rights superset layer (ODRL, CC REL, dcterms, schema.org, RightsStatements.org, WIPO). Distinct from the ontology-ALIGNMENT license policy in src/gmeow_tools/config.py (LinkPolicy / policy_for_license), which governs whether an external vocabulary's AXIOMS may be copied INTO GMEOW; this module governs the rights of the INSTANCES GMEOW describes. It generalises the metadata-level dcterms:license / dc:rights on the root ontology to arbitrary works, images, brands, software and data. The Images super-ontology and the Employment / publication block build on it, so it ships first.
 
 DOCTRINE.
   * A licence IS an agreement (gmeow:License ⊑ gmeow:Agreement) — it reuses gmeow:hasParty (specialised by gmeow:licensor / gmeow:licensee), never a parallel party model.
@@ -37,7 +37,7 @@ gmeow:RightsStatement
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Rights Statement"@x-gmeow-english ;
-    skos:definition "A reified, machine-readable statement of the rights situation of an entity — an observation in the universal claim stack (#69). Who may do what with it, under what licence, with what copyright, attributed to whom, over what term. The canonical superset of an ODRL Policy / Set: it bears gmeow:Permission, gmeow:Prohibition and gmeow:Duty rules and points at the asset it governs via gmeow:statementAbout (the observedFeature). Promote a flat gmeow:hasLicense / gmeow:hasCopyright to a RightsStatement only when the deontic rules are needed."@x-gmeow-english ;
+    skos:definition "A reified, machine-readable statement of the rights situation of an entity — an observation in the universal claim stack (observation-spine bridge). Who may do what with it, under what licence, with what copyright, attributed to whom, over what term. The canonical superset of an ODRL Policy / Set: it bears gmeow:Permission, gmeow:Prohibition and gmeow:Duty rules and points at the asset it governs via gmeow:statementAbout (the observedFeature). Promote a flat gmeow:hasLicense / gmeow:hasCopyright to a RightsStatement only when the deontic rules are needed."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> .
 
 gmeow:hasRightsStatement
@@ -340,7 +340,7 @@ gmeow:usageInfo
 # The licence family value vocabulary. The ONTOLOGY-SIDE reflection of the
 # license-policy classification in src/gmeow_tools/config.py (_IMPORT_OK_LICENSES
 # / _REFERENCE_ONLY_MARKERS) — RELATED, never a copy: the runtime import/link
-# policy stays exclusively in config.py (#21 keeps the two distinct).
+# policy stays exclusively in config.py (rights facility keeps the two distinct).
 
 gmeow:LicenseFamily
     a owl:Class, gufo:AbstractIndividualType ;
@@ -462,7 +462,7 @@ gmeow:attributionText
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> .
 
 # =========================================================================== #
-# Privacy / consent / redaction facility (#73, PRIV-GEN).
+# Privacy / consent / redaction facility (privacy classification vocabulary, PRIV-GEN).
 #
 # Consent is modelled through the existing deontic trio (Permission / Prohibition
 # / Duty) — no parallel consent relator is minted. A consent policy is a
@@ -503,7 +503,7 @@ gmeow:hasPrivacyNotice
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38) — relator / rule mediation (EL someValuesFrom,
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — relator / rule mediation (EL someValuesFrom,
 # open-world). Closed-world "exactly one" cardinality is SHACL's
 # (gmeow:RightsStatementShape / LicenseShape / TrademarkShape, shapes/).
 # Permission / Prohibition / Duty are pairwise disjoint kinds of rule.
@@ -531,7 +531,7 @@ gmeow:Trademark rdfs:subClassOf
     owl:members ( gmeow:Permission gmeow:Prohibition gmeow:Duty ) .
 
 # =========================================================================== #
-# MAXIMAL EXTENSION (#21) — ODRL constraint + deontic logic, IP right types,
+# MAXIMAL EXTENSION (rights facility) — ODRL constraint + deontic logic, IP right types,
 # and the additional surface-vocabulary datatype properties. Modelling the
 # *logic* of the rights standards (Principle 1): ODRL's constraint algebra,
 # logical-constraint operators, and conflict-resolution strategy.
@@ -724,7 +724,7 @@ gmeow:RightsType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38) for the constraint algebra — atomic constraints
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) for the constraint algebra — atomic constraints
 # mediate an operand + operator; logical constraints mediate a logic + members.
 # AtomicConstraint / LogicalConstraint are disjoint kinds of Constraint.
 # =========================================================================== #
@@ -740,7 +740,7 @@ gmeow:LogicalConstraint rdfs:subClassOf
 [] a owl:AllDisjointClasses ;
     owl:members ( gmeow:AtomicConstraint gmeow:LogicalConstraint ) .
 
-# --- MAXIMAL value individuals (#21): ODRL actions, constraint operands /
+# --- MAXIMAL value individuals (rights facility): ODRL actions, constraint operands /
 # operators / logic, conflict strategies, IP right types, RightsStatements.org
 # copyright statuses. Open vocabularies (Principle 9). ---
 
@@ -965,5 +965,5 @@ gmeow:copyrightStatusNoCopyrightUnitedStates rdfs:isDefinedBy <https://blackcati
 gmeow:copyrightStatusUndetermined a gmeow:CopyrightStatus ; rdfs:label "copyright undetermined"@x-gmeow-english ; skos:definition "Copyright undetermined (RightsStatements.org UND)."@x-gmeow-english .
 gmeow:copyrightStatusUndetermined rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:hasLicense gmeow:pairsWith gmeow:License .

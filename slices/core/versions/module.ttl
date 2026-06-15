@@ -10,7 +10,7 @@
     rdfs:label "GMEOW Versions Module"@x-gmeow-english ;
     skos:definition "The GMEOW Versions Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
-    rdfs:comment """Cross-cutting version-set and version-membership facility for information-object lineages. Reuses the universal claim stack (Observation / Relator) so that version roles — canonical, variant, latest, stable, LTS, deprecated, yanked, etc. — are standpoint-scoped claims coexisting without privilege (Principle 9), never hard-coded as essential types. Suppressed versions remain first-class with gmeow:displayable false (Principle 10). Attestation evidence (signatures, SLSA, DOI assertions) belongs in #162 and composes with this layer; it is not embedded here."""@x-gmeow-english ;
+    rdfs:comment """Cross-cutting version-set and version-membership facility for information-object lineages. Reuses the universal claim stack (Observation / Relator) so that version roles — canonical, variant, latest, stable, LTS, deprecated, yanked, etc. — are standpoint-scoped claims coexisting without privilege (Principle 9), never hard-coded as essential types. Suppressed versions remain first-class with gmeow:displayable false (Principle 10). Attestation evidence (signatures, SLSA, DOI assertions) belongs in attestation layer and composes with this layer; it is not embedded here."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -28,7 +28,7 @@ gmeow:VersionMembership
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Version Membership"@x-gmeow-english ;
-    skos:definition "A reified, standpoint-scoped claim that a concrete entity belongs to a version set with a particular role and/or scale — an observation in the universal claim stack (#69). Mediates between an entity (versionMember), a version set (versionSet), and an optional role/scale asserted by an authority (membershipAuthority / vantage). Mint one VersionMembership per (entity, versionSet, role, authority) tuple; when a role changes over time, close the old membership's interval or mint a fresh one — never overwrite (Principle 10). Inherits confidence, displayable, and temporal scope from Observation."@x-gmeow-english ;
+    skos:definition "A reified, standpoint-scoped claim that a concrete entity belongs to a version set with a particular role and/or scale — an observation in the universal claim stack (observation-spine bridge). Mediates between an entity (versionMember), a version set (versionSet), and an optional role/scale asserted by an authority (membershipAuthority / vantage). Mint one VersionMembership per (entity, versionSet, role, authority) tuple; when a role changes over time, close the old membership's interval or mint a fresh one — never overwrite (Principle 10). Inherits confidence, displayable, and temporal scope from Observation."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 # =========================================================================== #

@@ -15,7 +15,7 @@
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:authorityLink	skos:closeMatch	schema:sameAs	semapv:ManualMappingCuration	0.7	schema:sameAs is a projection target for exact authority links; GMEOW's canonical data keeps authorityLink plus explicit skos:exactMatch/closeMatch strength.
-gmeow:authorityLink	skos:exactMatch	mads:hasCloseExternalAuthority	semapv:ManualMappingCuration	0.9	both relate a local description to a close external authority record, by reference (#34 phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role.
+gmeow:authorityLink	skos:exactMatch	mads:hasCloseExternalAuthority	semapv:ManualMappingCuration	0.9	both relate a local description to a close external authority record, by reference (PROV activity alignment phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role.
 gmeow:counterpartOf	skos:closeMatch	prov:alternateOf	semapv:ManualMappingCuration	0.8	PROV alternateOf captures alternate entities presenting aspects of the same thing, without owl:sameAs identity collapse.
 gmeow:editionOf	skos:closeMatch	dcterms:isVersionOf	semapv:ManualMappingCuration	0.7	An edition is a work-version relation for Dublin Core consumers; GMEOW keeps editionOf distinct from generic versionOf.
 gmeow:supersedes	skos:closeMatch	dcterms:replaces	semapv:ManualMappingCuration	0.85	

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: contact details are flat-first, reified on demand (#443, P4).
+# Worked example: contact details are flat-first, reified on demand ( P4).
 # A bare gmeow:email / gmeow:telephone on the agent covers the common case. When
 # a contact point carries a TYPE (work vs personal), a PROVIDER, structured parts
 # or a postal frame, it is promoted to a reified gmeow:ContactPoint reached via

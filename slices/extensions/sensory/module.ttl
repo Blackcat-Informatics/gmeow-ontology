@@ -14,7 +14,7 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# SENSOR — the observer/perceiver in the sensory domain (#126)
+# SENSOR — the observer/perceiver in the sensory domain (sensory slice)
 #
 # A sensor is an agent that produces observations. It may be a physical device,
 # a software process, or a biological perceiver. The existing gmeow:Agent →
@@ -30,7 +30,7 @@ gmeow:Sensor
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
 
 # =========================================================================== #
-# SENSOR PLATFORM — the physical carrier of sensors (#126)
+# SENSOR PLATFORM — the physical carrier of sensors (sensory slice)
 #
 # A platform hosts one or more sensors and is situated at a geographic place.
 # Distinct from Sensor (which is the observing agent) and from Place (which is
@@ -53,7 +53,7 @@ gmeow:platformLocation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
 
 # =========================================================================== #
-# OBSERVABLE PROPERTY — what is being measured (#126)
+# OBSERVABLE PROPERTY — what is being measured (sensory slice)
 #
 # A value vocabulary (individuals, never subclasses) of physical, chemical,
 # biological, or environmental properties that can be observed by a sensor.
@@ -89,13 +89,30 @@ gmeow:observablePropertyAirQualityIndex skos:definition "The air quality index o
 gmeow:observablePropertyRadiationLevel        a gmeow:ObservableProperty ; rdfs:label "radiation level"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
 
 # =========================================================================== #
-# SENSORY QUANTITY — the result of a sensory observation (#126)
+# SENSORY QUANTITY — the result of a sensory observation (sensory slice)
 #
 # A domain-specific alias for the existing scalar-quantity facility. Following
-# the #77 precedent (Quantity ≡ ScalarQuantity ≡ MeasuredValue), SensoryQuantity
+# the ScalarQuantity alias precedent precedent (Quantity ≡ ScalarQuantity ≡ MeasuredValue), SensoryQuantity
 # is the sensory-domain name for the same value×unit×determinacy bundle.
 # =========================================================================== #
 gmeow:observablePropertyRadiationLevel skos:definition "The radiation level observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
+# Seeds — musical / auditory observable properties (issue #317)
+gmeow:observablePropertyTimbre                a gmeow:ObservableProperty ; rdfs:label "timbre"@x-gmeow-english ;                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyTimbre skos:definition "The timbre observable property — the perceived tonal quality of a sound (bright, dark, breathy, gritty, hollow, ...) that can be observed by a human listener or measured by an audio feature extractor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
+gmeow:observablePropertyLoudness              a gmeow:ObservableProperty ; rdfs:label "loudness"@x-gmeow-english ;              rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyLoudness skos:definition "The loudness observable property — the perceived intensity of a sound that can be observed by a listener or measured by a level meter."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
+gmeow:observablePropertyRoughness             a gmeow:ObservableProperty ; rdfs:label "roughness"@x-gmeow-english ;             rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyRoughness skos:definition "The roughness observable property — the perceived sensory dissonance or rapid amplitude modulation of a sound that can be observed or measured."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+
+gmeow:observablePropertyTimingDeviation       a gmeow:ObservableProperty ; rdfs:label "timing deviation"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
+gmeow:observablePropertyTimingDeviation skos:definition "The timing deviation observable property — the expressive or erroneous offset of an onset from a reference time grid, observable by a listener or measurable from an onset detection function."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
 
 gmeow:SensoryQuantity
@@ -103,11 +120,11 @@ gmeow:SensoryQuantity
     owl:equivalentClass gmeow:ScalarQuantity ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Sensory Quantity"@x-gmeow-english ;
-    skos:definition "The scalar numeric result of a sensory observation — a value with unit, determinacy, and granularity. Equivalent to gmeow:ScalarQuantity (following the #77 alias precedent); the name 'SensoryQuantity' is the domain-specific label for the same construct in the sensor/observation stack."@x-gmeow-english ;
+    skos:definition "The scalar numeric result of a sensory observation — a value with unit, determinacy, and granularity. Equivalent to gmeow:ScalarQuantity (following the ScalarQuantity alias precedent); the name 'SensoryQuantity' is the domain-specific label for the same construct in the sensor/observation stack."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
 
 # =========================================================================== #
-# SENSORY OBSERVATION — deepen the observations.ttl stub (#126)
+# SENSORY OBSERVATION — deepen the observations.ttl stub (sensory slice)
 #
 # The stub in observations.ttl declares SensoryObservation as a SubKind of
 # Observation. Here we add sensor-specific properties and EL restrictions.
@@ -160,7 +177,7 @@ gmeow:SensoryObservation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:sensoryResult     ; owl:someValuesFrom gmeow:SensoryQuantity     ] .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#126) — property chain for flat shortcut
+# AXIOMATIZED DOCTRINE (sensory slice) — property chain for flat shortcut
 #
 # hasSensoryQuantity is a flat shortcut derived from the reified observation
 # path. Expressed as:

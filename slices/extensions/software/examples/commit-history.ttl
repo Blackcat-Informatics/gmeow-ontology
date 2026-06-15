@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Worked example: a commit DAG with identity canonicalization and build provenance
-# (#443). Commits form a directed graph via gmeow:commitAncestor. Each commit's
+# Commits form a directed graph via gmeow:commitAncestor. Each commit's
 # author is recorded as a gmeow:AuthorIdentity — the as-committed git identity
 # (one of possibly many emails) — which gmeow:canonicalizedIdentity resolves to
 # the real gmeow:Agent, so "same person, three git emails" is one agent without

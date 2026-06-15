@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Worked example (#354, the named P15 consumer's flagship case): the
+# Worked example (risk design, the named P15 consumer's flagship case): the
 # principia "Trust Collapse" failure cascade as a named, graded, type-level
 # chain — betrayal dissolves the bond, bond dissolution kills the will to
 # survive. NOTHING HERE OCCURRED: every node is an EventType, and the
@@ -45,7 +45,7 @@ ex:betrayalHazard a gmeow:Hazard ;
     gmeow:manifestedAsType ex:etBetrayal ;
     gmeow:hazardSeverity gmeow:severityCatastrophic .
 
-# Open-range measure: the oath norm (norms extension) plugs in with no
+# Open-range measure: the oath norm plugs in with no
 # extension→extension axiom — the IRI is reference, not dependency.
 ex:oathMitigation a gmeow:Mitigation ;
     gmeow:mitigationMeasure ex:oathNorm ;

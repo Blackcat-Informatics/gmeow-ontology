@@ -10,9 +10,11 @@ nodes and reader diagnostics.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 from dataclasses import dataclass, field
 from enum import IntEnum
+
+from gts.codec import Codec, decode_chain
 
 # Well-known datatype IRIs used by the literal-defaulting rule (§7.1).
 XSD_STRING = "http://www.w3.org/2001/XMLSchema#string"
@@ -114,6 +116,75 @@ class StreamableInfo:
 
 
 @dataclass
+class _LazyBlobEntry:
+    """A blob frame whose bytes are still compressed/encoded on the wire.
+
+    Stores the raw frame payload plus the resolved codec chain. Decompression
+    is performed on first access and the decoded bytes are cached in place.
+    """
+
+    raw: bytes
+    chain: list[Codec]
+
+
+class _LazyBlobs(MutableMapping[str, bytes]):
+    """Content-addressed blob table with deferred decompression.
+
+    Behaves like ``dict[str, bytes]`` for consumers: ``g.blobs[digest]``
+    returns the decoded bytes, iteration yields decoded bytes, and ``len()`` is
+    cheap. Under the hood, entries inserted by the reader stay compressed until
+    they are first accessed.
+    """
+
+    __slots__ = ("_entries",)
+
+    def __init__(self) -> None:
+        self._entries: dict[str, bytes | _LazyBlobEntry] = {}
+
+    def __getitem__(self, digest: str) -> bytes:
+        entry = self._entries[digest]
+        if isinstance(entry, bytes):
+            return entry
+        decoded = decode_chain(entry.chain, entry.raw)
+        self._entries[digest] = decoded
+        return decoded
+
+    def __setitem__(self, digest: str, value: bytes | _LazyBlobEntry) -> None:
+        self._entries[digest] = value
+
+    def __delitem__(self, digest: str) -> None:
+        del self._entries[digest]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._entries)
+
+    def __len__(self) -> int:
+        return len(self._entries)
+
+    def __contains__(self, digest: object) -> bool:
+        return digest in self._entries
+
+    def update(  # type: ignore[override]
+        self,
+        other: Mapping[str, bytes] | Iterable[tuple[str, bytes]] | None = None,
+        /,
+        **kwargs: bytes,
+    ) -> None:
+        """Merge another mapping without forcing decompression of lazy entries."""
+        if other is not None:
+            if isinstance(other, _LazyBlobs):
+                self._entries.update(other._entries)
+            elif hasattr(other, "items"):
+                for key, value in other.items():
+                    self._entries[key] = value
+            else:
+                for key, value in other:
+                    self._entries[key] = value
+        for key, value in kwargs.items():
+            self._entries[key] = value
+
+
+@dataclass
 class Graph:
     """The folded result of a GTS log.
 
@@ -125,7 +196,7 @@ class Graph:
     quads: list[Quad] = field(default_factory=list)
     reifiers: dict[int, Triple] = field(default_factory=dict)
     annotations: list[Triple] = field(default_factory=list)
-    blobs: dict[str, bytes] = field(default_factory=dict)
+    blobs: _LazyBlobs = field(default_factory=_LazyBlobs)
     #: Declared blob metadata by digest — the blob frame's ``"pub"`` map
     #: (``mt``, ``rep``, …) retained through the fold so tooling can list
     #: contents and assert media types without re-walking frames (§12).

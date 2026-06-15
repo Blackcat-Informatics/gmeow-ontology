@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: money is frame-relative, and the ledger is double-entry (#443,
+# Worked example: money is frame-relative, and the ledger is double-entry
 # P11). Every gmeow:MonetaryAmount carries its gmeow:currency as a REFERENCE FRAME
 # — "5000" is meaningless; "5000 in the CAD frame" is a coordinate. An invoice is
 # recorded as a balanced gmeow:JournalEntry: two gmeow:Postings to gmeow:Ledger-

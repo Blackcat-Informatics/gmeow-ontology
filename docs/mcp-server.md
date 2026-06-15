@@ -81,7 +81,7 @@ portable, signed-able, independently verifiable record (`Memory.verify()` in
 
 ## The bundled ontology tools
 
-The public `gmeow mcp` server reads only the bundled `gmeow-full.gts` snapshot:
+The public `gmeow mcp` server reads only the bundled `gmeow.gts` snapshot:
 
 | Tool | What it does |
 |---|---|

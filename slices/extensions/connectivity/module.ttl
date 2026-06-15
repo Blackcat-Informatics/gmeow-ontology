@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Connectivity Module"@x-gmeow-english ;
     skos:definition "The GMEOW Connectivity Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
-    rdfs:comment "Universal connectivity, network, and routing constructs — traversable links, reified connections, and route paths. Distinct from mereology (partOf) and RCC-8 adjacency. Part of the #42 Location-as-reference-frame epic."@x-gmeow-english ;
+    rdfs:comment "Universal connectivity, network, and routing constructs — traversable links, reified connections, and route paths. Distinct from mereology (partOf) and RCC-8 adjacency. Part of the Location-as-reference-frame design."@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -133,7 +133,7 @@ gmeow:hasRoute
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
 
 # --------------------------------------------------------------------------- #
-# Reference Frame Seed — network graph (#80, Principle 11)
+# Reference Frame Seed — network graph (connectivity spine, Principle 11)
 # --------------------------------------------------------------------------- #
 
 gmeow:referenceFrameNetworkGraph
@@ -150,7 +150,7 @@ gmeow:referenceFrameNetworkGraph skos:definition "The network graph reference fr
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
 
 # =========================================================================== #
-# ACCESSIBLE ROUTE KIND (from the accessibility module — #287 surgery)
+# ACCESSIBLE ROUTE KIND (from the accessibility module — slice-dependency doctrine refactor)
 # Value individuals live beside their value class (the vocabulary stays
 # open — Principle 9); this keeps accessibility and connectivity mutually
 # independent sibling extensions.

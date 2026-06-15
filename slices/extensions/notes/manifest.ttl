@@ -17,4 +17,4 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
-    gmeow:sliceConsumer "PKM annotations (#63) over core evidence spans; Web Annotation projection."@x-gmeow-english .
+    gmeow:sliceConsumer "PKM annotations (annotation target span) over core evidence spans; Web Annotation projection."@x-gmeow-english.

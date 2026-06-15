@@ -77,7 +77,7 @@ source stays, suppression never erasure (Principle 10).
 
 Epistemic confidence in a claim, in [0,1], attached to the statement it qualifies. An
 annotation property so the OWL downcast stays DL-clean (Principle 3). Confidence is
-orthogonal to standpoint and to source (the issue #51 three-axis doctrine) — it answers
+orthogonal to standpoint and to source (the standpoint doctrine three-axis doctrine) — it answers
 "how sure", never "who says" or "who recorded".
 
 ### gmeow:importanceLevel · gmeow:mappedFrom
@@ -89,7 +89,7 @@ auditable end to end (Principle 7: verified by construction).
 
 ### gmeow:provenance
 
-The Dublin Core custody statement (issue #60): a free-text account of ownership and
+The Dublin Core custody statement: a free-text account of ownership and
 custody changes significant for authenticity and interpretation. The human-readable
 complement to the structured activity chain, not a substitute for it.
 
