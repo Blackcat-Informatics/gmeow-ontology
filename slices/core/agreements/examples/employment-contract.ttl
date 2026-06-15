@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: an agreement as a relator (#443). A gmeow:Agreement (here a
+# Worked example: an agreement as a relator. A gmeow:Agreement (here a
 # gmeow:Contract, the legally-enforceable specialization) is a gufo:Relator that
 # binds its parties via gmeow:hasParty — the agreement IS the relationship, not a
 # property of either party. It bears a structured gmeow:AgreementName (an

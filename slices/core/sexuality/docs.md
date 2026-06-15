@@ -14,7 +14,7 @@ combination are directly expressible because the axes never collapse into each o
 neither is ever inferred from gender identity, gender expression, sex-assigned-at-birth,
 pronouns, or honorifics. These two axes complete the **seven-axis orthogonality matrix**
 (with gender's three and names' two), whose pairwise disjointness is a reasoner theorem
-asserted in the gender module (issue #38) and whose bridge-absence is a closed-world lint
+asserted in the gender module (relator-mediation doctrine) and whose bridge-absence is a closed-world lint
 (`tests/test_identity_orthogonality.py`).
 
 The governing tenets are exactly gender's, because the base is shared (Principle 9):
@@ -90,7 +90,7 @@ ex:samRomantic a gmeow:RomanticOrientation ;    # … and biromantic, independen
 
 The relator-mediation existentials (`someValuesFrom` the value classes) live here in EL form
 for the reasoner; the closed-world "exactly one value per facet" is deliberately SHACL's job
-(issue #39), keeping the logic small and decidable (Principle 12's boundary discipline).
+(SHACL closure gate), keeping the logic small and decidable (Principle 12's boundary discipline).
 
 ## Alignment — and an honest lossy drop
 

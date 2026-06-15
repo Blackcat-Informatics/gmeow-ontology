@@ -1,4 +1,4 @@
-"""Tests for the temporal frame profile (issue #67, refactored for #70)."""
+"""Tests for the temporal frame profile."""
 
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ def test_temporal_frame_seed_individuals() -> None:
     }
     assert any(c in calendars for c in non_gregorian)
 
-    # All temporal frames use frameRealmTemporal (from places.ttl #70)
+    # All temporal frames use frameRealmTemporal (from places.ttl temporal-frame design)
     frames = set(g.subjects(RDF.type, URIRef(GMEOW + "TemporalFrame")))
     assert len(frames) >= 2
     for frame in frames:

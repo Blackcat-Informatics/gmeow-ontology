@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: pinning an imported source (#443). The sources slice is the
+# Worked example: pinning an imported source. The sources slice is the
 # "where did this byte-stream come from" layer: gmeow:sourceLocation (where it was
 # read from), gmeow:sourceModifiedAt (the source's own last-modified time, not the
 # import time), and gmeow:contentDigest (a content hash so later re-imports can

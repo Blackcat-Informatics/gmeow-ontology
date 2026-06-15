@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: coreference WITHOUT identity merge (#443). A locally-recorded
+# Worked example: coreference WITHOUT identity merge. A locally-recorded
 # person is linked to two external authority records — a confident match and a
 # near (uncertain) one — using gmeow:authorityLink (the flat pointer) alongside
 # skos:exactMatch / skos:closeMatch (graded alignment). GMEOW NEVER asserts

@@ -6,7 +6,7 @@
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/sources` · **tier: core**
 > What a source artifact *is* — its bytes, its location, its clock — held apart from the claims it carries.
 
-There is no `gmeow:Source` class, and that is the doctrine. The issue #211 refactor
+There is no `gmeow:Source` class, and that is the doctrine. The source/claim refactor refactor
 retired the anti-rigid Source Kind: being-a-source is not what a thing *is* but a role it
 plays in an act of citation — source-hood is mediated by `CitationAct` (citations slice)
 or borne as a SourceRole. Likewise the old Citation locator gave way to the

@@ -16,7 +16,7 @@ standpoint-indexed values in `MentalReferenceFrame`s: every perception is read i
 perceiver's own frame (Principle 11 — frames are first-class and self-describing, and a
 mental frame *requires a host*; two hosts may map the same stimulus to different
 coordinates). The two facets are co-equal, with no privileged representation
-(Principle 9). Part of the issue #42 Location-as-reference-frame epic; the Principle-15
+(Principle 9). Part of the the design Location-as-reference-frame design; the Principle-15
 consumer is **environmental sensing context for sensory observations** — the sensory
 slice's stack gains its where-and-what-it-was-like setting here.
 
@@ -92,5 +92,6 @@ Colourspace conversion, spectral analysis, comfort-model evaluation, and matrix 
 (shape-directed via `matrixShape`) are solver-layer concerns (Principle 12) — the graph
 states which frame a value is in; it never stores re-derived coordinates. The slice is
 flagged **putative** in its module header: alignments beyond the in-house frame facility
-(e.g. to SOSA observation context or W3C SSN-System) are deferred until the issue #42
-epic settles. Depends on `kernel`, `observations`, `places`, and `temporal`.
+(e.g. to SOSA observation context or W3C SSN-System) are deferred until the
+Location-as-reference-frame design settles. Depends on `kernel`, `observations`,
+`places`, and `temporal`.

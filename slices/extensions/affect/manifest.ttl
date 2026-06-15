@@ -18,4 +18,4 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ;
-    gmeow:sliceConsumer "The lbox principia importer (EPIC #348: affect/aesthetic annotations) and the narrative arc samples (#361: sampleState draws on EmotionType by soft reference, never dependency). DELIBERATELY THIN (P15): growth requires a new consumer; the size budget and expansion bar are recorded in docs.md."@x-gmeow-english .
+    gmeow:sliceConsumer "The lbox principia importer ( affect/aesthetic annotations) and the narrative narrative arc samples ( sampleState draws on EmotionType by soft reference, never dependency). DELIBERATELY THIN (P15): growth requires a new consumer; the size budget and expansion bar are recorded in docs.md."@x-gmeow-english.

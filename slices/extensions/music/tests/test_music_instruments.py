@@ -1,4 +1,4 @@
-"""Instrument-type, configuration, and playing-technique guards (issue #314).
+"""Instrument-type, configuration, and playing-technique guards.
 
 Principles 4, 5, 8, 9, 11, 16.
 """
@@ -29,7 +29,7 @@ def _error_text(result: ValidationResult) -> str:
 
 
 def test_instrument_classes_exist() -> None:
-    """#314 classes are declared as owl:Class with the intended gUFO stereotype."""
+    """Instrument classes use owl:Class plus the intended gUFO stereotype."""
     graph = _graph()
     assert (
         URIRef(GMEOW + "InstrumentConfiguration"),

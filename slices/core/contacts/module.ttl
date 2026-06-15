@@ -130,7 +130,7 @@ gmeow:hasContactPoint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # --------------------------------------------------------------------------- #
-# Contact-point usage (#411, #417): the role a contact point plays (personal,
+# Contact-point usage: the role a contact point plays (personal,
 # work, a personal domain, support, …) is an OPEN value vocabulary (P9), never
 # a subclass; the issuing/scoping organization is a context edge. A retired
 # contact point is carried with validUntil in the past (the domain-free
@@ -296,9 +296,9 @@ gmeow:addressHolder
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38) — relator mediation for interpersonal relationships.
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — relator mediation for interpersonal relationships.
 # A relationship mediates at least one agent party (EL someValuesFrom,
-# open-world; closed-world "exactly two parties" is SHACL's, #39). Applies to
+# open-world; closed-world "exactly two parties" is SHACL's, SHACL closure gate). Applies to
 # every subtype (Professional / Acquaintance).
 # =========================================================================== #
 
@@ -306,11 +306,11 @@ gmeow:InterpersonalRelationship rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:relationshipParty ; owl:someValuesFrom gmeow:Agent ] .
 
 # =========================================================================== #
-# EMAIL-ADDRESS STRUCTURE (from the email module — #287 dependency surgery)
+# EMAIL-ADDRESS STRUCTURE (from the email module — slice-dependency doctrine dependency refactor)
 # The contact portion of email is core: an EmailAddress (declared above) and
 # its structure live beside the other contact channels; the email MESSAGE
 # model is the email extension. Deeper address modelling (envelope display
-# names, internationalized addresses) is tracked by issue #134 and lands
+# names, internationalized addresses) is tracked by the design and lands
 # here.
 # =========================================================================== #
 

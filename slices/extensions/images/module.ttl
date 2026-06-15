@@ -11,7 +11,7 @@
     rdfs:label "GMEOW Images Module"@x-gmeow-english ;
     skos:definition "The GMEOW Images Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
-    rdfs:comment """The Images super-ontology — a layered model for contextual depiction, region encoding, scene graphs, and technical metadata (issue #22). Builds on the WEMI spine (#208): a visual work is a gmeow:Work with workTypeVisual / workTypePhotographic; the digital file is a gmeow:Manifestation (gmeow:MediaObject) plus gmeow:Item / hasCarrier. Colourspace is carried via gmeow:hasReferenceFrame (#70). Rights reuse the #21 facility directly.
+    rdfs:comment """The Images super-ontology — a layered model for contextual depiction, region encoding, scene graphs, and technical metadata. Builds on the WEMI spine: a visual work is a gmeow:Work with workTypeVisual / workTypePhotographic; the digital file is a gmeow:Manifestation (gmeow:MediaObject) plus gmeow:Item / hasCarrier. Colourspace is carried via gmeow:hasReferenceFrame (temporal-frame design). Rights reuse the rights facility directly.
 
 LAYERS.
   1. Contextual depiction — the DepictionUsage relator (mirrors NameUsage) and
@@ -29,7 +29,7 @@ LAYERS.
      on MediaObject in documents.ttl.
   6. Provenance / workflow — image-specific eventType values (capture, scanning,
      processing, annotation) in events.ttl; reuse wasGeneratedBy / wasDerivedFrom.
-  7. Rights / IP — reuse #21 terms directly.
+  7. Rights / IP — reuse rights facility terms directly.
   8. SEO / discovery — schema.org ImageObject projections.
 
 GOVERNING TENETS.
@@ -56,7 +56,7 @@ gmeow:DepictionUsage
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Depiction Usage"@x-gmeow-english ;
-    skos:definition "A reified, context-dependent depiction of an entity by an image — an observation in the universal claim stack (#69): an entity (depictionSubject) is shown in a given image (depictionImage), in a particular context (depictionContext), by or among a particular audience (depictionAudience), over a period (depictionInterval), asserted by an authority (depictionAuthority). Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical depiction. Mint one DepictionUsage per (entity, image, context) tuple; its period is carried by gmeow:depictionInterval or by validFrom/validUntil on the statement."@x-gmeow-english ;
+    skos:definition "A reified, context-dependent depiction of an entity by an image — an observation in the universal claim stack (observation-spine bridge): an entity (depictionSubject) is shown in a given image (depictionImage), in a particular context (depictionContext), by or among a particular audience (depictionAudience), over a period (depictionInterval), asserted by an authority (depictionAuthority). Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical depiction. Mint one DepictionUsage per (entity, image, context) tuple; its period is carried by gmeow:depictionInterval or by validFrom/validUntil on the statement."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
 
 gmeow:depictionSubject
@@ -350,11 +350,11 @@ gmeow:SceneGraphEdge rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:sceneSubject ; owl:someValuesFrom gmeow:ImageRegion ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:sceneObject ; owl:someValuesFrom gmeow:ImageRegion ] .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:depicts gmeow:pairsWith gmeow:DepictionUsage .
 
 # --------------------------------------------------------------------------- #
-# EXIF tags as reified key-value records (#413). A camera's EXIF metadata is an
+# EXIF tags as reified key-value records (project homepage and language). A camera's EXIF metadata is an
 # OPEN set of tag/value pairs (FNumber, ExposureTime, GPSImgDirection, …). To
 # carry it LOSSLESSLY — every tag survives the index.ttl → GMEOW → index.ttl
 # round-trip — each tag is a reified gmeow:ExifTag (the schema:PropertyValue
@@ -396,7 +396,7 @@ gmeow:exifTagValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
 
 # --------------------------------------------------------------------------- #
-# Logo — an entity's emblematic media object (#410 follow-through)
+# Logo — an entity's emblematic media object ( follow-through)
 # --------------------------------------------------------------------------- #
 # gmeow:hasLogo is DISTINCT from gmeow:depicts. A logo is an emblem CHOSEN to
 # represent an entity, not a depiction OF it (the gmeow-logo.svg does not picture

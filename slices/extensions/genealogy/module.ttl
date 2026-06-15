@@ -12,7 +12,7 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:comment """A comprehensive, evidence-centric genealogy model: reified, typed kinship relationships and kinship convenience properties. Life events themselves are modelled by the universal events module (gmeow:Event + gmeow:eventType value vocabulary + the gmeow:Participation relator); a person's life events are gmeow:LifeEvent occurrences carrying gmeow:eventTypeBirth / …Marriage / …NameChange etc. Structured naming terms (gmeow:PersonName et al.) live in the names module and link to the event that confers them via gmeow:conferredByEvent. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames.
 
-STANDPOINT DOCTRINE (#51). Contested facts in genealogy — disputed parentage, conflicting birth/death dates, competing civil vs parish records — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested birth date is two standpoint-indexed gmeow:eventTime claims on the same gmeow:LifeEvent (the events module's mechanism). A contested parentage is two gmeow:accordingTo-annotated gmeow:hasParent claims, or two reified gmeow:ParentChildRelationship instances each carrying gmeow:accordingTo. There is NO genealogy-specific dispute mechanism, no preferredParent, no primaryKinship — only the cross-cutting #43 facility. A withdrawn parentage claim (an opened-then-closed StandpointTenure, or a superseded claim) sets gmeow:displayable false, never deletion (Principle 10)."""@x-gmeow-english ;
+STANDPOINT DOCTRINE. Contested facts in genealogy — disputed parentage, conflicting birth/death dates, competing civil vs parish records — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested birth date is two standpoint-indexed gmeow:eventTime claims on the same gmeow:LifeEvent (the events module's mechanism). A contested parentage is two gmeow:accordingTo-annotated gmeow:hasParent claims, or two reified gmeow:ParentChildRelationship instances each carrying gmeow:accordingTo. There is NO genealogy-specific dispute mechanism, no preferredParent, no primaryKinship — only the cross-cutting standpoint facility. A withdrawn parentage claim (an opened-then-closed StandpointTenure, or a superseded claim) sets gmeow:displayable false, never deletion (Principle 10)."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # Classes
@@ -35,7 +35,7 @@ gmeow:KinRelationship
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Kin Relationship"@x-gmeow-english ;
-    skos:definition "A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (#69). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation."@x-gmeow-english ;
+    skos:definition "A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (observation-spine bridge). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> .
 
 gmeow:CoupleRelationship
@@ -50,7 +50,7 @@ gmeow:hasCoupleEvent
     rdfs:domain gmeow:CoupleRelationship ;
     rdfs:range gmeow:Event ;
     rdfs:label "has couple event"@x-gmeow-english ;
-    skos:definition "Relates a couple relationship to an event in its history — the marriage, the divorce, an anniversary (#413). The seam the GEDCOM projection walks: a marriage gmeow:Event's gmeow:eventTime / gmeow:eventLocation source gedcom:date / gedcom:place on the couple's Marriage node. Non-functional: a couple bears several events."@x-gmeow-english ;
+    skos:definition "Relates a couple relationship to an event in its history — the marriage, the divorce, an anniversary (project homepage and language). The seam the GEDCOM projection walks: a marriage gmeow:Event's gmeow:eventTime / gmeow:eventLocation source gedcom:date / gedcom:place on the couple's Marriage node. Non-functional: a couple bears several events."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> .
 
 gmeow:ParentChildRelationship
@@ -175,7 +175,7 @@ gmeow:withinFamily
     rdfs:domain gmeow:KinRelationship ;
     rdfs:range gmeow:Family ;
     rdfs:label "within family"@x-gmeow-english ;
-    skos:definition "Anchors a reified kinship relationship in the family group it belongs to — the structural seam GEDCOM exchange requires (a child's family, a marriage's family). Optional: kinship claims stand alone; the family anchor is added when the family-group structure is itself a documented fact (#34 phase 3 — consumers: the gedcom projection and the published genealogy profiles)."@x-gmeow-english ;
+    skos:definition "Anchors a reified kinship relationship in the family group it belongs to — the structural seam GEDCOM exchange requires (a child's family, a marriage's family). Optional: kinship claims stand alone; the family anchor is added when the family-group structure is itself a documented fact (PROV activity alignment phase 3 — consumers: the gedcom projection and the published genealogy profiles)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> .
 
 # A person's sex/gender is modelled in the dedicated gender + sexuality modules:
@@ -185,7 +185,7 @@ gmeow:withinFamily
 # names). Documentary sex on historical records uses external gedcom:sex directly.
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine — phase 2 of the reasoning-depth design context)
 #
 # Derived ancestry. gmeow:hasAncestor is transitive and gmeow:hasParent is one of
 # its sub-properties, so hasParent ∘ hasParent ⊑ hasAncestor is ENTAILED — a
@@ -217,7 +217,7 @@ gmeow:hasParent rdfs:subPropertyOf gmeow:hasAncestor, gmeow:connectsTo .
 gmeow:hasChild  rdfs:subPropertyOf gmeow:hasDescendant, gmeow:connectsTo .
 
 # --------------------------------------------------------------------------- #
-# Connectivity spine declarations (#80, CONN-GEN).
+# Connectivity spine declarations (connectivity spine, CONN-GEN).
 # Kinship bonds are traversable links in the universal graph layer.
 # Safe because connectsTo is NOT symmetric and NOT transitive at the universal
 # level, so hasSpouse / hasSibling can keep their symmetry and hasParent /
@@ -227,14 +227,14 @@ gmeow:hasSpouse  rdfs:subPropertyOf gmeow:connectsTo .
 gmeow:hasSibling rdfs:subPropertyOf gmeow:connectsTo .
 
 # Relator mediation: a parent-child relationship mediates a parent and a child
-# (EL existential, open-world; closed-world cardinality is SHACL's, #39). Applies
+# (EL existential, open-world; closed-world cardinality is SHACL's, SHACL closure gate). Applies
 # to every subtype (Biological / Adoptive / Step / Foster).
 gmeow:ParentChildRelationship rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:relationshipParent ; owl:someValuesFrom gmeow:Person ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:relationshipChild ; owl:someValuesFrom gmeow:Person ] .
 
 # =========================================================================== #
-# OBSERVATION-SPINE BRIDGES (#287 dependency surgery)
+# OBSERVATION-SPINE BRIDGES (slice-dependency doctrine dependency refactor)
 # Declared HERE, in the slice that owns these properties: a dependent slice
 # knows the core observation spine; the spine never knows the slice. The
 # super-properties (observedFeature / vantage / observationResult) live in

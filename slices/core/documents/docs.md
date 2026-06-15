@@ -8,7 +8,7 @@
 
 Creative works and document metadata — articles, patents, datasets, media, web pages (the schema.org / BIBO / BIBFRAME superset layer).
 
-This slice furnishes the working subkinds of the four-tier WEMI spine (issue #208):
+This slice furnishes the working subkinds of the four-tier WEMI spine:
 `gmeow:Document`, `gmeow:Article`, `gmeow:Patent`, `gmeow:Dataset`,
 `gmeow:LiteraryWork`, `gmeow:SerialWork`, `gmeow:Collection`, and `gmeow:Service`
 specialize `gmeow:Work` (the abstract creation); `gmeow:MediaObject`, `gmeow:WebPage`,
@@ -29,10 +29,10 @@ internal chronology coexist as subjective orderings, never canonical truth.
 ### gmeow:CreativeWork
 
 The abstract umbrella Category for intellectual and artistic creations across the WEMI
-spine. Formerly a flat Kind (pre issue #208); now a Category so each of the four tiers
+spine. Formerly a flat Kind (pre WEMI spine); now a Category so each of the four tiers
 beneath it can be a gufo:Kind with its own identity criteria. Carries the flat
 metadata properties (`gmeow:title`, `gmeow:identifier`, `gmeow:datePublished`, the DC
-date and description refinements of issue #60).
+date and description refinements).
 
 ### gmeow:ContentSegment
 
@@ -72,7 +72,7 @@ ontology truth.
 
 ### gmeow:FeedPosting · gmeow:feedPostingKind · gmeow:quotesContent · gmeow:sharesContent · gmeow:DataFeed
 
-The syndication surface (#412). A `gmeow:FeedPosting` is a short-form work published
+The syndication surface (MoveAction projection). A `gmeow:FeedPosting` is a short-form work published
 to a feed or platform — its kind (`gmeow:feedPostingKind`: social / blog / microblog)
 is an **open value**, never a subclass (P9), and drives the schema split
 (`schema:SocialMediaPosting` vs `schema:BlogPosting`). `gmeow:quotesContent` (with the
@@ -89,7 +89,7 @@ posting is deliberately `FeedPosting`.)
 
 ### gmeow:WebSite · gmeow:pageOfSite · gmeow:pagePrincipalSubject · gmeow:ProfilePage
 
-The web-presence model (#410). A `gmeow:WebSite` is the published collection; a
+The web-presence model. A `gmeow:WebSite` is the published collection; a
 `gmeow:WebPage` belongs to it via `gmeow:pageOfSite` (a subproperty of `partOf`, so
 site membership rides the universal mereology — the discrete hierarchy a breadcrumb
 trail walks). `gmeow:pagePrincipalSubject` (functional, a subproperty of `isAbout`) names
@@ -111,7 +111,7 @@ by reconstructing the BCP-47 / ISO 639-1 code from the `gmeow:Language`.
 ### gmeow:MediaObject
 
 An image, audio, or video file — a concrete Manifestation carrying the technical
-metadata of issue #22: `gmeow:pixelWidth`/`gmeow:pixelHeight` (functional),
+metadata of the design: `gmeow:pixelWidth`/`gmeow:pixelHeight` (functional),
 `gmeow:imageOrientation` (EXIF degrees — the transform math is solver work,
 Principle 12), `gmeow:captureTime` (non-functional: EXIF and catalogue claims coexist
 with confidence), and `gmeow:captureDevice`. Declares `gmeow:requiresFrame
@@ -119,7 +119,7 @@ gmeow:colourspace` at warning severity (Principle 11).
 
 ### gmeow:depicts · gmeow:depictedIn
 
-The flat depiction foundation (gathered here by the issue #287 dependency surgery): any
+The flat depiction foundation (gathered here by the dependency refactor): any
 MediaObject can depict any Entity with zero image machinery, as a subproperty of
 `gmeow:isAbout`. The pair `gmeow:pairsWith` the `gmeow:DepictionUsage` relator in the
 images extension — promote when context, audience, period, confidence, or evidence of

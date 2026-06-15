@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: time under explicit frames (#443). Every crisp Instant is
+# Worked example: time under explicit frames. Every crisp Instant is
 # asserted relative to a TemporalFrame (Principle 11) — a bare "10:00:00Z" is
 # ill-formed without saying which time scale and calendar interpret it. Two
 # intervals (a conference talk and its Q&A) are built from begin/end Instants and

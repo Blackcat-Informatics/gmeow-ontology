@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: deception is held ≠ projected (#212, #443). A spokesperson
+# Worked example: deception is held ≠ projected. A spokesperson
 # privately BELIEVES an internal misconfiguration caused an outage, but publicly
 # PROJECTS that a third-party vendor did. The lie is a gmeow:Event linking the
 # two StandpointClaims: gmeow:heldStandpoint (the believed claim) and

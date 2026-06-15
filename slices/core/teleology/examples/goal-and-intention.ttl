@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: goals, intentions, and commitments (#443). GMEOW separates the
+# Worked example: goals, intentions, and commitments. GMEOW separates the
 # intentional moments gUFO keeps distinct: a gmeow:Goal is the SocialObject an
 # agent aims at (gmeow:hasGoal); a gmeow:Intention is an intentional MODE borne by
 # an agent that aims at that goal (gmeow:intentionGoal) and MOTIVATES concrete

@@ -15,12 +15,12 @@ property, `endorses` is neither symmetric nor transitive, and no property chain 
 A trust C because A trusts B and B trusts C — bounding exactly that is what trust-signature
 depth is *for*.
 
-The slice exercises the issue #51 standpoint doctrine that governs every contested-fact
+The slice exercises the standpoint doctrine standpoint doctrine that governs every contested-fact
 slice: `accordingTo` (whose frame holds it) ⟂ `wasAttributedTo` (which source recorded it)
 ⟂ `confidence` (how sure we are) — three axes that never bridge (Principle 9). A
 `TrustAssertion` is already perspectival (its trustor is the frame holder), but the
 underlying `Certification` can *also* be disputed across standpoints — one holds the
-binding unequivocal, another refutes it — through the cross-cutting issue #43 facility
+binding unequivocal, another refutes it — through the cross-cutting standpoint facility
 alone: no trust-specific dispute mechanism, no `primaryCertification`, no
 `preferredTrust`. For the claim spine (Principle 14), this slice is the attestation floor:
 the keys and signatures that make a GTS memory package signed, append-only, and
@@ -97,7 +97,7 @@ level, a window, or its own identity: the flat↔reified pairing in its standard
 
 A signature over any artifact — not only mail — asserting origin and integrity, with
 subkinds `PGPSignature` (RFC 4880/9580, PGP-MIME) and `SMIMESignature` (RFC 8551).
-Re-homed beside the keys it references in the issue #287 dependency surgery; the
+Re-homed beside the keys it references in the dependency refactor; the
 email-wire half (DKIM, Authentication-Results, relay hops) lives in the email extension.
 
 ### gmeow:signedBy · gmeow:signingKey

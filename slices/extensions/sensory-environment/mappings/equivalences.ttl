@@ -43,12 +43,12 @@
 #                Environmental Conditions for Human Occupancy.
 #                https://www.ashrae.org/technical-resources/bookstore/standard-55
 #
-# Issue #87 — Psychological / cognitive realm alignments.
+# psychological/cognitive axes — Psychological / cognitive realm alignments.
 #
 #   CSO (Conceptual Space Ontology, Gärdenfors) — no stable resolvable RDF
 #                ontology with term IRIs. gmeow:referenceFrameConceptualSpace
 #                aligns structurally to CSO conceptual-space geometry.
-#                https://conceptualspaces.org/  https://github.com/ICLDisco/CSO
+# https://conceptualspaces.org/ https://conceptualspaces.org/
 #   Cognitive Atlas — a web-based knowledge base for cognitive neuroscience;
 #                no stable RDF/OWL ontology with resolvable term IRIs.
 #                gmeow:referenceFrameCognitiveMapEgocentric and
@@ -69,7 +69,7 @@ gmeow:mapsetSensoryEnvironment a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/sensory-environment" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Sensory environment alignments — SOSA/SSN. Putative (#104)." .
+    gmeow:setComment "Sensory environment alignments — SOSA/SSN. Putative (sensory-environment axes).".
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -121,7 +121,7 @@ gmeow:eqSenv005 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Issue #87 — Mental Functioning Ontology (MF) and Emotion Ontology (MFOEM)
+# psychological/cognitive axes — Mental Functioning Ontology (MF) and Emotion Ontology (MFOEM)
 # --------------------------------------------------------------------------- #
 
 gmeow:eqSenv006 a gmeow:TermEquivalence ;

@@ -67,7 +67,7 @@ gmeow:projectHomepage
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:label "project homepage"@x-gmeow-english ;
-    skos:definition "The homepage of a project (#413) — the doap:homepage / schema:url of a software project. Functional; range open (an IRI)."@x-gmeow-english ;
+    skos:definition "The homepage of a project (project homepage and language) — the doap:homepage / schema:url of a software project. Functional; range open (an IRI)."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
 
 gmeow:bugDatabase
@@ -489,7 +489,7 @@ gmeow:hasSoftwareName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
 
 # =========================================================================== #
-# PHASE B — GIT PROVENANCE DEEPENING (#232)
+# PHASE B — GIT PROVENANCE DEEPENING (git provenance deepening)
 # Blob / TreeEntry for Merkle structure; Push / Merge / CodeReview / Diff for
 # collaboration events; commitAncestor / commitDescendant for DAG traversal.
 # =========================================================================== #
@@ -671,7 +671,7 @@ gmeow:materializationDepth
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
 
 # --------------------------------------------------------------------------- #
-# PHASE C — Verifiable release chain (#233)
+# PHASE C — Verifiable release chain (verifiable-release chain)
 # BuildActivity, Builder, build properties, SLSA level.
 # Reuses Attestation, CryptographicSignature, TransparencyLogEntry from
 # attestation.ttl / trust.ttl / messaging-trust.ttl (Principle 4, 5).
@@ -712,7 +712,7 @@ gmeow:buildConfigUri
     rdfs:domain gmeow:BuildActivity ;
     rdfs:range rdfs:Literal ;
     rdfs:label "build config URI"@x-gmeow-english ;
-    skos:definition "The URI of the build configuration or workflow file that describes the build process — e.g. the URL of `.github/workflows/release.yml` or a Jenkinsfile."@x-gmeow-english ;
+    skos:definition "The URI of the build configuration or workflow file that describes the build process — e.g. the URL of `ci/workflows/release.yml` or a Jenkinsfile."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
 
 gmeow:releaseDoi
@@ -750,7 +750,7 @@ gmeow:slsaLevel4 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/s
 gmeow:eventTypeBuild a gmeow:EventType ; rdfs:label "build"@x-gmeow-english ; skos:definition "The event of building software from source into distribution artifacts."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
-# PHASE D — Author identity over immutable history (#234)
+# PHASE D — Author identity over immutable history (immutable-history author identity)
 # AuthorIdentity records the raw bytes that appeared in a commit; canonicalized
 # identity links those bytes to the current self-asserted Agent. Superseded
 # identities carry gmeow:displayable false (Principle 10). The .mailmap file is

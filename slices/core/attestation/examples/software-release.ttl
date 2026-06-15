@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: a supply-chain attestation (#443). A gmeow:Attestation binds an
+# Worked example: a supply-chain attestation. A gmeow:Attestation binds an
 # gmeow:attester (who vouches) to an gmeow:attestedSubject (what is vouched for)
 # under an gmeow:attestationType drawn from the open vocabulary of real formats
 # (SLSA provenance, in-toto, DSSE, C2PA, verifiable credential, …). Here a CI

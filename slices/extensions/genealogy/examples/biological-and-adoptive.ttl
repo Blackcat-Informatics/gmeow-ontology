@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: parent-child is not one relation (#443, P9). Most schemas have
+# Worked example: parent-child is not one relation (Principle 9). Most schemas have
 # a single "parent" field; GMEOW reifies the KIND of parentage, so a child's
 # BIOLOGICAL and ADOPTIVE parents COEXIST rather than overwrite. A
 # gmeow:BiologicalParentChild and a gmeow:AdoptiveParentChild (siblings of

@@ -18,4 +18,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:sliceConsumer "The Profile pattern under every reference frame: temporal, spatial, currency, and tuning frames (#308)."@x-gmeow-english .
+    gmeow:sliceConsumer "The Profile pattern under every reference frame: temporal, spatial, currency, and tuning frames (pitch frames)."@x-gmeow-english.

@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/teleology>
     a owl:Ontology ;
     rdfs:label "GMEOW Teleology Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Teleology Module — goals, desires, intentions, and commitments (issue #350, EPIC #348)."@x-gmeow-english ;
+    skos:definition "The GMEOW Teleology Module — goals, desires, intentions, and commitments."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:comment """Goals, desires, intentions, and commitments — the UFO-C intentional-moment trichotomy surfaced as GMEOW core (Principle 16: an agent recording its OWN goals across sessions is a question every AI system will face about itself, alongside identity and deception epistemics).
 
@@ -20,7 +20,7 @@ DOCTRINE.
   * Whether a situation satisfies a goal is a vantage-indexed claim through the statement layer, never a global verdict (Principle 9). Whose goal it is, is indexed the same way: goals attributed to an agent by an observer and goals avowed by the agent are coexisting claims.
   * Flat-first, reify on demand (Principle 4): gmeow:hasGoal covers the 80% case; promote to Desire / Intention / Commitment when commitment grade, tenure, or standpoint matters; promote to gmeow:IntentionTenure (the StandpointTenure idiom) when adoption / revision of the intention is itself the fact of interest. Goals are revised by suppression, never deleted (Principle 10).
   * Goal decomposition, plan search, and means-end reasoning are solver-layer computations (Principle 12); the ontology records goals, their counter-goals, and who holds them.
-  * Deontic force lives elsewhere: a Goal prescribes nothing. Norms that make conduct obligatory arrive with the norms extension (#351), which ranges gmeow:prescribedConduct over Goal — the dependency points extension → core, never back."""@x-gmeow-english ;
+  * Deontic force lives elsewhere: a Goal prescribes nothing. Norms that make conduct obligatory arrive with the norms extension, which ranges gmeow:prescribedConduct over Goal — the dependency points extension → core, never back."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -171,5 +171,5 @@ gmeow:tenureIntention
     skos:definition "The desire or intention the tenure records the agent as holding over its interval. Functional: one tenure, one mode. Commitment tenure is carried by the Commitment relator's own temporal scope (relators are time-indexed by construction); the tenure class exists for the intrinsic modes, whose adoption and abandonment would otherwise be invisible."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
-# Flat-first/reify-on-demand pairings, machine-usable (#325).
+# Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:hasGoal gmeow:pairsWith gmeow:IntentionTenure .

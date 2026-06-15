@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: data quality IS a measurement (#443). A gmeow:QualityAssessment
+# Worked example: data quality IS a measurement. A gmeow:QualityAssessment
 # is a gmeow:Observation subclass, so a completeness assessment carries the SAME
 # bundle as any other measurement: gmeow:assessedEntity (the feature, a sub-
 # property of observedFeature), a gmeow:qualityDimension naming WHICH quality, a

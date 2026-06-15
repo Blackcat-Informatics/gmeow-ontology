@@ -6,7 +6,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 
-# Term equivalences for the universal identity/coreference layer (#74).
+# Term equivalences for the universal identity/coreference layer (authority/coreference links).
 # Instance coreference is asserted in data with gmeow:authorityLink plus
 # skos:exactMatch/closeMatch; projections may downcast exact matches to target
 # identity URL properties. No row here licenses owl:sameAs merging.
@@ -66,5 +66,5 @@ gmeow:eqCoreference006 a gmeow:TermEquivalence ;
     gmeow:alignObject mads:hasCloseExternalAuthority ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "both relate a local description to a close external authority record, by reference (#34 phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role." ;
+    gmeow:comment "both relate a local description to a close external authority record, by reference (PROV activity alignment phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role.";
     gmeow:sssomFile "gmeow-coreference.sssom.tsv" .

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: the kernel disclosure machinery (#443, P10/P12). Any entity can
+# Worked example: the kernel disclosure machinery (Principles 10 and 12). Any entity can
 # declare HOW SENSITIVE it is (gmeow:hasSensitivity), the POLICY governing its
 # release (gmeow:hasDisclosurePolicy), and WHICH CONSUMERS are eligible to receive
 # it (gmeow:eligibleForConsumer → a ProjectionContext). This is the projection/

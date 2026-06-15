@@ -15,7 +15,7 @@ constructs are deliberately universal: transit lines, network paths, citation ch
 social paths, and dependency chains are all the same machinery with a different
 `RouteKind` value (Principle 9 — kinds are data, not subclasses). Path geometry,
 ordering, and cost are computed by the solver layer (Principle 12), never asserted as
-triples. The slice is part of the issue #42 Location-as-reference-frame epic.
+triples. The slice is part of the the design Location-as-reference-frame design.
 
 Its Principle-15 consumer, declared in the manifest: **network/route topology for places
 and the virtual-location realm** — the graph the solver walks when it answers "how do I
@@ -68,7 +68,7 @@ and software.
 
 ### gmeow:routeKindAccessible
 
-The bridge value for the accessibility slice (issue #287 surgery): a route *computed* to
+The bridge value for the accessibility slice (slice-dependency doctrine refactor): a route *computed* to
 satisfy a set of `hasAccessibilityNeed` facets. The value individual lives here, beside
 its value class, keeping accessibility and connectivity mutually independent sibling
 extensions — the vocabulary stays open (Principle 9) and neither slice imports the other.
@@ -89,7 +89,7 @@ through it — the entry point for "what lines serve this station" queries.
 
 ### gmeow:referenceFrameNetworkGraph
 
-A seeded `ReferenceFrame` (issue #80): virtual realm, one scalar axis, crisp determinacy,
+A seeded `ReferenceFrame` (connectivity spine): virtual realm, one scalar axis, crisp determinacy,
 metric `metricGraphHops`. Network distance is frame-relative like every other value —
 "3 hops" names its frame just as "3 km" names a spatial one. Virtual locations measure
 their distances here.

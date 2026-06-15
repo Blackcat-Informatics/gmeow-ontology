@@ -18,7 +18,7 @@ reference (Principle 5).
 This slice is the **Claim** end of the claim spine (Source → Chunk → EvidenceSpan → Claim,
 Principle 14): an LLM output, a sensor reading, and a census entry are all observations —
 stored with a vantage, never adjudicated by rank. The slice is also home to the universal
-Quantity/MeasuredValue construct (issue #77): every scalar value travels as a
+Quantity/MeasuredValue construct (ScalarQuantity alias precedent): every scalar value travels as a
 value × unit/frame × determinacy × provenance bundle, never a bare literal.
 
 ## The core relator
@@ -48,7 +48,7 @@ job, not the open ontology's.
 ### gmeow:observationResult · gmeow:isResultOf
 
 The entity-valued result (a coordinate set, an instant, a quantity) and its inverse — the
-explicit provenance leg of the issue #77 bundle. Uniformly entity-valued: scalar literals
+explicit provenance leg of the ScalarQuantity alias precedent bundle. Uniformly entity-valued: scalar literals
 live on a `ScalarQuantity`, never directly on the observation. Non-functional: one
 observation may yield results in several frames; one consensus result may flow from many
 observations. A property chain (`isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame`)
@@ -72,7 +72,7 @@ falsehood doctrine builds on.
 
 ### gmeow:facetSubject · gmeow:facetVantage
 
-The issue #69 bridge idiom: domain relators (IdentityFacet, NameUsage, RightsStatement,
+The observation-spine bridge bridge idiom: domain relators (IdentityFacet, NameUsage, RightsStatement,
 VersionMembership) plug their role properties into the core roles via `rdfs:subPropertyOf`
 (`facetSubject ⊑ observedFeature`, `facetVantage ⊑ vantage`, likewise `usageNamer`,
 `usageAppellation`, `statementAbout`, `membershipAuthority`). A generic consumer asks "all
@@ -84,7 +84,7 @@ person themselves — self-assertion is top authority (Principle 9).
 
 ### gmeow:Stream
 
-A time-ordered observation sequence (issue #96) — `streamOf` exactly one tracked entity,
+A time-ordered observation sequence (stream-to-trajectory design) — `streamOf` exactly one tracked entity,
 composed via `streamSample`, hosted on a `streamPlatform`, produced by a `streamSensor`
 over a `streamInterval`. Ordering is implicit in sample timestamps, never an asserted list
 (Principle 12); deriving a continuous trajectory from the stream is the solver's job.
@@ -99,7 +99,7 @@ one shape.
 
 ### gmeow:MonetaryAmount
 
-Promoted to core in the issue #287 dependency surgery: money is frame-relative quantity
+Promoted to core in the dependency refactor: money is frame-relative quantity
 machinery, not finance-domain. `gmeow:monetaryValue` carries the decimal;
 `gmeow:currency` (⊑ `hasReferenceFrame`, functional) names the currency frame — a value
 without its currency is ill-formed (Principle 11). Canonical superset of
@@ -117,4 +117,4 @@ erasure (Principle 10).
 
 Depends on `kernel`, `entities`, `events`, `names`, `places`, and `temporal`. Consumed by
 every slice that measures, claims, or senses anything — which is to say, by every slice;
-the AI claim layer (issue #54) is its flagship consumer.
+the AI claim layer (GraphRAG provenance design) is its flagship consumer.

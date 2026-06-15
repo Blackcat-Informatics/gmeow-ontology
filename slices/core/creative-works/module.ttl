@@ -30,14 +30,14 @@ DOCTRINE.
   * No primary/privileged title or edition (Principle 9); suppressed titles and
     withdrawn standpoints use gmeow:displayable false (Principle 10).
   * Complex lineage (translations-as-versions, collected volumes, withdrawn
-    releases) reuses the generic VersionSet / VersionMembership machinery (#161)."""@x-gmeow-english ;
+    releases) reuses the generic VersionSet / VersionMembership machinery."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # CORE CLASSES — the WEMI spine
 # =========================================================================== #
 # gmeow:CreativeWork is defined in documents.ttl (the original home) and
-# promoted to a gufo:Category by the #208 refactor. It is NOT redeclared here
+# promoted to a gufo:Category by the WEMI spine refactor. It is NOT redeclared here
 # to avoid duplicate-definition drift (Principle 4).
 
 gmeow:Work
@@ -332,9 +332,9 @@ gmeow:roleCoverArtist         a gmeow:ContributionRole ; rdfs:label "cover artis
 gmeow:roleCoverArtist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:roleLetterer            a gmeow:ContributionRole ; rdfs:label "letterer"@x-gmeow-english ;            skos:definition "An agent who lettered or calligraphed text in a visual work."@x-gmeow-english .
 gmeow:roleLetterer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
-gmeow:rolePublisher           a gmeow:ContributionRole ; rdfs:label "publisher"@x-gmeow-english ;           skos:definition "An agent who published a work — issued and disseminated a manifestation (#411). Projects to schema:publisher via the Contribution pattern."@x-gmeow-english .
+gmeow:rolePublisher a gmeow:ContributionRole; rdfs:label "publisher"@x-gmeow-english; skos:definition "An agent who published a work — issued and disseminated a manifestation. Projects to schema:publisher via the Contribution pattern."@x-gmeow-english.
 gmeow:rolePublisher rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
-gmeow:roleInventor            a gmeow:ContributionRole ; rdfs:label "inventor"@x-gmeow-english ;            skos:definition "An agent who invented the subject of a patent (#413). Projects to schema:inventor via the Contribution pattern."@x-gmeow-english .
+gmeow:roleInventor a gmeow:ContributionRole; rdfs:label "inventor"@x-gmeow-english; skos:definition "An agent who invented the subject of a patent (project homepage and language). Projects to schema:inventor via the Contribution pattern."@x-gmeow-english.
 gmeow:roleInventor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:roleLLMAssistedEditor   a gmeow:ContributionRole ; rdfs:label "LLM-assisted editor"@x-gmeow-english ; skos:definition "An agent who edited with substantial assistance from a large language model."@x-gmeow-english .
 
@@ -422,7 +422,7 @@ gmeow:mediumOpticalDisc a gmeow:CarrierMedium ; rdfs:label "optical disc"@x-gmeo
 gmeow:mediumOpticalDisc rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 gmeow:mediumServerObject a gmeow:CarrierMedium ; rdfs:label "server object"@x-gmeow-english ; skos:definition "A digital object stored on a server."@x-gmeow-english .
 
-# --- DC relation family (issue #60) ---------------------------------------- #
+# --- DC relation family ---------------------------------------- #
 gmeow:mediumServerObject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:requires
@@ -459,7 +459,7 @@ gmeow:conformsTo
     skos:definition "An established standard to which the described resource conforms."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
-# --- DC medium & audience (issue #60) -------------------------------------- #
+# --- DC medium & audience -------------------------------------- #
 
 gmeow:medium
     a owl:ObjectProperty ;
@@ -478,7 +478,7 @@ gmeow:audience
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
-# MUSIC UNIVERSALS — core touch-points for the #306 Music EPIC
+# MUSIC UNIVERSALS — core touch-points for the music design
 # =========================================================================== #
 # These terms are deliberately authored in the core creative-works slice because
 # they are cross-cutting WEMI specializations and derivation/genre machinery

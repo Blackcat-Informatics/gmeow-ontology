@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: ingest lineage on the PROV triad (#443). A machine-generated
+# Worked example: ingest lineage on the PROV triad. A machine-generated
 # summary records WHERE it came from (gmeow:wasDerivedFrom → the source), HOW it
 # was produced (gmeow:wasGeneratedBy → an Activity), and WHO ran it
 # (gmeow:wasAttributedTo → an Agent). The importer is a gmeow:SoftwareAgent that

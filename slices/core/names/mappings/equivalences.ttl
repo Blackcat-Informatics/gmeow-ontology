@@ -296,7 +296,7 @@ gmeow:eqNames033 a gmeow:TermEquivalence ;
     gmeow:comment "Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence" ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
 
-# Place naming (issue #105). A place's toponyms are co-equal gmeow:PlaceName
+# Place naming (place-naming design). A place's toponyms are co-equal gmeow:PlaceName
 # appellations borne via gmeow:hasPlaceName; the time/audience/authority-scoped use
 # is the DEFINED gmeow:PlaceNaming (≡ NameUsage ⊓ ∃usageNamed.Place). gmeow:PlaceName
 # is CIDOC-CRM's E48 Place Name; the relator itself, like gmeow:NameUsage, has no
@@ -402,7 +402,7 @@ gmeow:eqNames044 a gmeow:TermEquivalence ;
     gmeow:comment "GMEOW fullName close-matches OntoLex writtenRep" ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
 
-# Cross-cutting multilingual labels — issue #97. New bearer properties bridge to
+# Cross-cutting multilingual labels — multilingual-label design. New bearer properties bridge to
 # flat surface-vocabulary name/title literals by projection (Principle 5).
 
 gmeow:eqNames045 a gmeow:TermEquivalence ;

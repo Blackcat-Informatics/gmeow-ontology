@@ -15,7 +15,7 @@
 @prefix iptc:     <http://iptc.org/std/NewsML-G2/> .
 @prefix bbc:      <http://www.bbc.co.uk/ontologies/news/> .
 
-# Term equivalences for the standpoint / contested-claims facility (#43) — GMEOW
+# Term equivalences for the standpoint / contested-claims facility (standpoint facility) — GMEOW
 # authoring source. Compiled to mappings/gmeow-standpoint.sssom.tsv by
 # `gmeow compile-mappings`. All alignments are BY REFERENCE (Principle 5); GMEOW
 # never imports an external axiom. The facility realises the formal Standpoint
@@ -28,7 +28,7 @@ gmeow:mapsetStandpoint a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     # Authored multi-line for readability; the compiler collapses whitespace so the
     # SSSOM TSV header carries it on a single line (compile-check verifies no drift).
-    gmeow:setComment """Standpoint / contested-claims alignments (#43).
+    gmeow:setComment """Standpoint / contested-claims alignments (standpoint facility).
         FORMAL GROUNDING: gmeow:accordingTo is the axiom-level standpoint label of Standpoint Logic (Gómez Álvarez & Rudolph — Standpoint EL, IJCAI 2023; Standpoint-OWL 2, arXiv:2305.00559; Monodic-S5 over OWL 2 DL, KR 2025); gmeow:standpointModality unequivocal/conceivable are the box/diamond operators; gmeow:sharpens is the standpoint subset/precisification relation; gmeow:universalStandpoint is the universal standpoint *.
         The Standpoint-OWL 2 standpointLabel encoding is GENERATED as a lossless projection (queries/projections/standpoint-owl2.rq) — Box=□ unequivocal, Diamond=◊ conceivable, name=* universal — so an off-the-shelf standpoint reasoner (cl-tud/standpoint-owl2 → HermiT) can run per-/cross-standpoint consistency over GMEOW's full multi-perspective graph.
         ORTHOGONALITY: gmeow:accordingTo (whose frame) is distinct from prov:wasAttributedTo (which source recorded it — relatedMatch only, never closeMatch) and gmeow:confidence (how sure we are).
@@ -178,7 +178,7 @@ gmeow:eqStandpoint013 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Issue #127 — StandpointClaim as Observation specialization (deepenings + new)
+# StandpointTenure observation design — StandpointClaim as Observation specialization (deepenings + new)
 # --------------------------------------------------------------------------- #
 
 # IAO (Information Artifact Ontology) — a StandpointClaim is an assertion.
@@ -267,7 +267,7 @@ gmeow:eqStandpoint022 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
-# Issue #213 — bullshit modality (Frankfurt) as a fifth StandpointModality value.
+# the design — bullshit modality (Frankfurt) as a fifth StandpointModality value.
 # CRMinf I6_Belief_Value spans true/probable/possible/false; GMEOW adds bullshit.
 # --------------------------------------------------------------------------- #
 

@@ -12,7 +12,7 @@ stratigraphic / find context, and the linguistic interpretation must remain
 This guide explains the language-facing hooks that connect GMEOW's lexicon,
 attestation, and etymology layers to archaeological and cultural-heritage evidence.
 General archaeological domain modeling (excavation units, stratigraphic interfaces,
-artifact typology) is deferred to #129.
+artifact typology) is deferred to archaeological-domain model.
 
 ---
 

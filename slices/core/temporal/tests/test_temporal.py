@@ -100,7 +100,7 @@ def test_time_interval_can_have_temporal_frame() -> None:
 
 
 def test_temporal_measurement_is_gufo_relator() -> None:
-    # #124 — TemporalMeasurement re-parented under Observation/Measurement.
+    # — TemporalMeasurement re-parented under Observation/Measurement.
     graph = _graph()
     assert (
         URIRef(GMEOW + "TemporalMeasurement"),

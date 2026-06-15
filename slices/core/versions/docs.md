@@ -97,25 +97,25 @@ ex:memDeprecated a gmeow:VersionMembership ;
     gmeow:displayable false .
 ```
 
-## Separation from attestation layer (#162)
+## Separation from attestation layer (attestation layer)
 
 `VersionMembership` records **what role is asserted** and **by whom**.
 It does **not** embed the cryptographic or signed evidence for that assertion.
 
 Attestation evidence — release signatures, SLSA provenance, DOI/SWHID
 assertions, yanked-release notices, registry attestations — belongs in the
-future #162 attestation layer and **composes with** `VersionMembership` by
+future attestation layer attestation layer and **composes with** `VersionMembership` by
 linking evidence to the same artifacts. A version role may be *attested by* a
 registry, but the attestation is evidence **for** the role claim, not the role
 itself.
 
 ```turtle
-# #161: the role claim
+# version-set layer: the role claim
 ex:memLatest a gmeow:VersionMembership ;
     gmeow:versionRole gmeow:roleLatest ;
     gmeow:membershipAuthority ex:npmRegistry .
 
-# #162: the attestation evidence
+# attestation layer: the attestation evidence
 ex:sig a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/vnd.dsse+json" ;
     gmeow:hasSignature [ a gmeow:CryptographicSignature ] ;

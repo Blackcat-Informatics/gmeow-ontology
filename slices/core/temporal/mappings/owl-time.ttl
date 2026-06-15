@@ -131,7 +131,7 @@ gmeow:mapTimeCoincidesWith a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "coincidesWithA" ; gmeow:tPred time:intervalEquals ; gmeow:tObj "coincidesWithB" ] ) ] .
 
 # =========================================================================== #
-# Interval-level Allen relations (#67) — project from TimeInterval to OWL-Time
+# Interval-level Allen relations — project from TimeInterval to OWL-Time
 # =========================================================================== #
 
 gmeow:mapIntervalBefore a gmeow:ProjectionMapping ;
@@ -251,7 +251,7 @@ gmeow:mapIntervalCoincidesWith a gmeow:ProjectionMapping ;
         gmeow:profile "owl-time" ; gmeow:relation "<=" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intCoincidesA" ; gmeow:tPred time:intervalEquals ; gmeow:tObj "intCoincidesB" ] ) ] .
 
-# --- Interval boundary flattening (#34 phase 3): the typed interval's
+# --- Interval boundary flattening (PROV activity alignment phase 3): the typed interval's
 # datetime boundaries emit as OWL-Time's structural idiom — a MINTED
 # time:Instant per boundary, carrying time:inXSDDateTime. The interval node
 # is REUSED (it is the gmeow:TimeInterval); only the boundary instants are

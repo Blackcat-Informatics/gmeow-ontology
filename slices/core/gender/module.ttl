@@ -28,7 +28,7 @@ gmeow:IdentityFacet
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Identity Facet"@x-gmeow-english ;
-    skos:definition "A reified, SELF-ASSERTED claim about an aspect of a person's identity — an observation in the universal claim stack (#69): gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person (facetSubject / observedFeature) and an open identity value. A gufo:Relator and a gmeow:Observation, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet."@x-gmeow-english ;
+    skos:definition "A reified, SELF-ASSERTED claim about an aspect of a person's identity — an observation in the universal claim stack (observation-spine bridge): gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person (facetSubject / observedFeature) and an open identity value. A gufo:Relator and a gmeow:Observation, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:selfAsserted
@@ -225,14 +225,14 @@ gmeow:saabUnknown  a gmeow:SexAssignedAtBirth ; rdfs:label "unknown / not record
 gmeow:saabUnknown skos:definition "The unknown sex assigned at birth — a category used to record sex assigned to a person at birth."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine — phase 2 of the reasoning-depth design context)
 #
 # The orthogonality matrix (Principle 9) and relator well-formedness, until now
 # guarded only by Python tests over the ASSERTED graph, are made reasoner
 # THEOREMS here. Every axiom is OWL 2 EL (DisjointClasses, someValuesFrom) so the
 # fast ELK pre-check acts on them and HermiT is the complete gate; OWL 2 DL is
 # preserved. Closed-world relata CARDINALITY ("exactly one value per facet") is
-# deliberately left to SHACL (phase 3 / #39), not asserted as OWL cardinality.
+# deliberately left to SHACL (phase 3 / SHACL closure gate), not asserted as OWL cardinality.
 # =========================================================================== #
 
 # --- Orthogonality as a theorem: the seven identity axes are pairwise disjoint.
@@ -263,7 +263,7 @@ gmeow:saabUnknown skos:definition "The unknown sex assigned at birth — a categ
 # a subject (the person) and a vantage (the asserting agent), and each concrete
 # facet mediates its value. This documents the relator's relata FOR THE REASONER;
 # it asserts existence under the open-world assumption, not a violation — the
-# closed-world "exactly one" lives in SHACL (#39).
+# closed-world "exactly one" lives in SHACL (SHACL closure gate).
 gmeow:IdentityFacet rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:facetSubject ; owl:someValuesFrom gmeow:Person ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:facetVantage ; owl:someValuesFrom gmeow:Agent ] .

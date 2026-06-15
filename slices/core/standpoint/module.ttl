@@ -143,7 +143,7 @@ gmeow:tenurePosition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
 
 # --------------------------------------------------------------------------- #
-# StandpointClaim integration — the tenure generates an Observation (#127).
+# StandpointClaim integration — the tenure generates an Observation (StandpointTenure observation design).
 # --------------------------------------------------------------------------- #
 
 gmeow:standpointClaim
@@ -163,10 +163,10 @@ gmeow:claimModality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE (#38) — relator / situation mediation. A standpoint
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — relator / situation mediation. A standpoint
 # tenure mediates at least one standpoint (EL someValuesFrom, open-world);
 # closed-world "exactly one" is SHACL's (gmeow:StandpointTenureShape).
-# Added (#127): a StandpointTenure generates at least one StandpointClaim.
+# Added (StandpointTenure observation design): a StandpointTenure generates at least one StandpointClaim.
 # =========================================================================== #
 
 gmeow:StandpointTenure rdfs:subClassOf

@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:sliceConsumer "Scheduling atop events: the mail corpus's invitations (#139), the >25%-usage floor (named in #287)."@x-gmeow-english .
+    gmeow:sliceConsumer "Scheduling atop events: the mail corpus's invitations (mail-corpus invitation consumer), the >25%-usage floor (named in slice-dependency doctrine)."@x-gmeow-english.

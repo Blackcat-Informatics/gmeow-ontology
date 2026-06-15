@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: the WEMI spine (#208, #443). One abstract Work is realized by
+# Worked example: the WEMI spine (WEMI spine, ). One abstract Work is realized by
 # Expressions (the original text and a translation — distinct intellectual
 # realizations of the same work), each embodied by Manifestations (the hardback
 # and the ebook of the English text), each exemplified by Items (a specific

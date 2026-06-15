@@ -9,23 +9,23 @@
 <https://blackcatinformatics.ca/gmeow/slices/affect>
     a owl:Ontology ;
     rdfs:label "GMEOW Affect Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Affect Module — emotions as intrinsic modes and appraisals as vantage-indexed observations (issue #356, EPIC #348). DELIBERATELY THIN."@x-gmeow-english ;
+    skos:definition "The GMEOW Affect Module — emotions as intrinsic modes and appraisals as vantage-indexed observations. DELIBERATELY THIN."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:comment """Emotions and appraisals — the thinnest slice in the repo, by commitment.
 
 DOCTRINE.
   * THIN MEANS THIN (Principle 15 discipline): this slice ships the minimum its named consumers require and STOPS. Growth requires a new consumer, not modeling pleasure; docs.md records the size budget and what demand would justify expansion (a sensory-environment or narrative consumer).
-  * An Emotion is an intrinsic mode inhering in one agent (the Desire/Intention pattern, #350). Episodic scope rides validFrom/validUntil on the statement — NO tenure class here (thin means thin); promote to the StandpointTenure idiom only if a consumer ever demands it.
+  * An Emotion is an intrinsic mode inhering in one agent (the Desire/Intention pattern, teleology design). Episodic scope rides validFrom/validUntil on the statement — NO tenure class here (thin means thin); promote to the StandpointTenure idiom only if a consumer ever demands it.
   * EmotionType is an OPEN vocabulary seeded from the EmotionML standard sets (Plutchik's primary eight); registry-independent, contestable, never a tree (the Genre/Register precedent).
   * APPRAISALS ARE OBSERVATIONS: dimensional readings (PAD: valence, arousal, dominance) and qualitative aesthetic judgements (elegance, sublimity, kitsch — open) are vantage-indexed cells. Two critics disagreeing are two cells (Principle 9). Attributed emotion vs self-report is the vantage axis too: self-report is top authority for the subject's own standpoint (the facetVantage precedent) — docs, no new machinery.
-  * ALIGNMENTS DEFERRED to the compiler-arc window: MFOEM (linkage-only, BFO lineage), EmotionML vocabularies, WordNet-Affect; W3C EmotionML projection with declared loss (vantage collapses to EmotionML's single-annotator model — flagged). Target list fixed in #356."""@x-gmeow-english ;
+  * ALIGNMENTS DEFERRED to the compiler-arc window: MFOEM (linkage-only, BFO lineage), EmotionML vocabularies, WordNet-Affect; W3C EmotionML projection with declared loss (vantage collapses to EmotionML's single-annotator model — flagged). Target list fixed in."""@x-gmeow-english;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Emotion
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:IntrinsicMode ;
     rdfs:label "Emotion"@x-gmeow-english ;
-    skos:definition "An emotion as an intrinsic mode inhering in one agent (the Desire/Intention grounding, #350). Episodic temporal scope rides validFrom/validUntil on the statement — deliberately no tenure class (thin means thin). Whether an emotion is self-reported or attributed is the vantage axis of the claims about it; self-report is top authority for the subject's own standpoint."@x-gmeow-english ;
+    skos:definition "An emotion as an intrinsic mode inhering in one agent (the Desire/Intention grounding, teleology design). Episodic temporal scope rides validFrom/validUntil on the statement — deliberately no tenure class (thin means thin). Whether an emotion is self-reported or attributed is the vantage axis of the claims about it; self-report is top authority for the subject's own standpoint."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> .
 
 gmeow:emotionBearer
@@ -92,7 +92,7 @@ gmeow:appraisalOf
     rdfs:subPropertyOf gmeow:observedFeature ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:label "appraisal of"@x-gmeow-english ;
-    skos:definition "What is appraised — an agent's state, a work, an event, an emotion (⊑ observedFeature, the #69 bridge idiom). Range intentionally open. Functional: one appraisal, one subject."@x-gmeow-english ;
+    skos:definition "What is appraised — an agent's state, a work, an event, an emotion (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one appraisal, one subject."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> .
 
 gmeow:AppraisalDimension

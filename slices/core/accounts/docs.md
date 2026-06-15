@@ -105,7 +105,7 @@ Depends only on `kernel` — accounts sit near the bottom of the core stack so t
 cycles. Consumers: the mail corpus, email delivery, and finance (Principle 15, named in the
 manifest).
 
-## Online-presence history (#417, #411)
+## Online-presence history
 
 ### gmeow:OnlineService · gmeow:accountService · gmeow:accountServiceHomepage · gmeow:serviceShutdownDate · gmeow:serviceStatus
 

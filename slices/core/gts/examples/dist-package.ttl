@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Worked example (#332): a two-segment GTS distribution package described
+# Worked example: a two-segment GTS distribution package described
 # in GMEOW's own transport vocabulary — the dogfood loop closed. Validates
 # in `make validate` against the merged ontology + SHACL (the segment
 # shapes demand the composite-identity parts: head, index, profile).

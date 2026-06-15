@@ -12,7 +12,7 @@ crypto wallets. It is grounded in the existing GMEOW substrate (`Event`,
 (FIBO, ISO 20022, schema.org, FIGI, OFX) **by reference, never imported**
 (Principle 5).
 
-This document covers **all phases** (A–D) of issue #64.
+This document covers **all phases** (A–D) of the design.
 
 ## Design principles
 
@@ -143,11 +143,11 @@ is `skos:exactMatch` to the corresponding FIBO `ISO4217-CurrencyCodes` individua
 
 - **Phase A** (merged): `FinancialAccount`, `MonetaryAmount`, currency vocabulary,
   basic mappings, SHACL, tests.
-- **Phase B** (this PR): `FinancialTransaction`, `LedgerAccount`, `JournalEntry`,
+- **Phase B**: `FinancialTransaction`, `LedgerAccount`, `JournalEntry`,
   `Posting`, double-entry SHACL, transaction/ledger/posting mappings.
-- **Phase C** (this PR): `Payment`, `Invoice` (⊑ `Document`), `Order`, `Asset`,
+- **Phase C**: `Payment`, `Invoice` (⊑ `Document`), `Order`, `Asset`,
   `Holding` (⊑ `gufo:Relator`), invoice/order/asset/holding mappings.
-- **Phase D** (this PR): `CryptoWallet`, schema.org / OFX / ISO 20022 / ledger-CLI
+- **Phase D**: `CryptoWallet`, schema.org / OFX / ISO 20022 / ledger-CLI
   projections, crypto mappings.
 
 ## Constitution principles

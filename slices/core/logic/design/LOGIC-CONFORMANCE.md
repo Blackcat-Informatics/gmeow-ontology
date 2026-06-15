@@ -15,7 +15,7 @@
 The Python oracle and the Rust core — and any future port — certify against **one shared,
 language-neutral corpus of cases**: static files, not re-derived assertions. This is the contract that
 lets the slow, correct reference and the fast Rust engine coexist and *provably agree* (Principle 7),
-exactly as issue #277 promotes the GTS §18 vectors into a `conformance/` directory so any
+exactly as GTS conformance design promotes the GTS §18 vectors into a `conformance/` directory so any
 implementation certifies against the same files. The reasoning corpus is that contract for `logic:`,
 and it is the **executable specification of the design's hardest invariants** — no engine can drift
 from them without a red build.

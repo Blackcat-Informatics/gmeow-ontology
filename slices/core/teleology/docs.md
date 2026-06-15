@@ -6,7 +6,7 @@
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/teleology` · **tier: core**
 
 Goals, desires, intentions, and commitments — the UFO-C intentional-moment
-trichotomy surfaced as GMEOW core (#350, EPIC #348). Core by Principle 16
+trichotomy surfaced as GMEOW core (the teleology design). Core by Principle 16
 commitment: an agent recording *its own* goals across sessions is a question
 every AI system will face about itself, alongside identity and deception
 epistemics.
@@ -22,7 +22,7 @@ epistemics.
 All three sit under the named umbrella **`gmeow:IntentionalMoment`** (UFO-C's
 intentional moment), which exists so `intentionGoal` and `motivates` carry a
 generator-visible domain — anonymous union domains vanish from the LinkML /
-GraphQL / TypeScript surface (PR #366 review). All three aim at exactly one
+GraphQL / TypeScript surface (GraphQL / TypeScript surface review). All three aim at exactly one
 **`gmeow:Goal`** (`intentionGoal`) — the
 propositional content, a `SocialObject` describing a state of affairs,
 satisfied by situations (`satisfiedBy`, vantage-indexed satisfaction). DOLCE
@@ -30,7 +30,7 @@ DnS arrives at the same description-satisfied-by-situations shape
 independently; IAO's *objective specification* is the BFO-world counterpart.
 Both are alignment targets (linkage-grade, never imported axioms), deferred
 with the rest of the alignment set to keep this landing pure-ontology — the
-target list is fixed in #350: PROV `Plan`/`hadPlan`, P-Plan, FIBO FND-GAO,
+target list is fixed in the alignment ledger: PROV `Plan`/`hadPlan`, P-Plan, FIBO FND-GAO,
 IAO, SUMO `desires`/`intends`, CCO `Objective`, CRM P20/P21,
 ConceptNet/ATOMIC; Wikidata goal **Q4503831** (verified 2026-06-11).
 
@@ -49,5 +49,5 @@ ConceptNet/ATOMIC; Wikidata goal **Q4503831** (verified 2026-06-11).
   of interest. Revision by suppression, never deletion (Principle 10).
 - **Solver boundary** (Principle 12): goal decomposition, planning, and
   means–end reasoning are never triples.
-- **Deontic force lives in the norms extension (#351)**, which ranges
+- **Deontic force lives in the norms extension**, which ranges
   `prescribedConduct` over `Goal` — dependency points extension → core only.

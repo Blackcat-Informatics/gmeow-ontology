@@ -144,10 +144,3 @@ ex:claimB a gmeow:StandpointClaim ;
 | **MathML / OpenMath** | `NotationSystem` (mathematical) → math element container | Notation metadata, standpoint, temporal scope |
 | **MusicXML / MEI** | `NotationSystem` (musical) → score container | Usage relator, confidence, standpoint |
 | **MIDI** | `NotationSystem` (musical) → track/sequence | Human-readable notation semantics |
-
-## Related work
-
-- Parent epic: #169
-- Lexical items and forms: #171
-- Mathematical realm / OpenMath: #86
-- Maximal projections: #98

@@ -1,4 +1,4 @@
-"""Musical-structure layer guards (issue #311).
+"""Musical-structure layer guards (structure graph).
 
 Principles 4, 8, 9, 11, 12, 16.
 """

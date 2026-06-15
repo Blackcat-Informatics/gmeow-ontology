@@ -203,7 +203,7 @@ the budget and the fragment. Because `logic:` is open-world, paraconsistent, and
 budget exhaustion is a normal state, not a crash: the query returns the answers and witnesses found
 so far plus an explicit incompleteness marker, and unprovable-within-budget is **not** false.
 
-OWL 2 DL is decidable but N2EXPTIME-complete, and HermiT's ~15-minute cliff (#433) is the everyday
+OWL 2 DL is decidable but N2EXPTIME-complete, and HermiT's ~15-minute cliff (reasoner timeout gate) is the everyday
 face of "decidable but intractable." `logic:` does not hide that cost behind a silent timeout; it
 makes the decidability class, the fragment certification, and the budget boundary explicit,
 machine-readable, and tested.

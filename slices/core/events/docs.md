@@ -64,7 +64,7 @@ roles (non-functional, mirroring eventType — competing role claims coexist via
 ### gmeow:hasParticipant
 
 The flat 80 %-case shortcut, Event → Agent. `gmeow:pairsWith gmeow:Participation`
-(machine-readable, issue #325): promote the moment role, period, confidence, or
+(machine-readable, documentation doctrine): promote the moment role, period, confidence, or
 evidence must be recorded — the hasMet/InterpersonalRelationship duality.
 
 ### gmeow:ParticipantRole
@@ -129,7 +129,7 @@ are ISO-TimeML annotation-layer only — about the mention in text, never the oc
 
 ### gmeow:ObservationalActivity · gmeow:generatedObservation
 
-The seam to the observation stack (issue #128): an activity whose purpose is producing
+The seam to the observation stack (observation-linkage design): an activity whose purpose is producing
 observations — survey, census activity, excavation, audit, clinical trial (all type
 values). A property chain associates the activity with the vantage of its
 observations; the inverse rides `gmeow:wasGeneratedBy`, deliberately not declared
