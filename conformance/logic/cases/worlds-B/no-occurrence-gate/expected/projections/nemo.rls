@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-B/no-occurrence-gate/EventType>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n03797ddbc7d64f90889b2280ca55f8eeb2>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n03797ddbc7d64f90889b2280ca55f8eeb3>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n03797ddbc7d64f90889b2280ca55f8eeb1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n5914af6a0aa54fb593d6f7f45b1f4461b2>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n5914af6a0aa54fb593d6f7f45b1f4461b3>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n5914af6a0aa54fb593d6f7f45b1f4461b1>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, "default").
 
 % === Rules ===
 #[name("https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation")]
-<https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?A, ?C, ?C) :-
+<https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?A, ?C, ?C0) :-
     <https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?A, ?B, ?C0),
     <https://example.org/worlds-B/no-occurrence-gate/typeCauses>(?B, ?C, ?C1) .

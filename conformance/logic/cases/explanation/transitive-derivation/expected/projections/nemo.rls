@@ -6,13 +6,13 @@
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/explanation/transitive-derivation/B>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/explanation/transitive-derivation/C>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <n35d2762434de46c6af5f44f216c0ea5fb2>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <n35d2762434de46c6af5f44f216c0ea5fb3>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <n35d2762434de46c6af5f44f216c0ea5fb1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <n63c4426dc8f14839a8fd27753ef50a52b2>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <n63c4426dc8f14839a8fd27753ef50a52b3>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <n63c4426dc8f14839a8fd27753ef50a52b1>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, <https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf>, "default").
 
 % === Rules ===
 #[name("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf")]
-<https://example.org/explanation/transitive-derivation/subOf>(?X, ?Z, ?C) :-
+<https://example.org/explanation/transitive-derivation/subOf>(?X, ?Z, ?C0) :-
     <https://example.org/explanation/transitive-derivation/subOf>(?X, ?Y, ?C0),
     <https://example.org/explanation/transitive-derivation/subOf>(?Y, ?Z, ?C1) .

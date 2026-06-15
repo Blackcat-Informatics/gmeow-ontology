@@ -1267,11 +1267,21 @@ def project_nemo(
 
         if body_parts:
             body_str = ",\n    ".join(body_parts)
-            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C) :-")
+            # Use ?C0 (the first body atom's context variable) in the rule head so
+            # the derived quad stays in the same world as its first antecedent.
+            # This satisfies Nemo's safety constraint (every head variable must
+            # appear at a safe position in the body) while preserving the
+            # world-indexed semantics: a derived fact lives in the world of the
+            # triggering EDB fact.
+            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C0) :-")
             lines.append(f"    {body_str} .")
         else:
-            # Zero-body rule: emit as a ground fact (no :- needed)
-            lines.append(f"{head_pred}({head_subj_nemo}, {head_obj_nemo}, ?C).")
+            # Zero-body rule: head-only (ground fact, no context variable needed).
+            # Emit as a ground fact with a "default" context constant — a rule
+            # with a head variable but no body is always unsafe in Nemo.
+            lines.append(
+                f'{head_pred}({head_subj_nemo}, {head_obj_nemo}, "default").'
+            )
 
     content = "\n".join(lines) + "\n"
     if path is not None:
