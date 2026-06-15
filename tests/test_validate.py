@@ -10,6 +10,9 @@ from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.validate import (
+    ValidationResult,
+    _read_cached_result,
+    _write_cached_result,
     check_sameas_ban,
     check_syntax,
     structural_lint,
@@ -24,6 +27,26 @@ def test_check_syntax_on_sources() -> None:
 def test_validate_all_passes_on_skeleton() -> None:
     # Full pure-Python validation (syntax + lint + SHACL) over the real sources.
     assert validate_all().ok
+
+
+def test_cached_validation_result_write_replaces_cleanly(tmp_path: Path) -> None:
+    path = tmp_path / "result.json"
+
+    _write_cached_result(path, ValidationResult(errors=["old"], warnings=[]))
+    _write_cached_result(path, ValidationResult(errors=[], warnings=["new"]))
+
+    cached = _read_cached_result(path)
+    assert cached is not None
+    assert cached.errors == []
+    assert cached.warnings == ["new"]
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_cached_validation_result_ignores_non_object_payload(tmp_path: Path) -> None:
+    path = tmp_path / "result.json"
+    path.write_text("[]", encoding="utf-8")
+
+    assert _read_cached_result(path) is None
 
 
 def test_structural_lint_flags_missing_annotations() -> None:
