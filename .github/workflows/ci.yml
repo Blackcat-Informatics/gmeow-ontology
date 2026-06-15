@@ -60,9 +60,29 @@ jobs:
       - name: Type-check (mypy)
         run: uv run mypy
 
+      # Build the gmeow_logic PyO3 extension into the same venv so that the
+      # AC2/AC4 tests in test_logic_engine.py cannot silently skip in CI.
+      # VIRTUAL_ENV tells maturin develop which interpreter to target without
+      # activating the shell; uv sync above has already created .venv.
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install gmeow_logic extension (AC2 / AC4)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
+
+      - name: gmeow_logic extension imports (AC2/AC4 are now un-skippable)
+        run: uv run python -c "import gmeow_logic; print('gmeow_logic at', gmeow_logic.__file__)"
+
       # Pure-Python tests only. Docker-backed checks run through explicit
       # gmeow/Make lanes in parallel jobs below, not through pytest. Network
       # tests are auto-skipped (conftest) unless GMEOW_RUN_NETWORK=1.
+      # test_logic_engine.py runs here: the gmeow_logic extension above ensures
+      # the importorskip no longer skips (AC2/AC4 run in every CI build).
       - name: Unit tests (pure Python)
         run: uv run pytest -q -n auto -m "not docker and not pyoxigraph_ci"
 
@@ -76,10 +96,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+      # Nightly is required: the Nemo engine (hard dep of gmeow-logic) uses
+      # unstable Rust features (macro_metavar_expr, iter_intersperse, etc.).
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
+          toolchain: nightly
           components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -92,6 +116,9 @@ jobs:
 
       - name: Conformance corpus + CLI tests
         run: cargo test
+
+      - name: wasm target builds (gmeow-logic in-browser reasoner)
+        run: cargo build -p gmeow-logic --target wasm32-unknown-unknown
 
   # The Go GTS engine (go/gts, #339) gates against the same frozen corpus and
   # exposes the same files-profile CLI surface as the Rust engine.

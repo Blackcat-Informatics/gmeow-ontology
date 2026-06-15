@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+# Maturin build configuration for the gmeow_logic Python extension.
+#
+# Layout: mixed-Rust maturin package.  The Rust crate at this directory
+# (crates/logic/Cargo.toml) is the cdylib source; maturin develop installs
+# an importable `gmeow_logic` extension module into the active virtualenv.
+#
+# Run: uvx maturin develop  (from crates/logic/)
+#  or: make logic-py         (from repo root)
+
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "gmeow-logic"
+version = "0.1.0"
+description = "GMEOW reasoning engine PyO3 bindings: materialize() with derivation metadata"
+requires-python = ">=3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Blackcat Informatics Inc." }]
+keywords = ["rdf", "reasoning", "knowledge-graph", "gmeow"]
+
+[tool.maturin]
+# The Python module name exposed on import.
+module-name = "gmeow_logic"
+# Use the pyo3 extension-module feature so the cdylib is a proper Python C
+# extension (not a plain shared library).
+features = ["pyo3/extension-module"]
+# abi3 wheel targets Python >= 3.13 using the stable ABI.
+python-requires = ">=3.13"
