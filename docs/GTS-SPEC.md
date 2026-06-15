@@ -625,6 +625,14 @@ dependency set is **CBOR + BLAKE3 + gzip + zstd**. Writers targeting maximum lon
 restrict to the core set. Density-oriented writers MAY use `lzma2` with an in-band dictionary.
 All core codecs are stable, widely deployed primitives.
 
+**Rsyncable codecs.** A `compress`-class codec MAY be *rsyncable*: it periodically
+synchronizes (resets) its compression state so that a local change in the
+uncompressed input only affects a bounded neighborhood of the compressed
+output. This improves delta-transfer tools (e.g. `rsync`) and version-control
+delta compression (e.g. Git packfiles) at the cost of a small compression-ratio
+overhead. The only rsyncable codec defined in this revision is `zstd-rsyncable`
+(§8.5).
+
 ### 8.5 Canonical codec registry (v1)
 
 Catalog entries are referenced by integer id within a file (§5), but each entry's `"name"` MUST
@@ -635,6 +643,7 @@ be a canonical identifier from this registry so writers interoperate:
 | `identity`      | `encode`   | yes       | none                          |
 | `gzip`          | `compress` | yes       | `level`?                      |
 | `zstd`          | `compress` | yes       | `level`?, `window`?, `dct`?   |
+| `zstd-rsyncable`| `compress` | no        | `block_size`: uint (default 65536) |
 | `lzma2`         | `compress` | no        | `level`?, `dct`?              |
 | `base64url`     | `encode`   | no        | none (unpadded)               |
 | `base85`        | `encode`   | no        | none                          |
