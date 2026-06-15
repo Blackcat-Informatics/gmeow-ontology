@@ -5041,104 +5041,12 @@ gmeow:fixtureMIRTimbreObservation
 # =========================================================================== #
 # NOTATION PROJECTION LAYER — issue #318
 #
-# Every musical notation is a directional, lossy projection of frame-relative
-# canonical content. A NotationProjectionProfile declares, per notation system,
-# which MusicalParameters it can represent and which losses it incurs.
-# Encoding formats (MIDI, MusicXML, MEI, ABC, kern, LilyPond) are notation
-# systems too — each is a lossy render, not the canonical object (Principles 4,
-# 11, 12). SMuFL codepoints identify glyphs where applicable.
+# Music-domain instances of the core notation-projection framework
+# (slices/core/notation/module.ttl): notation systems, projection losses, and
+# per-system NotationProjectionProfiles. Every musical notation is a
+# directional, lossy projection of frame-relative canonical content; encoding
+# formats are notation systems too (Principles 4, 11, 12).
 # =========================================================================== #
-
-# --------------------------------------------------------------------------- #
-# CLASSES
-# --------------------------------------------------------------------------- #
-
-gmeow:NotationProjectionProfile
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Profile ;
-    rdfs:label "Notation Projection Profile"@x-gmeow-english ;
-    skos:definition "A closed descriptor schema for the lossy projection from frame-relative musical content to one notation system. Declares representable parameters, incurred losses, and the FnO projection function that performs the render (Principles 4, 11, 12)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-gmeow:ProjectionLoss
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Projection Loss"@x-gmeow-english ;
-    skos:definition "A kind of information loss incurred when canonical musical content is projected to a notation system. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-# --------------------------------------------------------------------------- #
-# OBJECT PROPERTIES
-# --------------------------------------------------------------------------- #
-
-gmeow:notationSystemOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range gmeow:NotationSystem ;
-    rdfs:label "notation system of"@x-gmeow-english ;
-    skos:definition "The notation system that this projection profile describes. Functional: one profile per notation system."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-gmeow:hasNotationProjectionProfile
-    a owl:ObjectProperty ;
-    owl:inverseOf gmeow:notationSystemOf ;
-    rdfs:domain gmeow:NotationSystem ;
-    rdfs:range gmeow:NotationProjectionProfile ;
-    rdfs:label "has notation projection profile"@x-gmeow-english ;
-    skos:definition "Links a notation system to its GMEOW projection profile. Non-functional: a future notation system may have co-existing profiles for different consumer contexts."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-gmeow:representableParameter
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range gmeow:MusicalParameter ;
-    rdfs:label "representable parameter"@x-gmeow-english ;
-    skos:definition "A musical parameter that this notation system can represent without loss (e.g. pitch in a 12-EDO-aware staff notation)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-gmeow:declaredLoss
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range gmeow:ProjectionLoss ;
-    rdfs:label "declared loss"@x-gmeow-english ;
-    skos:definition "A loss that this notation system incurs when rendering canonical frame-relative musical content (e.g. quantization to 12-EDO, dropping microtiming)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-gmeow:accountsForParameter
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:ProjectionLoss ;
-    rdfs:range gmeow:MusicalParameter ;
-    rdfs:label "accounts for parameter"@x-gmeow-english ;
-    skos:definition "The musical parameter whose omission or approximation is explained by this ProjectionLoss. Used by the completeness gate to ensure every MusicalParameter is representable or accounted for."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-gmeow:projectionFunction
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range fno:Function ;
-    rdfs:label "projection function"@x-gmeow-english ;
-    skos:definition "An FnO function reference that renders canonical musical content to this notation system (Principle 12)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-gmeow:projectableExpression
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range gmeow:Expression ;
-    rdfs:label "projectable expression"@x-gmeow-english ;
-    skos:definition "A solver-bound input property: the Expression being projected through a NotationProjectionProfile. Used by FnO projection functions to declare their input type; not asserted as canonical data (Principle 12)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-# --------------------------------------------------------------------------- #
-# DATATYPE PROPERTIES
-# --------------------------------------------------------------------------- #
-
-gmeow:smuflCodepoint
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NotationSystem ;
-    rdfs:range xsd:string ;
-    rdfs:label "SMuFL codepoint"@x-gmeow-english ;
-    skos:definition "A Unicode codepoint reference in the Standard Music Font Layout (SMuFL) specification that identifies a glyph used by this notation system. Functional per codepoint assertion; multiple codepoints are asserted as multiple triples from distinct standpoints if needed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 # --------------------------------------------------------------------------- #
 # VALUE VOCABULARY — ProjectionLoss
@@ -5498,8 +5406,8 @@ gmeow:profileSagittal
     rdfs:label "Sagittal notation projection profile"@x-gmeow-english ;
     skos:definition "Projection profile for Sagittal microtonal notation. Represents arbitrary EDO and JI pitch classes; time and other parameters are outside its scope."@x-gmeow-english ;
     gmeow:notationSystemOf gmeow:notationSagittal ;
-    gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
-    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:representableParameter gmeow:musicalParameterPitch ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre, gmeow:lossQuantizesTimeToRationalGrid, gmeow:lossDropsDynamics, gmeow:lossDropsInstrumentation, gmeow:lossDropsPerformerCount, gmeow:lossDropsTacet ;
     gmeow:projectionFunction gmeow:fnProjectToSagittal ;
     gmeow:profileDescriptor
         gmeow:notationSystemOf ,

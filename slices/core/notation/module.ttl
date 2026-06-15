@@ -6,6 +6,7 @@
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix fno:     <https://w3id.org/function/ontology#> .
 
 <https://blackcatinformatics.ca/gmeow/slices/notation>
     a owl:Ontology ;
@@ -287,3 +288,112 @@ gmeow:notationRoleCipher
 # and notationSystemFor have domain Language / NotationSystem respectively,
 # which are NOT subclasses of Observation, so they cannot be subproperties.
 gmeow:notationUsageTarget   rdfs:subPropertyOf gmeow:observedFeature .
+
+
+# =========================================================================== #
+# NOTATION PROJECTION FRAMEWORK — issue #318
+#
+# Every notation is a directional, lossy projection from frame-relative
+# canonical content to a concrete symbol system. A NotationProjectionProfile
+# declares, per notation system, which parameters it can represent and which
+# losses it incurs. Encoding formats are notation systems too — each is a
+# lossy render, not the canonical object (Principles 4, 11, 12).
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# CLASSES
+# --------------------------------------------------------------------------- #
+
+gmeow:NotationProjectionProfile
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Profile ;
+    rdfs:label "Notation Projection Profile"@x-gmeow-english ;
+    skos:definition "A closed descriptor schema for the lossy projection from frame-relative content to one notation system. Declares representable parameters, incurred losses, and the FnO projection function that performs the render (Principles 4, 11, 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:ProjectionLoss
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Projection Loss"@x-gmeow-english ;
+    skos:definition "A kind of information loss incurred when canonical content is projected to a notation system. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:ProjectionFunction
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf fno:Function ;
+    rdfs:label "Projection Function"@x-gmeow-english ;
+    skos:definition "An FnO function that renders canonical frame-relative content to a notation system (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+# --------------------------------------------------------------------------- #
+# OBJECT PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:notationSystemOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range gmeow:NotationSystem ;
+    rdfs:label "notation system of"@x-gmeow-english ;
+    skos:definition "The notation system that this projection profile describes. Functional: one profile per notation system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:hasNotationProjectionProfile
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:notationSystemOf ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:range gmeow:NotationProjectionProfile ;
+    rdfs:label "has notation projection profile"@x-gmeow-english ;
+    skos:definition "Links a notation system to its GMEOW projection profile. Non-functional: a future notation system may have co-existing profiles for different consumer contexts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:representableParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range owl:Thing ;
+    rdfs:label "representable parameter"@x-gmeow-english ;
+    skos:definition "A parameter that this notation system can represent without loss (e.g. pitch in a 12-EDO-aware staff notation). Range is kept open in the core framework; domain-specific slices restrict it to their parameter vocabularies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:declaredLoss
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range gmeow:ProjectionLoss ;
+    rdfs:label "declared loss"@x-gmeow-english ;
+    skos:definition "A loss that this notation system incurs when rendering canonical frame-relative content (e.g. quantization to 12-EDO, dropping microtiming)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:accountsForParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ProjectionLoss ;
+    rdfs:range owl:Thing ;
+    rdfs:label "accounts for parameter"@x-gmeow-english ;
+    skos:definition "The parameter whose omission or approximation is explained by this ProjectionLoss. Used by completeness gates to ensure every parameter is representable or accounted for. Range is open in core; domain slices restrict it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:projectionFunction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range gmeow:ProjectionFunction ;
+    rdfs:label "projection function"@x-gmeow-english ;
+    skos:definition "An FnO function reference that renders canonical content to this notation system (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+gmeow:projectableExpression
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:range owl:Thing ;
+    rdfs:label "projectable expression"@x-gmeow-english ;
+    skos:definition "A solver-bound input property: the entity being projected through a NotationProjectionProfile. Used by FnO projection functions to declare their input type; not asserted as canonical data (Principle 12). Range is open in core; domain slices restrict it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+# --------------------------------------------------------------------------- #
+# DATATYPE PROPERTIES
+# --------------------------------------------------------------------------- #
+
+gmeow:smuflCodepoint
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:range xsd:string ;
+    rdfs:label "SMuFL codepoint"@x-gmeow-english ;
+    skos:definition "A Unicode codepoint reference in the Standard Music Font Layout (SMuFL) specification that identifies a glyph used by this notation system. Multiple codepoints may be asserted as multiple triples."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .

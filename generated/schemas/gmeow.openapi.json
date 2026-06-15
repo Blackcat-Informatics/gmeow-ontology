@@ -86938,7 +86938,7 @@
               },
               "projectableExpression": {
                 "items": {
-                  "$ref": "#/$defs/Expression"
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -86947,7 +86947,7 @@
               },
               "projectionFunction": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/ProjectionFunction"
                 },
                 "type": [
                   "array",
@@ -86983,7 +86983,7 @@
               },
               "representableParameter": {
                 "items": {
-                  "$ref": "#/$defs/MusicalParameter"
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -87555,8 +87555,11 @@
                 ]
               },
               "smuflCodepoint": {
+                "items": {
+                  "type": "string"
+                },
                 "type": [
-                  "string",
+                  "array",
                   "null"
                 ]
               },
@@ -109773,13 +109776,19 @@
             "title": "ProjectionContextEnum",
             "type": "string"
           },
+          "ProjectionFunction": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ProjectionFunction",
+            "type": "object"
+          },
           "ProjectionLoss": {
             "additionalProperties": false,
             "description": "",
             "properties": {
               "accountsForParameter": {
                 "items": {
-                  "$ref": "#/$defs/MusicalParameter"
+                  "type": "string"
                 },
                 "type": [
                   "array",

@@ -29,7 +29,6 @@ Tier-2 uplift backlog.
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 0/8 | full |
-| epistemics | core | core | 1 | 1 | 5 | 0 | 1 | 0/6 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 0/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 0/10 | full |
 | expertise | core | core | 5 | 6 | 11 | 0 | 1 | 0/17 | full |
@@ -45,11 +44,11 @@ Tier-2 uplift backlog.
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 0/8 | full |
 | logic | core | core | 0 | 14 | 11 | 12 | 0 | 0/25 | full |
-| music | extension | extensions | 12 | 61 | 134 | 0 | 0 | - | full |
+| music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 2/52 | full |
-| narrative | extension | extensions | 6 | 17 | 41 | 0 | 0 | - | full |
+| narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |
-| notation | extension | extensions | 4 | 5 | 9 | 0 | 1 | - | full |
+| notation | core | core | 5 | 8 | 17 | 0 | 1 | 0/25 | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 11 | 19 | 0 | 1 | 0/30 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 0/51 | full |
@@ -72,4 +71,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 0/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 0/11 | full |
 
-**63 slices** · documentation: 63 full guides, 0 stubs remaining (#325); advisory coverage: 3/1088 core class/property terms (#471).
+**62 slices** · documentation: 62 full guides, 0 stubs remaining (#325); advisory coverage: 3/1107 core class/property terms (#471).

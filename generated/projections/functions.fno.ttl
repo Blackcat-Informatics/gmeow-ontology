@@ -979,7 +979,7 @@ gmeow:paramLongitude a fno:Parameter ;
 gmeow:paramProjectableExpression a fno:Parameter ;
     fno:predicate gmeow:projectableExpression ;
     fno:required true ;
-    fno:type gmeow:Expression .
+    fno:type owl:Thing .
 
 gmeow:implSchemaOrg a fno:Implementation ;
     dcterms:format "application/sparql-query" ;

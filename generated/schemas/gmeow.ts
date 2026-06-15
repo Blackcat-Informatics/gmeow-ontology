@@ -5735,9 +5735,9 @@ export interface NormativeSystem extends SocialObject {
 export interface NotationProjectionProfile extends Profile {
     declaredLoss?: ProjectionLoss[],
     notationSystemOf?: NotationSystem,
-    projectableExpression?: Expression[],
-    projectionFunction?: string[],
-    representableParameter?: MusicalParameter[],
+    projectableExpression?: string[],
+    projectionFunction?: ProjectionFunction[],
+    representableParameter?: string[],
 }
 
 
@@ -5746,7 +5746,7 @@ export interface NotationSystem extends SymbolicSystem {
     hasNotationProjectionProfile?: NotationProjectionProfile[],
     notationSystemFor?: Language[],
     notationSystemKind?: SymbolicSystemKind[],
-    smuflCodepoint?: string,
+    smuflCodepoint?: string[],
 }
 
 
@@ -6349,8 +6349,13 @@ export interface ProjectionContext {
 
 
 
+export interface ProjectionFunction {
+}
+
+
+
 export interface ProjectionLoss {
-    accountsForParameter?: MusicalParameter[],
+    accountsForParameter?: string[],
 }
 
 

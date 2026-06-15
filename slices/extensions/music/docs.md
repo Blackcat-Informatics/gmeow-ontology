@@ -309,6 +309,11 @@ and are referenced by identifier (Principle 12).
 
 Every musical notation is a **directional, lossy projection** of frame-relative canonical content. The canonical object is a graph of `MusicalSegment`s carrying `PitchValue`s in explicit `TuningSystem`s and durations in explicit `MusicalTimeFrame`s. A staff score, a MIDI file, a MusicXML export, and a LilyPond engraving are all renders of that content — none is the work itself (Principles 4, 11, 12).
 
+The generic projection framework (`NotationProjectionProfile`, `ProjectionLoss`,
+and their properties) lives in the core **`slices/core/notation/`** slice. The
+music slice provides the music-domain `NotationSystem` individuals, the
+`MusicalParameter`-specific losses, and the per-system profiles below.
+
 ### `gmeow:NotationProjectionProfile`
 
 A `gmeow:NotationProjectionProfile` is a `gmeow:Profile` (closed descriptor schema + open values) attached to one `gmeow:NotationSystem`. It declares:

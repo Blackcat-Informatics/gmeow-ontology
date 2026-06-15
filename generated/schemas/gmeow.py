@@ -33585,13 +33585,13 @@ class NotationProjectionProfile(Profile):
     notationSystemOf: Optional[NotationSystem] = Field(default=None, title="notation system of", json_schema_extra = { "linkml_meta": {'domain': 'NotationProjectionProfile',
          'domain_of': ['NotationProjectionProfile'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/notationSystemOf'} })
-    projectableExpression: Optional[list[Expression]] = Field(default=None, title="projectable expression", json_schema_extra = { "linkml_meta": {'domain': 'NotationProjectionProfile',
+    projectableExpression: Optional[list[str]] = Field(default=None, title="projectable expression", json_schema_extra = { "linkml_meta": {'domain': 'NotationProjectionProfile',
          'domain_of': ['NotationProjectionProfile'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectableExpression'} })
-    projectionFunction: Optional[list[str]] = Field(default=None, title="projection function", json_schema_extra = { "linkml_meta": {'domain': 'NotationProjectionProfile',
+    projectionFunction: Optional[list[ProjectionFunction]] = Field(default=None, title="projection function", json_schema_extra = { "linkml_meta": {'domain': 'NotationProjectionProfile',
          'domain_of': ['NotationProjectionProfile'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectionFunction'} })
-    representableParameter: Optional[list[MusicalParameter]] = Field(default=None, title="representable parameter", json_schema_extra = { "linkml_meta": {'domain': 'NotationProjectionProfile',
+    representableParameter: Optional[list[str]] = Field(default=None, title="representable parameter", json_schema_extra = { "linkml_meta": {'domain': 'NotationProjectionProfile',
          'domain_of': ['NotationProjectionProfile'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/representableParameter'} })
     profileAppliesTo: Optional[list[str]] = Field(default=None, title="profile applies to", json_schema_extra = { "linkml_meta": {'domain': 'Profile',
@@ -34179,12 +34179,20 @@ class ProjectionContext(ConfiguredBaseModel):
     pass
 
 
+class ProjectionFunction(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ProjectionFunction',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Projection Function'})
+
+    pass
+
+
 class ProjectionLoss(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ProjectionLoss',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Projection Loss'})
 
-    accountsForParameter: Optional[list[MusicalParameter]] = Field(default=None, title="accounts for parameter", json_schema_extra = { "linkml_meta": {'domain': 'ProjectionLoss',
+    accountsForParameter: Optional[list[str]] = Field(default=None, title="accounts for parameter", json_schema_extra = { "linkml_meta": {'domain': 'ProjectionLoss',
          'domain_of': ['ProjectionLoss'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/accountsForParameter'} })
 
@@ -47978,7 +47986,7 @@ class NotationSystem(SymbolicSystem):
     notationSystemKind: Optional[list[SymbolicSystemKind]] = Field(default=None, title="notation system kind", json_schema_extra = { "linkml_meta": {'domain': 'NotationSystem',
          'domain_of': ['NotationSystem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/notationSystemKind'} })
-    smuflCodepoint: Optional[str] = Field(default=None, title="SMuFL codepoint", json_schema_extra = { "linkml_meta": {'domain': 'NotationSystem',
+    smuflCodepoint: Optional[list[str]] = Field(default=None, title="SMuFL codepoint", json_schema_extra = { "linkml_meta": {'domain': 'NotationSystem',
          'domain_of': ['NotationSystem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/smuflCodepoint'} })
     symbolicSystemKind: Optional[list[SymbolicSystemKind]] = Field(default=None, title="symbolic system kind", json_schema_extra = { "linkml_meta": {'domain': 'SymbolicSystem',
@@ -59486,6 +59494,7 @@ NotationProjectionProfile.model_rebuild()
 ProgrammingLanguage.model_rebuild()
 Project.model_rebuild()
 ProjectionContext.model_rebuild()
+ProjectionFunction.model_rebuild()
 ProjectionLoss.model_rebuild()
 Prompt.model_rebuild()
 PromptRole.model_rebuild()
