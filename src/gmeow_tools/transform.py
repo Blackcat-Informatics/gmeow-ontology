@@ -97,11 +97,23 @@ def _skolemized(abox: Graph) -> Graph:
 def _denied_cells() -> set[tuple[str, str, str]]:
     """The direction lint's ERROR rows — the saturation refusal set (#25).
 
+    On a wheel-only install (no source tree) the lint cannot run — it reads the
+    SSSOM tables and the vendored target axioms — so the set precomputed at
+    bundle-build time is used instead (#bundle: the CLI razor; the
+    equivalence-collapse abort below is enforced at build, never reached here).
+
     Raises:
         TransformAbortedError: On any ``equivalence-collapse`` ERROR (#284): the
             strong-edge graph itself connects disjoint classes, and no
             per-row denial can repair a poisoned chain.
     """
+    from gmeow_tools.bundle import bundled_denied_cells, repo_sources_present
+
+    if not repo_sources_present():
+        precomputed = bundled_denied_cells()
+        if precomputed is not None:
+            return set(precomputed)
+
     from gmeow_tools.alignment_lint import Severity, lint_alignment_directions
 
     findings = lint_alignment_directions()

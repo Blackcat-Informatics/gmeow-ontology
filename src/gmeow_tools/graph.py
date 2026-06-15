@@ -65,7 +65,17 @@ def _build_merged_graph(include_imports: bool) -> Graph:
     Callers receive a *copy* so mutations do not corrupt the cache.
     """
     if not ONTOLOGY_FILE.exists():
-        raise FileNotFoundError(f"root ontology not found: {ONTOLOGY_FILE}")
+        # Wheel-only install (no source tree): reconstruct from the merged graph
+        # folded into the bundle (#bundle — the CLI razor: gmeow needs no repo).
+        from gmeow_tools.bundle import bundled_merged_ttl
+
+        ttl = bundled_merged_ttl(include_imports=include_imports)
+        if ttl is None:
+            raise FileNotFoundError(f"root ontology not found: {ONTOLOGY_FILE}")
+        merged = Graph()
+        merged.parse(data=ttl, format="turtle")
+        bind_prefixes(merged)
+        return merged
     merged = Graph()
     for source in iter_source_files(include_imports=include_imports):
         merged.parse(source, format="turtle")

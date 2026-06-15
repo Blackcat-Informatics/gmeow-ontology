@@ -154,10 +154,11 @@ def _prefix(term: str) -> str:
 # --------------------------------------------------------------------------- #
 
 
-def _read_sssom(path: Path) -> list[dict[str, str]]:
+def _parse_sssom_text(text: str) -> list[dict[str, str]]:
+    """Parse SSSOM TSV *text* into rows (the source-agnostic core)."""
     rows: list[dict[str, str]] = []
     header: list[str] | None = None
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in text.splitlines():
         if line.startswith("#") or not line.strip():
             continue
         cells = line.split("\t")
@@ -168,6 +169,32 @@ def _read_sssom(path: Path) -> list[dict[str, str]]:
         if row.get("subject_id") and row.get("predicate_id") and row.get("object_id"):
             rows.append(row)
     return rows
+
+
+def _read_sssom(path: Path) -> list[dict[str, str]]:
+    return _parse_sssom_text(path.read_text(encoding="utf-8"))
+
+
+def iter_sssom_records() -> list[dict[str, str]]:
+    """Every SSSOM row, from the repo source tree or, failing that, the bundle.
+
+    The dev fast-path reads ``generated/mappings/*.sssom.tsv`` directly; a
+    wheel-only install (no source tree) falls back to the SSSOM files folded into
+    the bundle (#bundle — the CLI razor: ``gmeow`` needs no repo).
+    """
+    from gmeow_tools.bundle import bundled_sssom
+
+    files = sorted(MAPPINGS_DIR.glob("*.sssom.tsv"))
+    if files:
+        rows: list[dict[str, str]] = []
+        for path in files:
+            rows.extend(_read_sssom(path))
+        return rows
+    return [
+        row
+        for _name, data in sorted(bundled_sssom().items())
+        for row in _parse_sssom_text(data.decode("utf-8"))
+    ]
 
 
 def classify_sssom(subj: str, pred: str, obj: str) -> tuple[str, str, str]:
@@ -240,11 +267,30 @@ def _projection_files() -> list[Path]:
     )
 
 
+def iter_projection_graphs() -> list[Graph]:
+    """Every projection/structural cell file, parsed — from the repo or the bundle.
+
+    The dev fast-path parses ``dsl/mappings/projections/*.ttl`` + slice mappings
+    directly; a wheel-only install (no source tree) parses the same files folded
+    into the bundle (#bundle — the CLI razor: ``gmeow`` needs no repo).
+    """
+    paths = _projection_files()
+    if paths:
+        return [Graph().parse(path, format="turtle") for path in paths]
+    from gmeow_tools.bundle import bundled_cells_under
+
+    return [
+        Graph().parse(data=data, format="turtle")
+        for _rel, data in sorted(
+            bundled_cells_under("dsl/mappings/projections/").items()
+        )
+    ]
+
+
 def structural_best_classes() -> dict[str, str]:
     """Target IRI → best structural invertibility class across all cells."""
     best: dict[str, str] = {}
-    for path in _projection_files():
-        graph = Graph().parse(path, format="turtle")
+    for graph in iter_projection_graphs():
         for cell in graph.subjects(RDF.type, GM.ProjectionMapping):
             pattern = graph.value(cell, GM.hasMappingPattern)
             has_mint = pattern is not None and any(graph.objects(pattern, GM.mint))
