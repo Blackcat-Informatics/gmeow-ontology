@@ -57,6 +57,7 @@ class Generator(Protocol):
 
     name: str
     is_directory_output: bool = False
+    allows_internal_tags: bool = False
 
     @property
     def inputs(self) -> Sequence[Path]:

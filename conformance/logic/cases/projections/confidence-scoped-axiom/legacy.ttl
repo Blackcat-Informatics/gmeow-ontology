@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: confidence-scoped-axiom (legacy OWL/gUFO form)
+# Equivalent unscoped structural constructs to input.logic.ttl.
+# The confidence annotation has no legacy OWL equivalent; only the base sorts
+# and the plain subClassOf are represented.  adapt_legacy_source must produce
+# the same IR as the unscoped axioms in input.logic.ttl.
+
+@prefix gufo:  <http://purl.org/nemo/gufo#> .
+@prefix ex:    <https://example.org/confidence-scoped-axiom/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Sorts via gUFO stereotypes
+ex:Organism a gufo:Kind .
+ex:Animal   a gufo:Kind .
+ex:Bird     a gufo:SubKind .
+
+# Plain subClassOf (no confidence annotation available in OWL)
+ex:Bird   rdfs:subClassOf ex:Animal .
+ex:Animal rdfs:subClassOf ex:Organism .
