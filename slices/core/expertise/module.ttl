@@ -158,30 +158,12 @@ gmeow:SkillProficiency rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:skillProficiencyScale ; owl:someValuesFrom gmeow:ProficiencyScale ] .
 
 # =========================================================================== #
-# GENERIC PROFICIENCY MACHINERY (slice-dependency doctrine refactor — from the languages extension)
-# SkillProficiency generalized the languages rating pattern; the
-# generic scale/level/modality machinery lives WITH the generalization.
-# Languages' LanguageProficiency specializes it. Expertise is core: a
-# cross-cutting claim, per the slice-dependency doctrine classification.
+# GENERIC PROFICIENCY VALUE VOCAB — relocated to the KERNEL slice (#556).
+# gmeow:ProficiencyScale / gmeow:ProficiencyLevel / gmeow:ProficiencyModality
+# moved to kernel/module.ttl to break the latent expertise ↔ cognition
+# dependency cycle (Principle 6/16): expertise, languages, and cognition all
+# reuse these value classes, so they belong in the kernel every consumer already
+# depends on. SkillProficiency's roles above still reference gmeow:ProficiencyLevel
+# / gmeow:ProficiencyScale by the same IRI (now kernel-defined); the individuals
+# (Dreyfus, NIH, assessed, CEFR, …) remain in their domain slices.
 # =========================================================================== #
-
-gmeow:ProficiencyModality
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Proficiency Modality"@x-gmeow-english ;
-    skos:definition "The skill channel a language proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall). A value carried by gmeow:proficiencyModality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:ProficiencyScale
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Proficiency Scale"@x-gmeow-english ;
-    skos:definition "A framework for rating proficiency — language, skill, or any competency domain (CEFR, ILR, ACTFL, Dreyfus, NIH, assessed, self-reported). A value carried by gmeow:proficiencyScale, gmeow:skillProficiencyScale, and gmeow:levelScale."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:ProficiencyLevel
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Proficiency Level"@x-gmeow-english ;
-    skos:definition "An attained proficiency level on a scale (CEFR A1–C2; Dreyfus novice→expert; NIH beginner→expert; assessed; native; heritage). A value carried by gmeow:proficiencyLevel and gmeow:skillProficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
