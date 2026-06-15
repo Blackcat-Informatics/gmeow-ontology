@@ -17,7 +17,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report audit evals-score \
-        logic-build logic-test logic-py
+        logic-build logic-test logic-py logic-wasm
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -138,6 +138,9 @@ logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
 
 logic-py: ## Build and install the gmeow_logic Python extension (maturin develop).
 	uvx maturin develop --manifest-path crates/logic/Cargo.toml
+
+logic-wasm: ## Build gmeow-logic for wasm32-unknown-unknown (wasm-bindgen surface + oxigraph store).
+	cargo build -p gmeow-logic --target wasm32-unknown-unknown
 
 build: ## Build serializations and JSON-LD context into dist/.
 	$(GMEOW_DEV) build

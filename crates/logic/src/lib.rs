@@ -18,3 +18,14 @@ pub mod versioning;
 // is unavailable on wasm32); this cfg is platform-correct, not optionality.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod py;
+
+// Nemo reasoner bridge — native targets only.
+// Nemo's transitive deps (reqwest, tower-lsp) require OS networking unavailable
+// on wasm32; this cfg is platform-correct, not an optionality toggle.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod nemo_engine;
+
+// WebAssembly entry points — wasm32 target only.
+// wasm-bindgen binds to the JS host runtime which does not exist on native.
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
