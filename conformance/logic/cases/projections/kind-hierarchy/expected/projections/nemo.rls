@@ -2,12 +2,12 @@
 % Nemo (.rls) projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
-type(<https://example.org/kind-hierarchy/Animal>, <https://blackcatinformatics.ca/logic/Kind>, "default").
-type(<https://example.org/kind-hierarchy/Dog>, <https://blackcatinformatics.ca/logic/SubKind>, "default").
-subClassOf(<https://example.org/kind-hierarchy/Dog>, <https://example.org/kind-hierarchy/Mammal>, "default").
-type(<https://example.org/kind-hierarchy/Mammal>, <https://blackcatinformatics.ca/logic/SubKind>, "default").
-subClassOf(<https://example.org/kind-hierarchy/Mammal>, <https://example.org/kind-hierarchy/Animal>, "default").
-type(<https://example.org/kind-hierarchy/Pet>, <https://blackcatinformatics.ca/logic/Role>, "default").
-subClassOf(<https://example.org/kind-hierarchy/Pet>, <https://example.org/kind-hierarchy/Animal>, "default").
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/kind-hierarchy/Animal>, <https://blackcatinformatics.ca/logic/Kind>, "default").
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/kind-hierarchy/Dog>, <https://blackcatinformatics.ca/logic/SubKind>, "default").
+<https://blackcatinformatics.ca/logic/subClassOf>(<https://example.org/kind-hierarchy/Dog>, <https://example.org/kind-hierarchy/Mammal>, "default").
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/kind-hierarchy/Mammal>, <https://blackcatinformatics.ca/logic/SubKind>, "default").
+<https://blackcatinformatics.ca/logic/subClassOf>(<https://example.org/kind-hierarchy/Mammal>, <https://example.org/kind-hierarchy/Animal>, "default").
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/kind-hierarchy/Pet>, <https://blackcatinformatics.ca/logic/Role>, "default").
+<https://blackcatinformatics.ca/logic/subClassOf>(<https://example.org/kind-hierarchy/Pet>, <https://example.org/kind-hierarchy/Animal>, "default").
 
 % === Rules ===

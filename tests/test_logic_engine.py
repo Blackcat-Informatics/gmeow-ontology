@@ -231,3 +231,94 @@ def test_empty_case_oracle_parity() -> None:
         from gmeow_tools.logic_frontend import parse_logic_source
 
         parse_logic_source(Graph())
+
+
+# ── AC#5: real inference with transitivity rules ─────────────────────────────
+
+# N-Quads: a subClassOf chain in one world.
+#   Dog subClassOf Mammal (Alpha)
+#   Mammal subClassOf Animal (Alpha)
+_SUBCLASS_PRED = "<https://blackcatinformatics.ca/logic/subClassOf>"
+_DOG = "<http://example.org/Dog>"
+_MAMMAL = "<http://example.org/Mammal>"
+_ANIMAL = "<http://example.org/Animal>"
+_W_ALPHA = "<http://world/Alpha>"
+
+_CHAIN_NQUADS = (
+    f"{_DOG} {_SUBCLASS_PRED} {_MAMMAL} {_W_ALPHA} .\n"
+    f"{_MAMMAL} {_SUBCLASS_PRED} {_ANIMAL} {_W_ALPHA} .\n"
+)
+
+# Transitivity rule in Nemo IRI-predicate syntax.
+# Derives: ?X subClassOf ?Z if ?X subClassOf ?Y and ?Y subClassOf ?Z.
+# The head context uses ?C0 (the context from the first body atom) — Nemo
+# requires every head variable to appear in the body (safety constraint).
+_TRANSITIVITY_RULES = """\
+<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-
+    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),
+    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .
+"""
+
+
+def test_materialize_real_inference_derives_transitive_quad() -> None:
+    """AC#5: transitivity rule fires and the derived quad (Dog, Animal) appears.
+
+    This is the critical witness that the Nemo chase actually runs rules —
+    the Dog → Animal link is not present in the input but must appear in the
+    result after a two-step transitivity derivation.
+    """
+    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
+    assert isinstance(result, list)
+
+    # Collect all (subject, object) pairs for the subClassOf predicate
+    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
+    sco_pairs = {
+        (r["subject"], r["object"]) for r in result if r["predicate"] == sco_pred
+    }
+
+    # The transitive closure fact: Dog subClassOf Animal
+    expected_subject = "<http://example.org/Dog>"
+    expected_object = "<http://example.org/Animal>"
+    assert (expected_subject, expected_object) in sco_pairs, (
+        f"Expected transitive closure (Dog, Animal) not found in derived facts.\n"
+        f"Derived subClassOf pairs: {sorted(sco_pairs)}"
+    )
+
+
+def test_materialize_inference_world_isolation() -> None:
+    """World isolation holds under real inference: quads stay in the input world.
+
+    The transitivity derivation fires within world Alpha (the world of both
+    EDB facts).  No quads should appear in any other world.
+    """
+    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
+    assert isinstance(result, list)
+    assert len(result) > 0, "expected at least some derived quads"
+
+    worlds_found = {r["graph"] for r in result}
+    # All quads must belong to Alpha
+    assert worlds_found == {"http://world/Alpha"}, (
+        f"Expected only world Alpha, got: {worlds_found!r}"
+    )
+
+
+def test_materialize_inference_input_quads_still_present() -> None:
+    """Input (EDB) quads are still present in the result alongside derived quads.
+
+    Nemo returns EDB facts as derived predicates, so the input chain must
+    appear alongside the newly derived transitive quad.
+    """
+    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
+    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
+    sco_pairs = {
+        (r["subject"], r["object"]) for r in result if r["predicate"] == sco_pred
+    }
+
+    # Both input quads must still be present
+    assert ("<http://example.org/Dog>", "<http://example.org/Mammal>") in sco_pairs, (
+        "Input quad Dog→Mammal missing from derived result"
+    )
+    mammal_animal = ("<http://example.org/Mammal>", "<http://example.org/Animal>")
+    assert mammal_animal in sco_pairs, (
+        "Input quad Mammal→Animal missing from derived result"
+    )

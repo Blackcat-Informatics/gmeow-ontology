@@ -878,14 +878,17 @@ def test_nemo_unscoped_axiom_uses_default_context() -> None:
 def test_nemo_uniform_arity_for_mixed_scope_program() -> None:
     """project_nemo: every predicate appears at exactly arity 3 (no mixed arity).
 
-    Mirrors the Datalog arity-regression test but for Nemo IRI syntax.
+    Mirrors the Datalog arity-regression test but for Nemo IRI-predicate syntax.
+    Predicates are now emitted as ``<full_iri>(...)`` so the regex must match
+    the angle-bracket IRI form.
     """
     import re
 
     prog = _program_mixed_scope()
     result = project_nemo(prog)
 
-    fact_pattern = re.compile(r"^(\w+)\s*\(([^)]+)\)\s*\.$")
+    # Match IRI-predicate facts: <http://...>(arg, arg, arg).
+    fact_pattern = re.compile(r"^<([^>]+)>\s*\(([^)]+)\)\s*\.$")
     arity_map: dict[str, set[int]] = {}
     for line in result.content.splitlines():
         line = line.strip()
@@ -894,10 +897,15 @@ def test_nemo_uniform_arity_for_mixed_scope_program() -> None:
         m = fact_pattern.match(line)
         if not m:
             continue
-        pred = m.group(1)
+        pred = m.group(1)  # the full IRI (no angle brackets)
         # Count top-level commas (IRIs may not contain commas, so naive split works)
         arity = m.group(2).count(",") + 1
         arity_map.setdefault(pred, set()).add(arity)
+
+    # At least some facts must have been parsed
+    assert arity_map, (
+        "project_nemo emitted no IRI-predicate facts for mixed-scope program"
+    )
 
     multi_arity = {p: a for p, a in arity_map.items() if len(a) > 1}
     assert not multi_arity, (
@@ -916,32 +924,28 @@ def test_nemo_rule_emitted_correctly() -> None:
     assert "?C" in result.content
 
 
-def test_nemo_fact_predicate_names_match_datalog() -> None:
-    """project_nemo and project_datalog use identical predicate names.
+def test_nemo_fact_predicates_are_valid_iris() -> None:
+    """project_nemo emits full IRI-form predicate names (not local names).
 
-    Principle 7 parity: the oracle (materialize) uses the same predicate
-    names as both back-ends, so the Nemo engine and the Python oracle see
-    the same symbolic vocabulary.
+    Principle 7 parity at the IRI level: the Nemo back-end uses full IRIs as
+    predicate names (``<http://...>`` form) so they are unambiguous and can be
+    decoded back to RDF predicates without namespace context.  The Datalog
+    back-end uses local names; the two formats differ by design.
     """
-    prog = _minimal_program()
-    r_dl = project_datalog(prog)
-    r_nemo = project_nemo(prog)
-
     import re
 
-    def _extract_predicates(text: str) -> set[str]:
-        pat = re.compile(r"^(\w+)\s*\(", re.MULTILINE)
-        return {
-            m.group(1) for m in pat.finditer(text) if not m.group(1).startswith("%")
-        }
+    prog = _minimal_program()
+    r_nemo = project_nemo(prog)
 
-    dl_preds = _extract_predicates(r_dl.content)
-    nemo_preds = _extract_predicates(r_nemo.content)
-    assert dl_preds == nemo_preds, (
-        f"Predicate names differ between Datalog and Nemo:\n"
-        f"  Datalog only: {dl_preds - nemo_preds}\n"
-        f"  Nemo only:    {nemo_preds - dl_preds}"
-    )
+    # Extract full IRIs from IRI-predicate facts: <iri>(
+    iri_pat = re.compile(r"^<([^>]+)>\s*\(", re.MULTILINE)
+    nemo_iris = {m.group(1) for m in iri_pat.finditer(r_nemo.content)}
+
+    assert nemo_iris, "project_nemo emitted no IRI-predicate facts"
+    for iri in nemo_iris:
+        assert iri.startswith("http://") or iri.startswith("https://"), (
+            f"Nemo predicate is not a valid HTTP IRI: {iri!r}"
+        )
 
 
 def test_nemo_literal_in_output() -> None:

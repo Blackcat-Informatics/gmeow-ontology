@@ -23,6 +23,7 @@ path = "src/lib.rs"
 # store, one code path on every target — correct dependency configuration.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 blake3 = "1"
+sha1 = "0.10"
 
 # pyo3 is native-only: it cannot link into wasm targets (platform-correct, not
 # an optionality toggle — we have zero degraded fallbacks on native).

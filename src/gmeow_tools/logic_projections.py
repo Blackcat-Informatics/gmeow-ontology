@@ -133,8 +133,8 @@ _TARGET_META: dict[str, tuple[PreservationKind, str, tuple[str, ...]]] = {
         PreservationKind.EXACT,
         "PTIME/datalog",
         (
-            "IRI arguments encoded as Nemo <iri> constants "
-            "(angle-bracket syntax — equivalent semantics to Datalog string form)",
+            "predicate names and IRI arguments encoded as Nemo <iri> constants "
+            "(angle-bracket syntax preserves full IRI identity, not local names)",
             "context (third arity slot) encoded as Nemo string constant "
             '"default" for unscoped axioms or modality value for scoped axioms',
         ),
@@ -1118,20 +1118,6 @@ def project_nemo(
     actual_drops: list[str] = []
     lines: list[str] = []
 
-    rdf_type_str = str(RDF.type)
-
-    def _local(iri: str) -> str:
-        """Extract a safe Nemo predicate name from an IRI.
-
-        Reuses the same logic as project_datalog so predicate names
-        match across both back-ends — required for Principle 7 parity.
-        """
-        for ns in (LOGIC_NAMESPACE, NAMESPACE, str(RDF), str(OWL), str(RDFS)):
-            if iri.startswith(ns):
-                raw = iri[len(ns) :]
-                return raw.replace("-", "_").replace(".", "_").replace("#", "_")
-        return iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
-
     def _nemo_iri(iri: str) -> str:
         """Encode an IRI as a Nemo IRI constant: ``<iri>``."""
         return f"<{iri}>"
@@ -1163,13 +1149,7 @@ def project_nemo(
     # Ground facts from axioms
     lines.append("% === Ground facts (axioms) ===")
     for axiom in sorted(program.axioms, key=lambda a: a._sort_key()):
-        pred_str = axiom.predicate
-        if pred_str == rdf_type_str:
-            pred_nemo = "type"
-        elif pred_str.startswith(LOGIC_NAMESPACE):
-            pred_nemo = _local(pred_str)
-        else:
-            pred_nemo = _local(pred_str)
+        pred_nemo = _nemo_iri(axiom.predicate)
 
         subj_nemo = _nemo_iri(axiom.subject)
         if axiom.obj_is_literal:
@@ -1186,7 +1166,7 @@ def project_nemo(
 
     for rule in sorted(program.rules, key=lambda r: r._sort_key()):
         head = rule.head
-        head_pred = "type" if head.predicate == rdf_type_str else _local(head.predicate)
+        head_pred = _nemo_iri(head.predicate)
 
         # Head uses named variable ?S for subject, ?O for object, ?C for ctx.
         head_subj_nemo: str
@@ -1227,8 +1207,7 @@ def project_nemo(
 
         body_parts: list[str] = []
         for idx, body_atom in enumerate(sorted(rule.body, key=lambda a: a._sort_key())):
-            ba_pred = body_atom.predicate
-            bp = "type" if ba_pred == rdf_type_str else _local(ba_pred)
+            bp = _nemo_iri(body_atom.predicate)
 
             if body_atom.subject.startswith("?"):
                 bs = body_atom.subject

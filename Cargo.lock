@@ -776,6 +776,7 @@ dependencies = [
  "oxigraph",
  "pyo3",
  "serde_json",
+ "sha1",
  "tokio",
  "wasm-bindgen",
 ]
