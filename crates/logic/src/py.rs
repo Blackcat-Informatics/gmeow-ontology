@@ -116,8 +116,33 @@ fn encode_subject(subject: &NamedOrBlankNode) -> String {
 /// - Plain `xsd:string` literal: `"value"`
 /// - Language-tagged: `"value"@lang`
 /// - Any other datatype: `"value"^^<datatype_iri>`
+///
+/// # Escape contract
+///
+/// Nemo's parser accepts raw bytes between the opening and closing `"` of a
+/// string literal (it uses `is_not("\"")` — no escape processing in the
+/// lexer).  However, Nemo's `AnyDataValue::to_string()` display form does
+/// process the stored value through `quote_string`, which escapes:
+///   - `\` → `\\`
+///   - `"` → `\"`
+///   - `\n` (newline, U+000A) → `\n` (two chars: backslash + n)
+///   - `\r` (carriage return, U+000D) → `\r` (two chars: backslash + r)
+///
+/// Tabs (U+0009) are intentionally left unescaped by `quote_string` and
+/// appear as literal tab characters in the display form.
+///
+/// Our encode writes control characters raw into the `.rls` source (they are
+/// valid in Nemo string literals).  The decode path in [`decode_nemo_term`]
+/// and [`decode_string_constant`] is then responsible for reversing the
+/// `quote_string` display escapes (including `\n` → newline and `\r` → CR)
+/// so that the round-trip is exact.
 fn encode_literal(lit: &Literal) -> String {
-    // Escape inner double-quotes and backslashes
+    // Escape in the same order as Nemo's quote_string to ensure the .rls
+    // source is valid and the round-trip through encode→Nemo→decode is exact:
+    //   1. Backslash first (must come before adding new backslashes)
+    //   2. Double-quote (Nemo string delimiter)
+    // Control characters (\n, \r, \t) are accepted raw by Nemo's lexer and
+    // are decoded symmetrically by the decode path.
     let escaped = lit.value().replace('\\', "\\\\").replace('"', "\\\"");
 
     if let Some(lang) = lit.language() {
@@ -161,6 +186,47 @@ fn decode_err(context: &str, got: &str) -> String {
     format!("decode error [{context}]: {got:?}")
 }
 
+/// Reverse the `quote_string` escape sequences that Nemo emits in its display form.
+///
+/// Nemo's `AnyDataValue::to_string()` uses `quote_string` internally, which
+/// escapes the following characters:
+///   - `\` → `\\`
+///   - `"` → `\"`
+///   - newline (U+000A) → `\n` (two chars: backslash + n)
+///   - carriage return (U+000D) → `\r` (two chars: backslash + r)
+///
+/// Tabs (U+0009) are NOT escaped by `quote_string` and appear literally.
+///
+/// This function reverses those escapes using a single-pass character scanner
+/// to avoid double-processing (`\\n` must decode to `\n`, not to newline).
+fn unescape_nemo_string(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            match chars.next() {
+                Some('\\') => out.push('\\'),
+                Some('"') => out.push('"'),
+                Some('n') => out.push('\n'),
+                Some('r') => out.push('\r'),
+                Some('t') => out.push('\t'),
+                Some(other) => {
+                    // Unknown escape — keep both chars verbatim (defensive).
+                    out.push('\\');
+                    out.push(other);
+                }
+                None => {
+                    // Trailing backslash — keep verbatim (malformed but don't panic).
+                    out.push('\\');
+                }
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
 /// Decode a Nemo display-form IRI term (`<iri>`) to an IRI string.
 ///
 /// Nemo displays IRI values as `<http://...>`.  This strips the angle brackets.
@@ -175,12 +241,33 @@ fn decode_iri_term(s: &str) -> Result<String, String> {
 /// Decode a Nemo display-form string constant (`"value"`) to the raw string.
 ///
 /// Nemo displays plain string datavalues as `"value"` (the outer double-quotes
-/// are part of the display representation, not the value).  This strips them.
+/// are part of the display representation, not the value).  This strips them
+/// and reverses the `quote_string` escape sequences emitted by Nemo:
+///
+/// | Display sequence  | Decoded value            |
+/// |-------------------|--------------------------|
+/// | `\\`              | `\` (backslash)          |
+/// | `\"`              | `"` (double-quote)       |
+/// | `\n` (two chars)  | U+000A (newline)         |
+/// | `\r` (two chars)  | U+000D (carriage return) |
+///
+/// Tabs appear as literal tab characters in the display form (Nemo's
+/// `quote_string` does not escape them) and pass through unchanged.
+///
+/// The un-escape order is: `\\` → `\` last (after all other two-char
+/// sequences have been processed) to avoid double-consuming backslashes.
+/// We do it in the reverse order of Nemo's encoding:
+///   1. `\"` → `"` (before `\\` so we don't break `\\\"` → `\"`)
+///   2. `\n` → newline
+///   3. `\r` → CR
+///   4. `\\` → `\` (must be last — processes the remaining escaped backslashes)
 fn decode_string_constant(s: &str) -> Result<String, String> {
     if s.starts_with('"') && s.ends_with('"') && s.len() >= 2 {
-        // Un-escape \" → " and \\ → \
         let inner = &s[1..s.len() - 1];
-        Ok(inner.replace("\\\"", "\"").replace("\\\\", "\\"))
+        // Un-escape in reverse-encode order so backslash unescaping is last.
+        // Using a single-pass approach to avoid double-processing:
+        let value = unescape_nemo_string(inner);
+        Ok(value)
     } else {
         Err(decode_err("expected \"string\"", s))
     }
@@ -208,8 +295,8 @@ fn decode_nemo_term(s: &str) -> Result<Term, String> {
         // Nemo's display form does not escape the closing quote mid-string;
         // the value ends at the last unescaped `"`.
         let (raw_value, suffix) = split_nemo_literal_content(content)?;
-        // Un-escape the value
-        let value = raw_value.replace("\\\"", "\"").replace("\\\\", "\\");
+        // Un-escape the value (reverses Nemo's quote_string escaping).
+        let value = unescape_nemo_string(raw_value);
 
         if suffix.is_empty() {
             // Plain xsd:string
@@ -710,6 +797,87 @@ mod tests {
             got,
             "https://blackcatinformatics.ca/gmeow/reifier/10d9bdab72fe25cf3b81fe842b3a105077d98a6a"
         );
+    }
+
+    // ── control-character round-trip (Gap 9) ─────────────────────────────────
+
+    /// Verify that literals containing newline and tab survive the
+    /// encode → Nemo display → decode round-trip with the exact same value.
+    ///
+    /// Nemo's `quote_string` (used by `AnyDataValue::to_string()`) encodes:
+    ///   - actual `\n` (U+000A) → `\n` (two chars: backslash + n)
+    ///   - actual `\r` (U+000D) → `\r` (two chars: backslash + r)
+    ///   - tabs are NOT escaped (passed through as raw tab)
+    ///
+    /// The encode path writes these characters raw into the `.rls` source
+    /// (Nemo's lexer accepts any byte except `"` inside a string literal).
+    /// The decode path reverses the `quote_string` escaping so the value is
+    /// preserved exactly.
+    #[test]
+    fn encode_decode_literal_with_newline_and_tab() {
+        // Literal value: "line1\nline2\ttabbed"
+        let raw = "line1\nline2\ttabbed";
+        let lit = Literal::new_simple_literal(raw);
+
+        // Step 1: encode produces the literal token for the .rls source.
+        let encoded = encode_literal(&lit);
+
+        // The encoded form must be a valid Nemo string literal (double-quoted).
+        assert!(
+            encoded.starts_with('"') && encoded.ends_with('"'),
+            "encoded literal must be double-quoted: {encoded:?}"
+        );
+
+        // Step 2: simulate what Nemo's AnyDataValue::to_string() returns after
+        // storing and re-displaying the value.  Nemo's quote_string:
+        //   - leaves raw bytes from the source AS-IS (no unescape on parse)
+        //   - on display, escapes \n → \n (two chars) and \r → \r (two chars)
+        //
+        // Because our encode writes the raw chars into the source, Nemo stores
+        // them as-is, then quote_string produces the two-char escape sequences.
+        // We simulate that display form here so we can test the decode path
+        // without running the full Nemo chase.
+        let simulated_nemo_display = {
+            // quote_string: \\ → \\, \" → \", \n → \n, \r → \r (tabs untouched)
+            let inner = raw
+                .replace('\\', "\\\\")
+                .replace('"', "\\\"")
+                .replace('\n', "\\n")
+                .replace('\r', "\\r");
+            format!("\"{inner}\"")
+        };
+
+        // Step 3: decode the Nemo display form back to an oxigraph Term.
+        let decoded_term = decode_nemo_term(&simulated_nemo_display)
+            .expect("decode must succeed for a valid Nemo plain string display form");
+
+        // Step 4: the decoded value must equal the original literal value exactly.
+        match decoded_term {
+            Term::Literal(decoded_lit) => {
+                assert_eq!(
+                    decoded_lit.value(),
+                    raw,
+                    "round-trip must preserve newline+tab exactly: \
+                     expected {raw:?}, got {:?}",
+                    decoded_lit.value()
+                );
+            }
+            other => panic!("expected Literal, got {other:?}"),
+        }
+    }
+
+    /// Verify that `unescape_nemo_string` handles all four escape sequences
+    /// that Nemo's `quote_string` can emit.
+    #[test]
+    fn unescape_nemo_string_all_sequences() {
+        // Input: backslash-escaped sequences as emitted by Nemo's quote_string
+        let input = r#"hello\\world\"quoted\nnewline\rcarriage"#;
+        // Rust raw string: the source text is:
+        //   hello\\world\"quoted\nnewline\rcarriage
+        // which represents the Nemo display form of:
+        //   hello\world"quoted[newline]newline[CR]carriage
+        let expected = "hello\\world\"quoted\nnewline\rcarriage";
+        assert_eq!(unescape_nemo_string(input), expected);
     }
 
     // ── term_n3 reexport from provenance ─────────────────────────────────────
