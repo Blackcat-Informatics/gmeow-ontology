@@ -141,6 +141,33 @@ def test_schema_org_projects_explicit_generic_mereology() -> None:
     _assert_no_gmeow_leakage(g)
 
 
+def test_geo_coordinates_cast_to_decimal() -> None:
+    """Geographic coordinates project as canonical xsd:decimal, regardless of how
+    the source typed them — a scientific-notation xsd:double (5.355e+01) and a bare
+    xsd:integer (47) both come out clean decimal (53.55 / 47), not the ugly,
+    inconsistent source datatypes. The cast lives in the down-projection."""
+    from rdflib import XSD, BNode, Literal
+
+    wgs84_lat = URIRef("http://www.w3.org/2003/01/geo/wgs84_pos#lat")
+    src = load_merged_graph(include_imports=False)
+    place, coords = URIRef("https://example.org/place"), BNode()
+    src.add((place, RDF.type, URIRef(GMEOW + "Place")))
+    src.add((place, URIRef(GMEOW + "hasCoordinates"), coords))
+    src.add(
+        (coords, URIRef(GMEOW + "latitude"), Literal("5.355e+01", datatype=XSD.double))
+    )
+    src.add((coords, URIRef(GMEOW + "longitude"), Literal(47, datatype=XSD.integer)))
+
+    g = project_graph("foaf", src)
+    lat = next(o for _s, p, o in g if p == wgs84_lat)
+    lon = next(o for _s, p, o in g if str(p).endswith("#long"))
+    assert isinstance(lat, Literal) and isinstance(lon, Literal)
+    assert lat.datatype == XSD.decimal, f"lat should be xsd:decimal, got {lat.datatype}"
+    assert "e" not in str(lat).lower(), f"no scientific notation: {lat}"
+    assert float(lat) == 53.55
+    assert lon.datatype == XSD.decimal and float(lon) == 47.0
+
+
 def test_languages_projection() -> None:
     g = project_graph("schema-org", _source())
     # Language → schema:Language; ProgrammingLanguage → schema:ComputerLanguage.
