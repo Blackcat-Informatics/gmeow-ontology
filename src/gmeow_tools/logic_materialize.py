@@ -23,7 +23,7 @@ Design contract
   contain only IRIs/literals.
 * **No-occurrence gate (Stratum B).**  After the chase, every world is checked
   for token ``gufo:Event`` instances.  Any world that contains one raises
-  :class:`NoOccurrenceViolationErrorError` — the invariant is that the
+  :class:`NoOccurrenceViolationError` — the invariant is that the
   risk/teleology/norms fixture entails zero Event instances.
 * **Loss-ledger hooks.**  Constructs narrowed during the chase are recorded as
   :class:`LossEntry` items for Task 5 to aggregate into the projection report.
