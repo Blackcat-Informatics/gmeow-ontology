@@ -65,7 +65,7 @@ def test_timbre_fixture_observations_exist() -> None:
         obs = GMEOW[term]
         assert (obs, RDF.type, GMEOW.Observation) in graph
         assert (obs, GMEOW.observedFeature, tone_event) in graph
-        assert (obs, GMEOW.timbreObservationResult, None) in graph
+        assert any(graph.objects(obs, GMEOW.timbreObservationResult))
 
 
 def test_timbre_fixture_coequal_vantages() -> None:

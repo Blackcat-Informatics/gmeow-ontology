@@ -4989,7 +4989,6 @@ gmeow:fixtureTimbreToneEvent
     a gmeow:ToneEvent ;
     rdfs:label "fixture timbre tone event"@x-gmeow-english ;
     skos:definition "A worked tone-event fixture for the timbre / sensory bridge."@x-gmeow-english ;
-    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
     gmeow:segmentSpan gmeow:musicalTimeSpanBarOne ;
     gmeow:segmentOf gmeow:fixtureStructureWork ;
     gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture ;
