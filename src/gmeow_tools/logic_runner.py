@@ -67,7 +67,11 @@ from pathlib import Path
 from rdflib import ConjunctiveGraph, Graph, URIRef
 from rdflib.compare import isomorphic
 
-from gmeow_tools.logic_certify import certify_program
+from gmeow_tools.logic_certify import (
+    PredicateDepGraph,
+    certify_program,
+    stratify,
+)
 from gmeow_tools.logic_explain import Explanation, explain
 from gmeow_tools.logic_foundation import (
     anti_rigidity_obligations,
@@ -75,7 +79,7 @@ from gmeow_tools.logic_foundation import (
     foundation_rules,
 )
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
-from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
+from gmeow_tools.logic_ir import LogicAxiom, LogicProgram, SemanticProfileId
 from gmeow_tools.logic_materialize import (
     BudgetParams,
     MaterializationError,
@@ -502,6 +506,32 @@ def _parse_budget_params(
     )
 
 
+def _program_has_stratifiable_negation(program: LogicProgram) -> bool:
+    """True iff the program carries ``logic:negatedBody`` AND stratifies.
+
+    The v1/v2 oracle materialized every non-foundation case with NAF OFF — a
+    ``logic:negatedBody`` atom was silently joined *positively* (the issue #503
+    review surfaced this latent gap).  Real stratified negation-as-failure is sound
+    only for a *stratifiable* program: negation must cross stratum boundaries, never
+    a recursive cycle.  A program whose negation is non-stratifiable — or one that
+    genuinely needs StableModel / WellFounded semantics, which the stratified oracle
+    does NOT compute — keeps the lossy positive materialization with the loss
+    recorded, exactly as before.
+
+    Gating on stratifiability therefore (a) corrects every StratifiedNAF program
+    (the oracle now evaluates its negation) and (b) leaves non-stratifiable cases
+    byte-identical, so the only goldens that move are the stratifiable-NAF ones.
+    """
+    has_negation = any(
+        isinstance(atom, LogicAxiom) and atom.negated
+        for rule in program.rules
+        for atom in rule.body
+    )
+    if not has_negation:
+        return False
+    return stratify(PredicateDepGraph.from_program(program)).is_stratified
+
+
 # --------------------------------------------------------------------------- #
 # Public API: run()
 # --------------------------------------------------------------------------- #
@@ -643,6 +673,14 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             profiles=program.profiles,
             source_iri=program.source_iri,
         )
+        enable_naf = True
+    elif _program_has_stratifiable_negation(program):
+        # NAF correctness (issue #503 review, PR #605): evaluate ``logic:negatedBody``
+        # as real stratified negation-as-failure for ANY stratifiable negation
+        # program, not only the foundation-lowering opt-in.  Non-stratifiable sets
+        # (and StableModel / WellFounded programs the stratified oracle cannot
+        # compute) fall through with ``enable_naf=False`` and keep their lossy
+        # positive materialization with the loss recorded — byte-identical.
         enable_naf = True
 
     # Materialize
