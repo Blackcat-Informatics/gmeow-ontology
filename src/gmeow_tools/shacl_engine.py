@@ -70,8 +70,12 @@ def gmeow_shacl_version() -> str:
 
 
 def graph_to_ntriples(data_graph: Graph) -> str:
-    """Serialize an rdflib data graph to N-Triples for oxigraph ingestion."""
-    return data_graph.serialize(format="nt")
+    """Serialize an rdflib data graph to N-Triples for oxigraph ingestion.
+
+    Passes ``encoding`` explicitly: rdflib's N-Triples serializer warns when it
+    is ``None`` (it always uses UTF-8 regardless), so we ask for bytes and decode.
+    """
+    return data_graph.serialize(format="nt", encoding="utf-8").decode("utf-8")
 
 
 def shapes_files_to_turtle(paths: Iterable[Path]) -> str:
