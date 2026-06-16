@@ -89,9 +89,14 @@ fn eval_property_shape(
             Some(&ps.path),
             &ps_as_shape,
         );
-        // Override result_path for every result to match the property shape path.
+        // Stamp the property-shape path and focus onto every result, but PRESERVE
+        // a path the constraint itself bound — a `sh:sparql` query may project
+        // `?path` (→ result_path, SHACL-AF §3.4.2.2), which is more specific than
+        // the shape's declared path and must not be clobbered.
         for r in &mut rs {
-            r.result_path = Some(path_term.clone());
+            if r.result_path.is_none() {
+                r.result_path = Some(path_term.clone());
+            }
             r.focus_node = focus.clone();
         }
         results.extend(rs);
