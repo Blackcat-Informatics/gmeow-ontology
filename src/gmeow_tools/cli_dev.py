@@ -407,6 +407,36 @@ def crosscheck_queries() -> None:
     )
 
 
+@app.command(name="shacl-crosscheck")
+def shacl_crosscheck() -> None:
+    """Dual-run SHACL cross-check: pySHACL ≡ gmeow_shacl (#578, EPIC #575).
+
+    Validates the merged ontology + every slice example under BOTH engines and
+    compares their result key-sets, writing the divergence ledger. REPORT-ONLY:
+    it prints divergences and always exits 0; #579 makes it blocking and removes
+    pySHACL. The empty-ledger state is what licenses that next step.
+    """
+    from gmeow_tools.shacl_crosscheck import LEDGER_FILE, crosscheck_all, write_ledger
+
+    divergences = crosscheck_all()
+    write_ledger(divergences)
+    for d in divergences:
+        err_console.print(
+            f"[yellow]diverge[/yellow] [{d.side}] {d.unit}: {d.key} ({d.reason})"
+        )
+    if divergences:
+        console.print(
+            f"[yellow]⚠ {len(divergences)} SHACL divergence(s) between pySHACL and "
+            f"gmeow_shacl — recorded in {LEDGER_FILE.name} "
+            f"(report-only; #579 blocks)[/yellow]"
+        )
+    else:
+        console.print(
+            "[green]✓ pySHACL ≡ gmeow_shacl across the merged ontology + every "
+            "slice example (empty divergence ledger)[/green]"
+        )
+
+
 @app.command()
 def reason(
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
