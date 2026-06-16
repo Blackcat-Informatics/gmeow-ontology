@@ -2397,6 +2397,15 @@ export enum QualityDimensionEnum {
     topological_consistency = "qualityDimensionTopologicalConsistency",
 };
 
+export enum QuestionTypeEnum {
+
+    alternative_LEFT_PARENTHESISwhich_of_a_setRIGHT_PARENTHESIS = "typeAlternative",
+    how_LEFT_PARENTHESISprocedure_seekingRIGHT_PARENTHESIS = "typeHow",
+    polar_LEFT_PARENTHESISyesSOLIDUSnoRIGHT_PARENTHESIS = "typePolar",
+    wh_LEFT_PARENTHESISwhoSOLIDUSwhatSOLIDUSwhereSOLIDUSwhenRIGHT_PARENTHESIS = "typeWh",
+    why_LEFT_PARENTHESISexplanation_seekingRIGHT_PARENTHESIS = "typeWhy",
+};
+
 export enum RealizationModeEnum {
 
     improvised = "realizationModeImprovised",
@@ -3273,6 +3282,7 @@ export interface AestheticQuality {
 
 export interface Agent {
     accepts?: string[],
+    asks?: string[],
     attendsTo?: Entity[],
     believes?: string[],
     curiousAbout?: Entity[],
@@ -3291,6 +3301,7 @@ export interface Agent {
     holdsAccount?: OnlineAccount[],
     holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
+    inquiresInto?: string[],
     interestedIn?: Entity[],
     isAwareOf?: Entity[],
     knowsAbout?: Entity[],
@@ -3302,10 +3313,12 @@ export interface Agent {
     nativeLanguage?: Language[],
     ownerOf?: Entity[],
     remembers?: Entity[],
+    seeksToKnow?: string[],
     slogan?: string[],
     suspendsJudgementOn?: string[],
     telephone?: string[],
     understands?: Entity[],
+    wondersWhether?: string[],
 }
 
 
@@ -4991,6 +5004,13 @@ export interface InlinePart extends BodyPart {
 
 
 
+export interface InquiryTenure extends TimeScopedRelation {
+    tenureInquirer?: Agent,
+    tenureQuestion?: Question,
+}
+
+
+
 export interface Inscription extends InformationObject {
     inscriptionCarrier?: PhysicalObject,
 }
@@ -6557,6 +6577,18 @@ export interface QualityDimension {
 
 
 export interface Quantity extends Entity {
+}
+
+
+
+export interface Question extends SocialObject {
+    presupposes?: Proposition[],
+    questionType?: QuestionType[],
+}
+
+
+
+export interface QuestionType {
 }
 
 
