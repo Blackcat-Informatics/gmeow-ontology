@@ -46,6 +46,9 @@ validate: ## Validate syntax, term annotations, and SHACL (pure Python).
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
 
+shacl-crosscheck: ## Prove pySHACL and gmeow_shacl agree on every validation unit (report-only, #578).
+	$(GMEOW_DEV) shacl-crosscheck
+
 reason: ## Merge, validate OWL 2 DL profile, and check ELK consistency (Docker).
 	$(GMEOW_DEV) reason --reasoner ELK --exclude-tautologies structural
 

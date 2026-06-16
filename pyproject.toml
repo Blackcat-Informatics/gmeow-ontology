@@ -9,7 +9,6 @@ authors = [{ name = "Blackcat Informatics® Inc." }]
 keywords = ["ontology", "owl", "rdf", "linked-data", "gmeow", "fair"]
 dependencies = [
     "rdflib>=7.6",
-    "pyshacl>=0.31",
     "sssom>=0.4.16",
     "httpx>=0.28",
     "typer>=0.15",
@@ -51,6 +50,7 @@ dev = [
     "pre-commit>=4.0",
     "owlrl>=6.0.2",  # pure-Python OWL 2 RL — fast, Docker-free entailment tests (#38)
     "pyoxigraph>=0.5.8",  # in-process RDF 1.2 cross-check (#177)
+    "pyshacl>=0.31",  # dual-run SHACL cross-check twin only (#578); gmeow_shacl is the validator. #579 removes it.
     "music21>=10.3.0",
     "mido>=1.3.3",
 ]

@@ -203,11 +203,38 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
+      # The validate gate now runs SHACL through the gmeow_shacl extension
+      # (#578), so it must be built into this job's venv before validate.
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install gmeow_shacl extension (#578 — validate runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
+
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run --package gmeow-dev gmeow-dev validate
 
       - name: Engine cross-check (rdflib ≡ pyoxigraph on every query)
         run: uv run --package gmeow-dev gmeow-dev crosscheck-queries
+
+      - name: SHACL dual-run cross-check (pySHACL ≡ gmeow_shacl, #578 — report-only)
+        # Report-only this PR: the CLI writes the divergence ledger and prints any
+        # divergences but always exits 0. #579 makes this gate blocking and then
+        # removes pySHACL + the cross-check from the tree.
+        run: uv run --package gmeow-dev gmeow-dev shacl-crosscheck
+
+      - name: Upload SHACL divergence ledger
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: shacl-divergence-ledger
+          path: dist/shacl-divergence-ledger.ttl
+          if-no-files-found: ignore
 
       - name: Full-registry drift gate (statements has its own Docker-backed job)
         run: uv run --package gmeow-dev gmeow-dev check-generated --skip statements
