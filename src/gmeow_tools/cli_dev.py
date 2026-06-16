@@ -894,8 +894,30 @@ def coverage(
     show_gaps: bool = typer.Option(
         False, "--gaps", help="List the uncovered (gap) classes and predicates."
     ),
+    min_class: float | None = typer.Option(
+        None,
+        "--min-class",
+        help=(
+            "Hard floor for class coverage (0..1). Exit 1 if the measured "
+            "fraction is below it. Omit for report-only."
+        ),
+    ),
+    min_predicate: float | None = typer.Option(
+        None,
+        "--min-predicate",
+        help=(
+            "Hard floor for predicate coverage (0..1). Exit 1 if the measured "
+            "fraction is below it. Omit for report-only."
+        ),
+    ),
 ) -> None:
-    """Report how much of the vendored entity slice GMEOW covers."""
+    """Report how much of the vendored entity slice GMEOW covers.
+
+    With ``--min-class`` / ``--min-predicate`` the command becomes a HARD gate
+    (#579): a measured coverage fraction below either floor exits 1. The floors
+    are the project's vendored-entity coverage contract — the Makefile passes the
+    current measured values so any regression below them fails the build.
+    """
     from gmeow_tools.coverage import run_coverage
 
     report = run_coverage()
@@ -914,6 +936,17 @@ def coverage(
             err_console.print(f"[yellow]gap class[/yellow] {iri}")
         for iri in sorted(report.gap_predicates):
             err_console.print(f"[yellow]gap predicate[/yellow] {iri}")
+
+    if min_class is not None and report.class_coverage < min_class:
+        raise _fail(
+            f"✗ class coverage {report.class_coverage:.4f} is below the "
+            f"required floor {min_class:.4f}"
+        )
+    if min_predicate is not None and report.predicate_coverage < min_predicate:
+        raise _fail(
+            f"✗ predicate coverage {report.predicate_coverage:.4f} is below the "
+            f"required floor {min_predicate:.4f}"
+        )
 
 
 @app.command()

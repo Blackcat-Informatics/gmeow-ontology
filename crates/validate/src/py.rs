@@ -22,6 +22,7 @@ use std::path::PathBuf;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
+use crate::coverage;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::store;
@@ -329,6 +330,43 @@ fn reasoning_frame_declaration_completeness(
     errors_dict(py, gufo::frame_declaration_completeness(&store, &cfg))
 }
 
+/// Coverage analysis over the vendored entity-slice fixtures (mirrors
+/// `coverage.analyze`).
+///
+/// `fixture_paths` is the discovered fixture file list; `aligned` is the
+/// SSSOM-derived external-IRI set (`coverage.covered_iris()`, computed in
+/// Python); `namespace` is `config.NAMESPACE`. Returns a dict with the four
+/// sorted IRI lists: `covered_classes`, `gap_classes`, `covered_predicates`,
+/// `gap_predicates`. A parse failure maps to a Python `ValueError` (a hard
+/// failure that must surface — the coverage path has no rdflib fallback, #579).
+#[pyfunction]
+fn coverage_analyze(
+    py: Python<'_>,
+    fixture_paths: Vec<String>,
+    aligned: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let paths: Vec<PathBuf> = fixture_paths.iter().map(PathBuf::from).collect();
+    let aligned_set: BTreeSet<String> = aligned.into_iter().collect();
+    let sets = coverage::coverage_analyze(&paths, &aligned_set, &namespace)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let out = PyDict::new(py);
+    out.set_item(
+        "covered_classes",
+        PyList::new(py, sets.covered_classes.iter())?,
+    )?;
+    out.set_item("gap_classes", PyList::new(py, sets.gap_classes.iter())?)?;
+    out.set_item(
+        "covered_predicates",
+        PyList::new(py, sets.covered_predicates.iter())?,
+    )?;
+    out.set_item(
+        "gap_predicates",
+        PyList::new(py, sets.gap_predicates.iter())?,
+    )?;
+    Ok(out.into())
+}
+
 /// Python extension module `gmeow_validate`.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -354,5 +392,6 @@ fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
         reasoning_frame_declaration_completeness,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
     Ok(())
 }

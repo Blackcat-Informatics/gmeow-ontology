@@ -96,8 +96,8 @@ wikidata-coverage: ## Report Wikidata mapping coverage by domain (offline).
 wikidata-audit: ## Audit fixtures and modules for Wikidata misuse (offline).
 	$(GMEOW_DEV) wikidata --fixtures
 
-coverage: ## Report how much of the vendored entity slice GMEOW covers.
-	$(GMEOW_DEV) coverage --gaps
+coverage: ## Report how much of the vendored entity slice GMEOW covers (hard gate).
+	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
 
 acceptance: ## Score the full transpile against the real external/ snapshots (#450).
 	$(GMEOW_DEV) acceptance
