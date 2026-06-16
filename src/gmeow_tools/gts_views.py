@@ -22,13 +22,20 @@ from gts.model import Graph, Term, TermKind
 from gts.nquads import term_token
 
 from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE, PREFIXES
-from gmeow_tools.language_tags import is_internal_tag, rank_language
+from gmeow_tools.language_tags import (
+    LangSelector,
+    filter_literals,
+    is_internal_tag,
+    rank_language,
+    select_literal,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
 
     from gts.model import Quad, Triple
+    from rdflib import Literal
 
 #: Scope sentinel: every graph in the snapshot.
 ALL: Final = "__all__"
@@ -307,6 +314,68 @@ class FoldView:
         return self.lex(candidates[0]), (
             tag_map.get(first_lang) if first_lang else None
         )
+
+    def _literal_candidates(
+        self, s_tid: int, p_iri: str, scope: str | None = DEFAULT
+    ) -> list[Literal]:
+        """Objects of ``(s, p)`` as rdflib Literals for language selection."""
+        from rdflib import Literal
+
+        return [
+            Literal(self.lex(o), lang=self.lang(o))
+            for o in self.objects(s_tid, p_iri, scope)
+            if self.is_literal(o)
+        ]
+
+    def public_literal_with_fallback(
+        self,
+        s_tid: int,
+        p_iri: str,
+        selector: LangSelector,
+        scope: str | None = DEFAULT,
+    ) -> tuple[str, str | None, bool]:
+        """Selector-aware single literal for ``(s, p)`` plus fallback signal."""
+        candidates = self._literal_candidates(s_tid, p_iri, scope)
+        if not candidates:
+            return "", None, False
+        lit, fallback = select_literal(candidates, selector, tag_map=self.tag_map())
+        if lit is None:
+            return "", None, False
+        return str(lit), lit.language, fallback
+
+    def public_text_with_fallback(
+        self,
+        s_tid: int,
+        p_iri: str,
+        selector: LangSelector,
+        scope: str | None = DEFAULT,
+    ) -> tuple[str, bool]:
+        """Selector-aware single text for ``(s, p)`` plus fallback signal."""
+        text, _lang, fallback = self.public_literal_with_fallback(
+            s_tid, p_iri, selector, scope
+        )
+        return text, fallback
+
+    def public_texts(
+        self,
+        s_tid: int,
+        p_iri: str,
+        selector: LangSelector,
+        scope: str | None = DEFAULT,
+    ) -> list[tuple[str, str | None, bool]]:
+        """All requested-language literals for ``(s, p)`` plus fallback signal.
+
+        Returns a list of ``(text, bcp47_tag, is_fallback)`` tuples in request
+        order. If no requested language is present, the English fallback is
+        returned as a single item.
+        """
+        candidates = self._literal_candidates(s_tid, p_iri, scope)
+        if not candidates:
+            return []
+        results: list[tuple[Literal, bool]] = filter_literals(
+            candidates, selector, tag_map=self.tag_map()
+        )
+        return [(str(lit), lit.language, fallback) for lit, fallback in results]
 
     # -- internals ---------------------------------------------------------------
 

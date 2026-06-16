@@ -15,11 +15,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from rdflib import RDF, RDFS, Graph, Namespace, URIRef
+from rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import NAMESPACE
+from gmeow_tools.language_tags import (
+    UnknownLanguageError,
+    filter_literals,
+    load_tag_map,
+    resolve_lang_input,
+    select_literal,
+)
+
+if TYPE_CHECKING:
+    from gmeow_tools.language_tags import LangSelector
 
 GM = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
@@ -46,6 +57,7 @@ class TermCard:
     iri: URIRef
     local: str
     label: str = ""
+    label_fallback: bool = False
     kinds: list[str] = field(default_factory=list)
     stereotype: str = ""
     supers: list[str] = field(default_factory=list)
@@ -54,6 +66,7 @@ class TermCard:
     domain: str = ""
     range: str = ""
     definition: str = ""
+    definition_fallback: bool = False
     scope_notes: list[str] = field(default_factory=list)
     examples: list[str] = field(default_factory=list)
     use_when: list[str] = field(default_factory=list)
@@ -147,11 +160,52 @@ def _short(node: object) -> str:
     return str(node)
 
 
-def build_card(graph: Graph, term: URIRef) -> TermCard:
+def _selected_texts(
+    graph: Graph,
+    term: URIRef,
+    predicate: URIRef,
+    selector: LangSelector,
+    tag_map: dict[str, str],
+) -> list[str]:
+    """Language-selected string values for a multi-valued annotation predicate."""
+    literals = [o for o in graph.objects(term, predicate) if isinstance(o, Literal)]
+    if not literals:
+        return []
+    return [
+        str(lit)
+        for lit, _fallback in filter_literals(literals, selector, tag_map=tag_map)
+    ]
+
+
+def _selected_single(
+    graph: Graph,
+    term: URIRef,
+    predicate: URIRef,
+    selector: LangSelector,
+    tag_map: dict[str, str],
+) -> tuple[str, bool]:
+    """Language-selected single value plus fallback signal."""
+    literals = [o for o in graph.objects(term, predicate) if isinstance(o, Literal)]
+    lit, fallback = select_literal(literals, selector, tag_map=tag_map)
+    return (str(lit) if lit is not None else ""), fallback
+
+
+def build_card(
+    graph: Graph,
+    term: URIRef,
+    *,
+    selector: LangSelector,
+    tag_map: dict[str, str],
+) -> TermCard:
     """Compose the term card from the graph + SSSOM mappings."""
     local = str(term)[len(NAMESPACE) :]
     card = TermCard(iri=term, local=local)
-    card.label = str(graph.value(term, RDFS.label) or local)
+    card.label, card.label_fallback = _selected_single(
+        graph, term, RDFS.label, selector, tag_map
+    )
+    if not card.label:
+        card.label = local
+        card.label_fallback = False
     types = set(graph.objects(term, RDF.type))
     if OWL.Class in types:
         card.kinds.append("class")
@@ -185,12 +239,22 @@ def build_card(graph: Graph, term: URIRef) -> TermCard:
             _short(r) for r in graph.objects(term, RDFS.range) if isinstance(r, URIRef)
         )
     )
-    card.definition = str(graph.value(term, SKOS.definition) or "")
-    card.scope_notes = sorted(str(o) for o in graph.objects(term, SKOS.scopeNote))
-    card.examples = sorted(str(o) for o in graph.objects(term, SKOS.example))
-    card.use_when = sorted(str(o) for o in graph.objects(term, GM.useWhen))
-    card.avoid_when = sorted(str(o) for o in graph.objects(term, GM.avoidWhen))
-    card.how_to_use = sorted(str(o) for o in graph.objects(term, GM.howToUse))
+    card.definition, card.definition_fallback = _selected_single(
+        graph, term, SKOS.definition, selector, tag_map
+    )
+    card.scope_notes = sorted(
+        _selected_texts(graph, term, SKOS.scopeNote, selector, tag_map)
+    )
+    card.examples = sorted(
+        _selected_texts(graph, term, SKOS.example, selector, tag_map)
+    )
+    card.use_when = sorted(_selected_texts(graph, term, GM.useWhen, selector, tag_map))
+    card.avoid_when = sorted(
+        _selected_texts(graph, term, GM.avoidWhen, selector, tag_map)
+    )
+    card.how_to_use = sorted(
+        _selected_texts(graph, term, GM.howToUse, selector, tag_map)
+    )
     card.use_for_consumer = sorted(
         _short(o) for o in graph.objects(term, GM.useForConsumer)
     )
@@ -249,7 +313,10 @@ def render_card(card: TermCard) -> str:
         )
         if part
     )
-    lines = [f"[bold]gmeow:{card.local}[/bold]    {head_right}".rstrip()]
+    label_fallback = " [dim](fallback: en)[/dim]" if card.label_fallback else ""
+    lines = [
+        f"[bold]gmeow:{card.local}[/bold]{label_fallback}    {head_right}".rstrip()
+    ]
     meta = " · ".join(card.kinds)
     if card.supers:
         meta += "  ⊑ " + ", ".join(card.supers)
@@ -262,7 +329,8 @@ def render_card(card: TermCard) -> str:
             dr.append(f"range {card.range}")
         lines.append(f"  [dim]{' · '.join(dr)}[/dim]")
     if card.definition:
-        lines.append(f"  {card.definition}")
+        fallback_note = " [dim](fallback: en)[/dim]" if card.definition_fallback else ""
+        lines.append(f"  {card.definition}{fallback_note}")
     for note in card.scope_notes:
         lines.append(f"  [yellow]Scope[/yellow]  {note}")
     for example in card.examples:
@@ -293,7 +361,12 @@ def render_card(card: TermCard) -> str:
     return "\n".join(lines)
 
 
-def describe(query: str, gts_path: Path | None = None) -> tuple[str, int]:
+def describe(
+    query: str,
+    gts_path: Path | None = None,
+    *,
+    selector: LangSelector | None = None,
+) -> tuple[str, int]:
     """Resolve + render; returns (text, exit_code)."""
     if gts_path is not None:
         if not gts_path.exists():
@@ -312,4 +385,14 @@ def describe(query: str, gts_path: Path | None = None) -> tuple[str, int]:
                 1,
             )
         return (f"no GMEOW term matches '{query}'", 1)
-    return (render_card(build_card(graph, term)), 0)
+
+    tag_map = load_tag_map(graph)
+    if selector is None:
+        selector = resolve_lang_input(None, tag_map)
+    try:
+        return (
+            render_card(build_card(graph, term, selector=selector, tag_map=tag_map)),
+            0,
+        )
+    except UnknownLanguageError as exc:
+        return (str(exc), 1)

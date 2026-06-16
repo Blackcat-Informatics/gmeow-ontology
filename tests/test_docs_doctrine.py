@@ -19,6 +19,7 @@ from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.describe import build_card, render_card, resolve_term
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.language_tags import load_tag_map, resolve_lang_input
 from gmeow_tools.validate import guide_anchor_lint, structural_lint
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -266,7 +267,9 @@ def test_describe_resolves_and_renders_the_target_shape() -> None:
     g = _graph()
     term, candidates = resolve_term(g, "hasName")
     assert term == GM.hasName and not candidates
-    card = build_card(g, term)
+    tag_map = load_tag_map(g)
+    selector = resolve_lang_input(None, tag_map)
+    card = build_card(g, term, selector=selector, tag_map=tag_map)
     assert card.slice_name == "names"
     assert card.slice_tier == "core"
     assert "gmeow:NameUsage" in card.pairs_with

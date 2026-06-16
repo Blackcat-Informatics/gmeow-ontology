@@ -28,7 +28,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 from gts.nquads import term_token, to_nquads
 
@@ -43,6 +43,9 @@ from gmeow_tools.config import (
 )
 from gmeow_tools.generator import Generator, _rel, register
 from gmeow_tools.gts_views import FoldView, load_fold
+
+if TYPE_CHECKING:
+    from gmeow_tools.language_tags import LangSelector
 
 _OWL = "http://www.w3.org/2002/07/owl#"
 _RDFS = "http://www.w3.org/2000/01/rdf-schema#"
@@ -92,6 +95,15 @@ class _AdvisoryKwargs(TypedDict):
     avoid_for_consumer: list[str]
 
 
+class _LabelDefKwargs(TypedDict):
+    label: str
+    definition: str
+    labels: dict[str, str]
+    definitions: dict[str, str]
+    label_fallback: bool
+    definition_fallback: bool
+
+
 @dataclass(slots=True)
 class Term:
     """One flattened vocabulary term (class, property, or individual)."""
@@ -101,6 +113,10 @@ class Term:
     curie: str
     label: str
     definition: str
+    labels: dict[str, str] = field(default_factory=dict)
+    definitions: dict[str, str] = field(default_factory=dict)
+    label_fallback: bool = False
+    definition_fallback: bool = False
     parents: list[str] = field(default_factory=list)  # CURIEs
     prop_kind: str = ""  # object|datatype|annotation (properties only)
     domain: str = ""  # CURIE (properties only)
@@ -126,6 +142,14 @@ class Term:
             "label": self.label,
             "definition": self.definition,
         }
+        if self.labels:
+            rec["labels"] = self.labels
+        if self.definitions:
+            rec["definitions"] = self.definitions
+        if self.label_fallback:
+            rec["labelFallback"] = True
+        if self.definition_fallback:
+            rec["definitionFallback"] = True
         if self.category == "class":
             rec["subClassOf"] = self.parents
         elif self.category == "property":
@@ -208,26 +232,25 @@ def _fold_curies(view: FoldView, s_tid: int, p_iri: str) -> list[str]:
     )
 
 
-def _fold_public_texts(view: FoldView, s_tid: int, p_iri: str) -> list[str]:
-    """Public-facing literal text for a documentation predicate."""
-    literals = [o for o in view.objects(s_tid, p_iri) if view.is_literal(o)]
-    if not literals:
-        return []
-    representative = view.public_text(s_tid, p_iri)
-    texts = sorted({view.lex(o) for o in literals})
-    if not representative:
-        return texts
-    return [representative, *(text for text in texts if text != representative)]
+def _fold_public_texts(
+    view: FoldView, s_tid: int, p_iri: str, selector: LangSelector
+) -> list[str]:
+    """Language-selected literal texts for a documentation predicate."""
+    return [
+        text for text, _lang, _fallback in view.public_texts(s_tid, p_iri, selector)
+    ]
 
 
-def _fold_advisory(view: FoldView, s_tid: int) -> _AdvisoryKwargs:
+def _fold_advisory(
+    view: FoldView, s_tid: int, selector: LangSelector
+) -> _AdvisoryKwargs:
     """Shared term-documentation metadata used by every flat export."""
     return {
-        "scope_notes": _fold_public_texts(view, s_tid, _SKOS + "scopeNote"),
-        "examples": _fold_public_texts(view, s_tid, _SKOS + "example"),
-        "use_when": _fold_public_texts(view, s_tid, _GM + "useWhen"),
-        "avoid_when": _fold_public_texts(view, s_tid, _GM + "avoidWhen"),
-        "how_to_use": _fold_public_texts(view, s_tid, _GM + "howToUse"),
+        "scope_notes": _fold_public_texts(view, s_tid, _SKOS + "scopeNote", selector),
+        "examples": _fold_public_texts(view, s_tid, _SKOS + "example", selector),
+        "use_when": _fold_public_texts(view, s_tid, _GM + "useWhen", selector),
+        "avoid_when": _fold_public_texts(view, s_tid, _GM + "avoidWhen", selector),
+        "how_to_use": _fold_public_texts(view, s_tid, _GM + "howToUse", selector),
         "use_for_consumer": _fold_curies(view, s_tid, _GM + "useForConsumer"),
         "avoid_for_consumer": _fold_curies(view, s_tid, _GM + "avoidForConsumer"),
     }
@@ -261,7 +284,34 @@ def _fold_describe_node(view: FoldView, tid: int) -> str:
     return view.lex(tid)
 
 
-def collect_terms(view: FoldView | None = None) -> list[Term]:
+def _term_label_def(view: FoldView, t: int, selector: LangSelector) -> _LabelDefKwargs:
+    """Language-selected label and definition fields for a Term."""
+    label_iri, definition_iri = _RDFS + "label", _SKOS + "definition"
+    label, label_fallback = view.public_text_with_fallback(t, label_iri, selector)
+    definition, definition_fallback = view.public_text_with_fallback(
+        t, definition_iri, selector
+    )
+    labels: dict[str, str] = {}
+    for text, lang, fallback in view.public_texts(t, label_iri, selector):
+        if lang is not None and not fallback and lang not in labels:
+            labels[lang] = text
+    definitions: dict[str, str] = {}
+    for text, lang, fallback in view.public_texts(t, definition_iri, selector):
+        if lang is not None and not fallback and lang not in definitions:
+            definitions[lang] = text
+    return {
+        "label": label,
+        "definition": definition,
+        "labels": labels,
+        "definitions": definitions,
+        "label_fallback": label_fallback,
+        "definition_fallback": definition_fallback,
+    }
+
+
+def collect_terms(
+    view: FoldView | None = None, *, selector: LangSelector | None = None
+) -> list[Term]:
     """Collect every GMEOW class, property, and named individual as a Term.
 
     Reads ONLY the GTS snapshot (the narrow waist): vocabulary from the
@@ -270,12 +320,17 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
 
     Args:
         view: A fold view (defaults to loading the committed snapshot).
+        selector: Language selector (defaults to English only).
 
     Returns:
         Terms sorted by (category, CURIE).
     """
     if view is None:
         view = load_fold()
+    if selector is None:
+        from gmeow_tools.language_tags import resolve_lang_input
+
+        selector = resolve_lang_input(None, view.tag_map())
 
     def in_namespace(tid: int) -> bool:
         return view.is_iri(tid) and view.lex(tid).startswith(NAMESPACE)
@@ -287,7 +342,6 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
             if in_namespace(t):
                 properties[t] = kind
 
-    label_iri, definition_iri = _RDFS + "label", _SKOS + "definition"
     functional_tid = view.tid_of_iri(_OWL + "FunctionalProperty")
 
     terms: list[Term] = []
@@ -297,11 +351,10 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                 category="class",
                 iri=view.lex(t),
                 curie=curie(view.lex(t)),
-                label=view.public_text(t, label_iri),
-                definition=view.public_text(t, definition_iri),
                 parents=_fold_curies(view, t, _RDFS + "subClassOf"),
                 alignments=_fold_alignments(view, t),
-                **_fold_advisory(view, t),
+                **_fold_advisory(view, t, selector),
+                **_term_label_def(view, t, selector),
             )
         )
 
@@ -313,8 +366,6 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                 category="property",
                 iri=view.lex(t),
                 curie=curie(view.lex(t)),
-                label=view.public_text(t, label_iri),
-                definition=view.public_text(t, definition_iri),
                 prop_kind=kind,
                 domain=(
                     _fold_describe_node(view, domain_tid)
@@ -332,7 +383,8 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                 ),
                 sub_property_of=_fold_curies(view, t, _RDFS + "subPropertyOf"),
                 alignments=_fold_alignments(view, t),
-                **_fold_advisory(view, t),
+                **_fold_advisory(view, t, selector),
+                **_term_label_def(view, t, selector),
             )
         )
 
@@ -348,15 +400,14 @@ def collect_terms(view: FoldView | None = None) -> list[Term]:
                     category="individual",
                     iri=view.lex(t),
                     curie=curie(view.lex(t)),
-                    label=view.public_text(t, label_iri),
-                    definition=view.public_text(t, definition_iri),
                     types=sorted(
                         curie(view.lex(o))
                         for o in view.objects(t, _RDF_TYPE)
                         if o in classes
                     ),
                     alignments=_fold_alignments(view, t),
-                    **_fold_advisory(view, t),
+                    **_fold_advisory(view, t, selector),
+                    **_term_label_def(view, t, selector),
                 )
             )
 
@@ -430,8 +481,40 @@ def _write_csv(path: Path, columns: list[str], rows: Iterable[dict[str, str]]) -
         writer.writerows(rows)
 
 
-def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
+def _lang_columns(base: list[str], languages: tuple[str, ...]) -> list[str]:
+    """Insert per-language label/definition columns into a base column list."""
+    extra: list[str] = []
+    for lang in languages:
+        extra.append(f"label_{lang}")
+        extra.append(f"definition_{lang}")
+    extra.extend(["label_fallback", "definition_fallback"])
+    out: list[str] = []
+    for col in base:
+        out.append(col)
+        if col == "definition":
+            out.extend(extra)
+    return out
+
+
+def _csv_row(term: Term, languages: tuple[str, ...]) -> dict[str, str]:
+    """CSV row dict for a term, including per-language columns."""
+    row = {
+        "label": term.label,
+        "definition": term.definition,
+        "label_fallback": "true" if term.label_fallback else "false",
+        "definition_fallback": "true" if term.definition_fallback else "false",
+    }
+    for lang in languages:
+        row[f"label_{lang}"] = term.labels.get(lang, "")
+        row[f"definition_{lang}"] = term.definitions.get(lang, "")
+    return row
+
+
+def write_csvs(
+    terms: list[Term], dist_dir: Path, *, selector: LangSelector | None = None
+) -> list[Path]:
     """Write the class / property / individual term-dictionary CSVs."""
+    languages = selector.requested if selector is not None else ("en",)
     classes = [t for t in terms if t.category == "class"]
     properties = [t for t in terms if t.category == "property"]
     individuals = [t for t in terms if t.category == "individual"]
@@ -439,12 +522,11 @@ def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
     class_path = dist_dir / "gmeow-classes.csv"
     _write_csv(
         class_path,
-        _CLASS_COLUMNS,
+        _lang_columns(_CLASS_COLUMNS, languages),
         (
             {
                 "curie": t.curie,
-                "label": t.label,
-                "definition": t.definition,
+                **_csv_row(t, languages),
                 **_advisory_record(t),
                 "subClassOf": "; ".join(t.parents),
                 "alignments": "; ".join(t.alignments),
@@ -457,12 +539,11 @@ def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
     property_path = dist_dir / "gmeow-properties.csv"
     _write_csv(
         property_path,
-        _PROPERTY_COLUMNS,
+        _lang_columns(_PROPERTY_COLUMNS, languages),
         (
             {
                 "curie": t.curie,
-                "label": t.label,
-                "definition": t.definition,
+                **_csv_row(t, languages),
                 **_advisory_record(t),
                 "propertyKind": t.prop_kind,
                 "domain": t.domain,
@@ -479,12 +560,11 @@ def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
     individual_path = dist_dir / "gmeow-individuals.csv"
     _write_csv(
         individual_path,
-        _INDIVIDUAL_COLUMNS,
+        _lang_columns(_INDIVIDUAL_COLUMNS, languages),
         (
             {
                 "curie": t.curie,
-                "label": t.label,
-                "definition": t.definition,
+                **_csv_row(t, languages),
                 **_advisory_record(t),
                 "types": "; ".join(t.types),
                 "alignments": "; ".join(t.alignments),
@@ -496,8 +576,11 @@ def write_csvs(terms: list[Term], dist_dir: Path) -> list[Path]:
     return [class_path, property_path, individual_path]
 
 
-def write_csvw(dist_dir: Path, *, title: str | None = None) -> Path:
+def write_csvw(
+    dist_dir: Path, *, title: str | None = None, selector: LangSelector | None = None
+) -> Path:
     """Write a CSVW (tabular metadata) descriptor for the term CSVs."""
+    languages = selector.requested if selector is not None else ("en",)
 
     def table(url: str, columns: list[str]) -> dict[str, object]:
         return {
@@ -510,9 +593,12 @@ def write_csvw(dist_dir: Path, *, title: str | None = None) -> Path:
         "dc:title": f"{_resolve_meta(title, None)[0]} — term dictionaries",
         "dc:source": ONTOLOGY_IRI,
         "tables": [
-            table("gmeow-classes.csv", _CLASS_COLUMNS),
-            table("gmeow-properties.csv", _PROPERTY_COLUMNS),
-            table("gmeow-individuals.csv", _INDIVIDUAL_COLUMNS),
+            table("gmeow-classes.csv", _lang_columns(_CLASS_COLUMNS, languages)),
+            table("gmeow-properties.csv", _lang_columns(_PROPERTY_COLUMNS, languages)),
+            table(
+                "gmeow-individuals.csv",
+                _lang_columns(_INDIVIDUAL_COLUMNS, languages),
+            ),
         ],
     }
     path = dist_dir / "gmeow-terms.csvw.json"
@@ -576,9 +662,11 @@ def write_markdown(
         "",
     ]
     for t in classes:
-        lines.append(f"### {t.label or t.curie} (`{t.curie}`)")
+        lines.append(
+            f"### {_marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
+        )
         if t.definition:
-            lines.append(f"\n{t.definition}")
+            lines.append(f"\n{_marked(t.definition, t.definition_fallback)}")
         _append_markdown_advisory(lines, t)
         if t.parents:
             lines.append(f"\n*Subclass of:* {', '.join(f'`{p}`' for p in t.parents)}")
@@ -587,9 +675,11 @@ def write_markdown(
         lines.append("")
     lines += ["## Properties", ""]
     for t in properties:
-        lines.append(f"### {t.label or t.curie} (`{t.curie}`)")
+        lines.append(
+            f"### {_marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
+        )
         if t.definition:
-            lines.append(f"\n{t.definition}")
+            lines.append(f"\n{_marked(t.definition, t.definition_fallback)}")
         _append_markdown_advisory(lines, t)
         meta = f"*{t.prop_kind} property*"
         if t.domain or t.range:
@@ -603,9 +693,11 @@ def write_markdown(
     if individuals:
         lines += ["## Individuals", ""]
         for t in individuals:
-            lines.append(f"### {t.label or t.curie} (`{t.curie}`)")
+            lines.append(
+                f"### {_marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
+            )
             if t.definition:
-                lines.append(f"\n{t.definition}")
+                lines.append(f"\n{_marked(t.definition, t.definition_fallback)}")
             _append_markdown_advisory(lines, t)
             if t.types:
                 lines.append(f"\n*Type:* {', '.join(f'`{x}`' for x in t.types)}")
@@ -644,19 +736,19 @@ def write_llms_txt(
     ]
     for t in classes:
         sub = f" (⊑ {', '.join(t.parents)})" if t.parents else ""
-        lines.append(f"- {t.curie}{sub}: {t.definition or t.label}")
+        lines.append(f"- {t.curie}{sub}: {_term_summary(t)}")
     lines += ["", "## Properties", ""]
     for t in properties:
         sig = (
             f" [{t.domain or '?'} → {t.range or '?'}]" if (t.domain or t.range) else ""
         )
         fn = " (functional)" if t.functional else ""
-        lines.append(f"- {t.curie}{sig}{fn}: {t.definition or t.label}")
+        lines.append(f"- {t.curie}{sig}{fn}: {_term_summary(t)}")
     if individuals:
         lines += ["", "## Individuals", ""]
         for t in individuals:
             types = f" (a {', '.join(t.types)})" if t.types else ""
-            lines.append(f"- {t.curie}{types}: {t.definition or t.label}")
+            lines.append(f"- {t.curie}{types}: {_term_summary(t)}")
     path = dist_dir / "llms.txt"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
@@ -683,13 +775,22 @@ def write_nquads(view: FoldView, dist_dir: Path) -> Path:
     return path
 
 
-def write_trig(view: FoldView, dist_dir: Path) -> Path:
+def write_trig(
+    view: FoldView,
+    dist_dir: Path,
+    *,
+    selector: LangSelector | None = None,
+) -> Path:
     """Write the dataset as TriG 1.2 (``gmeow.trig``).
 
     Same content as ``gmeow.nq`` (LOSSLESS, same term renderer): the default
     graph carries the authored import-free ontology plus the reifier/annotation
     statement layer; named graphs become labeled blocks.
+
+    The ``selector`` parameter is accepted for CLI symmetry but does not alter
+    the lossless TriG output; all language variants remain present.
     """
+    _ = selector
     g = view.graph
     lang_map = view.tag_map()
 
@@ -776,12 +877,26 @@ def _ttl_literal(text: str, lang: str | None = None) -> str:
     return f"{lit}@{lang}" if lang else lit
 
 
+def _marked(text: str, fallback: bool, fallback_lang: str = "en") -> str:
+    """Append a fallback marker when the value was resolved via English."""
+    return f"{text} [fallback: {fallback_lang}]" if fallback else text
+
+
+def _term_summary(term: Term) -> str:
+    """The selected definition-or-label for compact list views."""
+    return _marked(
+        term.definition or term.label,
+        term.definition_fallback or term.label_fallback,
+    )
+
+
 def write_skos(
     view: FoldView,
     dist_dir: Path,
     *,
     title: str | None = None,
     version: str | None = None,
+    selector: LangSelector | None = None,
 ) -> Path:
     """Write the SKOS extract (``gmeow-skos.ttl``) — classes as a concept scheme.
 
@@ -790,7 +905,13 @@ def write_skos(
     SKOS mapping rows are carried from the alignments graph. All OWL axioms,
     properties, and individuals are dropped. STANDALONE projection: merging it
     with the OWL form puns every class as an individual — don't.
+
+    Labels and definitions are language-selected through ``selector``; all
+    requested languages are emitted when present, with English as the fallback
+    boundary (tag leak prevented at the fold projection).
     """
+    from gmeow_tools.language_tags import resolve_lang_input
+
     resolved_title, resolved_version = _resolve_meta(title, version)
     classes = sorted(
         (
@@ -801,6 +922,8 @@ def write_skos(
         key=lambda t: curie(view.lex(t)),
     )
     class_iris = {view.lex(t) for t in classes}
+    if selector is None:
+        selector = resolve_lang_input(None, view.tag_map())
 
     lines = [
         "# The GMEOW vocabulary as a SKOS concept scheme — a LOSSY projection:",
@@ -822,8 +945,6 @@ def write_skos(
     bodies: list[str] = []
     for t in classes:
         c = curie(view.lex(t))
-        label, label_lang = view.public_literal(t, _RDFS + "label")
-        definition, definition_lang = view.public_literal(t, _SKOS + "definition")
         broader = sorted(
             curie(view.lex(o))
             for o in view.objects(t, _RDFS + "subClassOf")
@@ -832,12 +953,23 @@ def write_skos(
         if not broader:
             top_concepts.append(c)
         stanza = [f"{c} a skos:Concept ;", f"    skos:inScheme <{ONTOLOGY_IRI}> ;"]
-        if label:
-            stanza.append(f"    skos:prefLabel {_ttl_literal(label, label_lang)} ;")
-        if definition:
-            stanza.append(
-                f"    skos:definition {_ttl_literal(definition, definition_lang)} ;"
-            )
+
+        seen_labels: set[str] = set()
+        for text, lang, _fallback in view.public_texts(t, _RDFS + "label", selector):
+            if lang is None or lang in seen_labels:
+                continue
+            seen_labels.add(lang)
+            stanza.append(f"    skos:prefLabel {_ttl_literal(text, lang)} ;")
+
+        seen_defs: set[str] = set()
+        for text, lang, _fallback in view.public_texts(
+            t, _SKOS + "definition", selector
+        ):
+            if lang is None or lang in seen_defs:
+                continue
+            seen_defs.add(lang)
+            stanza.append(f"    skos:definition {_ttl_literal(text, lang)} ;")
+
         for b in broader:
             stanza.append(f"    skos:broader {b} ;")
         for p, o in view.predicate_objects(t, scope=GTS_GRAPH_ALIGNMENTS):
@@ -859,6 +991,7 @@ def write_obographs(
     dist_dir: Path,
     *,
     version: str | None = None,
+    selector: LangSelector | None = None,
 ) -> Path:
     """Write the class hierarchy as OBO Graphs JSON (``gmeow-obographs.json``).
 
@@ -867,7 +1000,11 @@ def write_obographs(
     blank-node restrictions, properties, and individuals are dropped.
     External parents appear as bare nodes so no edge dangles.
     """
+    from gmeow_tools.language_tags import resolve_lang_input
+
     _, resolved_version = _resolve_meta(None, version)
+    if selector is None:
+        selector = resolve_lang_input(None, view.tag_map())
     label_iri, definition_iri = _RDFS + "label", _SKOS + "definition"
     classes = sorted(
         (
@@ -882,10 +1019,12 @@ def write_obographs(
     for t in classes:
         iri = view.lex(t)
         node: dict[str, object] = {"id": iri, "type": "CLASS"}
-        label = view.public_text(t, label_iri)
+        label, _label_fallback = view.public_text_with_fallback(t, label_iri, selector)
         if label:
             node["lbl"] = label
-        definition = view.public_text(t, definition_iri)
+        definition, _definition_fallback = view.public_text_with_fallback(
+            t, definition_iri, selector
+        )
         if definition:
             node["meta"] = {"definition": {"val": definition}}
         nodes.append(node)
@@ -1056,21 +1195,24 @@ class ExportGenerator(Generator):
 
     def render(self, staging: Path) -> None:
         """Render flattened export views from the GTS snapshot."""
+        from gmeow_tools.language_tags import resolve_lang_input
+
         out_dir = staging / DIST_DIR.relative_to(PROJECT_ROOT)
         out_dir.mkdir(parents=True, exist_ok=True)
         view = load_fold()
         title, version = fold_meta(view)
-        terms = collect_terms(view)
-        write_csvs(terms, out_dir)
-        write_csvw(out_dir, title=title)
+        selector = resolve_lang_input(None, view.tag_map())
+        terms = collect_terms(view, selector=selector)
+        write_csvs(terms, out_dir, selector=selector)
+        write_csvw(out_dir, title=title, selector=selector)
         write_jsonl(terms, out_dir)
         write_markdown(terms, out_dir, title=title, version=version)
         write_llms_txt(terms, out_dir, title=title, version=version)
         write_nquads(view, out_dir)
-        write_trig(view, out_dir)
+        write_trig(view, out_dir, selector=selector)
         write_statements_jsonl(view, out_dir)
-        write_skos(view, out_dir, title=title, version=version)
-        write_obographs(view, out_dir, version=version)
+        write_skos(view, out_dir, title=title, version=version, selector=selector)
+        write_obographs(view, out_dir, version=version, selector=selector)
         write_shex(view, out_dir)
 
     def compare(self, fresh: Path, committed: Path) -> list[str]:
