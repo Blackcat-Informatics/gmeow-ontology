@@ -5490,7 +5490,7 @@ gmeow:profileMEI
     skos:definition "Projection profile for MEI. Lossy: att.tuning limited to named temperaments, JI lattices → cents approximations, mobile form via editorial markup only."@x-gmeow-english ;
     gmeow:notationSystemOf gmeow:notationMEI ;
     gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
-    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre, gmeow:lossQuantizesPitchTo12Edo ;
     gmeow:projectionFunction gmeow:fnProjectToMEI ;
     gmeow:profileDescriptor
         gmeow:notationSystemOf ,
@@ -5505,7 +5505,7 @@ gmeow:profileABC
     skos:definition "Projection profile for ABC notation. Lossy: monophonic bias, nonstandard microtone extensions."@x-gmeow-english ;
     gmeow:notationSystemOf gmeow:notationABC ;
     gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
-    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre, gmeow:lossQuantizesPitchTo12Edo ;
     gmeow:projectionFunction gmeow:fnProjectToABC ;
     gmeow:profileDescriptor
         gmeow:notationSystemOf ,
@@ -5535,7 +5535,7 @@ gmeow:profileLilyPond
     skos:definition "Projection profile for LilyPond. Program-not-data: executable layout macros are lost when read back as data."@x-gmeow-english ;
     gmeow:notationSystemOf gmeow:notationLilyPond ;
     gmeow:representableParameter gmeow:musicalParameterPitch, gmeow:musicalParameterDuration, gmeow:musicalParameterOrder, gmeow:musicalParameterTempo, gmeow:musicalParameterDynamics, gmeow:musicalParameterInstrumentation, gmeow:musicalParameterPerformerCount, gmeow:musicalParameterTacet ;
-    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre ;
+    gmeow:declaredLoss gmeow:lossDropsSpatialSoundContext, gmeow:lossDropsTimbre, gmeow:lossQuantizesPitchTo12Edo ;
     gmeow:projectionFunction gmeow:fnProjectToLilyPond ;
     gmeow:profileDescriptor
         gmeow:notationSystemOf ,

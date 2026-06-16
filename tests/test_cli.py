@@ -136,6 +136,9 @@ def test_workspace_declares_separate_dev_package() -> None:
     dev = tomllib.loads(
         (root / "packages" / "gmeow-dev" / "pyproject.toml").read_text(encoding="utf-8")
     )
-    assert main["project"]["scripts"] == {"gmeow": "gmeow_tools.cli:app"}
+    assert main["project"]["scripts"] == {
+        "gmeow": "gmeow_tools.cli:app",
+        "gmeow-music": "gmeow_tools.ext.music.cli:app",
+    }
     assert "packages/gmeow-dev" in main["tool"]["uv"]["workspace"]["members"]
     assert dev["project"]["scripts"] == {"gmeow-dev": "gmeow_dev.cli:app"}
