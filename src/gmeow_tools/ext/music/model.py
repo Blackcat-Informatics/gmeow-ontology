@@ -41,6 +41,8 @@ class PitchValue:
         cls, numerator: int, denominator: int, *, spelled_name: str | None = None
     ) -> Self:
         """Create a pitch from a frequency ratio relative to the origin pitch."""
+        if numerator <= 0:
+            raise ValueError("numerator must be positive")
         if denominator <= 0:
             raise ValueError("denominator must be positive")
         return cls(
@@ -107,6 +109,13 @@ class TempoMark:
     beat_unit: Fraction
     bpm: float
 
+    def __post_init__(self) -> None:
+        """Validate invariants after construction."""
+        if self.beat_unit <= 0:
+            raise ValueError("beat_unit must be positive")
+        if self.bpm <= 0:
+            raise ValueError("bpm must be positive")
+
 
 @dataclass
 class TimeMapping:
@@ -116,28 +125,41 @@ class TimeMapping:
 
     def seconds_per_beat(self, offset: Fraction) -> float:
         """Return seconds per quarter-note-equivalent at the given offset."""
+        active = self._active_tempo(offset)
+        if active is None:
+            return 60.0 / 120.0  # default 120 bpm quarter
+        # Convert beat-unit to quarter-note-equivalent duration.
+        quarter_factor = Fraction(1, 4) / active.beat_unit
+        return 60.0 / active.bpm * float(quarter_factor)
+
+    def _active_tempo(self, offset: Fraction) -> TempoMark | None:
         active: TempoMark | None = None
         for start, mark in sorted(self.tempo_marks, key=lambda t: t[0]):
             if start > offset:
                 break
             active = mark
-        if active is None:
-            return 60.0 / 120.0  # default 120 bpm quarter
-        # Convert beat-unit to quarter-note-equivalent duration.
-        quarter_factor = Fraction(4) / active.beat_unit
-        return 60.0 / active.bpm * float(quarter_factor)
+        return active
 
     def evaluate_seconds(self, offset: Fraction) -> float:
         """Return elapsed wall-clock seconds up to ``offset``."""
         seconds = 0.0
         last = Fraction(0)
+        active: TempoMark | None = None
         for start, mark in sorted(self.tempo_marks, key=lambda t: t[0]):
             if start >= offset:
                 break
-            quarter_factor = Fraction(4) / mark.beat_unit
-            seconds += float(start - last) * (60.0 / mark.bpm * float(quarter_factor))
+            if active is None:
+                interval_spb = 60.0 / 120.0
+            else:
+                quarter_factor = Fraction(1, 4) / active.beat_unit
+                interval_spb = 60.0 / active.bpm * float(quarter_factor)
+            seconds += float(start - last) * interval_spb
+            active = mark
             last = start
-        spb = self.seconds_per_beat(offset)
+        if active is None:
+            spb = 60.0 / 120.0
+        else:
+            spb = 60.0 / active.bpm * float(Fraction(1, 4) / active.beat_unit)
         seconds += float(offset - last) * spb
         return seconds
 
@@ -170,6 +192,13 @@ class Voice:
     time_frame: TimeFrame | None = None
     time_mapping: TimeMapping | None = None
     events: list[ToneEvent] = field(default_factory=list)
+
+    @property
+    def beat_unit(self) -> Fraction | None:
+        """Return the beat-unit duration derived from the time frame, if any."""
+        if self.time_frame is not None and self.time_frame.beat_unit is not None:
+            return Fraction(1, self.time_frame.beat_unit)
+        return None
 
 
 @dataclass

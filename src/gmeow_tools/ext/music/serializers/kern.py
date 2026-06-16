@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def _pitch_to_kern(pitch: PitchValue) -> str:
     """Convert a frame-relative pitch to a **kern pitch token."""
-    midi = round(pitch.to_midi_number())
+    midi = max(0, min(127, round(pitch.to_midi_number())))
     name = midi_to_spelled_name(midi)
     if "(" in name:
         name = name.split("(")[0]
@@ -26,29 +26,26 @@ def _pitch_to_kern(pitch: PitchValue) -> str:
         acc = "#"
     elif "b" in name:
         acc = "-"
-    octave = int("".join(ch for ch in name if ch.isdigit()))
-    # Middle C (C4) is represented as c in **kern; each octave up adds '.
-    if octave < 4:
-        suffix = "," * (3 - octave)
-    elif octave > 4:
-        suffix = "'" * (octave - 4)
-    else:
-        suffix = ""
-    return step + acc + suffix
+    octave = (midi // 12) - 1
+    # **kern uses letter case/repetition for octave.
+    token = step.upper() * (4 - octave) if octave < 4 else step.lower() * (octave - 3)
+    return token + acc
 
 
 def _duration_to_kern(duration: Fraction, beat_unit: Fraction = Fraction(1, 4)) -> str:
     """Map a duration to a **kern rhythmic value prefix."""
-    quarters = float(duration / beat_unit)
-    if quarters >= 4:
-        return "0"  # long/breve
-    if quarters >= 2:
-        return "1"
-    if quarters >= 1:
+    units = duration / beat_unit
+    if units >= 8:
+        return "0"  # breve
+    if units >= 4:
+        return "1"  # whole
+    if units >= 2:
+        return "2"  # half
+    if units >= 1:
         return "4"
-    if quarters >= 0.5:
+    if units >= Fraction(1, 2):
         return "8"
-    if quarters >= 0.25:
+    if units >= Fraction(1, 4):
         return "16"
     return "32"
 
@@ -61,7 +58,7 @@ def render(piece: Piece, profile: NotationProfile) -> str:
         f"!! {profile.projection_function}",
         "**kern",
     ]
-    beat_unit = Fraction(1, 4)
+    beat_unit = voice.beat_unit if voice and voice.beat_unit else Fraction(1, 4)
     for event in events:
         if event.is_unpitched or event.pitch is None:
             token = _duration_to_kern(event.duration, beat_unit) + "r"

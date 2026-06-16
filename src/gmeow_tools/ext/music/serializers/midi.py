@@ -71,8 +71,8 @@ def _pitch_bend(cents_deviation: float) -> bytes:
 def render(piece: Piece, profile: NotationProfile) -> bytes:
     """Render ``piece`` to a MIDI Type-0 SMF byte string."""
     tempo = 120.0
-    beat_unit = Fraction(1, 4)
     voice = piece.voices[0] if piece.voices else None
+    beat_unit = voice.beat_unit if voice and voice.beat_unit else Fraction(1, 4)
     events = sorted(voice.events, key=lambda e: e.onset) if voice else []
 
     track_events: list[tuple[int, bytes]] = []
@@ -103,5 +103,6 @@ def render(piece: Piece, profile: NotationProfile) -> bytes:
             track_events.append((0, _pitch_bend(0.0)))
         current_tick = onset_tick + duration_tick
 
+    track_events.append((0, b"\xff\x2f\x00"))
     track = _track_bytes(track_events)
     return _header_bytes(0, 1, _PPQN) + track

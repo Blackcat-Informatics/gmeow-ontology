@@ -65,35 +65,41 @@ def piece_from_musicxml(path: Path) -> Piece:
         ),
     )
 
-    offset = Fraction(0)
     for element in score.flatten().notesAndRests:
+        onset = _quarter_length_to_fraction(element.offset)
         duration = _quarter_length_to_fraction(element.quarterLength)
         if duration <= 0:
-            duration = Fraction(1, 4)
+            continue
         if isinstance(element, music21.note.Rest):
-            event = ToneEvent(onset=offset, duration=duration, is_unpitched=True)
+            event = ToneEvent(onset=onset, duration=duration, is_unpitched=True)
         elif isinstance(element, music21.note.Note):
             midi = element.pitch.ps
             event = ToneEvent(
-                onset=offset,
+                onset=onset,
                 duration=duration,
                 pitch=PitchValue.from_midi_number(midi),
             )
         elif isinstance(element, music21.chord.Chord):
             # For import, take the highest pitch as a simplification.
-            midi = max(p.ps for p in element.pitches)
-            event = ToneEvent(
-                onset=offset,
-                duration=duration,
-                pitch=PitchValue.from_midi_number(midi),
-            )
+            if not element.pitches:
+                event = ToneEvent(onset=onset, duration=duration, is_unpitched=True)
+            else:
+                midi = max(p.ps for p in element.pitches)
+                event = ToneEvent(
+                    onset=onset,
+                    duration=duration,
+                    pitch=PitchValue.from_midi_number(midi),
+                )
         else:
             continue
         voice.events.append(event)
-        offset += duration
 
     return Piece(
         iri="urn:gmeow:piece:imported",
-        title=score.metadata.title if score.metadata else "Imported piece",
+        title=(
+            score.metadata.title
+            if score.metadata and score.metadata.title
+            else "Imported piece"
+        ),
         voices=[voice],
     )

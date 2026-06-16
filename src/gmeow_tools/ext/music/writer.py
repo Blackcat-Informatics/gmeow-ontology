@@ -16,11 +16,10 @@ XSD = Namespace("http://www.w3.org/2001/XMLSchema#")
 
 def _pitch_node(graph: Graph, pitch: PitchValue) -> URIRef:
     """Add a PitchValue individual to the graph."""
-    node = URIRef(f"urn:gmeow:pitch:{pitch.cents:.6f}")
+    cents_str = str(pitch.cents)
+    node = URIRef(f"urn:gmeow:pitch:{cents_str}")
     graph.add((node, RDF.type, GM.PitchValue))
-    graph.add(
-        (node, GM.centsFromOrigin, Literal(f"{pitch.cents:.6f}", datatype=XSD.decimal))
-    )
+    graph.add((node, GM.centsFromOrigin, Literal(cents_str, datatype=XSD.decimal)))
     if pitch.spelled_name:
         graph.add((node, RDFS.label, Literal(pitch.spelled_name)))
     return node

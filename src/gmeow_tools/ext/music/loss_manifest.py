@@ -69,6 +69,7 @@ _PROFILES: dict[str, NotationProfile] = {
         declared_losses=(
             _iri("lossDropsSpatialSoundContext"),
             _iri("lossDropsTimbre"),
+            _iri("lossQuantizesPitchTo12Edo"),
         ),
     ),
     "tab": NotationProfile(
@@ -105,6 +106,7 @@ _PROFILES: dict[str, NotationProfile] = {
         declared_losses=(
             _iri("lossDropsSpatialSoundContext"),
             _iri("lossDropsTimbre"),
+            _iri("lossQuantizesPitchTo12Edo"),
         ),
     ),
     "abc": NotationProfile(
@@ -123,6 +125,7 @@ _PROFILES: dict[str, NotationProfile] = {
         declared_losses=(
             _iri("lossDropsSpatialSoundContext"),
             _iri("lossDropsTimbre"),
+            _iri("lossQuantizesPitchTo12Edo"),
         ),
     ),
     "scl": NotationProfile(
@@ -230,6 +233,12 @@ def get_profile(format_name: str) -> NotationProfile:
         raise ValueError(f"unsupported projection format: {format_name}") from exc
 
 
+def _ttl_multiline_literal(value: str) -> str:
+    """Escape a string for safe insertion into a Turtle triple-quoted literal."""
+    escaped = value.replace("\\", "\\\\").replace('"""', '\\"""')
+    return f'"""{escaped}"""'
+
+
 def manifest_turtle(format_name: str, *, provenance: str | None = None) -> str:
     """Return a Turtle sidecar declaring the losses for ``format_name``."""
     profile = get_profile(format_name)
@@ -241,7 +250,7 @@ def manifest_turtle(format_name: str, *, provenance: str | None = None) -> str:
         f"    gmeow:projectionFunction <{profile.projection_function}> ;",
     ]
     if provenance:
-        lines.append(f'    gmeow:generatedBy """{provenance}""" ;')
+        lines.append(f"    gmeow:generatedBy {_ttl_multiline_literal(provenance)} ;")
     params = ",\n        ".join(f"<{p}>" for p in profile.representable_parameters)
     lines.append(f"    gmeow:representableParameter {params} ;")
     losses = ",\n        ".join(f"<{loss}>" for loss in profile.declared_losses)
@@ -264,7 +273,7 @@ def import_manifest_turtle(
         f"    prov:wasDerivedFrom <{source_uri}> .\n"
         "\n"
         "[] a prov:Activity ;\n"
-        f'    rdfs:label """{label}""" ;\n'
+        f"    rdfs:label {_ttl_multiline_literal(label)} ;\n"
         f"    prov:used <{source_uri}> .\n"
     )
 

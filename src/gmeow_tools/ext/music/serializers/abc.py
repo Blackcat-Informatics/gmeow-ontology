@@ -25,6 +25,7 @@ _OCTAVE_MIDIS = [
     ("c'''", 84),
     ("c''''", 96),
     ("c'''''", 108),
+    ("c''''''", 120),
 ]
 
 
@@ -33,7 +34,7 @@ def _pitch_to_abc(pitch: PitchValue) -> str:
 
     Microtonal deviations are rounded to the nearest 12-EDO semitone.
     """
-    midi = round(pitch.to_midi_number())
+    midi = max(0, min(127, round(pitch.to_midi_number())))
     # Pick octave token.
     token = "c'"
     for t, base in reversed(_OCTAVE_MIDIS):
@@ -41,7 +42,7 @@ def _pitch_to_abc(pitch: PitchValue) -> str:
             token = t
             break
     base_midi = next(base for t, base in _OCTAVE_MIDIS if t == token)
-    chroma = midi - base_midi
+    chroma = (midi - base_midi) % 12
     letters = ["C", "^C", "D", "^D", "E", "F", "^F", "G", "^G", "A", "^A", "B"]
     letter = letters[chroma]
     # Merge octave decorations with letter case.
@@ -105,7 +106,7 @@ def render(piece: Piece, profile: NotationProfile) -> str:
         f"% profile: {profile.projection_function}",
     ]
     if events:
-        beat_unit = Fraction(1, 4)
+        beat_unit = voice.beat_unit if voice and voice.beat_unit else Fraction(1, 4)
         default = Fraction(1, 8)
         # One 4/4 measure = 4 quarter beats.
         bar_length = Fraction(4)

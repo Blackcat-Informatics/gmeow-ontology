@@ -27,13 +27,13 @@ def _pitch_to_ly(pitch: PitchValue) -> str:
         accidental = "is"
     elif "b" in name:
         accidental = "es"
-    # Extract octave number.
-    octave = int("".join(ch for ch in name if ch.isdigit()))
+    # Extract octave number directly from MIDI to handle negative octaves correctly.
+    octave = (round(midi) // 12) - 1
     # Middle C (C4) is represented as c' in LilyPond.
     if octave < 4:
         suffix = "," * (3 - octave)
     elif octave > 4:
-        suffix = "'" * (octave - 4)
+        suffix = "'" * (octave - 3)
     else:
         suffix = "'"
     return step + accidental + suffix
@@ -68,7 +68,7 @@ def render(piece: Piece, profile: NotationProfile) -> str:
         "  \\clef treble",
     ]
     if events:
-        beat_unit = Fraction(1, 4)
+        beat_unit = voice.beat_unit if voice and voice.beat_unit else Fraction(1, 4)
         tokens: list[str] = []
         for event in events:
             if event.is_unpitched or event.pitch is None:

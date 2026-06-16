@@ -12,7 +12,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING
 
 import typer
 from rich.console import Console
@@ -748,10 +748,11 @@ def gts_to_duckdb(
     _gts_to_db(file, out, ".duckdb", "duckdb")
 
 
-@app.command(name="music")
-def music_command(
-    args: Annotated[list[str], typer.Argument(help="Arguments passed to gmeow-music.")],
-) -> None:
+@app.command(
+    name="music",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+def music_command(ctx: typer.Context) -> None:
     """Dispatch to the gmeow-music extension CLI.
 
     ``gmeow music`` does not import extension code at module load time; it
@@ -763,8 +764,9 @@ def music_command(
         raise _fail(
             "gmeow-music not found. Install the music extra: pip install gmeow[music]"
         )
+    forwarded = list(ctx.args)
     try:
-        result = subprocess.run([exe, *args], check=False)
+        result = subprocess.run([exe, *forwarded], check=False)
     except OSError as exc:
         raise _fail(f"failed to run gmeow-music: {exc}") from exc
     sys.exit(result.returncode)

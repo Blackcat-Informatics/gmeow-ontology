@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -106,7 +107,10 @@ def _load_pitch_value(graph: Graph, pitch_iri: Node) -> PitchValue | None:
     num = _integer(graph, pitch_iri, GM.ratioNumerator)
     den = _integer(graph, pitch_iri, GM.ratioDenominator)
     if num is not None and den is not None:
-        return PitchValue.from_ratio(num, den)
+        try:
+            return PitchValue.from_ratio(num, den)
+        except ValueError:
+            return None
     cents_literal = graph.value(pitch_iri, GM.centsFromOrigin)
     if cents_literal is not None:
         try:
@@ -124,6 +128,8 @@ def _load_time_span(graph: Graph, span_iri: Node) -> tuple[int, int, int, int] |
     dur_den = _integer(graph, span_iri, GM.timeDurationDenominator)
     if start_num is None or start_den is None or dur_num is None or dur_den is None:
         return None
+    if start_den <= 0 or dur_den <= 0:
+        return None
     return start_num, start_den, dur_num, dur_den
 
 
@@ -140,8 +146,10 @@ def piece_from_graph(graph: Graph, piece_iri: str | None = None) -> Piece:
         piece_node = URIRef(piece_iri)
     else:
         candidate = next(
-            iter(graph.subjects(RDF.type, GM.MusicalExpression))
-            or graph.subjects(RDF.type, GM.MusicalWork),
+            chain(
+                graph.subjects(RDF.type, GM.MusicalExpression),
+                graph.subjects(RDF.type, GM.MusicalWork),
+            ),
             None,
         )
         if candidate is None:
@@ -151,7 +159,7 @@ def piece_from_graph(graph: Graph, piece_iri: str | None = None) -> Piece:
     piece = Piece(
         iri=str(piece_node),
         title=_string(graph, piece_node, RDFS.label),
-        composer=None,
+        composer=_string(graph, piece_node, GM.composer),
     )
 
     for voice_iri in graph.objects(piece_node, GM.hasVoice):
@@ -180,15 +188,19 @@ def piece_from_graph(graph: Graph, piece_iri: str | None = None) -> Piece:
             pitch_iri = graph.value(event_iri, GM.toneEventPitchValue)
             if pitch_iri is not None:
                 pitch = _load_pitch_value(graph, pitch_iri)
+            unpitched_lit = graph.value(event_iri, GM.toneEventIsUnpitched)
             event = ToneEvent(
                 onset=Fraction(start_num, start_den),
                 duration=Fraction(dur_num, dur_den),
                 pitch=pitch,
                 is_unpitched=(
-                    graph.value(event_iri, GM.toneEventIsUnpitched) is not None
+                    bool(unpitched_lit.toPython())
+                    if unpitched_lit is not None
+                    else False
                 ),
                 dynamics=_string(graph, event_iri, GM.toneEventDynamics),
                 articulation=_string(graph, event_iri, GM.toneEventArticulation),
+                timbre=_string(graph, event_iri, GM.toneEventTimbre),
             )
             voice.events.append(event)
         # Sort events by onset for stable output.

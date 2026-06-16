@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 def _add_note(
     parent: ET.Element, pitch: PitchValue, duration: Fraction, beat_unit: Fraction
 ) -> None:
+    ns = "http://www.music-encoding.org/ns/mei"
     midi = round(pitch.to_midi_number())
     chroma = midi % 12
     octave = (midi // 12) - 1
@@ -28,7 +29,7 @@ def _add_note(
         acc = "s"
     note = ET.SubElement(
         parent,
-        "note",
+        f"{{{ns}}}note",
         {
             "pname": step,
             "oct": str(octave),
@@ -36,7 +37,7 @@ def _add_note(
         },
     )
     if acc:
-        ET.SubElement(note, "accid", {"accid": acc})
+        ET.SubElement(note, f"{{{ns}}}accid", {"accid": acc})
 
 
 def render(piece: Piece, profile: NotationProfile) -> str:
@@ -54,8 +55,8 @@ def render(piece: Piece, profile: NotationProfile) -> str:
     score = ET.SubElement(mdiv, tag("score"))
     section = ET.SubElement(score, tag("section"))
 
-    beat_unit = Fraction(1, 4)
     voice = piece.voices[0] if piece.voices else None
+    beat_unit = voice.beat_unit if voice and voice.beat_unit else Fraction(1, 4)
     events = sorted(voice.events, key=lambda e: e.onset) if voice else []
     if events:
         measure = ET.SubElement(section, tag("measure"), {"n": "1"})

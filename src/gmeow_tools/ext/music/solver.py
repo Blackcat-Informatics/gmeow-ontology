@@ -35,6 +35,8 @@ _ACCIDENTALS = {
 
 def ratio_to_cents(numerator: int, denominator: int) -> float:
     """Convert a frequency ratio to cents."""
+    if numerator <= 0:
+        raise ValueError("numerator must be positive")
     if denominator <= 0:
         raise ValueError("denominator must be positive")
     return _CENTS_PER_OCTAVE * math.log2(numerator / denominator)
@@ -88,17 +90,19 @@ def spelled_name_to_midi(name: str) -> float:
 
 
 def pitch_to_cents_12edo(pitch: PitchValue) -> float:
-    """Return the cents deviation from 12-EDO equal temperament.
+    """Return the cents deviation from the nearest 12-EDO semitone.
 
     Useful when a renderer must quantize a frame-relative pitch to a
     nearest 12-EDO spelling.
     """
-    return pitch.cents
+    midi = pitch.to_midi_number()
+    nearest = round(midi)
+    return (midi - nearest) * 100.0
 
 
-def nearest_12edo_midi(pitch: PitchValue) -> float:
+def nearest_12edo_midi(pitch: PitchValue) -> int:
     """Return the nearest 12-EDO MIDI note number for a frame-relative pitch."""
-    return round(pitch.to_midi_number() * 2) / 2
+    return round(pitch.to_midi_number())
 
 
 def quantize_to_12edo(pitch: PitchValue) -> PitchValue:
@@ -140,10 +144,25 @@ def duration_to_dots(duration: Fraction, beat_unit: Fraction = Fraction(1, 4)) -
     Returns 0, 1, or 2.  The exact duration is still emitted by the caller as
     the authoritative value where the format permits.
     """
-    ratio = float(duration / beat_unit)
-    base = 2 ** round(math.log2(ratio))
-    for dots in range(3):
-        dotted = base * (2 - 2**-dots)
-        if abs(ratio - dotted) / base < 0.1:
-            return dots
+    if duration <= 0:
+        raise ValueError("duration must be positive")
+    ratio = duration / beat_unit
+    # Standard note values relative to a quarter note (beat_unit = 1/4).
+    bases = [
+        Fraction(8, 1),  # breve
+        Fraction(4, 1),  # whole
+        Fraction(2, 1),  # half
+        Fraction(1, 1),  # quarter
+        Fraction(1, 2),  # eighth
+        Fraction(1, 4),  # 16th
+        Fraction(1, 8),  # 32nd
+        Fraction(1, 16),  # 64th
+        Fraction(1, 32),  # 128th
+    ]
+    for base in bases:
+        for dots in range(3):
+            # dotted value = base * (2 - 1/2^dots)
+            dotted = base * Fraction(2 ** (dots + 1) - 1, 2**dots)
+            if abs(ratio - dotted) <= Fraction(1, 64):
+                return dots
     return 0

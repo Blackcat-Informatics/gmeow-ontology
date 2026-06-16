@@ -26,11 +26,24 @@ def _pitch_elements(pitch: PitchValue) -> tuple[str, float, int]:
     Microtonal deviations are expressed as decimal ``alter`` values.
     """
     midi = pitch.to_midi_number()
-    rounded = round(midi)
+    rounded = int(round(midi))
     chroma = rounded % 12
     octave = (rounded // 12) - 1
-    step = ["C", "C", "D", "D", "E", "F", "F", "G", "G", "A", "A", "B"][chroma]
-    alter = round(midi - rounded, 2)
+    step, semitone_alter = [
+        ("C", 0.0),
+        ("C", 1.0),
+        ("D", 0.0),
+        ("D", 1.0),
+        ("E", 0.0),
+        ("F", 0.0),
+        ("F", 1.0),
+        ("G", 0.0),
+        ("G", 1.0),
+        ("A", 0.0),
+        ("A", 1.0),
+        ("B", 0.0),
+    ][chroma]
+    alter = semitone_alter + round(midi - rounded, 2)
     return step, alter, octave
 
 
@@ -65,6 +78,10 @@ def _add_note(
     if event.dynamics:
         dyn_el = ET.SubElement(note, "dynamics")
         ET.SubElement(dyn_el, event.dynamics.lower().replace(" ", "-"))
+    if event.timbre:
+        notations = ET.SubElement(note, "notations")
+        tech = ET.SubElement(notations, "technical")
+        ET.SubElement(tech, event.timbre.lower().replace(" ", "-"))
     if event.articulation:
         notations = ET.SubElement(note, "notations")
         articulations = ET.SubElement(notations, "articulations")
@@ -83,7 +100,7 @@ def _voice_to_part(
     """Render one Voice as a MusicXML ``<part>``."""
     part = ET.Element("part", {"id": part_id})
 
-    beat_unit = Fraction(1, 4)
+    beat_unit = voice.beat_unit if voice.beat_unit else Fraction(1, 4)
     beats_per_measure = 4
     if voice.time_frame is not None:
         if voice.time_frame.beat_unit is not None:

@@ -34,7 +34,7 @@ def render(piece: Piece, profile: NotationProfile) -> str:
         f"% Mensural notation transcription ({profile.projection_function})",
         f"% {piece.title or 'Untitled'}",
     ]
-    beat_unit = Fraction(1, 4)
+    beat_unit = voice.beat_unit if voice and voice.beat_unit else Fraction(1, 4)
     for event in events:
         if event.is_unpitched or event.pitch is None:
             token = "rest"
