@@ -245,23 +245,54 @@ class LogicRule:
     Attributes:
         head: The derived axiom (consequent).
         body: The condition axioms (antecedents), stored in canonical order.
+        distinct_pairs: Inequality body guards (issue #503) — each pair is two
+            variable strings (e.g. ``("?A", "?B")``) that must bind to *unequal*
+            values for the rule to fire.  Modelled as a rule-level field, NOT a
+            body :class:`LogicAxiom`, because a comparison has no predicate and
+            the v2 certifier keys its SCC edges on ``atom.predicate`` /
+            ``atom.negated``; keeping inequality out of ``body`` means the
+            certifier correctly treats it as a built-in guard (no edge).
+            Defaults to ``()`` (no guard); ALL pre-#503 rules have no guard, so
+            the default keeps every existing canonical/sort output byte-identical.
         scope: Contextual scope for this rule.
     """
 
     head: LogicAxiom
     body: tuple[LogicAxiom, ...]
+    distinct_pairs: tuple[tuple[str, str], ...] = ()
     scope: ContextualScope = field(default_factory=ContextualScope)
 
     def __post_init__(self) -> None:
-        """Canonicalize body order and validate non-empty head."""
+        """Canonicalize body order, canonicalize distinct pairs, validate head."""
         # frozen=True means we must use object.__setattr__
         canonical_body = tuple(sorted(self.body, key=lambda a: a._sort_key()))
         object.__setattr__(self, "body", canonical_body)
 
+        # Canonicalize the inequality guards (issue #503).  Inequality is
+        # symmetric, so the two members WITHIN each pair are sorted, and the
+        # tuple of pairs is then sorted as a whole.  Two rules with the same
+        # guards constructed in a different order compare equal.
+        canonical_pairs = tuple(
+            sorted(tuple(sorted(pair)) for pair in self.distinct_pairs)
+        )
+        object.__setattr__(self, "distinct_pairs", canonical_pairs)
+
     def _sort_key(self) -> str:
-        """Stable sort key for canonical ordering."""
+        """Stable sort key for canonical ordering.
+
+        Corpus-safety (issue #503): the distinct-pairs key is appended ONLY
+        when ``distinct_pairs`` is non-empty — mirroring exactly how
+        :meth:`LogicAxiom._sort_key` appends ``negated`` only when True.  Rules
+        with no inequality guard (``distinct_pairs == ()`` — every pre-#503
+        rule) keep the exact pre-existing key string, so every content hash and
+        generated artifact derived from this key stays byte-identical.
+        """
         body_key = "|".join(a._sort_key() for a in self.body)
-        return f"{self.head._sort_key()}\x00{body_key}"
+        base = f"{self.head._sort_key()}\x00{body_key}"
+        if self.distinct_pairs:
+            distinct_key = "|".join(f"{a}\x00{b}" for a, b in self.distinct_pairs)
+            base += f"\x00{distinct_key}"
+        return base
 
 
 @dataclass(frozen=True, slots=True)
@@ -386,6 +417,18 @@ class LogicProgram:
                 {
                     "head": _axiom_dict(r.head),
                     "body": [_axiom_dict(b) for b in r.body],
+                    # Corpus-safety (issue #503): the ``"distinct"`` key is
+                    # emitted ONLY when a rule actually carries an inequality
+                    # guard, mirroring the ``"negated"``-only-when-set discipline
+                    # in ``_axiom_dict``.  Rules with no guard (every pre-#503
+                    # rule) serialize to the exact pre-existing dict shape, so
+                    # every existing canonical() output stays byte-identical and
+                    # the round-trip / parity corpus is unaffected.
+                    **(
+                        {"distinct": [list(p) for p in r.distinct_pairs]}
+                        if r.distinct_pairs
+                        else {}
+                    ),
                     "scope": {
                         "standpoint": r.scope.standpoint,
                         "time": r.scope.time,

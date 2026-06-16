@@ -1,0 +1,6 @@
+{
+  "https://example.org/foundation/exactly-one-stereotype/schema": {
+    "quads": 25,
+    "status": "consistent"
+  }
+}

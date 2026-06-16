@@ -280,7 +280,15 @@ def _rule_key(r: dict) -> str:  # type: ignore[type-arg]
     body_key = "|".join(
         sorted(f"{b['subject']}\x00{b['predicate']}\x00{b['obj']}" for b in r["body"])
     )
-    return f"{head_key}\x00{body_key}"
+    base = f"{head_key}\x00{body_key}"
+    # Corpus-safety (issue #503): fold the inequality guards into the diff key
+    # ONLY when present, so a difference in distinct-pairs is surfaced in the
+    # isomorphism diff while pre-#503 rules (no ``"distinct"`` key in the
+    # canonical dict) keep their exact pre-existing diff key string.
+    distinct = r.get("distinct")
+    if distinct:
+        base += "\x00" + "|".join(f"{a}\x00{b}" for a, b in distinct)
+    return base
 
 
 def _profile_key(p: dict) -> str:  # type: ignore[type-arg]

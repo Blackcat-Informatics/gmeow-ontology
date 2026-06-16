@@ -1,0 +1,10 @@
+{
+  "https://example.org/foundation/cross-world-rigidity/worldA": {
+    "quads": 19,
+    "status": "consistent"
+  },
+  "https://example.org/foundation/cross-world-rigidity/worldB": {
+    "quads": 3,
+    "status": "consistent"
+  }
+}

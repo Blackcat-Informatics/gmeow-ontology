@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
+from gts import read
 
 from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE
 from gmeow_tools.export import Term, collect_terms, fold_meta
 from gmeow_tools.gts_views import FoldView
-from gts import read
 
 mcp = FastMCP("gmeow")
 

@@ -1,0 +1,6 @@
+{
+  "https://example.org/foundation/identity-overlap-mixiden/schema": {
+    "quads": 19,
+    "status": "consistent"
+  }
+}

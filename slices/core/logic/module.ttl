@@ -126,6 +126,75 @@ logic:mediates
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #
+# OntoUML discipline diagnostics (issue #503). The structural disciplines that
+# today live as external Python lints (reasoning_lint.py) are lowered to
+# executable logic: rules whose materialized logic:violation facts reproduce the
+# lint verdicts. logic:violation is the derived diagnostic relation; the
+# logic:Discipline individuals are a CLOSED label set so a typo'd label fails
+# closed (it names no declared individual) rather than silently passing.
+# --------------------------------------------------------------------------- #
+
+logic:Discipline
+    a owl:Class ;
+    rdfs:label "Discipline"@x-gmeow-english ;
+    skos:definition "A named OntoUML structural discipline a class can violate: the closed vocabulary of anti-patterns the foundation lowering checks (stereotype cardinality, identity overlap, free role, mixed rigidity, relator completeness). Its named individuals are the labels a logic:violation fact points at; the set is closed so a misspelt label names no declared discipline and is rejected rather than silently accepted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:violation
+    a owl:ObjectProperty ;
+    rdfs:label "violation"@x-gmeow-english ;
+    skos:definition "Relates an offending class to the logic:Discipline it violates: the derived diagnostic the OntoUML-discipline lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption and mediation facts, so its presence is a machine-checkable proof that the class breaks the named discipline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:rigidityViolation
+    a owl:ObjectProperty ;
+    rdfs:label "rigidity violation"@x-gmeow-english ;
+    skos:definition "Relates an individual to a rigid type it fails to persist as across worlds: the derived diagnostic of the positive cross-world rigidity discipline (the fourth OntoUML discipline, the one the type-only lint cannot express). For an individual x and a rigid type T, if x instantiates T in some world but still exists in another world where it is NOT typed T, a logic:rigidityViolation fact is entailed in that other world. Unlike logic:violation it is not produced by an in-world Datalog rule — rigidity quantifies over pairs of worlds and the chase is world-local, so it is evaluated by bounded closure over the finite materialized world set (LOGIC-SEMANTICS.md §Operational semantics). It is never asserted by hand; its presence is a machine-checkable proof that a rigid type's instantiation did not carry over to a world where the individual persists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:dischargeObligation
+    a owl:ObjectProperty ;
+    rdfs:label "discharge obligation"@x-gmeow-english ;
+    skos:definition "Relates an individual to an anti-rigid type it instantiates contingently, carrying the standing obligation to construct or cite a world of existence in which the individual lacks that type (the anti-rigidity witness). The instance-level diagnostic the anti-rigidity lowering emits under the witness-obligation policy (the default; LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy): for an individual x typed by an anti-rigid Role or Phase T in a world, a logic:dischargeObligation fact is entailed in that world. It is an obligation, NOT a violation — anti-rigid instantiation is licensed on the promise that the counter-world is satisfiable on demand (its construction is deferred); the lighter schema-only policy emits nothing instance-level, the stricter witness-required policy emits logic:witnessRequiredViolation instead. Like the other derived diagnostics it is never asserted by hand."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:witnessRequiredViolation
+    a owl:ObjectProperty ;
+    rdfs:label "witness required violation"@x-gmeow-english ;
+    skos:definition "Relates an individual to an anti-rigid type it instantiates with no materialized counter-world to witness the anti-rigidity: the instance-level diagnostic the anti-rigidity lowering emits under the strict witness-required policy (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy). For an individual x typed by an anti-rigid Role or Phase T in a world, if there is no other materialized world in which x exists but is NOT typed T, a logic:witnessRequiredViolation fact is entailed in the typing world; a counter-world that witnesses x existing untyped by T discharges the obligation and no violation is emitted. Unlike the default witness-obligation policy (which emits logic:dischargeObligation, an obligation rather than a violation) this policy treats a missing counter-world as a hard failure; the construction of the witness world itself is deferred. It is never asserted by hand; its presence is a machine-checkable proof that an anti-rigid instantiation lacks the world of existence its anti-rigidity requires."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:StereotypeCardinality
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Stereotype Cardinality"@x-gmeow-english ;
+    skos:definition "The discipline that every class carries exactly one stereotype: a class with no meta-class pun, or with two or more distinct meta-class puns, violates it. The lowering of reasoning_lint.exactly_one_stereotype — the precondition every other discipline assumes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:MixIden
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Mixed Identity"@x-gmeow-english ;
+    skos:definition "The OntoUML MixIden anti-pattern: a sortal inherits its principle of identity from exactly one Kind. A Kind specializing another Kind, or a non-Kind sortal tracing to zero or to two-or-more Kinds, violates it. The lowering of reasoning_lint.identity_overlap."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:FreeRole
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Free Role"@x-gmeow-english ;
+    skos:definition "The OntoUML FreeRole anti-pattern: an anti-rigid sortal (Role or Phase) must specialize a rigid sortal from which to inherit a principle of identity. An anti-rigid sortal with no rigid (Kind/SubKind) ancestor violates it. One half of the lowering of reasoning_lint.anti_rigidity_discipline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:MixRig
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Mixed Rigidity"@x-gmeow-english ;
+    skos:definition "The OntoUML MixRig anti-pattern: a rigid sortal (Kind or SubKind) must never specialize an anti-rigid type (Phase, Role, PhaseMixin, RoleMixin, Mixin), because a rigid type cannot inherit contingent instantiation. A rigid sortal with an anti-rigid-type ancestor violates it. The other half of the lowering of reasoning_lint.anti_rigidity_discipline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:RelComp
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Relator Completeness"@x-gmeow-english ;
+    skos:definition "The OntoUML RelComp anti-pattern: a concrete Relator must mediate at least two distinct relata. A concrete Relator (one with no logic: subclass to defer its mediations to) that mediates fewer than two distinct entities violates it. The lowering of reasoning_lint.relator_mediation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
 # Semantic profiles (LOGIC-SEMANTICS.md §Semantic profiles). Every rule set
 # MUST declare the profile that governs it; a rule set with no declared
 # profile is rejected by the compiler. Soundness, completeness, and the
@@ -310,4 +379,11 @@ logic:negatedBody
     rdfs:label "negated body"@x-gmeow-english ;
     skos:definition "Relates a logic:Rule to a negated (negation-as-failure) body atom: the antecedent literal that must NOT be derivable for the rule to fire. Parallel to logic:body (the positive antecedent atoms) but read under closed-world negation, so a rule with any logic:negatedBody atom requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. The atom itself is a reified rdf:subject/rdf:predicate/rdf:object triple exactly as for logic:body; only its polarity differs."@x-gmeow-english ;
     rdfs:comment "Negation-as-failure body atom of a logic:Rule. Default-absent: a positive Horn rule has only logic:body atoms and no logic:negatedBody, so the existing positive corpus is unaffected."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:distinctBody
+    a owl:ObjectProperty ;
+    rdfs:label "distinct body"@x-gmeow-english ;
+    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged (issue #503)."@x-gmeow-english ;
+    rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical (issue #503)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
