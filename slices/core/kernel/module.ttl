@@ -547,3 +547,51 @@ gmeow:connectsTo
     rdfs:label "connects to"@x-gmeow-english ;
     skos:definition "Universal traversable-link relation: relates any GMEOW thing to another thing it is directly connected to in a graph, network, or path. Intentionally broad; use specialized subproperties (spatiallyConnectsTo, hasSpouse, citesWork, dependsOn, …) when the kind of connection matters. NOT symmetric and NOT transitive at this level so that subproperties can be directed or undirected and reachability can be computed by the solver layer (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+# --------------------------------------------------------------------------- #
+# Mental moments — the umbrella for an agent's intrinsic mental states.
+#
+# A NAMED gufo:Category under gufo:IntrinsicMode so a consumer (the agent-memory
+# flagship, Principle 15) can query ALL of an agent's mental moments — knowing,
+# believing, desiring/intending — as one family, and the schema surface projects
+# a single mental-state parent. Reused by cognition (gmeow:CognitiveState),
+# epistemics (doxastic states), and teleology (gmeow:IntentionalMode).
+# --------------------------------------------------------------------------- #
+
+gmeow:MentalMoment
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gufo:IntrinsicMode ;
+    rdfs:label "Mental Moment"@x-gmeow-english ;
+    skos:definition "The umbrella category of all agent mental states — intrinsic modes inhering in exactly one agent that constitute its cognitive / doxastic / conative life: knowing (cognition's gmeow:CognitiveState), believing (epistemics' doxastic states), and desiring/intending (teleology's gmeow:IntentionalMode). A NAMED class so a consumer can query ALL of an agent's mental moments uniformly (the agent-memory flagship, Principle 15) and the schema surface projects a single mental-state parent. Never instantiated directly."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+# --------------------------------------------------------------------------- #
+# Proficiency value vocabulary — domain-neutral scales, levels, and modalities.
+#
+# Relocated here from the expertise slice (#556) to break a latent
+# expertise ↔ cognition dependency cycle (Principle 6/16): expertise, languages
+# and cognition all reuse these value classes, so they belong in the kernel that
+# every consumer already depends on. The individuals (CEFR, Dreyfus, NIH, …)
+# stay in their domain slices and reference these classes by IRI.
+# --------------------------------------------------------------------------- #
+
+gmeow:ProficiencyScale
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Proficiency Scale"@x-gmeow-english ;
+    skos:definition "A framework for rating proficiency in any competency domain — language, skill, or knowledge (CEFR, ILR, ACTFL, Dreyfus, NIH, Bloom's, SOLO, assessed, self-reported). A domain-neutral value vocabulary carried by gmeow:proficiencyScale, gmeow:skillProficiencyScale, gmeow:knowledgeProficiencyScale, and gmeow:levelScale. Minted in kernel so expertise, languages, and cognition reuse it without a cross-slice dependency cycle (Principle 6)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:ProficiencyLevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Proficiency Level"@x-gmeow-english ;
+    skos:definition "An attained proficiency level on a gmeow:ProficiencyScale (CEFR A1–C2; Dreyfus novice→expert; NIH beginner→expert; assessed; native; heritage). Carried by gmeow:proficiencyLevel and gmeow:skillProficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:ProficiencyModality
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Proficiency Modality"@x-gmeow-english ;
+    skos:definition "The channel a proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall). A value carried by gmeow:proficiencyModality."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .

@@ -63,9 +63,9 @@ gmeow:IntentionalMoment
 
 gmeow:IntentionalMode
     a owl:Class, gufo:Category ;
-    rdfs:subClassOf gmeow:IntentionalMoment, gufo:IntrinsicMode ;
+    rdfs:subClassOf gmeow:IntentionalMoment, gmeow:MentalMoment ;
     rdfs:label "Intentional Mode"@x-gmeow-english ;
-    skos:definition "The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. The intrinsic branch of gmeow:IntentionalMoment. Never instantiated directly: instances are Desires or Intentions (the commitment-graded trichotomy; the social grade is gmeow:Commitment, a relator, not a mode)."@x-gmeow-english ;
+    skos:definition "The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. The intrinsic branch of gmeow:IntentionalMoment, and the conative member of the kernel gmeow:MentalMoment family (alongside cognition's gmeow:CognitiveState and epistemics' doxastic states) so an agent's whole mental life is queryable as one family (Principle 15) — gmeow:MentalMoment ⊑ gufo:IntrinsicMode supplies the gUFO branch. Never instantiated directly: instances are Desires or Intentions (the commitment-graded trichotomy; the social grade is gmeow:Commitment, a relator, not a mode)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:Desire
