@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/mentation>
+    a gmeow:Slice ;
+    rdfs:label "mentation"@x-gmeow-english ;
+    skos:definition "The mentation slice of the GMEOW ontology (core tier): GMEOW Mentation Module — the occurrent/experiential half of mind (gmeow:MentalProcess / gmeow:Experience as perdurants under gmeow:Event), the kernel-level sibling of the endurant gmeow:MentalMoment umbrella. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
+    dcterms:title "GMEOW Mentation Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:sliceConsumer "The agent-memory timeline — a unified, queryable record of an agent's mental life as it unfolds; the single occurrent substrate that inference (#581), learning (#584), imagination (#587), and dreaming (#589) specialise or compose over."@x-gmeow-english .

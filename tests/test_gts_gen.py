@@ -113,10 +113,22 @@ def test_cross_hash_seed_builds_are_byte_identical(tmp_path: Path) -> None:
 
 
 @pytest.mark.ci_only
-def test_committed_snapshot_matches_a_fresh_build(fresh_snapshot: bytes) -> None:
-    """The committed artifact reproduces from sources (the drift gate's claim)."""
+def test_committed_snapshot_reproduces_from_sources(fresh_snapshot: bytes) -> None:
+    """The committed artifact reproduces from sources — SEMANTICALLY.
+
+    Byte-exactness is intentionally not asserted: the compressed bytes depend
+    on the zstd/libzstd build (CI's manylinux wheel vs a local one), so the
+    contract is the folded graph, not the exact bytes (see
+    GtsSnapshotGenerator.compare).
+    """
+    from gts import read, to_nquads
+
     assert GTS_SNAPSHOT_FILE.exists(), "run `gmeow regenerate gts`"
-    assert fresh_snapshot == GTS_SNAPSHOT_FILE.read_bytes()
+    fresh_fold = sorted(to_nquads(read(fresh_snapshot)).splitlines())
+    committed_fold = sorted(
+        to_nquads(read(GTS_SNAPSHOT_FILE.read_bytes())).splitlines()
+    )
+    assert fresh_fold == committed_fold
 
 
 def test_committed_snapshot_uses_deterministic_gzip_frames() -> None:
@@ -254,8 +266,8 @@ def test_conflicting_reifier_rebind_is_an_error(tmp_path: Path) -> None:
         compile_gts(_small_graph(), rdf12)
 
 
-def test_compare_labels_encoding_only_vs_semantic_drift(tmp_path: Path) -> None:
-    """The generator's compare distinguishes codec skew from source change."""
+def test_compare_ignores_encoding_only_drift(tmp_path: Path) -> None:
+    """compare() flags semantic source change but tolerates codec/library skew."""
     from gmeow_tools.generator import registry
     from gmeow_tools.gts_gen import GtsSnapshotGenerator  # noqa: F401  (register)
 
@@ -264,13 +276,12 @@ def test_compare_labels_encoding_only_vs_semantic_drift(tmp_path: Path) -> None:
     committed = tmp_path / "committed.gts"
     committed.write_bytes(compile_gts(_small_graph()))
 
-    # identical fold, different bytes (identity vs zstd) → encoding-only
+    # identical fold, different bytes (identity vs zstd) → NOT drift
     fresh = tmp_path / "fresh.gts"
     fresh.write_bytes(compile_gts(_small_graph(), transform=["identity"]))
-    [diag] = gen.compare(fresh, committed)
-    assert "encoding-only" in diag
+    assert gen.compare(fresh, committed) == []
 
-    # different content → semantic
+    # different content → semantic drift
     other = _small_graph()
     other.add((URIRef(EX + "dog"), RDF.type, URIRef(EX + "Animal")))
     fresh.write_bytes(compile_gts(other))
