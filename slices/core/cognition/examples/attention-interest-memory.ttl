@@ -19,7 +19,7 @@ ex:nova a gmeow:Person ;
     gmeow:remembers    wd:Q192995 .   # quantum computing — a subject she remembers (remembers ⊑ isAwareOf)
 
 # curiousAbout entails interestedIn (subproperty); remembers entails isAwareOf —
-# a reasoner derives ex:nova gmeow:isAwareOf wd:Q1338153 from the remembers edge.
+# a reasoner derives ex:nova gmeow:isAwareOf wd:Q192995 from the remembers edge.
 
 # --- Suppression, not deletion (Principle 10): forgetting, via the documented
 #     remembers ↔ gmeow:MemoryItem bridge (#557). Nova's remembering of a subject is

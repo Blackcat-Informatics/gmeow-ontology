@@ -14,8 +14,8 @@
 ex:sam      a gmeow:Person ; gmeow:name "Sam"@x-gmeow-english .
 ex:assessor a gmeow:Person ; gmeow:name "External Assessor"@x-gmeow-english .
 
-# --- Self-attributed: Sam, by Sam's own lights, has MASTERED statistics.
-ex:samStatsSelf a gmeow:KnowledgeProficiency ;
+# --- Self-attributed: Sam, by Sam's own lights, has MASTERED quantum computing.
+ex:samQuantumSelf a gmeow:KnowledgeProficiency ;
     gmeow:knowledgeProficiencyAgent   ex:sam ;
     gmeow:knowledgeProficiencySubject wd:Q192995 ;         # quantum computing
     gmeow:knowledgeProficiencyLevel   gmeow:knowledgeMastered ;
@@ -24,7 +24,7 @@ ex:samStatsSelf a gmeow:KnowledgeProficiency ;
 
 # --- Observer-attributed: the assessor, on the same scale, rates the SAME knowing
 #     of the SAME subject only as KNOWS-ABOUT. Lower depth, coexisting claim.
-ex:samStatsAssessed a gmeow:KnowledgeProficiency ;
+ex:samQuantumAssessed a gmeow:KnowledgeProficiency ;
     gmeow:knowledgeProficiencyAgent   ex:sam ;
     gmeow:knowledgeProficiencySubject wd:Q192995 ;         # quantum computing
     gmeow:knowledgeProficiencyLevel   gmeow:knowledgeKnowsAbout ;
