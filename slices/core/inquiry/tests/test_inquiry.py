@@ -153,12 +153,14 @@ def test_question_type_property() -> None:
 def test_presupposes_property() -> None:
     """presupposes is an owl:ObjectProperty from gmeow:Question to
     gmeow:Proposition — the presupposition rides as the subject of the relation,
-    not as a global fact."""
+    not as a global fact — and is non-functional (a question may presuppose
+    several propositions)."""
     g = _graph()
     presupposes = _t("presupposes")
     assert (presupposes, RDF.type, OWL.ObjectProperty) in g
     assert (presupposes, RDFS.domain, _t("Question")) in g
     assert (presupposes, RDFS.range, _t("Proposition")) in g
+    assert (presupposes, RDF.type, OWL.FunctionalProperty) not in g
 
 
 def test_answers_has_open_domain() -> None:
@@ -176,12 +178,14 @@ def test_answers_has_open_domain() -> None:
 def test_evokes_has_open_domain() -> None:
     """evokes is an owl:ObjectProperty ranging over gmeow:Question with an OPEN
     domain (a Proposition or a Question may evoke a question) — a solver-layer
-    decoration with no asserted rdfs:domain."""
+    decoration with no asserted rdfs:domain, and non-functional (one premise may
+    evoke many questions, Wiśniewski erotetic implication)."""
     g = _graph()
     evokes = _t("evokes")
     assert (evokes, RDF.type, OWL.ObjectProperty) in g
     assert (evokes, RDFS.range, _t("Question")) in g
     assert (evokes, RDFS.domain, None) not in g
+    assert (evokes, RDF.type, OWL.FunctionalProperty) not in g
 
 
 def test_inquiry_tenure_is_a_mediating_situation() -> None:
@@ -199,11 +203,13 @@ def test_inquiry_tenure_is_a_mediating_situation() -> None:
     assert (inquirer, RDF.type, OWL.ObjectProperty) in g
     assert (inquirer, RDFS.domain, tenure) in g
     assert (inquirer, RDFS.range, _t("Agent")) in g
+    assert (inquirer, RDF.type, OWL.FunctionalProperty) in g
 
     question_role = _t("tenureQuestion")
     assert (question_role, RDF.type, OWL.ObjectProperty) in g
     assert (question_role, RDFS.domain, tenure) in g
     assert (question_role, RDFS.range, _t("Question")) in g
+    assert (question_role, RDF.type, OWL.FunctionalProperty) in g
 
     # The EL relator-mediation restriction: some blank node b is a
     # someValuesFrom Question restriction on tenureQuestion, asserted as a
