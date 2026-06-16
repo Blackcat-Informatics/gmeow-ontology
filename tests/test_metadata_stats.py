@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rdflib import URIRef
+from rdflib import Literal, URIRef
 from rdflib.namespace import VOID
 
 from gmeow_tools.config import VOID_DATASET_IRI
@@ -17,11 +17,13 @@ def test_void_dataset_carries_size_and_census() -> None:
     """
     graph = build_void_graph()
     dataset = URIRef(VOID_DATASET_IRI)
+    counts: dict[str, int] = {}
     for prop in (VOID.triples, VOID.classes, VOID.properties, VOID.entities):
         value = graph.value(dataset, prop)
-        assert value is not None, f"VoID dataset missing {prop}"
-        assert int(value) > 0
+        assert isinstance(value, Literal), f"VoID dataset missing {prop}"
+        count = int(value)
+        assert count > 0
+        counts[str(prop)] = count
 
-    # The ontology is non-trivial and properties outnumber classes (it is a
-    # relation-rich vocabulary) — a cheap guard against a zero/degenerate count.
-    assert int(graph.value(dataset, VOID.triples)) > 1000
+    # The ontology is non-trivial — a cheap guard against a degenerate count.
+    assert counts[str(VOID.triples)] > 1000
