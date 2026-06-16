@@ -34,6 +34,7 @@ pub fn validate_shape(store: &Store, focus: &Term, shape: &Shape) -> Vec<Validat
     for constraint in &shape.constraints {
         results.extend(eval_constraint(
             store,
+            focus,
             node_value_nodes,
             constraint,
             None,
@@ -82,14 +83,20 @@ fn eval_property_shape(
     for constraint in &ps.constraints {
         let mut rs = eval_constraint(
             store,
+            focus,
             &value_nodes,
             constraint,
             Some(&ps.path),
             &ps_as_shape,
         );
-        // Override result_path for every result to match the property shape path.
+        // Stamp the property-shape path and focus onto every result, but PRESERVE
+        // a path the constraint itself bound — a `sh:sparql` query may project
+        // `?path` (→ result_path, SHACL-AF §3.4.2.2), which is more specific than
+        // the shape's declared path and must not be clobbered.
         for r in &mut rs {
-            r.result_path = Some(path_term.clone());
+            if r.result_path.is_none() {
+                r.result_path = Some(path_term.clone());
+            }
             r.focus_node = focus.clone();
         }
         results.extend(rs);
@@ -101,9 +108,16 @@ fn eval_property_shape(
 
 /// Evaluate a single constraint against the provided value node set.
 ///
+/// `focus_node` is the SHACL focus node (subject) — always the real focus, never
+/// a path value.  For node-level constraints `focus_node == value_nodes[0]`; for
+/// property shapes `focus_node` is the subject while `value_nodes` are the path
+/// objects.  `sh:sparql`'s `$this` must bind to `focus_node` in both contexts
+/// (SHACL-AF spec: `$this` = focus node, not value node).
+///
 /// `path` is `None` for node-level constraints, `Some` for property shapes.
 fn eval_constraint(
     store: &Store,
+    focus_node: &Term,
     value_nodes: &[Term],
     constraint: &Constraint,
     path: Option<&Path>,
@@ -161,8 +175,11 @@ fn eval_constraint(
             }
         }
 
-        // ── Class (per value node, NO subclass inference) ──────────────────────
+        // ── Class (per value node; honors asserted rdfs:subClassOf, §4.2.5) ────
         Constraint::Class(class_iri) => {
+            // Hoist the BFS closure computation once, outside the per-value loop.
+            // Previously called inside the loop: O(N×M) → now O(M) + O(N).
+            let closure = crate::engine::subclass_closure(store, class_iri);
             let mut results = Vec::new();
             let focus = value_nodes
                 .first()
@@ -171,7 +188,7 @@ fn eval_constraint(
             for value in value_nodes {
                 let violates = match value {
                     Term::Literal(_) => true,
-                    _ => !has_direct_type(store, value, class_iri),
+                    _ => !is_shacl_instance(store, value, &closure),
                 };
                 if violates {
                     results.push(ValidationResult {
@@ -542,26 +559,57 @@ fn eval_constraint(
             }
             results
         }
+
+        // ── Sparql (SHACL-AF — $this always binds to the focus node, never to a
+        //           path value node.  SHACL-AF spec §3.4: for sh:sparql on a
+        //           property shape, $this is still the focus subject; the path
+        //           objects are NOT auto-bound.)
+        //
+        // The constraint blank node may carry its own sh:message / sh:severity;
+        // those override the shape-level defaults at eval time.
+        // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
+        Constraint::Sparql {
+            select,
+            message: cmsg,
+            severity: csev,
+        } => {
+            let sev = csev.unwrap_or(severity);
+            let msg = cmsg.clone().or_else(|| message.clone());
+            crate::sparql::eval_sparql_constraint(
+                store,
+                focus_node,
+                select,
+                NamedNode::from(sh::SPARQL_CONSTRAINT_COMPONENT),
+                &source_shape,
+                sev,
+                msg,
+            )
+            .expect("sh:sparql query execution failed (parseability checked at parse time)")
+        }
     }
 }
 
 // ── Helper functions ───────────────────────────────────────────────────────────
 
-/// Check if `value` has a direct `rdf:type` triple to `class_iri` in the
-/// default graph (NO subclass inference).
-fn has_direct_type(store: &Store, value: &Term, class_iri: &NamedNode) -> bool {
+/// Whether `value` is a SHACL instance of a class, given a precomputed subclass
+/// closure (SHACL §4.2.5).
+///
+/// `closure` must contain the class IRI itself plus every transitive subclass
+/// derived from asserted `rdfs:subClassOf` edges (as returned by
+/// [`crate::engine::subclass_closure`]).  The caller hoists the closure
+/// computation once before the per-value-node loop to avoid O(N×M) BFS cost.
+fn is_shacl_instance(
+    store: &Store,
+    value: &Term,
+    closure: &std::collections::HashSet<Term>,
+) -> bool {
     let Some(subj_ref) = term_as_subject_ref(value) else {
         return false;
     };
-    let class_term = Term::NamedNode(class_iri.clone());
     store
-        .quads_for_pattern(
-            Some(subj_ref),
-            Some(rdf::TYPE),
-            Some(class_term.as_ref()),
-            None,
-        )
-        .any(|q| q.is_ok())
+        .quads_for_pattern(Some(subj_ref), Some(rdf::TYPE), None, None)
+        .flatten()
+        .any(|q| closure.contains(&q.object))
 }
 
 /// Convert a `Term` to a subject ref, or `None` for literals.
@@ -628,20 +676,32 @@ fn is_xsd_double_lexical(s: &str) -> bool {
 
 /// Check that a `Term` satisfies `sh:datatype` requirements.
 ///
-/// - Must be a `Literal` whose `.datatype()` IRI equals `dt_iri`.
-/// - Additionally validates the lexical form (not native-parse) for common XSD
-///   numeric/boolean datatypes: xsd:integer (unbounded, no overflow),
-///   xsd:decimal (no scientific notation), xsd:double, xsd:float, xsd:boolean.
+/// - Must be a `Literal` whose datatype matches `dt_iri`.
+/// - On an exact datatype-IRI match, additionally validates the lexical form for
+///   common XSD types (xsd:integer unbounded, xsd:decimal no scientific notation,
+///   xsd:double/float, xsd:boolean).
+/// - Oxigraph canonicalizes XSD derived integer types to `xsd:integer` in the
+///   store at load time (e.g. `"1"^^xsd:nonNegativeInteger` becomes
+///   `"1"^^xsd:integer`), which would break the exact-IRI match. When the shape
+///   requires such a derived type and the stored literal carries the canonical
+///   base, accept iff the lexical value lies in the derived type's value space.
+///   This matches pySHACL's spec-correct result. See #598.
 fn check_datatype(value: &Term, dt_iri: &NamedNode) -> bool {
     let Term::Literal(lit) = value else {
         return false;
     };
-    if lit.datatype().as_str() != dt_iri.as_str() {
-        return false;
-    }
-    // Lexical validity check for common XSD types.
+    let stored_dt = lit.datatype();
     let lex = lit.value();
-    match dt_iri.as_str() {
+    if stored_dt.as_str() == dt_iri.as_str() {
+        return xsd_lexical_valid(dt_iri.as_str(), lex);
+    }
+    derived_integer_matches(stored_dt.as_str(), dt_iri.as_str(), lex)
+}
+
+/// Lexical-form validity for an exact datatype-IRI match. Unknown datatypes are
+/// accepted (no lexical facet enforced).
+fn xsd_lexical_valid(dt: &str, lex: &str) -> bool {
+    match dt {
         "http://www.w3.org/2001/XMLSchema#integer" => is_xsd_integer_lexical(lex),
         "http://www.w3.org/2001/XMLSchema#decimal" => is_xsd_decimal_lexical(lex),
         "http://www.w3.org/2001/XMLSchema#double" => is_xsd_double_lexical(lex),
@@ -649,7 +709,41 @@ fn check_datatype(value: &Term, dt_iri: &NamedNode) -> bool {
         "http://www.w3.org/2001/XMLSchema#boolean" => {
             matches!(lex.trim(), "true" | "false" | "1" | "0")
         }
-        _ => true, // no lexical validation for other datatypes
+        _ => true,
+    }
+}
+
+/// Whether a literal that oxigraph stored as the canonical base type satisfies a
+/// shape's required XSD *derived* integer type, by validating the lexical value
+/// against the derived type's value space. Every XSD integer-derived type
+/// canonicalizes to `xsd:integer` in oxigraph; only that base is considered here.
+/// See #598.
+fn derived_integer_matches(stored_dt: &str, required_dt: &str, lex: &str) -> bool {
+    const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+    if stored_dt != XSD_INTEGER || !is_xsd_integer_lexical(lex) {
+        return false;
+    }
+    let trimmed = lex.trim();
+    // For sign-constrained but unbounded types, fall back to a lexical sign check
+    // when the magnitude exceeds i128 (astronomically large; never in practice).
+    let value = trimmed.parse::<i128>().ok();
+    let is_negative = || value.map_or(trimmed.starts_with('-'), |n| n < 0);
+    let is_positive = || value.map_or(!trimmed.starts_with('-'), |n| n > 0);
+    let is_zero = || value == Some(0);
+    match required_dt {
+        "http://www.w3.org/2001/XMLSchema#nonNegativeInteger" => !is_negative(),
+        "http://www.w3.org/2001/XMLSchema#positiveInteger" => is_positive(),
+        "http://www.w3.org/2001/XMLSchema#nonPositiveInteger" => is_negative() || is_zero(),
+        "http://www.w3.org/2001/XMLSchema#negativeInteger" => is_negative(),
+        "http://www.w3.org/2001/XMLSchema#long" => trimmed.parse::<i64>().is_ok(),
+        "http://www.w3.org/2001/XMLSchema#int" => trimmed.parse::<i32>().is_ok(),
+        "http://www.w3.org/2001/XMLSchema#short" => trimmed.parse::<i16>().is_ok(),
+        "http://www.w3.org/2001/XMLSchema#byte" => trimmed.parse::<i8>().is_ok(),
+        "http://www.w3.org/2001/XMLSchema#unsignedLong" => trimmed.parse::<u64>().is_ok(),
+        "http://www.w3.org/2001/XMLSchema#unsignedInt" => trimmed.parse::<u32>().is_ok(),
+        "http://www.w3.org/2001/XMLSchema#unsignedShort" => trimmed.parse::<u16>().is_ok(),
+        "http://www.w3.org/2001/XMLSchema#unsignedByte" => trimmed.parse::<u8>().is_ok(),
+        _ => false,
     }
 }
 
@@ -885,8 +979,10 @@ mod tests {
 
     #[test]
     fn class_fail_no_direct_type() {
-        // ex:b is typed as ex:SubFoo (a subclass of ex:Foo in "real" world),
-        // but NO inference means Class(ex:Foo) fails.
+        // ex:b is typed ex:SubFoo, and there is NO asserted ex:SubFoo
+        // rdfs:subClassOf ex:Foo triple in the data — so b is not a SHACL
+        // instance of ex:Foo and the constraint fails. (We honor asserted
+        // subClassOf, but invent none: no reasoner runs.)
         let store = load_store(
             "@prefix ex: <http://example.org/ns#> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . ex:a ex:p ex:b . ex:b rdf:type ex:SubFoo .",
         );
@@ -900,6 +996,46 @@ mod tests {
         let results = validate_shape(&store, &ex("a"), &shape);
         assert_eq!(results.len(), 1);
         assert!(component_iri(&results)[0].contains("Class"));
+    }
+
+    #[test]
+    fn class_pass_asserted_subclass() {
+        // ex:b is typed ex:SubFoo and the data ASSERTS ex:SubFoo rdfs:subClassOf
+        // ex:Foo, so b is a SHACL instance of ex:Foo (SHACL §4.2.5) and the
+        // sh:class ex:Foo constraint conforms — matching pySHACL. See #599.
+        let store = load_store(
+            "@prefix ex: <http://example.org/ns#> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . ex:a ex:p ex:b . ex:b rdf:type ex:SubFoo . ex:SubFoo rdfs:subClassOf ex:Foo .",
+        );
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::Class(NamedNode::new_unchecked(format!(
+                "{EX}Foo"
+            )))],
+        );
+        assert!(
+            validate_shape(&store, &ex("a"), &shape).is_empty(),
+            "asserted subClassOf must make ex:b a SHACL instance of ex:Foo"
+        );
+    }
+
+    #[test]
+    fn class_pass_transitive_subclass() {
+        // Transitive: ex:b a ex:C, ex:C ⊑ ex:B, ex:B ⊑ ex:A → b is an A-instance.
+        let store = load_store(
+            "@prefix ex: <http://example.org/ns#> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . ex:a ex:p ex:b . ex:b rdf:type ex:C . ex:C rdfs:subClassOf ex:B . ex:B rdfs:subClassOf ex:A .",
+        );
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::Class(NamedNode::new_unchecked(format!(
+                "{EX}A"
+            )))],
+        );
+        assert!(
+            validate_shape(&store, &ex("a"), &shape).is_empty(),
+            "transitive asserted subClassOf must be honored"
+        );
     }
 
     // ── datatype ───────────────────────────────────────────────────────────────
@@ -951,6 +1087,59 @@ mod tests {
         let results = validate_shape(&store, &ex("a"), &shape);
         assert_eq!(results.len(), 1);
         assert!(component_iri(&results)[0].contains("Datatype"));
+    }
+
+    // ── datatype derived-integer (oxigraph canonicalization, #598) ──────────────
+
+    #[test]
+    fn datatype_derived_nonneg_integer_pass() {
+        // Oxigraph stores "5"^^xsd:nonNegativeInteger as "5"^^xsd:integer, but a
+        // shape requiring xsd:nonNegativeInteger must still accept it (value 5 is
+        // in range) — matching pySHACL. Pre-fix this produced a false violation.
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:n \"5\"^^<{XSD}nonNegativeInteger> ."
+        ));
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}n"),
+            vec![Constraint::Datatype(NamedNode::new_unchecked(format!(
+                "{XSD}nonNegativeInteger"
+            )))],
+        );
+        assert!(
+            validate_shape(&store, &ex("a"), &shape).is_empty(),
+            "in-range derived-integer value must conform under canonicalization"
+        );
+    }
+
+    #[test]
+    fn derived_integer_value_space() {
+        let int = "http://www.w3.org/2001/XMLSchema#integer";
+        let nn = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+        let pos = "http://www.w3.org/2001/XMLSchema#positiveInteger";
+        let neg = "http://www.w3.org/2001/XMLSchema#negativeInteger";
+        let byte = "http://www.w3.org/2001/XMLSchema#byte";
+        // nonNegativeInteger: >= 0
+        assert!(derived_integer_matches(int, nn, "5"));
+        assert!(derived_integer_matches(int, nn, "0"));
+        assert!(!derived_integer_matches(int, nn, "-3"));
+        // positiveInteger: > 0 (zero excluded)
+        assert!(derived_integer_matches(int, pos, "1"));
+        assert!(!derived_integer_matches(int, pos, "0"));
+        // negativeInteger: < 0
+        assert!(derived_integer_matches(int, neg, "-2"));
+        assert!(!derived_integer_matches(int, neg, "0"));
+        // byte: -128..=127
+        assert!(derived_integer_matches(int, byte, "127"));
+        assert!(!derived_integer_matches(int, byte, "128"));
+        // only the xsd:integer base is the canonical fold target; a non-integer
+        // stored type or a non-numeric lexical form never matches a derived type.
+        assert!(!derived_integer_matches(
+            "http://www.w3.org/2001/XMLSchema#string",
+            nn,
+            "5"
+        ));
+        assert!(!derived_integer_matches(int, nn, "x"));
     }
 
     // ── nodeKind ───────────────────────────────────────────────────────────────
