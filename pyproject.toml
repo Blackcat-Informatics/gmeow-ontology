@@ -154,4 +154,4 @@ skip = "uv.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/exter
 # te (ISO 639-1 Telugu), intensional (the IDB term in logic/databases, opp. of
 # extensional), Hendler / Pease (author surnames in the logic references),
 # vor (Crossref AccessIndicators applies_to value = "version of record").
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,hendler,pease,vor"
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,hendler,pease,vor,ans"

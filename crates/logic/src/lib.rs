@@ -12,6 +12,8 @@
 
 pub mod encode;
 pub mod provenance;
+pub mod query_ir;
+pub mod reference_resolver;
 pub mod seam;
 pub mod store;
 pub mod versioning;
