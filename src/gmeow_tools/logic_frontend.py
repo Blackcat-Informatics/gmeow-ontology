@@ -447,6 +447,7 @@ def _extract_rules(
     logic_head = LOGIC.head
     logic_body = LOGIC.body
     logic_negated_body = LOGIC.negatedBody
+    logic_distinct_body = LOGIC.distinctBody
 
     rules: list[LogicRule] = []
 
@@ -544,10 +545,38 @@ def _extract_rules(
                         )
                     )
 
+        # Inequality body guards (issue #503).  Each ``logic:distinctBody`` node
+        # is a reified node carrying ``rdf:subject "?A"`` and ``rdf:object "?B"``
+        # (both plain-string variable Literals) and — unlike logic:body — has NO
+        # rdf:predicate (a comparison has no predicate).  The pair ``(?A, ?B)``
+        # must bind to unequal values for the rule to fire.  This is read as a
+        # rule-level guard, not a body atom, so the certifier ignores it as a
+        # built-in.  The predicate is optional, so a rule with no inequality
+        # guard keeps its exact pre-#503 parse.
+        distinct_pairs: list[tuple[str, str]] = []
+        for distinct_node in graph.objects(rule_node, logic_distinct_body):
+            distinct_s = graph.value(distinct_node, RDF.subject)
+            distinct_o = graph.value(distinct_node, RDF.object)
+            if distinct_s is None or distinct_o is None:
+                diagnostics.append(
+                    Diagnostic(
+                        severity=WARNING,
+                        code="MALFORMED_RULE_BODY",
+                        message=(
+                            "logic:distinctBody node lacks rdf:subject or "
+                            "rdf:object; inequality guard skipped"
+                        ),
+                        subject=_str_or_none(rule_node),
+                    )
+                )
+                continue
+            distinct_pairs.append((str(distinct_s), str(distinct_o)))
+
         rules.append(
             LogicRule(
                 head=head_axiom,
                 body=tuple(body_axioms),
+                distinct_pairs=tuple(distinct_pairs),
                 scope=scope,
             )
         )

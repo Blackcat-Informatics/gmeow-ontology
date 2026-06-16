@@ -635,6 +635,44 @@ def _match_atom(
     return bindings
 
 
+def _bindings_satisfy_distinct(
+    distinct_pairs: tuple[tuple[str, str], ...],
+    bindings: dict[str, URIRef | Literal],
+) -> bool:
+    """Return True iff every inequality guard holds for ``bindings`` (issue #503).
+
+    Each pair ``(?A, ?B)`` is an inequality body guard: the rule fires only when
+    ``?A`` and ``?B`` bind to *distinct* ground values.  Both variables MUST be
+    bound by the positive body (a guard over an unbound variable is a malformed
+    rule); an unbound member raises :class:`MaterializationError` rather than
+    being silently treated as satisfied.
+
+    Args:
+        distinct_pairs: The rule's canonicalised inequality guards.
+        bindings: The variable→ground-term binding assembled from the positive
+            body join.
+
+    Returns:
+        ``True`` if every pair binds to two non-equal terms (so the head may be
+        derived), ``False`` if any pair binds to equal terms (binding rejected).
+
+    Raises:
+        MaterializationError: If a guard variable is not bound by the body.
+    """
+    for var_a, var_b in distinct_pairs:
+        if var_a not in bindings or var_b not in bindings:
+            raise MaterializationError(
+                f"Inequality guard variable {(var_a, var_b)!r} is unbound after "
+                "body matching. Both variables of a logic:distinctBody guard "
+                "must appear in a positive body atom."
+            )
+        # Compare canonical N3 forms so the inequality matches the engine's
+        # term identity (same canonicalisation used throughout the chase).
+        if bindings[var_a].n3() == bindings[var_b].n3():
+            return False
+    return True
+
+
 def _merge_bindings(
     b1: dict[str, URIRef | Literal],
     b2: dict[str, URIRef | Literal],
@@ -1003,6 +1041,19 @@ def _chase_world(
             )
 
             for bindings, source_keys in binding_sets:
+                # Inequality body guards (issue #503): reject any candidate
+                # binding where a distinct pair resolves both variables to the
+                # same value.  The head is derived only for bindings where every
+                # guard is genuinely unequal.  An unbound guard variable is a
+                # malformed rule and raises (handled defensively, consistent with
+                # the head-grounding error path below).  Rules with no guard
+                # (``distinct_pairs == ()`` — every pre-#503 rule) never enter
+                # this branch and are byte-identical to the prior chase.
+                if rule.distinct_pairs and not _bindings_satisfy_distinct(
+                    rule.distinct_pairs, bindings
+                ):
+                    continue
+
                 # Ground the head
                 try:
                     head_s = _apply_bindings(rule.head.subject, False, bindings)

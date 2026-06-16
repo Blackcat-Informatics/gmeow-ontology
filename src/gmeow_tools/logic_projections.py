@@ -699,6 +699,14 @@ def project_datalog(
             bo = _dl_term(body_atom.obj, body_atom.obj_is_literal)
             body_parts.append(f"{bp}({bs}, {bo}, {world_var})")
 
+        # Inequality body guards (issue #503): each distinct pair becomes a
+        # Datalog disequality literal ``A != B`` appended to the body (the idiom
+        # shared by Soufflé / DLV / Nemo).  Both members are variables, emitted
+        # bare exactly like atom-term variables.  Rules with no guard
+        # (every pre-#503 rule) are byte-identical to the prior output.
+        for var_a, var_b in rule.distinct_pairs:
+            body_parts.append(f"{var_a} != {var_b}")
+
         body_str = ",\n    ".join(body_parts) if body_parts else "true"
         lines.append(f"{head_pred}({head_subj}, {head_obj}, {world_var}) :-")
         lines.append(f"    {body_str}.")
@@ -816,6 +824,13 @@ def project_n3(
             bp = "a" if b.predicate == rdf_type_str else f"<{b.predicate}>"
             bo = _n3_term(b.obj, b.obj_is_literal)
             body_parts.append(f"{bs} {bp} {bo}")
+
+        # Inequality body guards (issue #503): N3 expresses disequality with the
+        # ``log:notEqualTo`` builtin (``?A log:notEqualTo ?B``), appended to the
+        # antecedent graph so the rule only fires when the two variables differ.
+        # Rules with no guard (every pre-#503 rule) keep the prior output.
+        for var_a, var_b in rule.distinct_pairs:
+            body_parts.append(f"{var_a} log:notEqualTo {var_b}")
 
         body_str = " . ".join(body_parts) + " ." if body_parts else "true ."
         lines.append(
@@ -972,19 +987,21 @@ def project_canonical_rdf12(
         _counter[0] += 1
         return f"_{_counter[0]:06d}"
 
-    # Rule-structural predicates (logic:head, logic:body, logic:negatedBody) are
-    # encoded in the proper logic:Rule node structure below.  Emitting them from
-    # the axiom list would duplicate blank-node objects that cannot survive a
-    # serialize→re-parse round-trip with stable IDs (the frontend's bare ``n…``
-    # blank-node IRIs become relative IRIs that rdflib resolves against the file
-    # base on re-read), breaking isomorphism.  ``negatedBody`` is the #502
-    # negation-as-failure surface and must be filtered here exactly like
-    # ``body``.
+    # Rule-structural predicates (logic:head, logic:body, logic:negatedBody,
+    # logic:distinctBody) are encoded in the proper logic:Rule node structure
+    # below.  Emitting them from the axiom list would duplicate blank-node
+    # objects that cannot survive a serialize→re-parse round-trip with stable
+    # IDs (the frontend's bare ``n…`` blank-node IRIs become relative IRIs that
+    # rdflib resolves against the file base on re-read), breaking isomorphism.
+    # ``negatedBody`` is the #502 negation-as-failure surface and
+    # ``distinctBody`` is the #503 inequality-guard surface; both must be
+    # filtered here exactly like ``body``.
     rule_struct_preds: frozenset[str] = frozenset(
         {
             LOGIC_NAMESPACE + "head",
             LOGIC_NAMESPACE + "body",
             LOGIC_NAMESPACE + "negatedBody",
+            LOGIC_NAMESPACE + "distinctBody",
         }
     )
 
@@ -1113,6 +1130,24 @@ def project_canonical_rdf12(
                     g.add((body_node, RDF.object, Literal(body_atom.obj)))
                 else:
                     g.add((body_node, RDF.object, URIRef(body_atom.obj)))
+
+        # Inequality body guards (issue #503).  Each distinct pair is emitted as
+        # a reified ``logic:distinctBody`` node parallel to ``logic:body`` /
+        # ``logic:negatedBody`` — ``rdf:subject "?A" ; rdf:object "?B"`` — but
+        # with NO ``rdf:predicate`` (a comparison has no predicate).  The two
+        # variables are always plain-string Literals (guards range over
+        # variables only), so the round-trip form is ``rdf:subject "?A"``.  Each
+        # gets a structured, content-stable reifier IRI under the rule path
+        # (``…/distinctBody/NNNN``), indexed in canonical (sorted) order, so the
+        # projection survives a serialize→re-parse round-trip isomorphically.
+        for i, (var_a, var_b) in enumerate(rule.distinct_pairs):
+            distinct_node = URIRef(
+                LOGIC_NAMESPACE + f"rule/{rule_id}/distinctBody/{i:04d}"
+            )
+            g.add((rule_node, LOGIC.distinctBody, distinct_node))
+            g.add((distinct_node, RDF.type, RDF.Statement))
+            g.add((distinct_node, RDF.subject, Literal(var_a)))
+            g.add((distinct_node, RDF.object, Literal(var_b)))
 
         # Rule scope
         scope = rule.scope
@@ -1347,6 +1382,20 @@ def project_nemo(
             # are emitted exactly as before, so positive programs are byte-identical.
             prefix = "~" if body_atom.negated else ""
             body_parts.append(f"{prefix}{bp}({bs}, {bo}, {world_var})")
+
+        # Inequality body guards (issue #503): each distinct pair becomes a Nemo
+        # inequality constraint ``?A != ?B`` appended to the body, so the rule
+        # only fires when the two variables bind to distinct values.  Both
+        # members are always variables (the guard ranges over variables only),
+        # emitted with the same ``?Var`` convention used for atom terms.
+        # Without this the inequality guard carried by the IR
+        # (``LogicRule.distinct_pairs``) would be silently dropped, and the Rust
+        # certifier (which reads this ``.rls``) could not see the constraint the
+        # Python oracle enforces on the IR.  Rules with no guard
+        # (``distinct_pairs == ()`` — every pre-#503 rule) are emitted exactly as
+        # before, so positive programs are byte-identical.
+        for var_a, var_b in rule.distinct_pairs:
+            body_parts.append(f"{var_a} != {var_b}")
 
         # Emit rule name annotation so Nemo's trace API can recover the rule IRI.
         # The name is the rule's provenance IRI (from scope.provenance), or the
