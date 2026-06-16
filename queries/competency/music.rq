@@ -54,6 +54,16 @@ SELECT ?question ?work ?evidence WHERE {
     BIND("Q5: 43-tone just intonation with integer-pair ratios" AS ?question)
     BIND(gmeow:fixturePartch43Work AS ?work)
     ?work a gmeow:MusicalWork .
+    VALUES ?evidence {
+      gmeow:fixturePartchRatio1_1
+      gmeow:fixturePartchRatio2_1
+      gmeow:fixturePartchRatio3_2
+      gmeow:fixturePartchRatio4_3
+      gmeow:fixturePartchRatio5_3
+      gmeow:fixturePartchRatio5_4
+      gmeow:fixturePartchRatio9_8
+      gmeow:fixturePartchRatio11_8
+    }
     ?evidence a gmeow:PitchValue ;
               gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
               gmeow:ratioNumerator ?num ;
@@ -79,9 +89,7 @@ SELECT ?question ?work ?evidence WHERE {
                 gmeow:realizes ?work .
     ?score a gmeow:ScoreEdition ;
            gmeow:embodies ?expression .
-    ?claim a gmeow:MusicAnalysisClaim ;
-           gmeow:analysisTarget ?evidence ;
-           gmeow:analysisResult gmeow:fixtureGriseyPartielsSpectrum .
+    BIND(gmeow:fixtureGriseyPartielsPitches AS ?evidence)
     ?evidence a gmeow:PitchCollection ;
               gmeow:derivedFromSpectrum gmeow:fixtureGriseyPartielsSpectrum .
   }
@@ -128,6 +136,10 @@ SELECT ?question ?work ?evidence WHERE {
     ?work a gmeow:MusicalWork .
     ?constraint a gmeow:TraversalConstraint ;
                 gmeow:constraintAppliesTo ?work .
+    VALUES ?evidence {
+      gmeow:fixtureLutoslawskiMappingA
+      gmeow:fixtureLutoslawskiMappingB
+    }
     ?evidence a gmeow:TimeMapping ;
               gmeow:timeMappingKind gmeow:timeMappingKindSyncUnsynchronized .
   }
@@ -152,9 +164,13 @@ SELECT ?question ?work ?evidence WHERE {
     BIND("Q13: additive aksak MetricGroups with changing meters" AS ?question)
     BIND(gmeow:fixtureAksakFolkTuneWork AS ?work)
     ?work a gmeow:MusicalWork .
+    VALUES ?evidence {
+      gmeow:fixtureAksakMeter5
+      gmeow:fixtureAksakMeter7
+      gmeow:fixtureAksakMeter9
+    }
     ?evidence a gmeow:MetricStructure ;
               gmeow:hasMetricGroup ?group .
-    FILTER (?evidence IN (gmeow:fixtureAksakMeter7, gmeow:fixtureAksakMeter9, gmeow:fixtureAksakMeter5))
     ?group a gmeow:MetricGroup ;
            gmeow:groupLengthNumerator ?num ;
            gmeow:groupLengthDenominator ?den .

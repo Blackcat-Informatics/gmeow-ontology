@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — BELIEF REVISION as SUPPRESSION (Principle 10), the headline.
+#
+# An agent inductively concluded "the printer is broken" from "it did not print".
+# Later a defeater arrives — "the document was never sent to the queue" — an
+# UNDERCUTTING defeater (Pollock): it does not assert the negation, it removes
+# the warrant (the failure no longer licenses 'broken'). Revision does NOT delete
+# anything:
+#   * the conclusion-claim is set gmeow:displayable false (suppressed from view);
+#   * the gmeow:InferenceTenure is CLOSED (an gmeow:endedAtTime on its interval);
+#   * the gmeow:InferenceCommitment is RETAINED as audit.
+# The whole episode remains queryable — how the agent believed, and why it stopped.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:operator a gmeow:Agent ;
+    gmeow:name "Office operator"@x-gmeow-english .
+
+ex:propDidNotPrint  rdfs:label "the document did not print"@x-gmeow-english .
+ex:propPrinterBroken rdfs:label "the printer is broken"@x-gmeow-english .
+ex:propNeverQueued  rdfs:label "the document was never sent to the print queue"@x-gmeow-english .
+
+# --- The original premise and conclusion ------------------------------------ #
+ex:premDidNotPrint a gmeow:StandpointClaim ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propDidNotPrint ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal .
+
+# The conclusion — now SUPPRESSED, but retained.
+ex:conclPrinterBroken a gmeow:StandpointClaim ;
+    rdfs:label "Concluded (then retracted): the printer is broken"@x-gmeow-english ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propPrinterBroken ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:inferenceMode gmeow:modeInduction ;
+    gmeow:inferredFrom ex:premDidNotPrint ;
+    gmeow:displayable false .                     # Principle 10: suppressed by the fired defeater
+
+# --- The defeater (an undercutting one) ------------------------------------- #
+ex:defeaterNeverQueued a gmeow:StandpointClaim ;
+    rdfs:label "Defeater: the document was never queued"@x-gmeow-english ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propNeverQueued ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:defeaterKind gmeow:defeaterUndercutting .  # removes the warrant, not asserts the negation
+
+# --- The reified argument, retained as audit -------------------------------- #
+ex:revisedCommitment a gmeow:InferenceCommitment ;
+    rdfs:label "Inductive argument: did-not-print therefore broken (defeated)"@x-gmeow-english ;
+    gmeow:inferenceModeOf gmeow:modeInduction ;
+    gmeow:premise ex:premDidNotPrint ;
+    gmeow:conclusion ex:conclPrinterBroken ;
+    gmeow:hasDefeater ex:defeaterNeverQueued .
+
+# --- The tenure — opened then closed (never deleted) ------------------------ #
+ex:brokenBeliefTenure a gmeow:InferenceTenure ;
+    rdfs:label "The held interval of the 'printer is broken' conclusion"@x-gmeow-english ;
+    gmeow:tenureOf ex:revisedCommitment ;
+    gmeow:duringInterval ex:tenureInterval .
+
+ex:tenureInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-15T11:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-06-15T11:18:00Z"^^xsd:dateTime .  # closed when the defeater fired

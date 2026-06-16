@@ -596,6 +596,12 @@ export enum DayOfWeekEnum {
     Wednesday = "dayWednesday",
 };
 
+export enum DefeaterKindEnum {
+
+    rebutting = "defeaterRebutting",
+    undercutting = "defeaterUndercutting",
+};
+
 export enum DegreeOfFreedomEnum {
 
     number_4PRIME33DOUBLE_PRIME_duration_constrained = "dofFourThirtyThreeDuration",
@@ -1190,6 +1196,14 @@ export enum IndexAlgorithmEnum {
     flat = "indexAlgorithmFlat",
     HNSW = "indexAlgorithmHnsw",
     IVF = "indexAlgorithmIvf",
+};
+
+export enum InferenceModeEnum {
+
+    abduction = "modeAbduction",
+    analogical = "modeAnalogical",
+    deduction = "modeDeduction",
+    induction = "modeInduction",
 };
 
 export enum InstrumentConfigurationEnum {
@@ -3313,6 +3327,15 @@ export interface AgreementName extends Appellation {
 
 
 
+export interface Analogy {
+    analogicalSource?: string[],
+    analogicalTarget?: string[],
+    hasCorrespondence?: Correspondence[],
+    systematicity?: number[],
+}
+
+
+
 export interface AnalysisProperty {
 }
 
@@ -3989,6 +4012,13 @@ export interface Corpus extends InformationObject {
 
 
 
+export interface Correspondence {
+    correspondingSource?: string,
+    correspondingTarget?: string,
+}
+
+
+
 export interface CoupleRelationship extends KinRelationship {
     hasCoupleEvent?: Event[],
     hasPartner?: Person[],
@@ -4153,6 +4183,11 @@ export interface DatingMethod {
 
 
 export interface DayOfWeek {
+}
+
+
+
+export interface DefeaterKind {
 }
 
 
@@ -4910,6 +4945,35 @@ export interface ImportActivity extends Activity {
 
 
 export interface IndexAlgorithm {
+}
+
+
+
+export interface InferenceCommitment {
+    candidateHypothesis?: StandpointClaim[],
+    conclusion?: StandpointClaim,
+    explanandum?: string[],
+    hasDefeater?: StandpointClaim[],
+    inferenceModeOf?: InferenceMode,
+    premise?: string[],
+    warrant?: string[],
+}
+
+
+
+export interface InferenceMode {
+}
+
+
+
+export interface InferenceProcess extends MentalProcess {
+    hasInferenceCommitment?: InferenceCommitment[],
+}
+
+
+
+export interface InferenceTenure extends TimeScopedRelation {
+    tenureOf?: InferenceCommitment,
 }
 
 
@@ -7100,6 +7164,12 @@ export interface StandpointClaim extends Observation {
     argumentAcceptability?: number[],
     claimModality?: StandpointModality,
     claimVeridicality?: ClaimVeridicality[],
+    competesWith?: StandpointClaim[],
+    defeaterKind?: DefeaterKind[],
+    explains?: string[],
+    explanatoryScore?: number[],
+    inferenceMode?: InferenceMode[],
+    inferredFrom?: string[],
 }
 
 

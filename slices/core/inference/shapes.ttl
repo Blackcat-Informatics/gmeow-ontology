@@ -1,0 +1,163 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Closed-world halves of the inference slice (issue #581). Cardinality and
+# disjointness constraints that OWL EL cannot (or should not, to keep the DL
+# profile clean) express live here as SHACL: exactly-one conclusion, at-least-one
+# premise, premise != conclusion, competesWith irreflexivity, and the mode-scoped
+# well-formedness of abductive and analogical inferences. The four Peircean modes
+# stay one class (no taxonomy); their structural obligations are enforced by value,
+# not by subclass — the deception discipline (doctrine in SHACL, never in axioms).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# The reified argument: exactly one conclusion, at least one premise.
+# --------------------------------------------------------------------------- #
+
+gmeow:InferenceCommitmentShape
+    a sh:NodeShape ;
+    rdfs:label "Inference commitment shape"@x-gmeow-english ;
+    skos:definition "Well-formedness of a reified gmeow:InferenceCommitment: exactly one conclusion (a gmeow:StandpointClaim), at least one premise, at most one mode, and no premise that is also the conclusion (an argument cannot assume what it proves)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:InferenceCommitment ;
+    sh:property [
+        sh:path gmeow:conclusion ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:StandpointClaim ;
+        sh:severity sh:Violation ;
+        sh:message "An InferenceCommitment must have exactly one conclusion (gmeow:conclusion), and it must be a gmeow:StandpointClaim — two conclusions are two commitments." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:premise ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An InferenceCommitment must rest on at least one premise (gmeow:premise) — an inference from nothing is not an inference." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:inferenceModeOf ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An InferenceCommitment has at most one mode (gmeow:inferenceModeOf) — a step that is both inductive and abductive is two commitments." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A premise must not also be the conclusion (gmeow:premise = gmeow:conclusion) — an argument cannot assume what it proves." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:premise ?p ; gmeow:conclusion ?p .
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# competesWith is symmetric (OWL) but irreflexive (SHACL, keeping DL clean).
+# --------------------------------------------------------------------------- #
+
+gmeow:CompetesWithShape
+    a sh:NodeShape ;
+    rdfs:label "Competes-with irreflexivity shape"@x-gmeow-english ;
+    skos:definition "A gmeow:StandpointClaim never competes with itself: gmeow:competesWith is symmetric but irreflexive. Irreflexivity is enforced here, not as an OWL axiom, to keep the reasoned profile within OWL 2 DL (the deception discipline)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetSubjectsOf gmeow:competesWith ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A claim must not gmeow:competesWith itself — competition between rival hypotheses is irreflexive." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this gmeow:competesWith $this .
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Abductive commitments (mode = modeAbduction): an explanandum + candidates.
+# --------------------------------------------------------------------------- #
+
+gmeow:AbductionCommitmentShape
+    a sh:NodeShape ;
+    rdfs:label "Abduction commitment shape"@x-gmeow-english ;
+    skos:definition "Mode-scoped well-formedness of an abductive gmeow:InferenceCommitment (inferenceModeOf gmeow:modeAbduction): it must name the fact to be explained (gmeow:explanandum) and at least one candidate explanation (gmeow:candidateHypothesis). Scoped by value, not subclass — the four modes ride one class."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT ?this WHERE {
+                ?this a gmeow:InferenceCommitment ;
+                      gmeow:inferenceModeOf gmeow:modeAbduction .
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path gmeow:explanandum ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An abductive InferenceCommitment must name the fact it explains (gmeow:explanandum)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:candidateHypothesis ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An abductive InferenceCommitment must offer at least one candidate explanation (gmeow:candidateHypothesis) to select among." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Analogical mappings: a source, a target, and at least one correspondence.
+# --------------------------------------------------------------------------- #
+
+gmeow:AnalogyShape
+    a sh:NodeShape ;
+    rdfs:label "Analogy shape"@x-gmeow-english ;
+    skos:definition "Well-formedness of a gmeow:Analogy: it must map a source domain (gmeow:analogicalSource) to a target domain (gmeow:analogicalTarget) through at least one element-pair (gmeow:hasCorrespondence). A mapping with no correspondences carries no transferable structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:Analogy ;
+    sh:property [
+        sh:path gmeow:analogicalSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Analogy must map from a source domain (gmeow:analogicalSource)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:analogicalTarget ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Analogy must map onto a target domain (gmeow:analogicalTarget)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasCorrespondence ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Analogy must hold at least one gmeow:hasCorrespondence — a mapping with no correspondences transfers no structure." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# A correspondence maps exactly one source element to one target element.
+# --------------------------------------------------------------------------- #
+
+gmeow:CorrespondenceShape
+    a sh:NodeShape ;
+    rdfs:label "Correspondence shape"@x-gmeow-english ;
+    skos:definition "A gmeow:Correspondence maps exactly one source element (gmeow:correspondingSource) to exactly one target element (gmeow:correspondingTarget) — the atom of structure-mapping."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    sh:targetClass gmeow:Correspondence ;
+    sh:property [
+        sh:path gmeow:correspondingSource ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Correspondence must map exactly one source element (gmeow:correspondingSource)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:correspondingTarget ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Correspondence must map exactly one target element (gmeow:correspondingTarget)." ;
+    ] .

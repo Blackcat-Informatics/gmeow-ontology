@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/inference>
+    a gmeow:Slice ;
+    rdfs:label "inference"@x-gmeow-english ;
+    skos:definition "The inference slice of the GMEOW ontology (core tier): GMEOW Inference Module — Peirce's tetrad (deduction / induction / abduction + analogy) as the epistemic face of a logic: derivation. The conclusion of every inference is an ordinary gmeow:StandpointClaim; the four modes differ by a gmeow:InferenceMode value plus a warrant, never by subsumption (the deception discipline). Strength rides the existing logic: axes (BY REFERENCE — no asserted triples into logic:); modality reuses the existing gmeow:StandpointModality; the doxastic seam (gmeow:believes / gmeow:Proposition, epistemics) and the suppression idiom (gmeow:displayable, names) are likewise consumed by reference. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    dcterms:title "GMEOW Inference Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceProfile "claims" , "memory" ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:sliceConsumer "The agent-memory flagship — an LLM stating HOW it reached a claim (deduced / generalized / best-explanation / by-analogy) with its premises, warrant, and defeasibility, then revising belief by suppression rather than deletion. store_claim records gmeow:inferredFrom + gmeow:inferenceMode on the claim; recall returns the premises and warrant; the belief-revision audit (a fired defeater closes a gmeow:InferenceTenure and sets the conclusion-claim gmeow:displayable false while retaining the gmeow:InferenceCommitment) is the headline demonstration."@x-gmeow-english .

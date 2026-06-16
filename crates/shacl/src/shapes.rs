@@ -57,6 +57,8 @@ pub enum Target {
     Node(Term),
     /// The shape node is itself an `rdfs:Class` → implicit class target.
     ImplicitClass(Term),
+    /// `sh:target [ rdf:type sh:SPARQLTarget ; sh:select "SELECT ?this …" ]`
+    Sparql(String),
 }
 
 /// A single SHACL constraint on a shape or property shape.
@@ -99,6 +101,21 @@ pub enum Constraint {
     Xone(Vec<Shape>),
     /// `sh:node <shape>` — focus node must conform to the referenced shape.
     Node(Box<Shape>),
+    /// `sh:sparql [ sh:select "SELECT $this …" ]` — SPARQL-AF constraint.
+    ///
+    /// The constraint blank node carries its own optional `sh:message` and
+    /// `sh:severity` overrides; missing values fall back to the shape defaults
+    /// at evaluation time.
+    Sparql {
+        /// The SPARQL SELECT query text.
+        select: String,
+        /// Optional per-constraint message override (from `sh:message` on the
+        /// constraint blank node).
+        message: Option<String>,
+        /// Optional per-constraint severity override (from `sh:severity` on the
+        /// constraint blank node).
+        severity: Option<Severity>,
+    },
 }
 
 /// A property shape, reached via `sh:property` from a node shape.
@@ -168,8 +185,6 @@ pub fn from_store(store: &Store) -> Result<Shapes, String> {
 /// are NOT in this set — they are handled or deliberately ignored.
 fn unsupported_predicates() -> HashSet<&'static str> {
     [
-        sh::SPARQL.as_str(),
-        sh::TARGET.as_str(), // sh:target with sh:SPARQLTarget
         sh::QUALIFIED_VALUE_SHAPE.as_str(),
         sh::QUALIFIED_MIN_COUNT.as_str(),
         sh::QUALIFIED_MAX_COUNT.as_str(),
@@ -507,6 +522,51 @@ impl<'s> Parser<'s> {
             }
         }
 
+        // sh:target — SHACL-AF extension targets.  Only sh:SPARQLTarget is
+        // supported; any other rdf:type on the target blank node is a hard error.
+        let mut sparql_targets: Vec<Term> = self.objects_of(id, sh::TARGET);
+        sparql_targets.sort_by_key(|t| t.to_string());
+        for t_node in sparql_targets {
+            // Require rdf:type sh:SPARQLTarget on the target blank node.
+            let is_sparql_target = self
+                .store
+                .quads_for_pattern(
+                    Self::term_as_subject_ref(&t_node),
+                    Some(rdf::TYPE),
+                    Some(Term::NamedNode(sh::SPARQL_TARGET.into()).as_ref()),
+                    None,
+                )
+                .flatten()
+                .next()
+                .is_some();
+            if !is_sparql_target {
+                return Err(format!(
+                    "unsupported sh:target type on shape {id}: target node {t_node} \
+                     is not typed sh:SPARQLTarget"
+                ));
+            }
+
+            // sh:select is required on the SPARQLTarget blank node.
+            let select = self
+                .first_object_of(&t_node, sh::SELECT)
+                .and_then(|t| match t {
+                    Term::Literal(lit) => Some(lit.value().to_owned()),
+                    _ => None,
+                })
+                .ok_or_else(|| {
+                    format!("sh:SPARQLTarget on shape {id} is missing a sh:select string literal")
+                })?;
+
+            // Parse-time query validation (hard-fail on unparsable queries).
+            let _ = oxigraph::sparql::SparqlEvaluator::new()
+                .parse_query(&select)
+                .map_err(|e| {
+                    format!("sh:SPARQLTarget on shape {id} has an unparsable sh:select query: {e}")
+                })?;
+
+            targets.push(Target::Sparql(select));
+        }
+
         Ok(targets)
     }
 
@@ -666,6 +726,61 @@ impl<'s> Parser<'s> {
         for node_ref in node_refs {
             let inner = self.parse_node_shape(node_ref)?;
             constraints.push(Constraint::Node(Box::new(inner)));
+        }
+
+        // sh:sparql — SHACL-AF SPARQL constraint components.
+        // The blank node may or may not carry rdf:type sh:SPARQLConstraint;
+        // we require only sh:select (which must be a SELECT query).
+        let mut sparql_cnodes: Vec<Term> = self.objects_of(id, sh::SPARQL);
+        sparql_cnodes.sort_by_key(|t| t.to_string());
+        for c_node in sparql_cnodes {
+            // sh:select is required.
+            let select = self
+                .first_object_of(&c_node, sh::SELECT)
+                .and_then(|t| match t {
+                    Term::Literal(lit) => Some(lit.value().to_owned()),
+                    _ => None,
+                })
+                .ok_or_else(|| {
+                    format!(
+                        "sh:sparql constraint on shape {id} is missing a sh:select string literal"
+                    )
+                })?;
+
+            // Parse-time query validation (hard-fail on unparsable queries).
+            let _ = oxigraph::sparql::SparqlEvaluator::new()
+                .parse_query(&select)
+                .map_err(|e| {
+                    format!(
+                        "sh:sparql constraint on shape {id} has an unparsable sh:select query: {e}"
+                    )
+                })?;
+
+            // Optional per-constraint sh:message override.
+            let mut messages: Vec<String> = self
+                .objects_of(&c_node, sh::MESSAGE)
+                .into_iter()
+                .filter_map(|t| match t {
+                    Term::Literal(lit) => Some(lit.value().to_owned()),
+                    _ => None,
+                })
+                .collect();
+            messages.sort();
+            let message = messages.into_iter().next();
+
+            // Optional per-constraint sh:severity override.
+            let severity = self
+                .first_object_of(&c_node, sh::SEVERITY)
+                .and_then(|t| match &t {
+                    Term::NamedNode(n) => Severity::from_iri(n.as_str()),
+                    _ => None,
+                });
+
+            constraints.push(Constraint::Sparql {
+                select,
+                message,
+                severity,
+            });
         }
 
         Ok(constraints)
@@ -1049,16 +1164,52 @@ mod tests {
         }
     }
 
-    // ── Test 4: sh:sparql → Err ────────────────────────────────────────────────
+    // ── Test 4a: sh:sparql with valid query → parses successfully ────────────────
 
     #[test]
-    fn test_sparql_constraint_returns_err() {
+    fn test_sparql_constraint_parses() {
+        // The sh:select value is a self-contained SPARQL query using full IRIs
+        // (no prefix declarations needed) so the SPARQL parser can validate it.
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:SparqlShape a sh:NodeShape ;
+                sh:targetClass ex:Foo ;
+                sh:sparql [
+                    sh:select "SELECT $this WHERE {{ $this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/ns#Foo> . }}" ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("sh:sparql with a valid query must parse");
+
+        assert_eq!(shapes.node_shapes.len(), 1, "expected exactly 1 node shape");
+        let shape = &shapes.node_shapes[0];
+
+        let sparql_c = shape.constraints.iter().find_map(|c| match c {
+            Constraint::Sparql { select, .. } => Some(select.as_str()),
+            _ => None,
+        });
+        assert!(
+            sparql_c.is_some(),
+            "expected a Constraint::Sparql, got: {:?}",
+            shape.constraints
+        );
+        assert!(
+            sparql_c.unwrap().contains("$this"),
+            "select text should contain '$this'"
+        );
+    }
+
+    // ── Test 4b: sh:sparql with malformed query → Err at parse time ──────────────
+
+    #[test]
+    fn test_sparql_constraint_malformed_query_errs() {
         let ttl = format!(
             r#"{PREFIXES}
             ex:BadShape a sh:NodeShape ;
                 sh:targetClass ex:Foo ;
                 sh:sparql [
-                    sh:select "SELECT ?this WHERE {{ ?this a ex:Foo . }}" ;
+                    sh:select "SELECT $this WHERE {{" ;
                 ] .
         "#
         );
@@ -1066,12 +1217,12 @@ mod tests {
         let result = from_store(&store);
         assert!(
             result.is_err(),
-            "sh:sparql must cause a hard error, got {result:?}"
+            "a malformed sh:select must cause a hard parse-time error, got {result:?}"
         );
         let err = result.unwrap_err();
         assert!(
-            err.contains("sh:sparql") || err.contains("unsupported"),
-            "error message should mention sh:sparql or unsupported, got: {err}"
+            err.contains("unparsable") || err.contains("parse") || err.contains("syntax"),
+            "error message should indicate a query parse failure, got: {err}"
         );
     }
 
