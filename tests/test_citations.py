@@ -221,3 +221,55 @@ def test_self_description_models_project_repository_and_brand_assets() -> None:
         GMEOW.wasDerivedFrom,
         SELF["social-preview-svg"],
     ) in g
+
+
+# =========================================================================== #
+# Canonical description — standardized across all surfaces (single source)
+# =========================================================================== #
+
+
+def _norm_ws(text: str) -> str:
+    """Collapse all whitespace runs so cross-format copies compare equal."""
+    return " ".join(text.split())
+
+
+def test_canonical_description_is_standardized() -> None:
+    """One abstract, identical across self-desc / ontology header / CITATION.cff.
+
+    Also asserts the stated slice and vocabulary counts match the real counts.
+    """
+    import yaml
+    from rdflib.namespace import DCTERMS
+
+    from gmeow_tools.config import (
+        ALIGNMENT_TARGETS,
+        ONTOLOGY_FILE,
+        PROJECT_ROOT,
+        SLICES_DIR,
+    )
+    from gmeow_tools.self_desc import load_self_description
+
+    canonical = load_self_description().description
+    assert canonical, "self-description carries no description"
+
+    # ontology header dcterms:description == canonical (the serialization-facing copy)
+    onto = Graph()
+    onto.parse(ONTOLOGY_FILE, format="turtle")
+    onto_desc = str(
+        next(
+            onto.objects(
+                URIRef("https://blackcatinformatics.ca/gmeow"), DCTERMS.description
+            )
+        )
+    )
+    assert _norm_ws(onto_desc) == _norm_ws(canonical)
+
+    # CITATION.cff abstract == canonical (the human-citation copy)
+    cff = yaml.safe_load((PROJECT_ROOT / "CITATION.cff").read_text(encoding="utf-8"))
+    assert _norm_ws(cff["abstract"]) == _norm_ws(canonical)
+
+    # The stated counts must equal the real counts — numbers cannot drift.
+    n_slices = len(list(SLICES_DIR.glob("*/*/manifest.ttl")))
+    n_align = len(ALIGNMENT_TARGETS)
+    assert f"{n_slices} self-contained slices" in canonical
+    assert f"{n_align} external vocabularies" in canonical

@@ -54,6 +54,7 @@ _MEDIA_TYPE: dict[str, str] = {
 
 
 _OWL_VERSION_INFO = "http://www.w3.org/2002/07/owl#versionInfo"
+_DCTERMS_DESCRIPTION = "http://purl.org/dc/terms/description"
 
 
 def _fold_version(view: FoldView) -> str:
@@ -64,6 +65,21 @@ def _fold_version(view: FoldView) -> str:
         msg = f"snapshot lacks owl:versionInfo on {ONTOLOGY_IRI}"
         raise ValueError(msg)
     return view.lex(version)
+
+
+def _fold_description(view: FoldView) -> str:
+    """The canonical ontology description from the snapshot header.
+
+    Read ``dcterms:description`` from the fold rather than hardcoded, so VoID/DCAT
+    carry exactly the one canonical abstract authored in the ontology header
+    (Principle 4 — one source).
+    """
+    onto = view.tid_of_iri(ONTOLOGY_IRI)
+    desc = view.value(onto, _DCTERMS_DESCRIPTION) if onto is not None else None
+    if desc is None:
+        msg = f"snapshot lacks dcterms:description on {ONTOLOGY_IRI}"
+        raise ValueError(msg)
+    return view.lex(desc)
 
 
 def _fold_linksets(view: FoldView) -> Graph:
@@ -132,12 +148,7 @@ def build_void_graph(view: FoldView | None = None) -> Graph:
         (
             dataset,
             DCTERMS.description,
-            Literal(
-                "A reasoning-centric, OWL 2 DL, upper-ontology-grounded "
-                "super-vocabulary for entity, document, agreement and "
-                "person-centric data.",
-                lang="x-gmeow-english",
-            ),
+            Literal(_fold_description(view), lang="x-gmeow-english"),
         )
     )
     graph.add((dataset, DCTERMS.license, _CC_BY))
@@ -176,6 +187,13 @@ def build_dcat_graph(view: FoldView | None = None) -> Graph:
     dataset = URIRef(ONTOLOGY_IRI)
     graph.add((dataset, RDF.type, DCAT.Dataset))
     graph.add((dataset, DCTERMS.title, Literal("GMEOW", lang="x-gmeow-english")))
+    graph.add(
+        (
+            dataset,
+            DCTERMS.description,
+            Literal(_fold_description(view), lang="x-gmeow-english"),
+        )
+    )
     graph.add((dataset, DCTERMS.license, _CC_BY))
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCAT.landingPage, URIRef(ONTOLOGY_IRI)))

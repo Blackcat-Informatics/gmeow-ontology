@@ -11,6 +11,6 @@ GMEOW claims — see `scores.ttl` (vantage-indexed Assessments).
 
 | model | overall | schema-validity | grounding-precision | grounding-recall | hallucination-resistance | abstention-quality | calibration | claims |
 |---|---|---|---|---|---|---|---|---|
-| reference-baseline | 0.78 | 0.83 | 0.60 | 1.00 | 0.60 | 1.00 | 0.66 | 5/6 |
+| reference-baseline | 0.63 | 0.83 | 0.40 | 0.67 | 0.40 | 1.00 | 0.50 | 5/6 |
 
 Run `gmeow evals run --endpoint …` (network) to add a model; `gmeow evals score` re-scores committed emissions offline.

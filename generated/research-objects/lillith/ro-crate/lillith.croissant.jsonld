@@ -206,22 +206,22 @@
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-calibration",
-          "evalScores/score": 0.66
+          "evalScores/score": 0.5
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-grounding-precision",
-          "evalScores/score": 0.6
+          "evalScores/score": 0.4
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-grounding-recall",
-          "evalScores/score": 1.0
+          "evalScores/score": 0.6667
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-hallucination",
-          "evalScores/score": 0.6
+          "evalScores/score": 0.4
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
