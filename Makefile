@@ -18,7 +18,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         logic-build logic-test logic-py logic-wasm conformance \
-        shacl-build shacl-test shacl-py
+        shacl-build shacl-test shacl-py shacl-crosscheck
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -45,6 +45,9 @@ validate: ## Validate syntax, term annotations, and SHACL (pure Python).
 
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
+
+shacl-crosscheck: ## Prove pySHACL and gmeow_shacl agree on every validation unit (report-only, #578).
+	$(GMEOW_DEV) shacl-crosscheck
 
 reason: ## Merge, validate OWL 2 DL profile, and check ELK consistency (Docker).
 	$(GMEOW_DEV) reason --reasoner ELK --exclude-tautologies structural

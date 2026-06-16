@@ -7,7 +7,8 @@ faster, so this module provides the fast lane the test suite and the query
 executors use.
 
 This is a **non-authoritative acceleration path**. Jena remains the canonical
-RDF 1.2 writer and reasoner; pyshacl/rdflib remains the canonical SHACL engine.
+RDF 1.2 writer and reasoner; ``gmeow_shacl`` (Rust + oxigraph) is the canonical
+SHACL engine (#578).
 The :mod:`gmeow_tools.engine_crosscheck` gate proves rdflib and pyoxigraph return
 identical answers for every committed query, which is what licenses callers to
 trust this engine (CONSTITUTION Principle 7 — verified by construction).

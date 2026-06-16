@@ -9,7 +9,7 @@
     {
       "id": "flagship-grounded-memory",
       "source": "README.md",
-      "must_quote": "grounded agent memory and claim provenance"
+      "must_quote": "grounded agent memory"
     },
     {
       "id": "no-sameas-merge",

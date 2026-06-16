@@ -465,6 +465,64 @@ fn eval_constraint(
             results
         }
 
+        // ── MinExclusive / MaxExclusive (per value node) ───────────────────────
+        Constraint::MinExclusive(bound) => {
+            let bound_num = numeric_value(bound);
+            let mut results = Vec::new();
+            let focus = value_nodes
+                .first()
+                .cloned()
+                .unwrap_or_else(|| source_shape.clone());
+            for value in value_nodes {
+                let violates = match (numeric_value(value), &bound_num) {
+                    (Some(v), Some(b)) => v <= *b,
+                    _ => true,
+                };
+                if violates {
+                    results.push(ValidationResult {
+                        focus_node: focus.clone(),
+                        result_path: result_path.clone(),
+                        value: Some(value.clone()),
+                        source_constraint_component: NamedNode::from(
+                            sh::MIN_EXCLUSIVE_CONSTRAINT_COMPONENT,
+                        ),
+                        source_shape: source_shape.clone(),
+                        severity,
+                        message: message.clone(),
+                    });
+                }
+            }
+            results
+        }
+        Constraint::MaxExclusive(bound) => {
+            let bound_num = numeric_value(bound);
+            let mut results = Vec::new();
+            let focus = value_nodes
+                .first()
+                .cloned()
+                .unwrap_or_else(|| source_shape.clone());
+            for value in value_nodes {
+                let violates = match (numeric_value(value), &bound_num) {
+                    (Some(v), Some(b)) => v >= *b,
+                    _ => true,
+                };
+                if violates {
+                    results.push(ValidationResult {
+                        focus_node: focus.clone(),
+                        result_path: result_path.clone(),
+                        value: Some(value.clone()),
+                        source_constraint_component: NamedNode::from(
+                            sh::MAX_EXCLUSIVE_CONSTRAINT_COMPONENT,
+                        ),
+                        source_shape: source_shape.clone(),
+                        severity,
+                        message: message.clone(),
+                    });
+                }
+            }
+            results
+        }
+
         // ── And (per value node, recursive) ───────────────────────────────────
         Constraint::And(members) => {
             let mut results = Vec::new();
@@ -1416,6 +1474,69 @@ mod tests {
         let results = validate_shape(&store, &ex("a"), &shape);
         assert_eq!(results.len(), 1);
         assert!(component_iri(&results)[0].contains("MaxInclusive"));
+    }
+
+    // ── minExclusive ─────────────────────────────────────────────────────────────
+
+    #[test]
+    fn min_exclusive_pass() {
+        // The bound is exclusive: 19 > 18 passes.
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:age \"19\"^^<{XSD}integer> ."
+        ));
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}age"),
+            vec![Constraint::MinExclusive(xsd_lit("18", "integer"))],
+        );
+        assert!(validate_shape(&store, &ex("a"), &shape).is_empty());
+    }
+
+    #[test]
+    fn min_exclusive_fail_on_equal() {
+        // Equal to the bound must FAIL under sh:minExclusive (unlike minInclusive).
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:age \"18\"^^<{XSD}integer> ."
+        ));
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}age"),
+            vec![Constraint::MinExclusive(xsd_lit("18", "integer"))],
+        );
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1);
+        assert!(component_iri(&results)[0].contains("MinExclusive"));
+    }
+
+    // ── maxExclusive ─────────────────────────────────────────────────────────────
+
+    #[test]
+    fn max_exclusive_pass() {
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:score \"99\"^^<{XSD}integer> ."
+        ));
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}score"),
+            vec![Constraint::MaxExclusive(xsd_lit("100", "integer"))],
+        );
+        assert!(validate_shape(&store, &ex("a"), &shape).is_empty());
+    }
+
+    #[test]
+    fn max_exclusive_fail_on_equal() {
+        // Equal to the bound must FAIL under sh:maxExclusive.
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:score \"100\"^^<{XSD}integer> ."
+        ));
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}score"),
+            vec![Constraint::MaxExclusive(xsd_lit("100", "integer"))],
+        );
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1);
+        assert!(component_iri(&results)[0].contains("MaxExclusive"));
     }
 
     // ── and ────────────────────────────────────────────────────────────────────

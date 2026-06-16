@@ -11,9 +11,9 @@
 ev:readme a gmeow:Document ;
     rdfs:label "README.md"@en ;
     gmeow:sourceLocation "README.md" ;
-    gmeow:contentDigest "blake3:796331d99dbaab78c0f9857aedb0aa3cfaea1c30910c390634d1b34823b933ea" .
+    gmeow:contentDigest "blake3:03a4a7a8ec206e1c3dfb5803a131f2a1c32586145d5cf11822f7fb5ca61e6263" .
 
 ev:constitution a gmeow:Document ;
     rdfs:label "CONSTITUTION.md"@en ;
     gmeow:sourceLocation "CONSTITUTION.md" ;
-    gmeow:contentDigest "blake3:28095794e8c96325ecafcf36dbc10266132d3da5483e62779f398811cd8d780d" .
+    gmeow:contentDigest "blake3:9d24cebbaa95509ad570cd4bf01de51f7822adbf041125a882dfc6a0f693f212" .

@@ -46,6 +46,7 @@ from typing import TYPE_CHECKING
 
 from rdflib import OWL, RDF, RDFS, SKOS, Graph, Literal, Namespace, URIRef
 
+from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
     EXTERNAL_FIXTURES_DIR,
     NAMESPACE,
@@ -414,25 +415,22 @@ def _gate_external_validator(output: Graph) -> GateResult:
 
 
 def _run_range_shacl(output: Graph, detail: list[str]) -> int:
-    """Run the generated range-SHACL over the consumer output.
+    """Run the generated range-SHACL over the consumer output via gmeow_shacl.
 
     Returns the total violations (report-only), per-vocab so a noisy vocabulary
-    is legible.
+    is legible. The generated shapes are plain SHACL Core (sh:targetObjectsOf +
+    sh:class); gmeow_shacl always runs SHACL-AF, but with no sh:sparql here the
+    result set is identical, and this gate is report-only regardless (#578).
     """
-    from pyshacl import validate
-
     total = 0
     for prefix in _VENDORED_DEFS:
         shapes = _generate_range_shapes(prefix)
         if shapes is None:
             continue
-        conforms, results_graph, _text = validate(
-            output, shacl_graph=shapes, inference="none", advanced=False
-        )
-        if conforms:
+        report = shacl_engine.validate_graph(output, shapes.serialize(format="turtle"))
+        if report["conforms"]:
             continue
-        sh_result = URIRef("http://www.w3.org/ns/shacl#ValidationResult")
-        n = sum(1 for _ in results_graph.subjects(RDF.type, sh_result))
+        n = len(report["results"])
         total += n
         detail.append(f"{prefix}: {n} range-SHACL violation(s) [report-only]")
     return total
