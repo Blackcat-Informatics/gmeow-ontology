@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Tests for the ``logic:distinctBody`` inequality body guard (issue #503).
 
 The guard adds a rule-level ``?A != ?B`` constraint to the GMEOW Logic IR — an

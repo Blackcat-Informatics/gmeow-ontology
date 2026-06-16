@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Python-authoritative lowering of OntoUML disciplines into ``logic:`` IR rules.
 
 This module is the executable lowering of three of the four OntoUML structural

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Lint-equivalence + soundness + regression gate for the foundation lowering.
 
 This module is Task 6 of issue #503: the mechanical proof of the three acceptance
