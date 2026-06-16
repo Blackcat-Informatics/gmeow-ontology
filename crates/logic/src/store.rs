@@ -11,6 +11,7 @@
 use oxigraph::model::{
     GraphName, GraphNameRef, NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Quad, Term,
 };
+use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
 /// A world-indexed RDF store.
@@ -136,6 +137,52 @@ impl WorldStore {
             .quads_for_pattern(subject_ref, predicate_ref, object_ref, Some(graph_ref))
             .filter_map(|r| r.ok())
             .collect()
+    }
+
+    /// Run a SPARQL SELECT query over the world-indexed store.
+    ///
+    /// Returns each solution as a map of variable-name → canonical term string,
+    /// where IRIs are `<iri>` and literals are n3 — matching
+    /// [`crate::provenance::term_n3`] and the oracle's `Const` form.
+    ///
+    /// World-scoping is the caller's responsibility (include `GRAPH <world> { … }` in
+    /// the query). Only SELECT queries are supported; returns `Err` for ASK/CONSTRUCT
+    /// results or for any evaluation error.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(String)` on SPARQL parse/evaluation errors, on a non-SELECT result
+    /// type, or if `term_n3` fails on an RDF-star term.
+    pub fn select(
+        &self,
+        sparql: &str,
+    ) -> Result<Vec<std::collections::BTreeMap<String, String>>, String> {
+        let results = SparqlEvaluator::new()
+            .parse_query(sparql)
+            .map_err(|e| format!("SPARQL parse error: {e}"))?
+            .on_store(&self.inner)
+            .execute()
+            .map_err(|e| format!("SPARQL evaluation error: {e}"))?;
+
+        match results {
+            QueryResults::Solutions(solutions) => {
+                let mut out = Vec::new();
+                for sol in solutions {
+                    let sol = sol.map_err(|e| format!("SPARQL solution error: {e}"))?;
+                    let mut row = std::collections::BTreeMap::new();
+                    for (var, term) in sol.iter() {
+                        let canonical = crate::provenance::term_n3(term)
+                            .map_err(|e| format!("term_n3 failed in select: {e}"))?;
+                        row.insert(var.as_str().to_owned(), canonical);
+                    }
+                    out.push(row);
+                }
+                Ok(out)
+            }
+            QueryResults::Boolean(_) | QueryResults::Graph(_) => Err(
+                "select() requires a SPARQL SELECT query; got ASK or CONSTRUCT/DESCRIBE".to_owned(),
+            ),
+        }
     }
 
     /// Return the distinct world IRIs (named graph IRIs) present in the store.
@@ -327,5 +374,38 @@ mod tests {
                 "world B pattern returned world A's quad: {q:?}"
             );
         }
+    }
+
+    // ── select (SPARQL SELECT helper) ─────────────────────────────────────────
+
+    #[test]
+    fn select_returns_canonical_bindings() {
+        let store = populated_store();
+        // Query only world A's objects for a known subject and predicate.
+        let sparql = format!("SELECT ?o WHERE {{ GRAPH <{WORLD_A}> {{ <{S_A}> <{P_A}> ?o }} }}");
+        let rows = store.select(&sparql).expect("select must succeed");
+        assert_eq!(rows.len(), 1, "exactly one match expected: {rows:?}");
+        let canonical_o = &rows[0]["o"];
+        assert_eq!(
+            canonical_o,
+            &format!("<{O_A}>"),
+            "canonical form must be <iri>: {canonical_o:?}"
+        );
+    }
+
+    #[test]
+    fn select_no_cross_world_results() {
+        let store = populated_store();
+        // Query world A but for world B's triple — should return nothing.
+        let sparql = format!("SELECT ?o WHERE {{ GRAPH <{WORLD_A}> {{ <{S_B}> <{P_B}> ?o }} }}");
+        let rows = store.select(&sparql).expect("select must succeed");
+        assert!(rows.is_empty(), "no cross-world results expected: {rows:?}");
+    }
+
+    #[test]
+    fn select_parse_error_returns_err() {
+        let store = WorldStore::new();
+        let result = store.select("NOT VALID SPARQL AT ALL");
+        assert!(result.is_err(), "invalid SPARQL must return Err");
     }
 }

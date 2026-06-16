@@ -10,7 +10,9 @@
 //! This crate is single-target native only.
 //! Nemo-based rule evaluation and PyO3 bindings are unconditionally included.
 
+pub mod dispatch;
 pub mod encode;
+pub mod profile_gate;
 pub mod provenance;
 pub mod query_ir;
 pub mod reference_resolver;
