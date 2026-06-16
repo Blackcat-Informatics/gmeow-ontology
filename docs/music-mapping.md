@@ -1,194 +1,88 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Music — oral tradition, tune families, and performance lineage
+# Music mapping and design rationale
 
-GMEOW treats **sheet music as one lossy projection among many** (Principle 4).
-Consequently, a `gmeow:MusicalWork` whose only `Expression`s are oral,
-improvised, or performed is first-class — never a deficient or incomplete
-object. This guide explains how three existing GMEOW facilities compose to give
-identity to score-less works and tune families without inventing new identity
-machinery (Principle 16).
+GMEOW Music treats musical content as **frame-relative** and every notation as a **declared-loss projection**. This document is the analogue of `languages-mapping.md` for the music extension: it explains the five-layer doctrine, the alignment surface, and the deliberate departures from common practice.
 
-## The oral-tradition guarantee
+## The five-layer doctrine
 
-A `gmeow:MusicalWork` may be realized by `Expression`s carrying any of the
-`gmeow:realizationMode` values:
+| Layer | Canonical construct | What it replaces |
+|---|---|---|
+| **Pitch** | `TuningSystem` as a `ReferenceFrame`; exact rational `PitchValue`; `PitchCollection` / `PitchSpelling` as projections | Fixed letter-name pitch classes; enharmonic collapse |
+| **Time** | `MusicalTimeFrame`; `TimeMapping` / `TempoMap`; `MetricStructure`, `MeterAssignment`, `MetricModulation`; `GrooveProfile` | A single global meter + single BPM number |
+| **Structure** | `MusicalSegment` graph; `ToneEvent`; `Voice`; `SegmentTransformation` | Note-event tables; implicit part-of hierarchy |
+| **Performance** | `DegreeOfFreedom`; `TraversalConstraint`; `PerformanceDecision`; `GenerativeProcess`; `OrnamentProfile` | Indeterminacy as missing data; mobile form as prose |
+| **Analysis** | `MusicAnalysisClaim` as standpoint-indexed observations against explicit theory frames | Analysis as ground truth; genre as tag string |
 
-- `gmeow:realizationModeNotated`
-- `gmeow:realizationModePerformed`
-- `gmeow:realizationModeImprovised`
-- `gmeow:realizationModeOral`
-- `gmeow:realizationModeMachineGenerated`
+Every value is relative to an explicit reference frame (Principle 11). A pitch without its `TuningSystem` is ill-formed; a duration without its `MusicalTimeFrame` is ill-formed; a notation render without its `NotationProjectionProfile` and declared losses is incomplete.
 
-No SHACL shape may require a `MusicalWork` to have a notated `Expression`. This
-is the exact move the Languages slice made for code-less conlangs
-(`tests/test_languages.py::test_registry_independence_no_required_code`): the
-absence of a score is a feature of the work, not a validity error
-(Principle 9).
+## What's deliberately non-standard
 
-When a work IRI is minted retrospectively for an oral tradition, record the
-ontic uncertainty explicitly with `gmeow:hasDeterminacy gmeow:determinacyVague`
-(the unified observation stance, Principle 9).
+| Common assumption | GMEOW model | Rationale |
+|---|---|---|
+| Pitch is a letter name (C♯4) | Pitch is a frame-relative `PitchValue`; letter names are `PitchSpelling` projections | Enharmonic ambiguity becomes co-equal spellings; microtones, JI, and spectral tunings are first-class |
+| Tempo is a BPM number | Tempo is a `TimeMapping` between a musical frame and clock time; `TempoMap` is piecewise and per-voice | Tempo canons, metric modulation, and polymeter are native |
+| Meter is a single time signature | `MetricStructure` groups `MetricGroup`s; concurrent `MeterAssignment`s on different voices = polymeter | 7/8 over 4/4 is data, not a special case |
+| A work is its score | A score is a `ScoreEdition` — one `Manifestation` projected from canonical frame-relative content | CMN, mensural, tablature, graphic, JI, MEI, MusicXML, MIDI are all renders |
+| Indeterminacy is absent data | `DegreeOfFreedom` positively declares fixed / constrained / free / delegated status | Cage's 4′33″ is fully specified by what it determines |
+| Genre is a tag string | `Genre` is a `Kind` with derivation lineage; attribution is a standpoint-indexed claim | "math rock" can be asserted and refuted from different vantages |
+| Analysis is ground truth | `MusicAnalysisClaim` carries analyst, theory frame, confidence, and displayable | Two analysts in the same frame can disagree; one analyst in two frames is not contradicting herself |
+| A note event is the atom | `ToneEvent` is one kind of `MusicalSegment`; continuous pitch is a `PitchTrajectory` | Glissandi, gamaka, and UPIC curves are first-class |
 
-```turtle
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix ex:    <https://example.org/music-mapping/> .
+## Projection layer
 
-ex:bodyAndSoulTuneFamily a gmeow:MusicalWork ;
-    rdfs:label "Body and Soul tune family"@x-gmeow-english ;
-    skos:definition "The constellation of performances, oral renditions, and jazz heads recognised as 'Body and Soul'."@x-gmeow-english ;
-    gmeow:hasDeterminacy gmeow:determinacyVague ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+Every music notation is a directional, lossy projection of canonical content. The canonical object is a graph of `MusicalSegment`s carrying `PitchValue`s in explicit `TuningSystem`s and durations in explicit `MusicalTimeFrame`s. A staff score, a MIDI file, a MusicXML export, and a LilyPond engraving are all renders — none is the work itself (Principles 4, 11, 12).
 
-ex:bodyAndSoulOral1940 a gmeow:Expression ;
-    rdfs:label "Body and Soul — oral transmission c. 1940"@x-gmeow-english ;
-    gmeow:realizes ex:bodyAndSoulTuneFamily ;
-    gmeow:realizationMode gmeow:realizationModeOral ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-```
+The generic projection framework (`NotationProjectionProfile`, `ProjectionLoss`) lives in the core `slices/core/notation/` slice. The music slice provides the music-domain `NotationSystem` individuals and the `MusicalParameter`-specific losses. See `slices/extensions/music/docs.md` § Notation projection layer for the full loss table and external alignments.
 
-## Tune family = `VersionSet`
+## External alignment
 
-A tune family ("Body and Soul", "Raga Yaman as performed in the Kirana
-gharana") is a `gmeow:VersionSet` reused verbatim from
-`slices/core/versions/module.ttl`. Each performance-Expression joins the set
-through a `gmeow:VersionMembership` relator:
+The music extension bridges by reference (Principle 5) to:
 
-- `gmeow:versionMember` → the performed `Expression`.
-- `gmeow:versionSet` → the `VersionSet` representing the family.
-- `gmeow:membershipAuthority` → the tradition, gharana, or scholar standpoint
-  asserting the membership.
-- `gmeow:confidence` → the authority's confidence.
-- `gmeow:displayable` → whether the membership should be shown.
+- **Music Ontology** (`mo:`) — `MusicalWork` closeMatch.
+- **Polifonia PON** — primary linkage hub for work/expression metadata and JAMS segment annotations.
+- **LRMoo 1.0** — Work/Expression/Performance via the crmarchaeo EDOAL pattern.
+- **Wikidata** — QID anchors for tuning systems, notation systems, composers, and works; MusicBrainz MBID PIDs.
+- **MusicBrainz** — by MBID only.
+- **OMRAS2 chord ontology** — chord-symbol `closeMatch`.
+- **schema.org** — `MusicComposition`, `MusicRecording`, `MusicAlbum` lossy projections.
+- **MEI, MusicXML, MIDI, ABC, Humdrum \*\*kern, LilyPond, Scala .scl** — one projection profile and one FnO function per format.
 
-Competing family-membership claims coexist as distinct relators; none is
-privileged (Principle 9).
+No external axioms are imported. Alignment is by reference only.
 
-```turtle
-ex:ragaYamanKiranaSet a gmeow:VersionSet ;
-    rdfs:label "Raga Yaman as performed in the Kirana gharana"@x-gmeow-english ;
-    skos:definition "The tune family / performance lineage of Raga Yaman transmitted in the Kirana gharana."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+## Stress corpus
 
-ex:yamanKiranaMembership1960 a gmeow:VersionMembership ;
-    rdfs:label "Raga Yaman performance in Kirana gharana lineage"@x-gmeow-english ;
-    gmeow:versionMember ex:yamanPerformance1960 ;
-    gmeow:versionSet ex:ragaYamanKiranaSet ;
-    gmeow:membershipAuthority ex:kiranaGharanaStandpoint ;
-    gmeow:confidence "0.92"^^xsd:decimal ;
-    gmeow:displayable true ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-```
+The 19-case stress corpus in `slices/extensions/music/fixtures/` exercises every layer and edge case:
 
-## Suppression, never erasure
+| # | Fixture | Exercises |
+|---|---|---|
+| 1 | Ferneyhough-style excerpt | nested rational `TimeMapping`s, fractional meter, per-`Voice` `TempoMap`s, notation-saturation round-trip |
+| 2 | Nancarrow tempo canon | symbolic √2:2 `TimeMapping` between `Voice` frames |
+| 3 | Cage 4′33″ | complete `DegreeOfFreedom` profile |
+| 4 | Stockhausen *Klavierstück XI* | fragment graph + `TraversalConstraint` + two documented traversals |
+| 5 | Partch 43-tone excerpt | JI `TuningSystem`, integer-pair ratios, JI spelling |
+| 6 | Xenakis glissando field | `PitchTrajectory`s + stochastic `GenerativeProcess` + UPIC graphic notation |
+| 7 | Grisey *Partiels* opening | `Spectrum` → derived `PitchCollection` → staff projection with declared loss |
+| 8 | Cardew *Treatise* page | graphic `Manifestation` canonical; standpointed symbolic interpretations |
+| 9 | Ars subtilior excerpt + isorhythmic motet | mensural notation profile; talea/color unequal cycles |
+| 10 | Messiaen excerpt | added-value `MetricGroup`s; non-retrogradable retrograde-identity claim; mode of limited transposition |
+| 11 | Lutosławski ad-lib section | unsynchronized `Voice` spans bounded by cue anchors |
+| 12a | Raga Yaman ālāp | score-less `Work`, collection+roles+`OrnamentProfile`, gharana `VersionSet`, transmission lineage |
+| 12b | Maqam Rast taqsim | ordered ajnas composition, quarter-tone-ish intervals |
+| 12c | Gamelan piece | slendro hosted by instrument-set `Item`, colotomic cycle |
+| 13 | Aksak folk tune | additive 2+2+3 `MetricGroup`s, changing meters |
+| 14 | Math rock track | polymeter over shared `TempoMap`, contested bar-17 meter pair, riff transformation graph, drop-D `InstrumentConfiguration`, refuted genre claim |
+| 15 | Carter / Don Caballero metric modulation | pivot-equivalence frame transition |
+| 16 | Riff-form track | the form as a `SegmentTransformation` graph |
+| 17 | Dilla-feel groove | `GrooveProfile` + measured microtiming `Observation`s (drummer + MIR vantages) |
+| 18 | Prepared-piano piece | `InstrumentConfiguration` + `PlayingTechnique`s |
+| 19 | Reich *Piano Phase* | `GenerativeProcess` + realizations `wasGeneratedBy` |
 
-A retracted or contested membership is suppressed, not deleted
-(Principle 10):
+The corpus is gated by `queries/competency/music.rq` (15 competency questions with expected bindings) and by the Docker-backed reasoning case that proves the fixtures stay coherent under broad disjointness.
 
-```turtle
-ex:yamanContestedMembership a gmeow:VersionMembership ;
-    rdfs:label "Contested Raga Yaman membership (suppressed)"@x-gmeow-english ;
-    gmeow:versionMember ex:yamanPerformance1975 ;
-    gmeow:versionSet ex:ragaYamanKiranaSet ;
-    gmeow:membershipAuthority ex:rivalScholarStandpoint ;
-    gmeow:confidence "0.45"^^xsd:decimal ;
-    gmeow:displayable false ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-```
+## Consumers
 
-Display projections filter with `gmeow:displayable true`; the data is retained
-for audit and standpoint recovery.
-
-## Transmission lineage
-
-Oral teaching is an ordinary `gmeow:Event` typed `gmeow:eventTypeTransmission`.
-The teacher and student participate with `gmeow:roleTransmitter` and
-`gmeow:roleLearner` (issue #313). Performance-to-performance descent is
-recorded with `gmeow:wasDerivedFrom` between performed `Expression`s, optionally
-reified as `gmeow:CreativeDerivation` when provenance detail matters.
-
-```turtle
-ex:kiranaTeachingEvent a gmeow:Event ;
-    rdfs:label "Kirana gharana teaching transmission"@x-gmeow-english ;
-    gmeow:eventType gmeow:eventTypeTransmission ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-ex:teacherParticipation a gmeow:Participation ;
-    gmeow:participationEvent ex:kiranaTeachingEvent ;
-    gmeow:participationParticipant ex:panditBhimsenJoshi ;
-    gmeow:participationRole gmeow:roleTransmitter ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-ex:studentParticipation a gmeow:Participation ;
-    gmeow:participationEvent ex:kiranaTeachingEvent ;
-    gmeow:participationParticipant ex:studentMusician ;
-    gmeow:participationRole gmeow:roleLearner ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-
-ex:yamanPerformance1975 a gmeow:Expression ;
-    rdfs:label "Raga Yaman performance, 1975"@x-gmeow-english ;
-    gmeow:realizes ex:ragaYamanWork ;
-    gmeow:realizationMode gmeow:realizationModePerformed ;
-    gmeow:wasDerivedFrom ex:yamanPerformance1960 ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
-```
-
-## Why no new identity primitive?
-
-- A tune family is a set of versions of a stable idea → `VersionSet`.
-- Membership is a standpointed, confidence-weighted claim → `VersionMembership`.
-- Teaching is an event with roles → `Event` + `Participation`.
-- Descent is derivation → `wasDerivedFrom` / `CreativeDerivation`.
-
-Reusing these keeps the core small and puts the music-specific doctrine in the
-extension slice where it belongs (Principle 16).
-
-## Timbre and sensory bridge
-
-Timbre is modelled as an attributed, standpoint-indexed observation, not a
-single ground-truth label. A `gmeow:ToneEvent` may carry a flat shortcut
-(`gmeow:toneEventTimbre`) for the simple case; the worked form uses the core
-observation stack.
-
-```turtle
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix ex:    <https://example.org/music-timbre/> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-
-ex:segment a gmeow:ToneEvent ;
-    gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture .
-
-ex:humanListener a gmeow:Agent .
-ex:mirExtractor a gmeow:Agent .
-
-ex:humanTimbre a gmeow:Observation ;
-    gmeow:observedFeature ex:segment ;
-    gmeow:vantage ex:humanListener ;
-    gmeow:observationMethod gmeow:methodDirectObservation ;
-    gmeow:observationType gmeow:observationTypeSensory ;
-    gmeow:timbreObservationResult gmeow:timbreDescriptorBright ;
-    gmeow:confidence "0.85"^^xsd:decimal .
-
-ex:mirTimbre a gmeow:Observation ;
-    gmeow:observedFeature ex:segment ;
-    gmeow:vantage ex:mirExtractor ;
-    gmeow:observationMethod gmeow:methodComputationalModel ;
-    gmeow:observationType gmeow:observationTypeDerived ;
-    gmeow:timbreObservationResult gmeow:timbreDescriptorGritty ;
-    gmeow:confidence "0.72"^^xsd:decimal .
-```
-
-The two observations coexist without privilege (Principle 9). The actual
-spectral feature vectors are referenced by identifier, never materialised as
-triples (Principle 12). The AFO 1.1 alignment row in
-`slices/extensions/music/mappings/equivalences.ttl` links `TimbreDescriptor` to
-`afo:AudioFeature`. The auditory `ObservableProperty` seeds and their `afv:*`
-alignments live in `slices/extensions/sensory/mappings/equivalences.ttl`.
-
-## Competency queries
-
-- `queries/competency/music-oral-works.rq` — MusicalWorks with no notated
-  Expression but at least three performances.
-- `queries/competency/music-gharana-memberships.rq` — Kirana-gharana memberships
-  of Raga Yaman performances, excluding suppressed claims.
+- The **GTS `music-package`** single-file format (`src/gmeow_tools/ext/music/`).
+- The **MCP analysis-claims** recall/revise surface.
+- The **19-case stress corpus** itself, as the Principle 15 consumer proof for the entire music design.

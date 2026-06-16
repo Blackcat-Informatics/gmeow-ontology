@@ -1,0 +1,172 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 2 — Nancarrow-style tempo canon.
+# Exercises: a symbolic irrational TimeMapping (√2:2) between two Voice frames,
+# with co-equal analytical claims about the resulting canon phase.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Work and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureNancarrowTempoCanonWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Nancarrow-style tempo canon"@x-gmeow-english ;
+    skos:definition "A fixture work exercising a tempo canon driven by an irrational √2:2 ratio between two voice time frames, in the style of Conlon Nancarrow's player-piano studies."@x-gmeow-english ;
+    skos:closeMatch wd:Q164203 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Two voices with hosted time frames
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureNancarrowVoiceA
+    a gmeow:Voice ;
+    rdfs:label "Nancarrow canon voice A"@x-gmeow-english ;
+    skos:definition "The faster voice in the √2:2 tempo canon."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureNancarrowTimeFrameA ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowVoiceB
+    a gmeow:Voice ;
+    rdfs:label "Nancarrow canon voice B"@x-gmeow-english ;
+    skos:definition "The slower voice in the √2:2 tempo canon."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureNancarrowTimeFrameB ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowTimeFrameA
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Nancarrow voice A time frame"@x-gmeow-english ;
+    skos:definition "The musical-time frame hosted by voice A."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureNancarrowVoiceA ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowTimeFrameB
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Nancarrow voice B time frame"@x-gmeow-english ;
+    skos:definition "The musical-time frame hosted by voice B."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureNancarrowVoiceB ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Symbolic √2:2 TimeMapping between the two voice frames
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureNancarrowSqrt2Mapping
+    a gmeow:TimeMapping ;
+    rdfs:label "Nancarrow √2:2 tempo canon mapping"@x-gmeow-english ;
+    skos:definition "The canonical symbolic mapping between voice A and voice B: √2/2. The decimal approximation is a generated projection, not the canonical value."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTempoCanon ;
+    gmeow:mapsFrame gmeow:fixtureNancarrowTimeFrameA ;
+    gmeow:mapsToFrame gmeow:fixtureNancarrowTimeFrameB ;
+    gmeow:tempoRatioExpression "sqrt(2)/2"^^xsd:string ;
+    gmeow:tempoRatioApprox "0.70710678"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Tone events in each voice to make the canon concrete
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureNancarrowSpanA
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Nancarrow voice A event span"@x-gmeow-english ;
+    skos:definition "A half-beat span in voice A's time frame."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureNancarrowTimeFrameA ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowSpanB
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Nancarrow voice B event span"@x-gmeow-english ;
+    skos:definition "A half-beat span in voice B's time frame."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureNancarrowTimeFrameB ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowToneEventA
+    a gmeow:ToneEvent ;
+    rdfs:label "Nancarrow voice A tone event"@x-gmeow-english ;
+    skos:definition "A C4 tone event in voice A of the tempo canon."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentOf gmeow:fixtureNancarrowTempoCanonWork ;
+    gmeow:segmentSpan gmeow:fixtureNancarrowSpanA ;
+    gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowToneEventB
+    a gmeow:ToneEvent ;
+    rdfs:label "Nancarrow voice B tone event"@x-gmeow-english ;
+    skos:definition "A C4 tone event in voice B of the tempo canon."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentOf gmeow:fixtureNancarrowTempoCanonWork ;
+    gmeow:segmentSpan gmeow:fixtureNancarrowSpanB ;
+    gmeow:toneEventPitchValue gmeow:pitchValueC4Fixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal analytical claims about the canon phase
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureNancarrowAnalystIrrational
+    a gmeow:Agent ;
+    rdfs:label "Nancarrow analyst — irrational-ratio standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who treats the tempo relation as a strictly irrational ratio."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowAnalystApproximate
+    a gmeow:Agent ;
+    rdfs:label "Nancarrow analyst — practical-approximation standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who treats the tempo relation as an unachievable ideal approximated in performance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowIrrationalClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Nancarrow irrational canon claim"@x-gmeow-english ;
+    skos:definition "Claim that the canon is defined by the exact symbolic ratio √2/2."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureNancarrowTempoCanonWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMeter ;
+    gmeow:analysisResult gmeow:fixtureNancarrowSqrt2Mapping ;
+    gmeow:vantage gmeow:fixtureNancarrowAnalystIrrational ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.95"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureNancarrowApproximateClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Nancarrow approximate canon claim"@x-gmeow-english ;
+    skos:definition "Claim that the canon is practically realized through a finite approximation of the irrational ratio."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureNancarrowTempoCanonWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMeter ;
+    gmeow:analysisResult gmeow:fixtureNancarrowSqrt2Mapping ;
+    gmeow:vantage gmeow:fixtureNancarrowAnalystApproximate ;
+    gmeow:analysisFrame gmeow:theoryFrameCorpusStatistical ;
+    gmeow:confidence "0.80"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

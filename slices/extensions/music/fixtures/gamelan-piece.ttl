@@ -1,0 +1,225 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case — Javanese gamelan piece.
+# Exercises: slendro tuning hosted by an instrument-set Item,
+# a colotomic MetricStructure, and ensemble PerformanceParticipation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Work and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanPieceWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Javanese gamelan piece (fixture)"@x-gmeow-english ;
+    skos:definition "A fixture work for a Javanese gamelan piece exercising slendro tuning and colotomic structure."@x-gmeow-english ;
+    skos:closeMatch wd:Q194492 ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Gamelan> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Instrument-set Item and its Manifestation
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanSetManifestation
+    a gmeow:Manifestation ;
+    rdfs:label "Javanese gamelan instrument-set manifestation"@x-gmeow-english ;
+    skos:definition "The abstract manifestation of a specific Javanese gamelan instrument set."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanInstrumentSet
+    a gmeow:Item ;
+    rdfs:label "Javanese gamelan instrument set"@x-gmeow-english ;
+    skos:definition "A specific physical Javanese gamelan instrument set that hosts the slendro tuning for this fixture."@x-gmeow-english ;
+    gmeow:exemplifies gmeow:fixtureGamelanSetManifestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Slendro tuning hosted by the instrument-set Item
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanSlendro
+    a gmeow:TuningSystem ;
+    rdfs:label "Gamelan instrument-set slendro"@x-gmeow-english ;
+    skos:definition "The slendro tuning of the specific instrument set, relative to the host gamelan."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureGamelanInstrumentSet ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:tuningKind gmeow:tuningSystemKindInstrumentRelative ;
+    gmeow:degreeCount "5"^^xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Expression and score edition
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanPieceExpression
+    a gmeow:Expression ;
+    rdfs:label "Gamelan piece Expression"@x-gmeow-english ;
+    skos:definition "The performed Expression of the gamelan piece in the instrument-set slendro frame."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureGamelanPieceWork ;
+    gmeow:realizationMode gmeow:realizationModePerformed ;
+    gmeow:hasReferenceFrame gmeow:fixtureGamelanSlendro ;
+    gmeow:wasGeneratedBy gmeow:fixtureGamelanColotomicProcess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Voice and hosted time frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanPieceVoice
+    a gmeow:Voice ;
+    rdfs:label "Gamelan piece colotomic voice"@x-gmeow-english ;
+    skos:definition "The ensemble voice whose metric structure is the colotomic cycle."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureGamelanPieceTimeFrame ;
+    gmeow:voiceTuningFrame gmeow:fixtureGamelanSlendro ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanPieceTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Gamelan piece time frame"@x-gmeow-english ;
+    skos:definition "The musical-time frame hosting the colotomic cycle."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureGamelanPieceVoice ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Colotomic metric structure: four beats with hierarchical accent weights
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanColotomicStructure
+    a gmeow:MetricStructure ;
+    rdfs:label "Gamelan colotomic structure"@x-gmeow-english ;
+    skos:definition "A four-beat colotomic cycle with hierarchical accent weights (gong ageng, kempul/kenong, ketuk)."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureGamelanColotomicBeat0 ;
+    gmeow:hasMetricGroup gmeow:fixtureGamelanColotomicBeat1 ;
+    gmeow:hasMetricGroup gmeow:fixtureGamelanColotomicBeat2 ;
+    gmeow:hasMetricGroup gmeow:fixtureGamelanColotomicBeat3 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanColotomicBeat0
+    a gmeow:MetricGroup ;
+    rdfs:label "Gamelan colotomic beat 0 (gong ageng)"@x-gmeow-english ;
+    skos:definition "The strongest beat of the colotomic cycle."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "1"^^xsd:integer ;
+    gmeow:groupLengthDenominator "4"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanColotomicBeat1
+    a gmeow:MetricGroup ;
+    rdfs:label "Gamelan colotomic beat 1"@x-gmeow-english ;
+    skos:definition "The second beat of the colotomic cycle."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "1"^^xsd:integer ;
+    gmeow:groupLengthDenominator "4"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.5"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanColotomicBeat2
+    a gmeow:MetricGroup ;
+    rdfs:label "Gamelan colotomic beat 2"@x-gmeow-english ;
+    skos:definition "The third beat of the colotomic cycle."@x-gmeow-english ;
+    gmeow:metricGroupOrder "2"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "1"^^xsd:integer ;
+    gmeow:groupLengthDenominator "4"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.5"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanColotomicBeat3
+    a gmeow:MetricGroup ;
+    rdfs:label "Gamelan colotomic beat 3"@x-gmeow-english ;
+    skos:definition "The fourth beat of the colotomic cycle, leading back to the gong."@x-gmeow-english ;
+    gmeow:metricGroupOrder "3"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "1"^^xsd:integer ;
+    gmeow:groupLengthDenominator "4"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.25"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanColotomicSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Gamelan colotomic cycle span"@x-gmeow-english ;
+    skos:definition "The one-measure span over which the colotomic structure is assigned."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureGamelanPieceTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanColotomicAssignment
+    a gmeow:MeterAssignment ;
+    rdfs:label "Gamelan colotomic meter assignment"@x-gmeow-english ;
+    skos:definition "Assigns the four-beat colotomic structure to the gamelan voice."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureGamelanPieceVoice ;
+    gmeow:assignedMeter gmeow:fixtureGamelanColotomicStructure ;
+    gmeow:assignmentSpan gmeow:fixtureGamelanColotomicSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Generative process resolving the colotomic cycle
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanFnResolveColotomicCycle
+    a gmeow:ProjectionFunction ;
+    rdfs:label "resolve-colotomic-cycle"@x-gmeow-english ;
+    skos:definition "FnO projection function that resolves the gamelan colotomic cycle from accent weights and beat positions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanColotomicProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Gamelan colotomic resolution process"@x-gmeow-english ;
+    skos:definition "The rule-based process that maps the colotomic accent hierarchy onto concrete ensemble entries."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindRuleBased ;
+    gmeow:processRuleText "Assign the gong, kempul/kenong, and ketuk entries to the four-beat cycle according to the accent weights; the exact colotomic map is computed by fnResolveColotomicCycle."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fixtureGamelanFnResolveColotomicCycle ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Performance event and ensemble participation
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGamelanEnsembleAgent
+    a gmeow:Agent ;
+    rdfs:label "Gamelan ensemble"@x-gmeow-english ;
+    skos:definition "The performing ensemble for the Javanese gamelan piece fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanPiecePerformance
+    a gmeow:Event ;
+    rdfs:label "Gamelan piece performance event"@x-gmeow-english ;
+    skos:definition "A concert performance of the gamelan piece on the instrument set."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeConcert ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "2024-08-15T19:30:00Z"^^xsd:dateTime ;
+    gmeow:performanceOf gmeow:fixtureGamelanPieceWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGamelanPieceEnsembleParticipation
+    a gmeow:PerformanceParticipation ;
+    rdfs:label "Gamelan piece ensemble participation"@x-gmeow-english ;
+    skos:definition "The gamelan ensemble's participation in the performance, linked to the specific instrument set."@x-gmeow-english ;
+    gmeow:participationEvent gmeow:fixtureGamelanPiecePerformance ;
+    gmeow:participationParticipant gmeow:fixtureGamelanEnsembleAgent ;
+    gmeow:participationRole gmeow:roleEnsembleMember ;
+    gmeow:participationInstrument gmeow:instrumentTypeGamelan ;
+    gmeow:participationInstrumentItem gmeow:fixtureGamelanInstrumentSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

@@ -1,0 +1,250 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 6 — Xenakis-style glissando field.
+# Exercises: PitchTrajectories with stochastic interpolation, a stochastic
+# GenerativeProcess, and a UPIC graphic-score Manifestation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix fno:   <https://w3id.org/function/ontology#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Work and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisGlissandoWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Xenakis glissando-field work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising continuous pitch trajectories, stochastic generation, and graphic notation in the style of Iannis Xenakis."@x-gmeow-english ;
+    skos:closeMatch wd:Q151462 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Voice and time frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisVoiceStrings
+    a gmeow:Voice ;
+    rdfs:label "Xenakis string-section voice"@x-gmeow-english ;
+    skos:definition "The string-section voice hosting the glissando field."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureXenakisTimeFrame ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Xenakis glissando time frame"@x-gmeow-english ;
+    skos:definition "The musical-time frame for the glissando-field fixture."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureXenakisVoiceStrings ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Pitch values for trajectory control points
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisPitchC4
+    a gmeow:PitchValue ;
+    rdfs:label "Xenakis C4"@x-gmeow-english ;
+    skos:definition "A 12-EDO C4 pitch value for the glissando field."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "0.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisPitchFSharp4
+    a gmeow:PitchValue ;
+    rdfs:label "Xenakis F♯4"@x-gmeow-english ;
+    skos:definition "A 12-EDO F♯4 pitch value for the glissando field."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "600.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisPitchA4
+    a gmeow:PitchValue ;
+    rdfs:label "Xenakis A4"@x-gmeow-english ;
+    skos:definition "A 12-EDO A4 pitch value for the glissando field."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:centsFromOrigin "900.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Stochastic glissando trajectories
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisGlissando1
+    a gmeow:PitchTrajectory ;
+    rdfs:label "Xenakis glissando 1"@x-gmeow-english ;
+    skos:definition "A stochastic glissando from C4 to F♯4."@x-gmeow-english ;
+    gmeow:interpolationKind gmeow:interpolationStochasticByReference ;
+    gmeow:trajectoryControlPoint gmeow:fixtureXenakisGlissando1Point0 ;
+    gmeow:trajectoryControlPoint gmeow:fixtureXenakisGlissando1Point1 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisGlissando1Point0
+    a gmeow:PitchTrajectoryControlPoint ;
+    rdfs:label "Xenakis glissando 1 start"@x-gmeow-english ;
+    skos:definition "Start control point of glissando 1."@x-gmeow-english ;
+    gmeow:controlPointOfTrajectory gmeow:fixtureXenakisGlissando1 ;
+    gmeow:controlPointOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:controlPointTimeFrame gmeow:fixtureXenakisTimeFrame ;
+    gmeow:controlPointTimePositionNumerator "0"^^xsd:integer ;
+    gmeow:controlPointTimePositionDenominator "1"^^xsd:integer ;
+    gmeow:controlPointPitch gmeow:fixtureXenakisPitchC4 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisGlissando1Point1
+    a gmeow:PitchTrajectoryControlPoint ;
+    rdfs:label "Xenakis glissando 1 end"@x-gmeow-english ;
+    skos:definition "End control point of glissando 1."@x-gmeow-english ;
+    gmeow:controlPointOfTrajectory gmeow:fixtureXenakisGlissando1 ;
+    gmeow:controlPointOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:controlPointTimeFrame gmeow:fixtureXenakisTimeFrame ;
+    gmeow:controlPointTimePositionNumerator "1"^^xsd:integer ;
+    gmeow:controlPointTimePositionDenominator "2"^^xsd:integer ;
+    gmeow:controlPointPitch gmeow:fixtureXenakisPitchFSharp4 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisGlissando2
+    a gmeow:PitchTrajectory ;
+    rdfs:label "Xenakis glissando 2"@x-gmeow-english ;
+    skos:definition "A stochastic glissando from F♯4 to A4."@x-gmeow-english ;
+    gmeow:interpolationKind gmeow:interpolationStochasticByReference ;
+    gmeow:trajectoryControlPoint gmeow:fixtureXenakisGlissando2Point0 ;
+    gmeow:trajectoryControlPoint gmeow:fixtureXenakisGlissando2Point1 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisGlissando2Point0
+    a gmeow:PitchTrajectoryControlPoint ;
+    rdfs:label "Xenakis glissando 2 start"@x-gmeow-english ;
+    skos:definition "Start control point of glissando 2."@x-gmeow-english ;
+    gmeow:controlPointOfTrajectory gmeow:fixtureXenakisGlissando2 ;
+    gmeow:controlPointOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:controlPointTimeFrame gmeow:fixtureXenakisTimeFrame ;
+    gmeow:controlPointTimePositionNumerator "1"^^xsd:integer ;
+    gmeow:controlPointTimePositionDenominator "2"^^xsd:integer ;
+    gmeow:controlPointPitch gmeow:fixtureXenakisPitchFSharp4 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisGlissando2Point1
+    a gmeow:PitchTrajectoryControlPoint ;
+    rdfs:label "Xenakis glissando 2 end"@x-gmeow-english ;
+    skos:definition "End control point of glissando 2."@x-gmeow-english ;
+    gmeow:controlPointOfTrajectory gmeow:fixtureXenakisGlissando2 ;
+    gmeow:controlPointOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:controlPointTimeFrame gmeow:fixtureXenakisTimeFrame ;
+    gmeow:controlPointTimePositionNumerator "1"^^xsd:integer ;
+    gmeow:controlPointTimePositionDenominator "1"^^xsd:integer ;
+    gmeow:controlPointPitch gmeow:fixtureXenakisPitchA4 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Tone events carrying the trajectories
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisToneEvent1Span
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Xenakis glissando tone event 1 span"@x-gmeow-english ;
+    skos:definition "The span of the first stochastic glissando tone event."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureXenakisTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisToneEvent1
+    a gmeow:ToneEvent ;
+    rdfs:label "Xenakis glissando tone event 1"@x-gmeow-english ;
+    skos:definition "A tone event whose pitch content is the first stochastic glissando."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentOf gmeow:fixtureXenakisGlissandoWork ;
+    gmeow:segmentSpan gmeow:fixtureXenakisToneEvent1Span ;
+    gmeow:toneEventPitchTrajectory gmeow:fixtureXenakisGlissando1 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Stochastic generative process
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisGlissandoProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Xenakis glissando-field stochastic process"@x-gmeow-english ;
+    skos:definition "A stochastic process that governs the distribution and interpolation of glissando trajectories."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindStochastic ;
+    gmeow:processRuleText "Glissando endpoints are drawn from a probability cloud; interpolation between endpoints follows a stochastic density function decreasing over the span."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fnRealizeStochasticProcess ;
+    gmeow:processParameter gmeow:fixtureXenakisGlissando1 ;
+    gmeow:processParameter gmeow:fixtureXenakisGlissando2 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Expression and UPIC graphic-score manifestation
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisGlissandoExpression
+    a gmeow:Expression ;
+    rdfs:label "Xenakis glissando-field expression"@x-gmeow-english ;
+    skos:definition "The expression realized by the UPIC graphic score and generated by the stochastic process."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureXenakisGlissandoWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:wasGeneratedBy gmeow:fixtureXenakisGlissandoProcess ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisUPICScore
+    a gmeow:ScoreEdition ;
+    rdfs:label "Xenakis UPIC graphic score"@x-gmeow-english ;
+    skos:definition "The canonical UPIC graphic-score manifestation of the glissando field."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureXenakisGlissandoExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal claims about the interpolation mode
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureXenakisAnalystStochastic
+    a gmeow:Agent ;
+    rdfs:label "Xenakis analyst — stochastic interpolation"@x-gmeow-english ;
+    skos:definition "Analyst who treats the glissando interpolation as stochastic."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisAnalystLinear
+    a gmeow:Agent ;
+    rdfs:label "Xenakis analyst — linear-cents approximation"@x-gmeow-english ;
+    skos:definition "Analyst who treats the glissando as effectively linear in cents for performance purposes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisStochasticClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Xenakis stochastic-interpolation claim"@x-gmeow-english ;
+    skos:definition "Claim that the glissando is governed by a stochastic process."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureXenakisGlissando1 ;
+    gmeow:analysisProperty gmeow:analysisPropertySchema ;
+    gmeow:analysisResult gmeow:fixtureXenakisGlissandoProcess ;
+    gmeow:vantage gmeow:fixtureXenakisAnalystStochastic ;
+    gmeow:analysisFrame gmeow:theoryFrameCorpusStatistical ;
+    gmeow:confidence "0.90"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureXenakisLinearClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Xenakis linear-cents approximation claim"@x-gmeow-english ;
+    skos:definition "Claim that the glissando is effectively linear in cents when performed."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureXenakisGlissando1 ;
+    gmeow:analysisProperty gmeow:analysisPropertySchema ;
+    gmeow:analysisResult gmeow:interpolationLinearCents ;
+    gmeow:vantage gmeow:fixtureXenakisAnalystLinear ;
+    gmeow:analysisFrame gmeow:theoryFrameRomanNumeral ;
+    gmeow:confidence "0.75"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

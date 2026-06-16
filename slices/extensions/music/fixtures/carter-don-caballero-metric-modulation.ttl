@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 15 — Carter / Don Caballero metric modulation.
+# Exercises: a pivot-equivalence MetricModulation between two MusicalTimeFrames.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# Work and voice
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCarterDonCaballeroWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Carter / Don Caballero metric-modulation fixture work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising a metric-modulation pivot equivalence between two musical-time frames."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCarterVoice
+    a gmeow:Voice ;
+    rdfs:label "Carter / Don Caballero guitar voice"@x-gmeow-english ;
+    skos:definition "The guitar voice hosting the target musical-time frame for the metric modulation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Source and target musical-time frames
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCarterSourceFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Carter metric modulation source frame"@x-gmeow-english ;
+    skos:definition "The source musical-time frame before the metric modulation."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCarterTargetFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Carter metric modulation target frame"@x-gmeow-english ;
+    skos:definition "The target musical-time frame hosted by the guitar voice after the metric modulation."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureCarterVoice ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Metric modulation: 3/8 in the source frame equals 1/4 in the target frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCarterDonCaballeroMetricModulation
+    a gmeow:MetricModulation ;
+    rdfs:label "Carter / Don Caballero metric modulation"@x-gmeow-english ;
+    skos:definition "A metric modulation pivot equivalence: 3/8 in the source frame equals 1/4 in the target frame."@x-gmeow-english ;
+    gmeow:modulationFromFrame gmeow:fixtureCarterSourceFrame ;
+    gmeow:modulationToFrame gmeow:fixtureCarterTargetFrame ;
+    gmeow:pivotSourceValue "3/8"^^xsd:string ;
+    gmeow:pivotTargetValue "1/4"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

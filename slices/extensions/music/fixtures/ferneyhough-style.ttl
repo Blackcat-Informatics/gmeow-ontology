@@ -1,0 +1,274 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 1 — Ferneyhough-style nested rational TimeMappings.
+# Exercises: nested tuplets (5:4 ⊃ 3:2), fractional meter (2/10),
+# per-voice TempoMaps, and co-equal analytical claims about notation saturation.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix fno:   <https://w3id.org/function/ontology#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Work and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFerneyhoughWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Ferneyhough-style complex-meter work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising nested rational time mappings and fractional meters in the style of Brian Ferneyhough."@x-gmeow-english ;
+    skos:closeMatch wd:Q1548054 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Voices and hosted time frames
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFerneyhoughVoiceViolin
+    a gmeow:Voice ;
+    rdfs:label "Ferneyhough violin voice"@x-gmeow-english ;
+    skos:definition "The violin voice hosting its own musical-time frame for the Ferneyhough-style fixture."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughVoicePiano
+    a gmeow:Voice ;
+    rdfs:label "Ferneyhough piano voice"@x-gmeow-english ;
+    skos:definition "The piano voice hosting its own musical-time frame for the Ferneyhough-style fixture."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureFerneyhoughTimeFramePiano ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughTimeFrameViolin
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Ferneyhough violin time frame"@x-gmeow-english ;
+    skos:definition "The per-voice musical-time frame hosted by the Ferneyhough violin voice."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureFerneyhoughVoiceViolin ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughTimeFramePiano
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Ferneyhough piano time frame"@x-gmeow-english ;
+    skos:definition "The per-voice musical-time frame hosted by the Ferneyhough piano voice."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureFerneyhoughVoicePiano ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Fractional metric structure: 2/10
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFerneyhoughMetricStructure210
+    a gmeow:MetricStructure ;
+    rdfs:label "2/10 fractional metric structure"@x-gmeow-english ;
+    skos:definition "A fractional meter: two tenth-note beats in one measure, as might appear in Ferneyhough-style notation."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureFerneyhoughMetricGroup210 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughMetricGroup210
+    a gmeow:MetricGroup ;
+    rdfs:label "2/10 metric group"@x-gmeow-english ;
+    skos:definition "The single group of the 2/10 fractional meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "10"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughSpanMeasure1
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Ferneyhough measure 1 span"@x-gmeow-english ;
+    skos:definition "A two-tenth-note span hosting the fractional meter."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "2"^^xsd:integer ;
+    gmeow:timeDurationDenominator "10"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Per-voice TempoMaps (musical time → TAI clock time)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFerneyhoughTempoMapViolin
+    a gmeow:TempoMap ;
+    rdfs:label "Ferneyhough violin tempo map"@x-gmeow-english ;
+    skos:definition "Piecewise tempo map for the violin voice: quarter = 52 then accel. to quarter = 76."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTempoMap ;
+    gmeow:mapsFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:mapsToFrame gmeow:temporalFrameTAI ;
+    gmeow:hasTempoMapSegment gmeow:fixtureFerneyhoughTempoMapViolinSegment1 ;
+    gmeow:hasTempoMapSegment gmeow:fixtureFerneyhoughTempoMapViolinSegment2 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughTempoMapPiano
+    a gmeow:TempoMap ;
+    rdfs:label "Ferneyhough piano tempo map"@x-gmeow-english ;
+    skos:definition "Piecewise tempo map for the piano voice: quarter = 48 held constant."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTempoMap ;
+    gmeow:mapsFrame gmeow:fixtureFerneyhoughTimeFramePiano ;
+    gmeow:mapsToFrame gmeow:temporalFrameTAI ;
+    gmeow:hasTempoMapSegment gmeow:fixtureFerneyhoughTempoMapPianoSegment1 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughSpanViolinS1
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Ferneyhough violin tempo segment 1 span"@x-gmeow-english ;
+    skos:definition "First half of the violin span at quarter = 52."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "10"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughSpanViolinS2
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Ferneyhough violin tempo segment 2 span"@x-gmeow-english ;
+    skos:definition "Second half of the violin span with a linear acceleration."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:timeStartNumerator "1"^^xsd:integer ;
+    gmeow:timeStartDenominator "10"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "10"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughSpanPianoS1
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Ferneyhough piano tempo segment span"@x-gmeow-english ;
+    skos:definition "The piano span at quarter = 48."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureFerneyhoughTimeFramePiano ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "2"^^xsd:integer ;
+    gmeow:timeDurationDenominator "10"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughTempoMapViolinSegment1
+    a gmeow:TempoMapSegment ;
+    rdfs:label "Ferneyhough violin tempo segment 1"@x-gmeow-english ;
+    skos:definition "Constant quarter = 52 for the first tenth-note beat."@x-gmeow-english ;
+    gmeow:tempoMapSegmentOf gmeow:fixtureFerneyhoughTempoMapViolin ;
+    gmeow:segmentSpan gmeow:fixtureFerneyhoughSpanViolinS1 ;
+    gmeow:segmentTempoMapKind gmeow:tempoMapKindConstant ;
+    gmeow:segmentMapRatioNumerator "60"^^xsd:integer ;
+    gmeow:segmentMapRatioDenominator "52"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughTempoMapViolinSegment2
+    a gmeow:TempoMapSegment ;
+    rdfs:label "Ferneyhough violin tempo segment 2"@x-gmeow-english ;
+    skos:definition "Linear acceleration from quarter = 52 to quarter = 76."@x-gmeow-english ;
+    gmeow:tempoMapSegmentOf gmeow:fixtureFerneyhoughTempoMapViolin ;
+    gmeow:segmentSpan gmeow:fixtureFerneyhoughSpanViolinS2 ;
+    gmeow:segmentTempoMapKind gmeow:tempoMapKindLinearRamp ;
+    gmeow:segmentMapRatioNumerator "60"^^xsd:integer ;
+    gmeow:segmentMapRatioDenominator "76"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughTempoMapPianoSegment1
+    a gmeow:TempoMapSegment ;
+    rdfs:label "Ferneyhough piano tempo segment 1"@x-gmeow-english ;
+    skos:definition "Constant quarter = 48 for the piano voice."@x-gmeow-english ;
+    gmeow:tempoMapSegmentOf gmeow:fixtureFerneyhoughTempoMapPiano ;
+    gmeow:segmentSpan gmeow:fixtureFerneyhoughSpanPianoS1 ;
+    gmeow:segmentTempoMapKind gmeow:tempoMapKindConstant ;
+    gmeow:segmentMapRatioNumerator "60"^^xsd:integer ;
+    gmeow:segmentMapRatioDenominator "48"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Meter assignments
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFerneyhoughMeterAssignmentViolin
+    a gmeow:MeterAssignment ;
+    rdfs:label "Ferneyhough violin 2/10 meter assignment"@x-gmeow-english ;
+    skos:definition "Assigns the 2/10 fractional meter to the violin voice."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureFerneyhoughVoiceViolin ;
+    gmeow:assignedMeter gmeow:fixtureFerneyhoughMetricStructure210 ;
+    gmeow:assignmentSpan gmeow:fixtureFerneyhoughSpanMeasure1 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Nested tuplets: outer 5:4, inner 3:2
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFerneyhoughTuplet54
+    a gmeow:TimeMapping ;
+    rdfs:label "Ferneyhough outer 5:4 tuplet"@x-gmeow-english ;
+    skos:definition "Outer tuplet mapping: five notes in the time of four."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTuplet ;
+    gmeow:mapsFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:mapsToFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:mapRatioNumerator "5"^^xsd:integer ;
+    gmeow:mapRatioDenominator "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughTuplet32
+    a gmeow:TimeMapping ;
+    rdfs:label "Ferneyhough inner 3:2 tuplet"@x-gmeow-english ;
+    skos:definition "Inner tuplet mapping nested inside the 5:4: three notes in the time of two."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTuplet ;
+    gmeow:mapsFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:mapsToFrame gmeow:fixtureFerneyhoughTimeFrameViolin ;
+    gmeow:mapRatioNumerator "3"^^xsd:integer ;
+    gmeow:mapRatioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal analytical claims about the passage
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFerneyhoughAnalystA
+    a gmeow:Agent ;
+    rdfs:label "Ferneyhough analyst A"@x-gmeow-english ;
+    skos:definition "A hypothetical analyst who reads the passage as saturated rational notation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughAnalystB
+    a gmeow:Agent ;
+    rdfs:label "Ferneyhough analyst B"@x-gmeow-english ;
+    skos:definition "A hypothetical analyst who reads the passage as an approximate gestural instruction."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughSaturationClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Ferneyhough notation-saturation claim A"@x-gmeow-english ;
+    skos:definition "Analyst A claims the passage is a maximally determinate rational specification."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureFerneyhoughWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMeter ;
+    gmeow:analysisResult gmeow:fixtureFerneyhoughMetricStructure210 ;
+    gmeow:vantage gmeow:fixtureFerneyhoughAnalystA ;
+    gmeow:analysisFrame gmeow:theoryFrameRomanNumeral ;
+    gmeow:confidence "0.88"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureFerneyhoughGesturalClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Ferneyhough gestural-approximation claim B"@x-gmeow-english ;
+    skos:definition "Analyst B claims the same passage functions primarily as a gestural instruction whose exact rational values are performance standpoints."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureFerneyhoughWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMeter ;
+    gmeow:analysisResult gmeow:fixtureFerneyhoughTuplet54 ;
+    gmeow:vantage gmeow:fixtureFerneyhoughAnalystB ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.72"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

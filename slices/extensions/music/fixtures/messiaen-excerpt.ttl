@@ -1,0 +1,263 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case — Messiaen-style additive rhythm and mode of limited transposition.
+# Exercises: added-value MetricGroups, a non-retrogradable retrograde-identity
+# claim, and a mode-of-limited-transposition analysis claim.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Composer, work, and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMessiaen
+    a gmeow:Agent ;
+    rdfs:label "Olivier Messiaen"@x-gmeow-english ;
+    skos:definition "The composer of the Messiaen-style excerpt fixture."@x-gmeow-english ;
+    skos:exactMatch wd:Q151593 ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Olivier_Messiaen> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Messiaen-style excerpt work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising additive rhythms, non-retrogradable motifs, and Messiaen's mode of limited transposition."@x-gmeow-english ;
+    gmeow:hasComposer gmeow:fixtureMessiaen ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Expression and score edition
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMessiaenExcerptExpression
+    a gmeow:Expression ;
+    rdfs:label "Messiaen-style excerpt Expression"@x-gmeow-english ;
+    skos:definition "The notated Expression of the Messiaen-style excerpt in 12-EDO."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureMessiaenExcerptWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptScore
+    a gmeow:ScoreEdition ;
+    rdfs:label "Messiaen-style excerpt score"@x-gmeow-english ;
+    skos:definition "The printed score that embodies the Messiaen-style excerpt Expression."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureMessiaenExcerptExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Voice and hosted time frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMessiaenExcerptVoice
+    a gmeow:Voice ;
+    rdfs:label "Messiaen excerpt voice"@x-gmeow-english ;
+    skos:definition "The single notated voice hosting the additive metric structure of the Messiaen excerpt."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureMessiaenExcerptTimeFrame ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Messiaen excerpt time frame"@x-gmeow-english ;
+    skos:definition "The per-voice musical-time frame for the Messiaen excerpt."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureMessiaenExcerptVoice ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Added-value metric structure: 3/8 + 5/16 + 1/4
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMessiaenExcerptMetricStructure
+    a gmeow:MetricStructure ;
+    rdfs:label "Messiaen excerpt additive metric structure"@x-gmeow-english ;
+    skos:definition "An additive meter built from three unequal prime-based groups."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureMessiaenExcerptGroup0 ;
+    gmeow:hasMetricGroup gmeow:fixtureMessiaenExcerptGroup1 ;
+    gmeow:hasMetricGroup gmeow:fixtureMessiaenExcerptGroup2 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptGroup0
+    a gmeow:MetricGroup ;
+    rdfs:label "Messiaen excerpt group 0 (3/8)"@x-gmeow-english ;
+    skos:definition "First added-value group of three eighth notes."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptGroup1
+    a gmeow:MetricGroup ;
+    rdfs:label "Messiaen excerpt group 1 (5/16)"@x-gmeow-english ;
+    skos:definition "Second added-value group of five sixteenth notes."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "5"^^xsd:integer ;
+    gmeow:groupLengthDenominator "16"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.8"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptGroup2
+    a gmeow:MetricGroup ;
+    rdfs:label "Messiaen excerpt group 2 (1/4)"@x-gmeow-english ;
+    skos:definition "Third added-value group of one quarter note."@x-gmeow-english ;
+    gmeow:metricGroupOrder "2"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "1"^^xsd:integer ;
+    gmeow:groupLengthDenominator "4"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.6"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Messiaen excerpt additive-meter span"@x-gmeow-english ;
+    skos:definition "The 15/16 span over which the additive metric structure is assigned."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMessiaenExcerptTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "15"^^xsd:integer ;
+    gmeow:timeDurationDenominator "16"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenExcerptMeterAssignment
+    a gmeow:MeterAssignment ;
+    rdfs:label "Messiaen excerpt meter assignment"@x-gmeow-english ;
+    skos:definition "Assigns the additive 3/8+5/16+1/4 structure to the excerpt voice."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureMessiaenExcerptVoice ;
+    gmeow:assignedMeter gmeow:fixtureMessiaenExcerptMetricStructure ;
+    gmeow:assignmentSpan gmeow:fixtureMessiaenExcerptSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Generative process for additive meter resolution
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMessiaenFnResolveAdditiveMeter
+    a gmeow:ProjectionFunction ;
+    rdfs:label "resolve-additive-meter"@x-gmeow-english ;
+    skos:definition "FnO projection function that sums unequal added-value groups into a coherent metric span."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenAdditiveMeterProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Messiaen additive meter resolution process"@x-gmeow-english ;
+    skos:definition "The process that resolves added-value group lengths into a total metric span."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindRuleBased ;
+    gmeow:processRuleText "Sum the prime-based added-value groups (3/8 + 5/16 + 1/4) to obtain the total 15/16 span; the sum is computed by fnResolveAdditiveMeter, not asserted as an axiom."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fixtureMessiaenFnResolveAdditiveMeter ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Motif, retrograde transformation, and standpointed identity claims
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMessiaenMotifSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Messiaen motif span"@x-gmeow-english ;
+    skos:definition "The span occupied by the non-retrogradable motif."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMessiaenExcerptTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "3"^^xsd:integer ;
+    gmeow:timeDurationDenominator "16"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenRetrogradeSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Messiaen retrograde span"@x-gmeow-english ;
+    skos:definition "The span occupied by the retrograde of the motif."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMessiaenExcerptTimeFrame ;
+    gmeow:timeStartNumerator "3"^^xsd:integer ;
+    gmeow:timeStartDenominator "16"^^xsd:integer ;
+    gmeow:timeDurationNumerator "3"^^xsd:integer ;
+    gmeow:timeDurationDenominator "16"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenMotif
+    a gmeow:MusicalSegment ;
+    rdfs:label "Messiaen non-retrogradable motif"@x-gmeow-english ;
+    skos:definition "The original motif whose retrograde is asserted to be identical by one standpoint."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindMotif ;
+    gmeow:segmentSpan gmeow:fixtureMessiaenMotifSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenRetrograde
+    a gmeow:MusicalSegment ;
+    rdfs:label "Messiaen retrograde segment"@x-gmeow-english ;
+    skos:definition "The retrograde transformation of the motif."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindMotif ;
+    gmeow:segmentSpan gmeow:fixtureMessiaenRetrogradeSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenRetrogradeTransformation
+    a gmeow:SegmentTransformation ;
+    rdfs:label "Messiaen retrograde transformation"@x-gmeow-english ;
+    skos:definition "The transformation that maps the motif onto its retrograde."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureMessiaenMotif ;
+    gmeow:transformationTarget gmeow:fixtureMessiaenRetrograde ;
+    gmeow:transformationType gmeow:transformRetrograde ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenSymmetryAnalyst
+    a gmeow:Agent ;
+    rdfs:label "Messiaen symmetry analyst"@x-gmeow-english ;
+    skos:definition "Analyst who hears the motif as strictly non-retrogradable (retrograde identical to original)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenTransformationAnalyst
+    a gmeow:Agent ;
+    rdfs:label "Messiaen transformation analyst"@x-gmeow-english ;
+    skos:definition "Analyst who hears the retrograde as a distinct transformation of the motif."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenIdentityClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Messiaen non-retrogradable identity claim"@x-gmeow-english ;
+    skos:definition "Claim that the retrograde is identical to the original motif (non-retrogradable)."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMessiaenRetrogradeTransformation ;
+    gmeow:analysisProperty gmeow:analysisPropertyMotifIdentity ;
+    gmeow:analysisResult gmeow:fixtureMessiaenMotif ;
+    gmeow:vantage gmeow:fixtureMessiaenSymmetryAnalyst ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.88"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMessiaenDistinctClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Messiaen retrograde-as-distinct claim"@x-gmeow-english ;
+    skos:definition "Claim that the retrograde is a distinct transformed object, not identical to the motif."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMessiaenRetrogradeTransformation ;
+    gmeow:analysisProperty gmeow:analysisPropertyMotifIdentity ;
+    gmeow:analysisResult gmeow:fixtureMessiaenRetrograde ;
+    gmeow:vantage gmeow:fixtureMessiaenTransformationAnalyst ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.74"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Mode-of-limited-transposition claim
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMessiaenModeClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Messiaen mode of limited transposition claim"@x-gmeow-english ;
+    skos:definition "Claim that the excerpt is in Messiaen's first mode of limited transposition."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMessiaenExcerptWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMode ;
+    gmeow:analysisResult gmeow:pitchCollectionMessiaenMode1 ;
+    gmeow:vantage gmeow:fixtureMessiaen ;
+    gmeow:analysisFrame gmeow:theoryFramePitchClassSet ;
+    gmeow:confidence "0.93"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

@@ -1,0 +1,232 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 5 — Harry Partch 43-tone just intonation.
+# Exercises: reuse of tuningSystemPartch43, integer-pair PitchValues, a scale
+# PitchCollection, and co-existing Johnston spellings.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Work and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixturePartch43Work
+    a gmeow:MusicalWork ;
+    rdfs:label "Partch 43-tone just-intonation work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising Harry Partch's 43-tone monophonic just-intonation system."@x-gmeow-english ;
+    skos:closeMatch wd:Q463674 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# A subset of Partch 43-tone ratios in the existing JI frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixturePartchRatio1_1
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 1/1"@x-gmeow-english ;
+    skos:definition "The origin ratio 1/1 in Partch's 43-tone system."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "1"^^xsd:integer ;
+    gmeow:ratioDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchRatio9_8
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 9/8"@x-gmeow-english ;
+    skos:definition "A 9/8 whole tone in Partch's 43-tone system."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "9"^^xsd:integer ;
+    gmeow:ratioDenominator "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchRatio5_4
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 5/4"@x-gmeow-english ;
+    skos:definition "A 5/4 just major third in Partch's 43-tone system."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "5"^^xsd:integer ;
+    gmeow:ratioDenominator "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchRatio4_3
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 4/3"@x-gmeow-english ;
+    skos:definition "A 4/3 just perfect fourth in Partch's 43-tone system."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "4"^^xsd:integer ;
+    gmeow:ratioDenominator "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchRatio3_2
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 3/2"@x-gmeow-english ;
+    skos:definition "A 3/2 just perfect fifth in Partch's 43-tone system."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "3"^^xsd:integer ;
+    gmeow:ratioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchRatio5_3
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 5/3"@x-gmeow-english ;
+    skos:definition "A 5/3 just major sixth in Partch's 43-tone system."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "5"^^xsd:integer ;
+    gmeow:ratioDenominator "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchRatio11_8
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 11/8"@x-gmeow-english ;
+    skos:definition "An 11/8 neutral fourth in Partch's 43-tone system, exercising the 11-limit."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "11"^^xsd:integer ;
+    gmeow:ratioDenominator "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchRatio2_1
+    a gmeow:PitchValue ;
+    rdfs:label "Partch 2/1"@x-gmeow-english ;
+    skos:definition "The octave ratio 2/1 in Partch's 43-tone system."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+    gmeow:ratioNumerator "2"^^xsd:integer ;
+    gmeow:ratioDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Scale collection and memberships
+# --------------------------------------------------------------------------- #
+
+gmeow:fixturePartch43Scale
+    a gmeow:PitchCollection ;
+    rdfs:label "Partch 43-tone scale subset"@x-gmeow-english ;
+    skos:definition "A representative subset of Harry Partch's 43-tone just-intonation scale."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindScale ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchMembership1_1
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Partch scale 1/1 membership"@x-gmeow-english ;
+    skos:definition "Membership of 1/1 as the tonic of the Partch scale subset."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixturePartch43Scale ;
+    gmeow:membershipPitch gmeow:fixturePartchRatio1_1 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchMembership9_8
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Partch scale 9/8 membership"@x-gmeow-english ;
+    skos:definition "Membership of 9/8 in the Partch scale subset."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixturePartch43Scale ;
+    gmeow:membershipPitch gmeow:fixturePartchRatio9_8 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchMembership5_4
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Partch scale 5/4 membership"@x-gmeow-english ;
+    skos:definition "Membership of 5/4 in the Partch scale subset."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixturePartch43Scale ;
+    gmeow:membershipPitch gmeow:fixturePartchRatio5_4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchMembership11_8
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Partch scale 11/8 membership"@x-gmeow-english ;
+    skos:definition "Membership of 11/8 in the Partch scale subset."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixturePartch43Scale ;
+    gmeow:membershipPitch gmeow:fixturePartchRatio11_8 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchMembership3_2
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Partch scale 3/2 membership"@x-gmeow-english ;
+    skos:definition "Membership of 3/2 in the Partch scale subset."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixturePartch43Scale ;
+    gmeow:membershipPitch gmeow:fixturePartchRatio3_2 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchMembership2_1
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Partch scale 2/1 membership"@x-gmeow-english ;
+    skos:definition "Membership of 2/1 as the period boundary of the Partch scale subset."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixturePartch43Scale ;
+    gmeow:membershipPitch gmeow:fixturePartchRatio2_1 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "5"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal Johnston spellings of the same JI ratios
+# --------------------------------------------------------------------------- #
+
+gmeow:fixturePartchSpelling1_1
+    a gmeow:PitchSpelling ;
+    rdfs:label "Partch 1/1 Johnston spelling"@x-gmeow-english ;
+    skos:definition "The Johnston spelling of the 1/1 origin."@x-gmeow-english ;
+    gmeow:spellingPitch gmeow:fixturePartchRatio1_1 ;
+    gmeow:spellingSystem gmeow:pitchSpellingSystemJohnston ;
+    gmeow:spelledName "G"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchSpelling11_8
+    a gmeow:PitchSpelling ;
+    rdfs:label "Partch 11/8 Johnston spelling"@x-gmeow-english ;
+    skos:definition "The Johnston spelling of the 11/8 neutral fourth."@x-gmeow-english ;
+    gmeow:spellingPitch gmeow:fixturePartchRatio11_8 ;
+    gmeow:spellingSystem gmeow:pitchSpellingSystemJohnston ;
+    gmeow:spelledName "C ↑11"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Contested analytical claims: how to hear the 11-limit degree
+# --------------------------------------------------------------------------- #
+
+gmeow:fixturePartchAnalystJI
+    a gmeow:Agent ;
+    rdfs:label "Partch analyst — JI-ratio standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who identifies Partch degrees by exact integer ratios."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchAnalystCents
+    a gmeow:Agent ;
+    rdfs:label "Partch analyst — cents-measure standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who identifies Partch degrees by measured cent deviations from 12-EDO."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchJIClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Partch 11/8 ratio identification claim"@x-gmeow-english ;
+    skos:definition "Claim that the neutral fourth is best identified as the ratio 11/8."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixturePartchRatio11_8 ;
+    gmeow:analysisProperty gmeow:analysisPropertyTuningIdentification ;
+    gmeow:analysisResult gmeow:fixturePartchRatio11_8 ;
+    gmeow:vantage gmeow:fixturePartchAnalystJI ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.92"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixturePartchCentsClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Partch 11/8 cents-deviation claim"@x-gmeow-english ;
+    skos:definition "Claim that the neutral fourth is best described as a +551-cent deviation from the origin."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixturePartchRatio11_8 ;
+    gmeow:analysisProperty gmeow:analysisPropertyTuningIdentification ;
+    gmeow:analysisResult gmeow:fixturePartchRatio11_8 ;
+    gmeow:vantage gmeow:fixturePartchAnalystCents ;
+    gmeow:analysisFrame gmeow:theoryFramePitchClassSet ;
+    gmeow:confidence "0.78"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

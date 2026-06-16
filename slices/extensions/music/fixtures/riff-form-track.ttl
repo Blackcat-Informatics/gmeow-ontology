@@ -1,0 +1,220 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 16 — Riff / form track.
+# Exercises: song form represented as a graph of MusicalSegments and
+#            SegmentTransformations, alongside a riff motif.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# Work and shared frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRiffFormWork
+    a gmeow:MusicalWork ;
+    rdfs:label "riff-form track fixture work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising song-form structure as a segment-transformation graph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "riff-form track time frame"@x-gmeow-english ;
+    skos:definition "The shared one-dimensional musical-time frame for the riff-form track."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Spans for formal sections
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRiffFormSpanIntro
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "riff-form intro span"@x-gmeow-english ;
+    skos:definition "The intro section span, 0 to 4 quarter-note beats."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureRiffFormTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "4"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormSpanVerse
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "riff-form verse span"@x-gmeow-english ;
+    skos:definition "The verse section span, 4 to 12 quarter-note beats."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureRiffFormTimeFrame ;
+    gmeow:timeStartNumerator "4"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "8"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormSpanChorus
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "riff-form chorus span"@x-gmeow-english ;
+    skos:definition "The chorus section span, 12 to 20 quarter-note beats."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureRiffFormTimeFrame ;
+    gmeow:timeStartNumerator "12"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "8"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormSpanBridge
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "riff-form bridge span"@x-gmeow-english ;
+    skos:definition "The bridge section span, 20 to 24 quarter-note beats."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureRiffFormTimeFrame ;
+    gmeow:timeStartNumerator "20"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "4"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormSpanOutro
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "riff-form outro span"@x-gmeow-english ;
+    skos:definition "The outro section span, 24 to 28 quarter-note beats."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureRiffFormTimeFrame ;
+    gmeow:timeStartNumerator "24"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "4"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormSpanMotif
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "riff-form riff motif span"@x-gmeow-english ;
+    skos:definition "The two-beat span hosting the central riff motif."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureRiffFormTimeFrame ;
+    gmeow:timeStartNumerator "5"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "2"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Musical segments: sections and riff motif
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRiffFormIntro
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff-form intro section"@x-gmeow-english ;
+    skos:definition "The intro section of the riff-form track."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindSection ;
+    gmeow:segmentSpan gmeow:fixtureRiffFormSpanIntro ;
+    gmeow:segmentOf gmeow:fixtureRiffFormWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormVerse
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff-form verse section"@x-gmeow-english ;
+    skos:definition "The verse section of the riff-form track."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindSection ;
+    gmeow:segmentSpan gmeow:fixtureRiffFormSpanVerse ;
+    gmeow:segmentOf gmeow:fixtureRiffFormWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormChorus
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff-form chorus section"@x-gmeow-english ;
+    skos:definition "The chorus section of the riff-form track."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindSection ;
+    gmeow:segmentSpan gmeow:fixtureRiffFormSpanChorus ;
+    gmeow:segmentOf gmeow:fixtureRiffFormWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormBridge
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff-form bridge section"@x-gmeow-english ;
+    skos:definition "The bridge section of the riff-form track."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindSection ;
+    gmeow:segmentSpan gmeow:fixtureRiffFormSpanBridge ;
+    gmeow:segmentOf gmeow:fixtureRiffFormWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormOutro
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff-form outro section"@x-gmeow-english ;
+    skos:definition "The outro section of the riff-form track."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindSection ;
+    gmeow:segmentSpan gmeow:fixtureRiffFormSpanOutro ;
+    gmeow:segmentOf gmeow:fixtureRiffFormWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormRiffMotif
+    a gmeow:MusicalSegment ;
+    rdfs:label "riff-form central riff motif"@x-gmeow-english ;
+    skos:definition "The central riff motif that is quoted and transformed across the form."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:fixtureRiffFormSpanMotif ;
+    gmeow:segmentOf gmeow:fixtureRiffFormWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Segment transformation graph (form-level and riff-level)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRiffFormIntroToVerse
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff-form intro → verse"@x-gmeow-english ;
+    skos:definition "Formal continuation from the intro into the verse."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureRiffFormIntro ;
+    gmeow:transformationTarget gmeow:fixtureRiffFormVerse ;
+    gmeow:transformationType gmeow:transformQuotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormVerseToChorus
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff-form verse → chorus"@x-gmeow-english ;
+    skos:definition "Formal contrast from the verse to the chorus."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureRiffFormVerse ;
+    gmeow:transformationTarget gmeow:fixtureRiffFormChorus ;
+    gmeow:transformationType gmeow:transformTimbreReorchestration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormChorusToVerse
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff-form chorus → verse"@x-gmeow-english ;
+    skos:definition "Return from the chorus back to the verse."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureRiffFormChorus ;
+    gmeow:transformationTarget gmeow:fixtureRiffFormVerse ;
+    gmeow:transformationType gmeow:transformQuotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormVerseToBridge
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff-form verse → bridge"@x-gmeow-english ;
+    skos:definition "Formal contrast from the verse to the bridge."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureRiffFormVerse ;
+    gmeow:transformationTarget gmeow:fixtureRiffFormBridge ;
+    gmeow:transformationType gmeow:transformTimbreReorchestration ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormBridgeToOutro
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff-form bridge → outro"@x-gmeow-english ;
+    skos:definition "Reduction from the bridge into the outro cadence."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureRiffFormBridge ;
+    gmeow:transformationTarget gmeow:fixtureRiffFormOutro ;
+    gmeow:transformationType gmeow:transformReduction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRiffFormMotifToVerse
+    a gmeow:SegmentTransformation ;
+    rdfs:label "riff-form riff motif → verse"@x-gmeow-english ;
+    skos:definition "The riff motif is quoted as material within the verse."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureRiffFormRiffMotif ;
+    gmeow:transformationTarget gmeow:fixtureRiffFormVerse ;
+    gmeow:transformationType gmeow:transformQuotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

@@ -1,0 +1,170 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case — Maqam Rast taqsim.
+# Exercises: ordered ajnas composition, 24-EDO quarter-tone-ish intervals,
+# and coexisting Arabic/Turkish standpoint claims about the third degree.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Performer, work, and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastPerformer
+    a gmeow:Agent ;
+    rdfs:label "Maqam Rast taqsim performer"@x-gmeow-english ;
+    skos:definition "The improvising performer of the Maqam Rast taqsim fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMaqamRastTaqsimWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Maqam Rast taqsim"@x-gmeow-english ;
+    skos:definition "An improvised taqsim in Maqam Rast, exercising 24-EDO microtones and ordered ajnas."@x-gmeow-english ;
+    gmeow:hasComposer gmeow:fixtureMaqamRastPerformer ;
+    skos:closeMatch wd:Q624595 ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Taqsim> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Expression and score edition
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastTaqsimExpression
+    a gmeow:Expression ;
+    rdfs:label "Maqam Rast taqsim Expression"@x-gmeow-english ;
+    skos:definition "The improvised Expression of the Maqam Rast taqsim in a 24-EDO tuning frame."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureMaqamRastTaqsimWork ;
+    gmeow:realizationMode gmeow:realizationModeImprovised ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem24EDO ;
+    gmeow:wasGeneratedBy gmeow:fixtureMaqamRastAjnasProcess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Voice and hosted time frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastTaqsimVoice
+    a gmeow:Voice ;
+    rdfs:label "Maqam Rast taqsim voice"@x-gmeow-english ;
+    skos:definition "The single improvising voice performing the Maqam Rast taqsim."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureMaqamRastTaqsimTimeFrame ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem24EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMaqamRastTaqsimTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Maqam Rast taqsim time frame"@x-gmeow-english ;
+    skos:definition "A free, unmetered time frame for the improvised taqsim."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureMaqamRastTaqsimVoice ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Quarter-tone-ish Rast third interval
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastThirdInterval
+    a gmeow:PitchInterval ;
+    rdfs:label "Maqam Rast third interval"@x-gmeow-english ;
+    skos:definition "The neutral third from the tonic of Maqam Rast, approximately 350 cents in 24-EDO."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystem24EDO ;
+    gmeow:centsFromOrigin "350.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Tone event exercising the quarter-tone third
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastTaqsimSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Maqam Rast taqsim tone-event span"@x-gmeow-english ;
+    skos:definition "A short span in the free taqsim time frame."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMaqamRastTaqsimTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMaqamRastTaqsimToneEvent
+    a gmeow:ToneEvent ;
+    rdfs:label "Maqam Rast taqsim tone event"@x-gmeow-english ;
+    skos:definition "A tone event on the neutral third degree of Maqam Rast."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentSpan gmeow:fixtureMaqamRastTaqsimSpan ;
+    gmeow:toneEventPitchValue gmeow:pitchValue24EDOEHalfFlat4 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Generative process resolving ordered ajnas composition
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastFnResolveAjnas
+    a gmeow:ProjectionFunction ;
+    rdfs:label "resolve-rast-ajnas"@x-gmeow-english ;
+    skos:definition "FnO projection function that resolves the ordered ajnas of Maqam Rast into a performance path."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMaqamRastAjnasProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Maqam Rast ajnas resolution process"@x-gmeow-english ;
+    skos:definition "The rule-based process that orders the Rast ajnas and selects characteristic melodic paths for the taqsim."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindRuleBased ;
+    gmeow:processRuleText "Traverse the ordered ajnas of Maqam Rast (Rast on C, Rast on G, Rast on D) as defined by pitchCollectionRastMaqam; the exact path is computed by fnResolveRastAjnas."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fixtureMaqamRastFnResolveAjnas ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Mode analysis claim
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastModeClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Maqam Rast mode claim"@x-gmeow-english ;
+    skos:definition "Claim that the taqsim is in Maqam Rast."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMaqamRastTaqsimExpression ;
+    gmeow:analysisProperty gmeow:analysisPropertyMode ;
+    gmeow:analysisResult gmeow:pitchCollectionRastMaqam ;
+    gmeow:vantage gmeow:standpointArabicTheory ;
+    gmeow:analysisFrame gmeow:theoryFrameMaqamTheory ;
+    gmeow:confidence "0.92"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal standpoint claims about the third degree
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMaqamRastArabicThirdClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Maqam Rast Arabic third claim"@x-gmeow-english ;
+    skos:definition "Arabic-theory standpoint: the third degree of Rast is the neutral E half-flat."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMaqamRastTaqsimWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMode ;
+    gmeow:analysisResult gmeow:pitchValue24EDOEHalfFlat4 ;
+    gmeow:vantage gmeow:standpointArabicTheory ;
+    gmeow:analysisFrame gmeow:theoryFrameMaqamTheory ;
+    gmeow:confidence "0.90"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMaqamRastTurkishThirdClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Maqam Rast Turkish third claim"@x-gmeow-english ;
+    skos:definition "Turkish-theory standpoint: the third degree of Rast is the natural E."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMaqamRastTaqsimWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMode ;
+    gmeow:analysisResult gmeow:pitchValue24EDOE4 ;
+    gmeow:vantage gmeow:standpointTurkishTheory ;
+    gmeow:analysisFrame gmeow:theoryFrameMaqamTheory ;
+    gmeow:confidence "0.85"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
