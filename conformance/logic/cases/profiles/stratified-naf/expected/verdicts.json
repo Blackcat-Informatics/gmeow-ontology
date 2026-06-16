@@ -1,0 +1,6 @@
+{
+  "https://example.org/profiles/stratified-naf/world-registry": {
+    "quads": 2,
+    "status": "consistent"
+  }
+}

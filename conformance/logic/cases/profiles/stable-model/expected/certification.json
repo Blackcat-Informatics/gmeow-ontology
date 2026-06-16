@@ -1,0 +1,8 @@
+{
+  "certified": false,
+  "decidability_class": "NP-hard",
+  "profile_id": "StableModelProfile",
+  "violations": [
+    "StableModelProfile is NP-hard in general; this rule set is not constrained to a tractable subfragment — entailment under budget may return unknown (LOGIC-SEMANTICS.md §Decidability)"
+  ]
+}

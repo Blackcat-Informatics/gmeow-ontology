@@ -972,12 +972,20 @@ def project_canonical_rdf12(
         _counter[0] += 1
         return f"_{_counter[0]:06d}"
 
-    # Rule-structural predicates (logic:head, logic:body) are encoded in the
-    # proper logic:Rule node structure below.  Emitting them from the axiom
-    # list would duplicate blank-node objects that cannot survive a
-    # serialize→re-parse round-trip with stable IDs, breaking isomorphism.
+    # Rule-structural predicates (logic:head, logic:body, logic:negatedBody) are
+    # encoded in the proper logic:Rule node structure below.  Emitting them from
+    # the axiom list would duplicate blank-node objects that cannot survive a
+    # serialize→re-parse round-trip with stable IDs (the frontend's bare ``n…``
+    # blank-node IRIs become relative IRIs that rdflib resolves against the file
+    # base on re-read), breaking isomorphism.  ``negatedBody`` is the #502
+    # negation-as-failure surface and must be filtered here exactly like
+    # ``body``.
     rule_struct_preds: frozenset[str] = frozenset(
-        {LOGIC_NAMESPACE + "head", LOGIC_NAMESPACE + "body"}
+        {
+            LOGIC_NAMESPACE + "head",
+            LOGIC_NAMESPACE + "body",
+            LOGIC_NAMESPACE + "negatedBody",
+        }
     )
 
     # Emit axioms
@@ -1074,24 +1082,37 @@ def project_canonical_rdf12(
         else:
             g.add((head_node, RDF.object, URIRef(head.obj)))
 
-        # Body
-        for i, body_atom in enumerate(sorted(rule.body, key=lambda a: a._sort_key())):
-            body_node = URIRef(LOGIC_NAMESPACE + f"rule/{rule_id}/body/{i:04d}")
-            g.add((rule_node, LOGIC.body, body_node))
-            g.add((body_node, RDF.type, RDF.Statement))
-            # Same variable-as-Literal treatment for body subject.
-            if body_atom.subject.startswith("?"):
-                g.add((body_node, RDF.subject, Literal(body_atom.subject)))
-            else:
-                g.add((body_node, RDF.subject, URIRef(body_atom.subject)))
-            g.add((body_node, RDF.predicate, URIRef(body_atom.predicate)))
-            if body_atom.obj.startswith("?"):
-                # Variable objects: emit as Literal (symmetric with subject).
-                g.add((body_node, RDF.object, Literal(body_atom.obj)))
-            elif body_atom.obj_is_literal:
-                g.add((body_node, RDF.object, Literal(body_atom.obj)))
-            else:
-                g.add((body_node, RDF.object, URIRef(body_atom.obj)))
+        # Body atoms.  Positive atoms are linked via ``logic:body`` and negated
+        # (negation-as-failure) atoms via ``logic:negatedBody`` (the #502 surface)
+        # — each gets a structured, content-stable reifier IRI under the rule
+        # path (``…/body/NNNN`` vs ``…/negatedBody/NNNN``) so the projection
+        # survives a serialize→re-parse round-trip.  Each polarity is indexed
+        # independently in canonical (sorted) order for determinism.
+        positive_body = [a for a in rule.body if not a.negated]
+        negated_body = [a for a in rule.body if a.negated]
+        for link_pred, path_seg, atoms in (
+            (LOGIC.body, "body", positive_body),
+            (LOGIC.negatedBody, "negatedBody", negated_body),
+        ):
+            for i, body_atom in enumerate(sorted(atoms, key=lambda a: a._sort_key())):
+                body_node = URIRef(
+                    LOGIC_NAMESPACE + f"rule/{rule_id}/{path_seg}/{i:04d}"
+                )
+                g.add((rule_node, link_pred, body_node))
+                g.add((body_node, RDF.type, RDF.Statement))
+                # Same variable-as-Literal treatment for body subject.
+                if body_atom.subject.startswith("?"):
+                    g.add((body_node, RDF.subject, Literal(body_atom.subject)))
+                else:
+                    g.add((body_node, RDF.subject, URIRef(body_atom.subject)))
+                g.add((body_node, RDF.predicate, URIRef(body_atom.predicate)))
+                if body_atom.obj.startswith("?"):
+                    # Variable objects: emit as Literal (symmetric with subject).
+                    g.add((body_node, RDF.object, Literal(body_atom.obj)))
+                elif body_atom.obj_is_literal:
+                    g.add((body_node, RDF.object, Literal(body_atom.obj)))
+                else:
+                    g.add((body_node, RDF.object, URIRef(body_atom.obj)))
 
         # Rule scope
         scope = rule.scope
@@ -1317,7 +1338,15 @@ def project_nemo(
             else:
                 bo = _nemo_iri(body_atom.obj)
 
-            body_parts.append(f"{bp}({bs}, {bo}, {world_var})")
+            # Negation-as-failure (issue #502): a negated body literal projects to
+            # Nemo's `~atom` syntax.  Without this the negation flag carried by the
+            # IR (`LogicAxiom.negated`) would be silently dropped, and the Rust
+            # certifier (which reads this `.rls`) could not see the negative edge
+            # the Python oracle sees on the IR — breaking StratifiedNAF / Positive
+            # Horn parity.  Positive atoms (negated=False — every pre-#502 atom)
+            # are emitted exactly as before, so positive programs are byte-identical.
+            prefix = "~" if body_atom.negated else ""
+            body_parts.append(f"{prefix}{bp}({bs}, {bo}, {world_var})")
 
         # Emit rule name annotation so Nemo's trace API can recover the rule IRI.
         # The name is the rule's provenance IRI (from scope.provenance), or the

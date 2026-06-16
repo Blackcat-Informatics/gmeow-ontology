@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+# Maturin build configuration for the gmeow_shacl Python extension.
+# Run: uvx maturin develop (from crates/shacl/) or: make shacl-py (repo root).
+
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "gmeow-shacl"
+version = "0.1.0"
+description = "GMEOW SHACL validation PyO3 bindings: validate() over oxigraph"
+requires-python = ">=3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Blackcat Informatics Inc." }]
+keywords = ["rdf", "shacl", "validation", "gmeow"]
+
+[tool.maturin]
+module-name = "gmeow_shacl"
+features = ["pyo3/extension-module"]
+python-requires = ">=3.13"

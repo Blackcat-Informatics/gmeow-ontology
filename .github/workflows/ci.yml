@@ -78,6 +78,12 @@ jobs:
       - name: gmeow_logic extension imports (AC2/AC4 are now un-skippable)
         run: uv run python -c "import gmeow_logic; print('gmeow_logic at', gmeow_logic.__file__)"
 
+      - name: Build + install gmeow_shacl extension (#576)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
+
+      - name: gmeow_shacl extension imports
+        run: uv run python -c "import gmeow_shacl; print('gmeow_shacl at', gmeow_shacl.__file__)"
+
       # Pure-Python tests only. Docker-backed checks run through explicit
       # gmeow/Make lanes in parallel jobs below, not through pytest. Network
       # tests are auto-skipped (conftest) unless GMEOW_RUN_NETWORK=1.

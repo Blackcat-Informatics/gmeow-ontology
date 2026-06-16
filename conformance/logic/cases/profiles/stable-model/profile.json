@@ -1,0 +1,7 @@
+{
+  "semantic_profile": "StableModelProfile",
+  "world_types": ["epistemic"],
+  "mode": "native",
+  "expected_decidability_class": "NP-hard",
+  "certify": true
+}

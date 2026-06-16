@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: profiles/stratified-naf
+# AC: profiles — a rule set valid under StratifiedNAF semantics certifies clean.
+#
+# Two strata. Stratum 0 derives `married` positively (a symmetric closure over
+# `spouseOf`). Stratum 1 uses negation-as-failure (`logic:negatedBody`) over the
+# LOWER stratum only: a person is `single` iff declared a `person` and NOT
+# married. The only negated dependency (single <- NOT married) crosses a stratum
+# boundary, never a recursive cycle, so the program is stratifiable: certified:true,
+# decidability_class terminating/PTIME-data — the canonical StratifiedNAF shape.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/stratified-naf/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: the sort used by the projection back-ends.
+ex:Person a logic:Kind .
+
+# Rule 1 (stratum 0): a spouse relation makes both parties married.
+#   ?X married ?X  :-  ?X spouseOf ?Y
+ex:ruleMarried a logic:Rule ;
+    logic:provenance ex:ruleMarried ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:married ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:spouseOf ;
+        rdf:object    "?Y"
+    ] .
+
+# Rule 2 (stratum 1): a person is single iff NOT married (NAF over stratum 0).
+#   ?X single ?X  :-  ?X person ?X , NOT ?X married ?X
+ex:ruleSingle a logic:Rule ;
+    logic:provenance ex:ruleSingle ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:single ;
+        rdf:object    "?X"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:person ;
+        rdf:object    "?X"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:married ;
+        rdf:object    "?X"
+    ] .

@@ -1,0 +1,6 @@
+{
+  "https://example.org/decidability/budget-exhaustion/world-chain": {
+    "quads": 5,
+    "status": "consistent"
+  }
+}

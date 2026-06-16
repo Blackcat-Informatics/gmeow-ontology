@@ -1939,6 +1939,97 @@ def logic_compile(
 
 
 @app.command()
+def certify(
+    input_path: Path = typer.Argument(  # noqa: B008
+        ...,
+        help=(
+            "Path to an input.logic.ttl to statically certify against its "
+            "declared semantic profile."
+        ),
+    ),
+    profile: str | None = typer.Option(
+        None,
+        "--profile",
+        help=(
+            "Override the declared semantic profile localname (e.g. "
+            "PositiveHornProfile, StratifiedNAFProfile). When omitted, read "
+            "from a sibling profile.json, else default PositiveHornProfile."
+        ),
+    ),
+) -> None:
+    """Statically certify a logic program against its declared profile.
+
+    This is the standalone build-error surface for the logic-profile / decidability
+    certifier — the analogue of ``reasoning_lint`` for the IR.  It parses the
+    program, runs :func:`gmeow_tools.logic_certify.certify_invariants`, prints
+    every self-documenting violation string to stderr, and exits non-zero when
+    any violation is found (zero when certified clean).  Mirror of how
+    ``reasoning_lint`` fails the build under ``make check``.
+
+    The profile is resolved (highest precedence first):
+
+    1. the ``--profile`` override, if given;
+    2. ``semantic_profile`` in a sibling ``profile.json``, if present;
+    3. ``PositiveHornProfile`` (the v1 default).
+    """
+    from gmeow_tools.logic_certify import certify_invariants
+    from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
+    from gmeow_tools.logic_ir import SemanticProfileId
+
+    if not input_path.is_file():
+        raise _fail(f"✗ certify: input not found: {input_path}")
+    # parse_logic_source mints a source IRI via Path.as_uri(), which requires an
+    # absolute path; resolve so the command works from any cwd / relative arg.
+    input_path = input_path.resolve()
+
+    # Resolve the declared profile: --profile > sibling profile.json > default.
+    if profile is not None:
+        profile_str = profile
+    else:
+        sibling = input_path.parent / "profile.json"
+        profile_str = "PositiveHornProfile"
+        if sibling.is_file():
+            import json
+
+            try:
+                sibling_data = json.loads(sibling.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise _fail(f"✗ certify: cannot read {sibling}: {exc}") from exc
+            if isinstance(sibling_data, dict):
+                profile_str = str(
+                    sibling_data.get("semantic_profile", "PositiveHornProfile")
+                )
+
+    try:
+        declared_profile = SemanticProfileId(profile_str)
+    except ValueError as exc:
+        raise _fail(
+            f"✗ certify: unknown profile {profile_str!r}; must be one of "
+            f"{[str(p) for p in SemanticProfileId]}"
+        ) from exc
+
+    try:
+        program, _diagnostics = parse_logic_source(input_path)
+    except LogicParseError as exc:
+        raise _fail(f"✗ certify: cannot parse {input_path}: {exc}") from exc
+
+    violations = certify_invariants(program, declared_profile)
+    if violations:
+        err_console.print(
+            f"[red]✗ certify: {len(violations)} violation(s) for "
+            f"{declared_profile} in {input_path.name}[/red]"
+        )
+        for v in violations:
+            err_console.print(f"[red]  {v}[/red]")
+        raise typer.Exit(code=1)
+
+    console.print(
+        f"[green]✓ certify: {input_path.name} is certified for "
+        f"{declared_profile}[/green]"
+    )
+
+
+@app.command()
 def conformance(
     cases_root: Path | None = typer.Option(  # noqa: B008
         None,
