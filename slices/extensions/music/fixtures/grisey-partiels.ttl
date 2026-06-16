@@ -1,0 +1,215 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 7 — Grisey-style spectralism.
+# Exercises: a Spectrum → derived PitchCollection → CMN staff projection with
+# explicitly declared projection losses.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix fno:   <https://w3id.org/function/ontology#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Work and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGriseyPartielsWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Grisey Partiels-style spectral work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising spectrum-derived pitch collections and their lossy projection to staff notation, in the style of Gérard Grisey."@x-gmeow-english ;
+    skos:closeMatch wd:Q3197945 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Spectrum
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGriseyPartielsSpectrum
+    a gmeow:Spectrum ;
+    rdfs:label "Grisey Partiels-style spectrum"@x-gmeow-english ;
+    skos:definition "A first-class spectrum object representing the partial structure of a low brass tone, from which a pitch collection is derived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Derived pitch collection
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGriseyPartielsPitches
+    a gmeow:PitchCollection ;
+    rdfs:label "Grisey Partiels-derived pitch collection"@x-gmeow-english ;
+    skos:definition "The pitch collection derived from the spectrum by fnSpectrumToPitchCollection."@x-gmeow-english ;
+    gmeow:collectionKind gmeow:pitchCollectionKindSpectrumCollection ;
+    gmeow:derivedFromSpectrum gmeow:fixtureGriseyPartielsSpectrum ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Pitch values (JI ratios approximate the low-brass partials)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGriseyPitch1_1
+    a gmeow:PitchValue ;
+    rdfs:label "Grisey fundamental 1/1"@x-gmeow-english ;
+    skos:definition "The fundamental partial as a just-intonation 1/1 pitch value."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "1"^^xsd:integer ;
+    gmeow:ratioDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyPitch5_4
+    a gmeow:PitchValue ;
+    rdfs:label "Grisey 5/4 partial pitch"@x-gmeow-english ;
+    skos:definition "A 5/4 pitch value derived from a spectral partial."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "5"^^xsd:integer ;
+    gmeow:ratioDenominator "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyPitch3_2
+    a gmeow:PitchValue ;
+    rdfs:label "Grisey 3/2 partial pitch"@x-gmeow-english ;
+    skos:definition "A 3/2 pitch value derived from a spectral partial."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "3"^^xsd:integer ;
+    gmeow:ratioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyPitch7_4
+    a gmeow:PitchValue ;
+    rdfs:label "Grisey 7/4 partial pitch"@x-gmeow-english ;
+    skos:definition "A 7/4 pitch value derived from a spectral partial."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "7"^^xsd:integer ;
+    gmeow:ratioDenominator "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyPitch2_1
+    a gmeow:PitchValue ;
+    rdfs:label "Grisey 2/1 octave pitch"@x-gmeow-english ;
+    skos:definition "A 2/1 octave pitch value derived from a spectral partial."@x-gmeow-english ;
+    gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
+    gmeow:ratioNumerator "2"^^xsd:integer ;
+    gmeow:ratioDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Collection memberships
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGriseyMembership1_1
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Grisey collection 1/1 membership"@x-gmeow-english ;
+    skos:definition "Membership of the fundamental in the derived pitch collection."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixtureGriseyPartielsPitches ;
+    gmeow:membershipPitch gmeow:fixtureGriseyPitch1_1 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis ;
+    gmeow:membershipDegreeIndex "0"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyMembership5_4
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Grisey collection 5/4 membership"@x-gmeow-english ;
+    skos:definition "Membership of the 5/4 partial in the derived pitch collection."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixtureGriseyPartielsPitches ;
+    gmeow:membershipPitch gmeow:fixtureGriseyPitch5_4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyMembership3_2
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Grisey collection 3/2 membership"@x-gmeow-english ;
+    skos:definition "Membership of the 3/2 partial in the derived pitch collection."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixtureGriseyPartielsPitches ;
+    gmeow:membershipPitch gmeow:fixtureGriseyPitch3_2 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyMembership7_4
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Grisey collection 7/4 membership"@x-gmeow-english ;
+    skos:definition "Membership of the 7/4 partial in the derived pitch collection."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixtureGriseyPartielsPitches ;
+    gmeow:membershipPitch gmeow:fixtureGriseyPitch7_4 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "3"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyMembership2_1
+    a gmeow:PitchCollectionMembership ;
+    rdfs:label "Grisey collection 2/1 membership"@x-gmeow-english ;
+    skos:definition "Membership of the 2/1 octave in the derived pitch collection."@x-gmeow-english ;
+    gmeow:membershipCollection gmeow:fixtureGriseyPartielsPitches ;
+    gmeow:membershipPitch gmeow:fixtureGriseyPitch2_1 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember ;
+    gmeow:membershipDegreeIndex "4"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# CMN staff projection with declared loss
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGriseyPartielsExpression
+    a gmeow:Expression ;
+    rdfs:label "Grisey Partiels CMN expression"@x-gmeow-english ;
+    skos:definition "The staff-notation expression derived from the spectrum-derived pitch collection."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureGriseyPartielsWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyPartielsCMNScore
+    a gmeow:ScoreEdition ;
+    rdfs:label "Grisey Partiels CMN score"@x-gmeow-english ;
+    skos:definition "The Common Music Notation score projection of the spectrum-derived pitch collection; the projection profile declares the expected losses."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureGriseyPartielsExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# The projection losses are declared on the existing CMN profile; the score
+# uses notationCMNStaff, and the profile is discoverable via the inverse of
+# gmeow:notationSystemOf.
+gmeow:notationCMNStaff gmeow:hasNotationProjectionProfile gmeow:profileCMNStaff .
+
+# --------------------------------------------------------------------------- #
+# Co-equal claims about the spectral derivation
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureGriseyAnalystSpectrum
+    a gmeow:Agent ;
+    rdfs:label "Grisey analyst — spectrum-first standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who treats the spectrum as the canonical source of pitch material."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyAnalystScore
+    a gmeow:Agent ;
+    rdfs:label "Grisey analyst — score-first standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who treats the CMN score as the practical canonical object."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseySpectrumClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Grisey spectrum-first derivation claim"@x-gmeow-english ;
+    skos:definition "Claim that the pitch collection is derived from the spectrum via fnSpectrumToPitchCollection."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureGriseyPartielsPitches ;
+    gmeow:analysisProperty gmeow:analysisPropertyTuningIdentification ;
+    gmeow:analysisResult gmeow:fixtureGriseyPartielsSpectrum ;
+    gmeow:vantage gmeow:fixtureGriseyAnalystSpectrum ;
+    gmeow:analysisFrame gmeow:theoryFrameCorpusStatistical ;
+    gmeow:confidence "0.90"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureGriseyScoreClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Grisey score-first interpretation claim"@x-gmeow-english ;
+    skos:definition "Claim that the CMN score is the primary object, with the spectrum treated as an analytical reconstruction."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureGriseyPartielsPitches ;
+    gmeow:analysisProperty gmeow:analysisPropertyTuningIdentification ;
+    gmeow:analysisResult gmeow:fixtureGriseyPartielsCMNScore ;
+    gmeow:vantage gmeow:fixtureGriseyAnalystScore ;
+    gmeow:analysisFrame gmeow:theoryFrameRomanNumeral ;
+    gmeow:confidence "0.70"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

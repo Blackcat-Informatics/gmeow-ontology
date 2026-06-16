@@ -1,0 +1,216 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 17 — Dilla-feel groove.
+# Exercises: GrooveProfile + measured microtiming Observations as content (not error).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# Work, voice, and time frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaFeelWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Dilla-feel groove fixture work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising a measured groove profile and microtiming observations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaFeelVoice
+    a gmeow:Voice ;
+    rdfs:label "Dilla-feel drum voice"@x-gmeow-english ;
+    skos:definition "The drum-kit voice hosting the groove-profile time frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaFeelTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Dilla-feel groove time frame"@x-gmeow-english ;
+    skos:definition "The one-dimensional musical-time frame for the measured groove profile."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureDillaFeelVoice ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Tempo map: 90 BPM quarter note = 1 beat
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaFeelTempoMap
+    a gmeow:TempoMap ;
+    rdfs:label "Dilla-feel tempo map"@x-gmeow-english ;
+    skos:definition "A 90 BPM quarter-note tempo map for the groove fixture."@x-gmeow-english ;
+    gmeow:tempoBpm "90"^^xsd:decimal ;
+    gmeow:tempoBeatUnit "1/4"^^xsd:string ;
+    gmeow:mapsFrame gmeow:fixtureDillaFeelTimeFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Groove profile: measured 1/16-grid microtiming offsets
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaFeelGrooveProfile
+    a gmeow:GrooveProfile ;
+    rdfs:label "Dilla-feel measured groove profile"@x-gmeow-english ;
+    skos:definition "A measured groove profile encoding systematic microtiming deviations on a 1/16 grid."@x-gmeow-english ;
+    gmeow:grooveKind gmeow:grooveProfileKindMeasured ;
+    gmeow:grooveGridUnit "1/16"^^xsd:string ;
+    gmeow:appliesToTimeFrame gmeow:fixtureDillaFeelTimeFrame ;
+    gmeow:grooveProfileData "{\"gridUnit\": \"1/16\", \"offsets\": {\"kick_1\": \"-12 ms\", \"snare_1\": \"+8 ms\", \"hihat_1\": \"-4 ms\"}}"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Beat spans observed by the transcriber
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaKickSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Dilla-feel kick span"@x-gmeow-english ;
+    skos:definition "The notated downbeat position of the kick drum on the 1/16 grid."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureDillaFeelTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "16"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaSnareSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Dilla-feel snare span"@x-gmeow-english ;
+    skos:definition "The notated backbeat position of the snare drum on the 1/16 grid."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureDillaFeelTimeFrame ;
+    gmeow:timeStartNumerator "1"^^xsd:integer ;
+    gmeow:timeStartDenominator "4"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "16"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaHihatSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Dilla-feel hi-hat span"@x-gmeow-english ;
+    skos:definition "The notated offbeat hi-hat position on the 1/16 grid."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureDillaFeelTimeFrame ;
+    gmeow:timeStartNumerator "1"^^xsd:integer ;
+    gmeow:timeStartDenominator "8"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "16"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Tone events for kick, snare, hi-hat (unpitched percussion)
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaKickEvent
+    a gmeow:ToneEvent ;
+    rdfs:label "Dilla-feel kick tone event"@x-gmeow-english ;
+    skos:definition "The kick-drum tone event whose measured microtiming offset is observed."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentSpan gmeow:fixtureDillaKickSpan ;
+    gmeow:segmentOf gmeow:fixtureDillaFeelWork ;
+    gmeow:toneEventIsUnpitched "true"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaSnareEvent
+    a gmeow:ToneEvent ;
+    rdfs:label "Dilla-feel snare tone event"@x-gmeow-english ;
+    skos:definition "The snare-drum tone event whose measured microtiming offset is observed."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentSpan gmeow:fixtureDillaSnareSpan ;
+    gmeow:segmentOf gmeow:fixtureDillaFeelWork ;
+    gmeow:toneEventIsUnpitched "true"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaHihatEvent
+    a gmeow:ToneEvent ;
+    rdfs:label "Dilla-feel hi-hat tone event"@x-gmeow-english ;
+    skos:definition "The hi-hat tone event whose measured microtiming offset is observed."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindToneEventContainer ;
+    gmeow:segmentSpan gmeow:fixtureDillaHihatSpan ;
+    gmeow:segmentOf gmeow:fixtureDillaFeelWork ;
+    gmeow:toneEventIsUnpitched "true"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Measured microtiming offset result entities
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaKickOffset
+    a gmeow:Entity ;
+    rdfs:label "Dilla-feel kick offset"@x-gmeow-english ;
+    skos:definition "Measured microtiming offset of the kick drum relative to the 1/16 grid."@x-gmeow-english ;
+    skos:notation "-12 ms"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaSnareOffset
+    a gmeow:Entity ;
+    rdfs:label "Dilla-feel snare offset"@x-gmeow-english ;
+    skos:definition "Measured microtiming offset of the snare drum relative to the 1/16 grid."@x-gmeow-english ;
+    skos:notation "+8 ms"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaHihatOffset
+    a gmeow:Entity ;
+    rdfs:label "Dilla-feel hi-hat offset"@x-gmeow-english ;
+    skos:definition "Measured microtiming offset of the hi-hat relative to the 1/16 grid."@x-gmeow-english ;
+    skos:notation "-4 ms"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Analyst vantage
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaTranscriber
+    a gmeow:Agent ;
+    rdfs:label "Dilla-feel transcriber"@x-gmeow-english ;
+    skos:definition "The transcriber vantage for the measured microtiming observations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Observations
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureDillaKickObservation
+    a gmeow:Observation ;
+    rdfs:label "Dilla-feel kick microtiming observation"@x-gmeow-english ;
+    skos:definition "Measured observation that the kick is 12 ms behind the 1/16 grid."@x-gmeow-english ;
+    gmeow:observedFeature gmeow:fixtureDillaKickEvent ;
+    gmeow:observationResult gmeow:fixtureDillaKickOffset ;
+    gmeow:vantage gmeow:fixtureDillaTranscriber ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:observationType gmeow:observationTypeSensory ;
+    gmeow:confidence "0.88"^^xsd:decimal ;
+    gmeow:displayable true ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaSnareObservation
+    a gmeow:Observation ;
+    rdfs:label "Dilla-feel snare microtiming observation"@x-gmeow-english ;
+    skos:definition "Measured observation that the snare is 8 ms ahead of the 1/16 grid."@x-gmeow-english ;
+    gmeow:observedFeature gmeow:fixtureDillaSnareEvent ;
+    gmeow:observationResult gmeow:fixtureDillaSnareOffset ;
+    gmeow:vantage gmeow:fixtureDillaTranscriber ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:observationType gmeow:observationTypeSensory ;
+    gmeow:confidence "0.85"^^xsd:decimal ;
+    gmeow:displayable true ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureDillaHihatObservation
+    a gmeow:Observation ;
+    rdfs:label "Dilla-feel hi-hat microtiming observation"@x-gmeow-english ;
+    skos:definition "Measured observation that the hi-hat is 4 ms behind the 1/16 grid."@x-gmeow-english ;
+    gmeow:observedFeature gmeow:fixtureDillaHihatEvent ;
+    gmeow:observationResult gmeow:fixtureDillaHihatOffset ;
+    gmeow:vantage gmeow:fixtureDillaTranscriber ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:observationType gmeow:observationTypeSensory ;
+    gmeow:confidence "0.80"^^xsd:decimal ;
+    gmeow:displayable true ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

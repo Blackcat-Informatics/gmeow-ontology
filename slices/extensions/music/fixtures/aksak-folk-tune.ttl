@@ -1,0 +1,262 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 8 — Aksak folk tune with changing additive meters.
+# Exercises: 7/8, 9/8, and 5/8 MetricGroups sequenced as changing meters.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# Work
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureAksakFolkTuneWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Aksak folk tune fixture work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising additive aksak meters and changing meters in Balkan folk style."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Shared musical-time frame and tempo map
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureAksakTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Aksak tune musical time frame"@x-gmeow-english ;
+    skos:definition "The unhosted one-dimensional musical-time frame for the aksak fixture."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakTempoMap
+    a gmeow:TempoMap ;
+    rdfs:label "Aksak tune tempo map"@x-gmeow-english ;
+    skos:definition "Constant tempo map for the aksak fixture: one quarter-note beat maps to one half-second."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTempoMap ;
+    gmeow:mapsFrame gmeow:fixtureAksakTimeFrame ;
+    gmeow:mapsToFrame gmeow:temporalFrameTAI ;
+    gmeow:hasTempoMapSegment gmeow:fixtureAksakTempoMapSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakTempoMapSegment
+    a gmeow:TempoMapSegment ;
+    rdfs:label "Aksak tune tempo map segment"@x-gmeow-english ;
+    skos:definition "The single constant segment covering the whole aksak tune."@x-gmeow-english ;
+    gmeow:tempoMapSegmentOf gmeow:fixtureAksakTempoMap ;
+    gmeow:segmentSpan gmeow:fixtureAksakSpanWhole ;
+    gmeow:segmentTempoMapKind gmeow:tempoMapKindConstant ;
+    gmeow:segmentMapRatioNumerator "1"^^xsd:integer ;
+    gmeow:segmentMapRatioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Spans: whole tune and three changing-meter bars
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureAksakSpanWhole
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Aksak tune whole span"@x-gmeow-english ;
+    skos:definition "The whole aksak tune span: 7/8 + 9/8 + 5/8 = 21/8."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureAksakTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "21"^^xsd:integer ;
+    gmeow:timeDurationDenominator "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakSpanBar1
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Aksak bar 1 span"@x-gmeow-english ;
+    skos:definition "The first bar of the aksak fixture, 7/8."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureAksakTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "7"^^xsd:integer ;
+    gmeow:timeDurationDenominator "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakSpanBar2
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Aksak bar 2 span"@x-gmeow-english ;
+    skos:definition "The second bar of the aksak fixture, 9/8."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureAksakTimeFrame ;
+    gmeow:timeStartNumerator "7"^^xsd:integer ;
+    gmeow:timeStartDenominator "8"^^xsd:integer ;
+    gmeow:timeDurationNumerator "9"^^xsd:integer ;
+    gmeow:timeDurationDenominator "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakSpanBar3
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Aksak bar 3 span"@x-gmeow-english ;
+    skos:definition "The third bar of the aksak fixture, 5/8."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureAksakTimeFrame ;
+    gmeow:timeStartNumerator "2"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "5"^^xsd:integer ;
+    gmeow:timeDurationDenominator "8"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Voice carrier
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureAksakVoice
+    a gmeow:Voice ;
+    rdfs:label "Aksak tune melody voice"@x-gmeow-english ;
+    skos:definition "The single melodic voice carrying the changing aksak meters."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Metric structures: additive groups
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureAksakMeter7
+    a gmeow:MetricStructure ;
+    rdfs:label "Aksak 7/8 additive metric structure"@x-gmeow-english ;
+    skos:definition "A 7/8 aksak meter grouped as 2+2+3."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureAksakGroup7Two1 , gmeow:fixtureAksakGroup7Two2 , gmeow:fixtureAksakGroup7Three ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup7Two1
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 7/8 first 2/8 group"@x-gmeow-english ;
+    skos:definition "The first 2/8 group of the aksak 7/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup7Two2
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 7/8 second 2/8 group"@x-gmeow-english ;
+    skos:definition "The second 2/8 group of the aksak 7/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.8"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup7Three
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 7/8 3/8 group"@x-gmeow-english ;
+    skos:definition "The final 3/8 group of the aksak 7/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "2"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.2"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakMeter9
+    a gmeow:MetricStructure ;
+    rdfs:label "Aksak 9/8 additive metric structure"@x-gmeow-english ;
+    skos:definition "A 9/8 aksak meter grouped as 2+2+2+3."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureAksakGroup9Two1 , gmeow:fixtureAksakGroup9Two2 , gmeow:fixtureAksakGroup9Two3 , gmeow:fixtureAksakGroup9Three ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup9Two1
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 9/8 first 2/8 group"@x-gmeow-english ;
+    skos:definition "The first 2/8 group of the aksak 9/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup9Two2
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 9/8 second 2/8 group"@x-gmeow-english ;
+    skos:definition "The second 2/8 group of the aksak 9/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.9"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup9Two3
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 9/8 third 2/8 group"@x-gmeow-english ;
+    skos:definition "The third 2/8 group of the aksak 9/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "2"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.9"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup9Three
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 9/8 3/8 group"@x-gmeow-english ;
+    skos:definition "The final 3/8 group of the aksak 9/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "3"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.2"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakMeter5
+    a gmeow:MetricStructure ;
+    rdfs:label "Aksak 5/8 additive metric structure"@x-gmeow-english ;
+    skos:definition "A 5/8 aksak meter grouped as 2+3."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureAksakGroup5Two , gmeow:fixtureAksakGroup5Three ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup5Two
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 5/8 2/8 group"@x-gmeow-english ;
+    skos:definition "The first 2/8 group of the aksak 5/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "2"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakGroup5Three
+    a gmeow:MetricGroup ;
+    rdfs:label "Aksak 5/8 3/8 group"@x-gmeow-english ;
+    skos:definition "The final 3/8 group of the aksak 5/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.2"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Meter assignments: changing meters
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureAksakMeterAssignmentBar1
+    a gmeow:MeterAssignment ;
+    rdfs:label "Aksak bar 1 7/8 meter assignment"@x-gmeow-english ;
+    skos:definition "Assigns the 7/8 aksak meter to bar 1."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureAksakVoice ;
+    gmeow:assignedMeter gmeow:fixtureAksakMeter7 ;
+    gmeow:assignmentSpan gmeow:fixtureAksakSpanBar1 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakMeterAssignmentBar2
+    a gmeow:MeterAssignment ;
+    rdfs:label "Aksak bar 2 9/8 meter assignment"@x-gmeow-english ;
+    skos:definition "Assigns the 9/8 aksak meter to bar 2."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureAksakVoice ;
+    gmeow:assignedMeter gmeow:fixtureAksakMeter9 ;
+    gmeow:assignmentSpan gmeow:fixtureAksakSpanBar2 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureAksakMeterAssignmentBar3
+    a gmeow:MeterAssignment ;
+    rdfs:label "Aksak bar 3 5/8 meter assignment"@x-gmeow-english ;
+    skos:definition "Assigns the 5/8 aksak meter to bar 3."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureAksakVoice ;
+    gmeow:assignedMeter gmeow:fixtureAksakMeter5 ;
+    gmeow:assignmentSpan gmeow:fixtureAksakSpanBar3 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

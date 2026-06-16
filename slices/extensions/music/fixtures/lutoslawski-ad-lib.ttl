@@ -1,0 +1,230 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case — Lutosławski-style ad libitum section.
+# Exercises: unsynchronized Voice spans bounded by shared cue anchors,
+# performer-delegated DegreesOfFreedom, and a traversal constraint.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Composer, work, and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawski
+    a gmeow:Agent ;
+    rdfs:label "Witold Lutosławski"@x-gmeow-english ;
+    skos:definition "The composer of the ad-libitum fixture."@x-gmeow-english ;
+    skos:exactMatch wd:Q156472 ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Witold_Lutos%C5%82awski> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiAdLibWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Lutosławski-style ad libitum work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising unsynchronized ad-libitum passages bounded by cue anchors."@x-gmeow-english ;
+    gmeow:hasComposer gmeow:fixtureLutoslawski ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Expression and score edition
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawskiAdLibExpression
+    a gmeow:Expression ;
+    rdfs:label "Lutosławski-style ad libitum Expression"@x-gmeow-english ;
+    skos:definition "The notated Expression of the ad-libitum section in 12-EDO."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureLutoslawskiAdLibWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiAdLibScore
+    a gmeow:ScoreEdition ;
+    rdfs:label "Lutosławski-style ad libitum score"@x-gmeow-english ;
+    skos:definition "The printed score that embodies the ad-libitum Expression."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureLutoslawskiAdLibExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Shared cue time frame and cue anchors
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawskiCueTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Lutosławski cue time frame"@x-gmeow-english ;
+    skos:definition "The shared musical-time frame in which the cue anchors are placed."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiCueStart
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Lutosławski cue-start anchor"@x-gmeow-english ;
+    skos:definition "The zero-duration anchor marking the beginning of the ad-libitum span."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureLutoslawskiCueTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "0"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiCueEnd
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Lutosławski cue-end anchor"@x-gmeow-english ;
+    skos:definition "The zero-duration anchor marking the end of the ad-libitum span."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureLutoslawskiCueTimeFrame ;
+    gmeow:timeStartNumerator "1"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "0"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Two unsynchronized voices
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawskiVoiceA
+    a gmeow:Voice ;
+    rdfs:label "Lutosławski ad-libitum voice A"@x-gmeow-english ;
+    skos:definition "The first unsynchronized voice in the ad-libitum section."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureLutoslawskiTimeFrameA ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiVoiceB
+    a gmeow:Voice ;
+    rdfs:label "Lutosławski ad-libitum voice B"@x-gmeow-english ;
+    skos:definition "The second unsynchronized voice in the ad-libitum section."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureLutoslawskiTimeFrameB ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiTimeFrameA
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Lutosławski voice A time frame"@x-gmeow-english ;
+    skos:definition "The per-voice musical-time frame hosted by voice A."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureLutoslawskiVoiceA ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiTimeFrameB
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Lutosławski voice B time frame"@x-gmeow-english ;
+    skos:definition "The per-voice musical-time frame hosted by voice B."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureLutoslawskiVoiceB ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Per-voice spans bounded by the cue anchors
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawskiSpanA
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Lutosławski voice A ad-libitum span"@x-gmeow-english ;
+    skos:definition "Voice A's ad-libitum span, conceptually bounded by the cue anchors but internally unsynchronized."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureLutoslawskiTimeFrameA ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiSpanB
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Lutosławski voice B ad-libitum span"@x-gmeow-english ;
+    skos:definition "Voice B's ad-libitum span, conceptually bounded by the cue anchors but internally unsynchronized."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureLutoslawskiTimeFrameB ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Unsynchronized time mappings to the shared cue frame
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawskiMappingA
+    a gmeow:TimeMapping ;
+    rdfs:label "Lutosławski voice A ad-libitum mapping"@x-gmeow-english ;
+    skos:definition "The unsynchronized mapping from voice A's frame to the shared cue frame."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindSyncUnsynchronized ;
+    gmeow:mapsFrame gmeow:fixtureLutoslawskiTimeFrameA ;
+    gmeow:mapsToFrame gmeow:fixtureLutoslawskiCueTimeFrame ;
+    gmeow:tempoRatioExpression "ad lib"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiMappingB
+    a gmeow:TimeMapping ;
+    rdfs:label "Lutosławski voice B ad-libitum mapping"@x-gmeow-english ;
+    skos:definition "The unsynchronized mapping from voice B's frame to the shared cue frame."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindSyncUnsynchronized ;
+    gmeow:mapsFrame gmeow:fixtureLutoslawskiTimeFrameB ;
+    gmeow:mapsToFrame gmeow:fixtureLutoslawskiCueTimeFrame ;
+    gmeow:tempoRatioExpression "ad lib"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Degrees of freedom delegated to performers
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawskiDofOrder
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "Lutosławski order degree of freedom"@x-gmeow-english ;
+    skos:definition "The order of events within the ad-libitum passage is delegated to the performer."@x-gmeow-english ;
+    gmeow:dofParameter gmeow:musicalParameterOrder ;
+    gmeow:dofStatus gmeow:determinationDelegatedPerformer ;
+    gmeow:dofWork gmeow:fixtureLutoslawskiAdLibWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiDofTempo
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "Lutosławski tempo degree of freedom"@x-gmeow-english ;
+    skos:definition "The exact tempo within the ad-libitum passage is delegated to the performer."@x-gmeow-english ;
+    gmeow:dofParameter gmeow:musicalParameterTempo ;
+    gmeow:dofStatus gmeow:determinationDelegatedPerformer ;
+    gmeow:dofWork gmeow:fixtureLutoslawskiAdLibWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Traversal constraint enforcing cue bounds
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureLutoslawskiFnResolveAdLibBounds
+    a gmeow:ProjectionFunction ;
+    rdfs:label "resolve-ad-lib-bounds"@x-gmeow-english ;
+    skos:definition "FnO projection function that checks whether a performed sequence falls within the cue anchors."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureLutoslawskiAdLibConstraint
+    a gmeow:TraversalConstraint ;
+    rdfs:label "Lutosławski ad-libitum cue-bounds constraint"@x-gmeow-english ;
+    skos:definition "Performer-delegated material must begin no earlier than the cue-start anchor and end no later than the cue-end anchor."@x-gmeow-english ;
+    gmeow:constraintAppliesTo gmeow:fixtureLutoslawskiAdLibWork ;
+    gmeow:constraintText "Every performed event must satisfy cueStart <= eventTime <= cueEnd; the exact ordering within the bounds is delegated."@x-gmeow-english ;
+    gmeow:constraintFunction gmeow:fixtureLutoslawskiFnResolveAdLibBounds ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

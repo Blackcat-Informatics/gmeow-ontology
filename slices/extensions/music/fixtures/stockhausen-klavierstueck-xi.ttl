@@ -1,0 +1,176 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 4 — Stockhausen *Klavierstück XI* mobile form.
+# Exercises: fragment graph, TraversalConstraint, and two documented PerformanceDecisions.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix fno:   <https://w3id.org/function/ontology#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Work and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureStockhausenKlavierstuckXIWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Stockhausen Klavierstück XI"@x-gmeow-english ;
+    skos:definition "Stockhausen's Klavierstück XI as a mobile-form fixture: fragments plus a traversal constraint."@x-gmeow-english ;
+    skos:closeMatch wd:Q1744133 ;
+    skos:closeMatch wd:Q154556 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Fragments and allowed-successor graph
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureStockhausenFragmentA
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment A"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenFragmentB
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment B"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenFragmentC
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment C"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenFragmentD
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment D"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenFragmentE
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment E"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenFragmentF
+    a gmeow:MusicalSegment ;
+    rdfs:label "Klavierstück XI fragment F"@x-gmeow-english ;
+    skos:definition "A mobile-form fragment in the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindFragment ;
+    gmeow:segmentOf gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# Directed allowed-successor links — graph reachability is solver-evaluated.
+gmeow:fixtureStockhausenFragmentA gmeow:mayFollow gmeow:fixtureStockhausenFragmentB .
+gmeow:fixtureStockhausenFragmentA gmeow:mayFollow gmeow:fixtureStockhausenFragmentC .
+gmeow:fixtureStockhausenFragmentB gmeow:mayFollow gmeow:fixtureStockhausenFragmentD .
+gmeow:fixtureStockhausenFragmentC gmeow:mayFollow gmeow:fixtureStockhausenFragmentE .
+gmeow:fixtureStockhausenFragmentD gmeow:mayFollow gmeow:fixtureStockhausenFragmentF .
+gmeow:fixtureStockhausenFragmentE gmeow:mayFollow gmeow:fixtureStockhausenFragmentB .
+gmeow:fixtureStockhausenFragmentF gmeow:mayFollow gmeow:fixtureStockhausenFragmentA .
+
+# --------------------------------------------------------------------------- #
+# Traversal constraint
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureStockhausenTraversalConstraint
+    a gmeow:TraversalConstraint ;
+    rdfs:label "Klavierstück XI traversal constraint"@x-gmeow-english ;
+    skos:definition "The mobile-form constraint for the Klavierstück XI fixture: choose any fragment that has not been reached too often, respecting the mayFollow graph, and stop when a fragment has been reached three times."@x-gmeow-english ;
+    gmeow:constraintAppliesTo gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    gmeow:constraintText "Start at any fragment. Each next fragment may follow according to the mayFollow graph. A fragment that has been reached three times terminates the performance. The same fragment may not be chosen twice in immediate succession."@x-gmeow-english ;
+    gmeow:constraintFunction gmeow:fnTraverseMobileForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Two documented traversals
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureStockhausenPerformanceOne
+    a gmeow:Event ;
+    rdfs:label "Klavierstück XI performance traversal 1"@x-gmeow-english ;
+    skos:definition "A documented performance of Klavierstück XI with traversal A → C → E → B → D → F."@x-gmeow-english ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "1956-01-01T00:00:00Z"^^xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenDecisionOne
+    a gmeow:PerformanceDecision ;
+    rdfs:label "Klavierstück XI decision 1"@x-gmeow-english ;
+    skos:definition "Documented traversal A → C → E → B → D → F for the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:decisionPerformance gmeow:fixtureStockhausenPerformanceOne ;
+    gmeow:decisionConstraint gmeow:fixtureStockhausenTraversalConstraint ;
+    gmeow:decisionSequence "A → C → E → B → D → F"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenPerformanceTwo
+    a gmeow:Event ;
+    rdfs:label "Klavierstück XI performance traversal 2"@x-gmeow-english ;
+    skos:definition "A documented performance of Klavierstück XI with traversal B → D → F → A → C → E."@x-gmeow-english ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "1956-01-02T00:00:00Z"^^xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenDecisionTwo
+    a gmeow:PerformanceDecision ;
+    rdfs:label "Klavierstück XI decision 2"@x-gmeow-english ;
+    skos:definition "Documented traversal B → D → F → A → C → E for the Klavierstück XI fixture."@x-gmeow-english ;
+    gmeow:decisionPerformance gmeow:fixtureStockhausenPerformanceTwo ;
+    gmeow:decisionConstraint gmeow:fixtureStockhausenTraversalConstraint ;
+    gmeow:decisionSequence "B → D → F → A → C → E"^^xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal analytical claims about the mobile form
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureStockhausenAnalystGraph
+    a gmeow:Agent ;
+    rdfs:label "Stockhausen analyst — graph-centric standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who privileges the mayFollow graph as the primary structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenAnalystProcess
+    a gmeow:Agent ;
+    rdfs:label "Stockhausen analyst — process-centric standpoint"@x-gmeow-english ;
+    skos:definition "Analyst who privileges the stopping rule and performer decision process."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenGraphClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Klavierstück XI graph-structure claim"@x-gmeow-english ;
+    skos:definition "Claim that the work is primarily a directed graph of fragments."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyFormFunction ;
+    gmeow:analysisResult gmeow:fixtureStockhausenFragmentA ;
+    gmeow:vantage gmeow:fixtureStockhausenAnalystGraph ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.85"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureStockhausenProcessClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Klavierstück XI process-structure claim"@x-gmeow-english ;
+    skos:definition "Claim that the work is primarily a set of traversal rules and stopping conditions."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureStockhausenKlavierstuckXIWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyFormFunction ;
+    gmeow:analysisResult gmeow:fixtureStockhausenTraversalConstraint ;
+    gmeow:vantage gmeow:fixtureStockhausenAnalystProcess ;
+    gmeow:analysisFrame gmeow:theoryFrameCorpusStatistical ;
+    gmeow:confidence "0.80"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

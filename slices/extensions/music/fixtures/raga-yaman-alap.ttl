@@ -1,0 +1,152 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case — Raga Yaman ālāp in the Kirana gharana.
+# Exercises: score-less oral Work, a PitchCollection with member roles, an
+# OrnamentProfile, a gharana VersionSet, and a transmission event.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# Reused module fixture: the oral Raga Yaman work
+# --------------------------------------------------------------------------- #
+
+# gmeow:fixtureOralRagaYamanWork is defined in module.ttl as a vague,
+# score-less MusicalWork. This fixture adds a concrete ālāp Expression,
+# ornament profile, version membership, and transmission event.
+
+# --------------------------------------------------------------------------- #
+# ālāp Expression for the oral work
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRagaYamanAlapExpression
+    a gmeow:Expression ;
+    rdfs:label "Raga Yaman ālāp Expression"@x-gmeow-english ;
+    skos:definition "A slow, unmetered ālāp Expression of Raga Yaman, realized through oral tradition without a required score."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
+    gmeow:realizationMode gmeow:realizationModeOral ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:wasGeneratedBy gmeow:fixtureRagaYamanAlapProcess ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Yaman_(raga)> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Voice, time frame, and ornament profile
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRagaYamanAlapVoice
+    a gmeow:Voice ;
+    rdfs:label "Raga Yaman ālāp voice"@x-gmeow-english ;
+    skos:definition "The single melodic voice performing the Raga Yaman ālāp."@x-gmeow-english ;
+    gmeow:voiceTimeFrame gmeow:fixtureRagaYamanAlapTimeFrame ;
+    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanAlapTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Raga Yaman ālāp time frame"@x-gmeow-english ;
+    skos:definition "A free, unmetered musical-time frame for the ālāp; no MetricStructure is assigned."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "true"^^xsd:boolean ;
+    gmeow:isHostedBy gmeow:fixtureRagaYamanAlapVoice ;
+    gmeow:determinacyModel gmeow:determinacyVague ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanAlapOrnamentProfile
+    a gmeow:OrnamentProfile ;
+    rdfs:label "Raga Yaman ālāp gamaka profile"@x-gmeow-english ;
+    skos:definition "The ornament profile governing gamaka execution for the Raga Yaman ālāp voice."@x-gmeow-english ;
+    gmeow:ornamentProfileKind gmeow:ornamentProfileKindGamaka ;
+    gmeow:appliesToVoice gmeow:fixtureRagaYamanAlapVoice ;
+    gmeow:ornamentReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:ornamentDescription "Sliding oscillations around characteristic tones of Yaman, realized without fixed notation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Generative process for raga grammar / gamaka realization
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRagaYamanFnRealizeGamaka
+    a gmeow:ProjectionFunction ;
+    rdfs:label "realize-yaman-gamaka"@x-gmeow-english ;
+    skos:definition "FnO projection function that realizes gamaka ornaments within the Yaman raga grammar."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanAlapProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Raga Yaman ālāp realization process"@x-gmeow-english ;
+    skos:definition "The rule-based process that expands the Yaman raga grammar and gamaka profile into a concrete ālāp performance."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindRuleBased ;
+    gmeow:processRuleText "Generate the ālāp by traversing the Yaman pitch collection in ascending and descending arches, applying gamaka according to the Kirana gharana convention; the realization is computed by fnRealizeYamanGamaka."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fixtureRagaYamanFnRealizeGamaka ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Standpointed analysis claim: Yaman mode from the Kirana gharana
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRagaYamanModeClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Raga Yaman mode claim (Kirana gharana)"@x-gmeow-english ;
+    skos:definition "Claim that the ālāp Expression is an instance of Raga Yaman as understood by the Kirana gharana."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureRagaYamanAlapExpression ;
+    gmeow:analysisProperty gmeow:analysisPropertyMode ;
+    gmeow:analysisResult gmeow:pitchCollectionYamanRaga ;
+    gmeow:vantage gmeow:fixtureKiranaGharanaStandpoint ;
+    gmeow:analysisFrame gmeow:theoryFrameRagaGrammar ;
+    gmeow:confidence "0.90"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# VersionSet membership in the Kirana gharana lineage
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRagaYamanAlapMembership
+    a gmeow:VersionMembership ;
+    rdfs:label "Raga Yaman ālāp Kirana gharana membership"@x-gmeow-english ;
+    skos:definition "Kirana gharana standpoint asserting the ālāp Expression belongs to the Raga Yaman lineage."@x-gmeow-english ;
+    gmeow:versionMember gmeow:fixtureRagaYamanAlapExpression ;
+    gmeow:versionSet gmeow:fixtureRagaYamanKiranaSet ;
+    gmeow:membershipAuthority gmeow:fixtureKiranaGharanaStandpoint ;
+    gmeow:confidence "0.89"^^xsd:decimal ;
+    gmeow:displayable true ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Transmission event: teacher to learner
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureRagaYamanAlapTransmissionEvent
+    a gmeow:Event ;
+    rdfs:label "Raga Yaman ālāp transmission event"@x-gmeow-english ;
+    skos:definition "An oral-tradition teaching event in which the Raga Yaman ālāp is transmitted from teacher to learner."@x-gmeow-english ;
+    gmeow:eventType gmeow:eventTypeTransmission ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:eventTime "1962-04-12T10:00:00Z"^^xsd:dateTime ;
+    gmeow:performanceOf gmeow:fixtureOralRagaYamanWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanAlapTransmitterParticipation
+    a gmeow:Participation ;
+    rdfs:label "Raga Yaman ālāp transmitter participation"@x-gmeow-english ;
+    skos:definition "The teacher participant in the Raga Yaman ālāp transmission."@x-gmeow-english ;
+    gmeow:participationEvent gmeow:fixtureRagaYamanAlapTransmissionEvent ;
+    gmeow:participationParticipant gmeow:fixtureKiranaGharanaStandpoint ;
+    gmeow:participationRole gmeow:roleTransmitter ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureRagaYamanAlapLearnerParticipation
+    a gmeow:Participation ;
+    rdfs:label "Raga Yaman ālāp learner participation"@x-gmeow-english ;
+    skos:definition "The learner participant in the Raga Yaman ālāp transmission."@x-gmeow-english ;
+    gmeow:participationEvent gmeow:fixtureRagaYamanAlapTransmissionEvent ;
+    gmeow:participationParticipant gmeow:fixtureRivalScholarStandpoint ;
+    gmeow:participationRole gmeow:roleLearner ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

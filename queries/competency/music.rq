@@ -1,0 +1,183 @@
+# Music EPIC (#306/#320) competency query bundle.
+# Each UNION branch answers one competency question and binds:
+#   ?question   — the question label
+#   ?work       — the MusicalWork individual that is the primary answer
+#   ?evidence   — a supporting individual
+#
+# Expected bindings are asserted in slices/extensions/music/tests/test_music_competency.py.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?question ?work ?evidence WHERE {
+  {
+    BIND("Q1: nested rational tuplets" AS ?question)
+    BIND(gmeow:fixtureFerneyhoughWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?claim a gmeow:MusicAnalysisClaim ;
+           gmeow:analysisTarget ?work ;
+           gmeow:analysisResult ?evidence .
+    ?evidence a gmeow:TimeMapping ;
+              gmeow:timeMappingKind gmeow:timeMappingKindTuplet .
+  }
+  UNION
+  {
+    BIND("Q2: irrational tempo canon" AS ?question)
+    BIND(gmeow:fixtureNancarrowTempoCanonWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?claim a gmeow:MusicAnalysisClaim ;
+           gmeow:analysisTarget ?work ;
+           gmeow:analysisResult ?evidence .
+    ?evidence a gmeow:TimeMapping ;
+              gmeow:timeMappingKind gmeow:timeMappingKindTempoCanon .
+  }
+  UNION
+  {
+    BIND("Q3: complete DegreeOfFreedom profile" AS ?question)
+    BIND(gmeow:fixtureFourThirtyThreeWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?evidence a gmeow:DegreeOfFreedom ;
+              gmeow:dofWork ?work .
+  }
+  UNION
+  {
+    BIND("Q4: fragment graph + TraversalConstraint + PerformanceDecisions" AS ?question)
+    BIND(gmeow:fixtureStockhausenKlavierstuckXIWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?evidence a gmeow:TraversalConstraint ;
+              gmeow:constraintAppliesTo ?work .
+    ?decision a gmeow:PerformanceDecision ;
+              gmeow:decisionConstraint ?evidence .
+  }
+  UNION
+  {
+    BIND("Q5: 43-tone just intonation with integer-pair ratios" AS ?question)
+    BIND(gmeow:fixturePartch43Work AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?evidence a gmeow:PitchValue ;
+              gmeow:hasTuningFrame gmeow:tuningSystemPartch43 ;
+              gmeow:ratioNumerator ?num ;
+              gmeow:ratioDenominator ?den .
+  }
+  UNION
+  {
+    BIND("Q6: stochastic glissando field with graphic notation" AS ?question)
+    BIND(gmeow:fixtureXenakisGlissandoWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?expression a gmeow:Expression ;
+                gmeow:realizes ?work ;
+                gmeow:wasGeneratedBy ?evidence .
+    ?evidence a gmeow:GenerativeProcess ;
+              gmeow:processKind gmeow:generativeProcessKindStochastic .
+  }
+  UNION
+  {
+    BIND("Q7: spectrum-derived PitchCollection with CMN projection loss" AS ?question)
+    BIND(gmeow:fixtureGriseyPartielsWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?expression a gmeow:Expression ;
+                gmeow:realizes ?work .
+    ?score a gmeow:ScoreEdition ;
+           gmeow:embodies ?expression .
+    ?claim a gmeow:MusicAnalysisClaim ;
+           gmeow:analysisTarget ?evidence ;
+           gmeow:analysisResult gmeow:fixtureGriseyPartielsSpectrum .
+    ?evidence a gmeow:PitchCollection ;
+              gmeow:derivedFromSpectrum gmeow:fixtureGriseyPartielsSpectrum .
+  }
+  UNION
+  {
+    BIND("Q8: graphic score with standpointed symbolic interpretations" AS ?question)
+    BIND(gmeow:fixtureCardewTreatiseWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?graphic a gmeow:Expression ;
+             gmeow:realizes ?work .
+    ?evidence a gmeow:Expression ;
+              gmeow:realizes ?work ;
+              gmeow:wasDerivedFrom ?graphic .
+    ?claim a gmeow:MusicAnalysisClaim ;
+           gmeow:analysisTarget ?work ;
+           gmeow:analysisResult ?evidence .
+  }
+  UNION
+  {
+    BIND("Q9: mensural notation with unequal talea and color cycles" AS ?question)
+    BIND(gmeow:fixtureArsSubtiliorWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?claim a gmeow:MusicAnalysisClaim ;
+           gmeow:analysisTarget ?work ;
+           gmeow:analysisResult ?evidence .
+    ?evidence a gmeow:MusicalSegment ;
+              gmeow:segmentKind ?kind .
+    FILTER (?kind IN (gmeow:segmentKindTalea, gmeow:segmentKindColor))
+  }
+  UNION
+  {
+    BIND("Q10: added-value MetricGroups + non-retrogradable identity + mode of limited transposition" AS ?question)
+    BIND(gmeow:fixtureMessiaenExcerptWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?claim a gmeow:MusicAnalysisClaim ;
+           gmeow:analysisTarget ?work ;
+           gmeow:analysisProperty gmeow:analysisPropertyMode .
+    BIND(?claim AS ?evidence)
+  }
+  UNION
+  {
+    BIND("Q11: unsynchronized ad-lib spans bounded by cue anchors" AS ?question)
+    BIND(gmeow:fixtureLutoslawskiAdLibWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?constraint a gmeow:TraversalConstraint ;
+                gmeow:constraintAppliesTo ?work .
+    ?evidence a gmeow:TimeMapping ;
+              gmeow:timeMappingKind gmeow:timeMappingKindSyncUnsynchronized .
+  }
+  UNION
+  {
+    BIND("Q12: score-less oral tradition with ornament profile and transmission lineage" AS ?question)
+    BIND(gmeow:fixtureOralRagaYamanWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    FILTER NOT EXISTS {
+      ?notated a gmeow:Expression ;
+               gmeow:realizes ?work ;
+               gmeow:realizationMode gmeow:realizationModeNotated .
+    }
+    ?event a gmeow:Event ;
+           gmeow:performanceOf ?work ;
+           gmeow:eventType gmeow:eventTypeTransmission .
+    BIND(gmeow:fixtureRagaYamanAlapOrnamentProfile AS ?evidence)
+    ?evidence a gmeow:OrnamentProfile .
+  }
+  UNION
+  {
+    BIND("Q13: additive aksak MetricGroups with changing meters" AS ?question)
+    BIND(gmeow:fixtureAksakFolkTuneWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?evidence a gmeow:MetricStructure ;
+              gmeow:hasMetricGroup ?group .
+    FILTER (?evidence IN (gmeow:fixtureAksakMeter7, gmeow:fixtureAksakMeter9, gmeow:fixtureAksakMeter5))
+    ?group a gmeow:MetricGroup ;
+           gmeow:groupLengthNumerator ?num ;
+           gmeow:groupLengthDenominator ?den .
+    FILTER (?num != ?den)
+  }
+  UNION
+  {
+    BIND("Q14: polymeter + contested meter + riff transformations + drop-D + refuted genre" AS ?question)
+    BIND(gmeow:fixtureMathRockTrackWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?evidence a gmeow:MusicAnalysisClaim ;
+              gmeow:analysisTarget ?work ;
+              gmeow:analysisProperty gmeow:analysisPropertyMeter .
+  }
+  UNION
+  {
+    BIND("Q15: phasing generative process with realizations" AS ?question)
+    BIND(gmeow:fixtureReichPhasingWork AS ?work)
+    ?work a gmeow:MusicalWork .
+    ?expression a gmeow:Expression ;
+                gmeow:realizes ?work ;
+                gmeow:wasGeneratedBy ?evidence .
+    ?evidence a gmeow:GenerativeProcess ;
+              gmeow:processKind gmeow:generativeProcessKindPhasing .
+  }
+}

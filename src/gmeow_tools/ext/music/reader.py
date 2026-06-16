@@ -83,6 +83,19 @@ def _string(graph: Graph, subject: Node, predicate: Node) -> str | None:
     return str(value)
 
 
+def _bool_literal(graph: Graph, subject: Node, predicate: Node) -> bool:
+    """Parse an xsd:boolean or boolean-lexical literal; default to False."""
+    value = graph.value(subject, predicate)
+    if not isinstance(value, Literal):
+        return False
+    python_value = value.toPython()
+    if isinstance(python_value, bool):
+        return python_value
+    if isinstance(python_value, str):
+        return python_value.lower() in {"true", "1"}
+    return False
+
+
 def _load_tuning(graph: Graph, tuning_iri: Node) -> TuningSystem:
     """Build a :py:class:`TuningSystem` from its IRI."""
     return TuningSystem(
@@ -188,16 +201,11 @@ def piece_from_graph(graph: Graph, piece_iri: str | None = None) -> Piece:
             pitch_iri = graph.value(event_iri, GM.toneEventPitchValue)
             if pitch_iri is not None:
                 pitch = _load_pitch_value(graph, pitch_iri)
-            unpitched_lit = graph.value(event_iri, GM.toneEventIsUnpitched)
             event = ToneEvent(
                 onset=Fraction(start_num, start_den),
                 duration=Fraction(dur_num, dur_den),
                 pitch=pitch,
-                is_unpitched=(
-                    bool(unpitched_lit.toPython())
-                    if isinstance(unpitched_lit, Literal)
-                    else False
-                ),
+                is_unpitched=_bool_literal(graph, event_iri, GM.toneEventIsUnpitched),
                 dynamics=_string(graph, event_iri, GM.toneEventDynamics),
                 articulation=_string(graph, event_iri, GM.toneEventArticulation),
                 timbre=_string(graph, event_iri, GM.toneEventTimbre),

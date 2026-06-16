@@ -1,0 +1,154 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case — Ars subtilior isorhythmic motet.
+# Exercises: mensural notation, talea/color segments, and an unequal-cycle
+# generative process. The actual lcm alignment is solver work (Principle 12).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Composer, work, and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureArsSubtiliorComposer
+    a gmeow:Agent ;
+    rdfs:label "Ars subtilior composer (fixture)"@x-gmeow-english ;
+    skos:definition "A placeholder composer agent for the Ars subtilior isorhythmic fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Ars subtilior isorhythmic work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising mensural notation and talea/color isorhythm in the Ars subtilior style."@x-gmeow-english ;
+    gmeow:hasComposer gmeow:fixtureArsSubtiliorComposer ;
+    skos:closeMatch wd:Q704073 ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Ars_subtilior> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Expression and score edition
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureArsSubtiliorExpression
+    a gmeow:Expression ;
+    rdfs:label "Ars subtilior mensural Expression"@x-gmeow-english ;
+    skos:definition "The notated Expression of the Ars subtilior fixture, using mensural notation and a Pythagorean tuning frame."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureArsSubtiliorWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystemPythagorean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorScore
+    a gmeow:ScoreEdition ;
+    rdfs:label "Ars subtilior mensural score edition"@x-gmeow-english ;
+    skos:definition "The printed mensural score that embodies the Ars subtilior Expression."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureArsSubtiliorExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Talea and color segments
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureArsSubtiliorTaleaSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "Ars subtilior talea span"@x-gmeow-english ;
+    skos:definition "The twelve-beat rhythmic span occupied by the talea."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureArsSubtiliorTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "12"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "Ars subtilior time frame"@x-gmeow-english ;
+    skos:definition "The shared musical-time frame for the talea and any notated voices."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorTaleaSegment
+    a gmeow:MusicalSegment ;
+    rdfs:label "Ars subtilior talea segment"@x-gmeow-english ;
+    skos:definition "The recurring rhythmic pattern (talea) of the isorhythmic fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindTalea ;
+    gmeow:segmentSpan gmeow:fixtureArsSubtiliorTaleaSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorColorSegment
+    a gmeow:MusicalSegment ;
+    rdfs:label "Ars subtilior color segment"@x-gmeow-english ;
+    skos:definition "The recurring pitch pattern (color) of the isorhythmic fixture."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindColor ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Generative process resolving talea/color alignment
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureArsSubtiliorFnResolveIsorhythm
+    a gmeow:ProjectionFunction ;
+    rdfs:label "resolve-isorhythm"@x-gmeow-english ;
+    skos:definition "FnO projection function that computes the alignment and overall period of unequal talea and color cycles."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorIsorhythmProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Ars subtilior isorhythm resolution process"@x-gmeow-english ;
+    skos:definition "The rule-based process that aligns the talea and color cycles to determine the isorhythmic period."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindRuleBased ;
+    gmeow:processRuleText "Align the talea (12 beats) and color (eight pitches) by their least common multiple; the resulting structural period is computed by fnResolveIsorhythm, not asserted as an axiom."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fixtureArsSubtiliorFnResolveIsorhythm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal claims about the structural period
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureArsSubtiliorAnalystA
+    a gmeow:Agent ;
+    rdfs:label "Ars subtilior analyst A"@x-gmeow-english ;
+    skos:definition "Analyst who privileges the rhythmic talea in determining the isorhythmic period."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorAnalystB
+    a gmeow:Agent ;
+    rdfs:label "Ars subtilior analyst B"@x-gmeow-english ;
+    skos:definition "Analyst who privileges the pitch color in determining the isorhythmic period."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorTaleaPeriodClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Ars subtilior talea-privileged period claim"@x-gmeow-english ;
+    skos:definition "Claim that the structural period is talea-driven."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureArsSubtiliorWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyFormFunction ;
+    gmeow:analysisResult gmeow:fixtureArsSubtiliorTaleaSegment ;
+    gmeow:vantage gmeow:fixtureArsSubtiliorAnalystA ;
+    gmeow:analysisFrame gmeow:theoryFrameRomanNumeral ;
+    gmeow:confidence "0.76"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureArsSubtiliorColorPeriodClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Ars subtilior color-privileged period claim"@x-gmeow-english ;
+    skos:definition "Claim that the structural period is color-driven."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureArsSubtiliorWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyFormFunction ;
+    gmeow:analysisResult gmeow:fixtureArsSubtiliorColorSegment ;
+    gmeow:vantage gmeow:fixtureArsSubtiliorAnalystB ;
+    gmeow:analysisFrame gmeow:theoryFrameRomanNumeral ;
+    gmeow:confidence "0.71"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
