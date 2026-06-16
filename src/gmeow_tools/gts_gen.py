@@ -318,13 +318,15 @@ class GtsSnapshotGenerator(Generator):
         target.write_bytes(data)
 
     def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Byte comparison, with semantic-vs-encoding drift diagnosis.
+        """Semantic-fold comparison — the snapshot is a SEMANTIC contract.
 
-        Identical bytes pass. On mismatch, fold both and say whether the
-        difference is SEMANTIC (different terms/quads/reifiers/annotations —
-        the sources changed) or ENCODING-ONLY (identical fold, different
-        bytes — typically a compression/library version bump). Both count
-        as drift (Principle 7: the committed artifact is the contract).
+        Identical bytes pass. On a byte mismatch, fold both snapshots and
+        compare their canonical N-Quads. Only a SEMANTIC difference (different
+        terms/quads/reifiers/annotations — the sources changed) counts as
+        drift. ENCODING-ONLY differences (identical fold, different bytes —
+        a compression/library version skew between CI and local codecs) are
+        NOT drift: the gts contract is the graph it folds to, not the exact
+        compressed bytes, which are not reproducible across zstd/libzstd builds.
         """
         try:
             rel = str(committed.relative_to(PROJECT_ROOT))
@@ -340,12 +342,7 @@ class GtsSnapshotGenerator(Generator):
         from gts import read, to_nquads
 
         a, b = read(fresh_bytes), read(committed_bytes)
-        semantic = sorted(to_nquads(a).splitlines()) != sorted(
-            to_nquads(b).splitlines()
-        )
-        kind = (
-            "semantic drift — sources changed"
-            if semantic
-            else "encoding-only drift (identical fold; codec/library skew)"
-        )
-        return [f"{rel} ({kind})"]
+        if sorted(to_nquads(a).splitlines()) == sorted(to_nquads(b).splitlines()):
+            # Identical fold, different bytes: codec/library skew, not drift.
+            return []
+        return [f"{rel} (semantic drift — sources changed)"]
