@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — INDUCTION, generalisation over a sample.
+#
+# From many observed white swans, generalise that swans are white. Inductive
+# inference is NOT truth-preserving (the black swan refutes it), so the
+# conclusion's modality is gmeow:probable, and its strength rides the EXISTING
+# logic: axis logic:evidenceStrength (BY REFERENCE — Principle 5, no asserted
+# triples into logic:). The flat spine again: gmeow:inferenceMode +
+# gmeow:inferredFrom on the conclusion-claim.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:naturalist a gmeow:Agent ;
+    gmeow:name "Field naturalist"@x-gmeow-english .
+
+ex:propSwansWhite rdfs:label "Swans are white"@x-gmeow-english .
+
+# --- The sample: individual observed instances ------------------------------ #
+ex:obsSwan1 a gmeow:StandpointClaim ;
+    gmeow:vantage ex:naturalist ; gmeow:observedFeature ex:swanA ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal .
+ex:obsSwan2 a gmeow:StandpointClaim ;
+    gmeow:vantage ex:naturalist ; gmeow:observedFeature ex:swanB ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal .
+ex:obsSwan3 a gmeow:StandpointClaim ;
+    gmeow:vantage ex:naturalist ; gmeow:observedFeature ex:swanC ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal .
+
+ex:swanA rdfs:label "a white swan"@x-gmeow-english .
+ex:swanB rdfs:label "another white swan"@x-gmeow-english .
+ex:swanC rdfs:label "a third white swan"@x-gmeow-english .
+
+# --- The inductive generalisation — probable, defeasible -------------------- #
+ex:genSwansWhite a gmeow:StandpointClaim ;
+    rdfs:label "Generalisation: swans are white"@x-gmeow-english ;
+    gmeow:vantage ex:naturalist ;
+    gmeow:observedFeature ex:propSwansWhite ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:probable ;                     # not truth-preserving → probable
+    gmeow:inferenceMode gmeow:modeInduction ;
+    gmeow:inferredFrom ex:obsSwan1 , ex:obsSwan2 , ex:obsSwan3 ;
+    logic:evidenceStrength "0.72"^^xsd:decimal .            # by reference: strength on the logic: axis
