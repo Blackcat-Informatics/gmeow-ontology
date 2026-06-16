@@ -23,11 +23,9 @@
 //!
 //! # Platform note
 //!
-//! Nemo's transitive dependencies (`reqwest`, `tower-lsp`) use OS networking
-//! unavailable on `wasm32-unknown-unknown`.  The `#[cfg(not(target_arch =
-//! "wasm32"))]` guard in `lib.rs` is platform-correct, not an optionality
-//! toggle: there are zero degraded fallbacks and zero feature flags controlling
-//! this.  The wasm surface is provided by `wasm.rs` via wasm-bindgen.
+//! This crate is single-target native only.  Nemo's transitive dependencies
+//! (`reqwest`, `tower-lsp`) require OS networking and the CPython ABI; no
+//! alternative build path exists.
 //!
 //! # Runtime flavour
 //!

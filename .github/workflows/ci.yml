@@ -168,7 +168,6 @@ jobs:
         with:
           toolchain: nightly
           components: clippy, rustfmt
-          targets: wasm32-unknown-unknown
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -181,9 +180,6 @@ jobs:
 
       - name: Workspace tests (gmeow-logic, gmeow-shacl)
         run: cargo test
-
-      - name: wasm target builds (gmeow-logic in-browser reasoner)
-        run: cargo build -p gmeow-logic --target wasm32-unknown-unknown
 
   ontology:
     runs-on: ubuntu-latest

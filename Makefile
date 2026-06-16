@@ -17,7 +17,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
-        logic-build logic-test logic-py logic-wasm conformance \
+        logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py shacl-crosscheck
 
 help: ## Show this help.
@@ -146,9 +146,6 @@ logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
 
 logic-py: ## Build and install the gmeow_logic Python extension (maturin develop).
 	uvx maturin develop --manifest-path crates/logic/Cargo.toml
-
-logic-wasm: ## Build gmeow-logic for wasm32-unknown-unknown (wasm-bindgen surface + oxigraph store).
-	cargo build -p gmeow-logic --target wasm32-unknown-unknown
 
 shacl-build: ## Build the gmeow-shacl Rust crate (oxigraph SHACL Core validator).
 	cargo build -p gmeow-shacl
