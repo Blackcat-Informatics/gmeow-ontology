@@ -68,7 +68,13 @@ from rdflib import RDF, ConjunctiveGraph, Graph, Literal, URIRef
 from rdflib.term import BNode, Node
 
 from gmeow_tools.config import NAMESPACE, PREFIXES
-from gmeow_tools.logic_ir import LogicProgram, PreservationKind, SemanticProfileId
+from gmeow_tools.logic_ir import (
+    LogicAxiom,
+    LogicProgram,
+    LogicRule,
+    PreservationKind,
+    SemanticProfileId,
+)
 from gmeow_tools.statement_dsl import QuotedTriple, mint_reifier
 
 _log = logging.getLogger(__name__)
@@ -874,12 +880,78 @@ def _build_asserted_quad(
     )
 
 
+def _stratified_rule_groups(
+    program: LogicProgram, enable_naf: bool
+) -> tuple[tuple[LogicRule, ...], ...]:
+    """Partition ``program.rules`` into ordered strata for the chase (issue #503).
+
+    With ``enable_naf=False`` the result is a single stratum equal to
+    ``program.rules`` (so the chase is byte-identical to the pre-#503
+    single-fixpoint behaviour — Corpus-safety).
+
+    With ``enable_naf=True`` the rules are layered using the same predicate
+    dependency-graph stratification the certifier uses
+    (:func:`gmeow_tools.logic_certify.stratify`): each rule is assigned to the
+    stratum of its head predicate key, and strata are emitted low-to-high.  Chasing
+    a lower stratum to fixpoint before a higher one guarantees a ``logic:negatedBody``
+    atom is only checked once the predicate it negates is settled (sound stratified
+    NAF).  A rule whose head predicate key is absent from the layering (no
+    inter-rule dependency) is placed in the lowest stratum.
+
+    Args:
+        program: The compiled logic program.
+        enable_naf: Whether NAF (and hence stratification) is active.
+
+    Returns:
+        A tuple of strata, each a tuple of :class:`~.logic_ir.LogicRule`, ordered
+        low-to-high.
+    """
+    if not enable_naf:
+        return (tuple(program.rules),)
+
+    # Local import avoids a module-level cycle (logic_certify imports nothing from
+    # this module, but keeping the import local mirrors the other deferred imports).
+    from gmeow_tools.logic_certify import (
+        PredicateDepGraph,
+        _predicate_key,
+        stratify,
+    )
+
+    graph = PredicateDepGraph.from_program(program)
+    result = stratify(graph)
+    if not result.is_stratified:
+        # A non-stratifiable program has no perfect model; the foundation rules are
+        # certified stratified, so this only fires on a malformed augmented program.
+        raise MaterializationError(
+            "NAF chase requested for a non-stratifiable rule set "
+            f"(offending cycle {result.offending_cycle}). Stratified NAF requires "
+            "negation to cross only stratum boundaries, never a recursive cycle."
+        )
+
+    # Map each predicate key to its stratum index (low-to-high).
+    key_to_stratum: dict[str, int] = {}
+    for idx, layer in enumerate(result.strata):
+        for key in layer:
+            key_to_stratum[key] = idx
+
+    buckets: dict[int, list[LogicRule]] = {idx: [] for idx in range(len(result.strata))}
+    # Rules with no inter-rule dependency edge never enter the dep graph layering;
+    # park them in stratum 0 (they are positive base rules).
+    fallback = 0
+    for rule in program.rules:
+        stratum = key_to_stratum.get(_predicate_key(rule.head), fallback)
+        buckets.setdefault(stratum, []).append(rule)
+
+    return tuple(tuple(buckets[idx]) for idx in sorted(buckets))
+
+
 def _chase_world(
     world_iri: str,
     initial_facts: list[tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]],
     program: LogicProgram,
     profile_iri: str,
     budget: BudgetParams | None = None,
+    enable_naf: bool = False,
 ) -> tuple[
     list[DerivedQuad],
     list[tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]],
@@ -912,6 +984,14 @@ def _chase_world(
         program: The compiled logic program (provides rules).
         profile_iri: The profile IRI for seam metadata.
         budget: Optional runtime ceilings; ``None`` means unbounded.
+        enable_naf: When True (issue #503), evaluate ``logic:negatedBody`` atoms as
+            stratified negation-as-failure: the rules are partitioned into ordered
+            strata (:func:`_stratified_rule_groups`) and each stratum is chased to
+            fixpoint before the next, so a negated atom is only checked once its
+            stratum is settled.  When False (the byte-stable default for every
+            pre-#503 case) the whole rule set is a single positive stratum and
+            negated atoms are treated as ordinary positive joins — the
+            materialisation is byte-identical to the prior behaviour.
 
     Returns:
         A 4-tuple:
@@ -971,165 +1051,186 @@ def _chase_world(
     # Collect derived DerivedQuad records separately (appended after input)
     derived_quads: list[DerivedQuad] = []
 
-    # We iterate rules: for each rule, try to join body atoms against current
-    # facts (using the delta for the semi-naive optimization).
-    # For v1 Horn rules: all body atoms are positive; no negation.
-    for _round in range(10_000):  # hard iteration cap (should terminate much sooner)
-        # Budget gate: re-check wall-clock at the top of every round.  Only a
-        # WALL-CLOCK cut stops the chase early (runaway protection); the
-        # deterministic count ceilings let the chase reach fixpoint so the
-        # post-hoc truncation is a canonical prefix of the COMPLETE derivation
-        # set — the evaluation-order-independent contract required for oracle ≡
-        # engine parity (Principle 7).
-        budget_state.check_time()
-        if budget_state.should_stop_chase():
-            break
+    # Stratified evaluation (issue #503): when enable_naf is True the rule set is
+    # split into ordered strata so a negated atom is only checked once its stratum
+    # is at fixpoint.  When False the whole set is ONE stratum — byte-identical to
+    # the pre-#503 single-fixpoint chase.  Each stratum is chased to fixpoint and
+    # then the delta is reset to ALL current facts so the next stratum re-derives
+    # against everything settled below it.
+    rule_strata = _stratified_rule_groups(program, enable_naf)
 
-        new_delta: list[
-            tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]
-        ] = []
+    for stratum_rules in rule_strata:
+        # Corpus-safety (issue #503): the non-NAF path has exactly one stratum
+        # equal to ``program.rules``, so this outer loop runs once and the inner
+        # chase is byte-identical to the prior behaviour.
+        delta = list(fact_index.values())
 
-        for rule in program.rules:
+        # We iterate rules: for each rule, try to join body atoms against current
+        # facts (using the delta for the semi-naive optimization).
+        for _round in range(10_000):  # hard cap (should terminate much sooner)
+            # Budget gate: re-check wall-clock at the top of every round.  Only a
+            # WALL-CLOCK cut stops the chase early (runaway protection); the
+            # deterministic count ceilings let the chase reach fixpoint so the
+            # post-hoc truncation is a canonical prefix of the COMPLETE derivation
+            # set — the evaluation-order-independent contract required for oracle ≡
+            # engine parity (Principle 7).
+            budget_state.check_time()
             if budget_state.should_stop_chase():
                 break
-            if not rule.body:
-                # Zero-body rules (facts-as-rules): emit head unconditionally
-                head = rule.head
-                head_s = _apply_bindings(head.subject, False, {})
-                head_p = _apply_bindings(head.predicate, False, {})
-                head_o = _apply_bindings(head.obj, head.obj_is_literal, {})
-                if not isinstance(head_s, URIRef) or not isinstance(head_p, URIRef):
-                    continue
-                key = (head_s.n3(), head_p.n3(), head_o.n3())
-                if key in fact_index:
-                    continue
-                rule_iri = str(rule.scope.provenance or f"{_LOGIC_NS}rule/anonymous")
-                deriv_id = derivation_id_iri(rule_iri, [])
-                fact_index[key] = (head_s, head_p, head_o)
-                new_delta.append((head_s, head_p, head_o))
-                derived_quads.append(
-                    DerivedQuad(
-                        graph=world_iri,
-                        subject=str(head_s),
-                        predicate=str(head_p),
-                        obj=head_o.n3(),
-                        graph_component=world_iri,
-                        derivation_id=deriv_id,
-                        rule_iri=rule_iri,
-                        source_quad_ids=[],
-                        profile=profile_iri,
-                        budget_status=budget_state.status_str(),
-                    )
-                )
-                budget_state.note_firing()
-                budget_state.note_answers(len(derived_quads))
-                budget_state.check_time()
+
+            new_delta: list[
+                tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]
+            ] = []
+
+            for rule in stratum_rules:
                 if budget_state.should_stop_chase():
                     break
-                continue
-
-            # For rules with body: join all atoms against the current fact base.
-            # Semi-naive: at least one body atom must match a delta fact.
-            rule_iri = str(rule.scope.provenance or f"{_LOGIC_NS}rule/anonymous")
-
-            # Enumerate all binding combinations via recursive join
-            # (for v1 we have simple Datalog; body size is small)
-            binding_sets = _join_body_atoms(
-                rule.body,
-                fact_index,
-                delta,
-            )
-
-            for bindings, source_keys in binding_sets:
-                # Inequality body guards (issue #503): reject any candidate
-                # binding where a distinct pair resolves both variables to the
-                # same value.  The head is derived only for bindings where every
-                # guard is genuinely unequal.  An unbound guard variable is a
-                # malformed rule and raises (handled defensively, consistent with
-                # the head-grounding error path below).  Rules with no guard
-                # (``distinct_pairs == ()`` — every pre-#503 rule) never enter
-                # this branch and are byte-identical to the prior chase.
-                if rule.distinct_pairs and not _bindings_satisfy_distinct(
-                    rule.distinct_pairs, bindings
-                ):
-                    continue
-
-                # Ground the head
-                try:
-                    head_s = _apply_bindings(rule.head.subject, False, bindings)
-                    head_p = _apply_bindings(rule.head.predicate, False, bindings)
-                    head_o = _apply_bindings(
-                        rule.head.obj, rule.head.obj_is_literal, bindings
+                if not rule.body:
+                    # Zero-body rules (facts-as-rules): emit head unconditionally
+                    head = rule.head
+                    head_s = _apply_bindings(head.subject, False, {})
+                    head_p = _apply_bindings(head.predicate, False, {})
+                    head_o = _apply_bindings(head.obj, head.obj_is_literal, {})
+                    if not isinstance(head_s, URIRef) or not isinstance(head_p, URIRef):
+                        continue
+                    key = (head_s.n3(), head_p.n3(), head_o.n3())
+                    if key in fact_index:
+                        continue
+                    rule_iri = str(
+                        rule.scope.provenance or f"{_LOGIC_NS}rule/anonymous"
                     )
-                except MaterializationError:
-                    # Unbound head variable — record as loss and skip
-                    loss_entries.append(
-                        LossEntry(
-                            construct=rule_iri,
-                            reason="Head variable unbound after body matching",
-                            preservation_kind=PreservationKind.SOUND_UNDER,
+                    deriv_id = derivation_id_iri(rule_iri, [])
+                    fact_index[key] = (head_s, head_p, head_o)
+                    new_delta.append((head_s, head_p, head_o))
+                    derived_quads.append(
+                        DerivedQuad(
+                            graph=world_iri,
+                            subject=str(head_s),
+                            predicate=str(head_p),
+                            obj=head_o.n3(),
+                            graph_component=world_iri,
+                            derivation_id=deriv_id,
+                            rule_iri=rule_iri,
+                            source_quad_ids=[],
+                            profile=profile_iri,
+                            budget_status=budget_state.status_str(),
                         )
                     )
+                    budget_state.note_firing()
+                    budget_state.note_answers(len(derived_quads))
+                    budget_state.check_time()
+                    if budget_state.should_stop_chase():
+                        break
                     continue
 
-                if not isinstance(head_s, URIRef) or not isinstance(head_p, URIRef):
-                    # Non-IRI head subject/predicate — skip (Datalog constraint)
-                    continue
+                # For rules with body: join all atoms against the current fact
+                # base.  Semi-naive: at least one body atom must match a delta fact.
+                rule_iri = str(rule.scope.provenance or f"{_LOGIC_NS}rule/anonymous")
 
-                key = (head_s.n3(), head_p.n3(), head_o.n3())
-                if key in fact_index:
-                    continue
-
-                # Compute provenance
-                source_reifiers = [
-                    quad_reifier_iri(
-                        fact_index[sk_key][0]
-                        if isinstance(fact_index[sk_key][0], URIRef)
-                        else URIRef(str(fact_index[sk_key][0])),
-                        fact_index[sk_key][1]
-                        if isinstance(fact_index[sk_key][1], URIRef)
-                        else URIRef(str(fact_index[sk_key][1])),
-                        fact_index[sk_key][2],
-                    )
-                    for sk_key in source_keys
-                    if isinstance(fact_index[sk_key][0], URIRef)
-                    and isinstance(fact_index[sk_key][1], URIRef)
-                ]
-                deriv_id = derivation_id_iri(rule_iri, source_reifiers)
-
-                fact_index[key] = (head_s, head_p, head_o)
-                new_delta.append((head_s, head_p, head_o))
-                derived_quads.append(
-                    DerivedQuad(
-                        graph=world_iri,
-                        subject=str(head_s),
-                        predicate=str(head_p),
-                        obj=head_o.n3(),
-                        graph_component=world_iri,
-                        derivation_id=deriv_id,
-                        rule_iri=rule_iri,
-                        source_quad_ids=source_reifiers,
-                        profile=profile_iri,
-                        budget_status=budget_state.status_str(),
-                    )
+                # Enumerate all binding combinations via recursive join
+                # (for v1 we have simple Datalog; body size is small).  Under
+                # enable_naf the join evaluates negated body atoms as NAF literals;
+                # otherwise they are treated positively (byte-stable default).
+                binding_sets = _join_body_atoms(
+                    rule.body,
+                    fact_index,
+                    delta,
+                    enable_naf,
                 )
-                budget_state.note_firing()
-                budget_state.note_answers(len(derived_quads))
-                budget_state.check_time()
-                if budget_state.should_stop_chase():
-                    break
+
+                for bindings, source_keys in binding_sets:
+                    # Inequality body guards (issue #503): reject any candidate
+                    # binding where a distinct pair resolves both variables to the
+                    # same value.  The head is derived only for bindings where every
+                    # guard is genuinely unequal.  An unbound guard variable is a
+                    # malformed rule and raises (handled defensively, consistent with
+                    # the head-grounding error path below).  Rules with no guard
+                    # (``distinct_pairs == ()`` — every pre-#503 rule) never enter
+                    # this branch and are byte-identical to the prior chase.
+                    if rule.distinct_pairs and not _bindings_satisfy_distinct(
+                        rule.distinct_pairs, bindings
+                    ):
+                        continue
+
+                    # Ground the head
+                    try:
+                        head_s = _apply_bindings(rule.head.subject, False, bindings)
+                        head_p = _apply_bindings(rule.head.predicate, False, bindings)
+                        head_o = _apply_bindings(
+                            rule.head.obj, rule.head.obj_is_literal, bindings
+                        )
+                    except MaterializationError:
+                        # Unbound head variable — record as loss and skip
+                        loss_entries.append(
+                            LossEntry(
+                                construct=rule_iri,
+                                reason="Head variable unbound after body matching",
+                                preservation_kind=PreservationKind.SOUND_UNDER,
+                            )
+                        )
+                        continue
+
+                    if not isinstance(head_s, URIRef) or not isinstance(head_p, URIRef):
+                        # Non-IRI head subject/predicate — skip (Datalog constraint)
+                        continue
+
+                    key = (head_s.n3(), head_p.n3(), head_o.n3())
+                    if key in fact_index:
+                        continue
+
+                    # Compute provenance
+                    source_reifiers = [
+                        quad_reifier_iri(
+                            fact_index[sk_key][0]
+                            if isinstance(fact_index[sk_key][0], URIRef)
+                            else URIRef(str(fact_index[sk_key][0])),
+                            fact_index[sk_key][1]
+                            if isinstance(fact_index[sk_key][1], URIRef)
+                            else URIRef(str(fact_index[sk_key][1])),
+                            fact_index[sk_key][2],
+                        )
+                        for sk_key in source_keys
+                        if isinstance(fact_index[sk_key][0], URIRef)
+                        and isinstance(fact_index[sk_key][1], URIRef)
+                    ]
+                    deriv_id = derivation_id_iri(rule_iri, source_reifiers)
+
+                    fact_index[key] = (head_s, head_p, head_o)
+                    new_delta.append((head_s, head_p, head_o))
+                    derived_quads.append(
+                        DerivedQuad(
+                            graph=world_iri,
+                            subject=str(head_s),
+                            predicate=str(head_p),
+                            obj=head_o.n3(),
+                            graph_component=world_iri,
+                            derivation_id=deriv_id,
+                            rule_iri=rule_iri,
+                            source_quad_ids=source_reifiers,
+                            profile=profile_iri,
+                            budget_status=budget_state.status_str(),
+                        )
+                    )
+                    budget_state.note_firing()
+                    budget_state.note_answers(len(derived_quads))
+                    budget_state.check_time()
+                    if budget_state.should_stop_chase():
+                        break
+
+            if budget_state.should_stop_chase():
+                break  # wall-clock cut — stop the chase (sound partial result)
+            if not new_delta:
+                break  # fixpoint reached
+            delta = new_delta
+        else:
+            # Iteration cap hit — should not happen for finite positive programs
+            raise MaterializationError(
+                f"Chase did not reach fixpoint in world {world_iri!r} after "
+                "10,000 rounds. Check for non-terminating rules."
+            )
 
         if budget_state.should_stop_chase():
-            break  # wall-clock cut — stop the chase (sound partial result)
-        if not new_delta:
-            break  # fixpoint reached
-        delta = new_delta
-    else:
-        # Iteration cap hit — should not happen for finite positive Horn programs
-        raise MaterializationError(
-            f"Chase did not reach fixpoint in world {world_iri!r} after "
-            "10,000 rounds. Check for non-terminating rules."
-        )
+            break  # propagate a wall-clock cut out of the stratum loop too
 
     # Deterministic truncation under the DERIVED-quad count ceilings.  Because
     # the chase ran to FULL fixpoint (only a wall-clock cut stops it early), the
@@ -1177,6 +1278,57 @@ def _chase_world(
     return all_quads, all_facts, loss_entries, budget_state
 
 
+def _atom_is_satisfied(
+    atom: LogicAxiom,
+    bindings: dict[str, URIRef | Literal],
+    fact_index: dict[
+        tuple[str, str, str],
+        tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal],
+    ],
+) -> bool:
+    """Whether a (negated) atom has at least one match in ``fact_index`` (issue #503).
+
+    Used for negation-as-failure: the negated atom ``NOT p(?x, ?y)`` is *satisfied as
+    a negative literal* when this returns ``False`` (no matching fact).  The atom is
+    grounded by the current positive-join ``bindings`` first, then matched against the
+    fact base.  Stratified evaluation (see :func:`_chase_world`) guarantees the
+    negated predicate's stratum is already at fixpoint, so a missing match is a sound
+    "fails", never a premature one.
+
+    Args:
+        atom: The negated body :class:`~.logic_ir.LogicAxiom`.
+        bindings: The variable bindings assembled by the positive body join.
+        fact_index: The current world fact store.
+
+    Returns:
+        ``True`` iff some fact matches the bound atom (so NAF would block the rule).
+    """
+    atom_s = bindings.get(atom.subject)
+    atom_p = bindings.get(atom.predicate)
+    atom_o = bindings.get(atom.obj)
+    for (fs, fp, fo), (sk_s, sk_p, sk_o) in fact_index.items():
+        if atom_s is not None and fs != atom_s.n3():
+            continue
+        if atom_p is not None and fp != atom_p.n3():
+            continue
+        if atom_o is not None and fo != atom_o.n3():
+            continue
+        if (
+            _match_atom(
+                atom.subject,
+                atom.predicate,
+                atom.obj,
+                atom.obj_is_literal,
+                sk_s,
+                sk_p,
+                sk_o,
+            )
+            is not None
+        ):
+            return True
+    return False
+
+
 def _join_body_atoms(
     body: tuple[object, ...],
     fact_index: dict[
@@ -1184,6 +1336,7 @@ def _join_body_atoms(
         tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal],
     ],
     delta: list[tuple[URIRef | Literal, URIRef | Literal, URIRef | Literal]],
+    enable_naf: bool = False,
 ) -> list[tuple[dict[str, URIRef | Literal], list[tuple[str, str, str]]]]:
     """Join all body atoms against the fact base (semi-naive).
 
@@ -1191,27 +1344,55 @@ def _join_body_atoms(
     over the fact base.  At least one atom must match a delta fact (the
     semi-naive condition).
 
+    Negation-as-failure (issue #503, ``enable_naf=True``)
+    ----------------------------------------------------
+    When ``enable_naf`` is True the body is split into *positive* atoms (joined as
+    usual, contributing the semi-naive delta condition + provenance) and *negated*
+    atoms (``atom.negated``), which are NOT joined and contribute no source quad.
+    After the positive join, every candidate binding is dropped if any of its
+    grounded negated atoms still matches a fact (:func:`_atom_is_satisfied`).  This
+    is sound only under stratified evaluation — the caller chases lower strata to
+    fixpoint before any rule whose negated atom references them fires.
+
+    With ``enable_naf=False`` (the default — every pre-#503 call) negated atoms are
+    treated as ordinary positive joins, exactly as before, so the materialisation of
+    the existing corpus is byte-identical.
+
     Args:
         body: The body axioms (LogicAxiom instances from the rule).
         fact_index: The current world fact store.
         delta: Newly derived facts from the previous round.
+        enable_naf: When True, evaluate ``atom.negated`` body atoms as
+            negation-as-failure literals; when False, treat them positively
+            (the byte-stable pre-#503 default).
 
     Returns:
         A list of (bindings, source_keys) pairs — one per full join result.
         ``source_keys`` are the fact_index keys of the matched facts.
     """
-    from gmeow_tools.logic_ir import LogicAxiom  # local import avoids circularity
-
     delta_set: set[tuple[str, str, str]] = {
         (s.n3(), p.n3(), o.n3()) for s, p, o in delta
     }
+
+    # Under NAF the join walks only positive atoms; negated atoms are applied as a
+    # post-join filter.  Without NAF the whole body is joined (byte-stable default).
+    if enable_naf:
+        positive_body: tuple[object, ...] = tuple(
+            a for a in body if not (isinstance(a, LogicAxiom) and a.negated)
+        )
+        negated_body: tuple[LogicAxiom, ...] = tuple(
+            a for a in body if isinstance(a, LogicAxiom) and a.negated
+        )
+    else:
+        positive_body = body
+        negated_body = ()
 
     # Start with a single empty binding + no sources
     solutions: list[tuple[dict[str, URIRef | Literal], list[tuple[str, str, str]]]] = [
         ({}, [])
     ]
 
-    for atom in body:
+    for atom in positive_body:
         if not isinstance(atom, LogicAxiom):
             raise MaterializationError(f"Body element is not a LogicAxiom: {atom!r}")
         next_solutions: list[
@@ -1251,7 +1432,23 @@ def _join_body_atoms(
         if not solutions:
             break
 
-    # Semi-naive filter: at least one source key must be in the delta
+    # Negation-as-failure filter (issue #503): drop any binding whose grounded
+    # negated atoms still match a fact.  Only applied when enable_naf is True; the
+    # negated_body tuple is empty otherwise, so this is a no-op for the byte-stable
+    # default path.
+    if negated_body:
+        solutions = [
+            (bindings, sources)
+            for bindings, sources in solutions
+            if not any(
+                _atom_is_satisfied(neg, bindings, fact_index) for neg in negated_body
+            )
+        ]
+
+    # Semi-naive filter: at least one source key must be in the delta.  A rule with
+    # an all-negated body (no positive atom) has no source key and so could never
+    # pass this filter; such rules are malformed under DL-safety (every variable must
+    # be positively bound), so they are correctly never fired here.
     return [
         (bindings, sources)
         for bindings, sources in solutions
@@ -1269,6 +1466,7 @@ def materialize_program(
     input_graph: ConjunctiveGraph,
     profile: SemanticProfileId = SemanticProfileId.POSITIVE_HORN,
     budget: BudgetParams | None = None,
+    enable_naf: bool = False,
 ) -> MaterializationResult:
     """Run the forward Horn chase to fixpoint over the input ConjunctiveGraph.
 
@@ -1307,6 +1505,12 @@ def materialize_program(
             passed and tripped, the result is a SOUND partial: kept quads carry
             ``budget_status="exhausted"`` and :attr:`MaterializationResult.incomplete`
             is ``True`` — never a false answer.
+        enable_naf: When True (issue #503), evaluate ``logic:negatedBody`` atoms as
+            stratified negation-as-failure (see :func:`_chase_world`).  When False
+            (the default — every pre-#503 caller) the materialisation is
+            byte-identical to the prior behaviour: negated atoms are treated as
+            ordinary positive joins.  Only the gated foundation-lowering path
+            (:mod:`gmeow_tools.logic_runner`) passes ``True``.
 
     Returns:
         A :class:`MaterializationResult` with all quads, worlds, profile,
@@ -1344,7 +1548,7 @@ def materialize_program(
     for world_iri, facts in sorted(world_facts.items()):
         input_quad_count += len(facts)
         world_quads, closed_facts, loss, world_budget = _chase_world(
-            world_iri, facts, program, profile_iri, budget
+            world_iri, facts, program, profile_iri, budget, enable_naf
         )
         derived_quad_count += len(world_quads) - len(facts)
         all_quads.extend(world_quads)

@@ -126,6 +126,57 @@ logic:mediates
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #
+# OntoUML discipline diagnostics (issue #503). The structural disciplines that
+# today live as external Python lints (reasoning_lint.py) are lowered to
+# executable logic: rules whose materialized logic:violation facts reproduce the
+# lint verdicts. logic:violation is the derived diagnostic relation; the
+# logic:Discipline individuals are a CLOSED label set so a typo'd label fails
+# closed (it names no declared individual) rather than silently passing.
+# --------------------------------------------------------------------------- #
+
+logic:Discipline
+    a owl:Class ;
+    rdfs:label "Discipline"@x-gmeow-english ;
+    skos:definition "A named OntoUML structural discipline a class can violate: the closed vocabulary of anti-patterns the foundation lowering checks (stereotype cardinality, identity overlap, free role, mixed rigidity, relator completeness). Its named individuals are the labels a logic:violation fact points at; the set is closed so a misspelt label names no declared discipline and is rejected rather than silently accepted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:violation
+    a owl:ObjectProperty ;
+    rdfs:label "violation"@x-gmeow-english ;
+    skos:definition "Relates an offending class to the logic:Discipline it violates: the derived diagnostic the OntoUML-discipline lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption and mediation facts, so its presence is a machine-checkable proof that the class breaks the named discipline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:StereotypeCardinality
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Stereotype Cardinality"@x-gmeow-english ;
+    skos:definition "The discipline that every class carries exactly one stereotype: a class with no meta-class pun, or with two or more distinct meta-class puns, violates it. The lowering of reasoning_lint.exactly_one_stereotype — the precondition every other discipline assumes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:MixIden
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Mixed Identity"@x-gmeow-english ;
+    skos:definition "The OntoUML MixIden anti-pattern: a sortal inherits its principle of identity from exactly one Kind. A Kind specializing another Kind, or a non-Kind sortal tracing to zero or to two-or-more Kinds, violates it. The lowering of reasoning_lint.identity_overlap."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:FreeRole
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Free Role"@x-gmeow-english ;
+    skos:definition "The OntoUML FreeRole anti-pattern: an anti-rigid sortal (Role or Phase) must specialize a rigid sortal from which to inherit a principle of identity. An anti-rigid sortal with no rigid (Kind/SubKind) ancestor violates it. One half of the lowering of reasoning_lint.anti_rigidity_discipline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:MixRig
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Mixed Rigidity"@x-gmeow-english ;
+    skos:definition "The OntoUML MixRig anti-pattern: a rigid sortal (Kind or SubKind) must never specialize an anti-rigid type (Phase, Role, PhaseMixin, RoleMixin, Mixin), because a rigid type cannot inherit contingent instantiation. A rigid sortal with an anti-rigid-type ancestor violates it. The other half of the lowering of reasoning_lint.anti_rigidity_discipline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:RelComp
+    a owl:NamedIndividual, logic:Discipline ;
+    rdfs:label "Relator Completeness"@x-gmeow-english ;
+    skos:definition "The OntoUML RelComp anti-pattern: a concrete Relator must mediate at least two distinct relata. A concrete Relator (one with no logic: subclass to defer its mediations to) that mediates fewer than two distinct entities violates it. The lowering of reasoning_lint.relator_mediation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
 # Semantic profiles (LOGIC-SEMANTICS.md §Semantic profiles). Every rule set
 # MUST declare the profile that governs it; a rule set with no declared
 # profile is rejected by the compiler. Soundness, completeness, and the

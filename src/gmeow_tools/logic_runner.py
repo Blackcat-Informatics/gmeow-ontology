@@ -69,6 +69,7 @@ from rdflib.compare import isomorphic
 
 from gmeow_tools.logic_certify import certify_program
 from gmeow_tools.logic_explain import Explanation, explain
+from gmeow_tools.logic_foundation import foundation_rules
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
 from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
 from gmeow_tools.logic_materialize import (
@@ -622,13 +623,32 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # the result is byte-identical to pre-#502 behaviour.
     budget = _parse_budget_params(case_dir, profile_data)
 
+    # Foundation lowering (issue #503, Task 2).  ONLY injected when a case opts in
+    # via ``profile.json`` ``"foundation_lowering": true`` — never auto-gated on
+    # stereotype presence, so the existing projections/kind-hierarchy case (which
+    # declares logic:Kind/SubKind/Role + a logic:subClassOf chain) stays
+    # byte-identical (Corpus-safety, issue #503).  When opted in, the materialiser
+    # runs an augmented program (original axioms/profiles + original rules + the
+    # OntoUML-discipline lowering rules) with stratified NAF enabled.
+    materialize_program_obj = program
+    enable_naf = False
+    if profile_data.get("foundation_lowering") is True:
+        materialize_program_obj = LogicProgram(
+            axioms=program.axioms,
+            rules=(*program.rules, *foundation_rules(program)),
+            profiles=program.profiles,
+            source_iri=program.source_iri,
+        )
+        enable_naf = True
+
     # Materialize
     try:
         mat_result = materialize_program(
-            program,
+            materialize_program_obj,
             input_graph,
             profile=SemanticProfileId.POSITIVE_HORN,
             budget=budget,
+            enable_naf=enable_naf,
         )
     except MaterializationError as exc:
         raise RunnerError(
