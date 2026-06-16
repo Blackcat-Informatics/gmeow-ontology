@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # getrandom 0.3 on wasm32-unknown-unknown requires an explicit backend cfg flag.
 # Without this the build fails with "no wasm backend" at link time.

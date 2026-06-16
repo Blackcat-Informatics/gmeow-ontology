@@ -5,15 +5,19 @@ This product includes software and an ontology developed by
 Blackcat Informatics® Inc. (https://blackcatinformatics.ca/).
 
 Licensing
-  - Tooling code:      Apache License 2.0 (see LICENSE).
-  - GMEOW vocabulary:  CC BY 4.0 (see LICENSE-ontology).
+  - Tooling code & Rust core:  GNU Affero General Public License v3.0 only
+    (AGPL-3.0-only; see LICENSE).
+  - GMEOW vocabulary:          CC BY 4.0 (see LICENSE-ontology).
   - Both are additionally available under separate commercial/proprietary terms
     from Blackcat Informatics® Inc. (dual licensing); see LICENSING.md.
+  - The GTS format engine lives in the separate gmeow-gts repository and is
+    licensed Apache-2.0 OR MIT.
 
 Trademarks
-  "Blackcat Informatics®" is a registered trademark, and "GMEOW" is a trademark,
-  of Blackcat Informatics® Inc. The open licenses grant no trademark rights
-  (Apache License 2.0 Section 6; CC BY 4.0 Section 2(b)).
+  "BLACKCAT INFORMATICS" (word mark, CIPO TMA1066935) and the black-cat-silhouette
+  & Sierpinski-triangle design mark (CIPO TMA1233860) are registered trademarks of
+  Blackcat Informatics® Inc. "GMEOW" is not a trademark. The open licenses grant no
+  trademark rights (CC BY 4.0 Section 2(b); the AGPL-3.0 grants no trademark rights).
 
 Third-party components
   - gUFO (imports/gufo.ttl) — Copyright the gUFO authors (NEMO / Federal

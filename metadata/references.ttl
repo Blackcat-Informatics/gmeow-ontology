@@ -6748,7 +6748,7 @@
 <https://blackcatinformatics.ca/gmeow/references/citation/f97f4bda7fecad85> a gmeow:CitationAct ;
     rdfs:label "crates/gts/README.md"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity <https://img.shields.io/badge/license-Apache--2.0-blue.svg> ;
+    gmeow:citedEntity <https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg> ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/gts/README.md> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/f97f4bda7fecad85> .
 
@@ -12422,9 +12422,9 @@ brick: a gmeow:CreativeWork ;
     rdfs:label "iiif.io/api/presentation/3.0"@en ;
     gmeow:sourceLocation "https://iiif.io/api/presentation/3.0/" .
 
-<https://img.shields.io/badge/license-Apache--2.0-blue.svg> a gmeow:CreativeWork ;
-    rdfs:label "img.shields.io/badge/license-Apache--2.0-blue.svg"@en ;
-    gmeow:sourceLocation "https://img.shields.io/badge/license-Apache--2.0-blue.svg" .
+<https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg> a gmeow:CreativeWork ;
+    rdfs:label "img.shields.io/badge/license-AGPL--3.0--only-blue.svg"@en ;
+    gmeow:sourceLocation "https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg" .
 
 <https://img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg> a gmeow:CreativeWork ;
     rdfs:label "img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg"@en ;

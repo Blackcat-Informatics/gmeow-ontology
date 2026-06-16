@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 #
 # The hallucination-resistant KG worked example (#55) — DOGFOODED: the corpus
 # is GMEOW's own README.md and CONSTITUTION.md, with REAL content digests and

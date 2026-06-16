@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 #
 # Constitution-as-code (#280): the machine-readable principle→enforcement
 # manifest. CONSTITUTION.md stays the normative prose; THIS file is the
@@ -71,7 +71,7 @@ meta:gate-generator-registry a meta:Gate ;
     meta:cliCommand "regenerate", "check-generated" ;
     meta:makeTarget "check-generated", "regenerate" ;
     meta:generator "statements", "mappings", "gts", "exports",
-        "metadata", "schemas", "lpg", "matrix", "apache", "gts-vectors",
+        "metadata", "schemas", "lpg", "matrix", "apache",
         "catalog", "profiles", "frame-shapes", "evals", "parquet",
         "research-objects", "references", "logic" .
 
@@ -151,16 +151,15 @@ meta:tests-reasoning a meta:TestSuite ;
 
 meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
-    meta:artifact "packages/gts", "packages/gts/src/gts/examples/agent_memory.py", "src/gmeow_tools/mcp_server.py",
+    meta:artifact "src/gmeow_tools/gts_producer.py", "src/gmeow_tools/mcp_server.py",
         "docs/mcp-server.md" ;
     meta:symbol "store_claim" ;
     meta:cliCommand "mcp" .
 
 meta:tests-products a meta:TestSuite ;
     rdfs:label "client / MCP memory / GTS engine tests"@x-gmeow-english ;
-    meta:artifact "packages/gts/tests/test_agent_memory.py",
-        "tests/test_mcp_memory.py", "tests/test_gts.py",
-        "tests/test_gts_producer.py" .
+    meta:artifact "tests/test_mcp_memory.py",
+        "tests/test_gts_producer.py", "tests/test_gts_views.py" .
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;

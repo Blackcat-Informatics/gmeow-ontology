@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The GMEOW → maximally-interlinked transpiler (#34, Phase 1).
 
 ``MAXIMAL(G) = G + E(G) + P(G)``: author the profile ONCE as canonical GMEOW;
@@ -287,9 +287,9 @@ def _serialize_outputs(
     ``base_plus_derived`` is retagged in place for the consumer tiers.
     """
     import pyoxigraph
+    from gts import read, to_nquads
 
     from gmeow_tools.language_tags import retag_graph
-    from gts import read, to_nquads
 
     out_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []

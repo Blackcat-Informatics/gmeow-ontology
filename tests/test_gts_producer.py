@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Tests for the RDF → GTS producer and the gts → {sqlite,duckdb} shims (#271)."""
 
 from __future__ import annotations
@@ -8,13 +8,13 @@ import sqlite3
 from collections.abc import Mapping
 from pathlib import Path
 
+from gts import read, to_nquads
+from gts.wire import iter_items, unwrap_header
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 from rdflib.namespace import RDFS, XSD
 
 from gmeow_tools.gts_db import to_duckdb, to_sqlite
 from gmeow_tools.gts_producer import compile_gts, gts_from_graph
-from gts import read, to_nquads
-from gts.wire import iter_items, unwrap_header
 
 EX = "https://example.org/"
 

@@ -3,7 +3,7 @@ name = "gmeow-dev"
 version = "1.0.2"
 description = "Repository-maintenance CLI for the GMEOW ontology checkout."
 requires-python = ">=3.13"
-license = "Apache-2.0"
+license = "AGPL-3.0-only"
 authors = [{ name = "Blackcat Informatics® Inc." }]
 dependencies = ["gmeow==1.0.2"]
 

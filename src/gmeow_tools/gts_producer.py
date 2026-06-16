@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The ``RDF → GTS`` producer (issue #271).
 
 The encoder side of the narrow waist. Two ingest paths feed a single term
@@ -21,12 +21,11 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from rdflib import BNode, Dataset, Graph, Literal, URIRef
-
 from gts import Signer
 from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gts.wire import canonical
 from gts.writer import Writer, term_to_wire
+from rdflib import BNode, Dataset, Graph, Literal, URIRef
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

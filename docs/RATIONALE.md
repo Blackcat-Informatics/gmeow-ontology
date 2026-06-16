@@ -146,6 +146,6 @@ yet?" stops being a vibe and becomes a number with an explicit, shrinking gap li
 
 - [`CONSTITUTION.md`](../CONSTITUTION.md) — the twelve normative principles these choices answer to.
 - [`README.md`](../README.md) — the toolchain and how to build/validate/publish.
-- [`LICENSING.md`](../LICENSING.md) — dual licensing (Apache-2.0 tooling / CC BY 4.0 vocabulary).
+- [`LICENSING.md`](../LICENSING.md) — dual licensing (AGPL-3.0-only tooling / CC BY 4.0 vocabulary).
 - `mappings/` — the SSSOM alignment tables that make the superset real.
 - `tests/fixtures/coverage/` — the public data slices coverage is measured against.

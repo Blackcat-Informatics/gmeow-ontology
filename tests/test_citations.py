@@ -7,6 +7,8 @@ well-formedness.
 
 from __future__ import annotations
 
+import re
+
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
@@ -199,10 +201,10 @@ def test_self_description_models_project_repository_and_brand_assets() -> None:
     assert (SELF.project, RDF.type, GMEOW.SoftwareProject) in g
     assert (SELF.project, GMEOW.hasRepository, SELF.repository) in g
     assert (SELF.project, GMEOW.maintenanceStatus, GMEOW.statusActive) in g
-    assert (SELF.project, GMEOW.projectLicense, SELF["license-apache-2"]) in g
-    assert (SELF["license-apache-2"], RDF.type, GMEOW.License) in g
+    assert (SELF.project, GMEOW.projectLicense, SELF["license-agpl-3"]) in g
+    assert (SELF["license-agpl-3"], RDF.type, GMEOW.License) in g
     assert (
-        SELF["license-apache-2"],
+        SELF["license-agpl-3"],
         GMEOW.licensor,
         URIRef("https://blackcatinformatics.ca/#bii"),
     ) in g
@@ -236,7 +238,9 @@ def _norm_ws(text: str) -> str:
 def test_canonical_description_is_standardized() -> None:
     """One abstract, identical across self-desc / ontology header / CITATION.cff.
 
-    Also asserts the stated slice and vocabulary counts match the real counts.
+    Also asserts the stated vocabulary count matches the real count. The slice
+    count is deliberately NOT stated in prose — it would drift as slices are
+    added; the manifest tier is the sole source of slice truth.
     """
     import yaml
     from rdflib.namespace import DCTERMS
@@ -245,7 +249,6 @@ def test_canonical_description_is_standardized() -> None:
         ALIGNMENT_TARGETS,
         ONTOLOGY_FILE,
         PROJECT_ROOT,
-        SLICES_DIR,
     )
     from gmeow_tools.self_desc import load_self_description
 
@@ -268,8 +271,11 @@ def test_canonical_description_is_standardized() -> None:
     cff = yaml.safe_load((PROJECT_ROOT / "CITATION.cff").read_text(encoding="utf-8"))
     assert _norm_ws(cff["abstract"]) == _norm_ws(canonical)
 
-    # The stated counts must equal the real counts — numbers cannot drift.
-    n_slices = len(list(SLICES_DIR.glob("*/*/manifest.ttl")))
+    # The stated vocabulary count must equal the real count — and the slice count
+    # must NOT be stated in prose (it would drift; manifests are the truth).
     n_align = len(ALIGNMENT_TARGETS)
-    assert f"{n_slices} self-contained slices" in canonical
     assert f"{n_align} external vocabularies" in canonical
+    assert "self-contained slices" in canonical
+    assert not re.search(r"\d+\s+self-contained slices", canonical), (
+        "slice count must not be hard-coded in the canonical description"
+    )

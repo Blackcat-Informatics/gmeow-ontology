@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 #
 # Genuine-gap clusters (#449 triage): person (nationality, alumniOf), media
 # (transcript, caption), and software-project (bugDatabase, downloadPage) facets.

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Conformance runner for the Logic v1 monotonic core (issue #501, Task 7).
 
 This module is the **Python oracle runner** — it wires :mod:`~.logic_frontend`,

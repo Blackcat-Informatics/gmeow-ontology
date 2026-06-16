@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 name: Publish gmeow to PyPI
 
 # Publish the ``gmeow`` ontology toolchain via PyPI trusted publishing (OIDC).
@@ -113,20 +113,24 @@ jobs:
       - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: "3.13"
-      - name: Poll for matching gmeow-gts release on PyPI
+      - name: Poll for a matching gmeow-gts release on PyPI
+        # gmeow-gts is an external package (repo: gmeow-gts) resolved from PyPI.
+        # Verify that the version range gmeow requires is satisfiable before we
+        # publish gmeow, so a fresh install of gmeow cannot fail on its engine.
         run: |
-          gts_version=$(python -c "import tomllib; print(tomllib.load(open('packages/gts/pyproject.toml','rb'))['project']['version'])")
+          gts_spec=$(python -c "import tomllib; deps = tomllib.load(open('pyproject.toml','rb'))['project']['dependencies']; print(next(d for d in deps if d.replace('_','-').lower().startswith('gmeow-gts')))")
+          echo "gmeow requires: ${gts_spec}"
           deadline=$((SECONDS + 540))
           while true; do
-            if pip install --dry-run "gmeow-gts==${gts_version}"; then
-              echo "gmeow-gts ${gts_version} is available on PyPI"
+            if pip install --dry-run "${gts_spec}"; then
+              echo "A gmeow-gts matching '${gts_spec}' is available on PyPI"
               exit 0
             fi
             if [[ $SECONDS -ge $deadline ]]; then
-              echo "::error::gmeow-gts ${gts_version} did not become available within 9 minutes"
+              echo "::error::No gmeow-gts matching '${gts_spec}' became available within 9 minutes"
               exit 1
             fi
-            echo "gmeow-gts ${gts_version} not yet available; retrying in 10s"
+            echo "No gmeow-gts matching '${gts_spec}' yet; retrying in 10s"
             sleep 10
           done
 

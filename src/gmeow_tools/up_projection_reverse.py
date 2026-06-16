@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Reverse-projection up-lift — mint STRUCTURED GMEOW from flat consumer vocab.
 
 The per-term lift reverses a 1:1 alignment, but a flat consumer predicate often

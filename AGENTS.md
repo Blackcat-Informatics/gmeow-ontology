@@ -1,5 +1,5 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 # AI Developer Agent Guide (AGENTS.md)
 
@@ -129,23 +129,15 @@ make test            # Run the pytest test suite (Python/SPARQL competency tests
 make check           # Run FULL gate: lint, validate, compilation check, reason, verify, tests
 ```
 
-#### Go GTS engine (go/gts, #339)
+#### GTS engines (moved to the `gmeow-gts` repo)
 
-The Go engine is a third independent implementation of the GTS baseline reader
-and files-profile writer. It gates against the same frozen conformance corpus
-(`generated/gts-vectors/`) as the Python and Rust engines, and exposes the same
-`gts` CLI surface.
-
-```bash
-# Install the gts CLI from the latest release
-go install go.blackcatinformatics.ca/gts/cmd/gts@latest
-
-# Local development
-cd go/gts
-go build ./...       # Build the engine and CLI
-go vet ./...         # Static analysis
-go test ./...        # Conformance corpus + unit + CLI integration tests
-```
+The four GTS engines (Python, Rust, Go, TypeScript) and the frozen conformance
+corpus now live in the standalone
+[`gmeow-gts`](https://github.com/Blackcat-Informatics/gmeow-gts) repo. The ontology
+consumes the published `gts` Python package (PyPI: `gmeow-gts`) through the
+narrow-waist glue in `src/gmeow_tools/gts_*`. The `gts` CLI, when needed, is
+available via `cargo install gmeow-gts`, `pip install gmeow-gts`, or
+`go install go.blackcatinformatics.ca/gts/cmd/gts@latest`.
 
 > [!IMPORTANT]
 > Always run `make check` locally and ensure it passes completely before proposing changes, committing, or submitting a PR.
@@ -234,8 +226,7 @@ generated/               # EVERY committed generated artifact, one root:
                          #   lpg/ metadata/ apache/ module-status.md
 dist/                    # Ephemeral build products (one .gitignore line)
 src/gmeow_tools/         # The toolchain (CLI: `gmeow …`)
-crates/gts/              # Rust GTS engine (#277)
-go/gts/                  # Go GTS engine (#339)
+                         #   gts_* = narrow-waist glue over the external gmeow-gts package
 tests/                   # Cross-slice tests (slice-local tests live IN slices)
 ```
 

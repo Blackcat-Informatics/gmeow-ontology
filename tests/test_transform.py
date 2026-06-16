@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The transpiler driver (#34 Phase 1): MAXIMAL(G) = G + E(G) + P(G).
 
 Acceptance pins: one file family per run (gts/nq/ttl/jsonld); every derived

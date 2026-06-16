@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Bundle-backed access to the folded ontology surface and its transforms.
 
 The `gmeow` wheel ships ONE artifact — `generated/dist/gmeow.gts` — that folds
@@ -25,13 +25,14 @@ import io
 import tarfile
 from functools import lru_cache
 
+from gts.model import Graph as GtsGraph
+
 from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,
     GTS_SNAPSHOT_FILE,
     NAMESPACE,
     ONTOLOGY_FILE,
 )
-from gts.model import Graph as GtsGraph
 
 #: Representation labels for the folded transform blobs (the `rep` field in
 #: ``graph.blob_meta``). Kept in lock-step with the generator that writes them.

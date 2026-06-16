@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Static profile / decidability certifier over the :mod:`gmeow_tools.logic_ir` IR.
 
 This module is the logic-profile analogue of :mod:`gmeow_tools.reasoning_lint`:

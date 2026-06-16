@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The narrow-waist seal (#267, #12): GTS is the only exit for data.
 
 Two complementary enforcement layers, so the waist cannot silently regress:
@@ -27,7 +27,6 @@ from gmeow_tools import (  # noqa: F401  (@register side effects)
     apache,
     export,
     gts_gen,
-    gts_vectors_gen,
     lpg,
     mapping_compile,
     matrix,

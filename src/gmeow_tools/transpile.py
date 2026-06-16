@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The full transpile — consumer RDF → pure GMEOW → MAXIMAL multi-vocab (#448).
 
 The two halves, chained end to end:

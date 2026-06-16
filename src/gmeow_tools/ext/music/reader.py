@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Read a GTS ``music-package`` into the Python :py:mod:`model`."""
 
 from __future__ import annotations
@@ -8,11 +8,13 @@ from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import gts
+from gts.model import Graph as GTSGraph
+from gts.model import TermKind
 from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import RDFS
 from rdflib.term import Node
 
-import gts
 from gmeow_tools.ext.music.model import (
     Piece,
     PitchValue,
@@ -21,8 +23,6 @@ from gmeow_tools.ext.music.model import (
     TuningSystem,
     Voice,
 )
-from gts.model import Graph as GTSGraph
-from gts.model import TermKind
 
 if TYPE_CHECKING:
     pass

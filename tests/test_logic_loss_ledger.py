@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Tests for Task 5: materialization loss-ledger wiring into the projection report.
 
 Verifies that :class:`~gmeow_tools.logic_materialize.LossEntry` records from
