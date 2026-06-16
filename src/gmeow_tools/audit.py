@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """``gmeow audit`` (#55): the hallucination-resistant gates as one command.
 
 Runs the named audit queries (``queries/audit/``) and the claim SHACL shapes

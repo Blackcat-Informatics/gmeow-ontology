@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """OWL/gUFO adapter: normalize legacy ``owl:*`` / ``gufo:`` source into IR.
 
 This module is the **adapter phase** of the #500 logic compiler

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 
 [workspace]
 # The GTS engine moved to the gmeow-gts repo; its `gts` binary is obtained via
@@ -10,5 +10,5 @@ resolver = "2"
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-license = "Apache-2.0"
+license = "AGPL-3.0-only"
 repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"

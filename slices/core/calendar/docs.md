@@ -1,7 +1,7 @@
 # Calendar and Scheduling Mapping
 
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 This document describes the GMEOW calendar and scheduling slice (calendar and scheduling design): the mapping
 between GMEOW's canonical scheduling layer and external calendar vocabularies —

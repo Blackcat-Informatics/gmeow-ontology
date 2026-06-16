@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Tests for ``gmeow logic compile`` CLI and the ``LogicGenerator`` registration.
 
 Module under test: ``logic_compile.py`` (generator) + ``cli_dev.py`` (CLI).

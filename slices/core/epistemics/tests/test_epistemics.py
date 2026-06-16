@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Epistemics slice — the keystone entailment and the no-truth-bit invariants.
 
 These structural assertions guard the minimal core of the epistemics slice: the

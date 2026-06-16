@@ -547,7 +547,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | id.loc.gov/authorities/sh85119723 | [link](https://id.loc.gov/authorities/sh85119723) | 1 |
 | id.loc.gov/authorities/subjects/sh85119723.html | [link](https://id.loc.gov/authorities/subjects/sh85119723.html) | 1 |
 | iiif.io/api/presentation/3.0 | [link](https://iiif.io/api/presentation/3.0/) | 1 |
-| img.shields.io/badge/license-Apache--2.0-blue.svg | [link](https://img.shields.io/badge/license-Apache--2.0-blue.svg) | 1 |
+| img.shields.io/badge/license-AGPL--3.0--only-blue.svg | [link](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg) | 1 |
 | img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg | [link](https://img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg) | 1 |
 | img.shields.io/crates/v/gmeow-gts.svg | [link](https://img.shields.io/crates/v/gmeow-gts.svg) | 1 |
 | img.shields.io/npm/v/@blackcatinformatics/gmeow-gts.svg | [link](https://img.shields.io/npm/v/@blackcatinformatics/gmeow-gts.svg) | 1 |

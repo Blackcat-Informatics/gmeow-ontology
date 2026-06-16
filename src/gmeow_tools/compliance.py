@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Machine-readable compliance report (#285): per-principle gate evidence.
 
 The constitution manifest (#280) knows which gates enforce which principles;

@@ -1,5 +1,5 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 # Contributing to GMEOW
 
@@ -197,7 +197,16 @@ matters, email <oss@blackcatinformatics.ca>.
 
 ## License
 
-GMEOW is dual-licensed (see [LICENSING.md](LICENSING.md)). By contributing, you
-agree that your contributions to the tooling are licensed under
-[Apache-2.0](LICENSE) and your contributions to the vocabulary under
-[CC BY 4.0](LICENSE-ontology), subject to the CLA above.
+GMEOW is dual-licensed (see [LICENSING.md](LICENSING.md)). By contributing, you agree:
+
+- Contributions to GMEOW tooling/code are accepted under
+  [AGPL-3.0-only](LICENSE) and, under the project CLA, under terms that permit
+  Blackcat Informatics® Inc. to relicense them under separate
+  proprietary/commercial terms.
+- Contributions to ontology content, slices, mappings, and published vocabulary
+  artifacts are accepted under [CC-BY-4.0](LICENSE-ontology) and, where required
+  by the CLA, under terms that permit Blackcat Informatics® Inc. to publish,
+  sublicense, and commercially license the contributed material.
+- Contributions to [`gmeow-gts`](https://github.com/Blackcat-Informatics/gmeow-gts)
+  are accepted under Apache-2.0 OR MIT and, under the project CLA, under terms that
+  permit separate proprietary/commercial licensing.

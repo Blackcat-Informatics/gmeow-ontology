@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Competency tests for the AI claim layer (#54) and the graphrag extension.
 
 The examples gate (#332) validates both worked examples structurally; here the

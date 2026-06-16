@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Mensural notation projection for a GMEOW :py:class:`Piece`.
 
 This renderer emits a human-readable mensural transcription rather than a

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Post-publish smoke test for the ``gmeow`` PyPI package.
 
 Creates a fresh virtual environment, installs a pinned ``gmeow==<version>``

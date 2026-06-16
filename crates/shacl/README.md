@@ -5,13 +5,13 @@
 </p>
 
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 # `gmeow-shacl` — Rust SHACL Core Validator
 
 [![crates.io](https://img.shields.io/crates/v/gmeow-shacl.svg)](https://crates.io/crates/gmeow-shacl)
 [![docs.rs](https://docs.rs/gmeow-shacl/badge.svg)](https://docs.rs/gmeow-shacl)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/LICENSE)
 [![Repository](https://img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg)](https://github.com/Blackcat-Informatics/gmeow-ontology)
 
 > **An LLM output is a claim, not a truth.**
@@ -99,6 +99,8 @@ Related packages:
 
 Copyright © 2026 Blackcat Informatics® Inc.
 
-This crate is licensed under the **Apache License, Version 2.0** — see the
+This crate is licensed under the **GNU Affero General Public License v3.0 only**
+(AGPL-3.0-only) — see the
 [`LICENSE`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/LICENSE)
-file in the repository root.
+file in the repository root. Separate proprietary/commercial terms are available;
+contact `licensing@blackcatinformatics.ca`.

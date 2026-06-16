@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Context-aware up-projection — the graph-descent resolver (#451).
 
 The per-term lift (``up_projection.up_project``) resolves each triple in

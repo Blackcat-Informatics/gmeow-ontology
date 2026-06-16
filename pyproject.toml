@@ -4,7 +4,7 @@ version = "1.0.2"
 description = "GMEOW ontology tooling: refine, validate, reason over, document, and publish the Global Metadata and Entity Ontology for the Web."
 readme = "README.md"
 requires-python = ">=3.13"
-license = "Apache-2.0"
+license = "AGPL-3.0-only"
 authors = [{ name = "Blackcat Informatics® Inc." }]
 keywords = ["ontology", "owl", "rdf", "linked-data", "gmeow", "fair"]
 dependencies = [

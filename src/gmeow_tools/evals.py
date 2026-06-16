@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The claim-extraction eval suite (#298): which models emit valid GMEOW?
 
 Scores model emissions against the SAME gates the pattern ships (#55):

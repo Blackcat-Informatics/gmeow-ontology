@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: AGPL-3.0-only
 
 //! Static profile / decidability certifier — the Rust mirror of the Python
 //! oracle in `src/gmeow_tools/logic_certify.py`.

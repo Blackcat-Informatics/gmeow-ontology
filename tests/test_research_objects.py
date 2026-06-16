@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Research-object exports (#58): Croissant / RO-Crate / DataCite / Frictionless.
 
 Marked ``ci_only`` like the other secondary export surfaces.
