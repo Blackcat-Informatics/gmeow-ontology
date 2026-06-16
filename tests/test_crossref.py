@@ -120,6 +120,16 @@ def test_version_doi_emits_two_records_with_intra_relations() -> None:
     assert (meta.concept_doi, ONTOLOGY_IRI) in pairs
     assert (meta.version_doi, meta.version_iri) in pairs
 
+    # hasFormat relations are version-scoped: the version record points at its
+    # own immutable release snapshot, not the mutable always-latest Work formats.
+    has_format = {
+        r.text
+        for r in root.findall(f".//{{{REL_NS}}}intra_work_relation")
+        if r.attrib["relationship-type"] == "hasFormat"
+    }
+    assert f"{meta.version_iri}.ttl" in has_format  # version record
+    assert f"{ONTOLOGY_IRI}.ttl" in has_format  # concept record
+
 
 def test_deposit_carries_access_indicators_license() -> None:
     """The CC license is deposited via the AccessIndicators ai:program."""

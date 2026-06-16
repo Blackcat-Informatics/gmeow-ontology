@@ -278,7 +278,7 @@ def load_self_description_from_graph(g: Graph) -> SelfDescription:
 
     repo_url = ""
     for obj in g.objects(None, GMEOW.webUrl):
-        if isinstance(obj, Literal):
+        if isinstance(obj, URIRef | Literal):
             repo_url = str(obj)
             break
 

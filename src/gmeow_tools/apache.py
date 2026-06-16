@@ -222,7 +222,9 @@ _TEMPLATE = """\
 
 def _signposting_block(meta: SelfDescription) -> str:
     """Render the Signposting ``Link`` headers for the ``/gmeow`` landing page."""
-    cite_as = f"https://doi.org/{meta.doi}"
+    # The /gmeow landing page is the always-latest Work: cite-as the CONCEPT DOI,
+    # never the per-release version DOI (which meta.doi would become once minted).
+    cite_as = f"https://doi.org/{meta.concept_doi}"
     lines = [
         '<LocationMatch "^/gmeow/?$">',
         f'    Header always set Link "<{cite_as}>; rel=\\"cite-as\\""',

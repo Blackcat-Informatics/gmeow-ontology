@@ -264,14 +264,20 @@ def _alignment_relations() -> list[_Relation]:
     return relations
 
 
-def _format_relations() -> list[_Relation]:
-    """``hasFormat`` relations to every published serialization."""
+def _format_relations(base_iri: str = ONTOLOGY_IRI) -> list[_Relation]:
+    """``hasFormat`` relations to every published serialization of *base_iri*.
+
+    The concept record points at the always-latest Work serializations
+    (``{ONTOLOGY_IRI}.{ext}``); the version record points at its own immutable
+    release snapshot (``{version_iri}.{ext}``), so the version DOI never links to
+    mutable targets.
+    """
     return [
         _Relation(
             kind="intra_work_relation",
             type="hasFormat",
             identifier_type="uri",
-            target=f"{ONTOLOGY_IRI}.{ext}",
+            target=f"{base_iri}.{ext}",
             description=f"{label} serialization of the ontology.",
         )
         for ext, label in _SERIALIZATIONS
@@ -438,7 +444,7 @@ def build_deposit_xml(
     if has_version:
         assert description.version_doi is not None
         version_relations = [
-            *_format_relations(),
+            *_format_relations(description.version_iri),
             _Relation(
                 "intra_work_relation",
                 "isVersionOf",
