@@ -17,7 +17,7 @@ from functools import lru_cache, partial
 from importlib import metadata
 from pathlib import Path
 
-import pyoxigraph
+import gmeow_validate
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
 from rdflib.term import Node
@@ -53,9 +53,6 @@ _HOW_TO_USE = URIRef(NAMESPACE + "howToUse")
 _USE_FOR_CONSUMER = URIRef(NAMESPACE + "useForConsumer")
 _AVOID_FOR_CONSUMER = URIRef(NAMESPACE + "avoidForConsumer")
 _PROJECTION_CONTEXT = URIRef(NAMESPACE + "ProjectionContext")
-_TURTLE = pyoxigraph.RdfFormat.TURTLE
-
-type _OxParseResult = tuple[tuple[pyoxigraph.Quad, ...] | None, Exception | None]
 
 
 @lru_cache(maxsize=4)
@@ -215,37 +212,19 @@ def _cached_result(
     return result
 
 
-@lru_cache(maxsize=512)
-def _parse_file_ox(path: Path) -> _OxParseResult:
-    """Parse a single Turtle file with pyoxigraph, returning (quads, error).
-
-    Syntax validation and the sameAs ban scan overlapping source files. Keeping
-    that pass on pyoxigraph avoids building short-lived rdflib graphs for gates
-    that only need parse success plus a predicate/object scan.
-    """
-    try:
-        return tuple(pyoxigraph.parse(path.read_bytes(), format=_TURTLE)), None
-    except Exception as exc:
-        return None, exc
-
-
-def _ox_term_display(term: object) -> str:
-    """Return a readable RDF term string for pyoxigraph-backed diagnostics."""
-    if isinstance(term, pyoxigraph.NamedNode):
-        return term.value
-    if isinstance(term, pyoxigraph.BlankNode):
-        return f"_:{term.value}"
-    return str(term)
-
-
 def check_syntax() -> ValidationResult:
-    """Parse every source Turtle file individually to catch syntax errors."""
-    result = ValidationResult()
-    for source in iter_source_files():
-        _quads, exc = _parse_file_ox(source)
-        if exc is not None:
-            result.errors.append(f"syntax error in {source}: {exc}")
-    return result
+    """Parse every source Turtle file individually to catch syntax errors.
+
+    Runs through the Rust ``gmeow_validate`` extension (#579): the per-file
+    oxigraph parse and the ``"syntax error in {path}: {exc}"`` framing live in
+    Rust now, with no Python pyoxigraph fallback (the extension is a hard
+    dependency of the validation path).
+    """
+    report = gmeow_validate.check_syntax([str(p) for p in iter_source_files()])
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 def _authored_fixtures() -> list[Path]:
@@ -274,6 +253,11 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
 
     Returns:
         Validation result with one error per banned triple.
+
+    The scan runs through the Rust ``gmeow_validate`` extension (#579): the
+    per-quad ``owl:sameAs`` check, the namespace/allowlist filtering, and the
+    exact error framing live in Rust. There is no Python pyoxigraph fallback —
+    the extension is a hard dependency of the validation path.
     """
     if paths is None:
         paths = [
@@ -282,35 +266,15 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
         ]
     if not paths:
         raise ValueError("check_sameas_ban: paths to audit must not be empty")
-    result = ValidationResult()
-    for source in paths:
-        quads, exc = _parse_file_ox(source)
-        if exc is not None:
-            result.errors.append(f"failed to parse {source}: {exc}")
-            continue
-        assert quads is not None
-        for quad in quads:
-            subject = quad.subject
-            predicate = quad.predicate
-            obj_term = quad.object
-            if not isinstance(
-                predicate, pyoxigraph.NamedNode
-            ) or predicate.value != str(OWL.sameAs):
-                continue
-            if not isinstance(obj_term, pyoxigraph.NamedNode):
-                continue
-            obj = obj_term.value
-            if obj.startswith(NAMESPACE):
-                continue
-            subject_text = _ox_term_display(subject)
-            if (subject_text, obj) in _SAMEAS_ALLOWLIST:
-                continue
-            result.errors.append(
-                f"{source}: banned owl:sameAs to external entity "
-                f"{subject_text} owl:sameAs {obj} (Principle 5); "
-                f"use skos:exactMatch or gmeow:authorityLink"
-            )
-    return result
+    report = gmeow_validate.check_sameas_ban(
+        [str(p) for p in paths],
+        str(NAMESPACE),
+        [(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
+    )
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 def _is_gmeow_term(term: URIRef) -> bool:
