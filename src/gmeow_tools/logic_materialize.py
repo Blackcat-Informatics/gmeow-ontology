@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 r"""Python oracle forward materializer for the Logic v1 monotonic core.
 
 This module is **Principle 7's oracle**: a semi-naive Horn/Datalog forward

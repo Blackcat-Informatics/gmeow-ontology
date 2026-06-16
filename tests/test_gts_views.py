@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Tests for the fold-view layer (#267 narrow waist, PR 2).
 
 A handcrafted fold exercises every helper precisely; the real committed
@@ -10,6 +10,7 @@ snapshot proves the layer works at production scale and that the fold-side
 from __future__ import annotations
 
 import pytest
+from gts import Term, TermKind, Writer, read
 from rdflib import RDFS, URIRef
 
 from gmeow_tools.config import (
@@ -19,7 +20,6 @@ from gmeow_tools.config import (
 )
 from gmeow_tools.gts_views import ALL, DEFAULT, FoldView, load_fold
 from gmeow_tools.language_tags import public_text as rdflib_public_text
-from gts import Term, TermKind, Writer, read
 
 EX = "https://example.org/"
 RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The fold-view layer: exporters' window onto the GTS snapshot (#267, #12).
 
 :class:`FoldView` wraps a folded :class:`gts.model.Graph` with the access
@@ -17,11 +17,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
-from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE, PREFIXES
-from gmeow_tools.language_tags import is_internal_tag, rank_language
 from gts import read
 from gts.model import Graph, Term, TermKind
 from gts.nquads import term_token
+
+from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE, PREFIXES
+from gmeow_tools.language_tags import is_internal_tag, rank_language
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

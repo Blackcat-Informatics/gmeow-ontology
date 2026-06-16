@@ -8,8 +8,14 @@ holder (© 2026) and makes the work available under the open-source terms below
 
 | Component | Scope | License |
 |---|---|---|
-| **Tooling code** | This repository, excluding the vocabulary (`src/`, tests, build scripts, CI, docs tooling) | [Apache License 2.0](./LICENSE) |
-| **GMEOW vocabulary** | The ontology in `ontology/` and its published serializations | [CC BY 4.0](./LICENSE-ontology) |
+| **Tooling code & Rust core** | This repository, excluding the vocabulary (`src/`, `crates/`, tests, build scripts, CI, docs tooling) | [AGPL-3.0-only](./LICENSE) |
+| **GMEOW vocabulary** | The ontology in `ontology/`, the slices, mappings, and its published serializations | [CC BY 4.0](./LICENSE-ontology) |
+| **Documentation** | The prose docs (`docs/`, `*.md`, slice `docs.md`) | [CC BY 4.0](./LICENSE-ontology) |
+
+The **GTS format engine** lives in the separate
+[`gmeow-gts`](https://github.com/Blackcat-Informatics/gmeow-gts) repository (consumed
+here as a published package) and is licensed **Apache-2.0 OR MIT**; it is not covered by
+the AGPL terms above.
 
 The vendored third-party file `imports/gufo.ttl` (gUFO) is under the MIT License;
 its notice is preserved in that file and summarized in [`NOTICE`](./NOTICE).
@@ -25,20 +31,29 @@ To obtain a proprietary license, contact **licensing@blackcatinformatics.ca**.
 
 ## Trademarks
 
-"Blackcat Informatics®" is a registered trademark, and "GMEOW" is a trademark, of
-Blackcat Informatics® Inc. Neither open license grants any right to use these
-names, logos, or marks — see **Apache License 2.0 §6** and **CC BY 4.0 §2(b)**.
-Nominative references (e.g. "compatible with GMEOW") are permitted; uses implying
-endorsement or origin are not.
+"BLACKCAT INFORMATICS" (word mark, CIPO TMA1066935) and the black-cat-silhouette &
+Sierpinski-triangle design mark (CIPO TMA1233860) are registered trademarks of
+Blackcat Informatics® Inc. "GMEOW" is **not** a trademark. Neither open license
+grants any right to use these marks or logos — the **AGPL-3.0** grants no trademark
+rights, and see **CC BY 4.0 §2(b)**. Nominative references (e.g. "compatible with
+GMEOW") are permitted; uses implying endorsement or origin are not.
 
 ## Contributions
 
-Contributions are accepted under the same open licenses (Apache-2.0 for code,
-CC BY 4.0 for the vocabulary). For the dual-licensing reservation above to extend
-to contributed material, contributors agree to license their contributions to
-Blackcat Informatics® Inc. under terms that permit Blackcat Informatics® to
-relicense them, including under proprietary terms. A Contributor License
-Agreement may be required before substantial contributions are merged.
+Contributions to GMEOW tooling/code are accepted under AGPL-3.0-only and, under the
+project CLA, under terms that permit Blackcat Informatics® Inc. to relicense them
+under separate proprietary/commercial terms.
+
+Contributions to ontology content, slices, mappings, and published vocabulary
+artifacts are accepted under CC-BY-4.0 and, where required by the CLA, under terms
+that permit Blackcat Informatics® Inc. to publish, sublicense, and commercially
+license the contributed material.
+
+Contributions to gmeow-gts are accepted under Apache-2.0 OR MIT and, under the
+project CLA, under terms that permit separate proprietary/commercial licensing.
+
+A Contributor License Agreement may be required before substantial contributions
+are merged.
 
 ## Copyright notice
 

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Central import helper that registers every GMEOW artifact generator.
 
 The generator modules use the ``@register`` decorator side-effect to populate
@@ -17,7 +17,6 @@ MODULES = (
     "export",
     "frame_shapes_gen",
     "gts_gen",
-    "gts_vectors_gen",
     "logic_compile",
     "lpg",
     "mapping_compile",

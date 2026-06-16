@@ -1,5 +1,5 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 ## Summary
 
@@ -9,7 +9,6 @@
 ## Validation
 
 - [ ] `make lint` (ruff + mypy)
-- [ ] `cd go/gts && golangci-lint run ./...` (if go/gts changed)
 - [ ] `make validate`
 - [ ] `make reason` (if the ontology changed)
 - [ ] `make mappings` / `make wikidata` (if mappings changed)

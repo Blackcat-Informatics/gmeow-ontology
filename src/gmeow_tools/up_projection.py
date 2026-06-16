@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Up-projection — clean-reversal lift + closeMatch claims (consumer RDF → GMEOW, #451).
 
 The first half of the full transpile (#448): lift a non-GMEOW source graph *up*

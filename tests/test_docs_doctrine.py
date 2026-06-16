@@ -309,10 +309,10 @@ def test_describe_fails_gracefully_on_missing_gts(tmp_path: Path) -> None:
 
 def test_compile_gts_embeds_doc_blobs_round_trip() -> None:
     from blake3 import blake3
+    from gts import read, to_nquads
     from rdflib import Literal
 
     from gmeow_tools.gts_producer import compile_gts
-    from gts import read, to_nquads
 
     payload = b"# A tiny guide\n\nVerified-by-construction prose.\n"
     digest = "blake3:" + blake3(payload).hexdigest()
@@ -341,11 +341,10 @@ def test_snapshot_generator_tracks_gts_codec_inputs() -> None:
         for path in generator.implementation_paths  # type: ignore[attr-defined]
     }
 
+    # The GTS engine is the external gmeow-gts package; its pinned version (and
+    # thus any codec/writer/wire change) is tracked through uv.lock, not by
+    # hashing files inside site-packages.
     assert "uv.lock" in paths
-    assert "packages/gts/pyproject.toml" in paths
-    assert "packages/gts/src/gts/codec.py" in paths
-    assert "packages/gts/src/gts/writer.py" in paths
-    assert "packages/gts/src/gts/wire.py" in paths
     assert "src/gmeow_tools/config.py" in paths
     assert "src/gmeow_tools/graph.py" in paths
     assert "src/gmeow_tools/gts_producer.py" in paths

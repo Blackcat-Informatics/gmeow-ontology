@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 #
 # The corrected ClaimReview translation (#34): a claim with TWO competing
 # assessments, a claim with one, and a claim with an ANONYMOUS assessment

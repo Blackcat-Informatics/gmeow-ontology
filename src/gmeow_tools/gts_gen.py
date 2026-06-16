@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 
 """The ``gts`` generator: the one committed offline GMEOW bundle (#267, #530).
 
@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from blake3 import blake3
+from gts import Signer
 from rdflib import Graph, Literal, URIRef
 
 from gmeow_tools.config import (
@@ -34,7 +35,6 @@ from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import SELF_DESC_FILE
 from gmeow_tools.slices import discover_slices
-from gts import Signer
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -251,13 +251,16 @@ class GtsSnapshotGenerator(Generator):
 
     @property
     def implementation_paths(self) -> Sequence[Path]:
-        """Implementation and dependency-lock files that affect snapshot bytes."""
-        gts_pkg = PROJECT_ROOT / "packages" / "gts"
-        gts_src = gts_pkg / "src" / "gts"
+        """Implementation and dependency-lock files that affect snapshot bytes.
+
+        The GTS format engine now ships as the external ``gmeow-gts`` package; its
+        exact pinned version is captured by ``uv.lock``, so a gmeow-gts upgrade
+        (codec/writer/wire changes) invalidates the snapshot cache through the
+        lockfile rather than by hashing files inside site-packages.
+        """
         return [
             PROJECT_ROOT / "pyproject.toml",
             PROJECT_ROOT / "uv.lock",
-            gts_pkg / "pyproject.toml",
             PROJECT_ROOT / "src" / "gmeow_tools" / "bundle.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "config.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "graph.py",
@@ -268,7 +271,6 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "slices.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "transform.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "validate.py",
-            *sorted(gts_src.glob("*.py")),
         ]
 
     @property

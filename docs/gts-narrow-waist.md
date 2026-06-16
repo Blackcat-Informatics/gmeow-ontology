@@ -65,4 +65,5 @@ drift surface, the same fold the published `gts`/`gmeow` packages read.
 (OFN/OWX/OMN are release-tier ROBOT conversions in `gmeow build`; HDT was
 refused — no maintained writer to pin.)
 
-See `docs/GTS-SPEC.md` for the format itself.
+See [`GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)
+(in the `gmeow-gts` repo) for the format itself.

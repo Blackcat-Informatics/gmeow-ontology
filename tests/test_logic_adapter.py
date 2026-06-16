@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Tests for the OWL/gUFO adapter + round-trip IR isomorphism gate (#500 Task 2).
 
 Modules under test: ``logic_adapter.py``.

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Equivalence saturation — the E(G) of the transpiler (#34).
 
 For every instance triple whose GMEOW term carries a *strong* equivalence to

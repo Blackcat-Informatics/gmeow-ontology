@@ -11,7 +11,7 @@
   <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/codeql.yml/badge.svg?branch=main"></a>
   <a href="https://pypi.org/project/gmeow/"><img alt="PyPI package: gmeow" src="https://img.shields.io/pypi/v/gmeow?label=gmeow&logo=pypi&logoColor=white"></a>
   <a href="https://pypi.org/project/gmeow/"><img alt="Python versions supported by gmeow" src="https://img.shields.io/pypi/pyversions/gmeow?logo=python&logoColor=white"></a>
-  <a href="./LICENSE"><img alt="Tooling license: Apache-2.0" src="https://img.shields.io/badge/tooling-Apache--2.0-blue"></a>
+  <a href="./LICENSE"><img alt="Tooling license: AGPL-3.0-only" src="https://img.shields.io/badge/tooling-AGPL--3.0--only-blue"></a>
   <a href="./LICENSE-ontology"><img alt="Ontology license: CC BY 4.0" src="https://img.shields.io/badge/ontology-CC%20BY%204.0-blue"></a>
   <a href="https://doi.org/10.67342/26w4o"><img alt="DOI: 10.67342/26w4o" src="https://img.shields.io/badge/DOI-10.67342%2F26w4o-blue"></a>
 </p>
@@ -59,7 +59,7 @@ disagreement as coexisting standpoints instead of overwriting the loser.
 |---|---|---|
 | **`gmeow` (PyPI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, export docs, and run the MCP server | shipped ([#296](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/296), [#442](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/442)) |
 | **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, backed by the claim, standpoint, evidence, and suppression model | shipped ([#297](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/297)) |
-| **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](./docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification ([#267](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/267), [#272](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/272), [#327](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/327)) |
+| **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification ([#267](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/267), [#272](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/272), [#327](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/327)) |
 
 **Verifiable PyPI builds.** Wheels and sdists for `gmeow` and `gmeow-gts` are built in
 GitHub Actions and signed with GitHub artifact attestations. After downloading a package
@@ -98,7 +98,7 @@ Cite them by number in issues and PRs.
 - **Canonical IRI:** <https://blackcatinformatics.ca/gmeow> (slash namespace, term IRIs
   like `…/gmeow/Person`)
 - **Vocabulary license:** [CC BY 4.0](./LICENSE-ontology) (dual-licensed — see [Licensing](#licensing))
-- **Tooling license:** [Apache-2.0](./LICENSE) (dual-licensed — see [Licensing](#licensing))
+- **Tooling license:** [AGPL-3.0-only](./LICENSE) (dual-licensed — see [Licensing](#licensing))
 - **Copyright:** © 2026 Blackcat Informatics® Inc.
 
 **Four things GMEOW does that no agent-memory store does:**
@@ -148,7 +148,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
 | [`docs/mcp-server.md`](./docs/mcp-server.md) | Product | The MCP server: the grounded-memory triad (`store_claim`/`recall`/`revise_belief`) + the ontology toolchain tools; one-line install |
 | [`docs/hallucination-resistant-kg.md`](./docs/hallucination-resistant-kg.md) | Doctrine | The claim-extraction spine done right — fixture, prompt, audit gates, `gmeow audit`; scored across models on the [eval leaderboard](./generated/evals/leaderboard.md) |
-| [`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) | Specification | The Graph Transport Substrate — the content-addressed, append-only single-file format behind the `ai-package` memory and the narrow-waist exports |
+| [`docs/GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md) | Specification | The Graph Transport Substrate — the content-addressed, append-only single-file format behind the `ai-package` memory and the narrow-waist exports |
 | [`docs/VERIFY-EXAMPLE.md`](./docs/VERIFY-EXAMPLE.md) | Reference | Sample signed `gmeow.gts` verification output: signature counts, transport-key fingerprint, emoji hash, randomart, and bundled ontology checks |
 | [`docs/cli-extensions.md`](./docs/cli-extensions.md) | Specification | The `gmeow` CLI extension roll-up — subcommand discovery from slice manifests, GTS profile gating, and solver-layer transforms |
 | [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration |
@@ -724,20 +724,27 @@ GMEOW is **dual-licensed**. Blackcat Informatics® Inc. is the sole copyright ho
 (© 2026) and makes the work available under open-source terms **and** reserves the right
 to grant separate commercial/proprietary licenses.
 
-- **Tooling code** (this repository, excluding the vocabulary): [Apache License 2.0](./LICENSE).
-- **GMEOW vocabulary** (the ontology in `ontology/` and its published serializations):
-  [CC BY 4.0](./LICENSE-ontology).
+- **Tooling code & Rust core** (this repository, excluding the vocabulary):
+  [AGPL-3.0-only](./LICENSE).
+- **GMEOW vocabulary** (the ontology in `ontology/`, the slices and mappings, and its
+  published serializations) and the **documentation**: [CC BY 4.0](./LICENSE-ontology).
+- **GTS engine.** The GTS format engine is a separate repository,
+  [`gmeow-gts`](https://github.com/Blackcat-Informatics/gmeow-gts), licensed
+  Apache-2.0 OR MIT, and is not covered by the AGPL terms here.
 - **Proprietary licensing.** The open licenses above are offered *in addition to* — not in
   place of — Blackcat Informatics®' right to license either part under separate commercial
   terms. Contact `licensing@blackcatinformatics.ca`.
 
-**Trademarks.** "Blackcat Informatics®" is a registered trademark of Blackcat Informatics®
-Inc. Neither open license grants any right to use these names, logos, or marks (Apache-2.0 §6;
+**Trademarks.** "BLACKCAT INFORMATICS" (word mark, CIPO TMA1066935) and the
+black-cat-silhouette & Sierpinski-triangle design mark (CIPO TMA1233860) are registered
+trademarks of Blackcat Informatics® Inc.; "GMEOW" is not a trademark. Neither open license
+grants any right to use these marks or logos (the AGPL-3.0 grants no trademark rights;
 CC BY 4.0 §2(b)).
 
-**Contributions** are accepted under the same open licenses; for the dual-licensing
-reservation to extend to contributed material, contributors license their contributions to
-Blackcat Informatics® Inc. under terms permitting that relicensing.
+**Contributions** to tooling/code are accepted under AGPL-3.0-only, to the vocabulary and
+docs under CC-BY-4.0, and to `gmeow-gts` under Apache-2.0 OR MIT — in each case, under the
+project CLA, on terms permitting Blackcat Informatics® Inc. to relicense under separate
+proprietary/commercial terms. See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 **Third-party.** `imports/gufo.ttl` (gUFO) is vendored under the MIT License; its copyright
 and permission notice are preserved in that file.

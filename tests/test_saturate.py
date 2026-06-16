@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Equivalence saturation E(G) (#34): strong-only, lint-gated, suppression-safe.
 
 The acceptance keystones: a ``skos:closeMatch``-only term NEVER materializes

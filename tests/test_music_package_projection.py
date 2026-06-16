@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """GTS music-package projection toolchain tests (issue #319).
 
 Covers the narrow-waist model, GTS round-trip, every notation renderer,

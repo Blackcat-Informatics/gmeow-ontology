@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Generated leak-conformance suite (#282, CONSTITUTION P10).
 
 "The leak is prevented" is the constitution's claim; this suite makes it a

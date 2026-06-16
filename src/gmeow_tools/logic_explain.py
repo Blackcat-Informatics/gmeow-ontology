@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 r"""Faithful-by-construction explanation skeleton emitter (issue #501, Task 6).
 
 This module implements the explanation engine described in LOGIC-RUNTIME.md

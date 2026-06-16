@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Tests for the ``gts`` snapshot generator — the narrow waist's producer (#267).
 
 The snapshot is only usable as a drift-gated artifact if its bytes are a pure
@@ -18,6 +18,9 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
+from gts import read
+from gts.model import TermKind
+from gts.wire import iter_items, unwrap_header
 from rdflib import RDF, Graph, Literal, URIRef
 from rdflib.compare import to_canonical_graph
 
@@ -32,9 +35,6 @@ from gmeow_tools.config import (
 from gmeow_tools.graph import iter_import_files, load_merged_graph
 from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
-from gts import read
-from gts.model import TermKind
-from gts.wire import iter_items, unwrap_header
 
 EX = "https://example.org/"
 

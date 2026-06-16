@@ -139,9 +139,8 @@ jobs:
       - name: Logic conformance (oracle self-consistency, Principle 7)
         run: uv run --package gmeow-dev gmeow-dev conformance
 
-  # The Rust format engine (crates/gts, #277) gates against the SAME frozen
-  # conformance corpus (generated/gts-vectors/) as the Python oracle — both
-  # implementations must fold identical bytes to identical expectations.
+  # Rust workspace: the gmeow-logic reasoner + gmeow-shacl. The GTS engine moved
+  # to the gmeow-gts repo (its `gts` binary is cargo-installed where needed).
   rust:
     runs-on: ubuntu-latest
     steps:
@@ -167,52 +166,11 @@ jobs:
       - name: Clippy (warnings are errors)
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: Conformance corpus + CLI tests
+      - name: Workspace tests (gmeow-logic, gmeow-shacl)
         run: cargo test
 
       - name: wasm target builds (gmeow-logic in-browser reasoner)
         run: cargo build -p gmeow-logic --target wasm32-unknown-unknown
-
-  # The Go GTS engine (go/gts, #339) gates against the same frozen corpus and
-  # exposes the same files-profile CLI surface as the Rust engine.
-  go:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-
-      - name: Set up Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5
-        with:
-          go-version-file: go/gts/go.mod
-          cache-dependency-path: go/gts/go.sum
-
-      - name: Build (no CGO)
-        working-directory: go/gts
-        run: CGO_ENABLED=0 go build ./...
-
-      - name: Vet
-        working-directory: go/gts
-        run: go vet ./...
-
-      - name: staticcheck
-        uses: dominikh/staticcheck-action@672a31696676d1592844bf0164b3bbfd855a4d50 # v1.4.1
-        with:
-          version: "2026.1"
-          install-go: false
-          working-directory: go/gts
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9.2.1
-        with:
-          version: v2.12.2
-          working-directory: go/gts
-          args: --timeout=5m
-
-      - name: Conformance corpus + CLI tests (no CGO)
-        working-directory: go/gts
-        run: CGO_ENABLED=0 go test ./...
 
   ontology:
     runs-on: ubuntu-latest
@@ -402,7 +360,7 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   quality:
-    needs: [lint, python, python-heavy, rust, go, ontology, reason, reason-hermit, reasoning-tests, statements, statements-pyoxigraph]
+    needs: [lint, python, python-heavy, rust, ontology, reason, reason-hermit, reasoning-tests, statements, statements-pyoxigraph]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -412,7 +370,6 @@ jobs:
           PYTHON: ${{ needs.python.result }}
           PYTHON_HEAVY: ${{ needs.python-heavy.result }}
           RUST: ${{ needs.rust.result }}
-          GO: ${{ needs.go.result }}
           ONTOLOGY: ${{ needs.ontology.result }}
           REASON: ${{ needs.reason.result }}
           REASON_HERMIT: ${{ needs.reason-hermit.result }}
@@ -420,8 +377,8 @@ jobs:
           STATEMENTS: ${{ needs.statements.result }}
           STATEMENTS_PYOXIGRAPH: ${{ needs.statements-pyoxigraph.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON python-heavy=$PYTHON_HEAVY rust=$RUST go=$GO ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT reasoning-tests=$REASONING_TESTS statements=$STATEMENTS statements-pyoxigraph=$STATEMENTS_PYOXIGRAPH"
-          for r in "$LINT" "$PYTHON" "$PYTHON_HEAVY" "$RUST" "$GO" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$REASONING_TESTS" "$STATEMENTS" "$STATEMENTS_PYOXIGRAPH"; do
+          echo "results: lint=$LINT python=$PYTHON python-heavy=$PYTHON_HEAVY rust=$RUST ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT reasoning-tests=$REASONING_TESTS statements=$STATEMENTS statements-pyoxigraph=$STATEMENTS_PYOXIGRAPH"
+          for r in "$LINT" "$PYTHON" "$PYTHON_HEAVY" "$RUST" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$REASONING_TESTS" "$STATEMENTS" "$STATEMENTS_PYOXIGRAPH"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1

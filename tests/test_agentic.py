@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """The agentic extension (#390): tool-call provenance, gated.
 
 The agent's ACTIONS join the same provenance graph as its claims: ToolCall
@@ -174,8 +174,9 @@ def test_mcp_triad_is_the_first_live_producer(
 ) -> None:
     """Dogfood (#390): store/revise record themselves; recall records
     nothing (read path); the stored claim links back via wasGeneratedBy."""
-    from gmeow_tools.mcp_server import recall, revise_belief, store_claim
     from gts.examples.agent_memory import Memory
+
+    from gmeow_tools.mcp_server import recall, revise_belief, store_claim
 
     monkeypatch.setenv("GMEOW_MEMORY_PATH", str(tmp_path / "memory.gts"))
     stored = json.loads(store_claim("tool calls are provenance"))

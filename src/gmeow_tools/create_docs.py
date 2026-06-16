@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """``gmeow create-docs`` — browsable docs tree from a GTS snapshot (#439).
 
 A lossy, deterministic Markdown projection of the ontology plus the bundled

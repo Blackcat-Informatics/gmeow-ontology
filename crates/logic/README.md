@@ -8,7 +8,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/gmeow-logic.svg)](https://crates.io/crates/gmeow-logic)
 [![docs.rs](https://docs.rs/gmeow-logic/badge.svg)](https://docs.rs/gmeow-logic)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](./LICENSE)
 [![Repository](https://img.shields.io/badge/repo-Blackcat--Informatics%2Fgmeow--ontology-181717.svg)](https://github.com/Blackcat-Informatics/gmeow-ontology)
 
 > **An LLM output is a claim, not a truth.**
@@ -187,6 +187,8 @@ Related packages:
 
 Copyright © 2026 Blackcat Informatics® Inc.
 
-This crate is licensed under the **Apache License, Version 2.0** — see the
+This crate is licensed under the **GNU Affero General Public License v3.0 only**
+(AGPL-3.0-only) — see the
 [`LICENSE`](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/LICENSE)
-file in the repository root.
+file in the repository root. Separate proprietary/commercial terms are available;
+contact `licensing@blackcatinformatics.ca`.

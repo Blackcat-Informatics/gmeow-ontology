@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-only
 """Front-end parser: ``logic:`` RDF 1.2 source graph → :class:`~.logic_ir.LogicProgram`.
 
 This module parses a ``logic:``-vocabulary RDF graph (passed as an rdflib
