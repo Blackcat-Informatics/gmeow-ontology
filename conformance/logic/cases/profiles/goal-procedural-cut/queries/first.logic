@@ -1,0 +1,9 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Cut confinement (AC-2): cut `!` is permitted under ProceduralPrologProfile.
+% ex:first(X,Y) :- ex:parentOf(X,Y), !. commits to the sorted-first answer.
+% EDB is sorted, so b comes before c; expected: only Y=b, status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-procedural-cut/').
+ex:first(X,Y) :- ex:parentOf(X,Y), !.
+?- ex:first(ex:a, Y).

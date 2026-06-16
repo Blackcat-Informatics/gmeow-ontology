@@ -1,0 +1,5 @@
+{
+  "semantic_profile": "ProceduralPrologProfile",
+  "world_types": ["epistemic"],
+  "mode": "native"
+}

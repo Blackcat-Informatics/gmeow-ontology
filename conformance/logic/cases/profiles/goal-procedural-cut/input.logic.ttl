@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/goal-procedural-cut
+# AC-2: cut confinement — ProceduralPrologProfile permits `!` in the query body.
+# ex:first(X,Y) :- ex:parentOf(X,Y), !. cuts after the first (sorted) answer.
+# EDB: parentOf(a,b), parentOf(a,c); expected: only binding Y=b, status ok.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/goal-procedural-cut/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: sort used by the projection back-ends.
+ex:Person a logic:Kind .

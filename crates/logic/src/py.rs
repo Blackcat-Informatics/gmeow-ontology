@@ -26,7 +26,7 @@
 //! [`crate::encode`]; this module handles the PyO3 surface and chase wiring.
 
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyList};
 
 use oxigraph::io::RdfFormat;
 use oxigraph::model::{GraphName, NamedNode, Term};
@@ -35,12 +35,15 @@ use oxigraph::store::Store;
 use std::time::Instant;
 
 use crate::certify::certify as certify_rules;
+use crate::dispatch::dispatch_query;
 use crate::encode::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
 };
 use crate::nemo_engine::{run_chase, ChaseRow, ChaseRowWithProvenance};
 use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
-use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
+use crate::query_ir::{parse_query_program, Budget};
+use crate::seam::{BudgetStatus, DerivationId, DerivedQuad, WorldStoreForeign};
+use crate::store::WorldStore;
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -523,6 +526,102 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<PyObject> {
     Ok(d.into())
 }
 
+// ── query ───────────────────────────────────────────────────────────────────
+
+/// Resolve a `.logic` backward goal over a materialized world (issue #504, v4).
+///
+/// This is the AC-1/AC-2 engine surface: it loads the materialized EDB, parses the
+/// `.logic` query program (rules + goal), enforces the cut/profile gate, and routes
+/// the goal through the dispatcher (oxigraph SPARQL fast path for non-recursive
+/// pattern goals; embedded Scryer Prolog with tabling for recursive/unification-heavy
+/// goals). Answers are **virtual** — nothing is written back into the store.
+///
+/// # Arguments
+///
+/// - `world_nquads` — the materialized world(s) as N-Quads (named graphs = worlds).
+/// - `query_program` — the `.logic` source (prefixes, Horn rules, optional `!` cut,
+///   exactly one `?- goal.`).
+/// - `profile` — the semantic profile in force (bare name or IRI). Cut is permitted
+///   ONLY under `ProceduralPrologProfile`; otherwise this raises `ValueError`.
+/// - `world_iri` — which world to resolve against. If `None`, the store must contain
+///   exactly one named graph (auto-selected); otherwise this is an error.
+/// - `max_answers` — output cap (→ `status="partial"`).
+/// - `max_steps` — inference-count ceiling (→ `status="exhausted"`).
+///
+/// # Returns
+///
+/// A dict `{"bindings": [ {var: canonical_str, …}, … ], "status": "ok"|"partial"|"exhausted"}`
+/// where each canonical value is the oracle/engine `Const` form (`<iri>` for IRIs).
+/// The binding list is canonically sorted for determinism.
+///
+/// # Errors
+///
+/// Raises Python `ValueError` on malformed N-Quads/query, a missing/ambiguous world,
+/// a cut outside `ProceduralPrologProfile`, or a Scryer/resolution error.
+#[pyfunction]
+#[pyo3(signature = (world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None))]
+fn query(
+    py: Python<'_>,
+    world_nquads: &str,
+    query_program: &str,
+    profile: &str,
+    world_iri: Option<&str>,
+    max_answers: Option<usize>,
+    max_steps: Option<u64>,
+) -> PyResult<PyObject> {
+    let value_err = |msg: String| pyo3::exceptions::PyValueError::new_err(msg);
+
+    // 1. Load the materialized EDB into a world-indexed store.
+    let store = WorldStore::new();
+    store.load_nquads(world_nquads).map_err(value_err)?;
+
+    // 2. Resolve the target world (explicit, or the single named graph).
+    let world = match world_iri {
+        Some(w) => w.to_owned(),
+        None => {
+            let worlds = store.worlds();
+            if worlds.len() != 1 {
+                return Err(value_err(format!(
+                    "world_iri not given and the store has {} named graphs \
+                     (need exactly 1): {worlds:?}",
+                    worlds.len()
+                )));
+            }
+            worlds.into_iter().next().expect("len == 1")
+        }
+    };
+    let world_nn = NamedNode::new(&world)
+        .map_err(|e| value_err(format!("invalid world IRI {world:?}: {e}")))?;
+
+    // 3. Parse the query program (rules + goal).
+    let program = parse_query_program(query_program).map_err(value_err)?;
+
+    // 4. Build the read-only EDB accessor for this world.
+    let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(value_err)?;
+
+    // 5. Dispatch (the cut/profile gate runs inside dispatch_query).
+    let budget = Budget {
+        max_answers,
+        max_steps,
+    };
+    let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
+        .map_err(value_err)?;
+
+    // 6. Build the Python result dict: {"bindings": [...], "status": "..."}.
+    let bindings = PyList::empty(py);
+    for binding in &answer.bindings {
+        let row = PyDict::new(py);
+        for (var, val) in binding {
+            row.set_item(var, val)?;
+        }
+        bindings.append(row)?;
+    }
+    let result = PyDict::new(py);
+    result.set_item("bindings", bindings)?;
+    result.set_item("status", answer.status.as_str())?;
+    Ok(result.into())
+}
+
 // ── Module registration ───────────────────────────────────────────────────────
 
 /// Python extension module `gmeow_logic`.
@@ -530,10 +629,12 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<PyObject> {
 /// Exposes:
 /// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
 /// - `certify(rules, profile) -> dict`
+/// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
     m.add_function(wrap_pyfunction!(certify, m)?)?;
+    m.add_function(wrap_pyfunction!(query, m)?)?;
     Ok(())
 }
 

@@ -164,8 +164,11 @@ class RunnerOutputs:
             core (no negation → no within-world contradiction).  Deferred to
             #503.
 
-        answers: Goal/counterfactual answer sets.  **Always ``{}``** — deferred
-            to #504/#505.
+        answers: Goal/counterfactual answer sets.  Populated when the case has a
+            ``queries/`` directory containing ``*.logic`` files; each entry maps
+            the query stem to the ``{"bindings": [...], "status": "..."}`` dict
+            returned by :func:`gmeow_logic.query`.  Empty dict when no queries
+            are present.  Implements issue #504 backward goals.
 
         certification: The static profile/decidability verdict for ``program``
             against the case's declared profile, as the deterministic sorted-key
@@ -197,7 +200,7 @@ class RunnerOutputs:
     # v1 minimal/stub outputs (documented deferred)
     verdicts: dict[str, dict[str, object]]
     witnesses: dict[str, object]  # always {}
-    answers: dict[str, object]  # always {}
+    answers: dict[str, object]  # populated by _resolve_answers (#504)
 
     # issue #502 (Task 5): certifier + budget governor surfaced as artifacts
     certification: dict[str, object]
@@ -533,6 +536,89 @@ def _program_has_stratifiable_negation(program: LogicProgram) -> bool:
 
 
 # --------------------------------------------------------------------------- #
+# Backward goal resolver (issue #504)
+# --------------------------------------------------------------------------- #
+
+
+def _resolve_answers(
+    case_dir: Path,
+    world_nquads: str,
+    profile_str: str,
+    budget: BudgetParams | None,
+) -> dict[str, object]:
+    """Resolve every ``queries/*.logic`` backward goal over the materialized EDB.
+
+    Calls the Rust engine (``gmeow_logic.query``) for each ``.logic`` file found
+    in ``case_dir/queries/``.  Returns a dict mapping each query stem to the
+    ``{"bindings": [...], "status": "..."}`` dict returned by the engine.
+
+    Empty dict is returned when ``case_dir/queries/`` does not exist or contains
+    no ``*.logic`` files — no Rust import is performed in that case, so cases
+    without queries have zero overhead and remain byte-identical.
+
+    Args:
+        case_dir: The conformance case directory.
+        world_nquads: The materialized world(s) as a sorted N-Quads string
+            (one named graph per world), as produced by
+            :func:`_materialize_to_nquads`.
+        profile_str: The semantic profile string declared in ``profile.json``
+            (e.g. ``"PositiveHornProfile"``).
+        budget: The parsed budget params (used for ``max_answers``).  ``None``
+            means unbounded.
+
+    Returns:
+        A dict ``{query_stem: {"bindings": [...], "status": "..."}}`` for each
+        ``.logic`` query file, sorted by stem for determinism.  Empty dict when
+        the case has no ``queries/`` directory.
+
+    Raises:
+        RunnerError: If ``gmeow_logic`` cannot be imported (extension not built)
+            AND the case has queries (no-optionality doctrine); or if any query
+            raises a ``ValueError`` from the engine.
+    """
+    queries_dir = case_dir / "queries"
+    if not queries_dir.is_dir():
+        return {}
+
+    query_files = sorted(queries_dir.glob("*.logic"))
+    if not query_files:
+        return {}
+
+    # Only import gmeow_logic when queries are present.  Missing extension when
+    # queries exist is a hard failure (no degraded fallback — no-optionality doctrine;
+    # the conformance CI always builds the extension).
+    try:
+        import gmeow_logic  # type: ignore[import-untyped]
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            f"but the case has queries/ — run 'make logic-py' first: {exc}"
+        ) from exc
+
+    max_answers: int | None = budget.max_answers if budget is not None else None
+
+    result: dict[str, object] = {}
+    for qfile in query_files:
+        qtext = qfile.read_text(encoding="utf-8")
+        try:
+            answer = gmeow_logic.query(
+                world_nquads,
+                qtext,
+                profile_str,
+                None,  # world_iri=None → auto-detect single world
+                max_answers,
+                None,  # max_steps=None
+            )
+        except ValueError as exc:
+            raise RunnerError(
+                f"Case {case_dir.name}: query {qfile.name} failed: {exc}"
+            ) from exc
+        result[qfile.stem] = answer
+
+    return result
+
+
+# --------------------------------------------------------------------------- #
 # Public API: run()
 # --------------------------------------------------------------------------- #
 
@@ -760,6 +846,11 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # N-Quads serialization
     nquads_str = _materialize_to_nquads(mat_result)
 
+    # Backward goal resolution (issue #504): resolve every queries/*.logic file
+    # over the materialized EDB via gmeow_logic.query.  Empty dict for cases
+    # without a queries/ directory (no overhead, byte-identical to pre-#504).
+    answers = _resolve_answers(case_dir, nquads_str, semantic_profile_str, budget)
+
     # Projections
     proj_outputs = _run_projections(program)
 
@@ -779,7 +870,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         explanations=explanations,
         verdicts=verdicts,
         witnesses={},  # deferred to #503
-        answers={},  # deferred to #504/#505
+        answers=answers,
         certification=certification,
         budget_status=mat_result.budget_status,
         incomplete=mat_result.incomplete,
@@ -1226,6 +1317,35 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
                 f"[{case_id}] explanation {md_path.name}: {d}"
                 for d in compare_explanation_skeleton(actual.cited_iris, committed_iris)
             )
+
+    # --- Answers (issue #504 backward goals) ---
+    queries_dir = case_dir / "queries"
+    answers_dir = expected_root / "answers"
+    if queries_dir.is_dir():
+        for qfile in sorted(queries_dir.glob("*.logic")):
+            stem = qfile.stem
+            expected_path = answers_dir / f"{stem}.json"
+            actual_answer: object = outputs.answers.get(stem)
+            if not expected_path.exists():
+                diffs.append(
+                    f"[{case_id}] answers/{stem}: golden "
+                    f"expected/answers/{stem}.json is missing"
+                )
+                continue
+            try:
+                expected_answer = json.loads(expected_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                diffs.append(
+                    f"[{case_id}] cannot parse expected answers/{stem}.json: {exc}"
+                )
+                continue
+            if actual_answer is None:
+                diffs.append(
+                    f"[{case_id}] answers/{stem}: run() produced no answer set"
+                )
+                continue
+            for d in compare_canonical_json(actual_answer, expected_answer):  # type: ignore[arg-type]
+                diffs.append(f"[{case_id}] answers/{stem}: {d}")
 
     return CaseDiffResult(
         case_id=case_id,

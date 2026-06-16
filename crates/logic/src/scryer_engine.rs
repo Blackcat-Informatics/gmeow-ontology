@@ -196,15 +196,25 @@ fn build_module(
     }
 
     // EDB facts: snapshot the whole world and emit one binary fact per quad.
+    // The facts are emitted in SORTED (predicate, subject, object) order so that
+    // Scryer's clause-enumeration order is deterministic. This matters for
+    // order-sensitive resolution — `cut` (commit-to-first) and `max_answers`
+    // truncation — where the *which* answer/subset must be reproducible across runs
+    // (oxigraph's quad-iteration order is not contractually stable).
+    let mut facts: Vec<(String, String, String)> = Vec::new();
     for dq in foreign.in_world(world, None, None, None) {
         let s = canonical(&dq.subject)?;
         let p = dq.predicate.as_str().to_owned();
         let o = canonical(&dq.object)?;
+        facts.push((p, s, o));
+    }
+    facts.sort();
+    for (p, s, o) in &facts {
         out.push_str(&format!(
             "{}({}, {}).\n",
-            prolog_quote(&p),
-            prolog_quote(&s),
-            prolog_quote(&o)
+            prolog_quote(p),
+            prolog_quote(s),
+            prolog_quote(o)
         ));
     }
 

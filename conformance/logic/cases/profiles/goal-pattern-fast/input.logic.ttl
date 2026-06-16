@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/goal-pattern-fast
+# Non-recursive pattern goal — no rules, so the SPARQL fast path is taken.
+# Query ex:parentOf(ex:a, Y) returns the two direct children (b, c), status ok.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/goal-pattern-fast/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: sort used by the projection back-ends.
+ex:Person a logic:Kind .

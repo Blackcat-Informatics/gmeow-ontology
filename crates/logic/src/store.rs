@@ -32,6 +32,23 @@ impl WorldStore {
         }
     }
 
+    /// Load N-Quads text into the store, preserving named graphs (worlds).
+    ///
+    /// Each quad's graph component becomes its world. The default graph and
+    /// blank-node graphs are loaded as-is by oxigraph but are not addressable as
+    /// worlds via the world-indexed API. Mirrors the `load_from_reader` path used
+    /// by `py.rs::materialize` so the backward-goal EDB parses identically.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(String)` if the N-Quads text is malformed.
+    pub fn load_nquads(&self, nquads: &str) -> Result<(), String> {
+        self.inner
+            .load_from_reader(oxigraph::io::RdfFormat::NQuads, nquads.as_bytes())
+            .map_err(|e| format!("N-Quads parse error: {e}"))?;
+        Ok(())
+    }
+
     /// Insert the triple `(s, p, o)` — all IRI strings — into the named graph
     /// whose IRI is `world`.
     ///
