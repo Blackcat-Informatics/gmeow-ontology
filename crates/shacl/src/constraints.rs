@@ -172,6 +172,9 @@ fn eval_constraint(
 
         // ── Class (per value node; honors asserted rdfs:subClassOf, §4.2.5) ────
         Constraint::Class(class_iri) => {
+            // Hoist the BFS closure computation once, outside the per-value loop.
+            // Previously called inside the loop: O(N×M) → now O(M) + O(N).
+            let closure = crate::engine::subclass_closure(store, class_iri);
             let mut results = Vec::new();
             let focus = value_nodes
                 .first()
@@ -180,7 +183,7 @@ fn eval_constraint(
             for value in value_nodes {
                 let violates = match value {
                     Term::Literal(_) => true,
-                    _ => !is_shacl_instance(store, value, class_iri),
+                    _ => !is_shacl_instance(store, value, &closure),
                 };
                 if violates {
                     results.push(ValidationResult {
@@ -583,20 +586,25 @@ fn eval_constraint(
 
 // ── Helper functions ───────────────────────────────────────────────────────────
 
-/// Check if `value` has a direct `rdf:type` triple to `class_iri` in the
-/// default graph (NO subclass inference).
-/// Whether `value` is a SHACL instance of `class_iri`: it has an `rdf:type` to
-/// `class_iri` or to any asserted (transitive) subclass of it (SHACL §4.2.5).
-/// Asserted `rdfs:subClassOf` edges are honored; no reasoner is run. See #599.
-fn is_shacl_instance(store: &Store, value: &Term, class_iri: &NamedNode) -> bool {
+/// Whether `value` is a SHACL instance of a class, given a precomputed subclass
+/// closure (SHACL §4.2.5).
+///
+/// `closure` must contain the class IRI itself plus every transitive subclass
+/// derived from asserted `rdfs:subClassOf` edges (as returned by
+/// [`crate::engine::subclass_closure`]).  The caller hoists the closure
+/// computation once before the per-value-node loop to avoid O(N×M) BFS cost.
+fn is_shacl_instance(
+    store: &Store,
+    value: &Term,
+    closure: &std::collections::HashSet<Term>,
+) -> bool {
     let Some(subj_ref) = term_as_subject_ref(value) else {
         return false;
     };
-    let classes = crate::engine::subclass_closure(store, class_iri);
     store
         .quads_for_pattern(Some(subj_ref), Some(rdf::TYPE), None, None)
         .flatten()
-        .any(|q| classes.contains(&q.object))
+        .any(|q| closure.contains(&q.object))
 }
 
 /// Convert a `Term` to a subject ref, or `None` for literals.
