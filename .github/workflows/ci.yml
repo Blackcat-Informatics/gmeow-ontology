@@ -125,6 +125,19 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
+      # Heavy tests (docs, suppression-conformance, research-objects) exercise the
+      # validation path, which runs SHACL through gmeow_shacl (#578).
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
+
       # CI-only Python tests cover heavyweight generated docs, GTS snapshot
       # determinism, and secondary export surfaces. Keep module scopes together
       # so expensive module fixtures are not rebuilt once per xdist worker.
@@ -351,6 +364,20 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
+      # statements_docker_check.py validates the statement DSL, which runs SHACL
+      # through gmeow_shacl (#578). The extension builds on the host (the Docker
+      # images below are only the Jena/ROBOT subprocess engines).
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
+
       - name: Build the pinned Jena image (RDF 1.2 engine) + pull ROBOT
         run: |
           JENA_IMAGE=$(uv run python -c "from gmeow_tools.config import JENA_IMAGE; print(JENA_IMAGE)")
@@ -375,6 +402,19 @@ jobs:
 
       - name: Sync environment
         run: uv sync --all-packages --frozen
+
+      # The no-drift gate validates the statement DSL, which runs SHACL through
+      # gmeow_shacl (#578).
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
       - name: RDF 1.2 + OWL-form no-drift gate (pyoxigraph cross-check)
         run: uv run --package gmeow-dev gmeow-dev compile-statements-pyoxigraph
