@@ -1,0 +1,261 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/inquiry>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Inquiry Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Inquiry Module — erotetic content: gmeow:Question as the third content sibling of gmeow:Proposition (assertoric) and gmeow:Goal (optative), individuated by its answerhood condition, together with the question-type value vocabulary, the presupposition / answer relations, and the flat inquiry-attitude spine."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:comment """The erotetic companion to the epistemics and teleology slices: where epistemics relates an agent to a PROPOSITION (truth-condition) and teleology to a GOAL (satisfaction-condition), inquiry relates an agent to a QUESTION — content individuated by its ANSWERHOOD CONDITION, the set of propositions counting as direct answers.
+
+DOCTRINE.
+  * Content-mode siblings, no subsumption (documentation only): gmeow:Proposition, gmeow:Goal, and gmeow:Question are three gmeow:SocialObject siblings differing in MODE OF CONTENT, never by an rdfs:subClassOf bridge. The Proposition/Goal direction-of-fit precedent is extended, not amended — subsumption would erase the content-mode distinction.
+  * A Question is neither true/false nor satisfied: it is RESOLVED by an accepted answer. Resolution REUSES the epistemics spine (gmeow:accepts / gmeow:knowsThat over an gmeow:answers-claim); there is deliberately no new "resolved" term (Principle 6).
+  * Answers are VANTAGE-INDEXED (Principle 9): different standpoints answer differently and coexist; there is no one global answer to a question, and gmeow:answers ranges over claims, not a privileged proposition.
+  * Loaded questions carry no new axiom: a contested or false presupposition is a gmeow:StandpointClaim over the presupposed proposition with gmeow:claimModality gmeow:refuted (the deception-slice bridge), never an isFalse bit on the question.
+  * Flat-first (Principle 4 / Principle 13): the asks / wondersWhether / inquiresInto / seeksToKnow spine is the cheap 80% surface with an OPEN range; the reified gmeow:InquiryTenure lands only when the opening / closing of an inquiry is itself the fact of interest.
+  * Solver-layer erotetic inference (Principle 12): gmeow:evokes records Wiśniewski erotetic implication as an optional decoration of an inquiry graph and carries NO reasoner / entailment semantics in core."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# QUESTION — erotetic content individuated by its answerhood condition. The
+# third content sibling of gmeow:Proposition (truth-condition) and gmeow:Goal
+# (satisfaction-condition): three gmeow:SocialObjects differing in MODE OF
+# CONTENT, never by subsumption.
+# =========================================================================== #
+
+gmeow:Question
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    rdfs:label "Question"@x-gmeow-english ;
+    skos:definition "Erotetic content individuated by its ANSWERHOOD CONDITION — the set of propositions counting as direct answers — not by a truth-condition. Existing by social convention like every description, it is a gmeow:SocialObject. A Question is neither true nor false (unlike a gmeow:Proposition) nor satisfied (unlike a gmeow:Goal): it is RESOLVED by an accepted answer. It is the erotetic sibling of gmeow:Proposition (assertoric) and gmeow:Goal (optative): the three share the gmeow:SocialObject genus and differ only in their mode of content — truth-condition, satisfaction-condition, answerhood-condition."@x-gmeow-english ;
+    skos:scopeNote "Content-mode bridge (documentation only — no axiom): Proposition (truth-condition) · Goal (satisfaction-condition) · Question (answerhood-condition) are three gmeow:SocialObject siblings differing in mode of content, never by subsumption. There is deliberately NO rdfs:subClassOf between them; subsumption would erase the content-mode distinction, so the link stays by reference (the Proposition/Goal precedent)."@x-gmeow-english ;
+    skos:example "ex:whereIsTheKey a gmeow:Question ; gmeow:questionType gmeow:typeWh ."@x-gmeow-english ;
+    gmeow:useWhen "Use to mint erotetic content as its own object — the thing an agent asks, wonders about, or inquires into — so the same question can be held open by several agents and answered differently from different vantages (Principle 9); reach for it whenever what is recorded is an open problem rather than a held belief or a pursued goal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a Question as true/false (it has no truth-condition — that is a gmeow:Proposition) or as satisfied/unsatisfied (that is a gmeow:Goal), and avoid subsuming it under either, which would erase the content-mode distinction; a Question is resolved by an accepted answer, never asserted as a fact."@x-gmeow-english ;
+    gmeow:howToUse "Mint the Question once, classify it with gmeow:questionType, link its presuppositions with gmeow:presupposes and its candidate answers with gmeow:answers (each vantage-indexed), and record that an agent holds it open through the flat inquiry spine; resolve it by reusing the epistemics spine (gmeow:accepts / gmeow:knowsThat) over an answer-claim rather than minting a new resolved state."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+# =========================================================================== #
+# QUESTION TYPE — a closed value vocabulary of question kinds (individuals,
+# never subclasses). Mirrors the gmeow:StandpointModality value-vocab pattern.
+# =========================================================================== #
+
+gmeow:QuestionType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Question Type"@x-gmeow-english ;
+    skos:definition "The erotetic kind of a question — a closed value vocabulary spanning polar (yes/no), alternative (which-of-a-named-set), wh (who/what/where/when), why (explanation-seeking), and how (procedure-seeking): gmeow:typePolar, gmeow:typeAlternative, gmeow:typeWh, gmeow:typeWhy, gmeow:typeHow. Its members are individuals, never subclasses, and more than one may co-apply to a single question."@x-gmeow-english ;
+    skos:example "ex:whyDidItFail gmeow:questionType gmeow:typeWhy ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the erotetic kind of a question — the closed set of question types (polar, alternative, wh, why, how) a Question declares through gmeow:questionType."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing it to add a kind — the vocabulary is closed and its members are individuals — and avoid forcing exactly one type onto every question; gmeow:typeWhy and gmeow:typeHow may legitimately co-apply (gmeow:questionType is non-functional)."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded QuestionType individuals from a gmeow:Question via gmeow:questionType, attaching as many as genuinely apply; treat the bridges (typeWhy → abduction's explanandum, typeHow → the procedures extension) as documented routing rather than new axioms."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:typePolar
+    a gmeow:QuestionType ;
+    rdfs:label "polar (yes/no)"@x-gmeow-english ;
+    skos:definition "A yes/no question — its answerhood condition is a proposition and its negation; the direct answers are 'yes' and 'no'. The simplest erotetic kind, the natural target of gmeow:wondersWhether."@x-gmeow-english .
+gmeow:typePolar rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:typeAlternative
+    a gmeow:QuestionType ;
+    rdfs:label "alternative (which-of-a-set)"@x-gmeow-english ;
+    skos:definition "A which-of-a-named-set question — its answerhood condition is a closed disjunction of named alternatives ('tea or coffee?'). Distinct from a polar question (whose set is a proposition and its negation) and from a wh question (whose set is open)."@x-gmeow-english .
+gmeow:typeAlternative rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:typeWh
+    a gmeow:QuestionType ;
+    rdfs:label "wh (who/what/where/when)"@x-gmeow-english ;
+    skos:definition "A who/what/where/when question — its answerhood condition is an open set of instantiations of a variable (the individual filling the wh-slot). The constituent-question kind, distinct from the closed alternative set."@x-gmeow-english .
+gmeow:typeWh rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:typeWhy
+    a gmeow:QuestionType ;
+    rdfs:label "why (explanation-seeking)"@x-gmeow-english ;
+    skos:definition "An explanation-seeking question — its answerhood condition is a set of explanations of a fact (the explanandum). Bridges the abduction tetrad: a typeWhy question's explanandum is exactly the abductive explanandum, so abduction answers typeWhy questions; the bridge is documented routing, not an axiom."@x-gmeow-english .
+gmeow:typeWhy rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:typeHow
+    a gmeow:QuestionType ;
+    rdfs:label "how (procedure-seeking)"@x-gmeow-english ;
+    skos:definition "A procedure-seeking question — its answerhood condition is a set of procedures / methods that achieve an end. Bridges the procedures extension: a typeHow question is answered by a procedure described there; the bridge is documented routing, not an axiom."@x-gmeow-english .
+gmeow:typeHow rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+# =========================================================================== #
+# RELATIONAL PROPERTIES — the question's type, its presuppositions, and the
+# vantage-indexed answers it admits.
+# =========================================================================== #
+
+gmeow:questionType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Question ;
+    rdfs:range gmeow:QuestionType ;
+    rdfs:label "question type"@x-gmeow-english ;
+    skos:definition "Classifies a question by its erotetic kind — one of the closed gmeow:QuestionType value vocabulary. NOT functional: a single question may carry several types at once (a 'why … and how' question is both gmeow:typeWhy and gmeow:typeHow), so the property admits multiple values rather than forcing a single kind."@x-gmeow-english ;
+    skos:example "ex:whereIsTheKey gmeow:questionType gmeow:typeWh ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a gmeow:Question by its erotetic kind — pointing it at one or more gmeow:QuestionType individuals so consumers can route polar, alternative, wh, why, and how questions differently."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing exactly one type per question — it is non-functional, and gmeow:typeWhy / gmeow:typeHow may co-apply — and avoid pointing it at anything outside the closed gmeow:QuestionType vocabulary."@x-gmeow-english ;
+    gmeow:howToUse "Attach as many gmeow:QuestionType individuals as genuinely apply to the Question; read a co-applied gmeow:typeWhy to route the explanandum to abduction and a co-applied gmeow:typeHow to route to the procedures extension."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:presupposes
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Question ;
+    rdfs:range gmeow:Proposition ;
+    rdfs:label "presupposes"@x-gmeow-english ;
+    skos:definition "Relates a question to a proposition that must hold for the question to have a true answer — its presupposition ('have you stopped X?' presupposes 'you once did X'). NOT functional: a question may presuppose several propositions. The presupposition is carried as the subject of the relation, never asserted as a fact of the universal standpoint."@x-gmeow-english ;
+    skos:scopeNote "Loaded-question bridge (documentation only — no new axiom): a LOADED question is one whose presupposition is contested or false. Model it WITHOUT a new construct as a gmeow:StandpointClaim over the presupposed gmeow:Proposition carrying gmeow:claimModality gmeow:refuted (a standpoint denies the presupposition); this reuses the standpoint / deception machinery (Principle 6) and bridges the deception slice — there is no isLoaded flag on the question."@x-gmeow-english ;
+    skos:example "ex:stoppedSmoking gmeow:presupposes ex:onceSmoked ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a proposition a question takes for granted — what must hold for the question to admit a true answer — so a contested presupposition can be flagged through the standpoint layer rather than baked into the question."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting the presupposed proposition as a global fact (it is the subject of the relation, not a universal-standpoint truth) and avoid minting an isLoaded flag for loaded questions; a contested presupposition is a refuted gmeow:StandpointClaim over the proposition, never a property of the question."@x-gmeow-english ;
+    gmeow:howToUse "Point the Question at one or more gmeow:Proposition individuals; to mark a loaded question, mint a gmeow:StandpointClaim over the presupposed proposition with gmeow:claimModality gmeow:refuted rather than altering the question, letting the deception slice read the denial."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:answers
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:Question ;
+    rdfs:label "answers"@x-gmeow-english ;
+    skos:definition "Relates a candidate direct answer to the question it answers. The DOMAIN is left intentionally open: an answer is typically a gmeow:StandpointClaim or a gmeow:Proposition, but asserting a domain (or an owl:unionOf) would prematurely close the answer surface, so it stays open and is documented in prose. NOT functional, and VANTAGE-INDEXED (Principle 9): different standpoints answer the same question differently and the answers coexist — there is never one global answer; whose answer it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
+    skos:scopeNote "Answers are vantage-indexed (Principle 9): a question has no single global answer. Each gmeow:answers edge is one standpoint's direct answer, held according to a frame (gmeow:accordingTo) and resolved for an agent only when that agent gmeow:accepts / gmeow:knowsThat it — the epistemics spine, reused rather than re-minted."@x-gmeow-english ;
+    skos:example "ex:keyIsOnHook gmeow:answers ex:whereIsTheKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a claim or proposition is a direct answer to a question — one vantage's answer among possibly many — so an inquiry graph can carry competing answers that coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a single gmeow:answers edge as THE answer — answers are vantage-indexed and coexist, carry whose answer it is on gmeow:accordingTo — and avoid reading the edge as resolving the question; resolution is an agent gmeow:accepts / gmeow:knowsThat over the answer-claim (the epistemics spine)."@x-gmeow-english ;
+    gmeow:howToUse "Point a candidate answer (a gmeow:StandpointClaim or gmeow:Proposition) at the gmeow:Question; for contested answers, attach gmeow:accordingTo on the statement and let several answers coexist, marking an agent's acceptance through gmeow:accepts / gmeow:knowsThat rather than picking a global winner."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+# =========================================================================== #
+# THE FLAT INQUIRY SPINE — agent to question attitudes (Principle 4). Domain
+# gmeow:Agent; range OPEN (the epistemics doxastic-spine precedent), so the 80%
+# case points cheaply at any question or reified inquiry (Principle 13). No
+# rdfs:subPropertyOf among them — these are four distinct attitudes, not a
+# hierarchy. Resolution REUSES the epistemics spine; there is no "resolved" term.
+# =========================================================================== #
+
+gmeow:asks
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "asks"@x-gmeow-english ;
+    skos:definition "An agent poses / holds a question as open — the base inquiry attitude and the cheap 80% surface. Range is intentionally OPEN: the object may be a gmeow:Question or a reified inquiry (the five-minute-gate shortcut, Principle 13). Non-functional — an agent holds many open questions at once. From whose vantage and over what period the question is held ride gmeow:accordingTo and gmeow:validFrom / gmeow:validUntil on the statement, or a reified gmeow:InquiryTenure."@x-gmeow-english ;
+    skos:scopeNote "A question is OPEN for the agent until the agent gmeow:accepts / gmeow:knowsThat an gmeow:answers-claim for it; resolution REUSES the epistemics spine, so there is no new 'resolved' term (Principle 6). Reopening closes the prior accepted answer with gmeow:displayable false (Principle 10), never deletion."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:asks ex:whereIsTheKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent poses or holds a question as open — the base inquiry attitude and the cheap 80% surface; the natural store_question companion of the epistemics store_claim spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a settled state — the question stays open until the agent gmeow:accepts / gmeow:knowsThat an answer-claim (the epistemics spine, never a new resolved term) — and never make it functional; an agent holds many open questions."@x-gmeow-english ;
+    gmeow:howToUse "Point the agent at a gmeow:Question or reified inquiry; carry the vantage and period on gmeow:accordingTo / gmeow:validFrom / gmeow:validUntil of the statement, promote to gmeow:InquiryTenure when the opening / closing is itself the fact, and mark resolution by an gmeow:accepts / gmeow:knowsThat over an gmeow:answers-claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:wondersWhether
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "wonders whether"@x-gmeow-english ;
+    skos:definition "An agent entertains a question — typically a polar one — without committing inquiry effort to resolving it: the idle, low-investment erotetic attitude, weaker than actively inquiring. Range OPEN, like gmeow:asks. Non-functional. From whose vantage and over what period ride the statement, never a resolved bit here."@x-gmeow-english ;
+    skos:scopeNote "A question is OPEN for the agent until the agent gmeow:accepts / gmeow:knowsThat an gmeow:answers-claim for it; resolution REUSES the epistemics spine, so there is no new 'resolved' term (Principle 6). Reopening closes the prior accepted answer with gmeow:displayable false (Principle 10), never deletion."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:wondersWhether ex:willItRain ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an agent idly entertaining a question — typically a polar one — without committing effort to answer it; the low-investment erotetic leaning, distinct from active inquiry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it where the agent is actively pursuing an answer (use gmeow:inquiresInto) or aiming at a resolution (use gmeow:seeksToKnow); wondering is entertaining the question, not working on it, and never a factive verdict about its answer."@x-gmeow-english ;
+    gmeow:howToUse "Point the agent at the question it entertains; promote to gmeow:inquiresInto when effort is committed, and mark resolution by an gmeow:accepts / gmeow:knowsThat over an gmeow:answers-claim (the epistemics spine) rather than a new resolved term."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:inquiresInto
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "inquires into"@x-gmeow-english ;
+    skos:definition "An agent actively pursues an answer to a question — the investigative attitude, committing inquiry effort, stronger than merely asking or wondering. Range OPEN, like gmeow:asks. Non-functional. The effort and its vantage ride the statement; resolution is an epistemics acceptance, never a truth bit here."@x-gmeow-english ;
+    skos:scopeNote "A question is OPEN for the agent until the agent gmeow:accepts / gmeow:knowsThat an gmeow:answers-claim for it; resolution REUSES the epistemics spine, so there is no new 'resolved' term (Principle 6). Reopening closes the prior accepted answer with gmeow:displayable false (Principle 10), never deletion."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:inquiresInto ex:whyDidItFail ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent is actively investigating a question — committing inquiry effort to find an answer — the investigative attitude that drives a research queue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for mere idle entertaining (use gmeow:wondersWhether) and for the directed, resolution-aimed case where an epistemics state is the explicit target (use gmeow:seeksToKnow); inquiry is the activity, not yet the achieved knowing."@x-gmeow-english ;
+    gmeow:howToUse "Point the agent at the question under investigation; carry the vantage on gmeow:accordingTo of the statement, promote to gmeow:InquiryTenure when the inquiry's lifecycle is itself the fact, and mark resolution by an gmeow:accepts / gmeow:knowsThat over an gmeow:answers-claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:seeksToKnow
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "seeks to know"@x-gmeow-english ;
+    skos:definition "An agent directs its inquiry at an epistemics resolution — pursuing the question specifically so as to gmeow:knowsThat its answer: the goal-directed erotetic attitude that ties inquiry to the epistemics spine. Range OPEN, like gmeow:asks. Non-functional. The aimed-at resolution is an epistemics acceptance, never a truth bit here."@x-gmeow-english ;
+    skos:scopeNote "A question is OPEN for the agent until the agent gmeow:accepts / gmeow:knowsThat an gmeow:answers-claim for it; resolution REUSES the epistemics spine, so there is no new 'resolved' term (Principle 6). Reopening closes the prior accepted answer with gmeow:displayable false (Principle 10), never deletion."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:seeksToKnow ex:whereIsTheKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record directed inquiry aimed at an epistemics resolution — the agent pursues the question specifically so as to come to gmeow:knowsThat its answer, tying the open inquiry to the epistemics spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for undirected investigation (use gmeow:inquiresInto) or idle wondering (use gmeow:wondersWhether), and never read it as already knowing; the resolution it aims at is a separate gmeow:knowsThat over an gmeow:answers-claim."@x-gmeow-english ;
+    gmeow:howToUse "Point the agent at the question whose answer it seeks to know; mark the achieved resolution by an gmeow:knowsThat over the accepted gmeow:answers-claim (the epistemics spine), and leave search and ranking of candidate answers to the solver layer (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+# =========================================================================== #
+# EVOKES — Wiśniewski erotetic implication, a SOLVER-LAYER decoration. Range
+# gmeow:Question; domain OPEN (a Proposition or a Question may evoke a question,
+# documented in prose). Carries NO reasoner / entailment semantics in core.
+# =========================================================================== #
+
+gmeow:evokes
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:Question ;
+    rdfs:label "evokes"@x-gmeow-english ;
+    skos:definition "Relates a declarative or erotetic premise to a question it gives rise to — Wiśniewski's erotetic implication (a question or set of propositions evokes a further question). The DOMAIN is left intentionally open: a gmeow:Proposition or a gmeow:Question may evoke a question, but asserting a domain (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional."@x-gmeow-english ;
+    skos:scopeNote "SOLVER-LAYER decoration (Principle 12): gmeow:evokes records Wiśniewski erotetic implication as an OPTIONAL decoration of an inquiry graph and carries NO reasoner / entailment semantics in core — the ontology never derives an evoked question, and no DL axiom enforces the relation. Whether one question genuinely evokes another is solver work, asserted here only as recorded structure."@x-gmeow-english ;
+    skos:example "ex:whoCommittedIt gmeow:evokes ex:whatWasTheMotive ."@x-gmeow-english ;
+    gmeow:useWhen "Use to decorate an inquiry graph with Wiśniewski erotetic implication — recording that one premise or question gives rise to a further question — when that derived structure is worth keeping explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid expecting any entailment from it — it is a solver-layer decoration (Principle 12) with no reasoner semantics; the core never derives an evoked question — and avoid making it functional, since a premise may evoke several questions."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:evokes from a gmeow:Proposition or gmeow:Question to the gmeow:Question it raises; treat the edge as recorded structure for a solver to consume, never as a fact the reasoner will materialise."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+# =========================================================================== #
+# INQUIRY TENURE — the StandpointTenure idiom for an open question held over
+# time, for when the opening / closing of an inquiry is itself the fact of
+# interest. Mirrors gmeow:StandpointTenure / gmeow:IntentionTenure: a
+# gufo:Situation-based time-scoped relation carrying its interval via
+# gmeow:duringInterval (temporal module). Flat-first, reify on demand
+# (Principle 4).
+# =========================================================================== #
+
+gmeow:InquiryTenure
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Inquiry Tenure"@x-gmeow-english ;
+    skos:definition "The reified, time-scoped fact that an agent held an open question over an interval — an inquiry opened in January and closed by an accepted answer in June is an opened-then-closed tenure, never a deletion (Principle 10). The StandpointTenure idiom applied to inquiry: use only when the opening / closing of an inquiry is itself worth modelling; the common case is a bare gmeow:asks with validFrom / validUntil on the statement. Carries its interval via gmeow:duringInterval (temporal module); a closed tenure is kept with gmeow:displayable false."@x-gmeow-english ;
+    skos:scopeNote "Minted ON DEMAND when the opening / closing of an inquiry is itself the fact of interest; the common case is a bare gmeow:asks annotation, reify on demand (Principle 4). REOPENING a closed inquiry is modelled by closing the prior accepted answer with gmeow:displayable false (retain-never-delete, Principle 10), never by deletion; the question and its inquiry history stay queryable."@x-gmeow-english ;
+    skos:example "ex:keySearch a gmeow:InquiryTenure ; gmeow:tenureInquirer ex:lillith ; gmeow:tenureQuestion ex:whereIsTheKey ; gmeow:duringInterval ex:firstHalfYear ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reified half of the gmeow:asks ↔ gmeow:InquiryTenure pair: when the opening, closing, or reopening of an agent's open question over an interval is itself the fact of interest, so the inquiry can be opened and closed rather than mutated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the 80% case where an agent simply holds a question open (use the flat gmeow:asks with validFrom / validUntil) and never delete a closed inquiry — close it and set gmeow:displayable false, reopening by suppressing the prior accepted answer (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one InquiryTenure per (agent, question) holding, bind gmeow:tenureInquirer and gmeow:tenureQuestion, scope it with gmeow:duringInterval (temporal module); record closure by an accepted gmeow:answers-claim and suppression with gmeow:displayable false rather than removing the triple."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:tenureInquirer
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InquiryTenure ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "tenure inquirer"@x-gmeow-english ;
+    skos:definition "The agent whose open question an inquiry-tenure records. Functional: one tenure, one inquirer; two agents holding the same question open are two tenures sharing one gmeow:tenureQuestion."@x-gmeow-english ;
+    skos:example "ex:keySearch gmeow:tenureInquirer ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:InquiryTenure to the single agent whose holding-open of the question over time it records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on a bare gmeow:asks statement (the agent there is the statement subject) and avoid more than one inquirer per tenure; it is functional — one tenure, one agent."@x-gmeow-english ;
+    gmeow:howToUse "Point the tenure at exactly one gmeow:Agent, matching the subject of the gmeow:asks statement the tenure reifies; two agents asking the same question are two tenures sharing one gmeow:tenureQuestion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+gmeow:tenureQuestion
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InquiryTenure ;
+    rdfs:range gmeow:Question ;
+    rdfs:label "tenure question"@x-gmeow-english ;
+    skos:definition "The question the tenure records the agent as holding open over its interval. Functional: one tenure, one question; an agent holding five questions open bears five tenures. Sharing is at the Question: two agents inquiring into the same question hold distinct tenures pointing at one Question individual."@x-gmeow-english ;
+    skos:example "ex:keySearch gmeow:tenureQuestion ex:whereIsTheKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:InquiryTenure to the single gmeow:Question whose holding-open over the interval it records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing one tenure at several questions (it is functional — five open questions are five tenures) and avoid duplicating the Question per agent; sharing happens at one Question individual."@x-gmeow-english ;
+    gmeow:howToUse "Point the tenure at exactly one gmeow:Question; open and close the surrounding gmeow:duringInterval to record the inquiry's lifecycle rather than mutating or deleting it (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — relator / situation
+# mediation. An inquiry tenure mediates at least one question (EL someValuesFrom,
+# open-world); closed-world "exactly one" is SHACL's (gmeow:InquiryTenureShape).
+# Mirrors the gmeow:StandpointTenure someValuesFrom block.
+# =========================================================================== #
+
+gmeow:InquiryTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureQuestion ; owl:someValuesFrom gmeow:Question ] .

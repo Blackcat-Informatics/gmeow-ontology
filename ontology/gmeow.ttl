@@ -55,6 +55,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/gender> ,
         <https://blackcatinformatics.ca/gmeow/slices/gts> ,
         <https://blackcatinformatics.ca/gmeow/slices/inference> ,
+        <https://blackcatinformatics.ca/gmeow/slices/inquiry> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
         <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ,
