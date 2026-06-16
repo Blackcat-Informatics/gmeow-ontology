@@ -38,7 +38,6 @@ from gmeow_tools.config import (
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_source_files, load_merged_graph
-from gmeow_tools.reasoning_lint import reasoning_invariants
 from gmeow_tools.slices import (
     iter_slice_example_files,
     iter_slice_module_files,
@@ -450,13 +449,22 @@ def structural_lint(graph: Graph) -> ValidationResult:
 def reasoning_lint(graph: Graph) -> ValidationResult:
     """Wrap the UFO anti-pattern checks as a :class:`ValidationResult`.
 
-    Each :mod:`gmeow_tools.reasoning_lint` violation (missing/conflicting gUFO
-    stereotype, identity conflict, anti-rigidity breach, under-mediated relator)
-    becomes an error so ``make validate`` fails if the meta-grounding is incomplete.
+    Routed through the Rust ``gmeow_validate.reasoning_invariants`` engine
+    (#579): the merged graph is serialized and the six OntoUML anti-pattern
+    checks run over an oxigraph store. Each violation (missing/conflicting gUFO
+    stereotype, identity conflict, anti-rigidity breach, under-mediated relator,
+    co-equal facet collapse, missing frame declaration) becomes an error so
+    ``make validate`` fails if the meta-grounding is incomplete.
     """
-    result = ValidationResult()
-    result.errors.extend(reasoning_invariants(graph))
-    return result
+    source_paths, cleanup = _graph_source_paths(graph)
+    try:
+        report = gmeow_validate.reasoning_invariants(source_paths, str(NAMESPACE))
+    finally:
+        cleanup()
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 def run_shacl(

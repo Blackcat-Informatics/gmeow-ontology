@@ -22,6 +22,7 @@ use std::path::PathBuf;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
+use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::store;
 
@@ -234,6 +235,100 @@ fn check_sameas_ban(
     report_dict(py, errors, Vec::new())
 }
 
+/// Build the `{"errors": [...], "warnings": []}` report dict from a flat error
+/// list (the reasoning checks only ever produce errors today; the dict shape is
+/// kept consistent with every other lint).
+fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<PyObject> {
+    report_dict(py, errors, Vec::new())
+}
+
+/// The aggregate gUFO/UFO reasoning invariants over the merged sources (mirrors
+/// `reasoning_lint.reasoning_invariants`). Runs all six anti-pattern checks and
+/// flattens their errors in declaration order.
+#[pyfunction]
+fn reasoning_invariants(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, gufo::reasoning_invariants(&store, &cfg))
+}
+
+/// `exactly_one_stereotype` over the merged sources (mirrors the same-named
+/// Python check; exposed for the test shim that builds a graph per check).
+#[pyfunction]
+fn reasoning_exactly_one_stereotype(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, gufo::exactly_one_stereotype(&store, &cfg))
+}
+
+/// `identity_overlap` (MixIden) over the merged sources.
+#[pyfunction]
+fn reasoning_identity_overlap(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, gufo::identity_overlap(&store, &cfg))
+}
+
+/// `anti_rigidity_discipline` (MixRig / FreeRole) over the merged sources.
+#[pyfunction]
+fn reasoning_anti_rigidity_discipline(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, gufo::anti_rigidity_discipline(&store, &cfg))
+}
+
+/// `relator_mediation` (RelComp) over the merged sources.
+#[pyfunction]
+fn reasoning_relator_mediation(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, gufo::relator_mediation(&store, &cfg))
+}
+
+/// `coequal_facet_orthogonality` (P9 #281) over the merged sources.
+#[pyfunction]
+fn reasoning_coequal_facet_orthogonality(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, gufo::coequal_facet_orthogonality(&store, &cfg))
+}
+
+/// `frame_declaration_completeness` (P11 #283) over the merged sources.
+#[pyfunction]
+fn reasoning_frame_declaration_completeness(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, gufo::frame_declaration_completeness(&store, &cfg))
+}
+
 /// Python extension module `gmeow_validate`.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -249,5 +344,15 @@ fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(slice_ownership_lint, m)?)?;
     m.add_function(wrap_pyfunction!(typed_terms, m)?)?;
     m.add_function(wrap_pyfunction!(declared_terms, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_invariants, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_exactly_one_stereotype, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_identity_overlap, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_anti_rigidity_discipline, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_relator_mediation, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_coequal_facet_orthogonality, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        reasoning_frame_declaration_completeness,
+        m
+    )?)?;
     Ok(())
 }

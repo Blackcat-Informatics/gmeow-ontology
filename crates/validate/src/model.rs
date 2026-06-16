@@ -16,6 +16,15 @@ pub mod rdf {
     /// `rdf:type`.
     pub const TYPE: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    /// `rdf:first` — the head cell of an RDF Collection.
+    pub const FIRST: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
+    /// `rdf:rest` — the tail cell of an RDF Collection.
+    pub const REST: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+    /// `rdf:nil` — the empty-list terminator of an RDF Collection.
+    pub const NIL: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
 }
 
 /// RDFS namespace constants (`http://www.w3.org/2000/01/rdf-schema#`).
@@ -40,6 +49,12 @@ pub mod rdfs {
     /// `rdfs:Datatype`.
     pub const DATATYPE: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#Datatype");
+    /// `rdfs:domain`.
+    pub const DOMAIN: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#domain");
+    /// `rdfs:range`.
+    pub const RANGE: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#range");
 }
 
 /// OWL namespace constants (`http://www.w3.org/2002/07/owl#`).
@@ -64,6 +79,18 @@ pub mod owl {
     /// `owl:AnnotationProperty`.
     pub const ANNOTATION_PROPERTY: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/2002/07/owl#AnnotationProperty");
+    /// `owl:FunctionalProperty`.
+    pub const FUNCTIONAL_PROPERTY: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2002/07/owl#FunctionalProperty");
+    /// `owl:equivalentProperty`.
+    pub const EQUIVALENT_PROPERTY: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2002/07/owl#equivalentProperty");
+    /// `owl:AllDisjointClasses`.
+    pub const ALL_DISJOINT_CLASSES: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2002/07/owl#AllDisjointClasses");
+    /// `owl:members`.
+    pub const MEMBERS: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2002/07/owl#members");
 }
 
 /// SKOS namespace constants (`http://www.w3.org/2004/02/skos/core#`).
