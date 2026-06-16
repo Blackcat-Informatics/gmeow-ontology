@@ -123,6 +123,27 @@ SHACL shape, tunable via `frameRequirementSeverity` and `frameCardinality`.
 guards into every generated projection (precision guard); `gmeow:namingNote` records the
 lint-visible justification for a legitimately primary-style value-vocabulary name.
 
+## Mental moments and the proficiency value vocab
+
+### gmeow:MentalMoment
+
+The shared umbrella for an agent's intrinsic mental states — `gmeow:MentalMoment ⊑
+gufo:IntrinsicMode`. A NAMED `gufo:Category` so a consumer can query *every* mental
+moment of an agent uniformly (the agent-memory flagship, Principle 15) rather than
+walking three unrelated branches. Its members live in their domain slices: cognition's
+`gmeow:CognitiveState` (knowing), epistemics' doxastic states (believing — planned),
+and teleology's `gmeow:IntentionalMode` (desiring/intending). Never instantiated
+directly.
+
+### gmeow:ProficiencyScale · gmeow:ProficiencyLevel · gmeow:ProficiencyModality
+
+The domain-neutral value vocabulary for rating proficiency — relocated here from the
+`expertise` slice (#556) to break a latent `expertise ↔ cognition` dependency cycle
+(Principle 6/16): `expertise`, `languages`, and `cognition` all reuse these classes, so
+they belong in the kernel every consumer already depends on. The framework individuals
+(CEFR, Dreyfus, NIH, Bloom's, SOLO, …) stay in their domain slices and reference these
+classes by IRI; only the class home moved.
+
 ## Documentation doctrine
 
 ### gmeow:pairsWith · gmeow:useWhen · gmeow:howToUse · gmeow:guideBlob

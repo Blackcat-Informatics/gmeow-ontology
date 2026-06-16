@@ -1,0 +1,15 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+
+# A malformed cognition data graph that should fail shapes/cognition-shapes.ttl:
+# a KnowledgeProficiency with NO subject, NO level, and TWO scales (three Violations).
+
+ex:sam a gmeow:Agent .
+
+ex:samProficiency a gmeow:KnowledgeProficiency ;
+    gmeow:knowledgeProficiencyAgent ex:sam ;
+    gmeow:knowledgeProficiencyScale gmeow:scaleKnowledgeDepth ,
+                                    gmeow:scaleBloomRevised .
+    # missing gmeow:knowledgeProficiencySubject (min 1 Violation)
+    # missing gmeow:knowledgeProficiencyLevel   (min 1 Violation)
+    # two gmeow:knowledgeProficiencyScale values (max 1 Violation)

@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the reified knowledge tier. The flat spectrum (gmeow:hasMastered
+# &c.) says HOW DEEP; the reified gmeow:KnowledgeProficiency adds the SCALE it is
+# read against, a temporal interval, and a standpoint — the promotion path when
+# level, scale, time, or vantage matters (Principle 4). Suppression, not deletion:
+# lapsed knowledge is a CLOSED interval with gmeow:displayable false, never removed
+# (Principle 10). The mode (gmeow:CognitiveState) and the relator
+# (gmeow:KnowledgeProficiency) are DIFFERENT individuals — never double-typed.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/cognition/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ada a gmeow:Person ;
+    gmeow:name "Ada"@x-gmeow-english ;
+    gmeow:hasMastered wd:Q28865 .   # Python — the flat 80% surface
+
+# --- Promote to a reified proficiency: depth read on an explicit named SCALE,
+#     over a temporal interval. The flat hasMastered above and this relator
+#     coexist; gmeow:pairsWith links the two forms.
+ex:adaPython a gmeow:KnowledgeProficiency ;
+    gmeow:knowledgeProficiencyAgent    ex:ada ;
+    gmeow:knowledgeProficiencySubject  wd:Q28865 ;       # Python
+    gmeow:knowledgeProficiencyLevel    gmeow:knowledgeMastered ;
+    gmeow:knowledgeProficiencyScale    gmeow:scaleKnowledgeDepth ;
+    gmeow:knowledgeProficiencyInterval ex:adaPythonSince ;
+    gmeow:displayable true .
+
+# The grounding mode is a SEPARATE individual (a gmeow:CognitiveState), never the
+# same node as the relator — founded-on is documentation, not a type (Principle 12).
+ex:adaPythonKnowing a gmeow:CognitiveState .
+
+ex:adaPythonSince a gmeow:TimeInterval ;
+    gmeow:hasStartInstant ex:y2018 ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- Suppression, not deletion (Principle 10): Ada once understood a framework she
+#     has since let lapse. The proficiency is RETAINED with a CLOSED interval and
+#     gmeow:displayable false — what she knew WHEN stays a query, not an erasure.
+ex:adaBioinf a gmeow:KnowledgeProficiency ;
+    gmeow:knowledgeProficiencyAgent    ex:ada ;
+    gmeow:knowledgeProficiencySubject  wd:Q189436 ;      # bioinformatics
+    gmeow:knowledgeProficiencyLevel    gmeow:knowledgeUnderstands ;
+    gmeow:knowledgeProficiencyScale    gmeow:scaleKnowledgeDepth ;
+    gmeow:knowledgeProficiencyInterval ex:adaBioinfPast ;
+    gmeow:displayable false .                            # lapsed — withheld, not deleted
+
+ex:adaBioinfPast a gmeow:TimeInterval ;
+    gmeow:hasStartInstant ex:y2014 ;
+    gmeow:hasEndInstant   ex:y2018 ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:y2014 a gmeow:Instant ; gmeow:instantValue "2014-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+ex:y2018 a gmeow:Instant ; gmeow:instantValue "2018-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .

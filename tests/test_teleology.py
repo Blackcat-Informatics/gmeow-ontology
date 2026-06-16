@@ -54,7 +54,11 @@ def test_goal_is_a_social_object_kind() -> None:
 def test_intrinsic_modes_are_grounded() -> None:
     g = _graph()
     assert (GM.IntentionalMode, RDF.type, GUFO.Category) in g
-    assert (GM.IntentionalMode, RDFS.subClassOf, GUFO.IntrinsicMode) in g
+    # Reparented under gmeow:MentalMoment (#556); MentalMoment ⊑ gufo:IntrinsicMode
+    # supplies the gUFO branch, so IntentionalMode stays grounded in IntrinsicMode
+    # transitively rather than by a direct (now-removed) subClassOf assertion.
+    assert (GM.IntentionalMode, RDFS.subClassOf, GM.MentalMoment) in g
+    assert (GM.MentalMoment, RDFS.subClassOf, GUFO.IntrinsicMode) in g
     assert (GM.IntentionalMode, RDFS.subClassOf, GM.IntentionalMoment) in g
     for kind in (GM.Desire, GM.Intention):
         assert (kind, RDF.type, GUFO.Kind) in g

@@ -1,0 +1,14 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+
+# A well-formed cognition data graph that passes shapes/cognition-shapes.ttl:
+# a KnowledgeProficiency with exactly one subject, one level, one agent.
+
+ex:sam a gmeow:Agent .
+ex:topic a gmeow:Entity .
+
+ex:samProficiency a gmeow:KnowledgeProficiency ;
+    gmeow:knowledgeProficiencyAgent   ex:sam ;
+    gmeow:knowledgeProficiencySubject ex:topic ;
+    gmeow:knowledgeProficiencyLevel   gmeow:knowledgeUnderstands ;
+    gmeow:knowledgeProficiencyScale   gmeow:scaleKnowledgeDepth .
