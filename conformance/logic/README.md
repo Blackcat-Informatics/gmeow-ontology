@@ -46,7 +46,7 @@ faithfulness) are the load-bearing invariants.
 
 | Category | Input artifact | Verification (expected output) | Rung |
 |---|---|---|---|
-| `foundation/` | `input.logic.ttl` with UFO⁺ types (rigidity, identity-supply, mediation) | `verdicts.json` reproduces the `reasoning_lint.py` verdicts exactly (isomorphic); the gUFO downcast passes every OntoUML anti-pattern check | #503 |
+| `foundation/` | `input.logic.ttl` with UFO⁺ stereotype, subsumption, and mediation facts | `materialized.nq` contains the expected `logic:violation` / `logic:rigidityViolation` / `logic:dischargeObligation` quads; the lint-equivalence gate proves the derived offending-class sets match `reasoning_lint.py` exactly | #503 |
 | `worlds-A/` | standpoint / deception / narrative source | `materialized.nq` carries each world as its own named graph; the contested claim coexists (Crimea `conceivable` vs `refuted`), neither privileged | #501 |
 | `worlds-B/` | risk cascade, teleology, or norms source | `materialized.nq` proves **exactly zero `Event` instances** are generated (the no-occurrence gate), with type-level force present | #501 |
 | `worlds-C/` | counterfactual antecedent query | `answers/<q>.json` confirms the consequent and `materialized.nq` shows **no leakage** of the constructed world into the base graph; a deterministic revision yields one world, a genuine tie returns `unknown` | #505 |
@@ -55,3 +55,55 @@ faithfulness) are the load-bearing invariants.
 | `profiles/` | rule sets under each declared semantics | answers match the declared semantic profile (PositiveHorn, StratifiedNAF, WellFounded, StableModel); cut appears only under `ProceduralPrologProfile` | #502/#504/#506 |
 | `explanation/` | a failed-constraint or derivation query | the `explanation/<q>.md` skeleton validates that **every cited IRI appears in the trace** — no justification outside the proof | #501 |
 | `paraconsistency/` | a cross-world contradiction | `materialized.nq` confines the contradiction to separate graphs (no explosion); a within-world contradiction emits `witnesses.nq` | #501 |
+
+## The `foundation/` category
+
+Implemented in v3 (#503). Cases live under `cases/foundation/<case>/`. Each case's `profile.json`
+must carry `"foundation_lowering": true` to activate the discipline rules and the post-materialization
+passes; cases that omit it are not foundation cases.
+
+### `profile.json` fields
+
+| Field | Type | Meaning |
+|---|---|---|
+| `"foundation_lowering"` | boolean | Must be `true` to activate foundation lowering. When absent or `false` the case is processed without discipline rules and the expected output must be byte-identical to what the non-lowering engine would produce. |
+| `"anti_rigidity_policy"` | string | Governs the instance-level anti-rigidity obligation/witness facet. Closed enum: `"witness-obligation"` (default, emits `logic:dischargeObligation`), `"schema-only"` (emits nothing at the instance level), `"witness-required"` (emits `logic:witnessRequiredViolation` absent a materialized counter-world). Absent means `"witness-obligation"`. An unknown value is a hard failure. |
+
+### Vocabulary in `materialized.nq`
+
+The diagnostic quads a foundation case's `materialized.nq` may contain, all in the
+`https://blackcatinformatics.ca/logic/` namespace:
+
+| Predicate | Subject | Object | Produced by |
+|---|---|---|---|
+| `logic:violation` | offending class IRI | one of the five discipline labels below | in-world Datalog rules (all three lowered disciplines) |
+| `logic:rigidityViolation` | instance IRI | rigid type IRI | cross-world closure pass (fired only with ≥2 materialized worlds) |
+| `logic:dischargeObligation` | instance IRI | anti-rigid type IRI | anti-rigidity pass under `"witness-obligation"` policy |
+| `logic:witnessRequiredViolation` | instance IRI | anti-rigid type IRI | anti-rigidity pass under `"witness-required"` policy, when no counter-world is materialized |
+
+Discipline label individuals (objects of `logic:violation` quads):
+
+| Label | Anti-pattern |
+|---|---|
+| `logic:StereotypeCardinality` | a class with zero or more than one stereotype |
+| `logic:MixIden` | identity-overlap (`reasoning_lint.identity_overlap`) |
+| `logic:FreeRole` | anti-rigid sortal with no rigid ancestor (`reasoning_lint.anti_rigidity_discipline`, FreeRole half) |
+| `logic:MixRig` | rigid sortal with an anti-rigid-type ancestor (`reasoning_lint.anti_rigidity_discipline`, MixRig half) |
+| `logic:RelComp` | concrete Relator mediating fewer than two distinct relata (`reasoning_lint.relator_mediation`) |
+
+### Cases shipped in v3
+
+Six cases under `cases/foundation/` (one stub `.gitkeep` + five populated):
+
+| Case | Discipline exercised |
+|---|---|
+| `exactly-one-stereotype/` | `logic:StereotypeCardinality` (zero-stereotype and conflicting-stereotype branches) |
+| `identity-overlap-mixiden/` | `logic:MixIden` |
+| `free-role/` | `logic:FreeRole` |
+| `mixrig-kind-under-role/` | `logic:MixRig` |
+| `relcomp-under-mediated/` | `logic:RelComp` |
+| `cross-world-rigidity/` | `logic:rigidityViolation` + `logic:dischargeObligation` (multi-world) |
+
+The lint-equivalence gate (`tests/test_logic_foundation_lint_equivalence.py`) proves that for the
+three type-level disciplines the derived offending-class sets match `reasoning_lint.py` by full-map
+equality. The cross-world rigidity soundness suite is in `tests/test_logic_rigidity.py`.

@@ -64,9 +64,39 @@ the same kind of projection**:
   foundation. A bridge view is labelled in the [preservation ledger](LOGIC-CONFORMANCE.md) so no
   consumer mistakes it for a sound projection.
 
+### v3 status: three lint disciplines lowered; cross-world rigidity decided; witness-world deferred
+
+**Implemented in v3 (#503).** The lint-to-axiom move for the four OntoUML disciplines is now
+partially complete:
+
+- **Three disciplines lowered to in-world rules (done).** `src/gmeow_tools/logic_foundation.py`
+  emits `logic:` IR rules that derive `?C logic:violation <label>` facts reproducing, class-for-class,
+  the offending sets `reasoning_lint.py` produces for `exactly_one_stereotype`
+  (`logic:StereotypeCardinality`), `identity_overlap` (`logic:MixIden`),
+  `anti_rigidity_discipline` (`logic:FreeRole`, `logic:MixRig`), and `relator_mediation`
+  (`logic:RelComp`). The rule set certifies under `logic:StratifiedNAFProfile`. Equality of the lint
+  verdict map and the lowered verdict map is proven by `tests/test_logic_foundation_lint_equivalence.py`
+  (full-map equality, not subset containment). **`reasoning_lint.py` is now the regression
+  specification for these three disciplines**, not the enforcement mechanism; enforcement is the lowered
+  rules materialized over `logic:` facts.
+
+- **Positive cross-world rigidity decided over the materialized world set (done).** This is the
+  fourth discipline, which the type-only lint cannot express. Because the GMEOW chase is world-local
+  (derived quads stay in their origin world; no cross-world union), rigidity's world-spanning
+  universal quantifier cannot be expressed as an ordinary in-world Datalog rule. It is therefore
+  evaluated by `cross_world_rigidity_violations` in `logic_foundation.py` — a bounded closure pass
+  over the finite materialized world set — emitting `logic:rigidityViolation` quads in the world
+  where rigidity persistence fails. This fires only under `"foundation_lowering": true` and only when
+  at least two worlds are materialized; single-world goldens are byte-identical.
+
+- **Witness-world construction deferred to #505.** Anti-rigidity formally requires a world of
+  existence where the instance lacks the type. Construction of that counter-world belongs to Stratum C
+  and is tracked in issue #505. The `"anti_rigidity_policy"` `profile.json` field (see
+  [Gates](#gates)) governs only the instance-level obligation/witness facet in the meantime.
+
 The discipline that today guards meta-grounding is preserved across the lint-to-axiom move: the lowered
-modal (rigidity) and second-order (identity-supply) axioms must reproduce, over the downcast, exactly
-the verdicts the lints produce today — the lints become the regression test and the specification of
+modal (rigidity) and second-order (identity-supply) axioms reproduce, over the downcast, exactly
+the verdicts the lints produce today — the lints are the regression specification of
 the lowering (see [operational semantics](LOGIC-SEMANTICS.md#operational-semantics-modality-and-identity-supply)).
 
 ## Gates

@@ -81,6 +81,54 @@ comments). With all three budget parameters `None` (the default), `materialize`
 output is byte-identical to the pre-#502 behaviour: chase order preserved, every
 quad `"ok"`.
 
+## Foundation lowering (issue #503)
+
+Foundation lowering is the move of the four OntoUML structural disciplines from external Python
+checks (`src/gmeow_tools/reasoning_lint.py`) into executable `logic:` IR rules that materialize
+`logic:violation` and related diagnostic quads over `logic:` facts.
+
+### What it does
+
+Three of the four disciplines are expressed as in-world `logic:StratifiedNAFProfile` Datalog rules
+emitted by `foundation_rules()` in `src/gmeow_tools/logic_foundation.py`. The rules derive
+`?C logic:violation <label>` facts for:
+
+- `logic:StereotypeCardinality` — a class with zero or more than one stereotype;
+- `logic:MixIden` — identity-overlap (a `Kind` with a `Kind` proper-ancestor, or a non-`Kind`
+  sortal not tracing to exactly one `Kind`);
+- `logic:FreeRole` — an anti-rigid sortal with no rigid ancestor;
+- `logic:MixRig` — a rigid sortal with an anti-rigid-type ancestor;
+- `logic:RelComp` — a concrete `Relator` mediating fewer than two distinct relata.
+
+The fourth discipline — positive cross-world rigidity — cannot be expressed as an in-world Datalog
+rule because the chase is world-local. It is evaluated by a bounded closure pass
+(`cross_world_rigidity_violations()`) over the finite materialized world set, emitting
+`logic:rigidityViolation` quads in the world where rigidity persistence fails.
+
+### Python-authoritative; Rust mirror deferred
+
+The lowering is **Python-authoritative**: `logic_foundation.py` generates the Nemo `.rls` rule
+text that the Rust engine runs. Because the Nemo rule text is opaque to the Rust layer, the
+in-world foundation rules run identically on both engines and are covered by the existing
+`oracle ≡ engine` parity gate. The cross-world rigidity closure and anti-rigidity obligation
+passes are Python oracle-level computations over the materialized world set; the Rust engine
+receives their output folded into the materialized quad set.
+
+A Rust-native emitter (`crates/logic/src/foundation.rs`) is deferred. Its only payoff is a
+no-Python wasm path; it is not required by any #503 acceptance criterion.
+
+### `enable_naf` addition to the oracle
+
+Foundation lowering requires stratified NAF to express absence (a class with no stereotype, a
+sortal with no rigid ancestor). The `materialize_program()` function in `logic_materialize.py`
+accepts an `enable_naf` parameter (added in #503): when `True`, the rule set is partitioned into
+strata using the same dependency-graph stratification as the certifier, and each stratum is chased
+to fixpoint before the next. With `enable_naf=False` (the default) the behaviour is byte-identical
+to pre-#503: a single-stratum fixpoint with no NAF evaluation. Foundation lowering is gated on
+`"foundation_lowering": true` in `profile.json`; cases that do not opt in add zero quads.
+
+---
+
 ## Oracle-parity discipline
 
 - **A world is a named graph.** Every insert targets a specific named graph IRI;
