@@ -406,19 +406,25 @@ impl<'s> Parser<'s> {
             .iter()
             .map(|(p, ns)| (p.clone(), ns.clone()))
             .collect();
-        let literal_value = |t: Term| match t {
+        // `sh:prefix` is a string literal; `sh:namespace` is typically an
+        // `xsd:anyURI` literal but the SHACL spec also permits a bare IRI
+        // (NamedNode). Accept both lexical forms so an IRI-valued namespace is
+        // not silently dropped (which would omit a PREFIX line and break the
+        // dependent SHACL-AF query — a silent under-validation, P11/§11).
+        let term_value = |t: Term| match t {
             Term::Literal(lit) => Some(lit.value().to_owned()),
-            _ => None,
+            Term::NamedNode(node) => Some(node.as_str().to_owned()),
+            _ => None, // blank node / quoted triple: not a prefix or namespace value
         };
         for owner in owners {
             for prefixes_node in self.objects_of(owner, sh::PREFIXES) {
                 for declare in self.objects_of(&prefixes_node, sh::DECLARE) {
                     let prefix = self
                         .first_object_of(&declare, sh::PREFIX)
-                        .and_then(literal_value);
+                        .and_then(term_value);
                     let namespace = self
                         .first_object_of(&declare, sh::NAMESPACE)
-                        .and_then(literal_value);
+                        .and_then(term_value);
                     if let (Some(p), Some(ns)) = (prefix, namespace) {
                         map.insert(p, ns); // sh:prefixes overrides the document fallback
                     }
@@ -1287,6 +1293,39 @@ mod tests {
         assert!(
             sparql_c.unwrap().contains("$this"),
             "select text should contain '$this'"
+        );
+    }
+
+    // ── sh:namespace as a bare IRI (NamedNode), not an xsd:anyURI literal ────────
+    #[test]
+    fn test_sparql_prefixes_namespace_as_iri() {
+        // SHACL §5.2.1 permits sh:namespace to be an IRI (NamedNode); the PREFIX
+        // line must still be injected so the prefixed query name resolves.
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:NsDecls sh:declare [ sh:prefix "ex" ; sh:namespace <http://example.org/ns#> ] .
+            ex:PrefShape a sh:NodeShape ;
+                sh:targetClass ex:Foo ;
+                sh:prefixes ex:NsDecls ;
+                sh:sparql [
+                    sh:select "SELECT $this WHERE {{ $this a ex:Foo . }}" ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("IRI-valued sh:namespace must parse");
+        let shape = &shapes.node_shapes[0];
+        let select = shape
+            .constraints
+            .iter()
+            .find_map(|c| match c {
+                Constraint::Sparql { select, .. } => Some(select.clone()),
+                _ => None,
+            })
+            .expect("expected a Constraint::Sparql");
+        assert!(
+            select.contains("PREFIX ex: <http://example.org/ns#>"),
+            "IRI-valued sh:namespace must inject a PREFIX line; got: {select}"
         );
     }
 
