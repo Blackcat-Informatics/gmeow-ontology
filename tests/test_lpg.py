@@ -10,6 +10,8 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
+from gts import Term, TermKind, Writer, read
+
 from gmeow_tools.gts_views import FoldView
 from gmeow_tools.lpg import (
     LPGEdge,
@@ -24,7 +26,6 @@ from gmeow_tools.lpg import (
     serialize_graphml,
     serialize_neo4j_csv,
 )
-from gts import Term, TermKind, Writer, read
 
 
 def _fold_from_ttl(ttl: str) -> FoldView:

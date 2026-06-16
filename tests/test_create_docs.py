@@ -9,6 +9,8 @@ import tarfile
 from pathlib import Path
 
 import pytest
+from gts import Writer
+from gts.model import Term, TermKind
 
 from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.create_docs import (
@@ -16,8 +18,6 @@ from gmeow_tools.create_docs import (
     create_docs,
     resolve_doc_language,
 )
-from gts import Writer
-from gts.model import Term, TermKind
 
 RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 RDFS = "http://www.w3.org/2000/01/rdf-schema#"
