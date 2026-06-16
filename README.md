@@ -13,21 +13,44 @@
   <a href="https://pypi.org/project/gmeow/"><img alt="Python versions supported by gmeow" src="https://img.shields.io/pypi/pyversions/gmeow?logo=python&logoColor=white"></a>
   <a href="./LICENSE"><img alt="Tooling license: Apache-2.0" src="https://img.shields.io/badge/tooling-Apache--2.0-blue"></a>
   <a href="./LICENSE-ontology"><img alt="Ontology license: CC BY 4.0" src="https://img.shields.io/badge/ontology-CC%20BY%204.0-blue"></a>
+  <a href="https://doi.org/10.67342/26w4o"><img alt="DOI: 10.67342/26w4o" src="https://img.shields.io/badge/DOI-10.67342%2F26w4o-blue"></a>
 </p>
 
-GMEOW is a substrate for **grounded agent memory and claim provenance**. Every fact an AI
-system stores, recalls, or emits is held as what it actually is: an **attributed,
-time-scoped, confidence-weighted, evidence-linked claim** — open to contradiction (two
-models that disagree *coexist*, standpoint-indexed, never adjudicated by rank), revised by
-**suppression instead of deletion** (the agent that stops believing X keeps an auditable
-record that it believed X, on whose say-so, and why it stopped), and grounded in
-content-addressed evidence spans that make "is this hallucinated?" a *mechanical check*,
-not a vibe.
+GMEOW is an ontology engine for machine and human minds that treats every mental act as an
+*attributed, revisable claim* rather than a stored truth — a formal place to put not just
+what an agent (or a person) believes, but **who held it, from what vantage, with what
+confidence, on what evidence, by which kind of reasoning, in what state of awareness, and
+whether it has since been defeated.** Its flagship use is **grounded agent memory** — store
+/ recall / revise — that can tell a recalled fact from a confabulated one and surfaces
+disagreement as coexisting standpoints instead of overwriting the loser.
 
-Today's agent memory is an unattributed text-or-vector blob. GMEOW is the opposite bet:
-durable memory for real personal, organizational, and institutional data is a
-**semantic-substrate problem before it is a retrieval problem** — and the substrate must be
-able to answer the question every institution must answer: *how do you know, and who says?*
+- **One claim construct, reused everywhere.** A single reified *vantage × feature × result*
+  observation does the work of a measurement, a date, a categorization, an inference
+  conclusion, *and* a standpoint assertion — so new capabilities add almost no new primitives.
+- **Truth is never a bit.** No `isTrue`, no factive "knows." Belief is a flat lattice
+  (`believes` / `doubts` / `suspends` / `accepts`) with one entailment, `knowsThat ⊑ believes`;
+  truth rides a per-frame modality (□ / ◊ / refuted / "bullshit"), so contradictory claims
+  coexist rather than being ranked.
+- **A full model of mind.** Endurant **states** (belief, the knowing-spectrum, intention,
+  emotion, metacognition) and occurrent **processes** (perceiving, reasoning, learning,
+  imagining, dreaming) over **content** typed by direction-of-fit (propositions, goals,
+  questions, concepts, imagined) — every faculty given a human face *and* a machine face
+  (belief↔logits, memory↔context, inference↔chain-of-thought).
+- **Reasoning as a first-class, inspectable act.** Deduction / induction / abduction /
+  analogy, where a deduction's substrate is a real proof trace; calibration and
+  reality-monitoring (over/under-confidence, known-unknowns, an `originGenerated`
+  confabulation flag) are modeled directly.
+- **Revision is suppression, never deletion.** A fired defeater marks the old conclusion
+  `displayable false` and closes its tenure while keeping the inference as audit — which
+  *is* the memory's `revise()` operation.
+- **Authored once, then projected and linked widely.** Every fact is stated once across
+  GMEOW's **64 self-contained slices** and generated outward as lossy projections — OWL,
+  SHACL, JSON-LD, schema.org, citation and Crossref-deposit forms — while every term is
+  maximally aligned to **85 external vocabularies** and authority identifiers (schema.org,
+  Wikidata, PROV-O, FOAF, ORCID, DOI…), so a GMEOW graph is a first-class node in the
+  linked-data and persistent-identifier web.
+- **Friendly front, rigorous engine.** Flat JSON / Pydantic / MCP tools are the front door
+  (no one learns RDF); reasoned RDF is the engine room.
 
 **One engine, three products** ([v0.2.0 realignment](./docs/REALIGNMENT-v0.2.0.md), epic
 [#300](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/300)):
@@ -641,10 +664,15 @@ provenance/confidence/standpoint layer every other slice already uses:
 GMEOW publication is generated from the graph and the release commit, not maintained as a
 parallel metadata file.
 
-1. **DOI/PID graph.** `make crossref` generates `dist/crossref-deposit.xml` (CrossRef deposit
-   schema 5.4.0) from canonical metadata. The PID model uses a concept DOI, immutable version
-   DOIs, component DOIs for slices and mapping sets, graph-projected CrossRef relationships,
-   statement-level DOI provenance, FAIR Signposting, and SWHID/commit pairing for exact bytes.
+1. **DOI/PID graph.** `gmeow-dev crossref` generates `dist/crossref-deposit.xml` (CrossRef
+   deposit schema 5.4.0) from the canonical self-description for manual submission. The model is
+   **single-anchor**: one concept DOI ([`10.67342/26w4o`](https://doi.org/10.67342/26w4o),
+   always-latest) plus an optional per-release version DOI — granularity and provenance ride the
+   content-addressed identifier triangle (`owl:versionIRI` ↔ SWHID / GTS head id /
+   `gmeow:contentDigest`), not minted DOIs. The deposit maximally uses the schema (license,
+   contributors + ORCID, institution, `hasFormat` relations to every serialization, and
+   graph-projected alignment relations) and pairs with FAIR Signposting. See
+   [`docs/dois.md`](./docs/dois.md).
 2. **LOD and content negotiation.** `generated/metadata/void.ttl`, `generated/metadata/dcat.ttl`,
    and `generated/apache/gmeow.conf` are registered generated artifacts. The Apache config
    negotiates Turtle / RDF-XML / JSON-LD / HTML, handles profile and slice IRIs, and keeps
@@ -700,16 +728,16 @@ to grant separate commercial/proprietary licenses.
 - **GMEOW vocabulary** (the ontology in `ontology/` and its published serializations):
   [CC BY 4.0](./LICENSE-ontology).
 - **Proprietary licensing.** The open licenses above are offered *in addition to* — not in
-  place of — Blackcat Informatics' right to license either part under separate commercial
+  place of — Blackcat Informatics®' right to license either part under separate commercial
   terms. Contact `licensing@blackcatinformatics.ca`.
 
-**Trademarks.** "Blackcat Informatics®" is a registered trademark of Blackcat Informatics
+**Trademarks.** "Blackcat Informatics®" is a registered trademark of Blackcat Informatics®
 Inc. Neither open license grants any right to use these names, logos, or marks (Apache-2.0 §6;
 CC BY 4.0 §2(b)).
 
 **Contributions** are accepted under the same open licenses; for the dual-licensing
 reservation to extend to contributed material, contributors license their contributions to
-Blackcat Informatics Inc. under terms permitting that relicensing.
+Blackcat Informatics® Inc. under terms permitting that relicensing.
 
 **Third-party.** `imports/gufo.ttl` (gUFO) is vendored under the MIT License; its copyright
 and permission notice are preserved in that file.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
 
 set -euo pipefail

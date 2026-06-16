@@ -30,7 +30,7 @@ ex:lillith-license a gmeow:License ;
     gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" .
 
 ex:blackcat a gmeow:Organization ;
-    rdfs:label "Blackcat Informatics Inc."@en .
+    rdfs:label "Blackcat Informatics® Inc."@en .
 
 # The ingest provenance the catalog projections flatten to PROV.
 ex:lillith-ingest a gmeow:ImportActivity ;

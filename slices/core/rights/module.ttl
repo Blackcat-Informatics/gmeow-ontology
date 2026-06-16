@@ -314,8 +314,8 @@ gmeow:copyrightNotice
     rdfs:domain gmeow:Copyright ;
     rdfs:range rdfs:Literal ;
     rdfs:label "copyright notice"@x-gmeow-english ;
-    skos:definition "The human-readable copyright notice (schema:copyrightNotice), e.g. \"© 2026 Blackcat Informatics Inc.\""@x-gmeow-english ;
-    skos:example "ex:reportCopyright gmeow:copyrightNotice \"© 2026 Blackcat Informatics Inc.\" ."@x-gmeow-english ;
+    skos:definition "The human-readable copyright notice (schema:copyrightNotice), e.g. \"© 2026 Blackcat Informatics® Inc.\""@x-gmeow-english ;
+    skos:example "ex:reportCopyright gmeow:copyrightNotice \"© 2026 Blackcat Informatics® Inc.\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the ready-to-display © notice string for a work (schema:copyrightNotice) on its gmeow:Copyright relator."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid putting the structured holder or year here (use gmeow:copyrightHolder and gmeow:copyrightYear) and avoid using it as the reuse credit line, which is gmeow:attributionText."@x-gmeow-english ;
     gmeow:howToUse "Set gmeow:copyrightNotice once per Copyright (functional) to the formatted notice; keep the machine-readable holder and year on their own properties so the notice can also be regenerated."@x-gmeow-english ;
@@ -602,8 +602,8 @@ gmeow:markText
     rdfs:domain gmeow:Mark ;
     rdfs:range rdfs:Literal ;
     rdfs:label "mark text"@x-gmeow-english ;
-    skos:definition "The textual form of a mark (the brand name / word mark), e.g. \"Blackcat Informatics\"."@x-gmeow-english ;
-    skos:example "ex:blackcatMark gmeow:markText \"Blackcat Informatics\" ."@x-gmeow-english ;
+    skos:definition "The textual form of a mark (the brand name / word mark), e.g. \"Blackcat Informatics®\"."@x-gmeow-english ;
+    skos:example "ex:blackcatMark gmeow:markText \"Blackcat Informatics®\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the word-mark / brand-name string of a gmeow:Mark."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid attaching it to the gmeow:Trademark right (it belongs on the gmeow:Mark) and avoid using it for the registration number, which is gmeow:registrationNumber."@x-gmeow-english ;
     gmeow:howToUse "Set gmeow:markText once per Mark (functional) to its textual brand form; a purely figurative mark may carry an image reference on the Mark instead."@x-gmeow-english ;

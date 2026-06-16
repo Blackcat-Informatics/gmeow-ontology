@@ -284,7 +284,7 @@ ex:invExt a gmeow:NamePart ;
 # --- Organization appellation ----------------------------------------------- #
 
 ex:orgName a gmeow:OrganizationName ;
-    gmeow:fullName "Blackcat Informatics Inc."@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeLegal .
+    gmeow:fullName "Blackcat Informatics® Inc."@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeLegal .
 
 # --- Place naming: co-equal endonym/exonym toponyms + inferred PlaceNaming --- #
 # A name-usage whose usageNamed is a gmeow:Place is INFERRED to be a
@@ -324,7 +324,7 @@ ex:bavarianAuthority a gmeow:Organization ;
     gmeow:hasOrganizationName ex:orgNameEn , ex:orgNameFr .
 
 ex:orgNameEn a gmeow:OrganizationName ;
-    gmeow:fullName "Blackcat Informatics Inc."@x-gmeow-english ;
+    gmeow:fullName "Blackcat Informatics® Inc."@x-gmeow-english ;
     gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
     gmeow:namePurpose gmeow:namePurposeLegal ; gmeow:displayable true .
 

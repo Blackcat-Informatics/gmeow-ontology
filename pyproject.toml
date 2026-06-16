@@ -5,7 +5,7 @@ description = "GMEOW ontology tooling: refine, validate, reason over, document, 
 readme = "README.md"
 requires-python = ">=3.13"
 license = "Apache-2.0"
-authors = [{ name = "Blackcat Informatics Inc." }]
+authors = [{ name = "Blackcat Informatics® Inc." }]
 keywords = ["ontology", "owl", "rdf", "linked-data", "gmeow", "fair"]
 dependencies = [
     "rdflib>=7.6",
@@ -152,5 +152,6 @@ skip = "uv.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/exter
 # ser (Rust serde/ciborium module path `ciborium::ser`),
 # Beng (ISO 15924 script code for Bengali), fo (ISO 639-1 Faroese),
 # te (ISO 639-1 Telugu), intensional (the IDB term in logic/databases, opp. of
-# extensional), Hendler / Pease (author surnames in the logic references).
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,hendler,pease"
+# extensional), Hendler / Pease (author surnames in the logic references),
+# vor (Crossref AccessIndicators applies_to value = "version of record").
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,hendler,pease,vor"

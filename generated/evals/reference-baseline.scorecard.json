@@ -4,13 +4,13 @@
   "notes": [
     "invalid line: 'text' is a required property"
   ],
-  "overall": 0.7822,
+  "overall": 0.6333,
   "scores": {
     "abstention-quality": 1.0,
-    "calibration": 0.66,
-    "grounding-precision": 0.6,
-    "grounding-recall": 1.0,
-    "hallucination-resistance": 0.6,
+    "calibration": 0.5,
+    "grounding-precision": 0.4,
+    "grounding-recall": 0.6667,
+    "hallucination-resistance": 0.4,
     "schema-validity": 0.8333
   },
   "valid": 5
