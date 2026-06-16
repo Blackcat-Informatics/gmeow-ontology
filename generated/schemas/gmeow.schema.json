@@ -39412,6 +39412,470 @@
             "title": "ExifTag",
             "type": "object"
         },
+        "Experience": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "after": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "before": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "coincidesWith": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "complies": {
+                    "items": {
+                        "$ref": "#/$defs/Norm"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contains": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptionCue": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptiveIntentClaim": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "during": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "earliestStart": {
+                    "items": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventAspect": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventFromLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventObservation": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventSpacetime": {
+                    "items": {
+                        "$ref": "#/$defs/LocationState"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTemporalFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TemporalFrame"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventTense": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalTense"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTime": {
+                    "items": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTimeZone": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimeZone"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventToLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTrajectory": {
+                    "items": {
+                        "$ref": "#/$defs/Trajectory"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventType": {
+                    "items": {
+                        "$ref": "#/$defs/EventType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "experiencer": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Agent"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "finishedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishes": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDuration": {
+                    "items": {
+                        "$ref": "#/$defs/Duration"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSubEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "heldStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "implicates": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "latestEnd": {
+                    "items": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "maximViolationType": {
+                    "items": {
+                        "$ref": "#/$defs/MaximViolationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "meets": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mentalProcessType": {
+                    "items": {
+                        "$ref": "#/$defs/MentalProcessType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "metBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "occurrenceOfSeries": {
+                    "items": {
+                        "$ref": "#/$defs/EventSeries"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlappedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlaps": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "projectedStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "propagationMutationDistance": {
+                    "items": {
+                        "type": "integer"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "realizesMoment": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "startedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "starts": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "subEventOf": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "temporalPrecision": {
+                    "items": {
+                        "$ref": "#/$defs/TemporalPrecision"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "violates": {
+                    "items": {
+                        "$ref": "#/$defs/Norm"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Experience",
+            "type": "object"
+        },
         "Expression": {
             "additionalProperties": false,
             "description": "",
@@ -72799,6 +73263,491 @@
             "description": "",
             "title": "MentalMoment",
             "type": "object"
+        },
+        "MentalProcess": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "after": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "before": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "coincidesWith": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "complies": {
+                    "items": {
+                        "$ref": "#/$defs/Norm"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contains": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptionCue": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptiveIntentClaim": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "during": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "earliestStart": {
+                    "items": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventAspect": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventFromLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventObservation": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventSpacetime": {
+                    "items": {
+                        "$ref": "#/$defs/LocationState"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTemporalFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TemporalFrame"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventTense": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalTense"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTime": {
+                    "items": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTimeZone": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimeZone"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventToLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTrajectory": {
+                    "items": {
+                        "$ref": "#/$defs/Trajectory"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventType": {
+                    "items": {
+                        "$ref": "#/$defs/EventType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "experiencer": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Agent"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "finishedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishes": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDuration": {
+                    "items": {
+                        "$ref": "#/$defs/Duration"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSubEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "heldStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "implicates": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "latestEnd": {
+                    "items": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "maximViolationType": {
+                    "items": {
+                        "$ref": "#/$defs/MaximViolationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "meets": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mentalProcessType": {
+                    "items": {
+                        "$ref": "#/$defs/MentalProcessType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "metBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "occurrenceOfSeries": {
+                    "items": {
+                        "$ref": "#/$defs/EventSeries"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlappedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlaps": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "performanceOf": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "projectedStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "propagationMutationDistance": {
+                    "items": {
+                        "type": "integer"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "realizesMoment": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "startedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "starts": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "subEventOf": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "temporalPrecision": {
+                    "items": {
+                        "$ref": "#/$defs/TemporalPrecision"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "violates": {
+                    "items": {
+                        "$ref": "#/$defs/Norm"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "MentalProcess",
+            "type": "object"
+        },
+        "MentalProcessType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "MentalProcessType",
+            "type": "object"
+        },
+        "MentalProcessTypeEnum": {
+            "description": "",
+            "enum": [
+                "processAttention",
+                "processDeliberation",
+                "processDreaming",
+                "processImagining",
+                "processMindWandering",
+                "processPerception",
+                "processReasoning",
+                "processRecollection"
+            ],
+            "title": "MentalProcessTypeEnum",
+            "type": "string"
         },
         "MentalReferenceFrame": {
             "additionalProperties": false,

@@ -1476,6 +1476,18 @@ export enum MemoryKindEnum {
     working = "memoryKindWorking",
 };
 
+export enum MentalProcessTypeEnum {
+
+    attention = "processAttention",
+    deliberation = "processDeliberation",
+    dreaming = "processDreaming",
+    imagining = "processImagining",
+    mind_wandering = "processMindWandering",
+    perception = "processPerception",
+    reasoning = "processReasoning",
+    recollection = "processRecollection",
+};
+
 export enum MentalReferenceFrameEnum {
 
     Russell_Affective_Circumplex_Reference_Frame = "referenceFrameAffectiveCircumplex",
@@ -4561,6 +4573,11 @@ export interface ExifTag {
 
 
 
+export interface Experience extends MentalProcess {
+}
+
+
+
 export interface Expression extends CreativeWork {
     embodiedIn?: Manifestation[],
     realizationMode?: RealizationMode,
@@ -5401,6 +5418,19 @@ export interface MemoryKind {
 
 
 export interface MentalMoment {
+}
+
+
+
+export interface MentalProcess extends Event {
+    experiencer?: Agent,
+    mentalProcessType?: MentalProcessType[],
+    realizesMoment?: string[],
+}
+
+
+
+export interface MentalProcessType {
 }
 
 

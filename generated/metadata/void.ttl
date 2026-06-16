@@ -1180,11 +1180,11 @@
     void:triples 6 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to http://purl.obolibrary.org/obo/ (5)"@en ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://purl.obolibrary.org/obo/ (6)"@en ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget bfo: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 5 .
+    void:triples 6 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-oboe-core.owl-46f535-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl# (4)"@en ;
