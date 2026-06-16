@@ -25,7 +25,7 @@ A mental occurrence that unfolds in time — the perdurant (occurrent) counterpa
 kernel-level umbrella under which every mental event lives, so an agent's mental life can be queried
 as a single occurrent stream. A `gmeow:Event` borne by exactly one agent (`gmeow:experiencer`); the
 kind of process is a `gmeow:mentalProcessType` value, never a subclass (Principle 9).
-`gmeow:Inference` (inference slice #581) and `gmeow:LearningEvent` (learning slice #584) reparent
+`gmeow:InferenceProcess` (inference slice #581) and `gmeow:LearningEvent` (learning slice #584) reparent
 under it from their own slices.
 
 **Stereotype:** `owl:Class, gufo:EventType` · `⊑ gmeow:Event`
@@ -95,7 +95,7 @@ while backgrounding the rest.
 ### gmeow:processReasoning
 
 A reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The
-occurrent face of a `gmeow:Inference` (inference slice).
+occurrent face of a `gmeow:InferenceProcess` (inference slice).
 
 ### gmeow:processImagining
 
@@ -135,7 +135,7 @@ composed into the dreaming extension (#589) with awareness mode and content-orig
   produces.
 - **Renamed from `realizes`** (Principle 4) — the design used `realizes`; renamed to `realizesMoment`
   to avoid colliding with the WEMI `gmeow:realizes` (Expression → Work) in the creative-works slice.
-- **Reparenting hooks stay open** — `gmeow:Inference` (#581) and `gmeow:LearningEvent` (#584) declare
+- **Reparenting hooks stay open** — `gmeow:InferenceProcess` (#581) and `gmeow:LearningEvent` (#584) declare
   `rdfs:subClassOf gmeow:MentalProcess` from their own slices, never pre-declared here.
 
 ## Dependencies

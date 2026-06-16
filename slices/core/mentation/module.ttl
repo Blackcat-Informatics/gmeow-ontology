@@ -19,7 +19,7 @@ DOCTRINE.
   * Occurrent umbrella: gmeow:MentalProcess rdfs:subClassOf gmeow:Event is the single home for every mental occurrence (perceiving, reasoning, imagining, remembering, dreaming), the perdurant sibling of the endurant gmeow:MentalMoment (kernel/cognition #556). One query returns an agent's whole mental timeline.
   * Value-vocab, not taxonomy (Principle 9): the kind of a process is a gmeow:mentalProcessType value (a gmeow:MentalProcessType individual), never a subclass of gmeow:MentalProcess. The one genuine subclass is gmeow:Experience — the phenomenally-conscious / qualia-bearing subset.
   * The occurrent-to-endurant bridge gmeow:realizesMoment is open-range at this tier: it targets a gmeow:MentalMoment (subClassOf gufo:IntrinsicMode) once #556 lands; until then it points at any mode/claim a process produces. It is renamed from the design's 'realizes' to avoid the WEMI gmeow:realizes (creative-works) collision (Principle 4).
-  * Reparenting hooks stay open: gmeow:Inference (inference slice #581) and gmeow:LearningEvent (learning slice #584) declare rdfs:subClassOf gmeow:MentalProcess from their OWN slices, never pre-declared here."""@x-gmeow-english ;
+  * Reparenting hooks stay open: gmeow:InferenceProcess (inference slice #581) and gmeow:LearningEvent (learning slice #584) declare rdfs:subClassOf gmeow:MentalProcess from their OWN slices, never pre-declared here."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -30,10 +30,10 @@ gmeow:MentalProcess
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gmeow:Event ;
     rdfs:label "Mental Process"@x-gmeow-english ;
-    skos:definition "A mental occurrence that unfolds in time — the perdurant (occurrent) counterpart of the endurant gmeow:MentalMoment: a perceiving, a reasoning, an imagining, a remembering, a dreaming. The kernel-level umbrella under which every mental event lives, so an agent's mental life can be queried as a single occurrent stream. A gmeow:Event borne by exactly one agent (gmeow:experiencer); the kind of process is a gmeow:mentalProcessType value, never a subclass (Principle 9). gmeow:Inference (inference slice) and gmeow:LearningEvent (learning slice) reparent under it from their own slices."@x-gmeow-english ;
+    skos:definition "A mental occurrence that unfolds in time — the perdurant (occurrent) counterpart of the endurant gmeow:MentalMoment: a perceiving, a reasoning, an imagining, a remembering, a dreaming. The kernel-level umbrella under which every mental event lives, so an agent's mental life can be queried as a single occurrent stream. A gmeow:Event borne by exactly one agent (gmeow:experiencer); the kind of process is a gmeow:mentalProcessType value, never a subclass (Principle 9). gmeow:InferenceProcess (inference slice) and gmeow:LearningEvent (learning slice) reparent under it from their own slices."@x-gmeow-english ;
     skos:example "ex:morningReasoning a gmeow:MentalProcess ; gmeow:experiencer ex:lillith ; gmeow:mentalProcessType gmeow:processReasoning ."@x-gmeow-english ;
     gmeow:useWhen "Use as the umbrella for any mental OCCURRENCE that unfolds in time — a perceiving, reasoning, imagining, recollecting, or dreaming episode — so an agent's mental timeline is queryable as a single occurrent stream; the kind is a gmeow:mentalProcessType value."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid it for an enduring mental STATE (knowing, believing, desiring — those are endurant gmeow:MentalMoment modes, not occurrents) and avoid subclassing it to record a kind of process; the kind is a gmeow:mentalProcessType value, never a subclass (Principle 9). Only gmeow:Experience and own-slice reparents (gmeow:Inference, gmeow:LearningEvent) subclass it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an enduring mental STATE (knowing, believing, desiring — those are endurant gmeow:MentalMoment modes, not occurrents) and avoid subclassing it to record a kind of process; the kind is a gmeow:mentalProcessType value, never a subclass (Principle 9). Only gmeow:Experience and own-slice reparents (gmeow:InferenceProcess, gmeow:LearningEvent) subclass it."@x-gmeow-english ;
     gmeow:howToUse "Type the episode gmeow:MentalProcess, bind its bearer with gmeow:experiencer (functional), tag its kind(s) with gmeow:mentalProcessType, and link the endurant moment it settles via gmeow:realizesMoment; subclass it only from an owning slice (the inference / learning reparent hooks)."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerInternalArchive,
         gmeow:consumerAgentMemory,
@@ -133,7 +133,7 @@ gmeow:processAttention
 gmeow:processReasoning
     a gmeow:MentalProcessType ;
     rdfs:label "reasoning"@x-gmeow-english ;
-    skos:definition "A reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The occurrent face of a gmeow:Inference (inference slice)."@x-gmeow-english ;
+    skos:definition "A reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The occurrent face of a gmeow:InferenceProcess (inference slice)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .
 
 gmeow:processImagining
