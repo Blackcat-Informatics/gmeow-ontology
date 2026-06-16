@@ -250,6 +250,20 @@ pub mod sh {
     pub const SELECT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#select");
 
+    // ── SHACL-AF prefix declarations (sh:prefixes / sh:declare) ───────────────
+
+    pub const PREFIXES: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#prefixes");
+
+    pub const DECLARE: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#declare");
+
+    pub const PREFIX: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#prefix");
+
+    pub const NAMESPACE: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#namespace");
+
     pub const SPARQL_CONSTRAINT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLConstraint");
 
@@ -296,6 +310,12 @@ pub mod sh {
 
     pub const MAX_INCLUSIVE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MaxInclusiveConstraintComponent");
+
+    pub const MIN_EXCLUSIVE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MinExclusiveConstraintComponent");
+
+    pub const MAX_EXCLUSIVE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MaxExclusiveConstraintComponent");
 
     pub const AND_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#AndConstraintComponent");
