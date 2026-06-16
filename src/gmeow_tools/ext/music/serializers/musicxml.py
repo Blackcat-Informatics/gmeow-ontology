@@ -26,7 +26,7 @@ def _pitch_elements(pitch: PitchValue) -> tuple[str, float, int]:
     Microtonal deviations are expressed as decimal ``alter`` values.
     """
     midi = pitch.to_midi_number()
-    rounded = int(round(midi))
+    rounded = round(midi)
     chroma = rounded % 12
     octave = (rounded // 12) - 1
     step, semitone_alter = [

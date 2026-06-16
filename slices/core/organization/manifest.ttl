@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/organization>
     a gmeow:Slice ;
     rdfs:label "organization"@x-gmeow-english ;
-    skos:definition "The organization slice of the GMEOW ontology (core tier): GMEOW Organization Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The organization slice of the GMEOW ontology (core tier): the ORG-superset layer modelling organizations as gmeow:Agent functional complexes. Membership is a gufo:Relator (foundedOn an agreement, bearing role, post, and period); gmeow:subOrganizationOf specializes the kernel gmeow:partOf spine so department membership propagates by property chain. Roles are values, posts are holder-independent seats, and organization/site/service kinds are open value vocabularies (Principle 9) — never subclasses. Carries the universal reified gmeow:Identifier, the commercial offerings surface, and multi-organization change events; contested membership, succession, and recognition coexist as standpoint-indexed claims (Principles 9/10). Anatomy, dependencies, and consumer are declared in this manifest, which is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     dcterms:title "GMEOW Organization Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;

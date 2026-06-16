@@ -195,7 +195,7 @@ def piece_from_graph(graph: Graph, piece_iri: str | None = None) -> Piece:
                 pitch=pitch,
                 is_unpitched=(
                     bool(unpitched_lit.toPython())
-                    if unpitched_lit is not None
+                    if isinstance(unpitched_lit, Literal)
                     else False
                 ),
                 dynamics=_string(graph, event_iri, GM.toneEventDynamics),

@@ -26,6 +26,13 @@ gmeow:authorityLink
     rdfs:domain gmeow:Entity ;
     rdfs:label "authority link"@x-gmeow-english ;
     skos:definition "Links a GMEOW entity to a record in an external authority, registry, database, gazetteer, or catalogue by IRI. It is a see-also authority pointer, not an OWL identity merge; assert the strength of the coreference separately with skos:exactMatch or skos:closeMatch. The range is intentionally open. Wikidata is the recommended hub because its cross-references reach many other authorities."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:authorityLink <http://www.wikidata.org/entity/Q42> ; skos:exactMatch <http://www.wikidata.org/entity/Q42> ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a stable GMEOW entity should point at its record in an external authority — a Wikidata item, gazetteer entry, VIAF name, or database row — as a see-also reference whose match strength is asserted separately with skos:exactMatch or skos:closeMatch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting identity between the GMEOW node and the external record (never owl:sameAs — the link is a reference, not a merge); for two GMEOW entities that are counterparts across realms use gmeow:counterpartOf, and keep contested matches standpoint-indexed rather than collapsed."@x-gmeow-english ;
+    gmeow:howToUse "Point the entity at the external IRI and pair the link with an explicit skos:exactMatch or skos:closeMatch carrying the coreference strength; prefer a Wikidata hub IRI so its own cross-references reach the other authorities."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerWikidata,
+        gmeow:consumerInternalArchive,
+        gmeow:consumerResearchQueue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 gmeow:authorityLink gmeow:docsConcern gmeow:concernIdentifiersCoreference .
 
@@ -35,6 +42,10 @@ gmeow:counterpartOf
     rdfs:range gmeow:Entity ;
     rdfs:label "counterpart of"@x-gmeow-english ;
     skos:definition "Relates two GMEOW entities that are recognisable counterparts across realms, frames, datasets, editions, or modelling contexts without being safely mergeable. Symmetric but deliberately not transitive: counterparts preserve cross-realm linkage while avoiding owl:sameAs collapse of contested, standpoint-indexed, or context-dependent claims."@x-gmeow-english ;
+    skos:example "ex:novelLondon gmeow:counterpartOf ex:realLondon ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link two GMEOW entities that are the same thing across distinct realms, frames, datasets, or fictional/real boundaries — a fictional city and its real namesake, a record in two databases — while each keeps its own identity and context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for entity-to-external-record references (use gmeow:authorityLink) and for genuine mergers; never reach for owl:sameAs to collapse counterparts, since it is symmetric-only by design to keep contested or context-dependent claims standpoint-indexed rather than transitively identified."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:counterpartOf between the two GMEOW nodes in one direction and read it both ways; because it is intentionally non-transitive, state each pairing you mean and carry any disputed correspondence on the statement layer rather than chaining through a hub."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 
 # --------------------------------------------------------------------------- #
@@ -47,6 +58,10 @@ gmeow:versionOf
     rdfs:range gmeow:Entity ;
     rdfs:label "version of"@x-gmeow-english ;
     skos:definition "Relates a concrete version entity to the stable lineage entity it versions: a language version to its language, a software release to its project, a data release to its dataset, or a work version to its work. Functional because a version belongs to one lineage, but the lineage may have many versions."@x-gmeow-english ;
+    skos:example "ex:gmeow_1_0_1 gmeow:versionOf ex:gmeowProject ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one concrete version entity rolls up to a single stable lineage — a software release to its project, a dated data release to its dataset, a language version to its language — and the lineage node is the durable identity many versions share."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for editions of a creative work (use gmeow:editionOf) and for mere succession without lineage containment (use gmeow:supersedes); never collapse a version into its lineage with owl:sameAs — the version stays a first-class entity with its own identifiers and dates."@x-gmeow-english ;
+    gmeow:howToUse "Point the version entity at exactly one lineage entity (the property is functional); model release order among versions with gmeow:supersedes and let each version keep its own dates, rights, and provenance."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 
 gmeow:editionOf
@@ -55,6 +70,10 @@ gmeow:editionOf
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "edition of"@x-gmeow-english ;
     skos:definition "Relates a concrete edition, issue, or manifestation of a creative work to the stable work it editions. Functional per edition, non-merge semantics: editions remain first-class works with their own identifiers, dates, rights, and provenance."@x-gmeow-english ;
+    skos:example "ex:hamletFolio1623 gmeow:editionOf ex:hamlet ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a concrete edition, issue, printing, or manifestation of a creative work rolls up to the single stable work it realizes — a 1623 folio to the play, a second edition to the title — and each edition needs its own ISBN, date, and rights."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for non-work lineages (use gmeow:versionOf) and for plain replacement (use gmeow:supersedes); never merge an edition into its work with owl:sameAs, since editions stay first-class works with distinct identifiers and provenance."@x-gmeow-english ;
+    gmeow:howToUse "Point the edition work at exactly one parent work (the property is functional); keep each edition's own identifiers, dates, and rights local, and use gmeow:supersedes when one edition replaces another in the lineage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 
 gmeow:supersedes
@@ -63,4 +82,8 @@ gmeow:supersedes
     rdfs:range gmeow:Entity ;
     rdfs:label "supersedes"@x-gmeow-english ;
     skos:definition "Relates a newer entity, version, record, or claim-bearing artifact to a prior one it supersedes. Non-functional: one successor may consolidate several predecessors. Superseded entities remain first-class and usable; suppression from display is handled separately with gmeow:displayable false when appropriate."@x-gmeow-english ;
+    skos:example "ex:policyV2 gmeow:supersedes ex:policyV1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a newer entity, version, record, or claim replaces one or more prior ones — a revised policy over its draft, a merged record consolidating several predecessors — while the superseded items stay first-class and resolvable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for lineage containment (use gmeow:versionOf or gmeow:editionOf) and for cross-realm equivalence (use gmeow:counterpartOf); never delete or owl:sameAs the predecessor — suppress it from display with gmeow:displayable false if it should no longer surface."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:supersedes from the successor to each predecessor (non-functional, so one successor may consolidate several); keep the superseded entities in the graph and mark them gmeow:displayable false when they should drop out of projections."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .

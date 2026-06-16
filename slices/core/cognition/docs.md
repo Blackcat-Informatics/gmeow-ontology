@@ -111,6 +111,33 @@ attention/interest is an attentional pull, **not** a `teleology` goal; objectual
 `gmeow:memoryOf` as prose, so cognition adds **no** dependency on `ai`. Forgetting
 is suppression (`gmeow:displayable false`), never deletion (Principle 10).
 
+## Terms
+
+The four ordinal properties of the knowledge spectrum, chained so each deeper
+level entails every shallower one (`hasMastered ⊑ understands ⊑ knowsAbout ⊑
+isAwareOf`).
+
+### gmeow:isAwareOf
+
+The faintest depth: the agent has encountered the subject and knows it exists. The
+honest floor a flat `schema:knowsAbout` edge lifts no further than.
+
+### gmeow:knowsAbout
+
+Knows facts about the subject; can describe it. The eponymous bridge to
+`schema:knowsAbout` (`skos:exactMatch`), and the level a `gmeow:hasSkill` entails
+(asserted by the expertise slice).
+
+### gmeow:understands
+
+Comprehends the subject; can reason with and apply it — deeper than knowing facts
+about it, shallower than mastery.
+
+### gmeow:hasMastered
+
+The deepest level: expert command — can extend, teach, and innovate on the
+subject. Asserting it materialises the whole shallower tail.
+
 ## Alignment
 
 `schema:knowsAbout` aligns by `skos:exactMatch` to `gmeow:knowsAbout` — the

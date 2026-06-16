@@ -27,6 +27,10 @@ gmeow:Language
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Language"@x-gmeow-english ;
     skos:definition "A language as a first-class information object with a self-minted IRI: a system of signs/symbols and rules used for communication or computation. Registry-INDEPENDENT — BCP-47/ISO 639/Glottolog/Wikidata are optional alignments (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch), never identity, so a code-less conlang or AI-generated language is fully first-class. Origin, modality and status are open value vocabularies; the scripts it is written in are bound co-equally via gmeow:WritingSystemUsage; its endonym/exonym names are gmeow:Appellation."@x-gmeow-english ;
+    skos:example "ex:langTlhingan a gmeow:Language ; gmeow:languageCode \"tlh\" ; skos:exactMatch <http://www.wikidata.org/entity/Q10134> ."@x-gmeow-english ;
+    gmeow:useWhen "Use to mint a language as a first-class IRI rather than a flat code literal — the registry-independent target of gmeow:writtenInLanguage and the anchor of every x-gmeow-* private-use tag, so a code-less conlang or AI-generated language is fully modelled (no privileged language, Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid flattening a language into an inLanguage code string on the content (that is the anti-pattern gmeow:writtenInLanguage replaces) and avoid treating a registry code as identity; codes are alignments via gmeow:languageCode, not the IRI."@x-gmeow-english ;
+    gmeow:howToUse "Mint the Language with a self-minted IRI, give it endonym/exonym gmeow:Appellation names, bind its scripts co-equally through gmeow:WritingSystemUsage, and assert registry coreference with skos:exactMatch plus gmeow:languageCode rather than encoding identity in a code."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 gmeow:WritingSystem
@@ -34,6 +38,10 @@ gmeow:WritingSystem
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Writing System"@x-gmeow-english ;
     skos:definition "A first-class system for visually or tactilely representing language — a script: Latin, Han (kanji), Hiragana, Katakana, Arabic, Braille, or a bespoke conlang/AI script. Carries gmeow:scriptCode (ISO 15924 when one exists, else a bespoke identifier), a type (gmeow:writingSystemType) and a direction (gmeow:textDirection). Bound to the languages that use it — co-equally and simultaneously — through gmeow:WritingSystemUsage; bespoke and non-linear scripts (Ithkuil) are first-class."@x-gmeow-english ;
+    skos:example "ex:scriptLatin a gmeow:WritingSystem ; gmeow:scriptCode \"Latn\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to mint a script as a first-class object — Latin, Han, Arabic, Braille, or a bespoke conlang/AI script — separately from the languages that use it, so one language written in several scripts and one script shared across languages are both modelled co-equally."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid folding the script into the Language itself (a language is not its script) and avoid treating ISO 15924 as identity; mint a bespoke scriptCode when no standard code exists rather than refusing the script."@x-gmeow-english ;
+    gmeow:howToUse "Mint the WritingSystem, give it a gmeow:scriptCode, gmeow:writingSystemType, and gmeow:textDirection, and bind it to each language that uses it through a gmeow:WritingSystemUsage relator rather than a direct attribute, so co-equal multi-script usage is first-class."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 
@@ -49,6 +57,13 @@ gmeow:languageTag
     rdfs:range xsd:string ;
     rdfs:label "language tag"@x-gmeow-english ;
     skos:definition "The internal private-use BCP-47 language tag (e.g., 'x-gmeow-japanese') used for @lang annotations on string literals representing this language."@x-gmeow-english ;
+    skos:example "gmeow:langEnglish gmeow:languageTag \"x-gmeow-english\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the private-use tag (x-gmeow-*) a seed Language individual anchors — GMEOW's own internal literals carry this tag so no natural language is privileged (Principle 9), and the projection layer reconstructs standard BCP-47 from it on export (Principle 4)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it on data-tier languages that never tag GMEOW's own literals (use gmeow:languageCode for registry alignment) and avoid emitting the private-use tag to consumers that require standard BCP-47 — project it through gmeow:bcp47Tag instead."@x-gmeow-english ;
+    gmeow:howToUse "Assign one x-gmeow-* string per anchoring Language individual (functional: a single private-use tag); pair with gmeow:bcp47Tag so the projection layer can swap the internal tag for a standard one when serializing to external vocabularies."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerSchemaOrgJsonLd ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 gmeow:bcp47Tag
@@ -57,6 +72,12 @@ gmeow:bcp47Tag
     rdfs:range xsd:language ;
     rdfs:label "BCP-47 tag"@x-gmeow-english ;
     skos:definition "An OPTIONAL external BCP-47 language tag used only when projecting GMEOW's internal private-use literals into vocabularies that require standard language-tag literals. Non-functional because a language may expose several valid BCP-47 tags across script, region, or variant contexts; broad registry alignments such as ISO 639-3 codes and Glottocodes remain gmeow:languageCode values."@x-gmeow-english ;
+    skos:example "gmeow:langMandarin gmeow:bcp47Tag \"zh\" , \"zh-Hans\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the standard BCP-47 tag(s) the projection layer substitutes for an x-gmeow-* private-use tag when serializing to consumers that require standard language-tag literals (Wikidata, schema.org JSON-LD)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as the language's identity or as a general registry alignment (that is gmeow:languageCode), and avoid forcing one tag — a language legitimately exposes several BCP-47 tags across script/region/variant, so it stays non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Attach the standard BCP-47 tag(s) alongside gmeow:languageTag; the projection compiler reads bcp47Tag to reconstruct conformant @lang literals on export, falling back across the listed tags by context."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerWikidata,
+        gmeow:consumerSchemaOrgJsonLd ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 gmeow:languageCode
@@ -65,6 +86,10 @@ gmeow:languageCode
     rdfs:range rdfs:Literal ;
     rdfs:label "language code"@x-gmeow-english ;
     skos:definition "An OPTIONAL registry code for a language (a BCP-47 tag \"ja\", an ISO 639-3 code \"jpn\", a Glottocode). A see-also alignment value, NEVER identity — a code-less conlang or AI-language is fully first-class. Authoritative identity is the self-minted IRI; assert registry coreference with skos:exactMatch and gmeow:authorityLink. Non-functional (a language carries codes in several registries)."@x-gmeow-english ;
+    skos:example "gmeow:langEnglish gmeow:languageCode \"en\" , \"eng\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a language's registry code(s) — ISO 639-3, BCP-47 primary subtag, Glottocode — as a see-also alignment for interop and lookup, while the self-minted IRI remains the identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a code as the language's identity or as the @lang tag on GMEOW's own literals (that is gmeow:languageTag), and avoid forcing one code — a language carries codes in several registries, so it stays non-functional. A code-less conlang needs no value here."@x-gmeow-english ;
+    gmeow:howToUse "List each registry code as a literal and pair it with skos:exactMatch (and gmeow:authorityLink) to the registry IRI for graph-level coreference; never let the code substitute for the IRI in a gmeow:writtenInLanguage object."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 
@@ -123,6 +148,10 @@ gmeow:FormalLanguage
     rdfs:subClassOf gmeow:Language ;
     rdfs:label "Formal Language"@x-gmeow-english ;
     skos:definition "A grammar-defined language with a machine modality and no human native speakers — programming, markup, query, logic, schema, and configuration languages. A thin structural split from gmeow:Language (the sociolinguistic facets — endonym/exonym, co-mingled scripts, native-speaker status — do not apply), complemented by the gmeow:languageOrigin value for fine-grained classification."@x-gmeow-english ;
+    skos:example "ex:langJson a gmeow:FormalLanguage ; gmeow:languageCode \"json\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a grammar-defined, machine-modality language with no human native speakers — markup, query, logic, schema, or configuration languages — where the sociolinguistic facets of a natural language do not apply."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a natural human language (use gmeow:Language) and, when the language expresses executable computation, prefer the narrower gmeow:ProgrammingLanguage so gmeow:writtenInLanguage targets are precise."@x-gmeow-english ;
+    gmeow:howToUse "Type the formal language as FormalLanguage (or ProgrammingLanguage), classify it with gmeow:languageOrigin, and skip the endonym/exonym and writing-system-usage machinery that only natural languages need."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 gmeow:ProgrammingLanguage
@@ -130,6 +159,10 @@ gmeow:ProgrammingLanguage
     rdfs:subClassOf gmeow:FormalLanguage ;
     rdfs:label "Programming Language"@x-gmeow-english ;
     skos:definition "A formal language for expressing executable computation (Python, Rust, SQL-as-implemented). The first-class target of gmeow:writtenInLanguage, by which a software project declares the languages it is written in."@x-gmeow-english ;
+    skos:example "ex:projectGmeow gmeow:writtenInLanguage ex:langPython , ex:langRust ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a formal language that expresses executable computation — the first-class IRI a software project points at through gmeow:writtenInLanguage to declare the languages it is implemented in."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for non-executable formal languages such as markup, schema, or configuration (use the broader gmeow:FormalLanguage) and for natural languages (gmeow:Language)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the language as a ProgrammingLanguage IRI and reference it from a software project via gmeow:writtenInLanguage (non-functional: a codebase uses several), aligning to a registry with gmeow:languageCode where one exists."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 gmeow:transliterationScheme
@@ -138,6 +171,10 @@ gmeow:transliterationScheme
     rdfs:range gmeow:TransliterationScheme ;
     rdfs:label "transliteration scheme"@x-gmeow-english ;
     skos:definition "The named transliteration/romanization system that produced an appellation's gmeow:romanization (Hepburn vs Kunrei for Japanese; Pinyin vs Wade-Giles for Mandarin). Records HOW the romanization was derived. Non-functional. Domain gmeow:Appellation retrofits the names module; the scheme individuals are catalogued as FnO functions in the projection layer."@x-gmeow-english ;
+    skos:example "ex:tokyoName gmeow:transliterationScheme ex:schemeHepburn ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which transliteration/romanization system produced an appellation's gmeow:romanization, so competing systems (Hepburn vs Kunrei, Pinyin vs Wade-Giles) are distinguished rather than silently merged."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to carry the romanized string itself (that is gmeow:romanization) and avoid forcing one scheme — the same name may carry romanizations from several systems, so it stays non-functional."@x-gmeow-english ;
+    gmeow:howToUse "On a gmeow:Appellation, pair gmeow:romanization with gmeow:transliterationScheme naming the gmeow:TransliterationScheme individual; the projection layer resolves the named scheme to its FnO transform when reconstructing or validating the romanization."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 gmeow:TransliterationScheme
@@ -145,6 +182,10 @@ gmeow:TransliterationScheme
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Transliteration Scheme"@x-gmeow-english ;
     skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl)."@x-gmeow-english ;
+    skos:example "ex:schemeHepburn a gmeow:TransliterationScheme ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the transliteration axis — the named systems (Hepburn, Pinyin, ISO 233, IPA, …) a romanization can declare it was produced by via gmeow:transliterationScheme."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-scheme subclasses (schemes are individuals) and avoid using it for the romanized string or the script itself (gmeow:WritingSystem); a scheme is a transform, not a script."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded scheme individual from a romanization via gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in projections/transforms.fno.ttl, so a consumer can resolve the individual to its executable transform."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
 
 # =========================================================================== #
@@ -162,4 +203,8 @@ gmeow:writtenInLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "written in language"@x-gmeow-english ;
     skos:definition "Relates an information object — an expression, a document, a source tree, an inscription reading — to a first-class gmeow:Language it is written in. The registry-independent replacement for flat inLanguage tags: the object is a Language IRI, never a code literal (codes are alignments via gmeow:languageCode). Non-functional: content mixes languages, and a codebase uses several."@x-gmeow-english ;
+    skos:example "ex:report gmeow:writtenInLanguage gmeow:langFrench , gmeow:langEnglish ."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the language(s) an information object is written in by pointing at first-class gmeow:Language IRIs — the registry-independent replacement for flat inLanguage code tags, covering documents, expressions, source trees, and inscription readings alike."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid giving it a code literal as object (the object is always a Language IRI; codes live on the language via gmeow:languageCode) and avoid forcing a single language — multilingual content and polyglot codebases name several, so it stays non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Reference one or more gmeow:Language individuals (a gmeow:ProgrammingLanguage for software); when the per-language extent, role, or confidence must be first-class, promote to a reified usage relator rather than overloading this flat property."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .

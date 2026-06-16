@@ -43,6 +43,10 @@ gmeow:heldStandpoint
     rdfs:range gmeow:StandpointClaim ;
     rdfs:label "held standpoint"@x-gmeow-english ;
     skos:definition "The standpoint claim that the deceiver actually holds to be true — the private belief or position that contrasts with the projected standpoint in a deception event. Non-functional: a complex deception may involve multiple held standpoints."@x-gmeow-english ;
+    skos:example "ex:lie gmeow:heldStandpoint ex:heldClaim ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the private belief a deceiver actually holds in a deception event — the inner half of the held≠projected divergence that IS the deceptive act, modelled as an ordinary gmeow:StandpointClaim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the communicated position the deceiver presents to the victim (that is gmeow:projectedStandpoint) and avoid using it to flag a proposition false — a falsehood is a refuted StandpointClaim (claimModality gmeow:refuted), never an isFalse flag."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:StandpointClaim with the deceiver as gmeow:vantage, attach it via gmeow:heldStandpoint, and pair it with a divergent gmeow:projectedStandpoint; the gap between the two is the deception, asserted without any global truth verdict (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 gmeow:projectedStandpoint
@@ -51,6 +55,10 @@ gmeow:projectedStandpoint
     rdfs:range gmeow:StandpointClaim ;
     rdfs:label "projected standpoint"@x-gmeow-english ;
     skos:definition "The standpoint claim that the deceiver projects to the deceived party — the public or communicated position that diverges from the held standpoint in a deception event. Non-functional: a complex deception may project several standpoints to different audiences."@x-gmeow-english ;
+    skos:example "ex:lie gmeow:projectedStandpoint ex:projectedClaim ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the position a deceiver communicates to the victim — the outer half of the held≠projected divergence; for paltering the projected claim is literally true yet conversationally misleading (pair with gmeow:implicates)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the deceiver's private belief (that is gmeow:heldStandpoint) and avoid treating projection as a truth verdict on the proposition — refutation belongs on a StandpointClaim's modality, not here, and competing standpoints coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:StandpointClaim communicated to the victim, attach it via gmeow:projectedStandpoint, and contrast it with the divergent gmeow:heldStandpoint; for an omission leave the projected standpoint absent and let the gap itself carry the mechanism."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #
@@ -63,6 +71,10 @@ gmeow:deceptiveIntentClaim
     rdfs:range gmeow:StandpointClaim ;
     rdfs:label "deceptive intent claim"@x-gmeow-english ;
     skos:definition "An attributed, defeasible standpoint claim that the event was carried out with deceptive intent. The vantage is the assessor (who attributes the intent), not the deceiver; the claim carries gmeow:confidence and gmeow:wasAttributedTo. Intent is NEVER entailed by the reasoner — it is a contestable attribution that coexists with its denial (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:event gmeow:deceptiveIntentClaim ex:intentAssessment ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach an assessor's attribution that an event was deliberately deceptive — keeping intent OUT of the logic, as a confidence-weighted, attributed claim rather than an entailed fact (the lie/error/bullshit distinction turns on intent the reasoner must not decide)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting intent as a global fact or boolean flag, and avoid putting the deceiver in the vantage — the vantage is the ASSESSOR; never let the reasoner entail deceptiveness (it is contestable and coexists with its denial, Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:StandpointClaim whose gmeow:vantage is the assessor, carry gmeow:confidence and gmeow:wasAttributedTo, and link it via gmeow:deceptiveIntentClaim; record a denial as a separate coexisting claim rather than negating this one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #
@@ -75,6 +87,10 @@ gmeow:implicates
     rdfs:range gmeow:Entity ;
     rdfs:label "implicates"@x-gmeow-english ;
     skos:definition "Relates a deceptive event to a proposition or entity that it conversationally or contextually implicates — the paltering mechanism, where a literally true statement misleadingly implies a false conclusion. No reasoner semantics: implicature is a solver-layer computation (Principle 12), not an OWL entailment."@x-gmeow-english ;
+    skos:example "ex:palter gmeow:implicates ex:falseConclusion ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the false conclusion a literally-true projected claim misleadingly implies — the paltering hook (gmeow:eventTypePaltering), where the gap is between literal content and pragmatic implicature, not between literal claim and held belief."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the literal projected claim itself (that is gmeow:projectedStandpoint) and avoid expecting the reasoner to derive the implicature — it carries no OWL entailment; the implicature computation stays in the solver layer (Principle 12)."@x-gmeow-english ;
+    gmeow:howToUse "On a paltering event, set the technically-true gmeow:projectedStandpoint and link the misleading conclusion via gmeow:implicates; let a solver score the implicature against the held standpoint rather than asserting it logically."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #
@@ -87,6 +103,10 @@ gmeow:deceptionCue
     rdfs:range gmeow:Observation ;
     rdfs:label "deception cue"@x-gmeow-english ;
     skos:definition "An observation that serves as a cue or indicator of deception in the event — a behavioural, linguistic, or evidential signal. Non-functional: a deception event may have many cues, and competing standpoint-indexed cue claims coexist (Principle 9). The scoring and weighting of cues is solver-layer (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:event gmeow:deceptionCue ex:gazeAversionReading ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach a behavioural, linguistic, or evidential signal — modelled as a gmeow:Observation — that indicates deception in an event, so each cue carries its own vantage and method rather than being asserted as a bare fact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a cue as proof of deception (it is one standpoint-indexed indicator, weighed by the solver, not an entailment) and avoid collapsing competing cue claims — keep it non-functional so contradicting readings coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Mint each cue as a gmeow:Observation with its own gmeow:vantage and gmeow:observationMethod, link it via gmeow:deceptionCue, and leave the aggregate scoring (e.g. gmeow:credibilityScore) to the solver layer (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #
@@ -109,6 +129,10 @@ gmeow:claimVeridicality
     rdfs:range gmeow:ClaimVeridicality ;
     rdfs:label "claim veridicality"@x-gmeow-english ;
     skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. Non-functional: a claim may carry multiple veridicality assessments from different standpoints (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:satiricalClaim gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood ."@x-gmeow-english ;
+    gmeow:useWhen "Use to mark a gmeow:StandpointClaim's veridicality — especially to flag licensed falsehood (gmeow:veridicalityLicensedFalsehood) so fiction, satire, and sarcasm are kept distinct from deception (the audience understands the non-truth-asserting frame)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a global isFalse flag (it is a frame-relative, non-functional assessment) — to settle a claim false, refute its StandpointClaim modality; multiple standpoint-indexed veridicality assessments coexist rather than collapse (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Point the StandpointClaim at a gmeow:ClaimVeridicality individual (gmeow:veridicalityUntrue / gmeow:veridicalityLicensedFalsehood); attach assessments from each standpoint as separate non-functional values rather than forcing one verdict."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #
@@ -120,6 +144,10 @@ gmeow:ClaimVeridicality
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Claim Veridicality"@x-gmeow-english ;
     skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. A closed value vocabulary (individuals, never subclasses) that makes the licensed-falsehood safety property explicit, separating intentional deception from harmless fictional assertion."@x-gmeow-english ;
+    skos:example "gmeow:veridicalityLicensedFalsehood a gmeow:ClaimVeridicality ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:claimVeridicality — the closed set of individuals (untrue, licensed falsehood) that distinguish harmless fictional assertion from deceptive untruth as an explicit safety property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-status subclasses (statuses are individuals) and avoid using it as a global truth flag; veridicality is a frame-relative, standpoint-indexed assessment, never an isFalse axiom (Principle 11)."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded individuals (gmeow:veridicalityUntrue, gmeow:veridicalityLicensedFalsehood) from a claim via gmeow:claimVeridicality; extend with new individuals rather than subclasses if a finer status is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 gmeow:veridicalityUntrue
@@ -171,6 +199,10 @@ gmeow:MaximViolationType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Maxim Violation Type"@x-gmeow-english ;
     skos:definition "A value vocabulary for conversational maxim violations (Gricean maxims: quality, quantity, relation, manner)."@x-gmeow-english ;
+    skos:example "gmeow:maximViolationQuality a gmeow:MaximViolationType ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:maximViolationType — the four Gricean maxim violations (quality, quantity, relation, manner) a deceptive event may be classified as breaching."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-maxim subclasses (the four are individuals) and avoid treating the classification as an entailment; which maxim a deception violates is a solver-layer judgement (Principle 12), not an OWL-derived fact."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded individuals (gmeow:maximViolationQuality / Quantity / Relation / Manner) from a deceptive gmeow:Event via gmeow:maximViolationType; a single event may carry several (paltering violates Quantity and Relation)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 gmeow:maximViolationType
@@ -179,6 +211,10 @@ gmeow:maximViolationType
     rdfs:range gmeow:MaximViolationType ;
     rdfs:label "maxim violation type"@x-gmeow-english ;
     skos:definition "The type of conversational maxim violated in a deceptive event (quality, quantity, relation, manner). Solver-layer classification (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:palter gmeow:maximViolationType gmeow:maximViolationQuantity ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify which Gricean maxim a deceptive gmeow:Event breaches — naming a gmeow:MaximViolationType individual; non-functional, so an event that violates several maxims carries each."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid expecting the reasoner to derive the violation (it is a solver-layer classification, Principle 12) and avoid forcing one value — paltering legitimately violates both Quantity and Relation."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:MaximViolationType individuals to the deceptive event; let a solver assign them from the held/projected divergence rather than asserting the maxim violation as an entailed fact."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 gmeow:credibilityScore
@@ -187,6 +223,13 @@ gmeow:credibilityScore
     rdfs:range xsd:decimal ;
     rdfs:label "credibility score"@x-gmeow-english ;
     skos:definition "A numerical credibility score assigned to an observation or claim. Solver-layer computation (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:cueReading gmeow:credibilityScore 0.35 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a solver-computed credibility figure for an observation or claim — a derived scalar that downstream tooling can rank cues and standpoints by."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hand-authoring it as a first-class fact (it is a solver-layer derivation, Principle 12) and avoid reading it as a truth verdict — low credibility is not refutation; settle truth by refuting a StandpointClaim's modality, never with this score."@x-gmeow-english ;
+    gmeow:howToUse "Let the solver write the xsd:decimal score onto the gmeow:Observation; carry the assessor and method on the observation's vantage/method, and keep this purely derived value out of public-facing projections."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerPublicSite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 gmeow:propagationMutationDistance
@@ -195,6 +238,13 @@ gmeow:propagationMutationDistance
     rdfs:range xsd:integer ;
     rdfs:label "propagation mutation distance"@x-gmeow-english ;
     skos:definition "The number of transmission hops before a propagated deceptive claim mutates. Solver-layer computation (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:campaign gmeow:propagationMutationDistance 3 ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a disinformation-campaign event to record how many propagation hops a claim survives before mutating — a solver metric over the prov:wasDerivedFrom / gmeow:propagatesFrom chain that helps locate the misinformation↔disinformation boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as an authored fact (it is solver-derived, Principle 12) and avoid reading it as a per-node intent label — the originating-deceiver vs unwitting-dupe distinction is per-node (gmeow:roleDeceiver / gmeow:roleDupe), not a campaign-wide hop count."@x-gmeow-english ;
+    gmeow:howToUse "Let the solver compute the xsd:integer distance from the propagation chain and write it onto the campaign event; keep per-node intent on gmeow:deceptiveIntentClaim and roles rather than inferring it from this number."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerPublicSite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 gmeow:argumentAcceptability
@@ -203,6 +253,13 @@ gmeow:argumentAcceptability
     rdfs:range xsd:decimal ;
     rdfs:label "argument acceptability"@x-gmeow-english ;
     skos:definition "A numerical acceptability score for an argument or standpoint claim. Solver-layer computation (Principle 12), referencing AIF (Argument Interchange Format)."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:argumentAcceptability 0.8 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a solver-computed acceptability figure for a gmeow:StandpointClaim within an argumentation graph (AIF) — a derived scalar ranking how well a claim survives attack and support."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hand-authoring it (it is a solver-layer derivation, Principle 12) and avoid conflating acceptability with truth — a well-defended claim may still be untrue; refute a StandpointClaim's modality to settle falsehood, never lower this score."@x-gmeow-english ;
+    gmeow:howToUse "Let the argumentation solver write the xsd:decimal acceptability onto the gmeow:StandpointClaim from the AIF attack/support structure; keep the underlying argument graph in the solver layer rather than encoding it as OWL axioms."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerPublicSite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #

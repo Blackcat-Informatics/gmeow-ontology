@@ -47,3 +47,38 @@ its segments' heads (`gtsSegmentIndex` order).
 
 Opacity is vantage-relative epistemic state (Principle 9): the same sealed
 frame is transparent to its `sealedRecipient`s.
+
+## Terms
+
+### gmeow:GTSDocument · gmeow:GTSSegment · gmeow:gtsSegment · gmeow:gtsSegmentOf · gmeow:gtsSegmentIndex
+
+A GTS file as a first-class entity and the segments that compose it. `gtsSegment`
+(with its inverse `gtsSegmentOf`) relates a document to its segments, and
+`gtsSegmentIndex` fixes their order — the document's composite identity is the
+ordered list of its segments' chain heads.
+
+### gmeow:gtsHeadId · gmeow:GTSProfile · gmeow:gtsProfile
+
+The chain head (`gtsHeadId`, ⊑ `gmeow:versionFingerprint`) that transitively
+commits to a segment's history; and the transport profile (`GTSProfile`) a
+document declares, attached by `gtsProfile` — evidence-profile documents, for
+instance, warn on compaction.
+
+### gmeow:GTSCompaction
+
+A rewrite that re-authors only segment ordering: content claims survive
+untouched, while transport claims over the source chain become detached evidence
+cited through the compaction's `wasDerivedFrom` lineage.
+
+### gmeow:TransformCodec · gmeow:usesTransformCodec · gmeow:CodecClass · gmeow:codecClass
+
+A transform codec applied to bytes in transit, attached by `usesTransformCodec`;
+`CodecClass` is the open value vocabulary of codec families a codec belongs to
+via `codecClass`.
+
+### gmeow:OpaqueFrame · gmeow:opaqueFrameIn · gmeow:sealedRecipient · gmeow:OpacityReason · gmeow:opacityReason
+
+A frame whose payload is sealed: `opaqueFrameIn` situates it within a document,
+`sealedRecipient` names the vantages to which it is transparent, and
+`opacityReason` (an `OpacityReason` value) records why it is opaque — opacity
+being vantage-relative epistemic state (Principle 9).

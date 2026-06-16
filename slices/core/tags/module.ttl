@@ -23,6 +23,10 @@ gmeow:Tag
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Tag"@x-gmeow-english ;
     skos:definition "An open, user-minted tag — an information object whose identity is its IRI and whose surface form is carried by rdfs:label. Synonyms are multiple labels; homonyms are different IRIs. Coreference is done in data, never by collapsing into one. A tag is NOT a type (it carries no inferential weight over rdf:type) and NOT a property bag — no datatype value property is asserted on it. Part of the universal tagging building block that keeps folksonomy, aboutness and typing as three orthogonal axes."@x-gmeow-english ;
+    skos:example "ex:tagUrgent a gmeow:Tag ; rdfs:label \"urgent\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use to mint an informal, user-applied label whose identity is its IRI — a folksonomy keyword that classifies entities without the inferential weight of a type or the subject-matter commitment of aboutness."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the label should change what an entity IS (use rdf:type and a real sortal) or record what a resource is ABOUT (use gmeow:isAbout); a tag is a co-equal label, never a type or a subject relation."@x-gmeow-english ;
+    gmeow:howToUse "Mint the tag as an individual, carry its surface form on rdfs:label (multiple labels for synonyms, distinct IRIs for homonyms), and attach it with gmeow:hasTag; resolve coreference in data rather than collapsing two tags with owl:sameAs."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:TagScheme
@@ -30,6 +34,10 @@ gmeow:TagScheme
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Tag Scheme"@x-gmeow-english ;
     skos:definition "A namespaced set of tags — a project vocabulary, a personal tag bucket, or a controlled vocabulary. Multi-tenant: many schemes coexist, and a tag may belong to zero or more schemes (gmeow:tagInScheme). The counterpart of skos:ConceptScheme and schema:DefinedTermSet."@x-gmeow-english ;
+    skos:example "ex:projectVocab a gmeow:TagScheme ; rdfs:label \"Project vocabulary\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bucket tags into a namespace — a personal tag set, a project vocabulary, or a curated controlled vocabulary — so folksonomy and controlled-vocabulary tags can coexist under distinct scheme identities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a tag into exactly one scheme (membership is many-valued via gmeow:tagInScheme) and avoid using a scheme to assert hierarchy — broader/narrower relations live on the tags themselves."@x-gmeow-english ;
+    gmeow:howToUse "Mint the scheme as an individual and link tags to it with gmeow:tagInScheme; a tag may be cross-listed in several schemes, and a Tagging act may name the scheme it was performed under via gmeow:taggingScheme."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:Tagging
@@ -37,6 +45,10 @@ gmeow:Tagging
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Tagging"@x-gmeow-english ;
     skos:definition "A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval. Bears provenance (gmeow:wasAttributedTo), confidence (gmeow:confidence), and suppression (gmeow:displayable false for retraction without deletion — Principle 10). Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time-scoping, confidence-weighting, and retract-without-delete for free. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag."@x-gmeow-english ;
+    skos:example "ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:report ; gmeow:taggingTag ex:tagUrgent ; gmeow:taggingTagger ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 # --------------------------------------------------------------------------- #
@@ -49,6 +61,12 @@ gmeow:hasTag
     rdfs:range gmeow:Tag ;
     rdfs:label "has tag"@x-gmeow-english ;
     skos:definition "Relates an entity to a user-minted tag — the 80% flat shortcut. Non-functional: an entity may carry many co-equal tags. Period, confidence, tagger and suppression are carried via RDF-star statement annotations (gmeow:validFrom, gmeow:validUntil, gmeow:confidence, gmeow:displayable) on the shortcut; promote to a gmeow:Tagging relator when the act itself must be a node."@x-gmeow-english ;
+    skos:example "ex:report gmeow:hasTag ex:tagUrgent ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the default, flat way to attach an informal label to any entity; carry period, confidence, tagger, or suppression as RDF-star annotations on the statement when the simple metadata is enough."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the act of tagging must be a first-class node with full provenance (promote to gmeow:Tagging) and avoid using it for subject-matter (gmeow:isAbout) or classification (rdf:type); the three axes are disjoint."@x-gmeow-english ;
+    gmeow:howToUse "Assert ex:entity gmeow:hasTag ex:tag; annotate the statement with gmeow:validFrom/validUntil, gmeow:confidence, or gmeow:displayable for lightweight metadata, and reify to gmeow:Tagging (which it pairsWith) when those must be queryable nodes."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:isAbout
@@ -57,6 +75,10 @@ gmeow:isAbout
     rdfs:range gmeow:Entity ;
     rdfs:label "is about"@x-gmeow-english ;
     skos:definition "Aboutness — a resource is about another resource. Distinct from typing (rdf:type) and from tagging (gmeow:hasTag): aboutness is a semantic subject-matter relation, tagging is a user-applied label, and typing is an ontological classification. Non-functional."@x-gmeow-english ;
+    skos:example "ex:report gmeow:isAbout ex:climateChange ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what a resource is genuinely about — its subject matter — when that is a semantic relation to another entity rather than an informal label or a classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the link is an informal keyword (use gmeow:hasTag, which is disjoint with this) or an ontological classification (use rdf:type); aboutness is subject-matter, not a folksonomy label."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:isAbout from the carrier to its subject entity; keep tagging on gmeow:hasTag and typing on rdf:type so the three axes stay orthogonal, with the trichotomy enforced in SHACL and tests."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 # The three axes (type, aboutness, tagging) are kept disjoint at the property level.
@@ -74,6 +96,10 @@ gmeow:taggingTagged
     rdfs:range gmeow:Entity ;
     rdfs:label "tagging tagged"@x-gmeow-english ;
     skos:definition "The entity that is tagged in a tagging act. Functional per relator: one tagged entity per Tagging."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:taggingTagged ex:report ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the tagged resource inside a reified gmeow:Tagging relator — the entity that the tagging act applies to."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it outside a Tagging relator or pointing it at more than one entity (it is functional per relator); for the flat case, the tagged entity is the subject of gmeow:hasTag."@x-gmeow-english ;
+    gmeow:howToUse "Fill this role on the Tagging node alongside gmeow:taggingTag and gmeow:taggingTagger; exactly one tagged entity per relator, with a fresh relator per distinct tagging act."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:taggingTag
@@ -82,6 +108,10 @@ gmeow:taggingTag
     rdfs:range gmeow:Tag ;
     rdfs:label "tagging tag"@x-gmeow-english ;
     skos:definition "The tag applied in a tagging act. Functional per relator: one tag per Tagging."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:taggingTag ex:tagUrgent ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name which gmeow:Tag a reified gmeow:Tagging act applies — the label being attached in this particular tagging."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting more than one tag on a single Tagging (it is functional per relator); mint a separate Tagging relator for each distinct tag applied to a resource."@x-gmeow-english ;
+    gmeow:howToUse "Point this role at exactly one gmeow:Tag on the Tagging node; for multiple tags on one resource, use multiple relators (or the flat gmeow:hasTag for the simple case)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:taggingTagger
@@ -90,6 +120,10 @@ gmeow:taggingTagger
     rdfs:range gmeow:Agent ;
     rdfs:label "tagging tagger"@x-gmeow-english ;
     skos:definition "The agent who performed the tagging act. Non-functional: a tag may be co-asserted by multiple agents (e.g. a collaborative curation effort)."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:taggingTagger ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record who applied the tag inside a reified gmeow:Tagging — the provenance of the act when authorship of the label matters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing co-taggers into one (it is non-functional — collaborative curation legitimately has several taggers) and avoid the relator at all when no agent provenance is needed (use flat gmeow:hasTag)."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:Agent values to the Tagging node; pair with gmeow:wasAttributedTo and gmeow:taggingInterval to carry full provenance and period for the act."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:taggingScheme
@@ -98,6 +132,10 @@ gmeow:taggingScheme
     rdfs:range gmeow:TagScheme ;
     rdfs:label "tagging scheme"@x-gmeow-english ;
     skos:definition "The tag scheme within which the tagging act is performed. Functional per relator: one scheme per Tagging (the tag itself may belong to multiple schemes)."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:taggingScheme ex:projectVocab ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the single scheme under which a reified gmeow:Tagging act was performed — the vocabulary context of this particular application."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with a tag's scheme membership (use gmeow:tagInScheme, which is many-valued); the Tagging act names exactly one scheme even though the tag may belong to several."@x-gmeow-english ;
+    gmeow:howToUse "Point this functional role at one gmeow:TagScheme on the Tagging node; record the tag's broader cross-listing separately via gmeow:tagInScheme."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:taggingInterval
@@ -106,6 +144,10 @@ gmeow:taggingInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "tagging interval"@x-gmeow-english ;
     skos:definition "The time interval over which the tagging act holds. A relator carries its period this way (matching gmeow:usageInterval, gmeow:relationshipInterval) rather than via RDF-star annotations on the relator node."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:taggingInterval ex:q1Interval ."@x-gmeow-english ;
+    gmeow:useWhen "Use to time-scope a reified gmeow:Tagging — the period over which the tag was held to apply, when validity has a beginning or end."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the flat case, where period rides as RDF-star gmeow:validFrom/validUntil annotations on gmeow:hasTag; reserve this for the relator form that carries its interval as a first-class node."@x-gmeow-english ;
+    gmeow:howToUse "Point this role at a gmeow:TimeInterval on the Tagging node, matching the gmeow:usageInterval / gmeow:relationshipInterval idiom; to retract a tag without deleting it, set gmeow:displayable false on the relator instead of editing the interval."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 # --------------------------------------------------------------------------- #
@@ -118,6 +160,10 @@ gmeow:broaderTag
     rdfs:range gmeow:Tag ;
     rdfs:label "broader tag"@x-gmeow-english ;
     skos:definition "A broader, more general tag. Transitive. Optional: folksonomy stays flat-first."@x-gmeow-english ;
+    skos:example "ex:tagMammal gmeow:broaderTag ex:tagAnimal ."@x-gmeow-english ;
+    gmeow:useWhen "Use to layer optional hierarchy onto a folksonomy — point a specific tag at a more general one when a controlled-vocabulary structure is worth having (the counterpart of skos:broader)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing it where folksonomy should stay flat (hierarchy is optional) and avoid using it for associative, non-hierarchical links (use gmeow:relatedTag instead)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:broaderTag from the narrower tag to the broader one and let transitivity build the ladder; gmeow:narrowerTag follows as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:narrowerTag
@@ -127,6 +173,10 @@ gmeow:narrowerTag
     rdfs:range gmeow:Tag ;
     rdfs:label "narrower tag"@x-gmeow-english ;
     skos:definition "A narrower, more specific tag. Inverse of gmeow:broaderTag. Optional."@x-gmeow-english ;
+    skos:example "ex:tagAnimal gmeow:narrowerTag ex:tagMammal ."@x-gmeow-english ;
+    gmeow:useWhen "Use in whole-rooted traversals where stating the narrowing direction is the natural one — a broader tag pointing down to its more specific children."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when gmeow:broaderTag (its inverse) is the more natural statement; prefer asserting broader and reading narrower by inversion, and avoid it for associative links (gmeow:relatedTag)."@x-gmeow-english ;
+    gmeow:howToUse "Read it as the inverse of gmeow:broaderTag; assert explicitly only when the broader-to-narrower direction is the one being authored, and let the reasoner mirror the other direction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:relatedTag
@@ -135,6 +185,10 @@ gmeow:relatedTag
     rdfs:range gmeow:Tag ;
     rdfs:label "related tag"@x-gmeow-english ;
     skos:definition "A tag related to this tag by an associative link. Symmetric. Optional."@x-gmeow-english ;
+    skos:example "ex:tagOcean gmeow:relatedTag ex:tagBeach ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link two tags by a non-hierarchical association — they travel together or co-occur — when neither is broader or narrower than the other (the counterpart of skos:related)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for hierarchy (use gmeow:broaderTag / gmeow:narrowerTag) and avoid asserting both directions — the property is symmetric, so one assertion suffices."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:relatedTag once between the two tags; symmetry makes the reverse link hold automatically, keeping the associative web flat and optional."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 gmeow:tagInScheme
@@ -143,6 +197,10 @@ gmeow:tagInScheme
     rdfs:range gmeow:TagScheme ;
     rdfs:label "tag in scheme"@x-gmeow-english ;
     skos:definition "Relates a tag to a scheme it belongs to. Non-functional: a tag may reside in many schemes (cross-listing)."@x-gmeow-english ;
+    skos:example "ex:tagUrgent gmeow:tagInScheme ex:projectVocab ."@x-gmeow-english ;
+    gmeow:useWhen "Use to place a tag in one or more namespaced schemes — a personal bucket, a project vocabulary, or a controlled vocabulary — including cross-listing the same tag across several."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the scheme a particular tagging act ran under (use gmeow:taggingScheme on the relator, which is functional); membership here is many-valued and lives on the tag itself."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:tagInScheme from the tag to each gmeow:TagScheme it belongs to; a tag with no scheme is a bare folksonomy term, and cross-listing is just several assertions."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> .
 
 # --------------------------------------------------------------------------- #

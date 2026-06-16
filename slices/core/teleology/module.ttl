@@ -32,6 +32,10 @@ gmeow:Goal
     rdfs:subClassOf gmeow:SocialObject ;
     rdfs:label "Goal"@x-gmeow-english ;
     skos:definition "A described state of affairs that an agent may want, intend, or commit to bring about — the propositional content of the intentional modes, existing by social convention like every description (a gmeow:SocialObject). A goal asserts nothing and prescribes nothing by itself: it is satisfied by situations (gmeow:satisfiedBy), held by agents (gmeow:hasGoal or the reified modes), and partly defined by its named shadow (gmeow:counterGoal). Whether a given situation satisfies the goal is a vantage-indexed claim (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:reachOrbit a gmeow:Goal ; gmeow:counterGoal ex:scrubLaunch ; gmeow:satisfiedBy ex:firstStableOrbit ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the propositional content an agent may want, intend, or commit to — the shared target that the intentional modes and the flat gmeow:hasGoal point at, and the thing a situation can satisfy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the agent's holding of the goal (that is gmeow:hasGoal or a Desire/Intention/Commitment) and for prescriptive force — a Goal prescribes nothing; obligatory conduct arrives via the norms extension, never on the Goal itself."@x-gmeow-english ;
+    gmeow:howToUse "Mint one Goal individual and share it across every agent and mode aiming at it; attach gmeow:counterGoal for constitutive opposition and gmeow:satisfiedBy for achieving situations, recording disputed satisfaction as coexisting gmeow:accordingTo claims rather than a global verdict."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:satisfiedBy
@@ -40,6 +44,10 @@ gmeow:satisfiedBy
     rdfs:range gufo:Situation ;
     rdfs:label "satisfied by"@x-gmeow-english ;
     skos:definition "Relates a goal to a situation that counts as achieving it. NOT functional: many situations may satisfy one goal, and disputed satisfaction is several coexisting vantage-indexed claims through the statement layer — never a global verdict (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:reachOrbit gmeow:satisfiedBy ex:firstStableOrbit ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a particular situation counts as achieving a goal — the achievement link a renderer or planner reads to ask whether a goal has been met."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a single canonical satisfaction when achievement is contested; carry each contested judgement on the statement with gmeow:accordingTo (Principle 9), and never make this functional — many situations may satisfy one goal."@x-gmeow-english ;
+    gmeow:howToUse "Point the Goal at one or more gufo:Situation individuals; for disputed achievement, mint coexisting gmeow:accordingTo-annotated statements rather than forcing the reasoner to pick a winner, and leave means-end search to the solver layer (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:counterGoal
@@ -48,6 +56,10 @@ gmeow:counterGoal
     rdfs:range gmeow:Goal ;
     rdfs:label "counter-goal"@x-gmeow-english ;
     skos:definition "Constitutive opposition between goals — the named shadow that partly defines what the goal means (an oath and its betrayal; a bond and its dissolution). Symmetric: each pole constitutes the other. Strictly stronger than a lexical antonym: assert it only when the opposition is part of the goal's identity, not merely its dictionary opposite. Irreflexive by SHACL (a goal is never its own shadow)."@x-gmeow-english ;
+    skos:example "ex:keepTheOath gmeow:counterGoal ex:betrayTheOath ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the opposition between two goals is constitutive — part of what each goal means — so the named shadow belongs in the goal's own identity (an oath and its betrayal, a bond and its dissolution)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a merely lexical antonym or a loosely related rival goal; model plain term opposition with an antonym edge in the lexical layer, and never point a goal at itself (irreflexive by SHACL)."@x-gmeow-english ;
+    gmeow:howToUse "Assert it in one direction between two Goal individuals and read it both ways (symmetric); reserve it for the cases where the shadow partly defines the goal, leaving ordinary opposition to lexical relations."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 # =========================================================================== #
@@ -59,6 +71,10 @@ gmeow:IntentionalMoment
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Intentional Moment"@x-gmeow-english ;
     skos:definition "The umbrella category of all goal-directed moments — UFO-C's intentional moment, spanning the intrinsic branch (gmeow:IntentionalMode: desires and intentions inhering in one agent) and the social branch (gmeow:Commitment: a relator toward other agents). Exists as a NAMED class so that gmeow:intentionGoal and gmeow:motivates carry a generator-visible domain instead of an anonymous union (the schema surface — LinkML, GraphQL, TypeScript — projects properties from named domains only). Never instantiated directly."@x-gmeow-english ;
+    skos:example "ex:settledPlan a gmeow:Intention ; gmeow:intentionGoal ex:reachOrbit .  # an IntentionalMoment by inheritance"@x-gmeow-english ;
+    gmeow:useWhen "Use only as the generator-visible domain for properties shared across both branches (gmeow:intentionGoal, gmeow:motivates) and to query desires, intentions, and commitments uniformly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid instantiating it directly — type the moment as a Desire, Intention, or Commitment; the abstract umbrella exists for the schema surface, not for data."@x-gmeow-english ;
+    gmeow:howToUse "Let concrete moments inherit it; reach for the umbrella name only when defining or querying a property that ranges over the whole intentional family rather than one branch."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:IntentionalMode
@@ -66,6 +82,10 @@ gmeow:IntentionalMode
     rdfs:subClassOf gmeow:IntentionalMoment, gmeow:MentalMoment ;
     rdfs:label "Intentional Mode"@x-gmeow-english ;
     skos:definition "The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. The intrinsic branch of gmeow:IntentionalMoment, and the conative member of the kernel gmeow:MentalMoment family (alongside cognition's gmeow:CognitiveState and epistemics' doxastic states) so an agent's whole mental life is queryable as one family (Principle 15) — gmeow:MentalMoment ⊑ gufo:IntrinsicMode supplies the gUFO branch. Never instantiated directly: instances are Desires or Intentions (the commitment-graded trichotomy; the social grade is gmeow:Commitment, a relator, not a mode)."@x-gmeow-english ;
+    skos:example "ex:wishForRain a gmeow:Desire ; gmeow:intentBearer ex:lillith .  # an IntentionalMode by inheritance"@x-gmeow-english ;
+    gmeow:useWhen "Use as the domain for what is shared by the intrinsic branch — single-bearer inherence via gmeow:intentBearer and intention-tenure — and to query desires and intentions together without the social grade."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid instantiating it directly (mint a Desire or Intention) and avoid using it for socially-committed cases — committed TOWARD another agent is gmeow:Commitment, a relator, not a mode."@x-gmeow-english ;
+    gmeow:howToUse "Type the moment as Desire or Intention and let it inherit IntentionalMode; the single bearer is gmeow:intentBearer (functional), and adoption over time is reified as gmeow:IntentionTenure."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:Desire
@@ -73,6 +93,10 @@ gmeow:Desire
     rdfs:subClassOf gmeow:IntentionalMode ;
     rdfs:label "Desire"@x-gmeow-english ;
     skos:definition "An intentional mode of wanting without commitment — the agent would welcome the goal's satisfaction but has not committed to pursuing it (UFO-C: desire). Inheres in exactly one agent (gmeow:intentBearer). Promote a Desire to an Intention by minting the Intention and suppressing the Desire's tenure — never by mutation (Principle 10)."@x-gmeow-english ;
+    skos:example "ex:wishForRain a gmeow:Desire ; gmeow:intentBearer ex:lillith ; gmeow:intentionGoal ex:droughtEnds ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the lowest commitment grade — the agent wants the goal satisfied but has not settled on pursuing it; the wanting that has not yet become an Intention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid once the agent has committed internally (use gmeow:Intention) or toward another agent (use gmeow:Commitment); do not mutate a Desire into an Intention — mint the Intention and suppress the Desire's tenure (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Mint a Desire, set gmeow:intentBearer (one agent) and gmeow:intentionGoal (one Goal); promote by minting the higher-grade moment and closing the Desire's gmeow:IntentionTenure rather than deleting it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:Intention
@@ -80,6 +104,10 @@ gmeow:Intention
     rdfs:subClassOf gmeow:IntentionalMode ;
     rdfs:label "Intention"@x-gmeow-english ;
     skos:definition "An intentional mode of internal commitment — the agent has settled on pursuing the goal (UFO-C: intention), though no other agent holds them to it. Inheres in exactly one agent (gmeow:intentBearer); aims at exactly one goal (gmeow:intentionGoal); may motivate events (gmeow:motivates). The social grade — committed TOWARD someone — is gmeow:Commitment."@x-gmeow-english ;
+    skos:example "ex:planToShip a gmeow:Intention ; gmeow:intentBearer ex:lillith ; gmeow:intentionGoal ex:reachOrbit ; gmeow:motivates ex:launchPrep ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an agent has internally settled on pursuing a goal but no other agent holds them to it — the middle commitment grade, and the natural source of gmeow:motivates on the events the agent undertakes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for mere wanting (use gmeow:Desire) and for resolutions made TOWARD another agent (use gmeow:Commitment, a relator); a resolution made purely to oneself is an Intention, not a Commitment."@x-gmeow-english ;
+    gmeow:howToUse "Mint an Intention with one gmeow:intentBearer and one gmeow:intentionGoal; link the actions it explains with gmeow:motivates, and record adoption or abandonment over time as a gmeow:IntentionTenure rather than mutating the mode."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:Commitment
@@ -87,6 +115,10 @@ gmeow:Commitment
     rdfs:subClassOf gmeow:IntentionalMoment, gufo:Relator ;
     rdfs:label "Commitment"@x-gmeow-english ;
     skos:definition "A social commitment — an agent committed toward at least one other agent to bring about a goal (UFO-C: social moment). A relator, not a mode: it mediates the committed agent (gmeow:committedAgent) and the beneficiaries (gmeow:commitmentBeneficiary), who must be distinct (SHACL). A covenant, a contract promise, and a service-level agreement are Commitments; the agreements and contracts modules carry the document and the legal wrapper, this class carries the teleological bond itself."@x-gmeow-english ;
+    skos:example "ex:slaPromise a gmeow:Commitment ; gmeow:committedAgent ex:vendor ; gmeow:commitmentBeneficiary ex:client ; gmeow:intentionGoal ex:ninetyNinePercentUptime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the social commitment grade — an agent bound TOWARD at least one distinct other agent to bring about a goal (a covenant, a contract promise, a service-level agreement), where the bond itself is first-class."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for intrinsic modes that hold no one accountable (use gmeow:Desire or gmeow:Intention) and for the document or legal wrapper (those live in the agreements and contracts modules); the beneficiary must be distinct from the committed agent."@x-gmeow-english ;
+    gmeow:howToUse "Mint one Commitment per direction — model mutual promises as two Commitments so withdrawal, breach, and tenure stay independent; bind gmeow:committedAgent, one or more gmeow:commitmentBeneficiary, and the gmeow:intentionGoal, and carry the period on the relator itself."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 [] a owl:AllDisjointClasses ;
@@ -98,6 +130,10 @@ gmeow:intentBearer
     rdfs:range gmeow:Agent ;
     rdfs:label "intent bearer"@x-gmeow-english ;
     skos:definition "The agent in whom a desire or intention inheres. Functional: an intrinsic mode has exactly one bearer (gUFO inherence, asserted with GMEOW's own property by Principle 5 — gufo:inheresIn is the alignment target, not the asserted axiom). Two agents wanting the same goal are two modes sharing one gmeow:intentionGoal."@x-gmeow-english ;
+    skos:example "ex:wishForRain gmeow:intentBearer ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single agent in whom a Desire or Intention inheres — the bearer side of the intrinsic branch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the social branch (a Commitment binds its agent with gmeow:committedAgent) and avoid asserting two bearers; the property is functional, so two agents wanting the same goal are two modes sharing one gmeow:intentionGoal."@x-gmeow-english ;
+    gmeow:howToUse "Point the IntentionalMode at exactly one gmeow:Agent; read gufo:inheresIn as the alignment target rather than asserting it (Principle 5)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:committedAgent
@@ -106,6 +142,10 @@ gmeow:committedAgent
     rdfs:range gmeow:Agent ;
     rdfs:label "committed agent"@x-gmeow-english ;
     skos:definition "The agent bound by a commitment — the one who has committed. Functional: one commitment, one committed agent; mutual promises are two Commitments, one in each direction, which keeps withdrawal, breach, and tenure independent per direction."@x-gmeow-english ;
+    skos:example "ex:slaPromise gmeow:committedAgent ex:vendor ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single agent bound by a Commitment — the committing side of the social bond."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the agent toward whom the commitment is made (use gmeow:commitmentBeneficiary) and for intrinsic modes (use gmeow:intentBearer); model mutual promises as two Commitments, never as two committed agents on one."@x-gmeow-english ;
+    gmeow:howToUse "Point each Commitment at exactly one gmeow:Agent; for reciprocal obligations mint a second Commitment in the other direction so breach and tenure stay independent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:commitmentBeneficiary
@@ -114,6 +154,10 @@ gmeow:commitmentBeneficiary
     rdfs:range gmeow:Agent ;
     rdfs:label "commitment beneficiary"@x-gmeow-english ;
     skos:definition "An agent toward whom the commitment is made. NOT functional: a commitment may be made toward several beneficiaries at once. Must be distinct from the committed agent (SHACL); a resolution one makes purely to oneself is an Intention, not a Commitment."@x-gmeow-english ;
+    skos:example "ex:slaPromise gmeow:commitmentBeneficiary ex:client ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name an agent toward whom a Commitment is made — the recipient side of the social bond, repeated when several beneficiaries share one commitment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the committing agent (use gmeow:committedAgent) and avoid naming the committed agent here — beneficiary and committed agent must be distinct (SHACL); a resolution made purely to oneself is an Intention, not a Commitment."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:Agent beneficiaries to the Commitment; keep them disjoint from gmeow:committedAgent and let the period ride the relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:intentionGoal
@@ -122,6 +166,10 @@ gmeow:intentionGoal
     rdfs:range gmeow:Goal ;
     rdfs:label "intention goal"@x-gmeow-english ;
     skos:definition "The goal at which a desire, intention, or commitment aims — its propositional content. Functional: one mode, one goal; an agent pursuing five goals bears five modes. Sharing is at the Goal: two agents committed to the same outcome hold distinct modes aiming at one Goal individual."@x-gmeow-english ;
+    skos:example "ex:planToShip gmeow:intentionGoal ex:reachOrbit ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind any intentional moment — Desire, Intention, or Commitment — to the single Goal it aims at; the property whose named domain (gmeow:IntentionalMoment) spans both branches."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid aiming one moment at several goals (it is functional — an agent pursuing five goals bears five modes) and avoid duplicating the Goal per agent; sharing happens at one Goal individual."@x-gmeow-english ;
+    gmeow:howToUse "Point each moment at exactly one gmeow:Goal and let multiple agents' modes converge on the same Goal individual; decompose composite goals as separate Goals linked by the mereology spine rather than overloading this property."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:motivates
@@ -130,6 +178,15 @@ gmeow:motivates
     rdfs:range gmeow:Event ;
     rdfs:label "motivates"@x-gmeow-english ;
     skos:definition "Relates a desire, intention, or commitment to an event the agent undertook (at least in part) because of it — the teleological reading of action. NOT functional, and an attributed-motive claim like any other: whose reading of the motive it is rides gmeow:accordingTo on the statement (Principle 9; the deception module's deceptiveIntentClaim is the adversarial special case). Grounds cn:MotivatedByGoal and atomic:xIntent at alignment time."@x-gmeow-english ;
+    skos:example "ex:planToShip gmeow:motivates ex:launchPrep ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the teleological reading of an action — the desire, intention, or commitment that (at least partly) explains why an agent undertook an event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stating a motive as a global fact when it is attributed rather than avowed; carry the reading's owner on gmeow:accordingTo (the deception module's deceptiveIntentClaim is the adversarial case), and never make it functional — an event may have several motives."@x-gmeow-english ;
+    gmeow:howToUse "Link the moment to one or more gmeow:Event individuals and, where the motive is anyone's reading rather than ground truth, attach gmeow:accordingTo on the statement; leave plan search and means-end inference to the solver layer (Principle 12)."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory,
+        gmeow:consumerResearchQueue ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerSchemaOrgJsonLd ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 # =========================================================================== #
@@ -142,6 +199,10 @@ gmeow:hasGoal
     rdfs:range gmeow:Goal ;
     rdfs:label "has goal"@x-gmeow-english ;
     skos:definition "Flat shortcut: the agent holds this goal, commitment grade unspecified. The 80% case (Principle 4); promote to a Desire / Intention / Commitment when the grade matters, and to an IntentionTenure when adoption or revision over time is itself the fact of interest. Whether avowed by the agent or attributed by an observer rides gmeow:accordingTo on the statement."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasGoal ex:reachOrbit ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the 80% case (Principle 4): an agent holds a goal and neither the commitment grade nor its tenure over time needs to be first-class — the flat half of the gmeow:hasGoal ↔ gmeow:IntentionTenure pair."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the commitment grade matters (promote to gmeow:Desire / gmeow:Intention / gmeow:Commitment) or when adoption and revision over time is itself the fact (promote to gmeow:IntentionTenure); attribution vs avowal rides gmeow:accordingTo, not a separate property."@x-gmeow-english ;
+    gmeow:howToUse "Assert the flat statement from gmeow:Agent to gmeow:Goal; carry a simple validity window on the statement with gmeow:validFrom / gmeow:validUntil, and reify to a mode or an IntentionTenure only when grade, tenure, or standpoint must become first-class."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 # =========================================================================== #
@@ -153,6 +214,13 @@ gmeow:IntentionTenure
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Intention Tenure"@x-gmeow-english ;
     skos:definition "The reified, time-scoped fact that an agent held an intentional mode over an interval — a goal adopted in January and abandoned in June is an opened-then-closed tenure, never a deletion (Principle 10). The StandpointTenure idiom applied to teleology: use only when adoption / revision is itself worth modelling; the common case is a bare gmeow:hasGoal with validFrom / validUntil on the statement. Carries its interval via gmeow:duringInterval (temporal module); a withdrawn tenure is kept with gmeow:displayable false."@x-gmeow-english ;
+    skos:example "ex:resolveTenure a gmeow:IntentionTenure ; gmeow:tenureAgent ex:lillith ; gmeow:tenureIntention ex:planToShip ; gmeow:duringInterval ex:firstHalfYear ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reified half of the gmeow:hasGoal ↔ gmeow:IntentionTenure pair: when adoption, revision, or abandonment of an intrinsic mode over an interval is itself the fact of interest, so the tenure can be opened and closed rather than mutated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the 80% case where an agent simply holds a goal (use the flat gmeow:hasGoal with validFrom / validUntil) and for commitment tenure (a Commitment relator carries its own period by construction); never delete an abandoned tenure — close it and set gmeow:displayable false (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one IntentionTenure per (agent, mode) holding, bind gmeow:tenureAgent and gmeow:tenureIntention, scope it with gmeow:duringInterval; record withdrawal by closing the interval and suppressing with gmeow:displayable false rather than removing the triple."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory,
+        gmeow:consumerResearchQueue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:tenureAgent
@@ -161,6 +229,10 @@ gmeow:tenureAgent
     rdfs:range gmeow:Agent ;
     rdfs:label "tenure agent"@x-gmeow-english ;
     skos:definition "The agent whose intentional mode an intention-tenure records. Functional: one tenure, one agent."@x-gmeow-english ;
+    skos:example "ex:resolveTenure gmeow:tenureAgent ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind an gmeow:IntentionTenure to the single agent whose holding-over-time it records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on a bare mode (the bearer there is gmeow:intentBearer) and avoid more than one agent per tenure; it is functional — one tenure, one agent."@x-gmeow-english ;
+    gmeow:howToUse "Point the tenure at exactly one gmeow:Agent, matching the gmeow:intentBearer of the mode named by gmeow:tenureIntention."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 gmeow:tenureIntention
@@ -169,6 +241,10 @@ gmeow:tenureIntention
     rdfs:range gmeow:IntentionalMode ;
     rdfs:label "tenure intention"@x-gmeow-english ;
     skos:definition "The desire or intention the tenure records the agent as holding over its interval. Functional: one tenure, one mode. Commitment tenure is carried by the Commitment relator's own temporal scope (relators are time-indexed by construction); the tenure class exists for the intrinsic modes, whose adoption and abandonment would otherwise be invisible."@x-gmeow-english ;
+    skos:example "ex:resolveTenure gmeow:tenureIntention ex:planToShip ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind an gmeow:IntentionTenure to the single intrinsic mode (Desire or Intention) whose holding over the interval it records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a gmeow:Commitment (a relator already carries its own temporal scope) and avoid more than one mode per tenure; it is functional."@x-gmeow-english ;
+    gmeow:howToUse "Point the tenure at exactly one gmeow:IntentionalMode; open and close the surrounding gmeow:duringInterval to record adoption and abandonment rather than mutating or deleting the mode (Principle 10)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> .
 
 # Flat-first/reify-on-demand pairings, machine-usable.

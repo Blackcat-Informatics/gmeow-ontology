@@ -32,6 +32,10 @@ gmeow:sourceModifiedAt
     rdfs:label "source modified at"@x-gmeow-english ;
     skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@x-gmeow-english ;
     skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
+    skos:example "ex:report gmeow:sourceModifiedAt \"2026-06-15T12:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the last-modification time of a source artifact (a file mtime) as a terminus-ante-quem on when the claims it carries were recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as valid-time/tenure or as observation-time (those are temporal-slice and observation constructs) and avoid treating it as identity — gmeow:contentDigest is the reliable identity; keep it non-functional so copies' differing mtimes coexist."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:sourceModifiedAt on the Manifestation or Item; pair it with gmeow:recordedNoLaterThan so the carrier's mtime bounds the recording of its claims, and with gmeow:contentDigest for stable identity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
 
 gmeow:contentDigest
@@ -40,6 +44,10 @@ gmeow:contentDigest
     rdfs:label "content digest"@x-gmeow-english ;
     skos:definition "A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms."@x-gmeow-english ;
     skos:scopeNote "Typically asserted on a Manifestation, Item, SourceFile, Commit, or Distribution."@x-gmeow-english ;
+    skos:example "ex:report gmeow:contentDigest \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a content hash of an artifact's bytes — the reliable by-content identity, since two objects with the same bytes are the same object regardless of path, name, or mtime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a path, filename, or URL as identity (that is gmeow:sourceLocation, audit-only) and avoid making it functional — one artifact may legitimately carry digests under several algorithms."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:contentDigest with an algorithm-prefixed literal (\"blake3:…\", \"sha256:…\", \"git:…\") on any content-addressable artifact; multiple algorithm digests coexist, and consumers deduplicate by matching digests."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
 
 gmeow:sourceLocation
@@ -49,4 +57,9 @@ gmeow:sourceLocation
     rdfs:label "source location"@x-gmeow-english ;
     skos:definition "Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity."@x-gmeow-english ;
     skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
+    skos:example "ex:report gmeow:sourceLocation \"/imports/2026/report.pdf\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record where a source artifact came from — its file path, original filename, or URL — for provenance and audit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid relying on it for identity or deduplication (paths and URLs are unstable; use gmeow:contentDigest) and avoid treating it as the citation locator into the work (that is the Selector in the citations slice)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:sourceLocation on the Manifestation or Item alongside gmeow:contentDigest; read the location as audit trail and the digest as the authoritative identity."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .

@@ -51,3 +51,54 @@ ConceptNet/ATOMIC; Wikidata goal **Q4503831** (verified 2026-06-11).
   means–end reasoning are never triples.
 - **Deontic force lives in the norms extension**, which ranges
   `prescribedConduct` over `Goal` — dependency points extension → core only.
+
+## Terms
+
+### gmeow:Goal
+
+The propositional content every intentional moment aims at — a `SocialObject`
+describing a state of affairs, satisfied by situations through `satisfiedBy`
+(vantage-indexed, no global verdict). The single target of `intentionGoal`.
+
+### gmeow:Desire · gmeow:Intention · gmeow:Commitment
+
+The commitment-graded trichotomy: wanted (`Desire`), internally committed
+(`Intention`) — both `gufo:IntrinsicMode` bound to one agent via
+`intentBearer` — and socially committed (`Commitment`, a `gufo:Relator`
+binding a `committedAgent` to distinct `commitmentBeneficiary` parties).
+
+### gmeow:IntentionalMoment · gmeow:IntentionalMode
+
+The named umbrella over the trichotomy (UFO-C's intentional moment), giving
+`intentionGoal` and `motivates` a generator-visible domain instead of an
+anonymous union; `IntentionalMode` is its value-vocabulary axis.
+
+### gmeow:intentionGoal · gmeow:intentBearer · gmeow:satisfiedBy · gmeow:counterGoal
+
+The structural spine: `intentionGoal` ties a moment to its one `Goal`,
+`intentBearer` to its one agent, `satisfiedBy` records vantage-indexed
+satisfaction, and `counterGoal` names the constitutive shadow (symmetric,
+irreflexive) that partly defines the goal.
+
+### gmeow:committedAgent · gmeow:commitmentBeneficiary
+
+The two `Commitment` relator roles — the agent who is bound, and the distinct
+parties the commitment is owed to.
+
+### gmeow:motivates
+
+The attributed motive edge, ridden by `accordingTo` on the statement so avowed
+and observer-attributed motives coexist (Principle 9) without a winner slot.
+
+### gmeow:hasGoal
+
+The flat-first shortcut (Principle 4) for the 80% case — an agent simply has a
+goal — promoted to `Desire`/`Intention`/`Commitment` when grade matters, then
+to `IntentionTenure` when adoption over time is the fact of interest.
+
+### gmeow:IntentionTenure · gmeow:tenureAgent · gmeow:tenureIntention
+
+The reify-on-demand half (`pairsWith` `hasGoal`): the StandpointTenure idiom
+for an agent adopting, holding, and revising a goal across time — bound to its
+`tenureAgent` and `tenureIntention`, revised by suppression never deletion
+(Principle 10).
