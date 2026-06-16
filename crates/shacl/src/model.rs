@@ -247,11 +247,17 @@ pub mod sh {
     pub const MAX_EXCLUSIVE: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#maxExclusive");
 
+    pub const SELECT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#select");
+
     pub const SPARQL_CONSTRAINT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLConstraint");
 
     pub const SPARQL_TARGET: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLTarget");
+
+    pub const SPARQL_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLConstraintComponent");
 
     // ── Constraint component IRIs (sh:*ConstraintComponent) ──────────────────
 
@@ -329,6 +335,9 @@ pub mod rdfs {
 
     pub const CLASS: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#Class");
+
+    pub const SUB_CLASS_OF: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#subClassOf");
 }
 
 /// XSD namespace base string.
