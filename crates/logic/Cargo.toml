@@ -38,5 +38,13 @@ nemo = { git = "https://github.com/knowsys/nemo", rev = "4415bc2e180adf33a7a4b98
 # flavour is used (same as nemo-cli's #[tokio::main(flavor = "current_thread")]).
 tokio = { version = "1", features = ["rt", "macros"] }
 
+# scryer-prolog: embedded Prolog (SLD + tabling) for v4 backward goal resolution
+# over the materialized EDB (facts-as-DB). BSD-3-Clause (AGPL-compatible). Hard
+# dependency — HARD FAIL if absent; no degraded fallback. default-features = false
+# drops the Prolog-library extras irrelevant to embedding (ffi/http/tls/repl/crypto:
+# libffi, reqwest, warp, native-tls, rustyline), keeping the core machine plus
+# library(tabling)/library(lists) the engine needs.
+scryer-prolog = { version = "0.10", default-features = false }
+
 [dev-dependencies]
 serde_json = "1"
