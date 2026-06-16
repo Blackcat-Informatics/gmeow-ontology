@@ -1,0 +1,87 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/inference>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Inference Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Inference Module — Peirce's tetrad (deduction, induction, abduction, analogy) as the epistemic face of a logic: derivation: what an agent believes when it accepts a reasoning step's conclusion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:comment """Inference as the EPISTEMIC FACE of a logic: derivation — what an agent believes when it accepts a reasoning step's conclusion. The conclusion of every inference is an ordinary gmeow:StandpointClaim (vantage = the reasoner, observedFeature = the concluded proposition, gmeow:claimModality = the mode's default).
+
+DOCTRINE.
+  * Modes differ by a VALUE + a WARRANT, never by subsumption (the deception discipline — divergence is a gmeow:InferenceMode value, not a subclass). The four Peircean modes (gmeow:modeDeduction / modeInduction / modeAbduction / modeAnalogical) ride one class, never a taxonomy.
+  * No re-minted truth bit (Principle 6): strength rides the EXISTING logic: axes (logic:weight / logic:confidence / logic:evidenceStrength / logic:probability — BY REFERENCE, no asserted triples into logic:); modality reuses the EXISTING gmeow:StandpointModality (gmeow:unequivocal / probable / conceivable / refuted / bullshit).
+  * ENDURANT / OCCURRENT SPLIT (gUFO's master split — the reason this slice does NOT mint a single double-typed gmeow:Inference). Two classes:
+      - gmeow:InferenceProcess rdfs:subClassOf gmeow:MentalProcess — the OCCURRENT reasoning episode (perdurant); the reparenting hook the mentation slice (#586) reserves. Carries gmeow:experiencer and gmeow:mentalProcessType gmeow:processReasoning; gmeow:realizesMoment the belief it produces.
+      - gmeow:InferenceCommitment rdfs:subClassOf gufo:Relator — the ENDURANT structured argument relation (premises x conclusion x warrant x defeaters x assessor); the gmeow:Commitment idiom.
+      - gmeow:hasInferenceCommitment bridges process to commitment.
+  * Three tiers of fidelity (flat-first, reify on demand — Principle 4): (1) FLAT spine on the claim — gmeow:inferredFrom + gmeow:inferenceMode, the 80% case; (2) the REIFIED gmeow:InferenceCommitment relator when the argument structure matters; (3) the OCCURRENT gmeow:InferenceProcess when the reasoning episode joins the agent's mental timeline.
+  * BELIEF UPTAKE (seam to epistemics): a deductively-closed belief is gmeow:believes with modality gmeow:unequivocal; an inductive / abductive / analogical belief arrives as gmeow:believes + attributed modality + confidence (the gmeow:deceptiveIntentClaim idiom: attributed, defeasible, vantage = the assessor).
+  * BELIEF REVISION = SUPPRESSION (Principle 10): a fired defeater sets the conclusion-claim gmeow:displayable false and closes an gmeow:InferenceTenure; the gmeow:InferenceCommitment is retained as audit, never erased.
+  * COMPUTE OUTSIDE THE LOGIC (Principle 12): gmeow:explanatoryScore (IBE) and gmeow:systematicity (Gentner) are solver-layer decimals; there is no isBest bit — the winner's claimModality is promoted conceivable->probable and the losers are suppressed.
+  * eventTypeInference DROPPED (Principle 4): gmeow:InferenceProcess carrying gmeow:mentalProcessType gmeow:processReasoning is the single canonical occurrent marker; a parallel gmeow:EventType value would be a second canonical source for the same fact.
+
+ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferenceProcess ~ prov:Activity, inferredFrom ~ prov:wasDerivedFrom); CRMinf (InferenceCommitment ~ I1_Argumentation / I5_Inference_Making, StandpointModality ~ I6_Belief_Value); analogy ~ Gentner structure-mapping engine; AIF / Toulmin / Peirce in prose."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Classes
+# =========================================================================== #
+
+gmeow:InferenceProcess
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:MentalProcess ;
+    rdfs:label "Inference Process"@x-gmeow-english ;
+    skos:definition "The occurrent reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The perdurant face of inference: a gmeow:MentalProcess borne by exactly one gmeow:experiencer and carrying gmeow:mentalProcessType gmeow:processReasoning, the reparenting hook the mentation slice reserves. It gmeow:realizesMoment the belief it produces and reaches its argument structure via gmeow:hasInferenceCommitment. Distinct from the endurant gmeow:InferenceCommitment (the argument relation it instantiates) — keeping the gUFO endurant/occurrent split clean."@x-gmeow-english ;
+    skos:scopeNote "The occurrent kind of an inference is recorded as gmeow:mentalProcessType gmeow:processReasoning, NOT as a dedicated gmeow:EventType value: an 'eventTypeInference' individual was deliberately NOT minted (Principle 4 — one canonical source), since processReasoning already names this occurrent fact on the mentation spine."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
+gmeow:InferenceCommitment
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Inference Commitment"@x-gmeow-english ;
+    skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), its mode (gmeow:inferenceModeOf), and its defeaters (gmeow:hasDefeater). A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
+gmeow:Analogy
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Analogy"@x-gmeow-english ;
+    skos:definition "A reified analogical mapping — the source-to-target structure-mapping (Gentner) that warrants an analogical inference: it mediates a source domain (gmeow:analogicalSource), a target domain (gmeow:analogicalTarget), and the element-pair correspondences (gmeow:hasCorrespondence) holding between them, scored by structural consistency (gmeow:systematicity, solver-layer). The warrant of an analogical gmeow:InferenceCommitment points at an Analogy. Rival mappings compete; best-analogy selection is solver-layer like IBE, never an asserted isBest bit."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
+gmeow:Correspondence
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Correspondence"@x-gmeow-english ;
+    skos:definition "A single mapped element-pair within an gmeow:Analogy — the reified relation that one source element (gmeow:correspondingSource) plays the same structural role as one target element (gmeow:correspondingTarget). Reached from its analogy via gmeow:hasCorrespondence. The atom of structure-mapping: an analogy's systematicity is the structural consistency of its set of Correspondences."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
+gmeow:InferenceMode
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Inference Mode"@x-gmeow-english ;
+    skos:definition "The Peircean mode of an inference — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:StandpointModality idiom): gmeow:modeDeduction, gmeow:modeInduction, gmeow:modeAbduction, gmeow:modeAnalogical. The mode rides as a gmeow:inferenceMode value on the claim (or gmeow:inferenceModeOf on the commitment), never as a subclass of gmeow:InferenceCommitment (Principle 9: no overtyping). The modes differ by warrant and default modality, not by subsumption."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
+gmeow:DefeaterKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Defeater Kind"@x-gmeow-english ;
+    skos:definition "The Pollock kind of a defeater — a value vocabulary (individuals, never subclasses): gmeow:defeaterRebutting (attacks the conclusion directly, giving reason to believe its negation) and gmeow:defeaterUndercutting (attacks the inferential link, removing the warrant without asserting the negation). Carried as a gmeow:defeaterKind value on a defeating gmeow:StandpointClaim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
+gmeow:InferenceTenure
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Inference Tenure"@x-gmeow-english ;
+    skos:definition "The reified, time-scoped fact that an gmeow:InferenceCommitment's conclusion was held over an interval — opened when the conclusion is accepted and closed when a defeater fires, never deleted (Principle 10). Belief revision is the closing of a tenure (and gmeow:displayable false on the conclusion-claim), not the erasure of the commitment, which survives as audit. Carries its interval via gmeow:duringInterval (temporal module). Use only when the adoption / retraction of the conclusion is itself worth modelling; the common case is a bare claim with its modality."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
