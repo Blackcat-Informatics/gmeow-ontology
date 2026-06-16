@@ -77,7 +77,7 @@ links the successor claim into the derivation chain.
 The pattern in one breath: `store_claim` when you learn, `recall_claims` before
 you answer, `revise_belief` when you learn better — and the memory file remains a
 portable, signed-able, independently verifiable record (`Memory.verify()` in
-[`gts.examples.agent_memory`](../packages/gts/src/gts/examples/agent_memory.py) reads the same file).
+[`gts.examples.agent_memory`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/python/src/gts/examples/agent_memory.py) reads the same file).
 
 ## The bundled ontology tools
 

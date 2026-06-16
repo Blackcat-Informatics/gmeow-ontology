@@ -12,13 +12,15 @@ release key's OpenPGP fingerprint, emoji hash, labels, and randomart.
 
 ## Build a Local Signed Example
 
-For local smoke testing, sign the bundled snapshot path with the GTS fixture
-key:
+For local smoke testing, sign the bundled snapshot path with a test key. The GTS
+fixture keys now live in the [`gmeow-gts`](https://github.com/Blackcat-Informatics/gmeow-gts)
+repo under `python/tests/fixtures/`; point `--sign-key`/`--public-key` at a local
+copy (or any test keypair):
 
 ```bash
 uv run --package gmeow-dev gmeow-dev gts compile-full \
-  --sign-key packages/gts/tests/fixtures/test_key.sec.asc \
-  --public-key packages/gts/tests/fixtures/test_key.pub.asc \
+  --sign-key path/to/test_key.sec.asc \
+  --public-key path/to/test_key.pub.asc \
   -o dist/gmeow.gts
 ```
 
