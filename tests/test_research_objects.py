@@ -54,7 +54,7 @@ def test_dataset_meta_is_read_never_hardcoded(meta: DatasetMeta) -> None:
     assert meta.title == "Lillith GraphRAG benchmark"
     assert meta.license_id == "CC-BY-4.0"
     assert meta.license_url.endswith("/CC-BY-4.0")
-    assert meta.creator == "Blackcat Informatics Inc."
+    assert meta.creator == "Blackcat Informatics® Inc."
     assert meta.publication_year == "2026"
 
 

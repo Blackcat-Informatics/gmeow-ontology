@@ -176,10 +176,14 @@ def test_self_description_loader() -> None:
     assert meta.title.startswith("GMEOW")
     assert meta.version == "0.1.0"
     assert meta.release_date == "2026-06-03"
-    assert meta.doi == "10.XXXXX/gmeow"
-    assert meta.depositor_name == "Blackcat Informatics Inc."
-    assert meta.depositor_email == "doi@blackcatinformatics.ca"
-    assert meta.registrant == "Blackcat Informatics Inc."
+    # Concept DOI lives on the Work; version DOI (optional) on the Manifestation.
+    assert meta.concept_doi == "10.67342/26w4o"
+    assert meta.version_doi is None  # concept-only until a version DOI is minted
+    assert meta.doi == "10.67342/26w4o"  # preferred citable = version or concept
+    assert meta.version_iri == "https://blackcatinformatics.ca/gmeow/0.1.0"
+    assert meta.depositor_name == "Blackcat Informatics® Inc."
+    assert meta.depositor_email == "root@blackcatinformatics.ca"
+    assert meta.registrant == "Blackcat Informatics® Inc."
     assert meta.license_uri == "https://creativecommons.org/licenses/by/4.0/"
     assert meta.homepage == "https://blackcatinformatics.ca/gmeow"
 

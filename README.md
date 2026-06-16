@@ -13,6 +13,7 @@
   <a href="https://pypi.org/project/gmeow/"><img alt="Python versions supported by gmeow" src="https://img.shields.io/pypi/pyversions/gmeow?logo=python&logoColor=white"></a>
   <a href="./LICENSE"><img alt="Tooling license: Apache-2.0" src="https://img.shields.io/badge/tooling-Apache--2.0-blue"></a>
   <a href="./LICENSE-ontology"><img alt="Ontology license: CC BY 4.0" src="https://img.shields.io/badge/ontology-CC%20BY%204.0-blue"></a>
+  <a href="https://doi.org/10.67342/26w4o"><img alt="DOI: 10.67342/26w4o" src="https://img.shields.io/badge/DOI-10.67342%2F26w4o-blue"></a>
 </p>
 
 GMEOW is a substrate for **grounded agent memory and claim provenance**. Every fact an AI
@@ -641,10 +642,15 @@ provenance/confidence/standpoint layer every other slice already uses:
 GMEOW publication is generated from the graph and the release commit, not maintained as a
 parallel metadata file.
 
-1. **DOI/PID graph.** `make crossref` generates `dist/crossref-deposit.xml` (CrossRef deposit
-   schema 5.4.0) from canonical metadata. The PID model uses a concept DOI, immutable version
-   DOIs, component DOIs for slices and mapping sets, graph-projected CrossRef relationships,
-   statement-level DOI provenance, FAIR Signposting, and SWHID/commit pairing for exact bytes.
+1. **DOI/PID graph.** `gmeow-dev crossref` generates `dist/crossref-deposit.xml` (CrossRef
+   deposit schema 5.4.0) from the canonical self-description for manual submission. The model is
+   **single-anchor**: one concept DOI ([`10.67342/26w4o`](https://doi.org/10.67342/26w4o),
+   always-latest) plus an optional per-release version DOI — granularity and provenance ride the
+   content-addressed identifier triangle (`owl:versionIRI` ↔ SWHID / GTS head id /
+   `gmeow:contentDigest`), not minted DOIs. The deposit maximally uses the schema (license,
+   contributors + ORCID, institution, `hasFormat` relations to every serialization, and
+   graph-projected alignment relations) and pairs with FAIR Signposting. See
+   [`docs/dois.md`](./docs/dois.md).
 2. **LOD and content negotiation.** `generated/metadata/void.ttl`, `generated/metadata/dcat.ttl`,
    and `generated/apache/gmeow.conf` are registered generated artifacts. The Apache config
    negotiates Turtle / RDF-XML / JSON-LD / HTML, handles profile and slice IRIs, and keeps
@@ -700,16 +706,16 @@ to grant separate commercial/proprietary licenses.
 - **GMEOW vocabulary** (the ontology in `ontology/` and its published serializations):
   [CC BY 4.0](./LICENSE-ontology).
 - **Proprietary licensing.** The open licenses above are offered *in addition to* — not in
-  place of — Blackcat Informatics' right to license either part under separate commercial
+  place of — Blackcat Informatics®' right to license either part under separate commercial
   terms. Contact `licensing@blackcatinformatics.ca`.
 
-**Trademarks.** "Blackcat Informatics®" is a registered trademark of Blackcat Informatics
+**Trademarks.** "Blackcat Informatics®" is a registered trademark of Blackcat Informatics®
 Inc. Neither open license grants any right to use these names, logos, or marks (Apache-2.0 §6;
 CC BY 4.0 §2(b)).
 
 **Contributions** are accepted under the same open licenses; for the dual-licensing
 reservation to extend to contributed material, contributors license their contributions to
-Blackcat Informatics Inc. under terms permitting that relicensing.
+Blackcat Informatics® Inc. under terms permitting that relicensing.
 
 **Third-party.** `imports/gufo.ttl` (gUFO) is vendored under the MIT License; its copyright
 and permission notice are preserved in that file.

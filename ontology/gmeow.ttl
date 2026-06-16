@@ -22,12 +22,13 @@
     owl:versionInfo "0.1.0" ;
     dcterms:title "GMEOW — Global Metadata and Entity Ontology for the Web"@x-gmeow-english ;
     dcterms:description """A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that unifies document metadata, entity descriptions, legal agreements, contacts and person-centric data. GMEOW is grounded in gUFO and aligned to FOAF, REL, DOAP, PROV-O, schema.org and Wikidata."""@x-gmeow-english ;
-    dcterms:creator "Blackcat Informatics Inc." ;
-    dcterms:publisher "Blackcat Informatics Inc." ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    dcterms:publisher "Blackcat Informatics® Inc." ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:identifier "10.67342/26w4o" ;
     dcterms:created "2026-06-03"^^xsd:date ;
     dcterms:modified "2026-06-09"^^xsd:date ;
-    dc:rights "Copyright © 2026 Blackcat Informatics® Inc. Licensed under CC BY 4.0; also available under separate proprietary terms from Blackcat Informatics Inc." ;
+    dc:rights "Copyright © 2026 Blackcat Informatics® Inc. Licensed under CC BY 4.0; also available under separate proprietary terms from Blackcat Informatics® Inc." ;
     rdfs:label "GMEOW"@x-gmeow-english ;
     skos:definition "Root ontology document for GMEOW — the Global Metadata and Entity Ontology for the Web, grounding document metadata, entity descriptions, legal agreements, contacts, and person-centric data (Principle 1)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> ;

@@ -25,10 +25,22 @@ from typing import TYPE_CHECKING
 
 from gmeow_tools.config import APACHE_CONF, ONTOLOGY_IRI, PROJECT_ROOT
 from gmeow_tools.generator import Generator, register, write_text
+from gmeow_tools.self_desc import SELF_DESC_FILE, SelfDescription, load_self_description
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
+
+#: Published serializations (extension → media type) for Signposting `item` /
+#: `describedby` links. Mirrors the content-negotiation rules below.
+_SERIALIZATIONS: tuple[tuple[str, str], ...] = (
+    ("ttl", "text/turtle"),
+    ("rdf", "application/rdf+xml"),
+    ("nt", "application/n-triples"),
+    ("jsonld", "application/ld+json"),
+)
+#: Media type of the content-addressed GTS package (the intrinsic-identity leg).
+_GTS_MEDIA_TYPE = "application/vnd.blackcat.gts+cbor"
 
 _VERSIONED_GTS_RE = (
     r"^/(?:gmeow|packages)(?:/.*)?/"
@@ -119,6 +131,14 @@ _TEMPLATE = """\
     RewriteCond %{{HTTP_ACCEPT}} text/html
     RewriteRule ^/?gmeow/profiles/([a-z][a-z0-9-]*)$ /gmeow/profiles/$1/ [R=303,L]
 
+    # --- Release version IRIs (owl:versionIRI) ------------------------------
+    # .../gmeow/<semver> is the immutable per-release snapshot — the target of
+    # each release's owl:versionIRI and (when minted) the version DOI's
+    # <resource>. It must resolve to a distinct landing page from the concept
+    # IRI (CrossRef forbids two DOIs on the same URL). The release directory
+    # holds that snapshot (and its /gmeow/<semver>/gmeow.gts package).
+    RewriteRule ^/?gmeow/([0-9]+\\.[0-9]+\\.[0-9]+)$ /gmeow/$1/ [R=303,L]
+
     # --- Legacy module IRIs -------------------------------------------------
     # Pre-slice releases published .../gmeow/modules/<name> in isDefinedBy
     # values; released data is immutable (Principle 6), so those IRIs keep
@@ -188,12 +208,55 @@ _TEMPLATE = """\
     Header always set Vary "Accept"
     Header always set Cache-Control "private, no-store"
 </LocationMatch>
+
+# --- FAIR Signposting (signposting.org/FAIR) -----------------------------------
+# Typed links bridging the landing page to the three identifier legs:
+#   cite-as     -> the DOI (citation identity)
+#   describedby -> the RDF serializations (semantic identity)
+#   item        -> every serialization, including the content-addressed GTS
+#                  package whose head id is the intrinsic identity.
+# Sourced from metadata/gmeow-self.ttl (Principle 4 — one source, generated here).
+{signposting}
 """
 
 
-def render_conf() -> str:
-    """Return the Apache content-negotiation include as a string."""
-    return _TEMPLATE.format(ontology=ONTOLOGY_IRI, versioned_gts_re=_VERSIONED_GTS_RE)
+def _signposting_block(meta: SelfDescription) -> str:
+    """Render the Signposting ``Link`` headers for the ``/gmeow`` landing page."""
+    cite_as = f"https://doi.org/{meta.doi}"
+    lines = [
+        '<LocationMatch "^/gmeow/?$">',
+        f'    Header always set Link "<{cite_as}>; rel=\\"cite-as\\""',
+    ]
+    for ext, media in _SERIALIZATIONS:
+        lines.append(
+            f'    Header always add Link "<{ONTOLOGY_IRI}.{ext}>; '
+            f'rel=\\"describedby\\"; type=\\"{media}\\""'
+        )
+    for ext, media in _SERIALIZATIONS:
+        lines.append(
+            f'    Header always add Link "<{ONTOLOGY_IRI}.{ext}>; '
+            f'rel=\\"item\\"; type=\\"{media}\\""'
+        )
+    lines.append(
+        f'    Header always add Link "<{ONTOLOGY_IRI}.gts>; '
+        f'rel=\\"item\\"; type=\\"{_GTS_MEDIA_TYPE}\\""'
+    )
+    lines.append("</LocationMatch>")
+    return "\n".join(lines)
+
+
+def render_conf(meta: SelfDescription | None = None) -> str:
+    """Return the Apache content-negotiation include as a string.
+
+    The Signposting ``cite-as`` target is read from the self-description so the
+    DOI is never hard-coded here (Principle 4).
+    """
+    meta = meta or load_self_description()
+    return _TEMPLATE.format(
+        ontology=ONTOLOGY_IRI,
+        versioned_gts_re=_VERSIONED_GTS_RE,
+        signposting=_signposting_block(meta),
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -209,12 +272,14 @@ class ApacheGenerator(Generator):
 
     @property
     def inputs(self) -> Sequence[Path]:
-        """Canonical inputs: this module itself — the template lives here.
+        """Canonical inputs: this module (the template) + the self-description.
 
         (The previous input, ``config.py``, missed template edits entirely:
-        a freshness bug of the class the #287 audit kept finding.)
+        a freshness bug of the class the #287 audit kept finding.) The
+        self-description is an input because the Signposting ``cite-as`` DOI is
+        projected from it — a DOI change must re-render the conf.
         """
-        return [PROJECT_ROOT / "src" / "gmeow_tools" / "apache.py"]
+        return [PROJECT_ROOT / "src" / "gmeow_tools" / "apache.py", SELF_DESC_FILE]
 
     @property
     def outputs(self) -> Sequence[Path]:

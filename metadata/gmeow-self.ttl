@@ -26,6 +26,13 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     foaf:homepage <https://blackcatinformatics.ca/gmeow> ;
+    # Concept DOI — the always-latest citation anchor (FORCE11). It denotes the
+    # Work (the lineage / DOI concept record, cf. gmeow:VersionSet), not any one
+    # release. Resolves to the concept IRI above. This is the single registered
+    # DOI; version/profile granularity rides the content-addressed triangle
+    # (owl:versionIRI ↔ SWHID / gmeow:gtsHeadId / gmeow:contentDigest), never a
+    # minted DOI per unit. See docs/dois.md.
+    dcterms:identifier "10.67342/26w4o" ;
     gmeow:datePublished "2026-06-03"^^xsd:date .
 
 # =========================================================================== #
@@ -51,13 +58,18 @@
     gmeow:embodies :expression ;
     gmeow:versionFingerprint "0.1.0" ;
     gmeow:datePublished "2026-06-03"^^xsd:date ;
-    dcterms:identifier "10.XXXXX/gmeow" ;
+    # Version DOI — OPTIONAL second registered DOI, denoting this immutable
+    # release (resolves to its owl:versionIRI). Not yet minted: concept-only is
+    # a first-class supported state, NOT a placeholder. When a version DOI is
+    # registered, add it here as dcterms:identifier "10.67342/…"; the deposit
+    # then emits a second record related to the concept by isVersionOf/hasVersion
+    # (the Work←realizes←Expression←embodies←Manifestation chain IS that edge).
     dcterms:publisher <https://blackcatinformatics.ca/#bii> .
 
 <https://blackcatinformatics.ca/#bii>
     a foaf:Organization ;
-    foaf:name "Blackcat Informatics Inc."@x-gmeow-english ;
-    foaf:mbox <mailto:doi@blackcatinformatics.ca> .
+    foaf:name "Blackcat Informatics® Inc."@x-gmeow-english ;
+    foaf:mbox <mailto:root@blackcatinformatics.ca> .
 
 # =========================================================================== #
 # CONTRIBUTION — creator credit with CRediT role and degree
@@ -65,10 +77,28 @@
 
 :contribution-bii
     a gmeow:Contribution ;
-    rdfs:label "Blackcat Informatics GMEOW contribution"@x-gmeow-english ;
-    skos:definition "The lead author contribution by Blackcat Informatics Inc. to the GMEOW ontology work."@x-gmeow-english ;
+    rdfs:label "Blackcat Informatics® GMEOW contribution"@x-gmeow-english ;
+    skos:definition "The lead author contribution by Blackcat Informatics® Inc. to the GMEOW ontology work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:contributor <https://blackcatinformatics.ca/#bii> ;
+    gmeow:contributionTarget <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:contributionRole gmeow:roleAuthor ;
+    gmeow:contributionDegree gmeow:degreeLead .
+
+# Patrick Audley — individual lead author (ORCID-identified) alongside BII.
+:patrick-audley
+    a gmeow:Person ;
+    rdfs:label "Patrick Audley"@x-gmeow-english ;
+    gmeow:name "Patrick Audley"@x-gmeow-english ;
+    gmeow:authorityLink <https://orcid.org/0000-0003-4382-7625> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> .
+
+:contribution-patrick
+    a gmeow:Contribution ;
+    rdfs:label "Patrick Audley GMEOW contribution"@x-gmeow-english ;
+    skos:definition "The lead author contribution by Patrick Audley to the GMEOW ontology work."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
+    gmeow:contributor :patrick-audley ;
     gmeow:contributionTarget <https://blackcatinformatics.ca/gmeow> ;
     gmeow:contributionRole gmeow:roleAuthor ;
     gmeow:contributionDegree gmeow:degreeLead .
@@ -192,7 +222,7 @@
 :project
     a gmeow:SoftwareProject ;
     rdfs:label "GMEOW ontology project"@x-gmeow-english ;
-    skos:definition "The Blackcat Informatics software and ontology publication project that develops, publishes, and maintains GMEOW."@x-gmeow-english ;
+    skos:definition "The Blackcat Informatics® software and ontology publication project that develops, publishes, and maintains GMEOW."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:projectHomepage <https://blackcatinformatics.ca/gmeow> ;
     gmeow:bugDatabase <https://github.com/Blackcat-Informatics/gmeow-ontology/issues> ;

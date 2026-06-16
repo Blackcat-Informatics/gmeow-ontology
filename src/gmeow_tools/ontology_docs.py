@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
 
 """Native, RDF 1.2-aware ontology documentation generator (#440).
@@ -15,6 +15,7 @@ from the same data path.
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import html
 import json
@@ -1897,10 +1898,22 @@ img, svg { max-width: 100%; height: auto; }
         )
 
 
+@functools.lru_cache(maxsize=1)
+def _citation_doi() -> str:
+    """The concept DOI for the docs footer (always-latest citation anchor)."""
+    try:
+        from gmeow_tools.self_desc import load_self_description
+
+        return load_self_description().concept_doi
+    except (FileNotFoundError, ValueError):
+        return ""
+
+
 def _html_shell(title: str, body: str, prefix: str) -> str:
     """Return a full static HTML document."""
     escaped_title = html.escape(title)
     home = prefix or "./"
+    doi = _citation_doi()
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -1935,7 +1948,9 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
   </main>
   <footer>
     Generated from the GMEOW ontology. Canonical source is RDF/OWL; this
-    site is a deterministic projection.
+    site is a deterministic projection.<br>
+    Cite as <a href="https://doi.org/{doi}">doi:{doi}</a> ·
+    © 2026 Blackcat Informatics® Inc. · Ontology licensed CC BY 4.0.
   </footer>
 </body>
 </html>

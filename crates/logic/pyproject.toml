@@ -20,7 +20,7 @@ version = "0.1.0"
 description = "GMEOW reasoning engine PyO3 bindings: materialize() with derivation metadata"
 requires-python = ">=3.13"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Blackcat Informatics Inc." }]
+authors = [{ name = "Blackcat Informatics® Inc." }]
 keywords = ["rdf", "reasoning", "knowledge-graph", "gmeow"]
 
 [tool.maturin]

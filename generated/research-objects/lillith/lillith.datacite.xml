@@ -3,13 +3,13 @@
   <identifier identifierType="DOI">10.5072/gmeow-lillith-benchmark</identifier>
   <creators>
     <creator>
-      <creatorName nameType="Organizational">Blackcat Informatics Inc.</creatorName>
+      <creatorName nameType="Organizational">Blackcat Informatics® Inc.</creatorName>
     </creator>
   </creators>
   <titles>
     <title>Lillith GraphRAG benchmark</title>
   </titles>
-  <publisher>Blackcat Informatics Inc.</publisher>
+  <publisher>Blackcat Informatics® Inc.</publisher>
   <publicationYear>2026</publicationYear>
   <resourceType resourceTypeGeneral="Dataset">Research-object benchmark dataset</resourceType>
   <dates>

@@ -17,7 +17,7 @@
 #     (gmeow:hasWebPage → a WEMI gmeow:WebPage) is shown in the documents example;
 #     here the flat tier carries it.
 ex:blackcat a gmeow:Organization ;
-    gmeow:name "Blackcat Informatics Inc."@x-gmeow-english ;
+    gmeow:name "Blackcat Informatics® Inc."@x-gmeow-english ;
     gmeow:description "A small ontology and tooling consultancy."@x-gmeow-english .
 
 # --- People: gmeow:Person, the identity-supplying sortal everything else anchors

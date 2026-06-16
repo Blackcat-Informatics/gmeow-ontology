@@ -49,4 +49,4 @@ ex:pipeline-runner a gmeow:Builder ;
     rdfs:label "lillith pipeline runner"@en .
 
 ex:blackcat a gmeow:Organization ;
-    rdfs:label "Blackcat Informatics Inc."@en .
+    rdfs:label "Blackcat Informatics® Inc."@en .

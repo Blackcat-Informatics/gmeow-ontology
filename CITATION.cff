@@ -9,12 +9,20 @@ abstract: >-
   CIDOC-CRM, PROV-O, ODRL, SPDX, vCard, GeoSPARQL and OWL-Time among them.
 type: dataset
 authors:
-  - name: "Blackcat Informatics Inc."
+  - name: "Blackcat Informatics® Inc."
     website: "https://blackcatinformatics.ca/"
 version: "0.1.0"
 date-released: "2026-06-03"
 license: CC-BY-4.0
 url: "https://blackcatinformatics.ca/gmeow"
+# Concept DOI — the always-latest citation anchor (the single registered DOI).
+# When a per-release version DOI is minted, set `doi` to it and keep the concept
+# DOI in `identifiers` (FORCE11 software-citation practice).
+doi: "10.67342/26w4o"
+identifiers:
+  - type: doi
+    value: "10.67342/26w4o"
+    description: "Concept DOI — resolves to the latest released version of GMEOW."
 keywords:
   - ontology
   - OWL

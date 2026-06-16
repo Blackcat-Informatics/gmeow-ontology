@@ -135,7 +135,7 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     schema:headline "Emergent Knowledge Graphs from High-Order Semantic Spaces"@en ;
     schema:image <https://blackcatinformatics.ca/#bii-logo> ;
     schema:isPartOf [ a schema:CreativeWork ;
-            schema:name "Working paper · Blackcat Informatics Inc. (2025)"@en ] ;
+            schema:name "Working paper · Blackcat Informatics® Inc. (2025)"@en ] ;
     schema:name "Emergent Knowledge Graphs from High-Order Semantic Spaces"@en .
 
 <https://blackcatinformatics.ca/#erin> a foaf:Organization,
@@ -237,7 +237,7 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 
 <https://blackcatinformatics.ca/#proj-gmeow-ontology> a doap:Project,
         schema:SoftwareSourceCode ;
-    dcterms:bibliographicCitation "GMEOW: Global Metadata and Entity Ontology for the Web. Version 0.1.0. Blackcat Informatics Inc., 2026. Canonical IRI: https://blackcatinformatics.ca/gmeow."@en ;
+    dcterms:bibliographicCitation "GMEOW: Global Metadata and Entity Ontology for the Web. Version 0.1.0. Blackcat Informatics® Inc., 2026. Canonical IRI: https://blackcatinformatics.ca/gmeow."@en ;
     dcterms:identifier "https://blackcatinformatics.ca/gmeow"@en ;
     doap:bug-database <https://github.com/Blackcat-Informatics/gmeow-ontology/issues> ;
     doap:category "doap"@en,
@@ -779,8 +779,8 @@ ontodm:OntoDM_817888 a rdfs:Class ;
         [ a schema:PropertyValue ;
             schema:propertyID "First-Use-Date"@en ;
             schema:value "2015-09"@en ] ;
-    schema:alternateName "Blackcat Informatics"@en ;
-    schema:description "Registered Canadian word-mark for Odds & Evens bookkeeping services, owned by Blackcat Informatics Inc., in use since September 2015 and registered with CIPO as TMA1006093 on 2018-10-03."@en ;
+    schema:alternateName "Blackcat Informatics®"@en ;
+    schema:description "Registered Canadian word-mark for Odds & Evens bookkeeping services, owned by Blackcat Informatics® Inc., in use since September 2015 and registered with CIPO as TMA1006093 on 2018-10-03."@en ;
     schema:name "ODDS & EVENS"@en ;
     schema:owner <https://blackcatinformatics.ca/#bii> ;
     schema:usageInfo "https://ised-isde.canada.ca/cipo/trademark-search/1833757"@en .
@@ -800,8 +800,8 @@ ontodm:OntoDM_817888 a rdfs:Class ;
         [ a schema:PropertyValue ;
             schema:propertyID "CIPO-Application"@en ;
             schema:value "1833758"@en ] ;
-    schema:alternateName "Blackcat Informatics"@en ;
-    schema:description "Registered Canadian word-mark for Blackcat Informatics Inc., active since November 2014 and registered with CIPO as TMA1066935 on 2019-12-19."@en ;
+    schema:alternateName "Blackcat Informatics®"@en ;
+    schema:description "Registered Canadian word-mark for Blackcat Informatics® Inc., active since November 2014 and registered with CIPO as TMA1066935 on 2019-12-19."@en ;
     schema:name "BLACKCAT INFORMATICS"@en ;
     schema:owner <https://blackcatinformatics.ca/#bii> ;
     schema:usageInfo "https://ised-isde.canada.ca/cipo/trademark-search/1833758"@en .
@@ -1132,7 +1132,7 @@ ontodm:OntoDM_817888 a rdfs:Class ;
                 <https://blackcatinformatics.ca/#brand-oande>,
                 <https://blackcatinformatics.ca/#brand-wordmark> ] ;
     odrl:uid <https://blackcatinformatics.ca/#trademark-use-policy> ;
-    schema:description "Blackcat Informatics registered word and design marks are reserved. Trademark and logo use requires prior permission and must preserve trademark notices and registration details."@en ;
+    schema:description "Blackcat Informatics® registered word and design marks are reserved. Trademark and logo use requires prior permission and must preserve trademark notices and registration details."@en ;
     schema:name "Trademark use policy"@en .
 
 <https://orcid.org/0000-0003-4382-7625> a foaf:OnlineAccount,
@@ -1542,7 +1542,7 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     schema:worksFor <https://blackcatinformatics.ca/#bii> .
 
 <https://blackcatinformatics.ca/#kw-scheme> a skos:ConceptScheme ;
-    dcterms:title "Blackcat Informatics knowledge areas"@en ;
+    dcterms:title "Blackcat Informatics® knowledge areas"@en ;
     skos:hasTopConcept <https://blackcatinformatics.ca/#concept-computer-science>,
         <https://blackcatinformatics.ca/#concept-cpp>,
         <https://blackcatinformatics.ca/#concept-geomatics>,
@@ -1553,7 +1553,7 @@ ontodm:OntoDM_817888 a rdfs:Class ;
         <https://blackcatinformatics.ca/#concept-python>,
         <https://blackcatinformatics.ca/#concept-satellite-imagery>,
         <https://blackcatinformatics.ca/#concept-semantic-web> ;
-    skos:prefLabel "Blackcat Informatics knowledge areas"@en .
+    skos:prefLabel "Blackcat Informatics® knowledge areas"@en .
 
 <https://blackcatinformatics.ca/#bii> a org:FormalOrganization,
         foaf:Organization,
@@ -1608,7 +1608,7 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     schema:additionalType "wd:Q4116214"@en ;
     schema:address <https://blackcatinformatics.ca/#main-address> ;
     schema:alternateName "BII"@en,
-        "Blackcat Informatics"@en,
+        "Blackcat Informatics®"@en,
         "Blackcat Informatics® Inc."@en,
         "Chatnoir Informatiques Inc."@fr,
         "黑猫信息科技"@zh ;
