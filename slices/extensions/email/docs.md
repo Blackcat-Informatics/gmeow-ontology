@@ -563,3 +563,260 @@ ex:variantPatch a gmeow:EmailPatchDiff ;
     gmeow:contentDigest "blake3:patch-bytes" ;
     gmeow:wasDerivedFrom ex:msgCanonicalBody .
 ```
+
+## Terms
+
+The declared vocabulary of the email slice, grouped by area. Each term carries its
+own `skos:definition` in `module.ttl`; the groupings below bind the prose above to
+those declarations.
+
+### gmeow:Message · gmeow:EmailMessage · gmeow:Thread
+
+`Message` is the parent InformationObject for any communication sent from one agent
+to others; `EmailMessage` is the RFC 5322 specialization carrying headers,
+participants, body parts and mailbox residence. A `Thread` is a conversation — a set
+of messages related by reply/reference chains.
+
+### gmeow:partOfThread · gmeow:inReplyTo · gmeow:rfcMessageId
+
+The threading spine: `partOfThread` (a `partOf` specialization) places a message in
+its conversation; `inReplyTo` links a message to the one it directly answers (RFC
+5322 In-Reply-To); `rfcMessageId` is the functional RFC 5322 Message-ID, the
+message's canonical identity key.
+
+### gmeow:from · gmeow:sender · gmeow:replyTo · gmeow:to · gmeow:cc · gmeow:bcc
+
+The flat 80%-case participant shortcuts, each `EmailMessage → EmailAddress`: author
+(From), transmitting agent (Sender), reply target (Reply-To), and the primary,
+carbon-copy and blind-carbon-copy recipients. Promote to `MessageParticipant` when
+raw syntax, ordering, or provenance must be preserved.
+
+### gmeow:MessageParticipant · gmeow:MessageParticipantRole
+
+The reified contextual occurrence of an address in a particular header or envelope
+slot — the relator carrying display name, ordinal, and raw value, scoped to the
+occurrence and never a global claim about the address. `MessageParticipantRole` is
+its open value vocabulary of header/envelope roles.
+
+### gmeow:hasMessageParticipant · gmeow:participantMessage · gmeow:participantAddress · gmeow:participantRole · gmeow:participantHeader · gmeow:participantOrdinal · gmeow:participantGroup · gmeow:rawAddressValue · gmeow:displayName
+
+The relator's posts: the message it belongs to (`participantMessage`, with inverse
+`hasMessageParticipant`), the normalized address (`participantAddress`), the
+header/envelope role (`participantRole`), the source header (`participantHeader`),
+the zero-based position (`participantOrdinal`), the RFC 5322 group name
+(`participantGroup`), the raw unparsed segment (`rawAddressValue`), and the display
+name as rendered in this occurrence (`displayName`).
+
+### gmeow:messageRoleFrom · gmeow:messageRoleSender · gmeow:messageRoleReplyTo · gmeow:messageRoleTo · gmeow:messageRoleCc · gmeow:messageRoleBcc
+
+The header-address role values mirroring the flat shortcuts — the role a
+`MessageParticipant` plays as parsed from the From, Sender, Reply-To, To, Cc, or Bcc
+header field.
+
+### gmeow:messageRoleReturnPath · gmeow:messageRoleErrorsTo · gmeow:messageRoleEnvelopeFrom · gmeow:messageRoleEnvelopeTo · gmeow:messageRoleDeliveredTo · gmeow:messageRoleOriginalTo
+
+The envelope and bounce-routing role values, distinguishing the SMTP envelope
+(`messageRoleEnvelopeFrom`/`messageRoleEnvelopeTo`) and delivery trace
+(`messageRoleDeliveredTo`/`messageRoleOriginalTo`) from the header addresses, plus
+return-path and errors-to for bounce handling.
+
+### gmeow:messageRoleResentFrom · gmeow:messageRoleResentTo · gmeow:messageRoleResentCc
+
+The resent-trace role values: a message resent by an intermediary produces a
+`Resent-*` block whose address roles are modelled through `MessageParticipant` with
+these values.
+
+### gmeow:hasHeader · gmeow:MessageHeader · gmeow:headerName · gmeow:headerValue
+
+Raw header preservation: `hasHeader` relates a message to each `MessageHeader`, a
+single RFC 5322 field carrying its functional `headerName` and `headerValue` — the
+canonical source over which the convenience datatype properties project (Principle 4).
+
+### gmeow:sentAt · gmeow:receivedAt · gmeow:subject · gmeow:preview · gmeow:sizeEstimate
+
+Core message metadata: the claimed send time (RFC 5322 Date), the provider receive
+time (JMAP receivedAt / Gmail internalDate — observationally distinct), the Subject
+literal, a short plain-text body preview, and the estimated size in octets.
+
+### gmeow:threadSubject · gmeow:subjectPrefix
+
+Thread-subject normalization: `threadSubject` is the base subject of a conversation
+with reply/forward prefixes stripped, attached to the `Thread` for display and
+grouping; `subjectPrefix` records the prefix(es) removed from an individual message,
+non-functional because prefixes nest.
+
+### gmeow:MessageKeyword · gmeow:hasKeyword · gmeow:keywordSeen · gmeow:keywordFlagged · gmeow:keywordAnswered · gmeow:keywordDraft · gmeow:keywordForwarded · gmeow:keywordJunk
+
+The IMAP-flag / JMAP-keyword facet: `hasKeyword` relates a message to a
+`MessageKeyword` value drawn from the seeded set — seen, flagged, answered, draft,
+forwarded, junk — an open value vocabulary rather than subclasses.
+
+### gmeow:Mailbox · gmeow:residesIn · gmeow:mailboxOfAccount · gmeow:mailboxRole · gmeow:mailboxName
+
+A `Mailbox` is a named container of messages within an account — folder, JMAP
+mailbox, or Gmail label. `residesIn` places a message in it (time-scoped via
+`MailboxResidence`); `mailboxOfAccount` links the mailbox to its `OnlineAccount`;
+`mailboxRole` carries the JMAP special-use role and `mailboxName` the display name.
+
+### gmeow:MailboxResidence · gmeow:residentMessage · gmeow:residenceMailbox
+
+The reified, time-scoped fact that a message resided in a mailbox/label over an
+interval — membership is time-varying as messages move between folders and labels.
+`residentMessage` and `residenceMailbox` are its functional posts.
+
+### gmeow:parentMailbox · gmeow:childMailbox
+
+The canonical folder-hierarchy spine, specializing `partOf`/`hasPart`:
+`parentMailbox` names the direct parent and its inverse `childMailbox` the children
+of a mailbox in a folder tree.
+
+### gmeow:mailboxSortOrder · gmeow:mailboxPath · gmeow:mailboxTotalMessages · gmeow:mailboxUnreadMessages
+
+Provider-derived, projection-layer mailbox state (Principle 12), not asserted as
+canonical facts: the sibling display ordering, the derived path string, and the
+total / unread message rollups over residence and keyword state.
+
+### gmeow:BodyPart · gmeow:hasBodyPart · gmeow:Attachment · gmeow:hasAttachment · gmeow:filename
+
+`BodyPart` is a MIME part with a media type and content, reached by `hasBodyPart` (a
+`hasPart` specialization). `Attachment` is a non-inline body part presented as a
+file (also possibly a Document or MediaObject — not disjoint), reached by
+`hasAttachment` and carrying a `filename`.
+
+### gmeow:MultipartBodyPart · gmeow:hasMultipartType · gmeow:MultipartType
+
+A `MultipartBodyPart` is the structural container node that holds other parts via the
+universal `hasPart`/`partOf` spine; `hasMultipartType` records its subtype as a
+`MultipartType` value.
+
+### gmeow:multipartTypeAlternative · gmeow:multipartTypeMixed · gmeow:multipartTypeRelated · gmeow:multipartTypeSigned · gmeow:multipartTypeEncrypted · gmeow:multipartTypeReport · gmeow:multipartTypeDigest · gmeow:multipartTypeParallel
+
+The seeded MIME multipart subtypes — alternative, mixed, related, signed, encrypted,
+report, digest, parallel — an open value vocabulary; unforeseen subtypes are added as
+fresh individuals.
+
+### gmeow:InlinePart · gmeow:hasInlinePart
+
+An `InlinePart` is a body part displayed inline within the message body (an embedded
+image, a rendered text/html part), reached by `hasInlinePart` (a `hasBodyPart`
+specialization). Not declared disjoint from `Attachment` — disposition is an
+attributed fact, not a rigid boundary (Principle 9).
+
+### gmeow:ContentDisposition · gmeow:hasContentDisposition · gmeow:contentDispositionInline · gmeow:contentDispositionAttachment
+
+The presentation-disposition facet (RFC 2183): `hasContentDisposition` relates a body
+part to its `ContentDisposition` value — inline (rendered in the body) or attachment
+(presented as a separate file).
+
+### gmeow:ContentTransferEncoding · gmeow:hasContentTransferEncoding · gmeow:transferEncodingBase64 · gmeow:transferEncodingQuotedPrintable · gmeow:transferEncoding7bit · gmeow:transferEncoding8bit · gmeow:transferEncodingBinary
+
+The MIME content-transfer-encoding facet (RFC 2045): `hasContentTransferEncoding`
+relates a body part to its encoding value — base64, quoted-printable, 7bit, 8bit, or
+binary.
+
+### gmeow:partId · gmeow:contentId · gmeow:charset
+
+Per-part MIME metadata: the structural `partId` (scoped to the message, e.g. `1.2`),
+the `contentId` used for `cid:` references, and the `charset` of the part's content.
+
+### gmeow:BodyValue · gmeow:blobId · gmeow:bodyStructure
+
+JMAP structural identifiers and decoded content (RFC 8620/8621): `BodyValue` is a
+decoded body-content object derived from a `BodyPart` by `wasDerivedFrom`; `blobId`
+is an opaque provider-scoped byte identifier; `bodyStructure` preserves the
+serialized JMAP EmailBodyStructure for round-tripping — neither competes with the
+canonical `hasBodyPart`/`hasPart` MIME tree.
+
+### gmeow:MailingList · gmeow:hasMailingList · gmeow:listId
+
+A `MailingList` is a first-class distribution list identified by a List-Id;
+`hasMailingList` links a message to the list it travelled through (non-functional —
+cross-posting), and `listId` carries the RFC 2919 identifier literal on the message.
+
+### gmeow:listSubscribe · gmeow:listUnsubscribe · gmeow:listPost · gmeow:listHelp · gmeow:listArchive · gmeow:listOwner
+
+The RFC 2369 command headers: subscription, unsubscription, posting, help, archive,
+and owner targets. All non-functional; `listPost` is a datatype property because RFC
+2369 permits the `NO` sentinel for announcement-only lists.
+
+### gmeow:priority · gmeow:importance · gmeow:userAgent · gmeow:autoSubmitted · gmeow:precedence
+
+Raw-header-backed behavioral datatype facets, convenience projections over
+`MessageHeader` (Principle 4): the X-Priority, Importance, User-Agent/X-Mailer,
+Auto-Submitted (RFC 3834), and Precedence header values, stored as literals because
+their vocabularies are client-extensible.
+
+### gmeow:sentBySoftware · gmeow:readReceiptRequested · gmeow:dispositionNotificationTo
+
+`sentBySoftware` is the parsed `SoftwareAgent` identified from User-Agent/X-Mailer
+(the raw value staying on `userAgent`). `dispositionNotificationTo` is the canonical
+read-receipt address (RFC 3798); `readReceiptRequested` is the non-functional boolean
+projection of that header's presence.
+
+### gmeow:resentDate · gmeow:resentMessageId
+
+The non-address Resent-* trace fields: the Resent-Date and Resent-Message-ID values,
+both non-functional because a message may carry multiple resent blocks; the raw
+headers remain on `MessageHeader` (Principle 4).
+
+### gmeow:MessageKind · gmeow:hasMessageKind
+
+The behavioral / report kind of a message as an open value vocabulary —
+overlapping categories (a bounce is also auto-generated), so `hasMessageKind` is
+non-functional and no single category is forced to win (Principle 9).
+
+### gmeow:messageKindDeliveryStatusNotification · gmeow:messageKindBounce · gmeow:messageKindFeedbackReport · gmeow:messageKindReadReceipt · gmeow:messageKindAutoGenerated
+
+The seeded message kinds: a DSN (RFC 3464), a bounce (a specialized DSN), an ARF
+feedback report (RFC 5965), a read-receipt MDN (RFC 3798), and an auto-submitted
+response (RFC 3834).
+
+### gmeow:describesEvent · gmeow:eventDescribedBy · gmeow:calendarAttachment
+
+The email→event seam: `describesEvent` links a message to an `Event` parsed from a
+calendar attachment (with inverse `eventDescribedBy`); `calendarAttachment` (a
+`hasAttachment` specialization) keeps the iCalendar-carrying attachment first-class.
+The event spine is reused, never duplicated.
+
+### gmeow:calendarUid · gmeow:CalendarMethod · gmeow:hasCalendarMethod · gmeow:messageKindCalendarInvitation
+
+`calendarUid` records the iCalendar UID of the described event (non-functional);
+`hasCalendarMethod` relates a message to its `CalendarMethod` value;
+`messageKindCalendarInvitation` flags invitation-carrying messages as a `MessageKind`.
+
+### gmeow:calendarMethodRequest · gmeow:calendarMethodReply · gmeow:calendarMethodCancel · gmeow:calendarMethodPublish · gmeow:calendarMethodCounter · gmeow:calendarMethodDeclineCounter · gmeow:calendarMethodAdd · gmeow:calendarMethodRefresh
+
+The iTIP METHOD values (RFC 5546): request, reply, cancel, publish, counter,
+decline-counter, add, and refresh — the seeded `CalendarMethod` vocabulary.
+
+### gmeow:EmailPatchDiff · gmeow:hasPatchDiff
+
+`EmailPatchDiff` is a `BodyPart` subclass carrying a patch/diff between a variant
+message and its canonical counterpart, with mediaType, contentDigest, and
+`wasDerivedFrom` links; `hasPatchDiff` (a `hasBodyPart` specialization) attaches it to
+the variant message.
+
+### gmeow:messageIdGenerated · gmeow:messageIdCollision · gmeow:canonicalFingerprint · gmeow:bodyLineFingerprint · gmeow:analysisScope · gmeow:analysisInputBodyLine
+
+The variant-tracking identity keys: booleans for a gmeow-generated Message-ID and for
+a Message-ID collision; the canonical-body and line-normalized content fingerprints
+used for variant grouping and fuzzy matching; and the analysis scope and input body
+line recording how those fingerprints were produced.
+
+### gmeow:DKIMSignature · gmeow:AuthenticationResult · gmeow:hasAuthenticationResult
+
+`DKIMSignature` is a DKIM signature (RFC 6376) specializing the trust core's
+`CryptographicSignature`. `AuthenticationResult` is the outcome of an email
+authentication check (RFC 8601), related to a message by `hasAuthenticationResult`.
+
+### gmeow:authMethod · gmeow:authResult · gmeow:authServer
+
+The authentication-result fields: the method checked (dkim, spf, dmarc, arc, …), the
+verdict (pass, fail, softfail, …), and the authserv-id that performed the check.
+
+### gmeow:RelayHop · gmeow:hasRelayHop · gmeow:hopOrdinal · gmeow:relayFrom · gmeow:relayBy · gmeow:relayAt · gmeow:relayProtocol
+
+A `RelayHop` is one hop in a message's delivery path recorded by a Received header,
+attached by `hasRelayHop`. Its fields: the ordinal position (`hopOrdinal`, 1 nearest
+the origin), the host received from (`relayFrom`), the relaying server (`relayBy`),
+the server timestamp (`relayAt`), and the protocol (`relayProtocol`).

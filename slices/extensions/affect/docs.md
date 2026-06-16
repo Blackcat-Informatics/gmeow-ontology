@@ -41,3 +41,40 @@ MFOEM rows (linkage-only — BFO lineage), EmotionML vocabulary IRIs,
 WordNet-Affect closeMatch rows; the W3C EmotionML projection with declared
 loss (vantage collapses to EmotionML's single-annotator model — flagged
 loudly). Target list fixed in the alignment ledger.
+
+## Terms
+
+### gmeow:Emotion · gmeow:emotionBearer
+
+An emotion is an intrinsic mode inhering in one agent (the Desire/Intention
+grounding) — episodic scope rides `validFrom`/`validUntil` on the statement, no
+tenure class. `emotionBearer` is functional and mandatory: an intrinsic mode has
+exactly one bearer.
+
+### gmeow:EmotionType · gmeow:emotionType
+
+The kind of an emotion as an OPEN vocabulary seeded with Plutchik's primary eight
+(the EmotionML standard set) — registry-independent and contestable, never a tree
+(P9). `emotionType` is non-functional: blended emotions carry several types and
+classifications from different traditions coexist; at least one (SHACL).
+
+### gmeow:Appraisal · gmeow:appraisalOf
+
+An affective or aesthetic reading of something, as an observation whose vantage is
+the appraiser — dimensional or qualitative (at least one of the two forms). Two
+critics disagreeing are two coexisting cells. `appraisalOf` (⊑ `observedFeature`)
+is functional: one appraisal, one subject.
+
+### gmeow:AppraisalDimension · gmeow:appraisalDimension · gmeow:appraisalValue
+
+The dimensional form: an OPEN axis vocabulary seeded with the PAD triad —
+valence, arousal, dominance. `appraisalDimension` reads at most one axis per
+appraisal (a PAD triple is three Appraisals sharing a vantage); `appraisalValue`
+carries the reading on whatever scale the tradition declares (a rubric's
+ScoreScale when loaded, plain decimals otherwise — soft reference).
+
+### gmeow:AestheticQuality · gmeow:appraisalQuality
+
+The qualitative form: an OPEN vocabulary seeded with elegance, sublimity, kitsch —
+no hierarchy exists or ever will (P9). `appraisalQuality` is non-functional: one
+cell may attribute several coexisting qualities.
