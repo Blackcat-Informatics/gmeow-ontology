@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 from collections import defaultdict
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
@@ -80,6 +81,52 @@ def _fold_description(view: FoldView) -> str:
         msg = f"snapshot lacks dcterms:description on {ONTOLOGY_IRI}"
         raise ValueError(msg)
     return view.lex(desc)
+
+
+#: VoID statistics term IRIs, by rdf:type, for the published default graph.
+_OWL = "http://www.w3.org/2002/07/owl#"
+_RDFS = "http://www.w3.org/2000/01/rdf-schema#"
+_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+_CLASS_TYPES = (_OWL + "Class", _RDFS + "Class")
+_PROPERTY_TYPES = (
+    _OWL + "ObjectProperty",
+    _OWL + "DatatypeProperty",
+    _OWL + "AnnotationProperty",
+    _RDF + "Property",
+)
+
+
+@dataclass(frozen=True, slots=True)
+class _VoidStats:
+    """VoID dataset statistics computed over the published default graph."""
+
+    triples: int
+    classes: int
+    properties: int
+    entities: int
+
+
+def _fold_stats(view: FoldView) -> _VoidStats:
+    """Compute VoID statistics over the published ontology (default graph).
+
+    The ``triples`` count is the LOD-Cloud "size" (it scales the cloud bubble);
+    it is the *asserted* published graph, not the reasoned closure (Principle 8 —
+    the reasoner is QA, not a consumer prerequisite). ``entities`` counts distinct
+    IRI subjects in the GMEOW namespace.
+    """
+    triples = 0
+    entities: set[str] = set()
+    for s_tid, _p, _o, _g in view.quads():
+        triples += 1
+        if view.is_iri(s_tid) and view.lex(s_tid).startswith(NAMESPACE):
+            entities.add(view.lex(s_tid))
+    classes: set[int] = set()
+    for class_iri in _CLASS_TYPES:
+        classes.update(view.subjects_by_type(class_iri))
+    properties: set[int] = set()
+    for property_iri in _PROPERTY_TYPES:
+        properties.update(view.subjects_by_type(property_iri))
+    return _VoidStats(triples, len(classes), len(properties), len(entities))
 
 
 def _fold_linksets(view: FoldView) -> Graph:
@@ -158,6 +205,15 @@ def build_void_graph(view: FoldView | None = None) -> Graph:
     graph.add((dataset, DCTERMS.hasVersion, Literal(_fold_version(view))))
     graph.add((dataset, VOID.uriSpace, Literal(NAMESPACE)))
     graph.add((dataset, VOID.exampleResource, URIRef(NAMESPACE + "Person")))
+
+    # VoID statistics. void:triples is the LOD-Cloud "size" (it scales the cloud
+    # bubble); the others give the standard schema census. Counted from the fold,
+    # so they regenerate accurately every release rather than rotting by hand.
+    stats = _fold_stats(view)
+    graph.add((dataset, VOID.triples, Literal(stats.triples)))
+    graph.add((dataset, VOID.classes, Literal(stats.classes)))
+    graph.add((dataset, VOID.properties, Literal(stats.properties)))
+    graph.add((dataset, VOID.entities, Literal(stats.entities)))
 
     for ext, fmt_iri in _FORMAT_IRI.items():
         graph.add((dataset, VOID.feature, URIRef(fmt_iri)))
