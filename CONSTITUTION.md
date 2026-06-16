@@ -299,7 +299,7 @@ standpoint-indexed claims — never adjudicated by rank, exactly as Principle 9 
 other kind of subject.
 
 *Embodied in:* the AI claim layer (#54); the claim-spine pattern (#55);
-[`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) § 13 (`ai-package` profile) and § 11 (suppression
+[`docs/GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md) § 13 (`ai-package` profile) and § 11 (suppression
 frames); the MCP memory tools. *Tested by:* the suppression leak-conformance gates (#282); the
 claim-extraction eval suite; the GTS round-trip gates.
 
@@ -343,7 +343,7 @@ plainly: it is a deliberate commitment, encoded where it cannot be silently drop
 An extension is the existing slice convention made physical: one directory, one manifest (the
 Principle 15 consumer named in a machine-checked field), compiled, reasoned (extension ∪ core),
 and drift-gated as a unit (Principle 7), and distributable as a signed single-file GTS bundle
-(Principle 14's format, [`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) § 12.1, § 13). This inverts
+(Principle 14's format, [`docs/GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md) § 12.1, § 13). This inverts
 "ontology explosion" from threat into growth mechanism: enthusiasm for a new domain has
 somewhere to go that is not the core. Extension *ecosystem* machinery (SDK, catalog,
 submission process) is itself subject to Principle 15 — built when a named external extension

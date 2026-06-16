@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [workspace]
-members = ["crates/gts", "crates/logic", "crates/shacl"]
+# The GTS engine moved to the gmeow-gts repo; its `gts` binary is obtained via
+# `cargo install gmeow-gts`. The ontology Rust workspace keeps logic + shacl.
+members = ["crates/logic", "crates/shacl"]
 resolver = "2"
 
 [workspace.package]

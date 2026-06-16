@@ -27,7 +27,6 @@ from gmeow_tools import (  # noqa: F401  (@register side effects)
     apache,
     export,
     gts_gen,
-    gts_vectors_gen,
     lpg,
     mapping_compile,
     matrix,
