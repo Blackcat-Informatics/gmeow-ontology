@@ -22,6 +22,7 @@ from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
 from rdflib.term import Node
 
+from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
     _SAMEAS_ALLOWLIST,
     EXTERNAL_FIXTURES_DIR,
@@ -58,28 +59,31 @@ type _OxParseResult = tuple[tuple[pyoxigraph.Quad, ...] | None, Exception | None
 
 
 @lru_cache(maxsize=4)
-def _shapes_graph(shapes_path: Path) -> Graph:
-    """Parse (and cache) the SHACL shapes graph.
+def _shapes_turtle(shapes_path: Path) -> str:
+    """Merge (and cache) the SHACL shapes into one Turtle document for the engine.
 
-    ``run_shacl`` runs ~150 times across the test suite; re-parsing the shapes
-    Turtle each call wastes ~30 ms apiece. pyshacl does not mutate the shapes
-    graph it is handed, so one shared cached parse per path is safe.
+    ``run_shacl`` runs ~150 times across the test suite; re-reading the shapes
+    each call wastes time, so one shared cached merge per path is kept. The
+    shapes are concatenated as raw Turtle text (preserving every ``@prefix``
+    header the SHACL-AF ``sh:select`` queries resolve against) rather than parsed
+    into a graph — ``gmeow_shacl`` ingests Turtle directly (#578).
 
     Loads the requested base shapes file plus every other modular ``*.ttl``
     shape file in ``shapes/`` except the DSL-specific lints, so new domain
     shape files (e.g. ``expertise-shapes.ttl``) are picked up automatically.
     """
-    graph = Graph().parse(shapes_path, format="turtle")
     dsl_shapes = {
         "mapping-dsl-shapes.ttl",
         "statement-dsl-shapes.ttl",
         "slice-manifest-shapes.ttl",  # targets manifests, not the data graph
         shapes_path.name,
     }
-    for extra in sorted(SHAPES_DIR.glob("*.ttl")):
-        if extra.name in dsl_shapes:
-            continue
-        graph.parse(extra, format="turtle")
+    files: list[Path] = [shapes_path]
+    files += [
+        extra
+        for extra in sorted(SHAPES_DIR.glob("*.ttl"))
+        if extra.name not in dsl_shapes
+    ]
     # Generated shapes (#283): frame-relativity derived from gmeow:requiresFrame.
     # FAIL CLOSED: the hand-written frame constraints were deleted in favor of
     # these, so their absence would silently stop enforcing P11.
@@ -90,11 +94,9 @@ def _shapes_graph(shapes_path: Path) -> Graph:
             f"run `gmeow regenerate frame-shapes` (P11 enforcement lives there)"
         )
         raise FileNotFoundError(msg)
-    for generated in generated_shapes:
-        graph.parse(generated, format="turtle")
-    for slice_shapes in iter_slice_shape_files():
-        graph.parse(slice_shapes, format="turtle")
-    return graph
+    files += generated_shapes
+    files += iter_slice_shape_files()
+    return shacl_engine.shapes_files_to_turtle(files)
 
 
 @dataclass(slots=True)
@@ -135,9 +137,14 @@ def _files_cache_key(paths: list[Path]) -> str:
 
 
 def _validation_toolchain_salt() -> str:
-    """Return a cache salt for validator package versions."""
+    """Return a cache salt for the SHACL validation toolchain versions.
+
+    The production validation path is ``gmeow_shacl`` (the Rust validator) over
+    pyoxigraph-ingested data (#578). pyshacl/rdflib no longer gate the SHACL
+    result, so they are not part of the salt — one cache-invalidation regime.
+    """
     parts: list[str] = []
-    for package in ("pyshacl", "pyoxigraph", "rdflib"):
+    for package in ("gmeow-shacl", "pyoxigraph"):
         try:
             version = metadata.version(package)
         except metadata.PackageNotFoundError:
@@ -598,57 +605,29 @@ def run_shacl(
 
     Raises:
         FileNotFoundError: If the shapes file is missing.
+        ValueError: If ``gmeow_shacl`` cannot parse the data or shapes — a hard
+            failure that must surface, never a silent ``conforms`` (P11/§11).
     """
     if not shapes_path.exists():
         raise FileNotFoundError(f"SHACL shapes not found: {shapes_path}")
-    # Imported lazily so the lighter syntax/lint checks do not pay the cost.
-    from pyshacl import validate as shacl_validate
 
-    shapes_graph = _shapes_graph(shapes_path)
-    conforms, report_graph, report_text = shacl_validate(
-        data_graph,
-        shacl_graph=shapes_graph,
-        advanced=True,  # SPARQL-based targets are SHACL-AF
-        inference="none",
-        abort_on_first=False,
-        meta_shacl=False,
-    )
+    shapes_ttl = _shapes_turtle(shapes_path)
+    report = shacl_engine.validate_graph(data_graph, shapes_ttl)
     result = ValidationResult()
-    if conforms:
+    if report["conforms"]:
         return result
 
-    violations, warnings = _partition_shacl_results(report_graph)
+    violations, warnings = shacl_engine.partition_results(report["results"])
     if violations:
         result.errors.append("SHACL violations:\n" + "\n".join(violations))
     if warnings:
         result.warnings.append("SHACL warnings:\n" + "\n".join(warnings))
-    # Defensive: a non-conforming report we could not parse must still surface.
+    # Defensive: a non-conforming report with no parseable results must still
+    # surface (gmeow_shacl reports conforms == results-empty, so this is unreachable
+    # in practice, but a silent pass on non-conformance is the worst outcome).
     if not violations and not warnings:
-        result.errors.append(f"SHACL validation failed:\n{report_text.strip()}")
+        result.errors.append("SHACL validation failed: non-conforming with no results")
     return result
-
-
-def _partition_shacl_results(report_graph: Graph) -> tuple[list[str], list[str]]:
-    """Split a SHACL report into (violations, warnings) by ``sh:resultSeverity``.
-
-    ``sh:Violation`` results are returned as error lines; ``sh:Warning`` and
-    ``sh:Info`` as warning lines. Each line is ``<focusNode>: <message>`` for a
-    readable, severity-aware report.
-    """
-    from rdflib.namespace import SH
-
-    violations: list[str] = []
-    warnings: list[str] = []
-    for node in report_graph.subjects(RDF.type, SH.ValidationResult):
-        severity = report_graph.value(node, SH.resultSeverity)
-        message = report_graph.value(node, SH.resultMessage)
-        focus = report_graph.value(node, SH.focusNode)
-        line = f"{focus}: {message}" if message is not None else str(focus)
-        if severity in (SH.Warning, SH.Info):
-            warnings.append(line)
-        else:
-            violations.append(line)
-    return violations, warnings
 
 
 def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:

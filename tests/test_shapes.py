@@ -212,8 +212,8 @@ def test_malformed_expertise_fixture_is_flagged() -> None:
 def test_no_nodeshape_iri_collision_across_shape_files() -> None:
     """Every sh:NodeShape IRI is owned by exactly one shape file (#478).
 
-    ``_shapes_graph`` merges hand-authored shapes, generated shapes, and slice
-    shapes into a single graph. If two files declare the same ``sh:NodeShape``
+    ``_shapes_turtle`` merges hand-authored shapes, generated shapes, and slice
+    shapes into a single document. If two files declare the same ``sh:NodeShape``
     subject, the definitions fuse, producing a shape whose meaning depends on
     which files happen to be parsed together. This guard fails CI mechanically
     if that ever happens.
