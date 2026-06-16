@@ -7,7 +7,7 @@
 //! non-deactivated node shape, runs all constraints, and assembles a
 //! deterministically-sorted [`ValidationReport`].
 
-use oxigraph::io::RdfFormat;
+use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 
@@ -168,20 +168,34 @@ pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
 /// Creates two in-memory stores, loads the respective graphs, parses shapes
 /// via [`crate::shapes::from_store`], and delegates to [`validate`].
 ///
+/// Both graphs are loaded with the **lenient** RDF parser. A validator must be
+/// able to ingest the data graph before it can validate any shapes against it,
+/// and RDF lexical well-formedness is a separate concern from SHACL conformance.
+/// The gmeow ontology carries private-use `@x-gmeow-*` language tags whose
+/// subtag exceeds BCP-47's 8-char limit (e.g. `@x-gmeow-afrikaans`); the strict
+/// parser rejects the entire file on these, which would make the real ontology
+/// un-validatable. Lenient parsing skips that check so the data ingests. See #597.
+///
 /// # Errors
 ///
 /// Returns an error string if either graph fails to parse.
 pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationReport, String> {
     let data = Store::new().map_err(|e| format!("data store creation failed: {e}"))?;
     if !data_nt.is_empty() {
-        data.load_from_reader(RdfFormat::NTriples, data_nt.as_bytes())
-            .map_err(|e| format!("N-Triples parse error: {e}"))?;
+        data.load_from_reader(
+            RdfParser::from_format(RdfFormat::NTriples).lenient(),
+            data_nt.as_bytes(),
+        )
+        .map_err(|e| format!("N-Triples parse error: {e}"))?;
     }
 
     let shapes_store = Store::new().map_err(|e| format!("shapes store creation failed: {e}"))?;
     if !shapes_ttl.is_empty() {
         shapes_store
-            .load_from_reader(RdfFormat::Turtle, shapes_ttl.as_bytes())
+            .load_from_reader(
+                RdfParser::from_format(RdfFormat::Turtle).lenient(),
+                shapes_ttl.as_bytes(),
+            )
             .map_err(|e| format!("Turtle parse error: {e}"))?;
     }
 
