@@ -247,6 +247,9 @@ pub mod sh {
     pub const MAX_EXCLUSIVE: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#maxExclusive");
 
+    pub const SELECT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#select");
+
     pub const SPARQL_CONSTRAINT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLConstraint");
 

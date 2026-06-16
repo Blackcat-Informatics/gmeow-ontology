@@ -542,6 +542,34 @@ fn eval_constraint(
             }
             results
         }
+
+        // ── Sparql (node-level SHACL-AF, focus = first value node or source shape)
+        //
+        // The constraint blank node may carry its own sh:message / sh:severity;
+        // those override the shape-level defaults at eval time.
+        // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
+        Constraint::Sparql {
+            select,
+            message: cmsg,
+            severity: csev,
+        } => {
+            let focus = value_nodes
+                .first()
+                .cloned()
+                .unwrap_or_else(|| source_shape.clone());
+            let sev = csev.unwrap_or(severity);
+            let msg = cmsg.clone().or_else(|| message.clone());
+            crate::sparql::eval_sparql_constraint(
+                store,
+                &focus,
+                select,
+                NamedNode::from(sh::SPARQL_CONSTRAINT_COMPONENT),
+                &source_shape,
+                sev,
+                msg,
+            )
+            .expect("sh:sparql query execution failed (parseability checked at parse time)")
+        }
     }
 }
 

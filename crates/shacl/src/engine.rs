@@ -88,6 +88,10 @@ fn resolve_focus_nodes(data: &Store, targets: &[Target]) -> Vec<Term> {
                     vec![]
                 }
             }
+            // sh:SPARQLTarget: execute the pre-validated SELECT and collect ?this.
+            // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
+            Target::Sparql(select) => crate::sparql::eval_target(data, select)
+                .expect("SPARQLTarget query execution failed (parseability checked at parse time)"),
         };
         for node in candidates {
             if seen.insert(node.clone()) {
