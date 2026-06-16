@@ -9604,9 +9604,9 @@ type HonorificPosition
 
 type Identifier
   {
-    identifierScheme: [String]
+    identifierScheme: String
     identifierUrl: String
-    identifierValue: [String]
+    identifierValue: String
     jurisdiction: [Location]
   }
 

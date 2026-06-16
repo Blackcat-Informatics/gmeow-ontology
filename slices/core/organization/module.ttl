@@ -422,7 +422,7 @@ gmeow:industryClassification
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 gmeow:identifierValue
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Identifier ;
     rdfs:range rdfs:Literal ;
     rdfs:label "identifier value"@x-gmeow-english ;
@@ -434,7 +434,7 @@ gmeow:identifierValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 
 gmeow:identifierScheme
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Identifier ;
     rdfs:range rdfs:Literal ;
     rdfs:label "identifier scheme"@x-gmeow-english ;

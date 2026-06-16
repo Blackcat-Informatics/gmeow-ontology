@@ -7703,7 +7703,7 @@ slots:
     title: identifier scheme
     range: string
     domain: Identifier
-    multivalued: true
+    multivalued: false
   identifierUrl:
     slot_uri: https://blackcatinformatics.ca/gmeow/identifierUrl
     title: identifier url
@@ -7715,7 +7715,7 @@ slots:
     title: identifier value
     range: string
     domain: Identifier
-    multivalued: true
+    multivalued: false
   imageOrientation:
     slot_uri: https://blackcatinformatics.ca/gmeow/imageOrientation
     title: image orientation

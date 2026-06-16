@@ -24,7 +24,8 @@ gmeow:ContactPoint
     gmeow:howToUse "Type the channel as its most specific subkind, link it to its owner with gmeow:hasContactPoint, and attach gmeow:hasSensitivity so the projection layer can withhold or coarsen it for the wrong consumer."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerInternalArchive,
         gmeow:consumerAgentMemory ;
-    gmeow:avoidForConsumer gmeow:consumerWikidata,
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
         gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
@@ -39,7 +40,8 @@ gmeow:InstantMessageAddress
     gmeow:howToUse "Type the handle as gmeow:InstantMessageAddress, link it to its owner with gmeow:hasContactPoint, and carry gmeow:hasSensitivity so a public projection can withhold or coarsen it; record the service via gmeow:contactPointProvider when the platform matters."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerInternalArchive,
         gmeow:consumerAgentMemory ;
-    gmeow:avoidForConsumer gmeow:consumerWikidata,
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
         gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
