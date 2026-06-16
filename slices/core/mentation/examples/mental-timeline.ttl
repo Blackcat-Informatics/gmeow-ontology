@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a small mental timeline for one agent.
+#
+# Three mental occurrents illustrate the mentation slice's core idioms:
+#   1. A gmeow:MentalProcess of type processPerception — Ada notices morning light.
+#      Carries a temporal frame the same way gmeow:Event takes one (events idiom,
+#      gmeow:eventTime + gmeow:eventTemporalFrame), and links back to a perceptual
+#      claim via gmeow:realizesMoment (open-range bridge).
+#   2. A gmeow:MentalProcess of type processReasoning — Ada works through a proof.
+#      gmeow:realizesMoment points at ex:beliefQEDholds, a placeholder node that will
+#      be typed gmeow:MentalMoment once slice kernel/cognition #556 lands; open-range
+#      at this tier is deliberate and documented in the slice.
+#   3. A gmeow:Experience (the phenomenal subset of MentalProcess) of type
+#      processDreaming — Ada's dream last night. gmeow:Experience is used because
+#      there is something it is like to undergo a dream (the qualia-bearing subset).
+#
+# All three are borne by exactly one experiencer (gmeow:experiencer is functional);
+# gmeow:mentalProcessType is non-functional, so a process can carry multiple types.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mentation/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# Agent
+# --------------------------------------------------------------------------- #
+
+ex:ada a gmeow:Agent ;
+    gmeow:name "Ada"@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# 1. Morning perception — a MentalProcess of type processPerception
+# --------------------------------------------------------------------------- #
+
+ex:morningPerception a gmeow:MentalProcess ;
+    rdfs:label "Ada's morning perception of daylight"@x-gmeow-english ;
+    gmeow:experiencer ex:ada ;                            # functional: one process, one experiencer
+    gmeow:mentalProcessType gmeow:processPerception ;     # value-vocab slot, not a subclass
+    gmeow:eventTime "2026-06-15T07:12:00Z"^^xsd:dateTime ; # temporal frame — same idiom as events/wedding.ttl
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:realizesMoment ex:perceivedMorningLight .       # open-range: the perceptual claim produced
+
+# The open-range target — will be gmeow:MentalMoment once #556 lands.
+ex:perceivedMorningLight
+    rdfs:label "Ada's perceptual state: morning light perceived"@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# 2. Proving a theorem — a MentalProcess of type processReasoning
+# --------------------------------------------------------------------------- #
+
+ex:solvingTheProof a gmeow:MentalProcess ;
+    rdfs:label "Ada's reasoning through the proof of QED"@x-gmeow-english ;
+    gmeow:experiencer ex:ada ;
+    gmeow:mentalProcessType gmeow:processReasoning ;      # an inference episode unfolding in time
+    gmeow:eventTime "2026-06-15T09:30:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:realizesMoment ex:beliefQEDholds .              # the resulting belief — open range
+
+# Placeholder target: open-range means any mode/claim/state is acceptable here.
+# Once gmeow:MentalMoment (kernel/cognition #556) lands this will be typed properly.
+ex:beliefQEDholds
+    rdfs:label "belief: the proof concludes (QED)"@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# 3. Last night's dream — a gmeow:Experience (the phenomenal subset)
+# --------------------------------------------------------------------------- #
+
+ex:lastNightsDream a gmeow:Experience ;                   # qualia-bearing: there is something it is like
+    rdfs:label "Ada's dream last night"@x-gmeow-english ;
+    gmeow:experiencer ex:ada ;
+    gmeow:mentalProcessType gmeow:processDreaming ;       # offline, sleep-bound imagined content
+    gmeow:eventTime "2026-06-15T03:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    # No gmeow:realizesMoment: a dream need not update a belief state;
+    # gmeow:realizesMoment is non-functional so its absence is valid.

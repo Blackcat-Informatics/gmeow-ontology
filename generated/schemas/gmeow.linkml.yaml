@@ -1207,6 +1207,10 @@ classes:
     slots:
     - exifTagId
     - exifTagValue
+  Experience:
+    class_uri: https://blackcatinformatics.ca/gmeow/Experience
+    title: Experience
+    is_a: MentalProcess
   Expression:
     class_uri: https://blackcatinformatics.ca/gmeow/Expression
     title: Expression
@@ -1932,6 +1936,17 @@ classes:
   MentalMoment:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalMoment
     title: Mental Moment
+  MentalProcess:
+    class_uri: https://blackcatinformatics.ca/gmeow/MentalProcess
+    title: Mental Process
+    is_a: Event
+    slots:
+    - experiencer
+    - mentalProcessType
+    - realizesMoment
+  MentalProcessType:
+    class_uri: https://blackcatinformatics.ca/gmeow/MentalProcessType
+    title: Mental Process Type
   MentalReferenceFrame:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     title: Mental Reference Frame
@@ -6161,6 +6176,12 @@ slots:
     range: TimeInterval
     domain: Entity
     multivalued: true
+  experiencer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/experiencer
+    title: experiencer
+    range: Agent
+    domain: MentalProcess
+    multivalued: false
   expressesNorm:
     slot_uri: https://blackcatinformatics.ca/gmeow/expressesNorm
     title: expresses norm
@@ -8633,6 +8654,12 @@ slots:
     range: Agent
     domain: MemoryItem
     multivalued: true
+  mentalProcessType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mentalProcessType
+    title: mental process type
+    range: MentalProcessType
+    domain: MentalProcess
+    multivalued: true
   mentionedIn:
     slot_uri: https://blackcatinformatics.ca/gmeow/mentionedIn
     title: mentioned in
@@ -10111,6 +10138,12 @@ slots:
     title: realizes
     range: Work
     domain: Expression
+    multivalued: true
+  realizesMoment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/realizesMoment
+    title: realizes moment
+    range: uriorcurie
+    domain: MentalProcess
     multivalued: true
   receivedAt:
     slot_uri: https://blackcatinformatics.ca/gmeow/receivedAt
@@ -15570,6 +15603,33 @@ enums:
       memoryKindWorking:
         meaning: https://blackcatinformatics.ca/gmeow/memoryKindWorking
         title: working
+  MentalProcessTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/MentalProcessType
+    permissible_values:
+      processAttention:
+        meaning: https://blackcatinformatics.ca/gmeow/processAttention
+        title: attention
+      processDeliberation:
+        meaning: https://blackcatinformatics.ca/gmeow/processDeliberation
+        title: deliberation
+      processDreaming:
+        meaning: https://blackcatinformatics.ca/gmeow/processDreaming
+        title: dreaming
+      processImagining:
+        meaning: https://blackcatinformatics.ca/gmeow/processImagining
+        title: imagining
+      processMindWandering:
+        meaning: https://blackcatinformatics.ca/gmeow/processMindWandering
+        title: mind-wandering
+      processPerception:
+        meaning: https://blackcatinformatics.ca/gmeow/processPerception
+        title: perception
+      processReasoning:
+        meaning: https://blackcatinformatics.ca/gmeow/processReasoning
+        title: reasoning
+      processRecollection:
+        meaning: https://blackcatinformatics.ca/gmeow/processRecollection
+        title: recollection
   MentalReferenceFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     permissible_values:

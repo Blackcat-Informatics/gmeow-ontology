@@ -1476,6 +1476,18 @@ enum MemoryKindEnum
     memoryKindWorking
   }
 
+enum MentalProcessTypeEnum
+  {
+    processAttention
+    processDeliberation
+    processDreaming
+    processImagining
+    processMindWandering
+    processPerception
+    processReasoning
+    processRecollection
+  }
+
 enum MentalReferenceFrameEnum
   {
     referenceFrameAffectiveCircumplex
@@ -7994,6 +8006,60 @@ type ExifTag
     exifTagValue: String
   }
 
+type Experience
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    complies: [Norm]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: [String]
+    eventAspect: [GrammaticalAspect]
+    eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: [String]
+    eventTimeZone: TimeZone
+    eventToLocation: [Location]
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: [String]
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    performanceOf: [CreativeWork]
+    predecessorOrganization: [Organization]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: [Int]
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    successorOrganization: [Organization]
+    temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
+    experiencer: Agent
+    mentalProcessType: [MentalProcessType]
+    realizesMoment: [String]
+  }
+
 type Expression
   {
     acquireLicensePage: [String]
@@ -12007,6 +12073,64 @@ type MemoryKind
   }
 
 type MentalMoment
+  {
+  }
+
+type MentalProcess
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    complies: [Norm]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: [String]
+    eventAspect: [GrammaticalAspect]
+    eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: [String]
+    eventTimeZone: TimeZone
+    eventToLocation: [Location]
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: [String]
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    performanceOf: [CreativeWork]
+    predecessorOrganization: [Organization]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: [Int]
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    successorOrganization: [Organization]
+    temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
+    experiencer: Agent
+    mentalProcessType: [MentalProcessType]
+    realizesMoment: [String]
+  }
+
+type MentalProcessType
   {
   }
 
