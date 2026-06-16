@@ -194,6 +194,66 @@ the following information is **deliberately dropped** (Principle 4):
 
 ---
 
+## Terms
+
+### gmeow:Inscription · gmeow:inscriptionCarrier · gmeow:carrierInscription · gmeow:carrierType
+
+The sign-bearing content or mark on a carrier — an `InformationObject`
+informationally distinct from the `PhysicalObject` that bears it; multiple
+inscriptions may coexist on one carrier and competing readings coexist without
+privilege (P9). `inscriptionCarrier` (functional) names the one bearer; its inverse
+`carrierInscription` (non-functional) the marks a carrier bears; `carrierType`
+classifies the carrier from the `PhysicalCarrierType` vocabulary.
+
+### gmeow:InscriptionReading · gmeow:readingOf · gmeow:readingResult
+
+A scholarly reading of an inscription — the `Observation` (and `gufo:Relator`) that
+produces a lexical form from a sign-bearing feature, a standpoint-scoped claim not
+ground truth. `readingOf` (functional, ⊑ `observedFeature`) names the source
+inscription; `readingResult` (non-functional, ⊑ `observationResult`) the form(s)
+produced, with competing readings coexisting (P9).
+
+### gmeow:InscriptionTransliteration · gmeow:transliterationOf · gmeow:transliterationResult
+
+A transliteration of an inscription into another script — an `Observation` mapping
+sign sequences between writing systems. `transliterationOf` (functional) names the
+source; `transliterationResult` the form(s) produced, with competing schemes (e.g.
+Hepburn vs Kunrei-shiki) coexisting without a single winner (P9).
+
+### gmeow:InscriptionTranslation · gmeow:translationOf · gmeow:translationResult
+
+A translation of an inscription into another language — an `Observation` producing a
+form that represents the source's meaning. `translationOf` (functional) names the
+source; `translationResult` the form(s), with competing translations coexisting
+without privilege (P9).
+
+### gmeow:ScriptLanguageAttribution · gmeow:attributionTarget · gmeow:attributedLanguage · gmeow:attributedScript · gmeow:attributedNotation
+
+A standpoint-scoped claim assigning a language, writing system, or notation to an
+inscription — handling disputed, uncertain, and undeciphered cases. `attributionTarget`
+(functional) names the inscription; `attributedLanguage` and `attributedScript`
+(non-functional) the assignments, with competing classifications coexisting (P9);
+`attributedNotation` carries an undeciphered or symbol-classified system (Linear A,
+Rongorongo, proto-cuneiform) when no language or script is yet linked.
+
+### gmeow:ArchaeologicalFindContext · gmeow:findContextTarget · gmeow:findContextPlace · gmeow:findContextStratigraphy · gmeow:findContextDating · gmeow:findContextEvent
+
+A reified find context binding a carrier to its find-spot, stratigraphic unit, dating
+evidence, and documentation event — multiple coexisting context claims from different
+campaigns are allowed (P9). `findContextTarget` (functional) names the carrier;
+`findContextPlace` the find-spot; `findContextStratigraphy` the layer (opaque `Entity`
+reference, general stratigraphy deferred to the archaeological-domain model);
+`findContextDating` the `TemporalMeasurement`(s); `findContextEvent` the excavation or
+documentation event (deliberately not subsumed under `observationResult`, since
+`gufo:Event` and `gufo:Endurant` are disjoint).
+
+### gmeow:PhysicalCarrierType
+
+The archaeological or cultural-heritage classification of an inscribed carrier — an
+open value vocabulary of individuals (tablet, ostracon, seal, coin, manuscript, wall
+inscription, stela, papyrus, pottery sherd, bone, metal, wood), never subclasses; new
+carrier kinds are minted without ontology modification.
+
 ## Tests
 
 - `tests/test_archaeological_evidence.py` — structural and DL-safety guards.

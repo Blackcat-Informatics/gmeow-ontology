@@ -157,3 +157,145 @@ the design's territory; documented boundary, no axiom coupling).
   (Persona × Norms × StyleGuide — the projection that replaces
   principia.yaml's Jinja2 role), AI character-card JSON, LexInfo/OLiA/DUL
   alignment rows. Target list fixed in the alignment ledger.
+
+## Terms
+
+### gmeow:Norm · gmeow:NormativeSystem
+
+`Norm` is a `gufo:Category` at Entity level — a prescription existing by social
+convention that records an issuer prescribes some conduct and asserts nothing about
+the world. `NormativeSystem` is a body of norms with a shared identity (constitution,
+legal code, code of conduct, principia, rubric set); member norms attach via `partOf`,
+and competing systems coexist without adjudication.
+
+### gmeow:DeonticModality · gmeow:deonticModality
+
+The open deontic-force vocabulary — obligation, prohibition, permission, recommendation
+(individuals, never subclasses), seeded so supererogation and exemption can join without
+schema change. `deonticModality` is the functional property fixing a norm's single force;
+a modality-bearing norm must also carry an issuer.
+
+### gmeow:normIssuer · gmeow:systemIssuer · gmeow:normBearer · gmeow:prescribedConduct
+
+`normIssuer` names the agent or standpoint according to which a norm holds — the keystone
+turning an ought into an ought-according-to; domain-free, non-functional (co-issued norms
+carry several), documented as `⊑ accordingTo`. `systemIssuer ⊑ normIssuer` issues a whole
+`NormativeSystem`. `normBearer` names a bound agent (absent = everyone in the issuer's
+scope). `prescribedConduct` points at the governed conduct — an event type, a `Goal`
+(core teleology), a situation, or a rights action — with an intentionally open range.
+
+### gmeow:AuthorityLevel · gmeow:strongerThan · gmeow:hasAuthorityLevel
+
+The ordered authority-grade vocabulary (absolute ≻ high ≻ medium ≻ conditional), the
+kernel `GranularityLevel` pattern. `strongerThan` is transitive on the levels only;
+`hasAuthorityLevel` records the grade an issuing system claims for a norm (non-functional —
+sources may grade differently and coexist). What the order does to conflicts is solver work.
+
+### gmeow:overrides · gmeow:PrecedenceTenure · gmeow:precedenceHigher · gmeow:precedenceLower · gmeow:precedenceScope
+
+`overrides` is pairwise defeasible precedence — deliberately not transitive, SHACL-irreflexive;
+chains and cycles are solver work over the recorded pairs. `PrecedenceTenure` is the reified,
+time-scoped form ("Tier 2 overrode X until v3.5") carrying its `precedenceHigher` /
+`precedenceLower` norms (functional, distinct) and a mandatory `precedenceScope` (a
+`NormativeSystem` — precedence is always scoped), withdrawn by suppression only.
+
+### gmeow:Condition · gmeow:conditionText · gmeow:normCondition
+
+`Condition` is a describable circumstance whose canonical form is prose — the trigger of a
+conditional norm, a persona's activation context, a causal antecedent. `conditionText` is the
+mandatory natural-language statement that formalizations approximate. `normCondition` names the
+condition(s) under which a norm applies (several are an implicit conjunction).
+
+### gmeow:ConditionGroup · gmeow:GroupOperator · gmeow:groupOperator · gmeow:groupMember
+
+A composite condition combining members with explicit logic. `GroupOperator` is the closed
+trichotomy — all (and), any (or), none (not); richer trees nest groups, never add operators.
+`groupOperator` is the functional, mandatory operator; `groupMember` attaches the members
+(at least two by SHACL). A group is itself a `Condition`.
+
+### gmeow:ConditionExpression · gmeow:expressionText · gmeow:ExpressionLanguage · gmeow:expressionLanguage · gmeow:formalizedAs
+
+A `ConditionExpression` is a machine formalization in a named language — stored, never executed
+(Principle 12): no CI step, test, or tool evaluates it against the graph. `expressionText` carries
+the verbatim source; `ExpressionLanguage` is the open language vocabulary (prose, SPARQL ASK, CEL,
+Rego, Cedar, XACML, SHACL) declared via `expressionLanguage`. `formalizedAs` attaches a formalization
+as a challengeable claim of equivalence to the prose.
+
+### gmeow:ConditionParameter · gmeow:conditionParameter · gmeow:parameterName · gmeow:parameterValue · gmeow:parameterEntity
+
+A named binding that instantiates a condition template so one `Condition` serves many norms.
+`conditionParameter` attaches bindings; `parameterName` is the mandatory key; a parameter carries
+exactly one of `parameterValue` (literal) or `parameterEntity` (IRI) by SHACL.
+
+### gmeow:ConditionEvaluation · gmeow:evaluatedCondition · gmeow:EvaluationVerdict · gmeow:evaluationVerdict
+
+Whether a condition held is a `ConditionEvaluation ⊑ Observation`, vantage = the evaluator — never
+a graph entailment; two evaluators disagreeing are two coexisting cells. `evaluatedCondition`
+(`⊑ observedFeature`) names the reported condition. `EvaluationVerdict` is the closed trichotomy
+held / not-held / undetermined, carried by the functional `evaluationVerdict`.
+
+### gmeow:violates · gmeow:complies · gmeow:ComplianceAssessment · gmeow:assessedEvent · gmeow:assessedNorm · gmeow:complianceVerdict
+
+`violates` / `complies` are the flat shortcuts (Event → Norm), indexed to whoever asserts them and
+never entailed. Promote to `ComplianceAssessment ⊑ Observation` when the assessor, evidence, or
+confidence must be first-class: `assessedEvent` (`⊑ observedFeature`) and `assessedNorm` name the
+pair, `complianceVerdict` reuses the verdict vocabulary (held = compliant, not-held = violative).
+
+### gmeow:Rubric · gmeow:Criterion · gmeow:hasCriterion
+
+A `Rubric ⊑ Norm` is a norm for judging — a reified evaluation framework that names its issuer and
+may be overridden; applying it is solver work that returns vantage-indexed `Assessment` cells.
+`Criterion` is one evaluative axis with named poles; `hasCriterion ⊑ hasPart` attaches the axes
+(rubrics are multi-axis by design).
+
+### gmeow:CriterionPole · gmeow:rewardPole · gmeow:penaltyPole · gmeow:CriterionDomain · gmeow:criterionDomain
+
+`CriterionPole` is a named extreme of a criterion — a small information object with its own label
+and definition ("Power from the Bottom"), not a bare number. `rewardPole` and `penaltyPole` are the
+functional, mandatory, mutually distinct poles. `CriterionDomain` is the open subject-domain
+vocabulary (relational, factual, aesthetic, safety, stylistic) carried by `criterionDomain`.
+
+### gmeow:ScoreScale · gmeow:usesScale · gmeow:scaleMin · gmeow:scaleMax · gmeow:scaleStep
+
+`ScoreScale` is a numeric scale — minimum, maximum, optional step; scale arithmetic is solver work.
+`usesScale` attaches it at the rubric level (default) or criterion level (override). `scaleMin` /
+`scaleMax` are mandatory bounds (min < max by SHACL); `scaleStep` is the optional discrete step
+(absent = continuous).
+
+### gmeow:ScoreAnchor · gmeow:hasScoreAnchor · gmeow:anchorRangeMin · gmeow:anchorRangeMax · gmeow:anchorMeaning · gmeow:anchorExemplar
+
+A `ScoreAnchor` pins a score range to its meaning and exemplars — the rubric's calibration content,
+with interpolation left to the solver. `hasScoreAnchor` attaches anchors to a criterion (high / medium /
+low coexist). `anchorRangeMin` / `anchorRangeMax` bound the range; the mandatory `anchorMeaning` carries
+the calibration prose (one per language tag); `anchorExemplar` pins exemplars to the range.
+
+### gmeow:Exemplar · gmeow:ExemplarPolarity · gmeow:exemplarPolarity · gmeow:exemplarSubject · gmeow:exemplarRedirect · gmeow:exemplarRationale
+
+`Exemplar ⊑ CitationAct` holds something up as an example — pinned by citation Selector AND/OR an
+`exemplarSubject` (a character's conduct across a work; at least one by SHACL). `ExemplarPolarity` is
+the closed trichotomy positive / negative / cautionary, carried by the functional, mandatory
+`exemplarPolarity`; `exemplarRedirect` sends a cautionary case to the criterion it actually evidences;
+`exemplarRationale` is the localizable judgement prose.
+
+### gmeow:Assessment · gmeow:assessmentTarget · gmeow:assessmentCriterion · gmeow:assessmentRubric · gmeow:assessmentScoreValue
+
+`Assessment ⊑ Observation` scores a target against a criterion or whole rubric — vantage = the judge;
+an LLM judge is just a vantage and disagreeing models are coexisting cells. `assessmentTarget`
+(`⊑ observedFeature`) names what is scored; `assessmentCriterion` / `assessmentRubric` play the
+`observationMethod` role without the subproperty axiom (claimModality pattern); `assessmentScoreValue`
+is the mandatory numeric twin of `observationResult` — zeros are scores, never absences.
+
+### gmeow:Persona · gmeow:personaBearer · gmeow:personaRegister · gmeow:activatedIn · gmeow:expressesNorm
+
+`Persona` is a reified expression policy of one agent (a relator, not a `gufo:Role`): PRIMARY and
+PRIVATE are two co-equal personas, withdrawn by suppression, never ranked. `personaBearer` is the
+functional, mandatory bearer; `personaRegister` draws ≥1 register from the names-core spine;
+`activatedIn` names the activation `Condition` or situation; `expressesNorm` makes the same-norms
+invariant queryable rather than a shape (divergence is legal).
+
+### gmeow:StyleGuide · gmeow:styleGuideFor · gmeow:exemplifiedBy
+
+`StyleGuide` is the voice payload of a persona or register — prose whose register IS the content.
+`styleGuideFor` names what it voices (a `Persona` and/or `Register`). `exemplifiedBy` attaches
+byte-perfect content-digested `Document`s that carry `aboutnessEnacts` — the document does not
+describe the voice, it is the voice; an undigested exemplar is a SHACL violation.

@@ -150,6 +150,96 @@ is `skos:exactMatch` to the corresponding FIBO `ISO4217-CurrencyCodes` individua
 - **Phase D**: `CryptoWallet`, schema.org / OFX / ISO 20022 / ledger-CLI
   projections, crypto mappings.
 
+## Terms
+
+### gmeow:FinancialAccount · gmeow:accountHolder · gmeow:accountBalance · gmeow:accountCurrency · gmeow:accountType
+
+A financial account held by an agent with a financial institution — a bank,
+credit, investment, or wallet account — modelled as an `InformationObject`,
+distinct from `OnlineAccount`. `accountHolder` is non-functional (joint accounts
+have co-equal holders); `accountBalance` is a `MonetaryAmount`; `accountCurrency`
+is non-functional (multi-currency accounts); `accountType` is one functional
+`FinancialAccountType` value.
+
+### gmeow:accountNumber · gmeow:iban · gmeow:bic
+
+The account's institution-level identifiers: a free-form `accountNumber`, the
+ISO 13616 `iban`, and the ISO 9362 SWIFT `bic` of the holding institution.
+
+### gmeow:FinancialAccountType
+
+The kind of a financial account as an open value vocabulary (bank, credit,
+investment, wallet) — a value pointed at by `accountType`, never a subclass.
+
+### gmeow:FinancialTransaction · gmeow:transactionAmount · gmeow:transactionType · gmeow:transactionStatus
+
+A money-movement event (REA pattern) reusing the `Event`/`Participation`
+substrate: payer, payee, and intermediary are `ParticipantRole` values, never
+subproperties. `transactionAmount` is one functional `MonetaryAmount`; type and
+status are non-functional open value vocabularies.
+
+### gmeow:TransactionType · gmeow:TransactionStatus
+
+The open value vocabularies for transaction kind (payment, transfer, deposit,
+withdrawal, fee, interest, refund) and status (pending, completed, reversed,
+failed) — reversed and voided records are retained `displayable` false.
+
+### gmeow:LedgerAccount · gmeow:ledgerAccountType · gmeow:ledgerAccountHolder · gmeow:ledgerAccountCurrency
+
+A double-entry book-keeping account (asset, liability, equity, revenue, expense)
+— an `InformationObject` distinct from the bank-level `FinancialAccount`.
+`ledgerAccountType` is functional; holder and currency are non-functional.
+
+### gmeow:LedgerAccountType · gmeow:PostingDirection
+
+Open value vocabularies for the kind of ledger account and the direction of a
+posting (debit, credit) — values, never subclasses.
+
+### gmeow:JournalEntry · gmeow:journalEntryPostings · gmeow:Posting · gmeow:postingJournalEntry · gmeow:postingAccount · gmeow:postingAmount · gmeow:postingDirection
+
+A balanced double-entry event (`JournalEntry ⊑ Event`) composed of two or more
+`Posting` relators. Each `Posting` carries exactly one journal entry, ledger
+account, `MonetaryAmount`, and direction; balance (Σ debits = Σ credits) is
+SHACL-enforced, never OWL.
+
+### gmeow:Payment · gmeow:paymentMethod · gmeow:PaymentMethod
+
+A payment event — a thin subclass of `FinancialTransaction` distinguished by the
+`paymentMethod` facet, drawn from the open `PaymentMethod` value vocabulary
+(cash, cheque, credit card, bank transfer, cryptocurrency). Non-functional: split
+payments carry several methods.
+
+### gmeow:Invoice · gmeow:invoiceAmount · gmeow:invoiceIssuer · gmeow:invoiceRecipient · gmeow:invoiceDueDate · gmeow:invoiceStatus · gmeow:InvoiceStatus
+
+A billing document (`Invoice ⊑ Document`) with a functional total `invoiceAmount`,
+non-functional issuer and recipient, a DL-clean `xsd:dateTime` due date, and an
+open `InvoiceStatus` value (draft, sent, paid, overdue, cancelled).
+
+### gmeow:Order · gmeow:orderAmount · gmeow:orderBuyer · gmeow:orderSeller · gmeow:orderStatus · gmeow:OrderStatus
+
+A purchase or sales order (`Order ⊑ Agreement`) between buyer and seller with a
+functional total `orderAmount` and an open `OrderStatus` value (pending,
+confirmed, shipped, delivered, cancelled).
+
+### gmeow:Asset · gmeow:assetType · gmeow:assetIdentifier · gmeow:AssetType
+
+A financial asset — stock, bond, cryptocurrency, real estate, commodity — the
+thing that is held, distinct from the `Holding` relator. `assetType` is a
+functional `AssetType` value; `assetIdentifier` carries FIGI/ISIN/ticker.
+
+### gmeow:Holding · gmeow:holdingAgent · gmeow:holdingAsset · gmeow:holdingQuantity · gmeow:holdingCostBasis · gmeow:holdingPeriod
+
+A reify-on-demand relator connecting agent × asset × quantity × cost-basis ×
+optional period — promoted from a flat `accountBalance` when cost-basis, period,
+or provenance must be recorded.
+
+### gmeow:CryptoWallet · gmeow:walletAddress · gmeow:walletScheme · gmeow:walletKey · gmeow:WalletScheme
+
+A digital wallet holding cryptocurrency (`CryptoWallet ⊑ FinancialAccount`) with
+one or more public `walletAddress`es, a functional `walletScheme` (Bitcoin,
+Ethereum, Solana, Monero — the open `WalletScheme` vocabulary), and `walletKey`
+linkage to the controlling `CryptographicKey`(s).
+
 ## Constitution principles
 
 Principles 1 (SOTA), 4 (one canonical source), 5 (maximal bridging by reference),

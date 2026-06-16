@@ -143,3 +143,38 @@ The attestation is evidence; the reading is interpretation. The separation is st
 | Lexicographic resources | `lexicog:LexicographicResource` | Staged |
 
 Full Lexicog, Morph, FrAC, SKOS-XL, Web Annotation, and CRMinf projections are documented but staged for future work.
+
+## Terms
+
+### gmeow:LexicalItem · gmeow:lexicalItemLanguage · gmeow:hasLexicalForm
+
+A `LexicalItem` is the abstract lexical or constructional object — word, morpheme,
+phrase, idiom, symbol, sign, or construction — carrying no surface form itself.
+`lexicalItemLanguage` functionally fixes its language (mint a distinct item per
+language); `hasLexicalForm` links its concrete forms.
+
+### gmeow:LexicalForm · gmeow:formOf · gmeow:formRepresentation · gmeow:formType · gmeow:LexicalFormType · gmeow:formTransliterationScheme
+
+A `LexicalForm` is a concrete manifestation of an item — `formOf` is the inverse of
+`hasLexicalForm`. `formRepresentation` is the functional surface string;
+`formType` draws the open `LexicalFormType` vocabulary (written, spoken, signed,
+rendered, reconstructed, normalized, transliterated, translated); a transliterated
+form names its `formTransliterationScheme`. Many forms coexist, none privileged.
+
+### gmeow:UsageAttestation · gmeow:attestedForm · gmeow:attestedInLanguage · gmeow:attestedInSource · gmeow:attestedInContext · gmeow:attestedOnCarrier · gmeow:attestationInterval
+
+An `Observation + Relator` recording evidence — a form was seen in a source,
+corpus, inscription, platform, or community — not truth (Principle 12). The
+`attested*` properties bind the form, language, source, context, and physical
+carrier; `attestationInterval` carries the period. `attestedForm ⊑ observedFeature`,
+so it inherits the universal claim stack (vantage, confidence, validity).
+
+### gmeow:EtymologicalDerivation · gmeow:derivationSource · gmeow:derivationTarget · gmeow:derivationKind · gmeow:DerivationKind · gmeow:derivationEvidence
+
+An `Observation + Relator` linking a source lexical item/form to a target, making
+etymology a graph of provenance-rich, standpointed claims rather than a flat origin
+string. `derivationKind` draws the open `DerivationKind` vocabulary (borrowing,
+calque, inheritance, semantic shift, sound change, compounding, affixation,
+clipping, back-formation, reanalysis, folk etymology, spelling change,
+reconstruction, unknown origin); `derivationEvidence` cites supporting attestations
+or sources. Competing derivations coexist; superseded ones are `displayable false`.
