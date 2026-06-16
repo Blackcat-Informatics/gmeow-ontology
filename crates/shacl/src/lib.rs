@@ -5,8 +5,10 @@
 //!
 //! Validates an oxigraph RDF 1.2 data graph against a SHACL shapes graph with
 //! NO inference (parity with pySHACL `inference="none"`). The engine core is
-//! PyO3-free so the rlib links into the future Rust compiler over its own Store;
-//! SPARQL-based constraints/targets arrive in a later task (#577).
+//! PyO3-free so the rlib links into the future Rust compiler over its own Store.
+//! SHACL-AF SPARQL-based constraints (`sh:sparql`/`sh:SPARQLConstraint`) and
+//! targets (`sh:SPARQLTarget`) are implemented in the [`sparql`] module,
+//! delegated to oxigraph's SPARQL 1.1 engine (#577).
 
 pub mod constraints;
 pub mod engine;
