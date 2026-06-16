@@ -271,6 +271,14 @@ gmeow:defeaterKind
     skos:definition "The Pollock kind of a defeating gmeow:StandpointClaim — gmeow:defeaterRebutting (attacks the conclusion) or gmeow:defeaterUndercutting (attacks the inferential link). NOT functional: a single claim may defeat in more than one way."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
 
+gmeow:tenureOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:InferenceTenure ;
+    rdfs:range gmeow:InferenceCommitment ;
+    rdfs:label "tenure of"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:InferenceTenure to the gmeow:InferenceCommitment whose conclusion it time-scopes — opened when the conclusion is accepted, closed (an gmeow:endedAtTime on its gmeow:duringInterval) when a defeater fires. Functional: one tenure tracks one commitment; the commitment survives the closing as audit (the gmeow:StandpointTenure → gmeow:standpointClaim idiom, applied to inference)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
 # =========================================================================== #
 # Value individuals — gmeow:InferenceMode (Peirce's tetrad)
 # =========================================================================== #

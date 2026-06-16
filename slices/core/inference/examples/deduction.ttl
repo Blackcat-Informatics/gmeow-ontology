@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — DEDUCTION, the flat spine (the 80% case).
+#
+# The classic syllogism: All men are mortal; Socrates is a man; therefore
+# Socrates is mortal. No reification is needed — the conclusion is an ordinary
+# gmeow:StandpointClaim that hangs gmeow:inferenceMode (gmeow:modeDeduction) and
+# gmeow:inferredFrom directly on itself. Deduction is truth-preserving under a
+# monotonic profile, so the conclusion's modality is gmeow:unequivocal.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:reasoner a gmeow:Agent ;
+    gmeow:name "Aristotle"@x-gmeow-english .
+
+# --- The propositions (the observed features of the claims) ----------------- #
+ex:propAllMenMortal  rdfs:label "All men are mortal"@x-gmeow-english .
+ex:propSocratesIsMan rdfs:label "Socrates is a man"@x-gmeow-english .
+ex:propSocratesMortal rdfs:label "Socrates is mortal"@x-gmeow-english .
+
+# --- The premises, asserted as settled claims ------------------------------- #
+ex:premMajor a gmeow:StandpointClaim ;
+    gmeow:vantage ex:reasoner ;
+    gmeow:observedFeature ex:propAllMenMortal ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal .
+
+ex:premMinor a gmeow:StandpointClaim ;
+    gmeow:vantage ex:reasoner ;
+    gmeow:observedFeature ex:propSocratesIsMan ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:unequivocal .
+
+# --- The conclusion — flat spine: mode + inferredFrom on the claim itself ---- #
+ex:conclSocratesMortal a gmeow:StandpointClaim ;
+    rdfs:label "Therefore, Socrates is mortal"@x-gmeow-english ;
+    gmeow:vantage ex:reasoner ;
+    gmeow:observedFeature ex:propSocratesMortal ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;  # a logic: proof-trace
+    gmeow:claimModality gmeow:unequivocal ;                   # truth-preserving → unequivocal
+    gmeow:inferenceMode gmeow:modeDeduction ;
+    gmeow:inferredFrom ex:premMajor , ex:premMinor .         # non-functional: two premises
