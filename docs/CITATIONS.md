@@ -10,6 +10,20 @@ hand-edited.
 This follows Principle 4: the Turtle ledger is the source of truth; CSL JSON,
 BibTeX, and Markdown are lossy projections for tools and readers.
 
+## Citing GMEOW Itself
+
+GMEOW has a registered DOI — the **concept DOI**
+[`10.67342/26w4o`](https://doi.org/10.67342/26w4o) — the always-latest citation
+anchor. Cite it with the metadata in [`CITATION.cff`](../CITATION.cff):
+
+> Blackcat Informatics® Inc. and Patrick Audley. *GMEOW — Global Metadata and
+> Entity Ontology for the Web.* doi:10.67342/26w4o
+
+The DOI denotes the lineage (the FRBR Work); to pin the exact release you reasoned
+over, also cite its `owl:versionIRI` (`https://blackcatinformatics.ca/gmeow/<version>`)
+and, for byte-exact identity, the release's GTS head id / SWHID. See
+[`docs/dois.md`](./dois.md) for the single-anchor DOI strategy.
+
 ## What Goes In The Ledger
 
 Record durable references that GMEOW cites in authored files, docs, code

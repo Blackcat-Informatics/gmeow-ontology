@@ -8,7 +8,7 @@ description = "GTS (Graph Transport Substrate): a single-file CBOR transport for
 readme = "README.md"
 requires-python = ">=3.13"
 license = "Apache-2.0"
-authors = [{ name = "Blackcat Informatics Inc." }]
+authors = [{ name = "Blackcat Informatics® Inc." }]
 keywords = ["rdf", "rdf-star", "cbor", "knowledge-graph", "linked-data", "gts", "gmeow"]
 classifiers = [
     "Development Status :: 4 - Beta",

@@ -73,7 +73,7 @@ agreement. After you accept it, CLA Assistant updates the pull request status.
 
 The CLA confirms that you have the right to submit the contribution and grants
 the project the rights needed to use and redistribute it — including, for the
-dual-licensed work, the right for Blackcat Informatics to relicense it under the
+dual-licensed work, the right for Blackcat Informatics® to relicense it under the
 separate proprietary terms described in [LICENSING.md](LICENSING.md). It does not
 require you to provide support, updates, or future contributions.
 

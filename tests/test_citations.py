@@ -176,10 +176,14 @@ def test_self_description_loader() -> None:
     assert meta.title.startswith("GMEOW")
     assert meta.version == "0.1.0"
     assert meta.release_date == "2026-06-03"
-    assert meta.doi == "10.XXXXX/gmeow"
-    assert meta.depositor_name == "Blackcat Informatics Inc."
-    assert meta.depositor_email == "doi@blackcatinformatics.ca"
-    assert meta.registrant == "Blackcat Informatics Inc."
+    # Concept DOI lives on the Work; version DOI (optional) on the Manifestation.
+    assert meta.concept_doi == "10.67342/26w4o"
+    assert meta.version_doi is None  # concept-only until a version DOI is minted
+    assert meta.doi == "10.67342/26w4o"  # preferred citable = version or concept
+    assert meta.version_iri == "https://blackcatinformatics.ca/gmeow/0.1.0"
+    assert meta.depositor_name == "Blackcat Informatics® Inc."
+    assert meta.depositor_email == "root@blackcatinformatics.ca"
+    assert meta.registrant == "Blackcat Informatics® Inc."
     assert meta.license_uri == "https://creativecommons.org/licenses/by/4.0/"
     assert meta.homepage == "https://blackcatinformatics.ca/gmeow"
 
@@ -217,3 +221,55 @@ def test_self_description_models_project_repository_and_brand_assets() -> None:
         GMEOW.wasDerivedFrom,
         SELF["social-preview-svg"],
     ) in g
+
+
+# =========================================================================== #
+# Canonical description — standardized across all surfaces (single source)
+# =========================================================================== #
+
+
+def _norm_ws(text: str) -> str:
+    """Collapse all whitespace runs so cross-format copies compare equal."""
+    return " ".join(text.split())
+
+
+def test_canonical_description_is_standardized() -> None:
+    """One abstract, identical across self-desc / ontology header / CITATION.cff.
+
+    Also asserts the stated slice and vocabulary counts match the real counts.
+    """
+    import yaml
+    from rdflib.namespace import DCTERMS
+
+    from gmeow_tools.config import (
+        ALIGNMENT_TARGETS,
+        ONTOLOGY_FILE,
+        PROJECT_ROOT,
+        SLICES_DIR,
+    )
+    from gmeow_tools.self_desc import load_self_description
+
+    canonical = load_self_description().description
+    assert canonical, "self-description carries no description"
+
+    # ontology header dcterms:description == canonical (the serialization-facing copy)
+    onto = Graph()
+    onto.parse(ONTOLOGY_FILE, format="turtle")
+    onto_desc = str(
+        next(
+            onto.objects(
+                URIRef("https://blackcatinformatics.ca/gmeow"), DCTERMS.description
+            )
+        )
+    )
+    assert _norm_ws(onto_desc) == _norm_ws(canonical)
+
+    # CITATION.cff abstract == canonical (the human-citation copy)
+    cff = yaml.safe_load((PROJECT_ROOT / "CITATION.cff").read_text(encoding="utf-8"))
+    assert _norm_ws(cff["abstract"]) == _norm_ws(canonical)
+
+    # The stated counts must equal the real counts — numbers cannot drift.
+    n_slices = len(list(SLICES_DIR.glob("*/*/manifest.ttl")))
+    n_align = len(ALIGNMENT_TARGETS)
+    assert f"{n_slices} self-contained slices" in canonical
+    assert f"{n_align} external vocabularies" in canonical

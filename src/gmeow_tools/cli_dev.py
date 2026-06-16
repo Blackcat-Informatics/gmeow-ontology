@@ -842,23 +842,34 @@ def coverage(
 
 @app.command()
 def crossref() -> None:
-    """Generate the CrossRef DOI deposit XML (deposit schema 5.4.0)."""
-    from gmeow_tools.crossref import write_deposit
+    """Generate (and doi-lint) the CrossRef DOI deposit XML for manual submission.
+
+    The deposit is a transient submission document written to ``dist/`` (NOT a
+    committed artifact): doi-lint runs first so an inconsistent deposit is never
+    produced, then the registrant hand-verifies and submits it to CrossRef.
+    """
+    from gmeow_tools.crossref import lint_deposit, write_deposit
     from gmeow_tools.self_desc import load_self_description
 
     try:
         meta = load_self_description()
     except (FileNotFoundError, ValueError) as exc:
         raise _fail(f"✗ self-description unavailable: {exc}") from exc
-    path = write_deposit()
-    console.print(
-        f"[green]✓ {path.relative_to(path.parents[1])} (DOI {meta.doi})[/green]"
-    )
-    if meta.doi.startswith("10.XXXXX/"):
-        err_console.print(
-            "[yellow]note:[/yellow] DOI prefix is a placeholder — set "
-            "the DOI in metadata/gmeow-self.ttl once CrossRef membership is finalized."
+
+    problems = lint_deposit(meta)
+    if problems:
+        for problem in problems:
+            err_console.print(f"[red]doi-lint[/red] {problem}")
+        raise _fail(
+            f"✗ {len(problems)} doi-lint problem(s) — fix metadata/gmeow-self.ttl"
         )
+
+    path = write_deposit(meta=meta)
+    note = "concept-only" if meta.version_doi is None else "concept + version"
+    console.print(f"[green]✓ {path} (DOI {meta.doi}, {note})[/green]")
+    console.print(
+        "[yellow]Review the deposit, then submit it to CrossRef manually.[/yellow]"
+    )
 
 
 @app.command(name="references-backfill")

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: Apache-2.0
 
 """Native, RDF 1.2-aware ontology documentation generator (#440).
@@ -15,6 +15,7 @@ from the same data path.
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import html
 import json
@@ -1897,10 +1898,30 @@ img, svg { max-width: 100%; height: auto; }
         )
 
 
+@functools.lru_cache(maxsize=1)
+def _citation_doi() -> str:
+    """The concept DOI for the docs footer (always-latest citation anchor)."""
+    try:
+        from gmeow_tools.self_desc import load_self_description
+
+        return load_self_description().concept_doi
+    except (FileNotFoundError, ValueError):
+        return ""
+
+
 def _html_shell(title: str, body: str, prefix: str) -> str:
     """Return a full static HTML document."""
     escaped_title = html.escape(title)
     home = prefix or "./"
+    doi = _citation_doi()
+    # Only render the citation line when a DOI is actually present, so a missing
+    # self-description falls back cleanly instead of emitting "https://doi.org/".
+    citation = (
+        f'<br>\n    Cite as <a href="https://doi.org/{html.escape(doi, quote=True)}">'
+        f"doi:{html.escape(doi)}</a> ·"
+        if doi
+        else ""
+    )
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -1935,7 +1956,8 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
   </main>
   <footer>
     Generated from the GMEOW ontology. Canonical source is RDF/OWL; this
-    site is a deterministic projection.
+    site is a deterministic projection.{citation}
+    © 2026 Blackcat Informatics® Inc. · Ontology licensed CC BY 4.0.
   </footer>
 </body>
 </html>
@@ -4351,6 +4373,10 @@ def ontology_docs_inputs() -> Sequence[Path]:
     """
     return [
         PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
+        # The footer cites the concept DOI read from the self-description (via
+        # _citation_doi → self_desc); both the data and its loader feed the output.
+        Path(__file__).with_name("self_desc.py"),
+        PROJECT_ROOT / "metadata" / "gmeow-self.ttl",
         Path(__file__).with_name("assets") / "simple.css",
         ONTOLOGY_DOCS_GRAPH_INPUT,
         REFERENCES_MD_FILE,
