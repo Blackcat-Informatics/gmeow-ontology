@@ -25,6 +25,10 @@ gmeow:CryptographicKey
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Cryptographic Key"@x-gmeow-english ;
     skos:definition "A public key, certificate, or key material bound to an agent's identity — the thing a signature is made with and a certification vouches for."@x-gmeow-english ;
+    skos:example "ex:lillithKey a gmeow:CryptographicKey ; gmeow:keyScheme gmeow:keySchemePGP ; gmeow:fingerprint \"A1B2...\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to model a public key, certificate, or key material as a first-class entity that an agent holds, a certification vouches for, and a signature is made with — across OpenPGP, X.509, SSH, or Nostr."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the binding of a key to an identity (that is gmeow:Certification) and for an act of signing (that is gmeow:CryptographicSignature); the key is the material, not the attestation or the signature it produces."@x-gmeow-english ;
+    gmeow:howToUse "Mint the key, name its format with the functional gmeow:keyScheme, carry source-variable identifiers (gmeow:fingerprint, gmeow:keyId, gmeow:keyMaterial, gmeow:keyAlgorithm, gmeow:keyExpiresAt) non-functionally, and link it to its holder with gmeow:holdsKey and to an account with gmeow:accountKey."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:KeyScheme
@@ -32,6 +36,10 @@ gmeow:KeyScheme
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Key Scheme"@x-gmeow-english ;
     skos:definition "The cryptographic scheme/format of a key (OpenPGP, X.509, SSH, Nostr, …). Modelled as a value, not a key subclass: the set of schemes is open-ended and they carry no distinct key structure here, so a new scheme is a new individual, not a new class."@x-gmeow-english ;
+    skos:example "ex:keySchemeMinisign a gmeow:KeyScheme ; rdfs:label \"Minisign\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:keyScheme — the open set of individuals naming a key's format (OpenPGP, X.509, SSH, Nostr, …) so consumers can filter or align keys by scheme."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-scheme key subclasses (schemes are individuals, not classes) and avoid using it for the key's algorithm (that is the literal gmeow:keyAlgorithm, e.g. ed25519); the scheme is the format family, not the primitive."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded scheme individuals from a key via the functional gmeow:keyScheme; extend the vocabulary by adding a new gmeow:KeyScheme individual when a new format appears, never a subclass."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 # Standard key schemes (extend by adding individuals, never subclasses).
@@ -54,6 +62,10 @@ gmeow:keyScheme
     rdfs:range gmeow:KeyScheme ;
     rdfs:label "key scheme"@x-gmeow-english ;
     skos:definition "The scheme/format of a cryptographic key (one of the gmeow:KeyScheme individuals). Functional: a key has exactly one scheme — a key of a different scheme is a different key."@x-gmeow-english ;
+    skos:example "ex:lillithKey gmeow:keyScheme gmeow:keySchemePGP ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a key's format — OpenPGP, X.509, SSH, Nostr — by pointing it at a gmeow:KeyScheme individual so consumers can route or align it by scheme."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the signing algorithm (use the literal gmeow:keyAlgorithm) and avoid asserting two schemes on one key — it is functional, so a key in a different scheme is a different key."@x-gmeow-english ;
+    gmeow:howToUse "Point the key at exactly one seeded gmeow:KeyScheme individual; carry the source-variable algorithm and material on their own non-functional literal properties."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:holdsKey
@@ -62,6 +74,10 @@ gmeow:holdsKey
     rdfs:range gmeow:CryptographicKey ;
     rdfs:label "holds key"@x-gmeow-english ;
     skos:definition "Relates an agent to a cryptographic key it holds. The period over which the agent held the key may be carried with gmeow:validFrom/validUntil on this statement."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:holdsKey ex:lillithKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent holds a cryptographic key — the holder-to-key edge that a signature's gmeow:signingKey and a certification's gmeow:certifiedKey both reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the attested binding of a key to an identity (that is gmeow:Certification, which is perspectival and dated) and for an account's key (use gmeow:accountKey); holding is possession, not third-party vouching."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:holdsKey from the agent to the key, and carry the holding period with gmeow:validFrom / gmeow:validUntil on the statement when a key is rotated or retired."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:accountKey
@@ -70,6 +86,10 @@ gmeow:accountKey
     rdfs:range gmeow:CryptographicKey ;
     rdfs:label "account key"@x-gmeow-english ;
     skos:definition "Relates an online account to the cryptographic key that identifies it — the seam joining a decentralized-identity account (e.g. a Nostr account's nostrPubkey literal) to the key as a first-class entity."@x-gmeow-english ;
+    skos:example "ex:nostrAccount gmeow:accountKey ex:nostrKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to join a decentralized-identity account to the key that identifies it — promoting an account's raw pubkey literal (e.g. a Nostr nostrPubkey) into a first-class gmeow:CryptographicKey."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the agent that holds the key (use gmeow:holdsKey) and for an attestation about the binding (gmeow:Certification); this is the account↔key seam, not the agent↔key or the vouching relation."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:OnlineAccount at its identifying gmeow:CryptographicKey, then reach the key's scheme, fingerprint, and certifications through the key entity rather than restating them on the account."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:fingerprint
@@ -78,6 +98,10 @@ gmeow:fingerprint
     rdfs:range rdfs:Literal ;
     rdfs:label "fingerprint"@x-gmeow-english ;
     skos:definition "A fingerprint (hash) identifying a key. Not functional: different sources may report differing or differently-formatted fingerprints for the same key."@x-gmeow-english ;
+    skos:example "ex:lillithKey gmeow:fingerprint \"A1B2 C3D4 E5F6 ...\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a key's fingerprint (hash) as reported by a source — the human-checkable identifier used to confirm a key out of band."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a single canonical value — sources report differing or differently-formatted fingerprints, so keep it non-functional and let competing source values coexist; for the short key id use gmeow:keyId."@x-gmeow-english ;
+    gmeow:howToUse "Attach each source's fingerprint literal to the key; preserve the source's formatting verbatim and let multiple fingerprint claims coexist rather than collapsing them."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:keyId
@@ -86,6 +110,10 @@ gmeow:keyId
     rdfs:range rdfs:Literal ;
     rdfs:label "key id"@x-gmeow-english ;
     skos:definition "A short identifier for a key (e.g. a PGP long key id). Not functional (source-variable)."@x-gmeow-english ;
+    skos:example "ex:lillithKey gmeow:keyId \"0xDEADBEEF12345678\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a key's short identifier (e.g. a PGP long key id) — the compact handle a source uses to refer to the key."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid relying on it as a unique key — short ids can collide and vary by source, so keep it non-functional; for the full hash use gmeow:fingerprint."@x-gmeow-english ;
+    gmeow:howToUse "Attach each source's short id literal to the key alongside the fuller gmeow:fingerprint; let multiple source-variable values coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:keyAlgorithm
@@ -94,6 +122,10 @@ gmeow:keyAlgorithm
     rdfs:range rdfs:Literal ;
     rdfs:label "key algorithm"@x-gmeow-english ;
     skos:definition "The key's algorithm (e.g. rsa, ed25519, secp256k1). Not functional (source-variable)."@x-gmeow-english ;
+    skos:example "ex:lillithKey gmeow:keyAlgorithm \"ed25519\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the cryptographic primitive a key uses — rsa, ed25519, secp256k1 — so consumers can assess or filter keys by algorithm strength."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the key's format family (that is gmeow:keyScheme, e.g. OpenPGP vs X.509) and treat it as source-variable, not a single locked value; the algorithm is the primitive, not the scheme."@x-gmeow-english ;
+    gmeow:howToUse "Attach the algorithm literal to the key; pair it with the functional gmeow:keyScheme for the format and let differing source reports coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:keyMaterial
@@ -102,6 +134,10 @@ gmeow:keyMaterial
     rdfs:range rdfs:Literal ;
     rdfs:label "key material"@x-gmeow-english ;
     skos:definition "The public key material itself (armored or hex form). Not functional (encodings vary by source)."@x-gmeow-english ;
+    skos:example "ex:lillithKey gmeow:keyMaterial \"-----BEGIN PGP PUBLIC KEY BLOCK-----...\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the actual public key bytes — armored or hex form — when the key material itself must travel with the entity rather than only a fingerprint reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a private key (never model secret material) and avoid forcing one encoding — armored and hex forms from different sources coexist, so keep it non-functional; for a compact reference use gmeow:fingerprint or gmeow:keyId."@x-gmeow-english ;
+    gmeow:howToUse "Attach the public material verbatim in its source encoding; prefer gmeow:fingerprint for identification and reserve full material for when the bytes must be republished."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:keyExpiresAt
@@ -110,6 +146,10 @@ gmeow:keyExpiresAt
     rdfs:range xsd:dateTime ;
     rdfs:label "key expires at"@x-gmeow-english ;
     skos:definition "The instant a key is set to expire. Not functional (sources may report different expiry, and subkeys differ)."@x-gmeow-english ;
+    skos:example "ex:lillithKey gmeow:keyExpiresAt \"2027-01-01T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record when a key is scheduled to expire — the self-declared validity bound carried in the key's own metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the validity window of a certification or trust assertion (those use gmeow:validFrom / gmeow:validUntil on the relator) and avoid forcing one value — sources and subkeys report different expiry, so keep it non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Attach the expiry instant as xsd:dateTime; carry the holding or attestation windows separately on gmeow:holdsKey and gmeow:Certification, and let competing source expiries coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 # --------------------------------------------------------------------------- #
@@ -123,6 +163,10 @@ gmeow:Certification
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Certification"@x-gmeow-english ;
     skos:definition "A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil."@x-gmeow-english ;
+    skos:example "ex:cert1 a gmeow:Certification ; gmeow:certifier ex:bob ; gmeow:certifiedKey ex:lillithKey ; gmeow:certifiedIdentity ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to reify a Web-of-Trust attestation — a PGP key-signature — that a certifying agent vouches a given key belongs to a given identity; the relator that mediates certifier, key, and identity and carries its own dated validity window."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an agent's subjective trust in another agent (that is gmeow:TrustAssertion) and for mere key possession (gmeow:holdsKey); a certification is a third-party binding claim, and a contested binding is recorded as competing standpoints, never a primaryCertification flag (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator, bind gmeow:certifier, gmeow:certifiedKey, and gmeow:certifiedIdentity (the EL minimum), set gmeow:certificationLevel, and carry the window with gmeow:validFrom / gmeow:validUntil — revocation sets gmeow:validUntil; a disputed binding rides the cross-cutting gmeow:accordingTo standpoint axis."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:certifier
@@ -131,6 +175,10 @@ gmeow:certifier
     rdfs:range gmeow:Agent ;
     rdfs:label "certifier"@x-gmeow-english ;
     skos:definition "The agent that made a certification."@x-gmeow-english ;
+    skos:example "ex:cert1 gmeow:certifier ex:bob ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent who made a certification — the WoT signer vouching for the key↔identity binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the identity the binding is about (that is gmeow:certifiedIdentity) and for the key vouched for (gmeow:certifiedKey); the certifier is who attests, not what is attested. It is functional — one certifier per certification."@x-gmeow-english ;
+    gmeow:howToUse "Bind exactly one gmeow:Agent as certifier; model a second signer's attestation as a separate gmeow:Certification rather than a second certifier on the same one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:certifiedKey
@@ -139,6 +187,10 @@ gmeow:certifiedKey
     rdfs:range gmeow:CryptographicKey ;
     rdfs:label "certified key"@x-gmeow-english ;
     skos:definition "The cryptographic key a certification vouches for."@x-gmeow-english ;
+    skos:example "ex:cert1 gmeow:certifiedKey ex:lillithKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the cryptographic key a certification vouches for — the key half of the attested key↔identity binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the identity the key is bound to (that is gmeow:certifiedIdentity) and for the signer (gmeow:certifier); it is functional — one key per certification, a different key is a different attestation."@x-gmeow-english ;
+    gmeow:howToUse "Point the certification at exactly one gmeow:CryptographicKey and pair it with gmeow:certifiedIdentity; the two together are the binding the certifier attests."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:certifiedIdentity
@@ -147,6 +199,10 @@ gmeow:certifiedIdentity
     rdfs:range gmeow:Agent ;
     rdfs:label "certified identity"@x-gmeow-english ;
     skos:definition "The agent identity a certification binds the key to."@x-gmeow-english ;
+    skos:example "ex:cert1 gmeow:certifiedIdentity ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent identity a certification binds the key to — the identity half of the attested key↔identity binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the key being vouched for (gmeow:certifiedKey) and for the agent doing the vouching (gmeow:certifier); it is functional — one bound identity per certification."@x-gmeow-english ;
+    gmeow:howToUse "Point the certification at exactly one gmeow:Agent identity and pair it with gmeow:certifiedKey; a competing claim that the key belongs to a different identity is a separate certification across standpoints."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:certificationLevel
@@ -155,6 +211,10 @@ gmeow:certificationLevel
     rdfs:range rdfs:Literal ;
     rdfs:label "certification level"@x-gmeow-english ;
     skos:definition "How carefully the binding was verified (OpenPGP certification level): generic, persona, casual, or positive."@x-gmeow-english ;
+    skos:example "ex:cert1 gmeow:certificationLevel \"positive\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how carefully a certifier verified the binding — the OpenPGP certification level (generic, persona, casual, positive) that signals the rigour behind the attestation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with owner-trust in the certifier (that is gmeow:trustLevel on a gmeow:TrustAssertion) — certification level is the care taken in this one binding, not how much the certifier is trusted as an introducer. It is functional."@x-gmeow-english ;
+    gmeow:howToUse "Attach one OpenPGP level literal to the certification; let a relying party weigh it together with their own perspectival gmeow:TrustAssertion about the certifier rather than computing transitive validity here."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 # --------------------------------------------------------------------------- #
@@ -169,6 +229,14 @@ gmeow:TrustAssertion
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Trust Assertion"@x-gmeow-english ;
     skos:definition "A reified, perspectival assertion that one agent (the trustor) trusts another (the trustee), optionally as an introducer to a given depth — the OpenPGP owner-trust notion. Its validity window is carried with gmeow:validFrom/validUntil."@x-gmeow-english ;
+    skos:example "ex:t1 a gmeow:TrustAssertion ; gmeow:trustor ex:lillith ; gmeow:trustee ex:bob ; gmeow:trustLevel \"full\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever trust is HELD by a particular agent rather than asserted globally — owner-trust, an introducer designation, a leveled and dated vouching — so the claim names its trustor frame holder explicitly (Principle 9: A trusts B according to A's vantage, never a global verdict)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a key↔identity binding attestation (that is gmeow:Certification) and for a quick directional vouch where level and date do not matter (use the gmeow:endorses shortcut); never collapse competing trustors into one privileged trust, and never expect the reasoner to propagate it transitively."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator, bind gmeow:trustor and gmeow:trustee (the EL minimum), set gmeow:trustLevel and the gmeow:introducerDepth / gmeow:introducerAmount trust-signature parameters, and date it with gmeow:validFrom / gmeow:validUntil; transitive validity is a projection-layer metric computed over these inputs, never a reasoner entailment."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:trustor
@@ -177,6 +245,10 @@ gmeow:trustor
     rdfs:range gmeow:Agent ;
     rdfs:label "trustor"@x-gmeow-english ;
     skos:definition "The agent whose (subjective) trust a trust-assertion expresses — the perspective holder."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:trustor ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent FROM WHOSE standpoint a trust assertion is held — the frame holder whose subjective trust the relator expresses (the trust-side counterpart of gmeow:accordingTo)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the trusted party (that is gmeow:trustee) and avoid treating the trustor as authoritative for anyone else; every trustor is one co-equal standpoint (Principle 9), so competing trustors' assertions coexist. It is functional — one perspective holder per assertion."@x-gmeow-english ;
+    gmeow:howToUse "Bind exactly one gmeow:Agent as the trustor; model a second agent's trust in the same trustee as a separate gmeow:TrustAssertion, never a second trustor on this one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:trustee
@@ -185,6 +257,10 @@ gmeow:trustee
     rdfs:range gmeow:Agent ;
     rdfs:label "trustee"@x-gmeow-english ;
     skos:definition "The agent that is trusted by the trustor in a trust-assertion."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:trustee ex:bob ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent that is trusted in a trust assertion — the trustee the trustor vouches for or designates as an introducer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the perspective holder (that is gmeow:trustor) and avoid reading a trustee's being trusted as a global fact — it holds only from this trustor's standpoint. It is functional — one trustee per assertion."@x-gmeow-english ;
+    gmeow:howToUse "Bind exactly one gmeow:Agent as the trustee; record the degree with gmeow:trustLevel and any introducer parameters on the same relator, and let competing trustors' assessments of the same trustee coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:trustLevel
@@ -193,6 +269,10 @@ gmeow:trustLevel
     rdfs:range rdfs:Literal ;
     rdfs:label "trust level"@x-gmeow-english ;
     skos:definition "The degree of owner-trust expressed: ultimate, full, marginal, or none."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:trustLevel \"marginal\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the degree of owner-trust a trustor expresses in a trustee — the OpenPGP level (ultimate, full, marginal, none) that bounds how much weight an introducer carries."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for how carefully a key↔identity binding was checked (that is gmeow:certificationLevel) and avoid treating the level as a global rating — it is one trustor's subjective degree (Principle 9). It is functional on the assertion."@x-gmeow-english ;
+    gmeow:howToUse "Attach one owner-trust level literal to the gmeow:TrustAssertion; the projection-layer metric reads it (with introducer depth/amount) to compute transitive validity, which is never entailed inside the reasoner."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:introducerDepth
@@ -201,6 +281,10 @@ gmeow:introducerDepth
     rdfs:range xsd:integer ;
     rdfs:label "introducer depth"@x-gmeow-english ;
     skos:definition "The trust-signature depth: how many levels of indirect introducers the trustor is willing to follow (a trust-signature notion, not computed here)."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:introducerDepth 2 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how many levels of indirect introducers a trustor is willing to follow — the OpenPGP trust-signature depth that bounds the chain a projection metric may walk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the weight assigned to a single introducer (that is gmeow:introducerAmount) and avoid treating depth as a computed transitive result — it is a declared input, never an OWL entailment (owner-trust is deliberately non-transitive)."@x-gmeow-english ;
+    gmeow:howToUse "Set the depth as xsd:integer on the gmeow:TrustAssertion alongside gmeow:introducerAmount; the projection layer consumes both when computing validity, never the reasoner."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:introducerAmount
@@ -209,6 +293,10 @@ gmeow:introducerAmount
     rdfs:range xsd:integer ;
     rdfs:label "introducer amount"@x-gmeow-english ;
     skos:definition "The trust-signature amount/weight the trustor assigns to the trustee as an introducer."@x-gmeow-english ;
+    skos:example "ex:t1 gmeow:introducerAmount 120 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the weight a trustor assigns to a trustee as an introducer — the OpenPGP trust-signature amount a projection metric accumulates toward a validity threshold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for how many introducer levels to follow (that is gmeow:introducerDepth) and avoid using it to compute validity in OWL — it is a declared input weight, not a reasoner-derived score."@x-gmeow-english ;
+    gmeow:howToUse "Set the amount as xsd:integer on the gmeow:TrustAssertion alongside gmeow:introducerDepth and gmeow:trustLevel; the projection-layer metric combines them, leaving the logical core free of trust arithmetic."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:endorses
@@ -217,6 +305,10 @@ gmeow:endorses
     rdfs:range gmeow:Agent ;
     rdfs:label "endorses"@x-gmeow-english ;
     skos:definition "A convenience shortcut recording that one agent vouches for another. Deliberately NOT symmetric (endorsement is directional) and NOT transitive (trust must not propagate inside the reasoner — that is the metric the perspectival TrustAssertion bounds). Use gmeow:TrustAssertion for leveled, dated, perspectival trust."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:endorses ex:bob ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat shortcut for a directional vouch between two agents when level, date, and introducer parameters do not matter — the reify-on-demand companion of gmeow:TrustAssertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the trust is leveled, dated, or holds an introducer depth (promote to gmeow:TrustAssertion) and avoid expecting symmetry or transitivity — endorsement is directional and never propagates A→B→C inside the reasoner."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:endorses from endorser to endorsee for the lightweight case; promote to a gmeow:TrustAssertion the moment you need a trust level, validity window, or introducer parameters, and compute any transitive validity in the projection layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 # =========================================================================== #
@@ -253,6 +345,10 @@ gmeow:CryptographicSignature
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Cryptographic Signature"@x-gmeow-english ;
     skos:definition "A cryptographic signature over a message or its headers, asserting origin and integrity."@x-gmeow-english ;
+    skos:example "ex:sig1 a gmeow:CryptographicSignature ; gmeow:signingKey ex:lillithKey ; gmeow:verificationStatus \"verified\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to model a signature over any artifact — a message, document, or headers — asserting its origin and integrity; the generic parent of PGP and S/MIME signatures, signing more than mail."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the key itself (that is gmeow:CryptographicKey) and for the dated identity↔key attestation (gmeow:Certification); a signature is the signing act's product, not the key or the binding. Use a subclass (gmeow:PGPSignature, gmeow:SMIMESignature) when the scheme is known."@x-gmeow-english ;
+    gmeow:howToUse "Type the signature (or a scheme subclass), bind gmeow:signingKey and gmeow:signedBy, record gmeow:signatureAlgorithm and the gmeow:verificationStatus outcome, and let an email extension carry the wire-auth half (DKIM, Authentication-Results)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:PGPSignature
@@ -260,6 +356,10 @@ gmeow:PGPSignature
     rdfs:subClassOf gmeow:CryptographicSignature ;
     rdfs:label "PGP Signature"@x-gmeow-english ;
     skos:definition "An OpenPGP signature (RFC 4880/9580, PGP-MIME RFC 3156) over a message, bound to a PGP key."@x-gmeow-english ;
+    skos:example "ex:sig1 a gmeow:PGPSignature ; gmeow:signingKey ex:lillithKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a signature is specifically an OpenPGP signature (RFC 4880/9580, PGP-MIME) bound to a PGP key — the scheme-typed specialization of gmeow:CryptographicSignature."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an S/MIME signature (use gmeow:SMIMESignature) and for a scheme-agnostic case (use the parent gmeow:CryptographicSignature); the type fixes the OpenPGP scheme."@x-gmeow-english ;
+    gmeow:howToUse "Type the signature gmeow:PGPSignature and bind gmeow:signingKey to a key whose gmeow:keyScheme is gmeow:keySchemePGP; the rest of the signature machinery (signedBy, algorithm, verification status) is inherited from the parent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:SMIMESignature
@@ -267,6 +367,10 @@ gmeow:SMIMESignature
     rdfs:subClassOf gmeow:CryptographicSignature ;
     rdfs:label "S/MIME Signature"@x-gmeow-english ;
     skos:definition "An S/MIME signature (RFC 8551) over a message, bound to an X.509 certificate."@x-gmeow-english ;
+    skos:example "ex:sig2 a gmeow:SMIMESignature ; gmeow:signingKey ex:x509Key ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a signature is specifically an S/MIME signature (RFC 8551) bound to an X.509 certificate — the scheme-typed specialization of gmeow:CryptographicSignature."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an OpenPGP signature (use gmeow:PGPSignature) and for a scheme-agnostic case (use the parent gmeow:CryptographicSignature); the type fixes the X.509/S-MIME scheme."@x-gmeow-english ;
+    gmeow:howToUse "Type the signature gmeow:SMIMESignature and bind gmeow:signingKey to a key whose gmeow:keyScheme is gmeow:keySchemeX509; signedBy, algorithm, and verification status come from the parent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:signedBy
@@ -275,6 +379,10 @@ gmeow:signedBy
     rdfs:range gmeow:Agent ;
     rdfs:label "signed by"@x-gmeow-english ;
     skos:definition "The agent (or signing identity) that produced a signature."@x-gmeow-english ;
+    skos:example "ex:sig1 gmeow:signedBy ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent or signing identity that produced a signature — the WHO of the signing act, complementing the WHICH-KEY of gmeow:signingKey."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the key that made the signature (that is gmeow:signingKey) and for the certifier of a key↔identity binding (gmeow:certifier); signedBy is the claimed signer identity, which a gmeow:Certification may separately vouch for."@x-gmeow-english ;
+    gmeow:howToUse "Bind the signing gmeow:Agent and pair it with gmeow:signingKey; the identity↔key pair signedBy/signingKey is exactly what a gmeow:Certification attests, so a relying party can cross-check the two."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:signingKey
@@ -283,6 +391,10 @@ gmeow:signingKey
     rdfs:range gmeow:CryptographicKey ;
     rdfs:label "signing key"@x-gmeow-english ;
     skos:definition "The cryptographic key that produced a signature (the trust module's CryptographicKey). Complements gmeow:signedBy: signedBy gives the identity, signingKey gives the key — the pair a gmeow:Certification attests."@x-gmeow-english ;
+    skos:example "ex:sig1 gmeow:signingKey ex:lillithKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the cryptographic key that produced a signature — the WHICH-KEY half of the signing act, the key whose binding to the signer a certification vouches for."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the signer identity (that is gmeow:signedBy) and for an agent's general key possession (gmeow:holdsKey); signingKey names the specific key used for THIS signature. It is functional — one signing key per signature."@x-gmeow-english ;
+    gmeow:howToUse "Bind exactly one gmeow:CryptographicKey and pair it with gmeow:signedBy; verify the signedBy/signingKey pair against a gmeow:Certification and record the outcome in gmeow:verificationStatus."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:signatureAlgorithm
@@ -291,6 +403,10 @@ gmeow:signatureAlgorithm
     rdfs:range rdfs:Literal ;
     rdfs:label "signature algorithm"@x-gmeow-english ;
     skos:definition "The algorithm used for a signature (e.g. rsa-sha256, ed25519)."@x-gmeow-english ;
+    skos:example "ex:sig1 gmeow:signatureAlgorithm \"ed25519\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the algorithm a signature was made with — rsa-sha256, ed25519 — so a verifier can assess its strength or compatibility."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the signing key's own algorithm (that is gmeow:keyAlgorithm on the key) and for the verification outcome (gmeow:verificationStatus); this names the act's algorithm. It is functional — one per signature."@x-gmeow-english ;
+    gmeow:howToUse "Attach the algorithm literal to the signature alongside gmeow:signingKey; it complements rather than duplicates the key's gmeow:keyAlgorithm, since a key may sign with different digest pairings."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:signingDomain
@@ -299,6 +415,10 @@ gmeow:signingDomain
     rdfs:range rdfs:Literal ;
     rdfs:label "signing domain"@x-gmeow-english ;
     skos:definition "The domain asserted by a signature (e.g. the DKIM d= tag)."@x-gmeow-english ;
+    skos:example "ex:sig1 gmeow:signingDomain \"example.com\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the domain a signature asserts on behalf of — the DKIM d= tag and like domain-scoped signing claims."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the signer agent (that is gmeow:signedBy) and for the verification outcome (gmeow:verificationStatus); the domain is the claimed signing authority, not the identity or the result. It is functional."@x-gmeow-english ;
+    gmeow:howToUse "Attach the domain literal to the signature; the email-wire detail (Authentication-Results, relay hops) lives in the email extension, while this generic seam carries the asserted domain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
 
 gmeow:verificationStatus
@@ -307,4 +427,8 @@ gmeow:verificationStatus
     rdfs:range rdfs:Literal ;
     rdfs:label "verification status"@x-gmeow-english ;
     skos:definition "The verification outcome of a signature: verified, failed, or unverified."@x-gmeow-english ;
+    skos:example "ex:sig1 gmeow:verificationStatus \"verified\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the outcome of checking a signature — verified, failed, or unverified — the result a verifier reached for this signature."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the algorithm used (gmeow:signatureAlgorithm) and for owner-trust in the signer (gmeow:TrustAssertion); the status is the check result, not the strength or the trust. It is functional — one outcome per signature."@x-gmeow-english ;
+    gmeow:howToUse "Attach the outcome literal to the signature after verifying gmeow:signingKey against a gmeow:Certification; a competing verifier's differing result is recorded as a separate signature observation rather than overwriting this one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .

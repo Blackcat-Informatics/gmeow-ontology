@@ -4157,7 +4157,7 @@ class DistanceMetric(ConfiguredBaseModel):
 class DocumentationConcern(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DocumentationConcern',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'documentation concern'})
+         'title': 'Documentation Concern'})
 
     pass
 
@@ -8521,13 +8521,13 @@ class Identifier(ConfiguredBaseModel):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Identifier'})
 
-    identifierScheme: Optional[list[str]] = Field(default=None, title="identifier scheme", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
+    identifierScheme: Optional[str] = Field(default=None, title="identifier scheme", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
          'domain_of': ['Identifier'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/identifierScheme'} })
     identifierUrl: Optional[str] = Field(default=None, title="identifier url", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
          'domain_of': ['Identifier'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/identifierUrl'} })
-    identifierValue: Optional[list[str]] = Field(default=None, title="identifier value", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
+    identifierValue: Optional[str] = Field(default=None, title="identifier value", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
          'domain_of': ['Identifier'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/identifierValue'} })
     jurisdiction: Optional[list[Location]] = Field(default=None, title="jurisdiction", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',

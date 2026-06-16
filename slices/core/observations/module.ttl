@@ -25,6 +25,10 @@ gmeow:Observation
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Observation"@x-gmeow-english ;
     skos:definition "A reified act of observing, measuring, or asserting a feature of interest — the universal claim construct unifying spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims. Mediates between an observer (vantage), a feature (observedFeature), and a result (observationResult). Every observation carries at least a vantage and an observedFeature (EL open-world); closed-world cardinality is SHACL's concern."@x-gmeow-english ;
+    skos:example "ex:reading a gmeow:Observation ; gmeow:vantage ex:sensor ; gmeow:observedFeature ex:room ; gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the universal claim spine whenever a value is HELD by some vantage rather than asserted as a global fact — a measurement, a sensory reading, a standpoint, an identity/name/rights/kinship claim — so the claim carries its observer, feature, and result explicitly (Principle 9: every value is perspectival, none privileged)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the relationship is genuinely frame-free and uncontested (assert the flat triple and reify on demand); for a domain-specific claim prefer the matching Observation subclass (Measurement, SensoryObservation, StandpointClaim, NameUsage, IdentityFacet) so the bridged role properties carry their local typing."@x-gmeow-english ;
+    gmeow:howToUse "Mint one Observation per held claim, bind gmeow:vantage and gmeow:observedFeature (the EL minimum), add gmeow:observationResult, gmeow:observationMethod, gmeow:observationType, evidence, and statement metadata as needed; specialized subclasses inherit these roles through rdfs:subPropertyOf bridges so generic consumers query 'all observations about X' uniformly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # EL axiomatisation: every Observation mediates at least one vantage and one feature.
@@ -42,6 +46,10 @@ gmeow:observedFeature
     rdfs:domain gmeow:Observation ;
     rdfs:label "observed feature"@x-gmeow-english ;
     skos:definition "The individual whose property or state is being observed — the feature of interest. The range is intentionally open (owl:Thing) because anything can be observed: a place, a person, an event, a document, a quality value, or a situation. SHACL shapes enforce closed-world constraints per observation kind."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:observedFeature ex:room ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name what an Observation is about — its subject of interest — including from a specialized claim where the local subject property (gmeow:facetSubject, gmeow:usageNamed, gmeow:statementAbout, gmeow:versionMember) bridges here so generic consumers find every observation about X."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the produced value (that is gmeow:observationResult) or the observer (gmeow:vantage); and prefer the domain subproperty when one exists rather than asserting the bare super-role, so the feature keeps its local range."@x-gmeow-english ;
+    gmeow:howToUse "Point the Observation at its subject; for typed claims assert the bridging subproperty (facetSubject, usageNamed, statementAbout, versionMember) and read gmeow:observedFeature by inheritance. Keep the range open — do not constrain it in the core; per-kind narrowing is SHACL's job."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:observationResult
@@ -50,6 +58,10 @@ gmeow:observationResult
     rdfs:range gmeow:Entity ;
     rdfs:label "observation result"@x-gmeow-english ;
     skos:definition "The entity-valued result of an observation — a coordinate set, an instant, a quality value, a quantity, or another entity. For literal scalar readings (e.g. 22.5°C), the observationResult entity carries the literal via a datatype property (e.g. qudt:quantityValue or a module-specific scalar property). Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the value an Observation produces — a coordinate set, instant, quality value, modality, appellation, or a gmeow:ScalarQuantity wrapping a literal reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hanging a raw literal here (the range is gmeow:Entity — wrap scalars in a gmeow:ScalarQuantity instead) and avoid forcing a single result in a multi-frame or multi-source merge; it is non-functional so competing results coexist."@x-gmeow-english ;
+    gmeow:howToUse "Point the Observation at an entity-valued result; for scalar readings make the result a gmeow:ScalarQuantity carrying gmeow:quantityValue, gmeow:hasUnit, and gmeow:hasDeterminacy. The result inherits the observation's reference frame via the isResultOf∘hasReferenceFrame chain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:isResultOf
@@ -59,6 +71,10 @@ gmeow:isResultOf
     rdfs:range gmeow:Observation ;
     rdfs:label "is result of"@x-gmeow-english ;
     skos:definition "Relates an entity (typically an observation result such as a quantity, coordinate set, or quality value) back to the Observation that produced it — the explicit provenance axis of the value×unit/frame×determinacy×provenance bundle (ScalarQuantity alias precedent). Domain is gmeow:Entity (universal, matching the range of observationResult) so any result type can carry provenance. Non-functional: a result entity may be produced by multiple observations (e.g. a consensus value derived from several readings), and those claims coexist rather than collapse."@x-gmeow-english;
+    skos:example "ex:temp22 gmeow:isResultOf ex:reading ."@x-gmeow-english ;
+    gmeow:useWhen "Use from a result value (quantity, coordinate set, quality value) to name the Observation that produced it — the result-rooted direction of the provenance edge, and the chain that lets a result inherit its observation's reference frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it where you can state gmeow:observationResult instead (prefer the observation-rooted direction and read this as its inverse), and avoid forcing one producer — a consensus value legitimately is the result of several observations."@x-gmeow-english ;
+    gmeow:howToUse "Reach for it in result-rooted projections; the isResultOf∘hasReferenceFrame property chain then propagates the observation's frame onto the result, so a frame engine can query all values in a given frame without re-framing each one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:vantage
@@ -68,6 +84,10 @@ gmeow:vantage
     rdfs:label "vantage"@x-gmeow-english ;
     skos:definition "The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid."@x-gmeow-english ;
     skos:scopeNote "gmeow:vantage ⊑ gmeow:accordingTo: the reified relator edge is semantically subsumed by the annotation-property axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is an owl:AnnotationProperty (keeping the OWL 2 DL downcast clean, Principle 3) while vantage is an owl:ObjectProperty. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:vantage ex:sensor ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent or standpoint FROM WHICH a reified Observation is held — the relator-edge counterpart of the gmeow:accordingTo annotation, used when an annotated statement is promoted to a first-class Observation and its standpoint needs to be a role player."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the method (gmeow:observationMethod is HOW, vantage is WHO) and for the subject (gmeow:observedFeature); avoid implying the vantage is privileged — every vantage is one co-equal standpoint (Principle 9), so joint and competing vantages coexist."@x-gmeow-english ;
+    gmeow:howToUse "Bind a gmeow:Agent (person, organization, sensor, software agent) or a gmeow:Standpoint individual when the frame needs its own identity; for typed claims assert the bridging subproperty (gmeow:facetVantage, gmeow:usageNamer, gmeow:membershipAuthority) and read gmeow:vantage by inheritance. On the annotation side the same standpoint appears as gmeow:accordingTo."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:observationMethod
@@ -76,6 +96,10 @@ gmeow:observationMethod
     rdfs:range gmeow:ObservationMethod ;
     rdfs:label "observation method"@x-gmeow-english ;
     skos:definition "The method or protocol used to produce the observation. Functional: one method per observation (compound protocols are modelled as a single fused method individual, e.g. 'GPS-RTK survey with ground control'). Distinct from gmeow:vantage: the method is *how* it was done, the vantage is *who* did it."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:observationMethod gmeow:methodInstrumentalReading ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record HOW an observation was produced — the protocol, technique, or instrument — naming a gmeow:ObservationMethod individual so consumers can filter by method and weigh readings accordingly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for WHO made it (gmeow:vantage) or WHAT KIND of claim it is (gmeow:observationType); and because it is functional, model a compound protocol as one fused method individual rather than asserting several methods on one observation."@x-gmeow-english ;
+    gmeow:howToUse "Point the observation at a single gmeow:ObservationMethod (generic methods are seeded here; domain ladders such as gmeow:DatingMethod live in their own slices); changing the method is a different observation, since the method is constitutive of its identity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:observationType
@@ -84,6 +108,10 @@ gmeow:observationType
     rdfs:range gmeow:ObservationType ;
     rdfs:label "observation type"@x-gmeow-english ;
     skos:definition "The kind(s) of observation being made — measurement, sensory reading, standpoint claim, derived inference, etc. Non-functional: an observation may be both a measurement and a derived inference (e.g. a calibrated sensor reading that is also machine-learned), and competing type classifications coexist."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:observationType gmeow:observationTypeMeasurement ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify the KIND of observation — measurement, sensory reading, standpoint claim, derived inference, simulation — naming a gmeow:ObservationType individual; non-functional, so a reading that is both measured and machine-derived carries both."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the specific discipline or instrument (that is gmeow:observationMethod, e.g. radiocarbon dating, GPS survey) and for the producer (gmeow:vantage); the type is the broad category, not the protocol."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:ObservationType individuals; let the finer sub-discipline ride on gmeow:observationMethod and the typed-claim distinction ride on the Observation subclass (Measurement, StandpointClaim, NameUsage)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # =========================================================================== #
@@ -103,6 +131,10 @@ gmeow:facetSubject
     rdfs:range gmeow:Person ;
     rdfs:label "facet subject"@x-gmeow-english ;
     skos:definition "The person an identity facet (gender identity, gender expression, sexual/romantic orientation) is about — the observedFeature of the claim. Domain is gmeow:Observation so it applies to any observation subclass; the shape narrows to IdentityFacet instances."@x-gmeow-english ;
+    skos:example "ex:genderClaim gmeow:facetSubject ex:alice ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the person an identity-facet claim (gender identity, gender expression, sexual or romantic orientation) is about — the IdentityFacet specialization of gmeow:observedFeature."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for any non-identity observation (use the plain gmeow:observedFeature or the matching subproperty) and for the asserting agent (that is gmeow:facetVantage); the subject is who the facet is ABOUT, not who claims it."@x-gmeow-english ;
+    gmeow:howToUse "On an IdentityFacet, point gmeow:facetSubject at the gmeow:Person and gmeow:facetVantage at the asserting agent; generic consumers read both through the gmeow:observedFeature / gmeow:vantage super-roles. When gmeow:selfAsserted is true, subject and vantage are the same person (Principle 9: self-assertion is top authority)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:facetVantage
@@ -112,6 +144,10 @@ gmeow:facetVantage
     rdfs:range gmeow:Agent ;
     rdfs:label "facet vantage"@x-gmeow-english ;
     skos:definition "The agent asserting an identity facet — the vantage of the claim. When gmeow:selfAsserted is true, the facetVantage is the person themselves (Principle 9: self-assertion is top authority)."@x-gmeow-english ;
+    skos:example "ex:genderClaim gmeow:facetVantage ex:alice ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent asserting an identity-facet claim — the IdentityFacet specialization of gmeow:vantage; for a self-asserted facet, this is the subject person themselves."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the person the facet is about (that is gmeow:facetSubject) and for non-identity observations (use gmeow:vantage); the vantage is who CLAIMS the facet, a co-equal standpoint, never a privileged authority over the subject."@x-gmeow-english ;
+    gmeow:howToUse "Bind the asserting gmeow:Agent and set gmeow:selfAsserted true when subject and vantage coincide; generic consumers read it through the gmeow:vantage super-role, and competing third-party facet claims coexist as separate observations (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # NameUsage bridges (declared here because the super-properties live here).
@@ -138,6 +174,10 @@ gmeow:observationEvent
     rdfs:range gmeow:Event ;
     rdfs:label "observation event"@x-gmeow-english ;
     skos:definition "The event during which the observation was made — a survey, a census, an excavation, a clinical trial. Links an observation to the temporal occurrence that produced it. For the generating activity (provenance), use gmeow:wasGeneratedBy; this property is the *event* perspective (when did it happen)."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:observationEvent ex:census2026 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link an Observation to the gufo:Event during which it was made — the survey, census, excavation, or trial — when the lightweight 'when did it happen' perspective is enough."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when you need the full generating-activity provenance with inputs, outputs, and agents (use gmeow:wasGeneratedBy / an ObservingActivity instead); this is the event view, not the activity view."@x-gmeow-english ;
+    gmeow:howToUse "Point the observation at the gmeow:Event; reach for gmeow:wasGeneratedBy when the heavy provenance form is needed, and let the event's own temporal extent supply the timing rather than restating it on the observation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # =========================================================================== #
@@ -149,6 +189,10 @@ gmeow:ObservationMethod
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Observation Method"@x-gmeow-english ;
     skos:definition "The method or protocol by which an observation was made — a value vocabulary (individuals, never subclasses). Generalizes gmeow:DatingMethod (temporal module) and subsumes sensor types, survey protocols, laboratory techniques, archaeological procedures, and standpoint assertion methods. A method is constitutive of the observation: changing the method changes the observation's identity (it is a different act)."@x-gmeow-english ;
+    skos:example "ex:rtkSurvey a gmeow:ObservationMethod ; rdfs:label \"GPS-RTK survey\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:observationMethod — the open set of individuals naming HOW an observation was produced (direct observation, instrumental reading, survey, remote sensing, computational model, expert judgement, …)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-method subclasses (methods are individuals) and avoid using it for the broad KIND of observation (that is gmeow:ObservationType); a method is a specific protocol, not a category."@x-gmeow-english ;
+    gmeow:howToUse "Mint each method as an individual (generic ones are seeded here; domain ladders such as gmeow:DatingMethod specialize it in their own slices) and reference it via the functional gmeow:observationMethod; model compound protocols as one fused method individual."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:ObservationType
@@ -156,6 +200,10 @@ gmeow:ObservationType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Observation Type"@x-gmeow-english ;
     skos:definition "The kind of observation being made — a value vocabulary (individuals, never subclasses). Distinguishes measurement, sensory reading, standpoint claim, derived inference, and simulation output. The specific sub-discipline (radiocarbon dating, GPS survey, temperature sensing) is gmeow:observationMethod, not gmeow:observationType."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:observationType gmeow:observationTypeMeasurement ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:observationType — the open set of individuals naming the broad KIND of observation (measurement, sensory reading, standpoint claim, derived inference, simulation, identity, naming, rights, kinship, streaming)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-type subclasses (types are individuals) and avoid using it for the specific protocol or discipline (that is gmeow:ObservationMethod); the type is the category, not the technique."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded type individuals via the non-functional gmeow:observationType (an observation may carry several), and let the sub-discipline ride on gmeow:observationMethod and the typed-claim distinction on the Observation subclass."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # Seeds — ObservationType
@@ -209,6 +257,10 @@ gmeow:Measurement
     rdfs:subClassOf gmeow:Observation ;
     rdfs:label "Measurement"@x-gmeow-english ;
     skos:definition "An observation that assigns a quantitative or qualitative value to a feature of interest, typically carrying a unit, uncertainty, and determinacy model. The parent of temporal dating, spatial coordinate assignment, and scalar quantity measurements."@x-gmeow-english ;
+    skos:example "ex:tempReading a gmeow:Measurement ; gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an observation assigns a value to its feature — a dating, a coordinate fix, a scalar reading — so the claim inherits the observation roles while signalling it is a quantified/qualified measurement carrying unit, uncertainty, and determinacy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a bare standpoint assertion with no assigned value (use gmeow:StandpointClaim) or a raw sensor reading you want typed as such (gmeow:SensoryObservation); specialize further to gmeow:TemporalMeasurement or a spatial coordinate measurement where the slice provides one."@x-gmeow-english ;
+    gmeow:howToUse "Type the act gmeow:Measurement, make gmeow:observationResult a gmeow:ScalarQuantity (value + gmeow:hasUnit + gmeow:hasDeterminacy + gmeow:quantityUncertainty), and let domain slices deepen it with their own measurement subclasses and seeds."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:SensoryObservation
@@ -216,6 +268,10 @@ gmeow:SensoryObservation
     rdfs:subClassOf gmeow:Observation ;
     rdfs:label "Sensory Observation"@x-gmeow-english ;
     skos:definition "An observation produced by a sensor or sensory apparatus reading a physical property of the environment. Specialises Observation with sensor-specific properties (sensory property, sensor platform, sampling feature)."@x-gmeow-english ;
+    skos:example "ex:humidityReading a gmeow:SensoryObservation ; gmeow:vantage ex:hygrometer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the observation is a reading taken by a sensor or sensory apparatus of a physical property of the environment — the form that travels in a gmeow:Stream and carries sensor/platform/sampling-feature detail."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a human judgement or a derived/computed value (use gmeow:Measurement with the matching gmeow:observationType) and for a standpoint assertion (gmeow:StandpointClaim); this kind is specifically instrument-mediated sensing."@x-gmeow-english ;
+    gmeow:howToUse "Type the reading gmeow:SensoryObservation, put the sensor or platform in gmeow:vantage (or gmeow:streamSensor / gmeow:streamPlatform when streamed), and attach the value as a gmeow:ScalarQuantity result; group time-ordered readings under a gmeow:Stream."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:StandpointClaim
@@ -223,6 +279,10 @@ gmeow:StandpointClaim
     rdfs:subClassOf gmeow:Observation ;
     rdfs:label "Standpoint Claim"@x-gmeow-english ;
     skos:definition "An observation made from a specific standpoint or frame — an assertion, denial, or qualified position that a proposition holds. Realises the standpoint side of Principle 3 (Observation ≡ Measurement ≡ Standpoint). The vantage is the standpoint; the observedFeature is the proposition or fact being claimed; the observationResult is the modality (unequivocal, probable, conceivable, refuted)."@x-gmeow-english;
+    skos:example "ex:claim a gmeow:StandpointClaim ; gmeow:vantage ex:authorityA ; gmeow:observedFeature ex:proposition ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a proposition is asserted, denied, or held with a qualified modality FROM a standpoint — the perspectival claim form where the value produced is a doxastic modality rather than a measured quantity (Principle 9: no standpoint privileged)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a value-assigning reading (gmeow:Measurement / gmeow:SensoryObservation) and for marking a proposition false by fiat — a falsehood is a refuted StandpointClaim (modality refuted), never an isFalse flag; competing standpoints coexist rather than resolve."@x-gmeow-english ;
+    gmeow:howToUse "Put the standpoint in gmeow:vantage, the proposition or fact in gmeow:observedFeature, and a modality value (unequivocal, probable, conceivable, refuted) in gmeow:observationResult; record a contested fact as several coexisting StandpointClaims, each with its own gmeow:accordingTo."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # =========================================================================== #
@@ -234,6 +294,10 @@ gmeow:Stream
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Stream"@x-gmeow-english ;
     skos:definition "A time-ordered sequence of observations or samples produced by a sensor or platform over a time interval. The ordering of samples is implicit via their individual timestamps, not asserted as a list structure (Principle 12). A stream is the canonical source from which a continuous trajectory may be derived by the solver layer."@x-gmeow-english ;
+    skos:example "ex:roverTrack a gmeow:Stream ; gmeow:streamOf ex:rover ; gmeow:streamSample ex:fix1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to group a time-ordered run of observations or samples about one entity from a sensor or platform — the canonical source a solver derives a continuous trajectory from (no list structure is asserted)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a single isolated reading (use a bare Observation) and avoid encoding sample order as an RDF list — ordering is implicit via each sample's timestamp (Principle 12), and the interpolated trajectory is a solver concern."@x-gmeow-english ;
+    gmeow:howToUse "Mint the Stream, bind its subject with the functional gmeow:streamOf, attach readings via gmeow:streamSample, name gmeow:streamPlatform / gmeow:streamSensor, and bound it with the functional gmeow:streamInterval; an entity reaches its streams through gmeow:hasStream."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # EL axiomatisation: every Stream concerns at least one entity.
@@ -246,6 +310,10 @@ gmeow:streamOf
     rdfs:range gmeow:Entity ;
     rdfs:label "stream of"@x-gmeow-english ;
     skos:definition "The entity whose observations the stream contains — the moving feature, device, or thing being tracked. Functional: a stream belongs to exactly one entity."@x-gmeow-english ;
+    skos:example "ex:roverTrack gmeow:streamOf ex:rover ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single entity a stream tracks — the moving feature, device, or thing whose samples it collects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the platform or sensor that produces the stream (those are gmeow:streamPlatform / gmeow:streamSensor) and avoid assigning a stream to more than one subject — it is functional, exactly one entity per stream."@x-gmeow-english ;
+    gmeow:howToUse "Point the stream at its subject entity; read the inverse gmeow:hasStream from the entity. Keep the producing platform and sensor on their own properties so a device handed between platforms keeps one stream-of subject."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:hasStream
@@ -255,6 +323,10 @@ gmeow:hasStream
     rdfs:range gmeow:Stream ;
     rdfs:label "has stream"@x-gmeow-english ;
     skos:definition "Links an entity to a stream of observations or samples about it. Non-functional: an entity may have multiple co-existing streams from different platforms or sensors (Principle 9), and no stream is privileged."@x-gmeow-english ;
+    skos:example "ex:rover gmeow:hasStream ex:roverTrack ."@x-gmeow-english ;
+    gmeow:useWhen "Use from an entity to reach the streams of observations about it — the entity-rooted inverse of gmeow:streamOf, when traversing from the tracked thing to its sample runs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when you can state gmeow:streamOf instead (prefer the stream-rooted, functional direction and read this as its inverse), and avoid treating one stream as canonical — multiple coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:streamOf on the stream and read gmeow:hasStream by inversion; reach for it explicitly in entity-rooted projections that enumerate all sample runs about a subject."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:streamSample
@@ -263,6 +335,10 @@ gmeow:streamSample
     rdfs:range gmeow:Entity ;
     rdfs:label "stream sample"@x-gmeow-english ;
     skos:definition "Links a stream to an individual observation, location state, or other entity composing it. Non-functional: a stream typically has many samples, and multiple sampling strategies may coexist for the same stream (Principle 9). Ordering is implicit via sample timestamps, not asserted list structure (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:roverTrack gmeow:streamSample ex:fix1 , ex:fix2 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach each individual sample — an observation, location state, or reading — to the stream it composes; a stream typically carries many."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding sample order as an RDF list or next-pointer chain; order is implicit via each sample's own timestamp (Principle 12). Avoid for the tracked subject (gmeow:streamOf) or the producing sensor (gmeow:streamSensor)."@x-gmeow-english ;
+    gmeow:howToUse "Link each sample with gmeow:streamSample and give each its own timestamp; the solver layer interpolates a continuous trajectory from the timestamped samples rather than reading an asserted sequence."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:streamPlatform
@@ -271,6 +347,10 @@ gmeow:streamPlatform
     rdfs:range gmeow:Agent ;
     rdfs:label "stream platform"@x-gmeow-english ;
     skos:definition "The platform hosting the sensor(s) producing this stream — a vehicle, vessel, aircraft, buoy, or fixed station. Non-functional: a stream may migrate across platforms over its lifetime (e.g. a device handed from one drone to another)."@x-gmeow-english ;
+    skos:example "ex:roverTrack gmeow:streamPlatform ex:droneA ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the platform hosting the sensor(s) of a stream — a vehicle, vessel, aircraft, buoy, or fixed station."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the sensor itself (gmeow:streamSensor) or the tracked subject (gmeow:streamOf); the platform is the host, distinct from the device that reads. Do not assume a single platform — a stream may migrate."@x-gmeow-english ;
+    gmeow:howToUse "Bind the hosting platform agent; assert several across the stream's life when the device is handed between platforms (it is non-functional), keeping each platform claim alongside the others."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:streamSensor
@@ -279,6 +359,10 @@ gmeow:streamSensor
     rdfs:range gmeow:Agent ;
     rdfs:label "stream sensor"@x-gmeow-english ;
     skos:definition "The specific sensor or agent producing the stream. Non-functional: multiple sensors may contribute to one stream, and competing sensor claims coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:roverTrack gmeow:streamSensor ex:gnssReceiver ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the specific sensor or agent that reads the samples of a stream — the device doing the measuring."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the platform that carries the sensor (gmeow:streamPlatform) or the tracked subject (gmeow:streamOf); and avoid forcing one sensor — several may contribute, so it stays non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Bind the reading sensor agent; when multiple sensors fuse into one stream, assert each with gmeow:streamSensor and let competing sensor claims coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:streamInterval
@@ -287,6 +371,10 @@ gmeow:streamInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "stream interval"@x-gmeow-english ;
     skos:definition "The time interval over which the stream was produced. Functional: the interval is constitutive of the stream's identity."@x-gmeow-english ;
+    skos:example "ex:roverTrack gmeow:streamInterval ex:morningRun ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bound a stream in time — the gmeow:TimeInterval over which its samples were produced — when the temporal extent is constitutive of which stream this is."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a single sample's timestamp (that lives on the sample itself) and avoid asserting two intervals on one stream — it is functional, so a different interval is a different stream."@x-gmeow-english ;
+    gmeow:howToUse "Point the stream at one gmeow:TimeInterval covering its samples; individual sample timestamps still carry the fine-grained ordering, while this interval gives the whole run its bounds."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # =========================================================================== #
@@ -304,6 +392,10 @@ gmeow:ScalarQuantity
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Scalar Quantity"@x-gmeow-english ;
     skos:definition "A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly."@x-gmeow-english ;
+    skos:example "ex:temp22 a gmeow:ScalarQuantity ; gmeow:quantityValue 22.5 ; gmeow:hasUnit qudt:DEG_C ."@x-gmeow-english ;
+    gmeow:useWhen "Use to wrap a literal scalar reading — temperature, distance, count, probability — as an entity so gmeow:observationResult stays uniformly entity-valued and the value travels with its unit, determinacy, and granularity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hanging the bare literal on the observation directly (wrap it here) and avoid using it for money (use gmeow:MonetaryAmount, whose currency frame is required); for the domain-neutral name prefer the equivalent gmeow:Quantity / gmeow:MeasuredValue."@x-gmeow-english ;
+    gmeow:howToUse "Mint the wrapper, set gmeow:quantityValue (and gmeow:quantityUncertainty), name gmeow:hasUnit and gmeow:hasDeterminacy, and link it back with gmeow:isResultOf so it inherits the observation's reference frame via the property chain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 gmeow:ScalarQuantity gmeow:docsConcern gmeow:concernFrames, gmeow:concernProvenanceEvidence .
 
@@ -313,6 +405,10 @@ gmeow:Quantity
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Quantity"@x-gmeow-english ;
     skos:definition "A universal scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS (ScalarQuantity alias precedent). Equivalent to gmeow:ScalarQuantity; the domain-neutral name for the same construct. Used for temperatures, distances, counts, probabilities, masses, prices, and any other quantitative observation result. The value lives in gmeow:quantityValue; the unit/frame in gmeow:hasUnit / gmeow:hasReferenceFrame; the determinacy in gmeow:hasDeterminacy; the provenance in gmeow:isResultOf."@x-gmeow-english;
+    skos:example "ex:distance a gmeow:Quantity ; gmeow:quantityValue 12.4 ; gmeow:hasUnit qudt:M ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the domain-neutral name for a scalar value bundled with unit/frame, determinacy, and provenance — the same construct as gmeow:ScalarQuantity, preferred when no metrology or observation-result framing is intended."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a distinct class from gmeow:ScalarQuantity / gmeow:MeasuredValue (they are owl:equivalentClass — pick one name per export) and avoid it for currency-framed money (use gmeow:MonetaryAmount)."@x-gmeow-english ;
+    gmeow:howToUse "Type the value gmeow:Quantity, set gmeow:quantityValue, name gmeow:hasUnit / gmeow:hasReferenceFrame and gmeow:hasDeterminacy, and carry provenance with gmeow:isResultOf; choose one of the three equivalent names consistently within a projection."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 gmeow:Quantity gmeow:docsConcern gmeow:concernFrames, gmeow:concernProvenanceEvidence .
 
@@ -322,6 +418,10 @@ gmeow:MeasuredValue
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Measured Value"@x-gmeow-english ;
     skos:definition "An alias for gmeow:Quantity — the measured-value perspective on the same value×unit/frame×determinacy×provenance bundle (ScalarQuantity alias precedent). Equivalent to gmeow:Quantity and gmeow:ScalarQuantity. Provided for consumers who prefer the 'measured value' terminology common in metrology and sensor standards."@x-gmeow-english;
+    skos:example "ex:reading22 a gmeow:MeasuredValue ; gmeow:quantityValue 22.5 ; gmeow:hasUnit qudt:DEG_C ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the metrology-flavoured name for the value×unit/frame×determinacy×provenance bundle — the same construct as gmeow:Quantity / gmeow:ScalarQuantity — when aligning with sensor or metrology standards that say 'measured value'."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling it as a separate class from its equivalents (owl:equivalentClass — they denote one thing) and avoid it for currency-framed money (gmeow:MonetaryAmount); pick a single alias per export for consistency."@x-gmeow-english ;
+    gmeow:howToUse "Type the value gmeow:MeasuredValue, fill gmeow:quantityValue / gmeow:quantityUncertainty, name gmeow:hasUnit and gmeow:hasDeterminacy, and link gmeow:isResultOf; consumers reading any of the three equivalent names see the same value."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 gmeow:MeasuredValue gmeow:docsConcern gmeow:concernFrames, gmeow:concernProvenanceEvidence .
 
@@ -330,7 +430,11 @@ gmeow:quantityValue
     rdfs:domain gmeow:ScalarQuantity ;
     rdfs:range xsd:decimal ;
     rdfs:label "quantity value"@x-gmeow-english ;
-    skos:definition "The numeric value of a scalar quantity."@x-gmeow-english ;
+    skos:definition "The numeric value of a scalar quantity, as an xsd:decimal. Functional: a scalar quantity has exactly one numeric value. Meaningful only with its unit (gmeow:hasUnit) — no silent units."@x-gmeow-english ;
+    skos:example "ex:temp22 gmeow:quantityValue 22.5 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:ScalarQuantity (or its aliases) — the literal that, paired with gmeow:hasUnit, makes the reading meaningful."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid publishing or comparing it without its gmeow:hasUnit (no silent units), avoid it for money (use gmeow:monetaryValue, whose currency frame is required), and avoid asserting two values — it is functional."@x-gmeow-english ;
+    gmeow:howToUse "Put the magnitude here as xsd:decimal, name the unit with gmeow:hasUnit, the spread with gmeow:quantityUncertainty, and the ontic model with gmeow:hasDeterminacy; consumers read magnitude and unit together."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:quantityUncertainty
@@ -339,6 +443,10 @@ gmeow:quantityUncertainty
     rdfs:range xsd:decimal ;
     rdfs:label "quantity uncertainty"@x-gmeow-english ;
     skos:definition "The uncertainty (e.g. ±1 sigma) of a scalar quantity, in the same unit as the quantity value."@x-gmeow-english ;
+    skos:example "ex:temp22 gmeow:quantityUncertainty 0.3 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the EPISTEMIC spread of a scalar reading — a ±1σ or tolerance figure, expressed in the same unit as gmeow:quantityValue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with ontic determinacy (gmeow:hasDeterminacy — whether the value is crisp, vague, fuzzy) or with resolution (gmeow:hasGranularity); uncertainty is how-sure, an axis distinct from those (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "State the spread in the quantity's own unit alongside gmeow:quantityValue; leave the fuzzy/probabilistic arithmetic and confidence intervals to the solver layer (P12), and carry the ontic model separately on gmeow:hasDeterminacy."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 # =========================================================================== #
@@ -394,6 +502,10 @@ gmeow:MonetaryAmount
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Monetary Amount"@x-gmeow-english ;
     skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
+    skos:example "ex:price a gmeow:MonetaryAmount ; gmeow:monetaryValue 19.99 ; gmeow:currency ex:usd ."@x-gmeow-english ;
+    gmeow:useWhen "Use for any quantity of money — a price, salary, fee, balance — so the amount always travels with its currency frame; consumed by employment, agreements, and finance alike (it lives on the measurement spine, not in a finance silo)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a unit-bearing physical quantity (use gmeow:Quantity with gmeow:hasUnit) and avoid stating a bare amount without gmeow:currency — a value without its currency frame is ill-formed (Principle 11)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the amount, set gmeow:monetaryValue (xsd:decimal) and the required gmeow:currency reference frame; the generated frame-relativity shape (gmeow:requiresFrame) enforces exactly the currency the amount is denominated in."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:currency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
@@ -403,6 +515,10 @@ gmeow:monetaryValue
     rdfs:range xsd:decimal ;
     rdfs:label "monetary value"@x-gmeow-english ;
     skos:definition "The numeric value of a monetary amount as an xsd:decimal. Functional: a MonetaryAmount has exactly one numeric value."@x-gmeow-english ;
+    skos:example "ex:price gmeow:monetaryValue 19.99 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:MonetaryAmount — the decimal that, paired with gmeow:currency, is a well-formed money value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stating it without the gmeow:currency frame (a bare amount is ill-formed, Principle 11), avoid it for unit-bearing physical quantities (gmeow:quantityValue), and avoid two values — it is functional."@x-gmeow-english ;
+    gmeow:howToUse "Put the amount here as xsd:decimal and name the currency frame with gmeow:currency; consumers read magnitude and currency together, and the frame-relativity shape rejects an amount missing its currency."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:currency
@@ -412,6 +528,10 @@ gmeow:currency
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:label "currency"@x-gmeow-english ;
     skos:definition "The currency reference frame in which this monetary amount is expressed. Functional: a MonetaryAmount is in exactly one currency frame. A subproperty of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english ;
+    skos:example "ex:price gmeow:currency ex:usd ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the currency reference frame of a gmeow:MonetaryAmount — the frame that makes its magnitude meaningful, the money-specific specialization of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a non-monetary unit (use gmeow:hasUnit) and avoid asserting two currencies on one amount — it is functional, exactly one currency frame per amount; convert into a separate amount instead."@x-gmeow-english ;
+    gmeow:howToUse "Point the amount at one currency ReferenceFrame and read it through gmeow:hasReferenceFrame by inheritance; the generated frame-relativity shape (gmeow:requiresFrame gmeow:currency) enforces its presence."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> .
 
 gmeow:MonetaryAmount rdfs:subClassOf

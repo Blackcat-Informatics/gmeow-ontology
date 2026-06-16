@@ -19,6 +19,10 @@ gmeow:CreativeWork
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Creative Work"@x-gmeow-english ;
     skos:definition "The abstract umbrella category for intellectual and artistic creations in the WEMI spine — a Work, Expression, Manifestation, or Item. Formerly a flat gufo:Kind (pre-WEMI spine); now a Category so that the four tiers with distinct identity criteria can each be a gufo:Kind beneath it."@x-gmeow-english;
+    skos:example "ex:novel a gmeow:CreativeWork ; gmeow:hasTitle ex:novelTitle ; gmeow:datePublished \"1851-11-14T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the WEMI umbrella when a fact ranges over any tier of an intellectual or artistic creation — title, identifier, date — and the specific Work/Expression/Manifestation/Item tier is not yet fixed; it is the domain of the bibliographic date and description properties."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing an instance as a bare gmeow:CreativeWork when its WEMI tier is known (use gmeow:Work, gmeow:Manifestation, …), and avoid it for the real-world subject the work is about (that is a separate gmeow:Entity reached by aboutness)."@x-gmeow-english ;
+    gmeow:howToUse "Type the creation at its most specific WEMI tier and let it inherit CreativeWork; attach gmeow:hasTitle (or the flat gmeow:title), gmeow:identifier, and the bibliographic dates here, separating the carrier from its subject via the kernel aboutness construct."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:Document
@@ -26,6 +30,10 @@ gmeow:Document
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Document"@x-gmeow-english ;
     skos:definition "An abstract intellectual work of bounded textual or digital content — the conceptual document, independent of any particular file, record, or report. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:example "ex:spec a gmeow:Document ; gmeow:hasTitle ex:specTitle ; gmeow:abstract \"A technical specification.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the abstract conceptual document — a report, spec, memo — at the gmeow:Work tier, independent of any file or rendering that carries it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a concrete file, edition, or web rendering of the document (that is a gmeow:Manifestation such as gmeow:WebPage or a media file), and avoid it for a published article (use gmeow:Article)."@x-gmeow-english ;
+    gmeow:howToUse "Type the conceptual work gmeow:Document, give it gmeow:hasTitle / gmeow:identifier and the bibliographic dates; link each concrete carrier as a separate gmeow:Manifestation rather than overloading the Work with file-level metadata."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:Article
@@ -33,6 +41,10 @@ gmeow:Article
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Article"@x-gmeow-english ;
     skos:definition "A written work published in a periodical, blog, or scholarly venue. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:example "ex:paper a gmeow:Article ; gmeow:hasTitle ex:paperTitle ; gmeow:datePublished \"2024-03-01T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a written work issued in a periodical, blog, or scholarly venue — a journal paper, news piece, or column at the abstract gmeow:Work tier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a short-form post syndicated to a feed or platform (use gmeow:FeedPosting), and avoid it for the concrete published rendering (a gmeow:WebPage or PDF gmeow:Manifestation)."@x-gmeow-english ;
+    gmeow:howToUse "Type the work gmeow:Article, carry gmeow:hasTitle / gmeow:abstract / gmeow:bibliographicCitation and the review dates (gmeow:dateSubmitted, gmeow:dateAccepted); attribute authorship through the creative-works contribution relator, not a flat author literal."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:Patent
@@ -40,6 +52,10 @@ gmeow:Patent
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Patent"@x-gmeow-english ;
     skos:definition "An abstract intellectual work describing an invention — the inventive concept as claimed, independent of any granted or filed document. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:example "ex:patent a gmeow:Patent ; gmeow:identifier \"US10000000B2\" ; gmeow:datePublished \"2018-06-19T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the abstract inventive concept as claimed — the patented invention at the gmeow:Work tier, independent of any filing or grant document."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the granted or filed paper artifact itself (model that as a gmeow:Manifestation) and avoid encoding inventor agency as a literal — route it through the contribution relator."@x-gmeow-english ;
+    gmeow:howToUse "Type the invention gmeow:Patent, carry the patent number on gmeow:identifier and the grant/filing dates on the bibliographic date properties; link the granted document as a separate gmeow:Manifestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:Dataset
@@ -47,6 +63,10 @@ gmeow:Dataset
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Dataset"@x-gmeow-english ;
     skos:definition "A collection of data published as a unit. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:example "ex:census a gmeow:Dataset ; gmeow:hasTitle ex:censusTitle ; gmeow:identifier \"doi:10.5061/dryad.xyz\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a data collection published as a citable unit — a research dataset, statistical release, or open-data corpus at the gmeow:Work tier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an ongoing ordered stream of feed items (use gmeow:DataFeed) and avoid it for a single downloadable file of the dataset (that is a gmeow:Manifestation / distribution)."@x-gmeow-english ;
+    gmeow:howToUse "Type the dataset gmeow:Dataset, carry its DOI on gmeow:identifier and gmeow:hasTitle / bibliographic dates; expose concrete download files as gmeow:Manifestation carriers bearing gmeow:mediaType."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:LiteraryWork
@@ -54,6 +74,10 @@ gmeow:LiteraryWork
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Literary Work"@x-gmeow-english ;
     skos:definition "An abstract long-form story or textual work — fiction, poetry, drama, or literary non-fiction. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:example "ex:novel a gmeow:LiteraryWork ; gmeow:hasTitle ex:novelTitle ; gmeow:hasSegment ex:chapter1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an abstract long-form authored story or text — a novel, poetry collection, play, or literary essay at the gmeow:Work tier, the out-of-universe creation that sources an in-universe narrative."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the in-universe narrative frame it contributes to (that is a narrative-slice construct linked by gmeow:sourceFor) and avoid it for a published edition (a gmeow:BookRelease manifestation)."@x-gmeow-english ;
+    gmeow:howToUse "Type the work gmeow:LiteraryWork, give it gmeow:hasTitle and gmeow:hasSegment chapters; link concrete editions as gmeow:BookRelease and the narrative frame it sources via gmeow:sourceFor."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:SerialWork
@@ -61,6 +85,10 @@ gmeow:SerialWork
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Serial Work"@x-gmeow-english ;
     skos:definition "An ongoing authored work released over installments — a web serial, comic series, or magazine. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:example "ex:webserial a gmeow:SerialWork ; gmeow:hasTitle ex:serialTitle ; gmeow:hasPart ex:installment42 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an open-ended authored work released over installments — a web serial, comic series, magazine, or podcast at the gmeow:Work tier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a single issue, episode, or chapter (that is a gmeow:SerialInstallment manifestation) and avoid it for a closed collection issued as one unit (use gmeow:Collection)."@x-gmeow-english ;
+    gmeow:howToUse "Type the work gmeow:SerialWork, give it gmeow:hasTitle, and hang each released installment as a gmeow:SerialInstallment via the universal part spine; the in-universe narrative frame links by gmeow:sourceFor."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --------------------------------------------------------------------------- #
@@ -78,6 +106,12 @@ gmeow:FeedPosting
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Feed Posting"@x-gmeow-english ;
     skos:definition "A short-form work published to a feed, timeline, or platform — a social-media post, a blog entry, a microblog note. A specialisation of gmeow:Work; its kind (social / blog / microblog) is an open gmeow:FeedPostingKind value, never a subclass. Carries the work metadata (title, author, datePublished) and may quote (gmeow:quotesContent) or share (gmeow:sharesContent) other content."@x-gmeow-english ;
+    skos:example "ex:post a gmeow:FeedPosting ; gmeow:feedPostingKind gmeow:feedPostingKindMicroblog ; gmeow:sharesContent ex:article ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a short-form syndicated work published to a feed, timeline, or platform — a social post, microblog note, or blog entry that may quote or repost other content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the posting flavour as a subclass (the kind is a gmeow:feedPostingKind value, Principle 9), and avoid it for a long-form scholarly piece (use gmeow:Article)."@x-gmeow-english ;
+    gmeow:howToUse "Type the post gmeow:FeedPosting, set its flavour with gmeow:feedPostingKind, carry datePublished and title; record quotation via gmeow:quotesContent / gmeow:quotedText and a repost via gmeow:sharesContent. Postings project to schema:SocialMediaPosting / BlogPosting and sioc:Post."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerSchemaOrgJsonLd ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:FeedPostingKind
@@ -85,6 +119,10 @@ gmeow:FeedPostingKind
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Feed Posting Kind"@x-gmeow-english ;
     skos:definition "The kind of a syndicated posting — a VALUE vocabulary (individuals, never subclasses). Social, blog, microblog, forum, and status are examples; the set is open."@x-gmeow-english ;
+    skos:example "ex:feedPostingKindForum a gmeow:FeedPostingKind ; rdfs:label \"forum\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the posting-flavour axis — the open set of individuals (social, blog, microblog, forum, status) that gmeow:feedPostingKind draws from; mint a fresh individual for a flavour not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a posting-flavour SUBCLASS of gmeow:FeedPosting (Principle 9 — no overtyping); a new flavour is always a fresh gmeow:FeedPostingKind individual, never a class."@x-gmeow-english ;
+    gmeow:howToUse "Add a new flavour as a gmeow:FeedPostingKind individual with rdfs:label and skos:definition; reference it from a posting via the functional gmeow:feedPostingKind, which drives the schema projection."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:feedPostingKind
@@ -93,6 +131,10 @@ gmeow:feedPostingKind
     rdfs:range gmeow:FeedPostingKind ;
     rdfs:label "posting kind"@x-gmeow-english ;
     skos:definition "The kind of a posting — a value from the open gmeow:FeedPostingKind vocabulary (social, blog, microblog, …). Drives the schema projection (a social posting → schema:SocialMediaPosting, a blog posting → schema:BlogPosting)."@x-gmeow-english ;
+    skos:example "ex:post gmeow:feedPostingKind gmeow:feedPostingKindBlog ."@x-gmeow-english ;
+    gmeow:useWhen "Use to set a posting's flavour to one gmeow:FeedPostingKind value; functional, so each posting carries exactly one flavour driving its schema projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting two flavours on one posting (it is functional) and avoid using it for content type of an arbitrary work — its domain is gmeow:FeedPosting alone."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:FeedPosting at one gmeow:FeedPostingKind individual; the projection compiler reads it to choose schema:SocialMediaPosting vs schema:BlogPosting."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:feedPostingKindSocial    a gmeow:FeedPostingKind ; rdfs:label "social"@x-gmeow-english ;    skos:definition "A social-media post (a timeline/feed status)."@x-gmeow-english .
@@ -108,6 +150,10 @@ gmeow:quotesContent
     rdfs:range gmeow:Entity ;
     rdfs:label "quotes content"@x-gmeow-english ;
     skos:definition "Relates a work (a posting, an article) to content it quotes — another posting, a passage, an external resource. Non-functional: a work may quote several sources. Projects to schema:Quotation / schema:citation. The quoted passage's text rides gmeow:quotedText when inline."@x-gmeow-english ;
+    skos:example "ex:post gmeow:quotesContent ex:original ; gmeow:quotedText \"the relevant passage\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a work to another resource it quotes — a quoted post, cited passage, or external page; non-functional, so a work may quote several sources."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a repost/boost that carries the original wholesale (that is gmeow:sharesContent) and avoid it for a formal scholarly reference (use gmeow:bibliographicCitation)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Work at the quoted resource via gmeow:quotesContent; when the quote is an inline passage rather than a linkable resource, carry the text on gmeow:quotedText. Projects to schema:Quotation / citation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:quotedText
@@ -116,6 +162,10 @@ gmeow:quotedText
     rdfs:range rdfs:Literal ;
     rdfs:label "quoted text"@x-gmeow-english ;
     skos:definition "The inline text a work quotes when the quoted content is a passage rather than a linkable resource. Non-functional: several quoted passages may appear."@x-gmeow-english ;
+    skos:example "ex:post gmeow:quotedText \"To be, or not to be.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the verbatim inline text a work quotes when the source is a bare passage with no linkable IRI; non-functional, so several passages may appear."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the quoted content has its own resource (link it with gmeow:quotesContent instead) and avoid it for the body text of the work itself."@x-gmeow-english ;
+    gmeow:howToUse "Attach the passage as a literal via gmeow:quotedText, ideally alongside gmeow:quotesContent pointing at the source when one exists."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:sharesContent
@@ -124,6 +174,10 @@ gmeow:sharesContent
     rdfs:range gmeow:Entity ;
     rdfs:label "shares content"@x-gmeow-english ;
     skos:definition "Relates a posting to content it shares or reposts — another posting, an article, a media object. The repost/share/boost edge. Non-functional. Projects to schema:sharedContent."@x-gmeow-english ;
+    skos:example "ex:repost gmeow:sharesContent ex:originalPost ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the repost / boost / share edge — a posting that forwards another posting, article, or media object wholesale; non-functional, so a posting may share several items."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an inline quotation of selected text (use gmeow:quotesContent / gmeow:quotedText) and avoid it on non-posting works — its domain is gmeow:FeedPosting."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:FeedPosting at the shared resource via gmeow:sharesContent; it projects to schema:sharedContent. Pair with gmeow:quotesContent when the repost also adds quoted commentary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:DataFeed
@@ -131,6 +185,10 @@ gmeow:DataFeed
     rdfs:subClassOf gmeow:Collection ;
     rdfs:label "Data Feed"@x-gmeow-english ;
     skos:definition "A published, ordered stream of items — a syndication feed (RSS/Atom/JSON Feed), a timeline, an activity feed. A specialisation of gmeow:Collection; its items ride the universal gmeow:hasPart spine and project to schema:DataFeed / dataFeedElement / DataFeedItem."@x-gmeow-english ;
+    skos:example "ex:blogfeed a gmeow:DataFeed ; gmeow:hasPart ex:post1, ex:post2 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an ongoing, ordered stream of items — an RSS/Atom/JSON feed, a timeline, an activity feed — whose membership grows over time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a closed dataset published as one unit (use gmeow:Dataset) and avoid minting a feed-item subproperty — feed members ride the universal gmeow:hasPart spine."@x-gmeow-english ;
+    gmeow:howToUse "Type the feed gmeow:DataFeed and attach its items via gmeow:hasPart; it projects to schema:DataFeed with each member becoming a schema:DataFeedItem under dataFeedElement."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:MediaObject
@@ -140,6 +198,10 @@ gmeow:MediaObject
     skos:definition "An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:colourspace ;
     gmeow:frameRequirementSeverity "warning" ;
+    skos:example "ex:photo a gmeow:MediaObject ; gmeow:mediaType \"image/avif\" ; gmeow:pixelWidth 4032 ; gmeow:depicts ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a concrete image, audio, or video file — the published media artifact that carries pixel dimensions, a MIME type, a capture time, a transcript, or a depiction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the abstract work the media realises (that is a gmeow:Work) and avoid it for a non-media web page (gmeow:WebPage); the colourspace reference frame should be carried where known (Principle 11)."@x-gmeow-english ;
+    gmeow:howToUse "Type the file gmeow:MediaObject, set gmeow:mediaType plus pixel/orientation/capture metadata, carry the colourspace frame via gmeow:colourspace, and record subjects with the flat gmeow:depicts (promote to a DepictionUsage relator when context matters)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:transcript
@@ -148,6 +210,10 @@ gmeow:transcript
     rdfs:range rdfs:Literal ;
     rdfs:label "transcript"@x-gmeow-english ;
     skos:definition "A text transcript of the spoken/audio content of a media object (schema:transcript). Distinct from gmeow:transcriptionOf, which is phonetic/script transcription of language — this is the verbatim text of audio/video. Non-functional: a media object may carry transcripts in several languages."@x-gmeow-english ;
+    skos:example "ex:podcast gmeow:transcript \"Welcome to the show...\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the verbatim text of a media object's spoken or audio content — a podcast or video transcript; non-functional, so multilingual transcripts coexist with language tags."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for phonetic/script transcription of language (that is gmeow:transcriptionOf in the names slice) and avoid it for a short on-screen caption (use gmeow:caption)."@x-gmeow-english ;
+    gmeow:howToUse "Attach the transcript text on gmeow:transcript with a language tag per rendition; pair with gmeow:contentLanguage on the carrying work. Projects to schema:transcript."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:caption
@@ -156,6 +222,10 @@ gmeow:caption
     rdfs:range rdfs:Literal ;
     rdfs:label "caption"@x-gmeow-english ;
     skos:definition "A caption for a media object — the short text shown with an image, audio, or video (schema:caption). Non-functional."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:caption \"Sunset over the harbour, 2019.\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the short descriptive text displayed alongside an image, audio, or video; non-functional, so localized captions coexist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the full verbatim transcript of audio/video (use gmeow:transcript) and avoid it for the work's title (use gmeow:hasTitle / gmeow:title)."@x-gmeow-english ;
+    gmeow:howToUse "Attach the caption literal on gmeow:caption with a language tag; it projects to schema:caption. Use gmeow:transcript for the full audio text."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:WebPage
@@ -163,6 +233,10 @@ gmeow:WebPage
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Web Page"@x-gmeow-english ;
     skos:definition "A page on the web identified by a URL — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
+    skos:example "ex:aboutPage a gmeow:WebPage ; gmeow:pageOfSite ex:site ; gmeow:pagePrincipalSubject ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a single web page identified by a URL — the concrete published rendering, member of a gmeow:WebSite and possibly naming a principal subject."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the whole published collection of pages (use gmeow:WebSite) and avoid it for the abstract work the page renders (a gmeow:Work)."@x-gmeow-english ;
+    gmeow:howToUse "Type the page gmeow:WebPage, link it to its site with gmeow:pageOfSite and its principal subject with gmeow:pagePrincipalSubject; when that subject is a gmeow:Agent the page is inferred a gmeow:ProfilePage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --------------------------------------------------------------------------- #
@@ -180,6 +254,10 @@ gmeow:WebSite
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Web Site"@x-gmeow-english ;
     skos:definition "A web site — the published collection of web pages served under one identity (a domain, a project site, a personal homepage). A specialization of gmeow:Manifestation; its pages belong to it via gmeow:pageOfSite."@x-gmeow-english ;
+    skos:example "ex:site a gmeow:WebSite ; gmeow:hasTitle ex:siteTitle ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the published collection of web pages served under one identity — a domain, project site, or personal homepage that pages belong to."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a single page within the site (use gmeow:WebPage) and avoid storing breadcrumb navigation as a vocabulary — the page→site hierarchy is walked by the projection."@x-gmeow-english ;
+    gmeow:howToUse "Type the site gmeow:WebSite, give it a gmeow:hasTitle, and attach each page via gmeow:pageOfSite (a gmeow:partOf specialization); it projects to schema:WebSite."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:pageOfSite
@@ -189,6 +267,10 @@ gmeow:pageOfSite
     rdfs:range gmeow:WebSite ;
     rdfs:label "page of site"@x-gmeow-english ;
     skos:definition "Relates a web page to the web site it belongs to — a specialisation of gmeow:partOf, so site membership rides the universal mereology spine. The discrete page→site→… hierarchy a breadcrumb trail walks."@x-gmeow-english ;
+    skos:example "ex:aboutPage gmeow:pageOfSite ex:site ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a web page belongs to a web site — the page→site membership a breadcrumb trail walks; rides the universal gmeow:partOf spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a bare gmeow:partOf when site membership is meant (assert this specialization so generic consumers still read partOf by inheritance) and avoid using it for the page's subject (that is gmeow:pagePrincipalSubject)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:WebPage at its gmeow:WebSite via gmeow:pageOfSite; the projection walks this hierarchy to render breadcrumbs and schema:isPartOf."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:pagePrincipalSubject
@@ -198,6 +280,10 @@ gmeow:pagePrincipalSubject
     rdfs:range gmeow:Entity ;
     rdfs:label "page main entity"@x-gmeow-english ;
     skos:definition "The principal subject a web page is primarily about — the one entity it represents (a person's profile page, an organization's about page). A functional specialisation of gmeow:isAbout (a page has at most one principal subject, though it may mention many). When the principal subject is an Agent the page is inferred a gmeow:ProfilePage."@x-gmeow-english ;
+    skos:example "ex:aboutPage gmeow:pagePrincipalSubject ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the one entity a web page is primarily about — the subject of a profile or about page; functional, a page has at most one principal subject."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for every entity merely mentioned on the page (use the broader gmeow:isAbout for incidental mentions) and avoid asserting two principal subjects (it is functional)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:WebPage at its principal subject via gmeow:pagePrincipalSubject (a functional gmeow:isAbout specialization); when the subject is a gmeow:Agent the page is automatically inferred a gmeow:ProfilePage and projects to schema:mainEntityOfPage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:ProfilePage
@@ -205,6 +291,10 @@ gmeow:ProfilePage
     rdfs:subClassOf gmeow:WebPage ;
     rdfs:label "Profile Page"@x-gmeow-english ;
     skos:definition "A web page whose principal subject is an agent — a person's or organization's profile/about page. A DEFINED class: any gmeow:WebPage whose gmeow:pagePrincipalSubject is a gmeow:Agent IS a ProfilePage (≡ gmeow:WebPage ⊓ ∃gmeow:pagePrincipalSubject.gmeow:Agent), so no manual typing is needed. Projects to schema:ProfilePage."@x-gmeow-english ;
+    skos:example "ex:aboutPage a gmeow:WebPage ; gmeow:pagePrincipalSubject ex:lillith .  # ex:lillith an Agent ⇒ ex:aboutPage inferred a gmeow:ProfilePage"@x-gmeow-english ;
+    gmeow:useWhen "Use as the QUERY target for any page that profiles an agent; membership is derived, so reach for it when selecting or projecting profile/about pages rather than to type them by hand."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting rdf:type gmeow:ProfilePage manually — it is a defined class inferred from gmeow:pagePrincipalSubject ranging over a gmeow:Agent; assert the principal subject instead and let the reasoner classify."@x-gmeow-english ;
+    gmeow:howToUse "Do not type instances directly: give a gmeow:WebPage a gmeow:pagePrincipalSubject that is a gmeow:Agent and the equivalence axiom classifies it as a ProfilePage, which projects to schema:ProfilePage."@x-gmeow-english ;
     owl:equivalentClass [
         a owl:Class ;
         owl:intersectionOf (
@@ -219,7 +309,11 @@ gmeow:mediaType
     rdfs:domain gmeow:Entity ;
     rdfs:range rdfs:Literal ;
     rdfs:label "media type"@x-gmeow-english ;
-    skos:definition "The IANA media (MIME) type of an artifact — 'text/plain', 'application/pdf', 'image/avif'. Universal: an email body part, a Manifestation, a Distribution all carry one. Projects to schema:encodingFormat. (Generalised from the email slice,.)"@x-gmeow-english;
+    skos:definition "The IANA media (MIME) type of an artifact — 'text/plain', 'application/pdf', 'image/avif'. Universal: an email body part, a Manifestation, a Distribution all carry one. Projects to schema:encodingFormat. (Generalised from the email slice.)"@x-gmeow-english;
+    skos:example "ex:attachment gmeow:mediaType \"application/pdf\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the IANA media (MIME) type of any content carrier — a Manifestation, an email body part, a distribution file; functional, one media type per artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the natural language of the content (use gmeow:contentLanguage) and avoid asserting two media types on one artifact — model distinct encodings as distinct carrier objects."@x-gmeow-english ;
+    gmeow:howToUse "Carry the MIME string on gmeow:mediaType of the concrete carrier; it projects to schema:encodingFormat. Pair with gmeow:contentLanguage and the relevant pixel/extent metadata on a gmeow:MediaObject."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:contentLanguage
@@ -228,6 +322,10 @@ gmeow:contentLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "content language"@x-gmeow-english ;
     skos:definition "The natural language of a work's content — the language a document, article, or page is written in. Distinct from the names slice's per-appellation language tag: this is the language of the BODY, not of a name. Non-functional: a multilingual work has several. Projects to schema:inLanguage / schema:iso6391Code (the BCP-47 / ISO 639-1 code reconstructed from the gmeow:Language)."@x-gmeow-english ;
+    skos:example "ex:article gmeow:contentLanguage ex:languageFrench ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the natural language a work's body is written in — the language of the content itself; non-functional, so a multilingual work names several."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the language of a single name or title (that is the names slice's per-appellation language tag) and avoid a bare BCP-47 string — point at a gmeow:Language individual."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Work at one or more gmeow:Language individuals via gmeow:contentLanguage; the projection reconstructs schema:inLanguage / iso6391Code from the language."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:BookRelease
@@ -235,6 +333,10 @@ gmeow:BookRelease
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Book Release"@x-gmeow-english ;
     skos:definition "A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. A specialization of gmeow:Manifestation. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor."@x-gmeow-english ;
+    skos:example "ex:firstEdition a gmeow:BookRelease ; gmeow:identifier \"978-0-13-468599-1\" ; gmeow:sourceFor ex:narrativeFrame ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a concrete published edition or release of a book — the rights-bearing, ISBN-carrying publication artifact at the gmeow:Manifestation tier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the abstract literary work the edition realises (use gmeow:LiteraryWork) and avoid conflating it with the in-universe narrative frame it sources (link by gmeow:sourceFor)."@x-gmeow-english ;
+    gmeow:howToUse "Type the edition gmeow:BookRelease, carry its ISBN on gmeow:identifier and gmeow:mediaType / gmeow:extent; link the abstract work it manifests and the narrative frame it sources via gmeow:sourceFor."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:SerialInstallment
@@ -242,6 +344,10 @@ gmeow:SerialInstallment
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Serial Installment"@x-gmeow-english ;
     skos:definition "A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources. A specialization of gmeow:Manifestation."@x-gmeow-english ;
+    skos:example "ex:episode5 a gmeow:SerialInstallment ; gmeow:partOf ex:serialWork ; gmeow:datePublished \"2023-10-01T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for one published installment of a serial — a comic issue, TV episode, magazine issue, or serial chapter at the gmeow:Manifestation tier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the ongoing serial work as a whole (use gmeow:SerialWork) and avoid conflating it with the in-universe narrative frame it sources (link by gmeow:sourceFor)."@x-gmeow-english ;
+    gmeow:howToUse "Type the installment gmeow:SerialInstallment, attach it to its gmeow:SerialWork via the part spine, carry gmeow:datePublished, and link the narrative frame it sources via gmeow:sourceFor."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:ContentSegment
@@ -249,6 +355,10 @@ gmeow:ContentSegment
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Content Segment"@x-gmeow-english ;
     skos:definition "A structural part of a creative work, release, or installment — a chapter, section, scene, or episode. A gufo:Kind with distinct identity criteria (position and type within a containing whole)."@x-gmeow-english ;
+    skos:example "ex:chapter1 a gmeow:ContentSegment ; gmeow:segmentType gmeow:segmentTypeChapter ; gmeow:segmentIndex 1 ; gmeow:segmentOf ex:novel ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a structural part of a work — a chapter, section, scene, or episode whose identity is its position and type within a containing whole."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the whole work itself (use the appropriate gmeow:Work / gmeow:Manifestation) and avoid encoding the segment kind as a subclass — the kind is a gmeow:segmentType value (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Type the part gmeow:ContentSegment, set its kind with gmeow:segmentType and order with gmeow:segmentIndex, and attach it to its containing whole via gmeow:segmentOf (inverse gmeow:hasSegment)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:ReadingOrder
@@ -256,6 +366,10 @@ gmeow:ReadingOrder
     rdfs:subClassOf gmeow:Standpoint ;
     rdfs:label "Reading Order"@x-gmeow-english ;
     skos:definition "A standpoint that supplies a subjective ordering for consuming segments of a work — publication order, internal chronology, author-recommended order, or fandom order. Never canonical ontology truth; claims are annotated gmeow:accordingTo a ReadingOrder."@x-gmeow-english ;
+    skos:example "ex:chronologicalOrder a gmeow:ReadingOrder . ex:claim gmeow:accordingTo ex:chronologicalOrder ."@x-gmeow-english ;
+    gmeow:useWhen "Use to model a subjective ordering for consuming a work's segments — publication order, internal chronology, author-recommended or fandom order — that competing orderings may contradict without one being canonical."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting any ordering as canonical ontology truth (a ReadingOrder is a gmeow:Standpoint, never a global fact) and avoid the bare gmeow:segmentIndex for it — index is structural position, reading order is perspectival."@x-gmeow-english ;
+    gmeow:howToUse "Mint the ordering as a gmeow:ReadingOrder standpoint and index each ordering claim with gmeow:accordingTo that standpoint, letting co-equal orderings coexist rather than picking a primary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:CreativeWorkTitle
@@ -263,6 +377,10 @@ gmeow:CreativeWorkTitle
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Creative Work Title"@x-gmeow-english ;
     skos:definition "An appellation borne by a creative work — a document title, article headline, dataset name, or media title. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual titles (e.g. 'The Matrix' / '黑客帝国') are separate first-class objects, never alternateName subordinates."@x-gmeow-english ;
+    skos:example "ex:titleEn a gmeow:CreativeWorkTitle ; gmeow:nameLanguage ex:languageEnglish . ex:work gmeow:hasTitle ex:titleEn ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a structured, language- and script-tagged title borne by a creative work when co-equal multilingual titles must each be a first-class object — an original and its translation, a romanization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the 80% case of a single plain title (use the flat gmeow:title literal) and avoid demoting a translated title to an alternateName subordinate — co-equal titles are separate objects (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:CreativeWorkTitle per title, carry gmeow:nameLanguage / gmeow:nameScript on it, and link it to the work with gmeow:hasTitle; mark a superseded title gmeow:displayable false rather than deleting it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:hasSegment
@@ -271,6 +389,10 @@ gmeow:hasSegment
     rdfs:range gmeow:ContentSegment ;
     rdfs:label "has segment"@x-gmeow-english ;
     skos:definition "Relates a whole (work, release, installment, or another segment) to a structural part. Non-functional: a work may have many segments. Inverse of gmeow:segmentOf."@x-gmeow-english ;
+    skos:example "ex:novel gmeow:hasSegment ex:chapter1, ex:chapter2 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach a structural gmeow:ContentSegment to its containing whole from the whole's side — a work, release, installment, or parent segment to its chapters/scenes; non-functional."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for non-structural membership (a feed's items ride the generic gmeow:hasPart) and prefer asserting gmeow:segmentOf, reading gmeow:hasSegment as its inverse, except in whole-rooted projections."@x-gmeow-english ;
+    gmeow:howToUse "Attach each gmeow:ContentSegment to its whole; gmeow:hasSegment specializes gmeow:hasPart so generic part queries still see it, and gmeow:segmentOf is its transitive inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:segmentOf
@@ -281,6 +403,10 @@ gmeow:segmentOf
     rdfs:range gmeow:Entity ;
     rdfs:label "segment of"@x-gmeow-english ;
     skos:definition "A structural segment is part of a larger whole — a work, release, installment, or another segment. Transitive; inverse of gmeow:hasSegment."@x-gmeow-english ;
+    skos:example "ex:scene3 gmeow:segmentOf ex:chapter1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use from the part's side to say a gmeow:ContentSegment belongs to a larger whole — a scene in a chapter, a chapter in a work; transitive, so nested structure closes up the spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for generic non-structural parthood (use gmeow:partOf) and avoid asserting both directions redundantly — assert gmeow:segmentOf and read gmeow:hasSegment as its inverse."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:ContentSegment at its containing whole via gmeow:segmentOf; it specializes gmeow:partOf, so generic consumers read parthood by inheritance and transitivity assembles the nesting."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:segmentType
@@ -289,6 +415,10 @@ gmeow:segmentType
     rdfs:range gmeow:ContentSegmentType ;
     rdfs:label "segment type"@x-gmeow-english ;
     skos:definition "The structural type of this segment — chapter, section, scene, etc. A value from the open gmeow:ContentSegmentType vocabulary."@x-gmeow-english ;
+    skos:example "ex:chapter1 gmeow:segmentType gmeow:segmentTypeChapter ."@x-gmeow-english ;
+    gmeow:useWhen "Use to set a content segment's structural kind to one gmeow:ContentSegmentType value — chapter, section, scene; functional, one type per segment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the segment kind as a ContentSegment subclass (Principle 9) and avoid asserting two types on one segment (it is functional)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:ContentSegment at one gmeow:ContentSegmentType individual; pair with gmeow:segmentIndex for ordering and gmeow:segmentOf for containment."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:segmentIndex
@@ -297,6 +427,10 @@ gmeow:segmentIndex
     rdfs:range xsd:integer ;
     rdfs:label "segment index"@x-gmeow-english ;
     skos:definition "The position of this segment within its containing whole — 1-based by convention, but not enforced."@x-gmeow-english ;
+    skos:example "ex:chapter3 gmeow:segmentIndex 3 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the structural position of a content segment within its containing whole — the chapter or scene number; functional, 1-based by convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a subjective reading order (that is a gmeow:ReadingOrder standpoint) and avoid relying on it across whole boundaries — the index is local to one container."@x-gmeow-english ;
+    gmeow:howToUse "Carry the position integer on gmeow:segmentIndex alongside gmeow:segmentOf; perspectival orderings that differ from this structural index ride a gmeow:ReadingOrder."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:hasTitle
@@ -306,6 +440,10 @@ gmeow:hasTitle
     rdfs:range gmeow:CreativeWorkTitle ;
     rdfs:label "has title"@x-gmeow-english ;
     skos:definition "Relates a creative work to a structured gmeow:CreativeWorkTitle it bears; the creative-work-scoped specialization of gmeow:hasAppellation. Non-functional — a work bears many co-equal titles (original, translated, transliterated, regional); none is primary, and superseded ones set gmeow:displayable false. The structured replacement for the flat gmeow:title literal when multilingual or statement-level metadata is needed."@x-gmeow-english ;
+    skos:example "ex:work gmeow:hasTitle ex:titleEn, ex:titleZh ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a creative work to a structured gmeow:CreativeWorkTitle when title metadata (language, script, evidence, supersession) matters; non-functional, a work bears many co-equal titles."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the 80% case of a single plain title (use the flat gmeow:title literal) and avoid marking any title primary — co-equal titles coexist, and a superseded one sets gmeow:displayable false rather than being deleted."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:CreativeWork at each gmeow:CreativeWorkTitle via gmeow:hasTitle (a gmeow:hasAppellation specialization); the flat/structured pairing lets gmeow describe render the promotion path from gmeow:title."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:title
@@ -313,7 +451,11 @@ gmeow:title
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
     rdfs:label "title"@x-gmeow-english ;
-    skos:definition "The title of a creative work."@x-gmeow-english ;
+    skos:definition "The flat title literal of a creative work — the 80%-case shortcut for a single plain title. Promote to a structured gmeow:CreativeWorkTitle via gmeow:hasTitle when language, script, evidence, or co-equal multilingual titles must be first-class."@x-gmeow-english ;
+    skos:example "ex:work gmeow:title \"Moby-Dick\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the 80% case of a single plain title on a creative work — the flat literal shortcut when no language, script, or statement-level title metadata is needed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when co-equal multilingual titles, scripts, or supersession must be modelled — promote to a structured gmeow:CreativeWorkTitle linked by gmeow:hasTitle."@x-gmeow-english ;
+    gmeow:howToUse "Carry the title string on gmeow:title; when richer metadata is later needed, mint gmeow:CreativeWorkTitle objects and link them via gmeow:hasTitle (the flat/reified pair)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:identifier
@@ -322,6 +464,10 @@ gmeow:identifier
     rdfs:range rdfs:Literal ;
     rdfs:label "identifier"@x-gmeow-english ;
     skos:definition "A formal identifier of a creative work, such as a DOI or patent number."@x-gmeow-english ;
+    skos:example "ex:paper gmeow:identifier \"doi:10.1145/3290605\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a formal external identifier of a creative work — a DOI, ISBN, patent number, or accession; non-functional, so a work may carry several identifier schemes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the work's title (use gmeow:title / gmeow:hasTitle) and avoid it for the GMEOW IRI itself — this is an external identifier literal, not the resource's identity."@x-gmeow-english ;
+    gmeow:howToUse "Carry each identifier as a scheme-prefixed literal on gmeow:identifier (e.g. 'doi:...', 'isbn:...'); project to schema:identifier with the appropriate property type."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:datePublished
@@ -330,6 +476,10 @@ gmeow:datePublished
     rdfs:range xsd:dateTime ;
     rdfs:label "date published"@x-gmeow-english ;
     skos:definition "The date a creative work was published or issued."@x-gmeow-english ;
+    skos:example "ex:book gmeow:datePublished \"1851-11-14T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the publication / issue date of a creative work — when it was released to the public; carried as DL-clean xsd:dateTime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:dateCreated (when the work was made) or the creation event's full temporal extent, and avoid xsd:date — base triples stay xsd:dateTime (Principle 3)."@x-gmeow-english ;
+    gmeow:howToUse "Carry the publication instant on gmeow:datePublished as xsd:dateTime; when the date is fuzzy or the act has participants, model it as a gmeow:Event of gmeow:eventTypeManifestationProduction instead."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # =========================================================================== #
@@ -341,6 +491,10 @@ gmeow:ContentSegmentType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Content Segment Type"@x-gmeow-english ;
     skos:definition "The structural type of a content segment — a VALUE vocabulary (individuals, never subclasses). Chapter, section, scene, and paragraph are examples; the set is open."@x-gmeow-english ;
+    skos:example "ex:segmentTypeAct a gmeow:ContentSegmentType ; rdfs:label \"act\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the segment-kind axis — the open set of individuals (chapter, section, scene, paragraph, front matter, …) that gmeow:segmentType draws from; mint a fresh individual for a kind not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a segment-kind SUBCLASS of gmeow:ContentSegment (Principle 9 — no overtyping); a new kind is always a fresh gmeow:ContentSegmentType individual, never a class."@x-gmeow-english ;
+    gmeow:howToUse "Add a new kind as a gmeow:ContentSegmentType individual with rdfs:label and skos:definition; reference it from a segment via the functional gmeow:segmentType."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --------------------------------------------------------------------------- #
@@ -368,6 +522,10 @@ gmeow:dateCreated
     rdfs:range xsd:dateTime ;
     rdfs:label "date created"@x-gmeow-english ;
     skos:definition "The date a creative work was created. Distinct from datePublished (the issue/release date) and from the creation event's full temporal extent."@x-gmeow-english ;
+    skos:example "ex:work gmeow:dateCreated \"2024-01-05T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the date a creative work was made, as distinct from when it was published; carried as DL-clean xsd:dateTime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:datePublished (the release date) and avoid xsd:date; when the creation act has participants or fuzzy time, model a gmeow:Event of gmeow:eventTypeCreation."@x-gmeow-english ;
+    gmeow:howToUse "Carry the creation instant on gmeow:dateCreated as xsd:dateTime; promote to a gmeow:Event when authorship, place, or precision must be recorded."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:dateModified
@@ -376,6 +534,10 @@ gmeow:dateModified
     rdfs:range xsd:dateTime ;
     rdfs:label "date modified"@x-gmeow-english ;
     skos:definition "The date a creative work was last modified."@x-gmeow-english ;
+    skos:example "ex:page gmeow:dateModified \"2025-09-30T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the date a creative work was last modified — the revision timestamp; carried as DL-clean xsd:dateTime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:dateCreated or gmeow:datePublished, and avoid xsd:date; a full revision history is a chain of gmeow:Event nodes, not a single literal."@x-gmeow-english ;
+    gmeow:howToUse "Carry the last-modified instant on gmeow:dateModified as xsd:dateTime; record a full edit history as gmeow:Event occurrences when provenance matters."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:dateAvailable
@@ -384,6 +546,10 @@ gmeow:dateAvailable
     rdfs:range xsd:dateTime ;
     rdfs:label "date available"@x-gmeow-english ;
     skos:definition "The date a creative work became or will become available."@x-gmeow-english ;
+    skos:example "ex:dataset gmeow:dateAvailable \"2026-01-01T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the date a creative work became or will become available — an embargo lift or scheduled release date; carried as DL-clean xsd:dateTime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:datePublished (formal issue) when an embargo separates availability from publication, and avoid xsd:date."@x-gmeow-english ;
+    gmeow:howToUse "Carry the availability instant on gmeow:dateAvailable as xsd:dateTime; pair with gmeow:hasDisclosurePolicy when availability is conditional on a release decision."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:dateAccepted
@@ -392,6 +558,10 @@ gmeow:dateAccepted
     rdfs:range xsd:dateTime ;
     rdfs:label "date accepted"@x-gmeow-english ;
     skos:definition "The date a creative work was accepted (e.g. by a journal, conference, or repository)."@x-gmeow-english ;
+    skos:example "ex:paper gmeow:dateAccepted \"2024-02-15T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the date a scholarly work was accepted by a journal, conference, or repository — the acceptance milestone in a review workflow; carried as DL-clean xsd:dateTime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:dateSubmitted (the submission milestone) or gmeow:datePublished (the issue date), and avoid xsd:date."@x-gmeow-english ;
+    gmeow:howToUse "Carry the acceptance instant on gmeow:dateAccepted as xsd:dateTime, typically alongside gmeow:dateSubmitted and gmeow:datePublished on a gmeow:Article."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:dateSubmitted
@@ -400,6 +570,10 @@ gmeow:dateSubmitted
     rdfs:range xsd:dateTime ;
     rdfs:label "date submitted"@x-gmeow-english ;
     skos:definition "The date a creative work was submitted for review or publication."@x-gmeow-english ;
+    skos:example "ex:paper gmeow:dateSubmitted \"2023-11-01T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the date a work was submitted for review or publication — the submission milestone in a review workflow; carried as DL-clean xsd:dateTime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:dateAccepted or gmeow:datePublished, and avoid xsd:date."@x-gmeow-english ;
+    gmeow:howToUse "Carry the submission instant on gmeow:dateSubmitted as xsd:dateTime, typically alongside gmeow:dateAccepted and gmeow:datePublished on a gmeow:Article."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --- DC description refinements -------------------------------- #
@@ -410,6 +584,10 @@ gmeow:abstract
     rdfs:range rdfs:Literal ;
     rdfs:label "abstract"@x-gmeow-english ;
     skos:definition "A summary of the content of a creative work."@x-gmeow-english ;
+    skos:example "ex:paper gmeow:abstract \"We present a method for...\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a prose summary of a creative work's content — a paper abstract or executive summary; non-functional, so localized abstracts coexist with language tags."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a structured list of subunits (use gmeow:tableOfContents) and for a short display caption (use gmeow:caption)."@x-gmeow-english ;
+    gmeow:howToUse "Carry the summary literal on gmeow:abstract with a language tag per rendition; projects to schema:abstract / dcterms:abstract."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:tableOfContents
@@ -418,6 +596,10 @@ gmeow:tableOfContents
     rdfs:range rdfs:Literal ;
     rdfs:label "table of contents"@x-gmeow-english ;
     skos:definition "A list of subunits of a creative work."@x-gmeow-english ;
+    skos:example "ex:book gmeow:tableOfContents \"1. Loomings -- 2. The Carpet-Bag -- ...\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a literal list of a work's subunits — a table-of-contents string captured as text from a source."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the structure should be queryable — model the subunits as gmeow:ContentSegment objects with gmeow:segmentIndex and let the projection render the TOC from structure."@x-gmeow-english ;
+    gmeow:howToUse "Carry the TOC string on gmeow:tableOfContents for the flat case; for structural navigation, prefer gmeow:hasSegment chains over a stored string."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --- DC bibliographic refinements ------------------------------ #
@@ -428,6 +610,10 @@ gmeow:bibliographicCitation
     rdfs:range rdfs:Literal ;
     rdfs:label "bibliographic citation"@x-gmeow-english ;
     skos:definition "A bibliographic reference for a creative work."@x-gmeow-english ;
+    skos:example "ex:paper gmeow:bibliographicCitation \"Smith, J. (2024). A Method. J. ACM 71(2).\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a preformatted bibliographic reference string for a creative work — a human-readable citation captured verbatim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an inline quotation of the work's content (use gmeow:quotesContent / gmeow:quotedText) and avoid it where structured citation/credit metadata is needed — model that through the citation-and-credit constructs."@x-gmeow-english ;
+    gmeow:howToUse "Carry the citation string on gmeow:bibliographicCitation for the flat case; promote to the structured citation relator when authorship, role, and credit must be first-class."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:extent
@@ -436,6 +622,10 @@ gmeow:extent
     rdfs:range rdfs:Literal ;
     rdfs:label "extent"@x-gmeow-english ;
     skos:definition "The size or duration of a creative work."@x-gmeow-english ;
+    skos:example "ex:book gmeow:extent \"635 pages\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a human-readable size or duration of a creative work — '635 pages', '47 minutes', '2.3 MB' — captured as a literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for pixel dimensions of an image/video (use gmeow:pixelWidth / gmeow:pixelHeight) and for the MIME type (use gmeow:mediaType); prefer a typed quantity when arithmetic is needed."@x-gmeow-english ;
+    gmeow:howToUse "Carry the extent string on gmeow:extent; for measurable image/media dimensions use the typed pixel/orientation properties instead."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # --- Image technical metadata ---------------------------------- #
@@ -448,6 +638,10 @@ gmeow:pixelWidth
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "pixel width"@x-gmeow-english ;
     skos:definition "The width of a media object in pixels. Functional: one width per manifestation."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:pixelWidth 4032 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the pixel width of a media object — an image or video frame; functional, one width per manifestation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a human-readable extent string (use gmeow:extent) and avoid asserting two widths on one manifestation — distinct renditions are distinct gmeow:MediaObject carriers."@x-gmeow-english ;
+    gmeow:howToUse "Carry the width integer on gmeow:pixelWidth of the gmeow:MediaObject, paired with gmeow:pixelHeight; projects to schema:width."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:pixelHeight
@@ -456,6 +650,10 @@ gmeow:pixelHeight
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "pixel height"@x-gmeow-english ;
     skos:definition "The height of a media object in pixels. Functional: one height per manifestation."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:pixelHeight 3024 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the pixel height of a media object — an image or video frame; functional, one height per manifestation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a human-readable extent string (use gmeow:extent) and avoid asserting two heights on one manifestation — distinct renditions are distinct gmeow:MediaObject carriers."@x-gmeow-english ;
+    gmeow:howToUse "Carry the height integer on gmeow:pixelHeight of the gmeow:MediaObject, paired with gmeow:pixelWidth; projects to schema:height."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:imageOrientation
@@ -464,6 +662,10 @@ gmeow:imageOrientation
     rdfs:range xsd:decimal ;
     rdfs:label "image orientation"@x-gmeow-english ;
     skos:definition "The clockwise rotation of an image from its normal orientation, in degrees (EXIF convention: 0, 90, 180, 270). Functional: one orientation per manifestation. Transform math lives in the solver layer (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:imageOrientation 90 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the clockwise EXIF rotation of an image from its normal orientation, in degrees (0/90/180/270); functional, one orientation per manifestation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the rotation transform's math here (it lives in the solver layer, Principle 12) and avoid arbitrary non-EXIF angles — use the standard 0/90/180/270 convention."@x-gmeow-english ;
+    gmeow:howToUse "Carry the rotation degrees on gmeow:imageOrientation of the gmeow:MediaObject; the solver applies the actual pixel transform when rendering."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:captureTime
@@ -472,6 +674,10 @@ gmeow:captureTime
     rdfs:range xsd:dateTime ;
     rdfs:label "capture time"@x-gmeow-english ;
     skos:definition "The date and time when the image or media was captured. Non-functional: competing capture-time claims from different sources or EXIF vs. metadata may coexist with confidence."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:captureTime \"2019-07-04T18:23:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for when an image or media was captured — the shutter/recording instant; non-functional, so competing EXIF-vs-metadata claims coexist with confidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gmeow:datePublished (when the media was published) and avoid collapsing competing source times — keep it non-functional and index disputes with gmeow:accordingTo."@x-gmeow-english ;
+    gmeow:howToUse "Carry the capture instant on gmeow:captureTime as xsd:dateTime; pair with gmeow:captureDevice and carry conflicting claims as standpoint-indexed statements rather than choosing one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:captureDevice
@@ -480,6 +686,10 @@ gmeow:captureDevice
     rdfs:range gmeow:PhysicalObject ;
     rdfs:label "capture device"@x-gmeow-english ;
     skos:definition "The physical device (camera, scanner, screen-capture hardware) that captured the media. Non-functional: multiple devices may be asserted (e.g. a composite image)."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:captureDevice ex:cameraBody ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a media object to the physical device that captured it — a camera, scanner, or screen-capture rig; non-functional, so a composite may name several devices."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at an agent (the photographer is an authorship contribution, not the device) and avoid a bare literal — the range is a gmeow:PhysicalObject."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:MediaObject at a gmeow:PhysicalObject via gmeow:captureDevice; record the photographer separately through the contribution relator, and the capture moment via gmeow:captureTime."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:colourspace
@@ -489,20 +699,32 @@ gmeow:colourspace
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:label "colourspace"@x-gmeow-english ;
     skos:definition "The colourspace reference frame in which this media object's pixel values are expressed — sRGB, Adobe RGB, CMYK, CIE XYZ, etc. A subproperty of gmeow:hasReferenceFrame (Principle 11). Multiple colourspace claims for the same image coexist as separate standpoint-indexed assertions (Principle 9), each attributable and confidence-weighted. Not declared FunctionalProperty in the logical core to avoid incorrect owl:sameAs inferences when merging standpoints; single-valued constraint is enforced by SHACL (sh:maxCount 1)."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:colourspace ex:sRGB ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the colourspace reference frame in which a media object's pixel values are expressed — sRGB, Adobe RGB, CMYK; the frame that satisfies gmeow:MediaObject's gmeow:requiresFrame declaration (Principle 11)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid leaving pixel values frameless (a value asserted without its frame is ill-formed) and avoid forcing one colourspace by making it functional — competing standpoint-indexed claims coexist; SHACL enforces single-valued, not OWL (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:MediaObject at a gmeow:ReferenceFrame via gmeow:colourspace (a gmeow:hasReferenceFrame subproperty); carry conflicting colourspace claims as separate attributable, confidence-weighted assertions."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:Collection
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Collection"@x-gmeow-english ;
-    skos:definition "An aggregation of resources. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:definition "An aggregation of resources published or curated as a unit — an anthology, album, gallery, or series bundle. A specialization of gmeow:Work whose members ride the universal gmeow:hasPart spine."@x-gmeow-english ;
+    skos:example "ex:anthology a gmeow:Collection ; gmeow:hasPart ex:story1, ex:story2 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an aggregation of resources curated as a unit — an anthology, album, or gallery at the gmeow:Work tier; its members ride the universal part spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an ongoing ordered feed (use gmeow:DataFeed, which subclasses Collection) and avoid minting a membership subproperty — members ride gmeow:hasPart."@x-gmeow-english ;
+    gmeow:howToUse "Type the aggregate gmeow:Collection and attach its members via gmeow:hasPart; an ordered streaming aggregate is the gmeow:DataFeed specialization."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:Service
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Service"@x-gmeow-english ;
-    skos:definition "A system that provides one or more functions. A specialization of gmeow:Work."@x-gmeow-english ;
+    skos:definition "A system that provides one or more functions — a web API, hosted application, or online service. A specialization of gmeow:Work in the schema.org / creative-work sense (schema:Service)."@x-gmeow-english ;
+    skos:example "ex:api a gmeow:Service ; gmeow:hasTitle ex:apiTitle ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a system offering one or more functions as a creative-work artifact — a web API, hosted app, or online service (schema:Service)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the organization that operates the service (that is a gmeow:Agent) and for a one-off occurrence of using it (that is a gmeow:Event / gmeow:Activity)."@x-gmeow-english ;
+    gmeow:howToUse "Type the service gmeow:Service, give it gmeow:hasTitle and an gmeow:identifier; link the operating organization as a separate gmeow:Agent via the appropriate relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 # =========================================================================== #
@@ -521,6 +743,10 @@ gmeow:depicts
     rdfs:range gmeow:Entity ;
     rdfs:label "depicts"@x-gmeow-english ;
     skos:definition "Relates an image (MediaObject) to an entity it depicts — the flat 80%-case shortcut, subproperty of gmeow:isAbout. Non-functional: an image may depict many entities. Promote to a gmeow:DepictionUsage relator when the context, audience, period, confidence, or evidence of the depiction must be recorded."@x-gmeow-english ;
+    skos:example "ex:photo gmeow:depicts ex:lillith, ex:dog ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the 80% case of an image depicting an entity — the flat shortcut subproperty of gmeow:isAbout; non-functional, an image may depict many entities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the flat form when context, audience, period, confidence, regions, or evidence of the depiction must be recorded — promote to a gmeow:DepictionUsage relator (the images extension), the reified half of the pair."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:MediaObject at each depicted gmeow:Entity via gmeow:depicts; read the inverse with gmeow:depictedIn, and promote to gmeow:DepictionUsage when the depiction needs first-class metadata."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
 
 gmeow:depictedIn
@@ -530,4 +756,8 @@ gmeow:depictedIn
     rdfs:range gmeow:MediaObject ;
     rdfs:label "depicted in"@x-gmeow-english ;
     skos:definition "Relates an entity to an image that depicts it. Inverse of gmeow:depicts. Non-functional: an entity may be depicted in many images."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:depictedIn ex:photo ."@x-gmeow-english ;
+    gmeow:useWhen "Use from the entity's side to find or project the images that depict it — the inverse of gmeow:depicts; non-functional, an entity may appear in many images."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when you have already stated gmeow:depicts (read this as its inverse) and avoid it for richer depiction metadata — that is a gmeow:DepictionUsage relator."@x-gmeow-english ;
+    gmeow:howToUse "Prefer asserting gmeow:depicts and read gmeow:depictedIn as its inverse; reach for it explicitly only in entity-rooted projections where the inverse direction is natural."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .

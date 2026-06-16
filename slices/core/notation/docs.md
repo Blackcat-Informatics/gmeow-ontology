@@ -172,3 +172,51 @@ represented or explicitly accounted for.
 The core framework intentionally stays domain-agnostic. The music extension
 provides the concrete `MusicalParameter` vocabulary, music-domain
 `NotationSystem` individuals, and per-system projection profiles.
+
+## Terms
+
+### gmeow:SymbolicSystem · gmeow:NotationSystem · gmeow:SymbolicSystemKind · gmeow:symbolicSystemKind · gmeow:notationSystemKind
+
+A `SymbolicSystem` is a first-class `InformationObject` — a convention-based
+system of symbols — sitting alongside `Language` and `WritingSystem` as a
+sibling, never a subclass. A `NotationSystem` is a structured `SubKind` of it
+with defined representation rules in a specific domain. `SymbolicSystemKind`
+values classify each via `symbolicSystemKind` / `notationSystemKind`
+(transcription, encoding, musical, mathematical, …).
+
+### gmeow:hasNotationSystem · gmeow:notationSystemFor · gmeow:writingSystemAsNotation
+
+The explicit bridging properties that do the linking the sibling design keeps
+out of the class hierarchy: relating an entity to a notation system it uses, its
+inverse, and the bridge that views a `WritingSystem` as a `NotationSystem`.
+
+### gmeow:NotationSystemUsage · gmeow:NotationUsageRole · gmeow:notationUsageTarget · gmeow:notationUsageNotationSystem · gmeow:notationUsageRole · gmeow:notationUsageInterval
+
+The reified relator binding an entity to a notation system with a role and an
+interval, mirroring `WritingSystemUsage`: `notationUsageTarget` the entity,
+`notationUsageNotationSystem` the system, `notationUsageRole` a `NotationUsageRole`
+value (transcription, representation, …), and `notationUsageInterval` the span it
+held.
+
+### gmeow:NotationProjectionProfile · gmeow:hasNotationProjectionProfile · gmeow:notationSystemOf · gmeow:representableParameter · gmeow:projectableExpression
+
+A `Profile` (from the core profiles slice) declaring how a `NotationSystem`
+projects canonical, frame-relative content — honestly, not the canonical content
+itself. `notationSystemOf` names the one system described,
+`representableParameter` the parameters it carries without loss, and
+`projectableExpression` the expressions it can render; `hasNotationProjectionProfile`
+attaches it.
+
+### gmeow:ProjectionLoss · gmeow:declaredLoss · gmeow:accountsForParameter · gmeow:ProjectionFunction · gmeow:projectionFunction
+
+A `ProjectionLoss` is an abstract value individual (never subclassed) explaining
+what a notation drops or approximates; `declaredLoss` lists them on a profile and
+`accountsForParameter` ties each to the parameters it covers so completeness gates
+can prove every parameter is represented or accounted for. A `ProjectionFunction`
+referenced by `projectionFunction` is the FnO function that performs the render.
+
+### gmeow:smuflCodepoint
+
+A Unicode codepoint reference in the Standard Music Font Layout (SMuFL)
+specification identifying a glyph used by a `NotationSystem`; multiple codepoints
+may be asserted as multiple triples.

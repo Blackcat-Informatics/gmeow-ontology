@@ -26,6 +26,10 @@ gmeow:SexualOrientation
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Sexual Orientation"@x-gmeow-english ;
     skos:definition "A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another."@x-gmeow-english ;
+    skos:example "ex:lillithSexOrient a gmeow:SexualOrientation ; gmeow:sexualOrientationValue gmeow:orientBisexual ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    gmeow:useWhen "Use to reify a person's self-asserted pattern of sexual attraction as a first-class facet that can carry its own determinacy, sensitivity, standpoint, and supersession — one of seven co-equal identity axes, never a default or a derivation of any other."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the pattern of romantic attraction (that is gmeow:RomanticOrientation, a separate split-attraction axis) and avoid inferring it from gender identity, sex assigned at birth, pronouns, or honorifics; reach for the facet rather than hanging an orientation literal straight on the person."@x-gmeow-english ;
+    gmeow:howToUse "Mint the facet, link it from the person with gmeow:hasSexualOrientation, point it at a gmeow:SexualOrientationValue via gmeow:sexualOrientationValue, and tag it gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal; carry a self-identified versus attributed standpoint on the statement layer and supersede with gmeow:displayable false rather than deletion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:hasSexualOrientation
@@ -34,6 +38,17 @@ gmeow:hasSexualOrientation
     rdfs:range gmeow:SexualOrientation ;
     rdfs:label "has sexual orientation"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted sexual-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasRomanticOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasSexualOrientation ex:lillithSexOrient ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach one or more self-asserted sexual-orientation facets to a person — non-functional by design, so concurrent or time-scoped orientations and a superseded prior orientation all coexist on the same person."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making this functional or deleting a superseded value (mark it gmeow:displayable false instead), and avoid asserting it from any other axis — romantic orientation, gender identity, sex assigned at birth, pronouns, or honorifics are co-equal and never derive it."@x-gmeow-english ;
+    gmeow:howToUse "Link the person to a gmeow:SexualOrientation facet rather than a bare value, so determinacy, sensitivity, and standpoint ride on the facet; keep prior assertions with gmeow:displayable false and let self-assertion override any attributed claim on the statement layer."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerPublicSite,
+        gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
     gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
@@ -43,6 +58,10 @@ gmeow:sexualOrientationValue
     rdfs:range gmeow:SexualOrientationValue ;
     rdfs:label "sexual orientation value"@x-gmeow-english ;
     skos:definition "The gmeow:SexualOrientationValue a sexual-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@x-gmeow-english ;
+    skos:example "ex:lillithSexOrient gmeow:sexualOrientationValue gmeow:orientBisexual ."@x-gmeow-english ;
+    gmeow:useWhen "Use to point a gmeow:SexualOrientation facet at the one value it asserts — functional per facet, so a single facet names exactly one orientation value; model a change of orientation as a new facet, not a second value here."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as the romantic-orientation path (that is gmeow:romanticOrientationValue) and avoid forcing the long tail into the seed list; an orientation not seeded is a fresh gmeow:SexualOrientationValue individual carrying its own rdfs:label."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:SexualOrientationValue or mint a fresh labelled individual, and let the facet carry the disclosure facets; when the value is held only loosely, record gmeow:hasDeterminacy gmeow:determinacyFuzzy on the facet rather than on this functional link."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:RomanticOrientation
@@ -50,6 +69,10 @@ gmeow:RomanticOrientation
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Romantic Orientation"@x-gmeow-english ;
     skos:definition "A person's SELF-ASSERTED romantic orientation — the pattern of their romantic attraction — as a reified facet pointing (via gmeow:romanticOrientationValue) to an open gmeow:RomanticOrientationValue. A SEPARATE axis from sexual orientation (split-attraction model); the two are mutually independent (e.g. asexual yet biromantic)."@x-gmeow-english ;
+    skos:example "ex:lillithRomOrient a gmeow:RomanticOrientation ; gmeow:romanticOrientationValue gmeow:romanticBiromantic ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    gmeow:useWhen "Use to reify a person's self-asserted pattern of romantic attraction as a first-class facet — mutually independent of sexual orientation under the split-attraction model, so asexual-yet-biromantic and aromantic-yet-bisexual are directly expressible."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the pattern of sexual attraction (that is gmeow:SexualOrientation) and avoid inferring it from sexual orientation, gender identity, sex assigned at birth, pronouns, or honorifics; reach for the facet rather than a literal on the person."@x-gmeow-english ;
+    gmeow:howToUse "Mint the facet, link it from the person with gmeow:hasRomanticOrientation, point it at a gmeow:RomanticOrientationValue via gmeow:romanticOrientationValue, and tag it gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal; carry the self-identified versus attributed standpoint on the statement layer and supersede with gmeow:displayable false rather than deletion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:hasRomanticOrientation
@@ -58,6 +81,17 @@ gmeow:hasRomanticOrientation
     rdfs:range gmeow:RomanticOrientation ;
     rdfs:label "has romantic orientation"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted romantic-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasSexualOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasRomanticOrientation ex:lillithRomOrient ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach one or more self-asserted romantic-orientation facets to a person — non-functional by design, so concurrent or time-scoped orientations and a superseded prior orientation all coexist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making this functional or deleting a superseded value (mark it gmeow:displayable false instead), and avoid asserting it from sexual orientation or any other co-equal axis — neither derives the other under split-attraction."@x-gmeow-english ;
+    gmeow:howToUse "Link the person to a gmeow:RomanticOrientation facet rather than a bare value, so determinacy, sensitivity, and standpoint ride on the facet; keep prior assertions with gmeow:displayable false and let self-assertion override any attributed claim on the statement layer."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerPublicSite,
+        gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
     gmeow:coequalFacet true ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
@@ -67,6 +101,10 @@ gmeow:romanticOrientationValue
     rdfs:range gmeow:RomanticOrientationValue ;
     rdfs:label "romantic orientation value"@x-gmeow-english ;
     skos:definition "The gmeow:RomanticOrientationValue a romantic-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@x-gmeow-english ;
+    skos:example "ex:lillithRomOrient gmeow:romanticOrientationValue gmeow:romanticBiromantic ."@x-gmeow-english ;
+    gmeow:useWhen "Use to point a gmeow:RomanticOrientation facet at the one value it asserts — functional per facet, so a single facet names exactly one romantic-orientation value; model a change as a new facet, not a second value here."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as the sexual-orientation path (that is gmeow:sexualOrientationValue) and avoid forcing the long tail into the seed list; an orientation not seeded is a fresh gmeow:RomanticOrientationValue individual with its own rdfs:label."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:RomanticOrientationValue or mint a fresh labelled individual, and let the facet carry the disclosure facets; when the value is held only loosely, record gmeow:hasDeterminacy gmeow:determinacyFuzzy on the facet rather than on this functional link."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 # =========================================================================== #
@@ -82,6 +120,10 @@ gmeow:SexualOrientationValue
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Sexual Orientation Value"@x-gmeow-english ;
     skos:definition "A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label."@x-gmeow-english ;
+    skos:example "gmeow:orientPansexual a gmeow:SexualOrientationValue ; rdfs:label \"pansexual\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for sexual-attraction patterns — reference a seed (heterosexual, homosexual, bisexual, pansexual, asexual, demisexual, queer, questioning) or mint a fresh individual for the long tail, each lossily aligned to GSSO/Homosaurus/Wikidata."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-value subclasses or forcing the set into a closed enum (it is an open individual vocabulary), and avoid co-typing a sexual value as a romantic one — the two value spaces are kept disjoint under split-attraction."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded individual from gmeow:sexualOrientationValue, or mint a fresh gmeow:SexualOrientationValue with an rdfs:label and an SSSOM alignment row when the orientation is not seeded; never promote a value to a subclass."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:orientHeterosexual a gmeow:SexualOrientationValue ; rdfs:label "heterosexual"@x-gmeow-english .
@@ -114,6 +156,10 @@ gmeow:RomanticOrientationValue
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Romantic Orientation Value"@x-gmeow-english ;
     skos:definition "A pattern of romantic attraction — a VALUE pointed at by gmeow:romanticOrientationValue, never a subclass. Kept separate from sexual orientation (split-attraction). Open: a fresh individual with rdfs:label when none is seeded."@x-gmeow-english ;
+    skos:example "gmeow:romanticBiromantic a gmeow:RomanticOrientationValue ; rdfs:label \"biromantic\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for romantic-attraction patterns, kept deliberately separate from the sexual value space — reference a seed (heteroromantic, homoromantic, biromantic, panromantic, aromantic, demiromantic, queerromantic, questioning) or mint a fresh individual."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-value subclasses or a closed enum (it is an open individual vocabulary), and avoid co-typing a romantic value as a sexual one — the two value spaces are disjoint so asexual ≠ aromantic stays expressible."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded individual from gmeow:romanticOrientationValue, or mint a fresh gmeow:RomanticOrientationValue with an rdfs:label and an SSSOM alignment row when the orientation is not seeded; never promote a value to a subclass."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:romanticHeteroromantic a gmeow:RomanticOrientationValue ; rdfs:label "heteroromantic"@x-gmeow-english .

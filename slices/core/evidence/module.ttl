@@ -29,6 +29,10 @@ gmeow:EvidenceClass
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Evidence Class"@x-gmeow-english ;
     skos:definition "The kind and strength of evidence supporting a claim — a value vocabulary (individuals, never subclasses). Distinguishes verified facts from self-assertions, anecdotes, rumours, and refinements such as legal filings, trade press, or archive extracts. Coarse tiers and fine-grained refinements coexist; a claim may carry multiple evidence classes simultaneously (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:filingClass a gmeow:EvidenceClass ; rdfs:label \"court filing\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:hasEvidenceClass — the open set of individuals naming the kind and strength of evidence a citation provides (verified, self, anecdotal, rumour, plus refinements such as legal filing or trade press)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-class subclasses (evidence classes are individuals) and avoid conflating warrant with notability — source independence, tier, and coverage depth are the separate Axis B vocabularies; a strong warrant does not establish encyclopedic significance."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded class individuals via the non-functional gmeow:hasEvidenceClass (a citation may carry several); extend the vocabulary with new individuals rather than subclasses when a domain needs a finer evidence kind."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:hasEvidenceClass
@@ -37,6 +41,10 @@ gmeow:hasEvidenceClass
     rdfs:range gmeow:EvidenceClass ;
     rdfs:label "has evidence class"@x-gmeow-english ;
     skos:definition "The evidential warrant of a citation — the kind and strength of evidence it provides for the claim it supports. Non-functional: a single citation may carry multiple evidence classes (e.g. both a legal filing and an independent trade-press article about the same filing), and competing classifications coexist rather than collapse (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:citation gmeow:hasEvidenceClass gmeow:evidenceVERIFIED ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record HOW WELL a citation supports the claim it backs — its evidential warrant — naming one or more gmeow:EvidenceClass individuals on the citation rather than on the asserted fact, so the warrant travels with the evidence link (Axis A)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to assert notability (those are gmeow:sourceIndependence, gmeow:sourceTier, gmeow:coverageDepth, and gmeow:supportsNotability — Axis B) and avoid forcing a single class; a multi-sourced citation legitimately carries several, so it stays non-functional (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:EvidenceClass individuals to the gmeow:CitationAct; let competing standpoint assessments coexist as several class assertions, and keep the notability axes (Axis B) on their own properties."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 # --------------------------------------------------------------------------- #
@@ -158,6 +166,10 @@ gmeow:SourceIndependence
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Source Independence"@x-gmeow-english ;
     skos:definition "The independence of a source from the subject it covers — a value vocabulary (individuals, never subclasses). Distinguishes sources that are editorially independent from those originated or controlled by the subject. This axis is about notability eligibility, not factual truth (Principle 1)."@x-gmeow-english ;
+    skos:example "ex:independent a gmeow:SourceIndependence ; rdfs:label \"independent\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:sourceIndependence — the axis the kernel's publicOnlyWithIndependentSource disclosure policy resolves against — naming whether a source is editorially independent of its subject or self/issuer originated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a measure of evidential warrant (that is gmeow:EvidenceClass) — a self-originated source may verify a fact while failing independence — and avoid per-value subclasses; the values are individuals on the notability axis (Principle 1)."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded individuals via gmeow:sourceIndependence on the citation; the solver consults this axis when resolving the kernel's gmeow:policyPublicOnlyWithIndependentSource posture (P12), and competing standpoint assessments coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:sourceIndependenceIndependent
@@ -177,6 +189,10 @@ gmeow:SourceTier
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Source Tier"@x-gmeow-english ;
     skos:definition "The bibliographic tier of a source — primary, secondary, or tertiary — a value vocabulary (individuals, never subclasses). This is the standard source-tier axis applied to notability assessment (cf. WP:GNG)."@x-gmeow-english ;
+    skos:example "ex:secondary a gmeow:SourceTier ; rdfs:label \"secondary\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:sourceTier — the standard primary/secondary/tertiary bibliographic axis — when classifying a cited source for notability assessment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the source's independence (gmeow:SourceIndependence) or coverage depth (gmeow:CoverageDepth), which are orthogonal Axis B vocabularies, and avoid per-tier subclasses; the tiers are individuals."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded tier individuals via gmeow:sourceTier on the citation; combine with independence and coverage depth so the solver can weigh notability, and let competing tier assessments coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:sourceTierPrimary
@@ -203,6 +219,10 @@ gmeow:CoverageDepth
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Coverage Depth"@x-gmeow-english ;
     skos:definition "The depth of coverage a source provides about its subject — a value vocabulary (individuals, never subclasses). Distinguishes significant in-depth treatment from passing mention or routine filing. This axis is orthogonal to source tier and independence."@x-gmeow-english ;
+    skos:example "ex:inDepth a gmeow:CoverageDepth ; rdfs:label \"significant coverage\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:coverageDepth — naming how substantially a source treats its subject (significant coverage, passing mention, routine filing) for notability assessment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with source tier (gmeow:SourceTier) or independence (gmeow:SourceIndependence) — depth is orthogonal to both — and avoid per-value subclasses; the depths are individuals."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded depth individuals via gmeow:coverageDepth on the citation; a passing mention or routine filing can still verify a fact (Axis A) without supporting notability, so pair it with gmeow:supportsNotability and let competing assessments coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:coverageDepthSignificantCoverage
@@ -233,6 +253,10 @@ gmeow:sourceIndependence
     rdfs:range gmeow:SourceIndependence ;
     rdfs:label "source independence"@x-gmeow-english ;
     skos:definition "The independence status of the source referenced by a citation — independent or self/issuer originated. Non-functional: competing assessments by different standpoints coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:citation gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record whether a cited source is editorially independent of its subject — the axis the kernel's gmeow:policyPublicOnlyWithIndependentSource disclosure policy resolves against in the solver layer (P12)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a measure of evidential warrant (gmeow:hasEvidenceClass) — independence is a notability axis, not a truth axis (Principle 1) — and avoid forcing one assessment; competing standpoint judgements coexist, so it stays non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:CitationAct at a gmeow:SourceIndependence individual; the solver reads it together with the kernel disclosure policy to gate conditional public release, and competing assessments are kept as separate claims (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:sourceTier
@@ -241,6 +265,10 @@ gmeow:sourceTier
     rdfs:range gmeow:SourceTier ;
     rdfs:label "source tier"@x-gmeow-english ;
     skos:definition "The bibliographic tier of the source referenced by a citation — primary, secondary, or tertiary. Non-functional: competing tier assessments coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:citation gmeow:sourceTier gmeow:sourceTierSecondary ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the primary/secondary/tertiary bibliographic tier of a cited source as part of a notability assessment (Axis B)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the source's independence (gmeow:sourceIndependence) or its coverage depth (gmeow:coverageDepth), and avoid using tier as a proxy for evidential warrant; the tier is orthogonal to how strongly the citation verifies the fact."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:CitationAct at a gmeow:SourceTier individual; combine it with gmeow:sourceIndependence and gmeow:coverageDepth so the solver can weigh notability, and keep competing tier assessments as coexisting claims (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:coverageDepth
@@ -249,6 +277,10 @@ gmeow:coverageDepth
     rdfs:range gmeow:CoverageDepth ;
     rdfs:label "coverage depth"@x-gmeow-english ;
     skos:definition "The depth of coverage the source provides about the subject of a citation — significant coverage, passing mention, or routine filing. Non-functional: competing depth assessments coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:citation gmeow:coverageDepth gmeow:coverageDepthSignificantCoverage ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how substantially a cited source treats its subject — significant coverage, passing mention, or routine filing — as part of a notability assessment (Axis B)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with source tier or independence (orthogonal axes) and with evidential warrant; a passing mention can still verify a fact (Axis A) while contributing little to notability. Non-functional, so competing depth claims coexist."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:CitationAct at a gmeow:CoverageDepth individual; pair it with gmeow:supportsNotability and the other Axis B properties so the solver can resolve the notability decision, keeping competing assessments as separate claims (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 gmeow:supportsNotability
@@ -257,6 +289,10 @@ gmeow:supportsNotability
     rdfs:range xsd:boolean ;
     rdfs:label "supports notability"@x-gmeow-english ;
     skos:definition "Whether this citation is asserted to support notability (encyclopedic significance) as distinct from factual verification. A citation may verify a fact (high evidential warrant) without supporting notability (e.g. a primary legal filing or a routine listing). Non-functional: competing notability assessments from different standpoints coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:citation gmeow:supportsNotability true ."@x-gmeow-english ;
+    gmeow:useWhen "Use to assert the standpoint judgement that a citation contributes to a subject's notability — encyclopedic significance — the summary flag the independence, tier, and coverage-depth axes feed into (Axis B)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to claim a fact is true (notability is not verification — a strong-warrant primary filing may carry supportsNotability false) and avoid treating one assessment as final; competing standpoint judgements coexist, so it stays non-functional (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Set the xsd:boolean on the gmeow:CitationAct alongside gmeow:sourceIndependence, gmeow:sourceTier, and gmeow:coverageDepth; the solver weighs the axes against a notability standard (cf. WP:GNG, P12) rather than relying on this flag alone."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
 
 # =========================================================================== #
@@ -282,4 +318,8 @@ gmeow:EvidenceSpan
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Evidence Span"@x-gmeow-english ;
     skos:definition "An anchored target span within a resource — a text quote, character position, fragment identifier, page, or generic locator. Generalized from the citation-selector model to serve both evidentiary claims (GraphRAG provenance design/EvidenceSpan audit machinery) and annotation targets (annotation target span). The selector properties (selectorTextQuote, selectorTextPosition, selectorPage, selectorLocator) are asserted on EvidenceSpan individuals and inherited by Selector instances. No second selector model is minted (Principle 4)."@x-gmeow-english;
+    skos:example "ex:span a gmeow:EvidenceSpan ; gmeow:selectorTextQuote \"founded in 1998\" ; gmeow:selectorPage 12 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to anchor the exact location within a source that backs a claim or carries an annotation — a quote, character offset, fragment, page, or locator — so evidence points at a span, not merely at a whole document; the shared selector target for citations and notes (Principle 4)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a second selector model (this one is reused by both citations and annotations) and avoid pointing it at the whole resource when a precise span is available; reserve the bare resource link for cases with no usable locator."@x-gmeow-english ;
+    gmeow:howToUse "Mint the span as an EvidenceSpan (or a Selector specialization), assert the applicable selector properties (gmeow:selectorTextQuote, gmeow:selectorTextPosition, gmeow:selectorPage, gmeow:selectorLocator), and link it from the gmeow:CitationAct or annotation target so the warrant resolves to an exact, auditable location."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .

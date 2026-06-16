@@ -81,6 +81,65 @@ iCalendar (RFC 5545/5546/6047), jCal (RFC 7265), xCal (RFC 6321), CalDAV (RFC
 | `Task.taskDueDate` | `time:hasTime` / `time:Instant` | Task status, priority |
 | `EventSchedule` | `time:Schedule` (if used) | Recurrence rule semantics |
 
+## Terms
+
+The classes, relators, properties, and value vocabularies this slice declares,
+anchored to the design principles above.
+
+### gmeow:Calendar · gmeow:calendarMember · gmeow:calendarTimeZone
+
+The collection layer: a `gmeow:Calendar` is a CalDAV-style grouping of events,
+gathering its `gmeow:calendarMember` occurrences and carrying a default
+`gmeow:calendarTimeZone`.
+
+### gmeow:EventSchedule · gmeow:scheduleRecurrenceRule · gmeow:scheduleTemplateEvent · gmeow:scheduleOccurrence · gmeow:scheduleTimeZone · gmeow:eventTimeZone
+
+The schedule ≠ occurrence axis: an `gmeow:EventSchedule` (relator) pairs a
+`gmeow:scheduleRecurrenceRule` with a `gmeow:scheduleTemplateEvent` and a
+`gmeow:scheduleTimeZone` to *generate* `gmeow:scheduleOccurrence` events; per-event
+zone overrides ride `gmeow:eventTimeZone`. The schedule is the rule, never the
+occurrence.
+
+### gmeow:ScheduleException · gmeow:exceptionSchedule · gmeow:exceptionType · gmeow:ExceptionType · gmeow:exceptionOriginalDate · gmeow:exceptionReplacementEvent
+
+Exceptions, retained not erased (Principle 10): a `gmeow:ScheduleException` records
+that an `gmeow:exceptionSchedule`'s occurrence at `gmeow:exceptionOriginalDate` was
+cancelled or rescheduled (`gmeow:exceptionType` over `gmeow:ExceptionType`), with
+`gmeow:exceptionReplacementEvent` carrying the moved occurrence.
+
+### gmeow:EventInvitation · gmeow:invitationEvent · gmeow:invitationInvitee · gmeow:invitationStatus · gmeow:InvitationStatus · gmeow:rsvpStatus · gmeow:RsvpStatus
+
+The invitation relator (the `Participation` idiom): an `gmeow:EventInvitation`
+binds `gmeow:invitationEvent` × `gmeow:invitationInvitee` × status, with
+`gmeow:invitationStatus` (organizer view, `gmeow:InvitationStatus`) and
+`gmeow:rsvpStatus` (invitee view, `gmeow:RsvpStatus`) drawn from the iTIP PARTSTAT
+vocabularies (needs-action / accepted / declined / tentative).
+
+### gmeow:Availability · gmeow:availabilityAgent · gmeow:availabilitySlot · gmeow:availabilityStatus · gmeow:AvailabilityStatus
+
+The free/busy relator: a `gmeow:Availability` binds `gmeow:availabilityAgent` ×
+`gmeow:availabilitySlot` (interval) × `gmeow:availabilityStatus` over the
+`gmeow:AvailabilityStatus` vocabulary (free / busy / tentative / out-of-office,
+iCalendar FBTYPE).
+
+### gmeow:Reminder · gmeow:reminderTarget · gmeow:reminderTrigger · gmeow:reminderAction · gmeow:ReminderAction
+
+The alarm: a `gmeow:Reminder` attaches a `gmeow:reminderTrigger` and a
+`gmeow:reminderAction` (over `gmeow:ReminderAction` — display / email / audio,
+iCalendar ACTION) to its `gmeow:reminderTarget` event.
+
+### gmeow:Task · gmeow:taskDueDate · gmeow:taskStatus · gmeow:TaskStatus · gmeow:taskPriority · gmeow:taskRecurrenceUntilDone
+
+The to-do (an `Event`): a `gmeow:Task` carries a `gmeow:taskDueDate`,
+`gmeow:taskPriority`, and `gmeow:taskStatus` over the `gmeow:TaskStatus` vocabulary
+(not-started / in-progress / completed / cancelled, iCalendar STATUS);
+`gmeow:taskRecurrenceUntilDone` marks a task that recurs until completed.
+
+### gmeow:TimeZone · gmeow:timeZoneIanaId
+
+The zone entity: a `gmeow:TimeZone` identified by its `gmeow:timeZoneIanaId` (IANA
+tzid, e.g. America/Toronto); full daylight/standard expansion is a solver concern.
+
 ## Build Order
 
 Depends only on the built `events` + `temporal` modules. Phases:

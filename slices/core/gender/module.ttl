@@ -29,6 +29,14 @@ gmeow:IdentityFacet
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Identity Facet"@x-gmeow-english ;
     skos:definition "A reified, SELF-ASSERTED claim about an aspect of a person's identity — an observation in the universal claim stack (observation-spine bridge): gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person (facetSubject / observedFeature) and an open identity value. A gufo:Relator and a gmeow:Observation, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet."@x-gmeow-english;
+    skos:example "ex:facet a gmeow:IdentityFacet ; gmeow:facetSubject ex:lillith ; gmeow:selfAsserted true ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the shared reification base whenever an identity claim must be first-class — carrying who asserted it, a validity period, a sensitivity level, and display control — rather than flattened into an attribute; the parent the concrete gender, expression, and orientation facets specialize."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing an instance as a bare gmeow:IdentityFacet when a concrete subkind (GenderIdentity, GenderExpression, SexualOrientation) applies, and avoid using it for the recorded sex-assigned-at-birth datum, which is deliberately NOT a facet."@x-gmeow-english ;
+    gmeow:howToUse "Mint the facet, link the person with gmeow:facetSubject and the asserting agent with gmeow:facetVantage, set gmeow:selfAsserted, point at the open value through the subkind's value property, and bound it with gmeow:validFrom/validUntil; mark a superseded facet gmeow:displayable false rather than deleting it."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:selfAsserted
@@ -52,6 +60,14 @@ gmeow:GenderIdentity
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Gender Identity"@x-gmeow-english ;
     skos:definition "A person's SELF-ASSERTED gender identity — what they are — as a reified facet pointing (via gmeow:genderValue) to an open gmeow:Gender value. Independent of pronouns/honorifics (address), of gender expression, and of sex-assigned-at-birth; nothing infers any of these from another. Multiple co-equal GenderIdentity facets express bigender/genderfluid/transition without privileging any."@x-gmeow-english ;
+    skos:example "ex:gi a gmeow:GenderIdentity ; gmeow:genderValue gmeow:genderNonBinary ; gmeow:selfAsserted true ; gmeow:hasDeterminacy gmeow:determinacyFuzzy ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what a person identifies as, as a self-asserted facet pointing at an open gmeow:Gender value; mint one facet per co-equal identity so bigender, genderfluid, or a transition are all expressible without privileging any."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for how a person presents (gmeow:GenderExpression), for how they are addressed (pronouns/honorifics in names), and for the recorded sex datum (gmeow:sexAssignedAtBirth); never infer one of these from another."@x-gmeow-english ;
+    gmeow:howToUse "Attach via gmeow:hasGenderIdentity, set gmeow:genderValue to a seeded or freshly minted gmeow:Gender individual, and carry gmeow:hasDeterminacy when the identity is fuzzy or fluid; supersede a label with gmeow:displayable false, never deletion."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:hasGenderIdentity
@@ -61,6 +77,14 @@ gmeow:hasGenderIdentity
     rdfs:label "has gender identity"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted gender-identity facet they hold. Non-functional and contextual — a person bears many co-equal identities; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasPronounSet, gmeow:honorific, gmeow:hasGenderExpression or gmeow:sexAssignedAtBirth."@x-gmeow-english ;
     gmeow:coequalFacet true ;
+    skos:example "ex:lillith gmeow:hasGenderIdentity ex:gi ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a person to each gender-identity facet they hold; assert it once per co-equal identity, leaving it non-functional so multiple facets coexist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from pronouns, honorifics, gender expression, or sex-assigned-at-birth — there is deliberately no bridge — and avoid using it as a single privileged-gender selector (this is a co-equal facet axis, Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Point the person at a gmeow:GenderIdentity facet whose gmeow:genderValue carries the value; for a superseded identity keep the facet and set gmeow:displayable false rather than retracting the triple."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:genderValue
@@ -69,6 +93,14 @@ gmeow:genderValue
     rdfs:range gmeow:Gender ;
     rdfs:label "gender value"@x-gmeow-english ;
     skos:definition "The gmeow:Gender value a gender-identity facet asserts (functional PER FACET — one value each; multiplicity is expressed by multiple facets). The value is a gmeow:Gender individual: a predefined one, or — when none fits — a fresh individual carrying rdfs:label (the custom-PronounSet idiom). The single path to the gender value; there is deliberately no flat datatype shortcut."@x-gmeow-english ;
+    skos:example "ex:gi gmeow:genderValue gmeow:genderGenderfluid ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single gmeow:Gender value a gender-identity facet asserts; reach for a fresh value individual with rdfs:label when no seeded gender fits."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hanging more than one value on a facet (it is functional per facet — express multiplicity with more facets) and avoid inventing a flat gmeow:gender datatype shortcut; this object path is deliberately the only one."@x-gmeow-english ;
+    gmeow:howToUse "Set exactly one gmeow:Gender individual per gmeow:GenderIdentity facet; for bigender or genderfluid persons create several facets, each with its own gmeow:genderValue."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 # --------------------------------------------------------------------------- #
@@ -80,6 +112,14 @@ gmeow:GenderExpression
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Gender Expression"@x-gmeow-english ;
     skos:definition "A person's SELF-ASSERTED gender expression — how they present (a gmeow:GenderExpressionStyle value via gmeow:expressionValue). A distinct axis from gender identity: expression is never inferred from identity (or vice versa), nor from sex or address."@x-gmeow-english ;
+    skos:example "ex:ge a gmeow:GenderExpression ; gmeow:expressionValue gmeow:expressionAndrogynous ; gmeow:selfAsserted true ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how a person presents — the expression axis — as a self-asserted facet pointing at an open gmeow:GenderExpressionStyle value, held separately from what they identify as."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with gender identity (gmeow:GenderIdentity) or reading either from the other, and avoid inferring it from sex-assigned-at-birth, pronouns, or honorifics."@x-gmeow-english ;
+    gmeow:howToUse "Attach via gmeow:hasGenderExpression and set gmeow:expressionValue to a seeded or fresh gmeow:GenderExpressionStyle individual; keep it on its own facet so identity and expression remain orthogonal."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:hasGenderExpression
@@ -89,6 +129,14 @@ gmeow:hasGenderExpression
     rdfs:label "has gender expression"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted gender-expression facet. Non-functional and contextual. MUST NOT be inferred from gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
     gmeow:coequalFacet true ;
+    skos:example "ex:lillith gmeow:hasGenderExpression ex:ge ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a person to each self-asserted gender-expression facet; non-functional, so several presentation facets (e.g. context-varying) coexist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from gender identity, sex-assigned-at-birth, pronouns, or honorifics, and avoid treating it as a privileged selector — it is a co-equal facet axis (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Point the person at a gmeow:GenderExpression facet whose gmeow:expressionValue carries the style; supersede a presentation with gmeow:displayable false rather than deletion."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:expressionValue
@@ -97,6 +145,14 @@ gmeow:expressionValue
     rdfs:range gmeow:GenderExpressionStyle ;
     rdfs:label "expression value"@x-gmeow-english ;
     skos:definition "The gmeow:GenderExpressionStyle value a gender-expression facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@x-gmeow-english ;
+    skos:example "ex:ge gmeow:expressionValue gmeow:expressionFeminine ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single gmeow:GenderExpressionStyle value a gender-expression facet asserts; mint a fresh value individual with rdfs:label when no seeded style fits."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing more than one value on a facet (it is functional per facet) and avoid a flat datatype shortcut; this object path is deliberately the only one."@x-gmeow-english ;
+    gmeow:howToUse "Set exactly one gmeow:GenderExpressionStyle individual per gmeow:GenderExpression facet; for varying presentations create several facets, each with its own gmeow:expressionValue."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 # --------------------------------------------------------------------------- #
@@ -114,6 +170,14 @@ gmeow:sexAssignedAtBirth
     rdfs:label "sex assigned at birth"@x-gmeow-english ;
     skos:definition "The sex recorded for a person at birth (a gmeow:SexAssignedAtBirth value) — a RECORDED administrative datum, NOT a self-asserted identity and NOT a gufo IdentityFacet. Deliberately separate from gender identity/expression, which it never implies and is never implied by. Non-functional: a correction and a prior record coexist rather than contradict."@x-gmeow-english ;
     gmeow:coequalFacet true ;
+    skos:example "ex:lillith gmeow:sexAssignedAtBirth gmeow:saabFemale ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the administrative sex datum captured at a person's birth, as a value distinct from and never equated with their gender identity or expression."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as, or inferring it from, gender identity/expression, and avoid it for historical genealogical records (those keep external gedcom:sex); it is a co-equal axis, never a privileged gender selector."@x-gmeow-english ;
+    gmeow:howToUse "Point the person at a gmeow:SexAssignedAtBirth value; leave it non-functional so a correction coexists with a prior record, and add a gmeow:intersexVariation note only where the coarse value is insufficient."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
+        gmeow:consumerAgentMemory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:intersexVariation
@@ -122,6 +186,14 @@ gmeow:intersexVariation
     rdfs:range rdfs:Literal ;
     rdfs:label "intersex variation"@x-gmeow-english ;
     skos:definition "An optional free-text note recording an intersex variation, for inclusivity where gmeow:sexAssignedAtBirth gmeow:saabIntersex is insufficient. Deliberately a plain note, NOT a clinical DSD taxonomy and NOT a value vocabulary — GMEOW does not model medical sex characteristics in depth."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:intersexVariation \"variation noted on record\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use only to carry a brief free-text inclusivity note about an intersex variation that the coarse gmeow:saabIntersex value cannot capture."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a clinical DSD taxonomy or a value vocabulary, and avoid it for ordinary sex-assigned-at-birth recording (use gmeow:sexAssignedAtBirth); GMEOW does not model medical sex characteristics in depth."@x-gmeow-english ;
+    gmeow:howToUse "Attach a short plain literal alongside gmeow:sexAssignedAtBirth gmeow:saabIntersex; treat it as the deepest sensitivity and keep it out of public projections."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
+        gmeow:consumerAgentMemory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 # =========================================================================== #
@@ -140,6 +212,10 @@ gmeow:Gender
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Gender"@x-gmeow-english ;
     skos:definition "A gender a person may identify with — a VALUE, never a gmeow:Person subclass. The set is open and culturally diverse; a gender not among the seed individuals is a FRESH gmeow:Gender individual carrying rdfs:label, not a new class. Pointed at by gmeow:genderValue."@x-gmeow-english ;
+    skos:example "ex:genderXochihua a gmeow:Gender ; rdfs:label \"xochihua\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the gender a gmeow:genderValue points at; mint a fresh individual with rdfs:label when no seeded value fits the culture or identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling a gender as a gmeow:Person subclass or a forced enum, and avoid treating the binary seeds as a default — every value is co-equal (Principle 9), so none is primary."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:Gender individual or add a fresh one carrying rdfs:label and the GSSO/Homosaurus alignments; expose it only through a gmeow:GenderIdentity facet, never a flat literal."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:genderWoman       a gmeow:Gender ; rdfs:label "woman"@x-gmeow-english .
@@ -184,6 +260,10 @@ gmeow:GenderExpressionStyle
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Gender Expression Style"@x-gmeow-english ;
     skos:definition "A style of gender expression — a VALUE pointed at by gmeow:expressionValue, never a subclass. Open: a style not seeded here is a fresh individual with rdfs:label."@x-gmeow-english ;
+    skos:example "ex:expressionButch a gmeow:GenderExpressionStyle ; rdfs:label \"butch\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the presentation style a gmeow:expressionValue points at; mint a fresh individual with rdfs:label when no seeded style fits."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling a style as a subclass or a forced enum, and avoid treating any seeded style as a default; the values are co-equal (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:GenderExpressionStyle individual or add a fresh one with rdfs:label; expose it only through a gmeow:GenderExpression facet."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:expressionFeminine    a gmeow:GenderExpressionStyle ; rdfs:label "feminine"@x-gmeow-english .
@@ -209,6 +289,10 @@ gmeow:SexAssignedAtBirth
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Sex Assigned at Birth"@x-gmeow-english ;
     skos:definition "A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:sexAssignedAtBirth gmeow:saabIntersex ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the deliberately coarse value vocabulary for the recorded sex-assigned-at-birth datum (female, male, intersex, unknown)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as gender identity/expression or as a clinical sex-characteristic taxonomy, and avoid adding finer medical values; use the free-text gmeow:intersexVariation note instead."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:SexAssignedAtBirth individual from gmeow:sexAssignedAtBirth; treat the datum as sensitive personal data and keep it out of public projections."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> .
 
 gmeow:saabFemale   a gmeow:SexAssignedAtBirth ; rdfs:label "assigned female"@x-gmeow-english .

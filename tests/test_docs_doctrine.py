@@ -127,13 +127,22 @@ def test_advisory_properties_are_annotation_only() -> None:
 def test_graded_gate_warns_not_errors_on_missing_depth() -> None:
     """Missing advisory/example content on core public-facing terms is a WARNING
     (incremental coverage), never an error — and the base #221 trio stays
-    an error."""
-    result = structural_lint(_graph())
+    an error.
+
+    Exercised against a synthetic probe (a core-slice class with the #221 trio
+    but no advisory depth) rather than live coverage gaps: once every core term
+    carries its advisory depth the live graph reports zero Tier-1 warnings, so
+    the invariant — missing depth *warns*, never *errors* — must be pinned with a
+    controlled input that always has a gap."""
+    result = structural_lint(_tier_1_probe_graph())
     depth = [w for w in result.warnings if "Tier-1 depth" in w]
-    assert depth, "graded gate should be reporting coverage gaps"
+    assert depth, "graded gate should report a missing-depth gap as a warning"
     assert not any("Tier-1 depth" in e for e in result.errors)
     assert any("gmeow:useWhen" in w for w in depth)
     assert any("gmeow:howToUse" in w for w in depth)
+    # The base #221 trio (label/definition/isDefinedBy) is present on the probe,
+    # so depth omissions never escalate to errors.
+    assert not any("Tier-1 depth" in e for e in result.errors)
 
 
 def _tier_1_probe_graph(*, how_to_use: bool = False) -> Graph:

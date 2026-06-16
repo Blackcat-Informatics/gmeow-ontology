@@ -316,6 +316,50 @@ Each bearer property is a `subPropertyOf` `gmeow:hasAppellation`, so the full mu
 
 The flat fallbacks (`gmeow:name`, `gmeow:title`) remain for the 80 % case where multilingual depth is not needed, following the "flat-first, reify-on-demand" pattern.
 
+## Terms
+
+The anchors below index the slice's declared terms; the prose above is the full doctrine.
+
+### gmeow:Appellation · gmeow:PersonName · gmeow:PlaceName · gmeow:OrganizationName · gmeow:Filename · gmeow:NamePart · gmeow:PronounSet
+
+`gmeow:Appellation` is the name **as an information object** — the bearer of the surface form and the structured parts, with multiple appellations on one entity strictly **co-equal** (none canonical or primary). `gmeow:PersonName`, `gmeow:PlaceName`, `gmeow:OrganizationName`, and `gmeow:Filename` are structural subkinds for person, place, organization, and digital-file bearers; `gmeow:NamePart` is a reified, typed component of an appellation; `gmeow:PronounSet` is a sex/gender-independent set of third-person pronoun forms.
+
+### gmeow:NameUsage · gmeow:usageNamed · gmeow:usageAppellation · gmeow:usageNamer · gmeow:usageAudience · gmeow:usageRelationshipScope · gmeow:usageRegister · gmeow:usageInterval · gmeow:usageAuthority
+
+`gmeow:NameUsage` is the `gufo:Relator` situating the **use** of an appellation in context — who is named (`gmeow:usageNamed`), by which appellation (`gmeow:usageAppellation`), by whom (`gmeow:usageNamer`), toward what audience (`gmeow:usageAudience`) or within which standing tie (`gmeow:usageRelationshipScope`), in what register (`gmeow:usageRegister`), over what period (`gmeow:usageInterval`), and on whose authority (`gmeow:usageAuthority`). A usage is always *somebody's*, never a global fact, so it never derives a preferred or canonical name; the audience (who the name is used toward) is orthogonal to the authority (who asserts the usage).
+
+### gmeow:PlaceNaming
+
+A **defined** specialization of `gmeow:NameUsage` whose named entity is a `gmeow:Place` — `≡ gmeow:NameUsage ⊓ ∃gmeow:usageNamed.gmeow:Place`, the first `owl:equivalentClass` in GMEOW. Any name-usage that names a place is *inferred* to be a `gmeow:PlaceNaming`, so place naming reuses the relator rather than minting a parallel one; competing and historical toponyms coexist as co-equal place namings with no primary.
+
+### gmeow:hasAppellation · gmeow:hasName · gmeow:hasPlaceName · gmeow:hasOrganizationName · gmeow:hasAgreementName · gmeow:hasNamePart
+
+`gmeow:hasAppellation` is the universal name-bearing property; `gmeow:hasName`, `gmeow:hasPlaceName`, `gmeow:hasOrganizationName`, and `gmeow:hasAgreementName` are its person-, place-, organization-, and agreement-scoped specializations. All are non-functional — an entity bears many **co-equal** names, none primary (Principle 9). `gmeow:hasNamePart` (under the universal `gmeow:hasPart` spine) attaches the reified, typed components of an appellation.
+
+### gmeow:namePartType · gmeow:NamePartType · gmeow:partText · gmeow:partOrder · gmeow:partExpansion
+
+A `gmeow:NamePart`'s kind is the **value** `gmeow:namePartType` (a `gmeow:NamePartType` from the open, multi-cultural vocabulary — given, surname, patronymic, Arabic nisba, filename extension, …), never a subclass. `gmeow:partText` carries its language-/script-tagged string, `gmeow:partOrder` records the *observed* 0-based surface position **without** implying a given-before-family default, and `gmeow:partExpansion` carries the full word an abbreviated initial stands for. Parts are for matching and decomposition, not for reassembling display order — `gmeow:fullName` is authoritative for that.
+
+### gmeow:fullName · gmeow:nameLanguage · gmeow:nameScript · gmeow:romanization · gmeow:namePurpose · gmeow:NamePurpose · gmeow:displayable · gmeow:conferredByEvent
+
+`gmeow:fullName` is the complete surface form in the culture's natural order, authoritative for display. `gmeow:nameLanguage` is the appellation's single first-class `gmeow:Language` (functional — co-equal multilingual names are separate appellations, never one multi-tagged name), `gmeow:nameScript` its ISO 15924 script, and `gmeow:romanization` a Latin transliteration of *this same* name that never bridges two co-equal names. `gmeow:namePurpose` tags the intrinsic kind(s) of a name (a `gmeow:NamePurpose` value — legal, chosen, deadname, endonym/exonym, …); `gmeow:displayable` is the **only** display control — there is deliberately no preferred/primary marker, so a superseded name or deadname sets it `false` and consumers MUST honour that. `gmeow:conferredByEvent` is the seam to the events spine, linking an appellation to the `gmeow:LifeEvent` that conferred or changed it.
+
+### gmeow:claimedMediaType · gmeow:detectedMediaType
+
+A filename's extension **claims** a content type (`gmeow:claimedMediaType`); the bytes **detect** one (`gmeow:detectedMediaType`). Both are non-functional and may disagree — the mismatch is recorded as coexisting confidence-weighted claims, never reasoned into an OWL contradiction.
+
+### gmeow:hasPronounSet · gmeow:pronounSubject · gmeow:pronounObject · gmeow:pronounPossessiveDeterminer · gmeow:pronounPossessive · gmeow:pronounReflexive
+
+`gmeow:hasPronounSet` relates a person to a `gmeow:PronounSet` they go by — a form of **address**, non-functional and contextual, that MUST NOT be inferred from (nor imply) gender identity, expression, sex assigned at birth, or orientation. A custom set is defined by filling the five English forms: `gmeow:pronounSubject`, `gmeow:pronounObject`, `gmeow:pronounPossessiveDeterminer`, `gmeow:pronounPossessive`, and `gmeow:pronounReflexive`.
+
+### gmeow:honorific · gmeow:Honorific · gmeow:honorificPosition · gmeow:HonorificPosition · gmeow:honorificClass · gmeow:HonorificClass
+
+`gmeow:honorific` records an honorific or title of address (a `gmeow:Honorific` value) — like pronouns, a sex/gender-independent, non-functional form of address. Each honorific carries `gmeow:honorificPosition` (a `gmeow:HonorificPosition`: rendered as prefix `Dr Smith` or suffix `Tanaka-san`) and `gmeow:honorificClass` (a `gmeow:HonorificClass`: academic, clerical, noble, military, judicial, social).
+
+### gmeow:usageRegister · gmeow:NameRegister · gmeow:Register
+
+A name-usage's social register is the value `gmeow:usageRegister` (a `gmeow:NameRegister` — formal, intimate, professional, casual — itself a `gmeow:Register`); register is a fact of the *use*, not of the name, distinct from the intrinsic `gmeow:namePurpose`.
+
 ## What's deliberately non-standard (and why)
 
 | GMEOW choice | The "standard" alternative | Why we reject it |

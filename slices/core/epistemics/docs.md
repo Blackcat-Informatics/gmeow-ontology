@@ -43,6 +43,33 @@ statement or claim; typed `gmeow:Proposition` content arrives at the reified tie
   `Goal ⊑ Proposition` subsumption, no `teleology` dependency.
 - **Acceptance is not belief** — `gmeow:accepts` is pragmatic; it entails neither belief nor truth.
 
+## Terms
+
+The truth-apt content class and the flat doxastic spine this minimal core seeds —
+domain `gmeow:Agent`, range open (Principle 13).
+
+### gmeow:Proposition
+
+The truth-apt content an attitude is taken toward — the sibling of Goal by
+direction of fit: a belief and a goal may share the same `gmeow:Proposition` but
+differ in fit (mind-to-world vs world-to-mind), with deliberately no
+`Goal ⊑ Proposition` subsumption.
+
+### gmeow:believes · gmeow:knowsThat
+
+The base attitude and its factive-looking refinement: `gmeow:believes` holds the
+proposition true, and `gmeow:knowsThat rdfs:subPropertyOf gmeow:believes` is the
+keystone — knowledge entails belief, never the reverse. There is no factive
+`isTrue` axiom; `knowsThat` is a vantage-indexed claim that belief, truth-per-frame,
+and justification hold, with the JTB judgement left to the solver.
+
+### gmeow:doubts · gmeow:suspendsJudgementOn · gmeow:accepts
+
+The non-believing stances: `gmeow:doubts` holds the proposition in low-credence
+doubt; `gmeow:suspendsJudgementOn` is agnostic withholding (neither believes nor
+disbelieves); `gmeow:accepts` is a pragmatic working premise that entails neither
+belief nor truth.
+
 ## Dependencies
 
 Depends on `kernel` (`gmeow:SocialObject`, `gmeow:Agent`). The `believes → accordingTo` bridge to

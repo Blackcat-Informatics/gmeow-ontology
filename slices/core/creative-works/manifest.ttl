@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ;
-    gmeow:sliceConsumer "The WEMI spine under documents, software products, citations, and the music slice (music design)."@x-gmeow-english.
+    gmeow:sliceConsumer "The foundational WEMI 4-tier spine (Work/Expression/Manifestation/Item) plus the universal Contribution and CreativeDerivation relators, consumed by the documents, software-products, citations, narrative, and music slices; projects to FRBR/LRMoo/CIDOC/schema.org by reference (Principle 5)."@x-gmeow-english.

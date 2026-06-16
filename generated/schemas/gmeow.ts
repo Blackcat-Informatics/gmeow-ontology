@@ -4881,9 +4881,9 @@ export interface HonorificPosition {
 
 
 export interface Identifier {
-    identifierScheme?: string[],
+    identifierScheme?: string,
     identifierUrl?: string,
-    identifierValue?: string[],
+    identifierValue?: string,
     jurisdiction?: Location[],
 }
 

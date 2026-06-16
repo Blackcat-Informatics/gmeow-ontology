@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/names>
     a gmeow:Slice ;
     rdfs:label "names"@x-gmeow-english ;
-    skos:definition "The names slice of the GMEOW ontology (core tier): GMEOW Names Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The names slice of the GMEOW ontology (core tier): the universal, multi-culture, anti-colonial naming model. A name is never a bare attribute — it is a reified gmeow:Appellation (with typed gmeow:NamePart components) borne co-equally by an entity, and gmeow:NameUsage is the gufo:Relator binding who-is-named, which-appellation, toward-whom, in-what-register, over-what-period. No name is primary (Principle 9): co-equal multilingual/multiscript names, endonym/exonym parity, perspectival usages, and suppression-not-deletion (gmeow:displayable false) for deadnames. Also seeds the open value vocabularies (name-part types, purposes, registers, pronoun sets, honorifics) and the gmeow:Register umbrella. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     dcterms:title "GMEOW Names Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
@@ -25,4 +25,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
-    gmeow:sliceConsumer "Every named entity (P9 anti-colonial naming); the mail corpus; display-safety projections."@x-gmeow-english .
+    gmeow:sliceConsumer "Every named entity across the ontology (P9 anti-colonial, co-equal naming); the mail corpus and contact graph; FOAF / schema.org / Wikidata name exports (via gmeow:hasName); gazetteer and place-naming projections; display-safety / deadname-suppression projections (gmeow:displayable false); and persona-expression register reuse (norms slice) through the gmeow:Register umbrella."@x-gmeow-english .
