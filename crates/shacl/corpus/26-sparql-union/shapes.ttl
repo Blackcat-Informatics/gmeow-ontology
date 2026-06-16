@@ -1,0 +1,10 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <http://example.org/ns#> .
+
+ex:NarrativeFrameShape
+    a sh:NodeShape ;
+    sh:targetClass ex:Frame ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:select "SELECT $this WHERE { { $this <http://example.org/ns#axis> <http://example.org/ns#discourse> . $this <http://example.org/ns#storyTimeOf> ?x } UNION { $this <http://example.org/ns#axis> <http://example.org/ns#story> . $this <http://example.org/ns#discourseTimeOf> ?x } }" ;
+    ] .
