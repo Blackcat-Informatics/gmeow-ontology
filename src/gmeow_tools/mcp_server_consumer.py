@@ -7,14 +7,17 @@ import os
 from contextlib import suppress
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastmcp import FastMCP
 from gts import read
 
 from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE
-from gmeow_tools.export import Term, collect_terms, fold_meta
+from gmeow_tools.export import Term, _marked, collect_terms, fold_meta
 from gmeow_tools.gts_views import FoldView
+
+if TYPE_CHECKING:
+    from gmeow_tools.language_tags import LangSelector
 
 mcp = FastMCP("gmeow")
 
@@ -24,9 +27,31 @@ def _view() -> FoldView:
     return FoldView(read(GTS_SNAPSHOT_FILE.read_bytes()))
 
 
+def _selector(view: FoldView) -> LangSelector:
+    """Resolve GMEOW_LANG against the snapshot's tag map, defaulting to English."""
+    from gmeow_tools.language_tags import UnknownLanguageError, resolve_lang_input
+
+    raw = os.environ.get("GMEOW_LANG")
+    try:
+        return resolve_lang_input(raw, view.tag_map())
+    except (
+        UnknownLanguageError
+    ):  # pragma: no cover - unknown env tag should not crash the server
+        return resolve_lang_input(None, view.tag_map())
+
+
+def _summary(term: Term) -> str:
+    """Selected definition-or-label with a fallback marker when appropriate."""
+    return _marked(
+        term.definition or term.label,
+        term.definition_fallback or term.label_fallback,
+    )
+
+
 def _terms() -> list[Term]:
     """Collect public GMEOW terms from the bundled GTS snapshot."""
-    return collect_terms(_view())
+    view = _view()
+    return collect_terms(view, selector=_selector(view))
 
 
 def _lookup_term(query: str) -> dict[str, Any] | None:
@@ -67,8 +92,9 @@ def gmeow_lookup_term(term: str) -> str:
 def gmeow_llms_txt() -> str:
     """Expose a compact bundled vocabulary index."""
     view = _view()
+    selector = _selector(view)
     title, version = fold_meta(view)
-    terms = collect_terms(view)
+    terms = collect_terms(view, selector=selector)
     classes = [t for t in terms if t.category == "class"]
     properties = [t for t in terms if t.category == "property"]
     individuals = [t for t in terms if t.category == "individual"]
@@ -82,7 +108,7 @@ def gmeow_llms_txt() -> str:
     ]
     for term in classes:
         parents = f" (subClassOf {', '.join(term.parents)})" if term.parents else ""
-        lines.append(f"- {term.curie}{parents}: {term.definition or term.label}")
+        lines.append(f"- {term.curie}{parents}: {_summary(term)}")
     lines += ["", "## Properties", ""]
     for term in properties:
         signature = (
@@ -91,14 +117,12 @@ def gmeow_llms_txt() -> str:
             else ""
         )
         functional = " (functional)" if term.functional else ""
-        lines.append(
-            f"- {term.curie}{signature}{functional}: {term.definition or term.label}"
-        )
+        lines.append(f"- {term.curie}{signature}{functional}: {_summary(term)}")
     if individuals:
         lines += ["", "## Individuals", ""]
         for term in individuals:
             types = f" (a {', '.join(term.types)})" if term.types else ""
-            lines.append(f"- {term.curie}{types}: {term.definition or term.label}")
+            lines.append(f"- {term.curie}{types}: {_summary(term)}")
     return "\n".join(lines) + "\n"
 
 

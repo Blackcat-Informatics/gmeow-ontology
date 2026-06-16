@@ -37,6 +37,7 @@ from rdflib import Graph, URIRef
 
 from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES
 from gmeow_tools.graph import bind_prefixes, load_merged_graph
+from gmeow_tools.language_tags import filter_graph
 from gmeow_tools.saturate import (
     DerivedTriple,
     load_cells,
@@ -50,6 +51,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from rdflib.term import Node
+
+    from gmeow_tools.language_tags import LangSelector
 
 _MAPPED_FROM = URIRef(NAMESPACE + "mappedFrom")
 _SKOLEM_AUTHORITY = NAMESPACE.rstrip("/")
@@ -204,6 +207,8 @@ def _projection_derived(
     onto: Graph,
     profiles: Sequence[str],
     suppressed: set[Node],
+    *,
+    selector: LangSelector | None = None,
 ) -> dict[tuple[Node, Node, Node], set[tuple[URIRef, Node]]]:
     """P(G): run every profile's CONSTRUCT over the ORIGINAL G.
 
@@ -236,7 +241,7 @@ def _projection_derived(
     derived: dict[tuple[Node, Node, Node], set[tuple[URIRef, Node]]] = {}
     for name in profiles:
         alignment_iri = URIRef(f"{NAMESPACE}projections/{name}")
-        projected = project_graph(name, store)
+        projected = project_graph(name, store, selector=selector)
         for s, p, o in projected:
             if s in onto_subjects:
                 continue  # a projection of the ontology itself, not of G
@@ -275,6 +280,8 @@ def _serialize_outputs(
     gts_bytes: bytes,
     out_dir: Path,
     stem: str,
+    *,
+    selector: LangSelector | None = None,
 ) -> list[Path]:
     """Write .gts / index.nq / index.ttl / index.jsonld / index.nt, all verified.
 
@@ -284,7 +291,8 @@ def _serialize_outputs(
     with public BCP-47 tags — a consumer parser (Google included) reads
     ``x-gmeow-english`` as nothing, so the readable serializations must not leak
     it. The ``.gts``/``.nq`` are written first (from the canonical bytes); then
-    ``base_plus_derived`` is retagged in place for the consumer tiers.
+    ``base_plus_derived`` is retagged in place for the consumer tiers, and
+    finally language-filtered if a selector was requested.
     """
     import pyoxigraph
     from gts import read, to_nquads
@@ -307,9 +315,11 @@ def _serialize_outputs(
 
     # consumer-facing tiers only: retag x-gmeow-* → public BCP-47 across the whole
     # graph (base + derived together; idempotent for the derived triples
-    # project_graph already retagged). The canonical .gts/.nq keep the internal
-    # tags for round-trip fidelity.
+    # project_graph already retagged), then apply the requested language filter.
+    # The canonical .gts/.nq keep the internal tags for round-trip fidelity.
     retag_graph(base_plus_derived)
+    if selector is not None:
+        filter_graph(base_plus_derived, selector)
 
     ttl_path = out_dir / "index.ttl"
     base_plus_derived.serialize(destination=ttl_path, format="turtle")
@@ -347,6 +357,7 @@ def transform(
     *,
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
+    selector: LangSelector | None = None,
 ) -> TransformReport:
     """Run MAXIMAL(G) over an A-Box *file*.
 
@@ -354,13 +365,16 @@ def transform(
         abox_path: The canonical GMEOW instance Turtle file.
         out_dir: Output directory (default ``dist/transform/<stem>/``).
         profiles: Projection profiles for P(G) (default: all registered).
+        selector: Optional language selector for projected/consumer labels.
 
     Returns:
         The :class:`TransformReport` (counts, wall clock, written paths).
     """
     raw = Graph()
     raw.parse(abox_path, format="turtle")
-    return transform_graph(raw, abox_path.stem, out_dir=out_dir, profiles=profiles)
+    return transform_graph(
+        raw, abox_path.stem, out_dir=out_dir, profiles=profiles, selector=selector
+    )
 
 
 def transform_graph(
@@ -369,6 +383,7 @@ def transform_graph(
     *,
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
+    selector: LangSelector | None = None,
 ) -> TransformReport:
     """Run MAXIMAL(G) over an in-memory A-Box graph.
 
@@ -381,6 +396,7 @@ def transform_graph(
         stem: The output basename (the ``.gts`` file and default sub-directory).
         out_dir: Output directory (default ``dist/transform/<stem>/``).
         profiles: Projection profiles for P(G) (default: all registered).
+        selector: Optional language selector for projected/consumer labels.
 
     Returns:
         The :class:`TransformReport` (counts, wall clock, written paths).
@@ -419,7 +435,7 @@ def transform_graph(
     saturated = saturate(
         abox, onto=onto, cells=load_cells(), denied=denied, vocab=vocab
     )
-    projected = _projection_derived(abox, onto, names, suppressed)
+    projected = _projection_derived(abox, onto, names, suppressed, selector=selector)
     derived = _merge_derived(saturated, projected)
 
     base_plus_derived = Graph()
@@ -430,7 +446,9 @@ def transform_graph(
         base_plus_derived.add(row.triple)
 
     gts_bytes = gts_from_maximal(abox, derived)
-    written = _serialize_outputs(base_plus_derived, gts_bytes, target, stem)
+    written = _serialize_outputs(
+        base_plus_derived, gts_bytes, target, stem, selector=selector
+    )
 
     return TransformReport(
         asserted=len(abox),

@@ -13,13 +13,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pyoxigraph
 from rdflib import Graph
 
 from gmeow_tools import sparql
 from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, PREFIXES, PROJECTION_QUERY_DIR
-from gmeow_tools.language_tags import retag_graph
+from gmeow_tools.language_tags import filter_graph, retag_graph
+
+if TYPE_CHECKING:
+    from gmeow_tools.language_tags import LangSelector
 
 
 @dataclass(frozen=True, slots=True)
@@ -121,7 +125,12 @@ def _load_projection_query(profile: str) -> str:
     return data.decode("utf-8")
 
 
-def project_graph(profile: str, source: Graph | pyoxigraph.Store) -> Graph:
+def project_graph(
+    profile: str,
+    source: Graph | pyoxigraph.Store,
+    *,
+    selector: LangSelector | None = None,
+) -> Graph:
     """Run a profile's CONSTRUCT over a source, returning the projection.
 
     The CONSTRUCT runs on pyoxigraph (~12x faster than rdflib's engine); the
@@ -133,6 +142,7 @@ def project_graph(profile: str, source: Graph | pyoxigraph.Store) -> Graph:
         source: The data to project (ontology + instance data), either a
             pyoxigraph store (preferred — no copy) or an rdflib graph (loaded into
             a fresh store).
+        selector: Optional language selector for emitted labels/definitions.
 
     Returns:
         A fresh graph of pure target-vocabulary triples, prefixes bound.
@@ -152,6 +162,8 @@ def project_graph(profile: str, source: Graph | pyoxigraph.Store) -> Graph:
     # BCP-47 tag, so consumer parsers read the projected text as the real
     # language. Idempotent for already-retagged literals.
     retag_graph(out)
+    if selector is not None:
+        filter_graph(out, selector)
     for prefix in prof.prefixes:
         out.bind(prefix, PREFIXES[prefix])
     return out
@@ -227,25 +239,33 @@ def _write_oai_dc_xml(graph: Graph, dist_dir: Path, stem: str) -> list[Path]:
     return paths
 
 
-def project_examples(dist_dir: Path = DIST_DIR) -> list[Path]:
+def project_examples(
+    dist_dir: Path = DIST_DIR, *, selector: LangSelector | None = None
+) -> list[Path]:
     """Project the worked-example fixtures to every profile into ``dist_dir``."""
     store = _example_store()
     paths: list[Path] = []
     for name in PROFILES:
-        graph = project_graph(name, store)
+        graph = project_graph(name, store, selector=selector)
         paths.append(_serialize(graph, dist_dir / f"gmeow-example-{name}.ttl"))
         if name == "oai_dc":
             paths.extend(_write_oai_dc_xml(graph, dist_dir, "gmeow-example-oai_dc"))
     return paths
 
 
-def project_file(input_path: Path, profile: str, *, dist_dir: Path = DIST_DIR) -> Path:
+def project_file(
+    input_path: Path,
+    profile: str,
+    *,
+    dist_dir: Path = DIST_DIR,
+    selector: LangSelector | None = None,
+) -> Path:
     """Project an input data file to one profile (ontology merged in for context)."""
     from rdflib.util import guess_format
 
     data = Graph().parse(input_path, format=guess_format(str(input_path)) or "turtle")
     store = sparql.store_with(include_imports=False, extra_triples=data)
-    out = project_graph(profile, store)
+    out = project_graph(profile, store, selector=selector)
     return _serialize(out, dist_dir / f"gmeow-{input_path.stem}-{profile}.ttl")
 
 
@@ -304,7 +324,13 @@ def _view_namespaces(view: str) -> frozenset[str]:
     return frozenset(PREFIXES[p] for p in PROFILES[view].prefixes if p in PREFIXES)
 
 
-def project_gts_subset(gts_path: Path, view: str, *, dist_dir: Path = DIST_DIR) -> Path:
+def project_gts_subset(
+    gts_path: Path,
+    view: str,
+    *,
+    dist_dir: Path = DIST_DIR,
+    selector: LangSelector | None = None,
+) -> Path:
     """Emit the single-vocabulary view of a transpiled ``.gts`` (a filter).
 
     A *filter*, not a re-projection. The ``.gts`` is already maximal (GMEOW +
@@ -331,6 +357,9 @@ def project_gts_subset(gts_path: Path, view: str, *, dist_dir: Path = DIST_DIR) 
             )
             if keep:
                 out.add((s, p, o))
+    retag_graph(out)
+    if selector is not None:
+        filter_graph(out, selector)
     for prefix, iri in PREFIXES.items():
         out.bind(prefix, iri)
     return _serialize(out, dist_dir / f"gmeow-{gts_path.stem}-{view}.ttl")

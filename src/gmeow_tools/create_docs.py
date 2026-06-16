@@ -11,10 +11,14 @@ from __future__ import annotations
 import io
 import tarfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from gmeow_tools.config import FULL_PROFILE_IRI, NAMESPACE, ONTOLOGY_IRI, PREFIXES
-from gmeow_tools.export import Term, collect_terms, curie, fold_meta
+from gmeow_tools.export import Term, _marked, collect_terms, curie, fold_meta
 from gmeow_tools.gts_views import FoldView, load_fold
+
+if TYPE_CHECKING:
+    from gmeow_tools.language_tags import LangSelector
 
 _RDFS_IS_DEFINED_BY = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy"
 
@@ -24,12 +28,19 @@ _BANNER = (
 )
 
 
-def resolve_doc_language() -> str:
-    """Return the documentation language to extract.
+def resolve_doc_language(
+    selector: LangSelector | None = None, tag_map: dict[str, str] | None = None
+) -> str:
+    """Return the internal documentation language tag for *selector*.
 
-    For the MVP this is hard-coded to ``x-gmeow-english``. A later ticket will
-    wire this to user env / config / CLI options.
+    The first requested public BCP-47 tag that maps to an internal tag is used;
+    otherwise the English fallback is returned.
     """
+    if selector is not None and tag_map is not None:
+        public_to_internal = {v: k for k, v in tag_map.items()}
+        for public in selector.requested:
+            if public in public_to_internal:
+                return public_to_internal[public]
     return "x-gmeow-english"
 
 
@@ -144,10 +155,14 @@ def _write_term_file(out_dir: Path, term: Term, view: FoldView) -> None:
         out_dir / "terms" / _CATEGORY_DIRS[term.category] / _safe_filename(term.curie)
     )
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines: list[str] = ["# " + (term.label or term.curie), "", _BANNER]
+    lines: list[str] = [
+        "# " + _marked(term.label or term.curie, term.label_fallback),
+        "",
+        _BANNER,
+    ]
 
     if term.definition:
-        lines.append(term.definition)
+        lines.append(_marked(term.definition, term.definition_fallback))
         lines.append("")
 
     term_tid = view.tid_of_iri(term.iri)
@@ -224,7 +239,7 @@ def _write_slice_guides(out_dir: Path, view: FoldView) -> None:
 
 
 def _unpack_doc_archive(
-    out_dir: Path, view: FoldView, rep: str, target_name: str
+    out_dir: Path, view: FoldView, rep: str, target_name: str, lang: str
 ) -> bool:
     extracted = False
     for digest, meta in view.graph.blob_meta.items():
@@ -233,7 +248,6 @@ def _unpack_doc_archive(
         raw = view.graph.blobs.get(digest)
         if raw is None:
             continue
-        lang = resolve_doc_language()
         prefix = f"{lang}/"
         with tarfile.open(fileobj=io.BytesIO(raw), mode="r") as tar:
             for member in tar.getmembers():
@@ -299,7 +313,13 @@ def _write_statements(out_dir: Path, view: FoldView) -> None:
     (out_dir / "statements.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def create_docs(gts_path: Path, out_dir: Path, *, force: bool = False) -> None:
+def create_docs(
+    gts_path: Path,
+    out_dir: Path,
+    *,
+    force: bool = False,
+    selector: LangSelector | None = None,
+) -> None:
     """Write a deterministic browsable docs tree from a GTS snapshot."""
     if out_dir.exists() and any(out_dir.iterdir()) and not force:
         raise FileExistsError(
@@ -308,11 +328,16 @@ def create_docs(gts_path: Path, out_dir: Path, *, force: bool = False) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     view = load_fold(gts_path)
-    terms = collect_terms(view)
+    if selector is None:
+        from gmeow_tools.language_tags import resolve_lang_input
 
-    _unpack_doc_archive(out_dir, view, "project-docs", "project_docs")
+        selector = resolve_lang_input(None, view.tag_map())
+    doc_lang = resolve_doc_language(selector, view.tag_map())
+    terms = collect_terms(view, selector=selector)
+
+    _unpack_doc_archive(out_dir, view, "project-docs", "project_docs", doc_lang)
     has_ontology_docs = _unpack_doc_archive(
-        out_dir, view, "ontology-docs", "ontology-docs"
+        out_dir, view, "ontology-docs", "ontology-docs", doc_lang
     )
     _write_index(out_dir, view, terms, has_ontology_docs=has_ontology_docs)
     _write_terms(out_dir, view, terms)

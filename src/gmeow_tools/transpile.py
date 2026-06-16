@@ -38,6 +38,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+    from gmeow_tools.language_tags import LangSelector
+
 
 @dataclass(slots=True)
 class TranspileReport:
@@ -118,6 +120,7 @@ def transpile(
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
     descend: bool = True,
+    selector: LangSelector | None = None,
 ) -> TranspileReport:
     """Transpile a consumer-vocabulary source *file* to MAXIMAL GMEOW.
 
@@ -128,6 +131,7 @@ def transpile(
         profiles: Projection profiles for the maximal pass (default: all).
         descend: Use the context-aware graph-descent up-projection (default) over
             the per-term floor.
+        selector: Optional language selector for projected/consumer labels.
 
     Returns:
         The :class:`TranspileReport`.
@@ -135,7 +139,12 @@ def transpile(
     source = Graph()
     source.parse(source_path, format="turtle")
     return transpile_graph(
-        source, source_path.stem, out_dir=out_dir, profiles=profiles, descend=descend
+        source,
+        source_path.stem,
+        out_dir=out_dir,
+        profiles=profiles,
+        descend=descend,
+        selector=selector,
     )
 
 
@@ -146,6 +155,7 @@ def transpile_graph(
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
     descend: bool = True,
+    selector: LangSelector | None = None,
 ) -> TranspileReport:
     """Transpile an in-memory consumer-vocabulary graph to MAXIMAL GMEOW.
 
@@ -158,6 +168,7 @@ def transpile_graph(
         out_dir: Output directory (default ``dist/transpile/<stem>/``).
         profiles: Projection profiles for the maximal pass (default: all).
         descend: Use the context-aware graph-descent up-projection (default).
+        selector: Optional language selector for projected/consumer labels.
 
     Returns:
         The :class:`TranspileReport`.
@@ -186,7 +197,9 @@ def transpile_graph(
     gap_report_path = target / f"{stem}.gaps.md"
     gap_report_path.write_text(_gap_report(source, lift, stem), encoding="utf-8")
 
-    report = transform_graph(lift.graph, stem, out_dir=target, profiles=profiles)
+    report = transform_graph(
+        lift.graph, stem, out_dir=target, profiles=profiles, selector=selector
+    )
 
     return TranspileReport(
         lifted=lift.lifted,

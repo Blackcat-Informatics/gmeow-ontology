@@ -11,6 +11,8 @@ canonical authored literals use internal tags; public projections emit BCP-47.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import lru_cache
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
@@ -372,4 +374,253 @@ def retag_graph_to_internal(
         if new != old:
             graph.remove((s_, p_, old))
             graph.add((s_, p_, new))
+    return graph
+
+
+class UnknownLanguageError(ValueError):
+    """Raised when a requested language tag is not available in the tag map."""
+
+    def __init__(self, tag: str, available: list[str]) -> None:
+        """Build a helpful error with the list of available BCP-47 tags."""
+        self.tag = tag
+        self.available = available
+        super().__init__(
+            f"unknown language tag '{tag}'. Available languages: {', '.join(available)}"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class LangSelector:
+    """A resolved, validated user language request.
+
+    Holds the requested BCP-47 tags in precedence order and the set of tags
+    known to the current snapshot. All CLI/env resolution funnels through this
+    object so the fold and rdflib paths agree by construction.
+    """
+
+    requested: tuple[str, ...]
+    available: frozenset[str]
+
+    def is_requested(self, bcp47: str | None) -> bool:
+        """Whether *bcp47* (lower-cased) is one of the requested languages."""
+        if bcp47 is None:
+            return False
+        return bcp47.lower() in self.requested
+
+    def fallback_tag(self) -> str:
+        """The carrier-language tag used when a requested literal is absent."""
+        return "en"
+
+
+def resolve_lang_input(raw: str | None, tag_map: dict[str, str]) -> LangSelector:
+    """Resolve CLI/env language input into a :class:`LangSelector`.
+
+    * ``None``/empty → default ``(en,)``.
+    * Internal tags (``x-gmeow-english``) are normalized to their BCP-47 form.
+    * Public BCP-47 tags are lower-cased.
+    * Comma-separated lists preserve order and are de-duplicated.
+    * Unknown tags raise :class:`UnknownLanguageError` with the available list.
+    """
+    available = frozenset(tag_map.values())
+    if not raw or not raw.strip():
+        return LangSelector(requested=("en",), available=available)
+
+    tokens = [token.strip() for token in raw.split(",") if token.strip()]
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for token in tokens:
+        if is_internal_tag(token):
+            bcp = tag_map.get(token)
+            if bcp is None:
+                raise UnknownLanguageError(
+                    token, sorted(available, key=lambda t: (t != "en", t))
+                )
+            normalized = bcp.lower()
+        else:
+            normalized = token.lower()
+        if normalized not in seen:
+            if normalized not in available:
+                raise UnknownLanguageError(
+                    token, sorted(available, key=lambda t: (t != "en", t))
+                )
+            seen.add(normalized)
+            resolved.append(normalized)
+
+    if not resolved:
+        return LangSelector(requested=("en",), available=available)
+    return LangSelector(requested=tuple(resolved), available=available)
+
+
+def _bcp47_for_literal(lit: Literal, tag_map: dict[str, str]) -> str | None:
+    """Return the public BCP-47 tag for a literal, if any."""
+    lang = lit.language
+    if not lang:
+        return None
+    if is_internal_tag(lang):
+        return tag_map.get(lang, lang)
+    return lang
+
+
+def _retagged(lit: Literal, tag_map: dict[str, str]) -> Literal:
+    """Return a BCP-47-retagged copy of *lit* if it carries an internal tag."""
+    if not lit.language or not is_internal_tag(lit.language):
+        return lit
+    bcp = tag_map.get(lit.language)
+    if bcp is None:
+        return lit
+    return Literal(str(lit), lang=bcp)
+
+
+def select_literal(
+    literals: Iterable[Literal],
+    selector: LangSelector,
+    *,
+    tag_map: dict[str, str] | None = None,
+) -> tuple[Literal | None, bool]:
+    """Select the single best literal for *selector*.
+
+    Returns ``(literal, is_fallback)``. The literal is retagged to its public
+    BCP-47 form. Requested languages are tried in order; if none match, the
+    English carrier language is returned as a fallback.
+    """
+    if tag_map is None:
+        tag_map = _default_tag_map()
+
+    candidates = list(literals)
+    if not candidates:
+        return None, False
+
+    # Build public-tag index. Within each public tag, prefer internal-tagged
+    # canonical literals (the carrier language wins) over external-tagged or
+    # untagged co-existing values — same discipline as public_literal.
+    by_bcp: dict[str, list[tuple[Literal, str]]] = {}
+    for lit in candidates:
+        bcp = _bcp47_for_literal(lit, tag_map)
+        retagged = _retagged(lit, tag_map)
+        orig_lang = lit.language or ""
+        bucket = bcp.lower() if bcp is not None else ""
+        by_bcp.setdefault(bucket, []).append((retagged, orig_lang))
+    for key in by_bcp:
+        by_bcp[key].sort(key=lambda item: (rank_language(item[1]), str(item[0])))
+
+    for req in selector.requested:
+        if req in by_bcp:
+            return by_bcp[req][0][0], False
+
+    # Fallback to English, then the deterministic first tagged literal, then
+    # any untagged literal.
+    if "en" in by_bcp:
+        return by_bcp["en"][0][0], True
+
+    tagged = sorted(
+        (bcp, literal_lists[0]) for bcp, literal_lists in by_bcp.items() if bcp
+    )
+    if tagged:
+        # Use the same rank_language ordering as public_literal for stability.
+        best = min(tagged, key=lambda item: rank_language(item[0]))
+        return best[1][0], True
+
+    if "" in by_bcp:
+        return by_bcp[""][0][0], True
+    return None, False
+
+
+def filter_literals(
+    literals: Iterable[Literal],
+    selector: LangSelector,
+    *,
+    tag_map: dict[str, str] | None = None,
+) -> list[tuple[Literal, bool]]:
+    """Return literals matching the requested languages, or the ``en`` fallback.
+
+    Each result is ``(retagged_literal, is_fallback)``. If no requested language
+    is present, the English carrier-language literal is returned with
+    ``is_fallback=True``. If English is also absent, the deterministic first
+    tagged literal is returned as fallback.
+    """
+    if tag_map is None:
+        tag_map = _default_tag_map()
+
+    candidates = list(literals)
+    if not candidates:
+        return []
+
+    by_bcp: dict[str, list[tuple[Literal, str]]] = {}
+    for lit in candidates:
+        bcp = _bcp47_for_literal(lit, tag_map)
+        retagged = _retagged(lit, tag_map)
+        orig_lang = lit.language or ""
+        bucket = bcp.lower() if bcp is not None else ""
+        by_bcp.setdefault(bucket, []).append((retagged, orig_lang))
+    for key in by_bcp:
+        # Internal-tagged canonical literals sort first; within that, lexical
+        # order keeps multi-valued advisories deterministic.
+        by_bcp[key].sort(key=lambda item: (rank_language(item[1]), str(item[0])))
+
+    results: list[tuple[Literal, bool]] = []
+    for req in selector.requested:
+        for lit, _orig in by_bcp.get(req, []):
+            results.append((lit, False))
+
+    if results:
+        return results
+
+    # Fallback chain.
+    if "en" in by_bcp:
+        return [(by_bcp["en"][0][0], True)]
+    tagged = sorted(
+        (bcp, literal_lists[0]) for bcp, literal_lists in by_bcp.items() if bcp
+    )
+    if tagged:
+        best = min(tagged, key=lambda item: rank_language(item[0]))
+        return [(best[1][0], True)]
+    if "" in by_bcp:
+        return [(by_bcp[""][0][0], True)]
+    return []
+
+
+def filter_graph(
+    graph: Graph,
+    selector: LangSelector,
+    *,
+    tag_map: dict[str, str] | None = None,
+    predicates: Iterable[URIRef] | None = None,
+) -> Graph:
+    """Retain only language-selected literals for the given predicates.
+
+    For every ``(s, p)`` where *p* is in *predicates* and the objects include
+    language-tagged literals, the objects are replaced by the literals selected
+    by *selector* (or the English fallback). Non-language objects and triples
+    whose predicate is not in *predicates* are left untouched. Mutates and
+    returns *graph*.
+    """
+    if tag_map is None:
+        tag_map = _default_tag_map()
+    target_preds = set(predicates) if predicates is not None else _ANNOTATION_PREDICATES
+
+    # Group language-tagged objects by (s, p).
+    grouped: dict[tuple[URIRef, URIRef], list[Literal]] = {}
+    for s_, p_, o_ in graph:
+        if (
+            isinstance(s_, URIRef)
+            and isinstance(p_, URIRef)
+            and p_ in target_preds
+            and isinstance(o_, Literal)
+            and o_.language
+        ):
+            grouped.setdefault((s_, p_), []).append(o_)
+
+    for (s_, p_), literals in grouped.items():
+        selected = filter_literals(literals, selector, tag_map=tag_map)
+        if not selected:
+            continue
+        # Only mutate if the chosen set differs from the current set.
+        current = set(literals)
+        chosen = {lit for lit, _fallback in selected}
+        if chosen == current:
+            continue
+        for old in current:
+            graph.remove((s_, p_, old))
+        for lit in sorted(chosen, key=lambda lit: str(lit)):
+            graph.add((s_, p_, lit))
     return graph
