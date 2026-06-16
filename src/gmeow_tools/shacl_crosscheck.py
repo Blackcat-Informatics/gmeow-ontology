@@ -71,9 +71,11 @@ def _norm_iri(value: str | None) -> str | None:
         return value[1:-1]
     if value.startswith("_:"):  # gmeow_shacl blank node — not cross-comparable
         return None
-    # A bare pySHACL term: rdflib renders a URIRef with a scheme (contains ":")
-    # and a BNode/Literal without one. Only IRIs are identity-comparable.
-    if ":" in value:
+    # A bare pySHACL term. Match on the IRI scheme rather than a loose ``":" in
+    # value`` test, so a colon-bearing literal (datetime, message, urn-like text)
+    # is never mis-keyed as an IRI → no false divergence. GMEOW focus nodes,
+    # shapes, paths, and components are all http(s)/urn IRIs.
+    if value.startswith(("http://", "https://", "urn:")):
         return value
     return None  # pySHACL blank node id / literal
 
@@ -236,8 +238,19 @@ def write_ledger(divergences: list[Divergence], path: Path = LEDGER_FILE) -> Pat
 
 
 def _escape(text: str) -> str:
-    """Escape a string literal for Turtle."""
-    return text.replace("\\", "\\\\").replace('"', '\\"')
+    """Escape a string for a single-line Turtle literal.
+
+    Control characters must be escaped too — the ``reason`` field can carry
+    exception text (the parse-error path interpolates ``{exc}``), and a raw
+    newline/tab would produce invalid Turtle in the ledger artifact.
+    """
+    return (
+        text.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
 
 
 # A namespace handle kept importable for tests/tools that introspect the ledger.

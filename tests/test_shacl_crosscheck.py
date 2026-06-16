@@ -41,8 +41,11 @@ def _alice() -> Graph:
 def test_norm_iri_handles_both_engine_renderings() -> None:
     assert xc._norm_iri("<http://x>") == "http://x"  # gmeow_shacl
     assert xc._norm_iri("http://x") == "http://x"  # pySHACL bare
+    assert xc._norm_iri("https://x") == "https://x"
+    assert xc._norm_iri("urn:foo") == "urn:foo"
     assert xc._norm_iri("_:b0") is None  # gmeow_shacl blank
     assert xc._norm_iri("N1a2b3c4") is None  # pySHACL blank-node id
+    assert xc._norm_iri("2026-06-15T10:00:00") is None  # colon-literal, not an IRI
     assert xc._norm_iri(None) is None
 
 
@@ -106,6 +109,13 @@ def test_write_ledger_roundtrip(tmp_path) -> None:  # type: ignore[no-untyped-de
     full = xc.write_ledger([d], path=tmp_path / "ledger2.ttl")
     g = Graph().parse(full, format="turtle")  # valid Turtle
     assert (None, None, Literal("only-pyshacl")) in g
+
+    # Control chars in the reason (the parse-error path) must stay valid Turtle.
+    reason = 'bad\nline\twith "quote" \\and slash'
+    d2 = xc.Divergence("ex.ttl", "parse-error", "", reason)
+    ctrl = xc.write_ledger([d2], path=tmp_path / "ledger3.ttl")
+    g2 = Graph().parse(ctrl, format="turtle")  # must not raise
+    assert any("bad" in str(o) for o in g2.objects())
 
 
 @pytest.mark.skipif(
