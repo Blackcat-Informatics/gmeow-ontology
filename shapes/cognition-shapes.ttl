@@ -36,4 +36,10 @@ gmeow:KnowledgeProficiencyShape
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A KnowledgeProficiency has at most one agent (gmeow:knowledgeProficiencyAgent) — it is constitutive of the proficiency." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:knowledgeProficiencyScale ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A KnowledgeProficiency has at most one scale (gmeow:knowledgeProficiencyScale)." ;
     ] .

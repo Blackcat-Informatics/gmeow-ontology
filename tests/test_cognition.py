@@ -260,6 +260,8 @@ def test_wellformed_knowledge_proficiency_conforms() -> None:
 def test_malformed_knowledge_proficiency_is_flagged() -> None:
     result = run_shacl(_fixture("cognition-malformed"))
     assert not result.ok
+    assert result.errors
     errors = "\n".join(result.errors)
     assert "must reference exactly one subject" in errors
     assert "must carry exactly one KnowledgeLevel" in errors
+    assert "at most one scale" in errors
