@@ -14,6 +14,7 @@ pub mod model;
 pub mod path;
 pub mod report;
 pub mod shapes;
+pub mod sparql;
 
 // PyO3 bindings — native targets only (pyo3 cannot link into wasm32).
 #[cfg(not(target_arch = "wasm32"))]

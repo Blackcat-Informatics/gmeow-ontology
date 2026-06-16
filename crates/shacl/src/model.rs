@@ -253,6 +253,9 @@ pub mod sh {
     pub const SPARQL_TARGET: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLTarget");
 
+    pub const SPARQL_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#SPARQLConstraintComponent");
+
     // ── Constraint component IRIs (sh:*ConstraintComponent) ──────────────────
 
     pub const MIN_COUNT_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
