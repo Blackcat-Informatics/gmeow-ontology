@@ -18,8 +18,8 @@ from importlib import metadata
 from pathlib import Path
 
 import gmeow_validate
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import OWL, SKOS
+from rdflib import Graph, URIRef
+from rdflib.namespace import SKOS
 from rdflib.term import Node
 
 from gmeow_tools import shacl_engine
@@ -38,7 +38,6 @@ from gmeow_tools.config import (
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_source_files, load_merged_graph
-from gmeow_tools.language_tags import check_annotation_literal
 from gmeow_tools.reasoning_lint import reasoning_invariants
 from gmeow_tools.slices import (
     iter_slice_example_files,
@@ -53,6 +52,68 @@ _HOW_TO_USE = URIRef(NAMESPACE + "howToUse")
 _USE_FOR_CONSUMER = URIRef(NAMESPACE + "useForConsumer")
 _AVOID_FOR_CONSUMER = URIRef(NAMESPACE + "avoidForConsumer")
 _PROJECTION_CONTEXT = URIRef(NAMESPACE + "ProjectionContext")
+
+#: CamelCase tokens that mark a selector privileging one co-equal claim (P9).
+_SELECTOR_TOKENS = frozenset({"primary", "preferred", "default", "main"})
+
+_CAMEL_SPLIT = re.compile(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])")
+
+_TERM_KIND_ORDER = (
+    "ontology",
+    "class",
+    "property",
+    "annotation property",
+    "datatype",
+    "individual",
+)
+
+
+def _lint_config() -> gmeow_validate.LintConfig:
+    """Build the typed Rust lint config from the Python single-source constants.
+
+    Carries ``config.NAMESPACE``/``config.ONTOLOGY_IRI``, the P9 selector
+    tokens, the core-slice IRIs (the Tier-1 grading set), and the standard
+    annotation predicates the Check-2 language-tag policy polices (#579). The
+    Rust engine owns the lint logic; Python owns the registry and constants.
+    """
+    from gmeow_tools.language_tags import _ANNOTATION_PREDICATES
+
+    core_slice_iris = [
+        s.iri  # type: ignore[attr-defined]
+        for s in _discover_slices_cached().values()
+        if s.tier == "core"  # type: ignore[attr-defined]
+    ]
+    return gmeow_validate.LintConfig(
+        str(NAMESPACE),
+        str(ONTOLOGY_IRI),
+        sorted(_SELECTOR_TOKENS),
+        core_slice_iris,
+        sorted(str(p) for p in _ANNOTATION_PREDICATES),
+    )
+
+
+def _graph_source_paths(graph: Graph) -> tuple[list[str], Callable[[], None]]:
+    """Serialize *graph* to a temporary N-Triples file for the Rust lints.
+
+    The Rust lints build their own oxigraph store from file paths, so an
+    in-memory rdflib graph (the merged ontology, or a test's hand-built graph)
+    is written to one N-Triples temp file. Returns the source-path list plus a
+    cleanup callback the caller invokes when done.
+
+    N-Triples is chosen so any graph round-trips losslessly through oxigraph's
+    Turtle-family parser without prefix bookkeeping.
+    """
+    with tempfile.NamedTemporaryFile(
+        "wb", suffix=".nt", prefix="gmeow-lint-", delete=False
+    ) as handle:
+        graph.serialize(destination=handle, format="nt", encoding="utf-8")
+        path = Path(handle.name)
+
+    def _cleanup() -> None:
+        with suppress(OSError):
+            path.unlink(missing_ok=True)
+
+    return [str(path)], _cleanup
 
 
 @lru_cache(maxsize=4)
@@ -283,68 +344,33 @@ def _is_gmeow_term(term: URIRef) -> bool:
     return s.startswith(NAMESPACE) or s == ONTOLOGY_IRI
 
 
-_TERM_KIND_ORDER = (
-    "ontology",
-    "class",
-    "property",
-    "annotation property",
-    "datatype",
-    "individual",
-)
-
-
 def _term_kind(graph: Graph, term: URIRef) -> str:
-    """Return the primary structural kind of a GMEOW term based on its rdf:type."""
-    types = set(graph.objects(term, RDF.type))
-    if OWL.Ontology in types:
-        return "ontology"
-    if OWL.Class in types:
-        return "class"
-    if OWL.AnnotationProperty in types:
-        return "annotation property"
-    if OWL.ObjectProperty in types or OWL.DatatypeProperty in types:
-        return "property"
-    if RDFS.Datatype in types:
-        return "datatype"
-    return "individual"
+    """Return the primary structural kind of a GMEOW term based on its rdf:type.
+
+    Routed through the Rust ``gmeow_validate`` engine (#579): the per-term
+    kind resolution (``_TERM_KIND_ORDER`` priority) lives in Rust. This thin
+    wrapper looks the term up in the typed-terms map; a term with no explicit
+    ``rdf:type`` (never in the map) is an ``"individual"`` by the same
+    convention the Rust collector uses.
+    """
+    return _collect_typed_terms(graph).get(term, "individual")
 
 
 def _collect_typed_terms(graph: Graph) -> dict[URIRef, str]:
     """Map every GMEOW-namespaced term with an rdf:type to its primary kind.
 
-    Queries by type rather than scanning every subject, then resolves
-    multi-typed terms to the most specific kind using the canonical priority.
+    Routed through the Rust ``gmeow_validate.typed_terms`` engine (#579): the
+    type-query collection and multi-typed resolution live in Rust over an
+    oxigraph store. The graph is serialized to a temp N-Triples file and the
+    returned ``[(iri, kind)]`` pairs are rehydrated into rdflib ``URIRef``
+    keys for the Python callers that still expect them.
     """
-    terms: dict[URIRef, str] = {}
-    typed_queries = (
-        OWL.Ontology,
-        OWL.Class,
-        OWL.ObjectProperty,
-        OWL.DatatypeProperty,
-        OWL.AnnotationProperty,
-        RDFS.Datatype,
-    )
-    for rdf_type in typed_queries:
-        for term in graph.subjects(RDF.type, rdf_type):
-            if not isinstance(term, URIRef) or not _is_gmeow_term(term):
-                continue
-            current = terms.get(term)
-            kind = _term_kind(graph, term)
-            if current is None or _TERM_KIND_ORDER.index(kind) < _TERM_KIND_ORDER.index(
-                current
-            ):
-                terms[term] = kind
-    # Any remaining GMEOW subjects with an explicit rdf:type are treated as individuals.
-    for term in set(graph.subjects(RDF.type, None)):
-        if isinstance(term, URIRef) and _is_gmeow_term(term) and term not in terms:
-            terms[term] = "individual"
-    return terms
-
-
-#: CamelCase tokens that mark a selector privileging one co-equal claim (P9).
-_SELECTOR_TOKENS = frozenset({"primary", "preferred", "default", "main"})
-
-_CAMEL_SPLIT = re.compile(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])")
+    source_paths, cleanup = _graph_source_paths(graph)
+    try:
+        pairs = gmeow_validate.typed_terms(source_paths, _lint_config())
+    finally:
+        cleanup()
+    return {URIRef(iri): kind for iri, kind in pairs}
 
 
 def term_naming_lint(graph: Graph) -> ValidationResult:
@@ -357,24 +383,21 @@ def term_naming_lint(graph: Graph) -> ValidationResult:
     value-vocabulary names (``scriptRolePrimary``, ``sourceTierPrimary``)
     carry an explicit ``gmeow:namingNote`` justification — the lint enforces
     the judgment instead of relying on audit-time discretion.
+
+    Routed through the Rust ``gmeow_validate.term_naming_lint`` engine (#579):
+    the CamelCase split, selector-token match, and ``gmeow:namingNote`` escape
+    hatch all live in Rust over an oxigraph store built from the serialized
+    graph. Python supplies only the typed config.
     """
-    naming_note = URIRef(NAMESPACE + "namingNote")
-    result = ValidationResult()
-    for term, kind in sorted(_collect_typed_terms(graph).items()):
-        local = str(term).removeprefix(NAMESPACE)
-        tokens = {t.lower() for t in _CAMEL_SPLIT.findall(local)}
-        offending = tokens & _SELECTOR_TOKENS
-        if not offending:
-            continue
-        if next(graph.objects(term, naming_note), None) is not None:
-            continue
-        result.errors.append(
-            f"{kind} gmeow:{local} carries the selector token "
-            f"{sorted(offending)[0]!r} (Principle 9: co-equal claims have no "
-            f"primary/preferred/default/main); rename it, or justify a "
-            f"value-vocabulary use with gmeow:namingNote"
-        )
-    return result
+    source_paths, cleanup = _graph_source_paths(graph)
+    try:
+        report = gmeow_validate.term_naming_lint(source_paths, _lint_config())
+    finally:
+        cleanup()
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 _SLICES_CACHE: dict[str, object] = {}
@@ -404,139 +427,24 @@ def structural_lint(graph: Graph) -> ValidationResult:
 
     Returns:
         The validation result.
+
+    Routed through the Rust ``gmeow_validate.structural_lint`` engine (#579):
+    the per-term annotation checks, Tier-1 depth grading, consumer-context
+    check, dangling-target check, comprehensiveness heuristic, and the two
+    language-tag policy checks (Check 1 / Check 2, with the rdflib ``Literal``
+    repr framing reproduced byte-exact) all live in Rust over an oxigraph
+    store built from the serialized graph. Python supplies only the typed
+    config (namespace, core-slice IRIs, annotation predicates).
     """
-    result = ValidationResult()
-    typed = _collect_typed_terms(graph)
-
-    for term, kind in sorted(typed.items(), key=lambda x: str(x[0])):
-        if (term, RDFS.label, None) not in graph:
-            result.errors.append(f"{kind} {term} is missing rdfs:label")
-        if (term, _DEFINITION, None) not in graph:
-            result.errors.append(f"{kind} {term} is missing skos:definition")
-        if (term, RDFS.isDefinedBy, None) not in graph:
-            result.errors.append(f"{kind} {term} is missing rdfs:isDefinedBy")
-
-    declared = set(typed)
-
-    # Tier-1 depth, graded (#325/#471): public-facing terms — classes and
-    # object/datatype properties in CORE slices — should also carry advisory
-    # useWhen/howToUse metadata; worked skos:example coverage is nudged only
-    # after howToUse exists, so warnings stay additive instead of duplicative.
-    # WARNINGS for now; severity is promoted once coverage is high (tracked by
-    # the module-status matrix). Annotation properties, individuals, and
-    # extension-tier terms are exempt at this grade.
-    core_slice_iris = {
-        URIRef(s.iri)  # type: ignore[attr-defined]
-        for s in _discover_slices_cached().values()
-        if s.tier == "core"  # type: ignore[attr-defined]
-    }
-    for term, kind in sorted(typed.items(), key=lambda x: str(x[0])):
-        if kind not in ("class", "property"):
-            continue
-        defined_by = set(graph.objects(term, RDFS.isDefinedBy))
-        if not (defined_by & core_slice_iris):
-            continue
-        if (term, _USE_WHEN, None) not in graph:
-            result.warnings.append(
-                f"{kind} {term} is missing gmeow:useWhen (Tier-1 depth, #471)"
-            )
-        has_how_to_use = (term, _HOW_TO_USE, None) in graph
-        if not has_how_to_use:
-            result.warnings.append(
-                f"{kind} {term} is missing gmeow:howToUse (Tier-1 depth, #471)"
-            )
-        elif (term, SKOS.example, None) not in graph:
-            result.warnings.append(
-                f"{kind} {term} has gmeow:howToUse but no skos:example "
-                f"(Tier-1 depth, #471)"
-            )
-
-    for predicate in (_USE_FOR_CONSUMER, _AVOID_FOR_CONSUMER):
-        for subject, _, consumer in graph.triples((None, predicate, None)):
-            if (
-                not isinstance(consumer, URIRef)
-                or (
-                    consumer,
-                    RDF.type,
-                    _PROJECTION_CONTEXT,
-                )
-                not in graph
-            ):
-                result.errors.append(
-                    f"{predicate} on {subject} points to non-ProjectionContext "
-                    f"value {consumer}"
-                )
-
-    # Dangling GMEOW subclass/subproperty targets.
-    for predicate in (RDFS.subClassOf, RDFS.subPropertyOf):
-        for _, _, target in graph.triples((None, predicate, None)):
-            if (
-                isinstance(target, URIRef)
-                and _is_gmeow_term(target)
-                and target not in declared
-            ):
-                result.errors.append(
-                    f"dangling {predicate} target (undeclared GMEOW term): {target}"
-                )
-
-    # Comprehensiveness heuristic: if a GMEOW class has ≥3 direct subclasses
-    # in the GMEOW namespace and ≥3 of them lack skos:definition, warn about
-    # the parent being under-documented. This surfaces systematic gaps even
-    # when the basic per-term check catches each individually. Blank-node
-    # restrictions and non-GMEOW children are filtered out.
-    parent_to_children: dict[URIRef, list[URIRef]] = {}
-    for child, _, parent in graph.triples((None, RDFS.subClassOf, None)):
-        if (
-            isinstance(child, URIRef)
-            and _is_gmeow_term(child)
-            and isinstance(parent, URIRef)
-            and _is_gmeow_term(parent)
-        ):
-            parent_to_children.setdefault(parent, []).append(child)
-    for parent, children in parent_to_children.items():
-        if len(children) < 3:
-            continue
-        missing = [c for c in children if (c, _DEFINITION, None) not in graph]
-        if len(missing) >= 3:
-            result.warnings.append(
-                f"class {parent} has {len(missing)} of {len(children)} "
-                f"direct subclasses missing skos:definition "
-                f"(systematic documentation gap)"
-            )
-
-    # Ensure all language-tagged string literals on GMEOW properties
-    # use the GMEOW-internal 'x-gmeow-' prefix.
-    import re
-
-    x_gmeow_pattern = re.compile(r"^x-gmeow-[a-z0-9\-]+$", re.IGNORECASE)
-    for s, p, o in graph:
-        # Check 1: literal on a GMEOW-namespace predicate.
-        if (
-            str(p).startswith(NAMESPACE)
-            and isinstance(o, Literal)
-            and o.language
-            and not x_gmeow_pattern.match(o.language)
-        ):
-            msg = (
-                f"literal {o!r} (on subject {s}, predicate {p}) carries "
-                f"external or invalid language tag '{o.language}'; "
-                f"GMEOW internal data must use the private-use 'x-gmeow-' prefix."
-            )
-            result.errors.append(msg)
-
-        # Check 2: literal on a standard annotation predicate when the subject
-        # is a GMEOW-authored term.
-        if (
-            isinstance(s, URIRef)
-            and isinstance(p, URIRef)
-            and isinstance(o, Literal)
-            and _is_gmeow_term(s)
-        ):
-            anno_msg = check_annotation_literal(s, p, o)
-            if anno_msg:
-                result.errors.append(anno_msg)
-
-    return result
+    source_paths, cleanup = _graph_source_paths(graph)
+    try:
+        report = gmeow_validate.structural_lint(source_paths, _lint_config())
+    finally:
+        cleanup()
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 def reasoning_lint(graph: Graph) -> ValidationResult:
@@ -633,24 +541,23 @@ def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
     every term and keeps ownership honest through merges and GTS composition
     (a term claiming a foreign owner, or the retired root-pointing form, is an
     error).
+
+    Routed through the Rust ``gmeow_validate.slice_ownership_lint`` engine
+    (#579): each module is parsed ALONE in Rust and its GMEOW subjects'
+    ``rdfs:isDefinedBy`` objects are equality-checked against the owning slice
+    IRI. Python supplies the ``(module_path, expected_slice_iri)`` registry —
+    the slice-IRI derivation (``NAMESPACE + slices/<dir>``) stays here so the
+    file→slice convention is owned in one place.
     """
-    result = ValidationResult()
     modules = iter_slice_module_files(root) if root else iter_slice_module_files()
-    for module in modules:
-        slice_iri = URIRef(f"{NAMESPACE}slices/{module.parent.name}")
-        graph = Graph()
-        graph.parse(module, format="turtle")
-        for subject, obj in graph.subject_objects(RDFS.isDefinedBy):
-            if (
-                isinstance(subject, URIRef)
-                and _is_gmeow_term(subject)
-                and obj != slice_iri
-            ):
-                result.errors.append(
-                    f"{module}: {subject} rdfs:isDefinedBy {obj} — must equal "
-                    f"the owning slice IRI {slice_iri} (#329)"
-                )
-    return result
+    module_specs = [
+        (str(module), f"{NAMESPACE}slices/{module.parent.name}") for module in modules
+    ]
+    report = gmeow_validate.slice_ownership_lint(module_specs, _lint_config())
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 def _shacl_cache_inputs(shapes_path: Path = SHAPES_FILE) -> list[Path]:
@@ -760,11 +667,22 @@ def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResul
     heading anchors resolve to declared GMEOW terms — a renamed term breaks
     the build, and a slice without a guide fails. Anchors owned by another
     slice are legal cross-references; anchors matching no term are errors.
+
+    The declared-term set is computed by the Rust
+    ``gmeow_validate.declared_terms`` engine (#579) over the serialized graph;
+    the markdown anchor parsing and resolution stay in Python.
     """
     from gmeow_tools.config import SLICES_DIR
 
     result = ValidationResult()
-    declared = set(_collect_typed_terms(graph))
+    source_paths, cleanup = _graph_source_paths(graph)
+    try:
+        declared = {
+            URIRef(iri)
+            for iri in gmeow_validate.declared_terms(source_paths, _lint_config())
+        }
+    finally:
+        cleanup()
     base = root if root is not None else SLICES_DIR
     for manifest in sorted(base.glob("*/*/manifest.ttl")):
         slice_dir = manifest.parent

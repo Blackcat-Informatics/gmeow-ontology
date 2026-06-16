@@ -16,9 +16,13 @@
 //! #579). pyo3 cannot link into wasm, so the crate is simply never built for
 //! wasm.
 
+use std::collections::{BTreeSet, HashSet};
+use std::path::PathBuf;
+
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
+use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::store;
 
 /// Build the standard `{"errors": [...], "warnings": [...]}` report dict.
@@ -27,6 +31,150 @@ fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> Py
     out.set_item("errors", PyList::new(py, &errors)?)?;
     out.set_item("warnings", PyList::new(py, &warnings)?)?;
     Ok(out.into())
+}
+
+/// Convert a [`LintReport`] into the standard report dict.
+fn lint_report_dict(py: Python<'_>, report: LintReport) -> PyResult<PyObject> {
+    report_dict(py, report.errors, report.warnings)
+}
+
+/// Strongly-typed lint configuration crossing the FFI boundary.
+///
+/// Constructed in Python from `config.NAMESPACE` / `config.ONTOLOGY_IRI`, the
+/// `_SELECTOR_TOKENS` set, the core-slice IRI list, and the annotation-predicate
+/// list — no untyped dict bag (#579). Shared by `structural_lint`,
+/// `term_naming_lint`, and `declared_terms`.
+#[pyclass(name = "LintConfig")]
+#[derive(Clone)]
+struct PyLintConfig {
+    namespace: String,
+    ontology_iri: String,
+    selector_tokens: Vec<String>,
+    core_slice_iris: Vec<String>,
+    annotation_predicates: Vec<String>,
+}
+
+#[pymethods]
+impl PyLintConfig {
+    #[new]
+    fn new(
+        namespace: String,
+        ontology_iri: String,
+        selector_tokens: Vec<String>,
+        core_slice_iris: Vec<String>,
+        annotation_predicates: Vec<String>,
+    ) -> Self {
+        Self {
+            namespace,
+            ontology_iri,
+            selector_tokens,
+            core_slice_iris,
+            annotation_predicates,
+        }
+    }
+}
+
+impl PyLintConfig {
+    fn to_engine(&self) -> LintConfig {
+        LintConfig {
+            namespace: self.namespace.clone(),
+            ontology_iri: self.ontology_iri.clone(),
+            selector_tokens: self
+                .selector_tokens
+                .iter()
+                .cloned()
+                .collect::<BTreeSet<_>>(),
+            core_slice_iris: self.core_slice_iris.iter().cloned().collect::<HashSet<_>>(),
+            annotation_predicates: self
+                .annotation_predicates
+                .iter()
+                .cloned()
+                .collect::<HashSet<_>>(),
+        }
+    }
+}
+
+/// Build the merged store from `source_paths`, mapping a parse failure to a
+/// Python `ValueError` (a hard failure that must surface — the validation path
+/// has no rdflib fallback, #579).
+fn build_store_or_err(source_paths: &[String]) -> PyResult<oxigraph::store::Store> {
+    let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
+    store::build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+/// Structural lint over the merged sources (mirrors `validate.structural_lint`).
+#[pyfunction]
+fn structural_lint(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    cfg: PyLintConfig,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let report = lint::structural_lint(&store, &cfg.to_engine());
+    lint_report_dict(py, report)
+}
+
+/// Term-naming lint over the merged sources (mirrors `validate.term_naming_lint`).
+#[pyfunction]
+fn term_naming_lint(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    cfg: PyLintConfig,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let report = lint::term_naming_lint(&store, &cfg.to_engine());
+    lint_report_dict(py, report)
+}
+
+/// Slice-ownership lint (mirrors `validate.slice_ownership_lint`).
+///
+/// `module_specs` is a list of `(module_path, expected_slice_iri)` pairs; each
+/// module is parsed ALONE so a term's ownership claim is checked against its own
+/// containing slice (#329).
+#[pyfunction]
+fn slice_ownership_lint(
+    py: Python<'_>,
+    module_specs: Vec<(String, String)>,
+    cfg: PyLintConfig,
+) -> PyResult<PyObject> {
+    let mut modules: Vec<(ModuleSpec, oxigraph::store::Store)> = Vec::new();
+    for (module_path, expected_slice_iri) in module_specs {
+        let store = build_store_or_err(std::slice::from_ref(&module_path))?;
+        modules.push((
+            ModuleSpec {
+                module_path,
+                expected_slice_iri,
+            },
+            store,
+        ));
+    }
+    let report = lint::slice_ownership_lint(&modules, &cfg.to_engine());
+    lint_report_dict(py, report)
+}
+
+/// The typed GMEOW terms over the merged sources as `[(iri, kind)]` (mirrors
+/// `_collect_typed_terms`), for the Python `_collect_typed_terms`/`_term_kind`
+/// routes.
+#[pyfunction]
+fn typed_terms(py: Python<'_>, source_paths: Vec<String>, cfg: PyLintConfig) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let pairs: Vec<(String, String)> = lint::collect_typed_terms(&store, &cfg.to_engine())
+        .into_iter()
+        .collect();
+    Ok(PyList::new(py, &pairs)?.into())
+}
+
+/// The declared GMEOW-term IRI set over the merged sources (mirrors
+/// `set(_collect_typed_terms(graph))`), for `guide_anchor_lint`.
+#[pyfunction]
+fn declared_terms(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    cfg: PyLintConfig,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let terms = lint::declared_terms(&store, &cfg.to_engine());
+    Ok(PyList::new(py, &terms)?.into())
 }
 
 /// Parse every source Turtle file individually to catch syntax errors.
@@ -88,11 +236,18 @@ fn check_sameas_ban(
 
 /// Python extension module `gmeow_validate`.
 ///
-/// Exposes `check_syntax(paths)` and
-/// `check_sameas_ban(paths, namespace, allowlist)`.
+/// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
+/// ownership, and declared-term lints (Task 2, #579), and the `LintConfig` type
+/// that carries their typed configuration across the FFI boundary.
 #[pymodule]
 fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_class::<PyLintConfig>()?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
+    m.add_function(wrap_pyfunction!(structural_lint, m)?)?;
+    m.add_function(wrap_pyfunction!(term_naming_lint, m)?)?;
+    m.add_function(wrap_pyfunction!(slice_ownership_lint, m)?)?;
+    m.add_function(wrap_pyfunction!(typed_terms, m)?)?;
+    m.add_function(wrap_pyfunction!(declared_terms, m)?)?;
     Ok(())
 }
