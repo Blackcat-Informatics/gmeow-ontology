@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a LOADED question via the deception bridge, with NO new
+# axiom. The classic "have you stopped cheating?" is a polar gmeow:Question that
+# gmeow:presupposes a proposition ("you were cheating"). Loadedness is NOT a flag
+# on the question: it is a gmeow:StandpointClaim over the presupposed proposition
+# carrying gmeow:claimModality gmeow:refuted — a standpoint DENIES the
+# presupposition, exposing the question as loaded. This reuses the standpoint /
+# deception machinery (P6); there is no isLoaded bit and no truth bit anywhere.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inquiry/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The polar question and the proposition it takes for granted.
+ex:stoppedCheating a gmeow:Question ;
+    gmeow:questionType gmeow:typePolar ;
+    gmeow:presupposes ex:wasCheating ;
+    rdfs:label "have you stopped cheating?"@x-gmeow-english .
+
+ex:wasCheating a gmeow:Proposition ;
+    rdfs:label "you were cheating"@x-gmeow-english .
+
+# --- The frame from which the presupposition is denied.
+ex:accused a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+
+# --- The deception bridge: a StandpointClaim over the presupposed proposition
+#     carrying gmeow:refuted. From this vantage the presupposition is DENIED, so
+#     the question is exposed as loaded. The question STAYS OPEN — loadedness is
+#     the refuted presupposition, not a property of the gmeow:Question itself.
+ex:denial a gmeow:StandpointClaim ;
+    gmeow:vantage ex:accused ;
+    gmeow:observedFeature ex:wasCheating ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:refuted .

@@ -64,6 +64,7 @@ classes:
     title: Agent
     slots:
     - accepts
+    - asks
     - attendsTo
     - believes
     - curiousAbout
@@ -82,6 +83,7 @@ classes:
     - holdsAccount
     - holdsCredential
     - holdsKey
+    - inquiresInto
     - interestedIn
     - isAwareOf
     - knowsAbout
@@ -93,10 +95,12 @@ classes:
     - nativeLanguage
     - ownerOf
     - remembers
+    - seeksToKnow
     - slogan
     - suspendsJudgementOn
     - telephone
     - understands
+    - wondersWhether
   AggregationFunction:
     class_uri: https://blackcatinformatics.ca/gmeow/AggregationFunction
     title: Aggregation Function
@@ -1547,6 +1551,13 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/InlinePart
     title: Inline Part
     is_a: BodyPart
+  InquiryTenure:
+    class_uri: https://blackcatinformatics.ca/gmeow/InquiryTenure
+    title: Inquiry Tenure
+    is_a: TimeScopedRelation
+    slots:
+    - tenureInquirer
+    - tenureQuestion
   Inscription:
     class_uri: https://blackcatinformatics.ca/gmeow/Inscription
     title: Inscription
@@ -2930,6 +2941,16 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Quantity
     title: Quantity
     is_a: Entity
+  Question:
+    class_uri: https://blackcatinformatics.ca/gmeow/Question
+    title: Question
+    is_a: SocialObject
+    slots:
+    - presupposes
+    - questionType
+  QuestionType:
+    class_uri: https://blackcatinformatics.ca/gmeow/QuestionType
+    title: Question Type
   ReadingOrder:
     class_uri: https://blackcatinformatics.ca/gmeow/ReadingOrder
     title: Reading Order
@@ -4187,6 +4208,11 @@ slots:
     range: EvidenceSpan
     domain: Annotation
     multivalued: true
+  answers:
+    slot_uri: https://blackcatinformatics.ca/gmeow/answers
+    title: answers
+    range: Question
+    multivalued: true
   appliesToSegment:
     slot_uri: https://blackcatinformatics.ca/gmeow/appliesToSegment
     title: applies to segment
@@ -4294,6 +4320,12 @@ slots:
     title: as WKT
     range: string
     domain: Geometry
+    multivalued: true
+  asks:
+    slot_uri: https://blackcatinformatics.ca/gmeow/asks
+    title: asks
+    range: uriorcurie
+    domain: Agent
     multivalued: true
   assertedAt:
     slot_uri: https://blackcatinformatics.ca/gmeow/assertedAt
@@ -6153,6 +6185,11 @@ slots:
     range: EventType
     domain: Event
     multivalued: true
+  evokes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/evokes
+    title: evokes
+    range: Question
+    multivalued: true
   exceptionOriginalDate:
     slot_uri: https://blackcatinformatics.ca/gmeow/exceptionOriginalDate
     title: exception original date
@@ -7937,6 +7974,12 @@ slots:
     range: datetime
     domain: ImportActivity
     multivalued: false
+  inquiresInto:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inquiresInto
+    title: inquires into
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
   inquiryPriority:
     slot_uri: https://blackcatinformatics.ca/gmeow/inquiryPriority
     title: inquiry priority
@@ -9901,6 +9944,12 @@ slots:
     range: uriorcurie
     domain: Norm
     multivalued: true
+  presupposes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/presupposes
+    title: presupposes
+    range: Proposition
+    domain: Question
+    multivalued: true
   preview:
     slot_uri: https://blackcatinformatics.ca/gmeow/preview
     title: preview
@@ -10175,6 +10224,12 @@ slots:
     title: quaternion Z
     range: double
     domain: Orientation
+    multivalued: true
+  questionType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/questionType
+    title: question type
+    range: QuestionType
+    domain: Question
     multivalued: true
   quotedText:
     slot_uri: https://blackcatinformatics.ca/gmeow/quotedText
@@ -10854,6 +10909,12 @@ slots:
     title: sealed recipient
     range: Agent
     domain: OpaqueFrame
+    multivalued: true
+  seeksToKnow:
+    slot_uri: https://blackcatinformatics.ca/gmeow/seeksToKnow
+    title: seeks to know
+    range: uriorcurie
+    domain: Agent
     multivalued: true
   segmentIndex:
     slot_uri: https://blackcatinformatics.ca/gmeow/segmentIndex
@@ -11644,6 +11705,12 @@ slots:
     range: Determinacy
     domain: LandTenure
     multivalued: true
+  tenureInquirer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureInquirer
+    title: tenure inquirer
+    range: Agent
+    domain: InquiryTenure
+    multivalued: false
   tenureIntention:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenureIntention
     title: tenure intention
@@ -11674,6 +11741,12 @@ slots:
     range: uriorcurie
     domain: StandpointTenure
     multivalued: true
+  tenureQuestion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureQuestion
+    title: tenure question
+    range: Question
+    domain: InquiryTenure
+    multivalued: false
   tenureRights:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenureRights
     title: tenure rights
@@ -12365,6 +12438,12 @@ slots:
     title: within family
     range: Family
     domain: KinRelationship
+    multivalued: true
+  wondersWhether:
+    slot_uri: https://blackcatinformatics.ca/gmeow/wondersWhether
+    title: wonders whether
+    range: uriorcurie
+    domain: Agent
     multivalued: true
   writingSystemAsNotation:
     slot_uri: https://blackcatinformatics.ca/gmeow/writingSystemAsNotation
@@ -17840,6 +17919,24 @@ enums:
       qualityDimensionTopologicalConsistency:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency
         title: topological consistency
+  QuestionTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/QuestionType
+    permissible_values:
+      typeAlternative:
+        meaning: https://blackcatinformatics.ca/gmeow/typeAlternative
+        title: alternative (which-of-a-set)
+      typeHow:
+        meaning: https://blackcatinformatics.ca/gmeow/typeHow
+        title: how (procedure-seeking)
+      typePolar:
+        meaning: https://blackcatinformatics.ca/gmeow/typePolar
+        title: polar (yes/no)
+      typeWh:
+        meaning: https://blackcatinformatics.ca/gmeow/typeWh
+        title: wh (who/what/where/when)
+      typeWhy:
+        meaning: https://blackcatinformatics.ca/gmeow/typeWhy
+        title: why (explanation-seeking)
   RealizationModeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/RealizationMode
     permissible_values:

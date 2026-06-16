@@ -2397,6 +2397,15 @@ enum QualityDimensionEnum
     qualityDimensionTopologicalConsistency
   }
 
+enum QuestionTypeEnum
+  {
+    typeAlternative
+    typeHow
+    typePolar
+    typeWh
+    typeWhy
+  }
+
 enum RealizationModeEnum
   {
     realizationModeImprovised
@@ -3315,6 +3324,7 @@ type AestheticQuality
 type Agent
   {
     accepts: [String]
+    asks: [String]
     attendsTo: [Entity]
     believes: [String]
     curiousAbout: [Entity]
@@ -3333,6 +3343,7 @@ type Agent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
@@ -3344,10 +3355,12 @@ type Agent
     nativeLanguage: [Language]
     ownerOf: [Entity]
     remembers: [Entity]
+    seeksToKnow: [String]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
+    wondersWhether: [String]
   }
 
 type AggregationFunction
@@ -4643,6 +4656,7 @@ type BuildActivity
 type Builder
   {
     accepts: [String]
+    asks: [String]
     attendsTo: [Entity]
     believes: [String]
     curiousAbout: [Entity]
@@ -4661,6 +4675,7 @@ type Builder
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
@@ -4672,10 +4687,12 @@ type Builder
     nativeLanguage: [Language]
     ownerOf: [Entity]
     remembers: [Entity]
+    seeksToKnow: [String]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
+    wondersWhether: [String]
   }
 
 type CadastralReference
@@ -9968,6 +9985,13 @@ type InlinePart
     partId: [String]
   }
 
+type InquiryTenure
+  {
+    duringInterval: [TimeInterval]
+    tenureInquirer: Agent
+    tenureQuestion: Question
+  }
+
 type Inscription
   {
     acquireLicensePage: [String]
@@ -14767,6 +14791,7 @@ type OrderStatus
 type Organization
   {
     accepts: [String]
+    asks: [String]
     attendsTo: [Entity]
     believes: [String]
     curiousAbout: [Entity]
@@ -14785,6 +14810,7 @@ type Organization
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
@@ -14796,10 +14822,12 @@ type Organization
     nativeLanguage: [Language]
     ownerOf: [Entity]
     remembers: [Entity]
+    seeksToKnow: [String]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
+    wondersWhether: [String]
     acceptsCurrency: [ReferenceFrame]
     acceptsPaymentMethod: [PaymentMethod]
     foundedBy: [Agent]
@@ -15306,6 +15334,7 @@ type Permission
 type Person
   {
     accepts: [String]
+    asks: [String]
     attendsTo: [Entity]
     believes: [String]
     curiousAbout: [Entity]
@@ -15324,6 +15353,7 @@ type Person
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
@@ -15335,10 +15365,12 @@ type Person
     nativeLanguage: [Language]
     ownerOf: [Entity]
     remembers: [Entity]
+    seeksToKnow: [String]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
+    wondersWhether: [String]
     alumniOf: [Organization]
     hasAncestor: [Person]
     hasChild: [Person]
@@ -17247,6 +17279,69 @@ type Quantity
     wasGeneratedBy: [Activity]
   }
 
+type Question
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    presupposes: [Proposition]
+    questionType: [QuestionType]
+  }
+
+type QuestionType
+  {
+  }
+
 type ReadingOrder
   {
     acquireLicensePage: [String]
@@ -18804,6 +18899,7 @@ type SensitivityLevel
 type Sensor
   {
     accepts: [String]
+    asks: [String]
     attendsTo: [Entity]
     believes: [String]
     curiousAbout: [Entity]
@@ -18822,6 +18918,7 @@ type Sensor
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
@@ -18833,10 +18930,12 @@ type Sensor
     nativeLanguage: [Language]
     ownerOf: [Entity]
     remembers: [Entity]
+    seeksToKnow: [String]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
+    wondersWhether: [String]
   }
 
 type SensorPlatform
@@ -19862,6 +19961,7 @@ type SocialObject
 type SoftwareAgent
   {
     accepts: [String]
+    asks: [String]
     attendsTo: [Entity]
     believes: [String]
     curiousAbout: [Entity]
@@ -19880,6 +19980,7 @@ type SoftwareAgent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
     knowsAbout: [Entity]
@@ -19891,10 +19992,12 @@ type SoftwareAgent
     nativeLanguage: [Language]
     ownerOf: [Entity]
     remembers: [Entity]
+    seeksToKnow: [String]
     slogan: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
+    wondersWhether: [String]
   }
 
 type SoftwareName

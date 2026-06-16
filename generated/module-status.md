@@ -40,6 +40,7 @@ Tier-2 uplift backlog.
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 18/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
 | inference | core | core | 6 | 7 | 21 | 0 | 5 | 0/28 | full |
+| inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 16 | 27 | 0 | 1 | 27/43 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 10/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
@@ -74,4 +75,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 11/11 | full |
 
-**65 slices** · documentation: 65 full guides, 0 stubs remaining (#325); advisory coverage: 1082/1169 core class/property terms (#471).
+**66 slices** · documentation: 66 full guides, 0 stubs remaining (#325); advisory coverage: 1095/1182 core class/property terms (#471).

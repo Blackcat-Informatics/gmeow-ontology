@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the open→resolved inquiry lifecycle, reusing the epistemics
+# spine. An agent asks a Wh-question, holding it OPEN. One vantage answers it
+# with a gmeow:StandpointClaim (a kind of Observation): the answer rides
+# gmeow:observedFeature / gmeow:observationResult and gmeow:answers the question.
+# The agent RESOLVES the question by accepting that answer-claim through the
+# epistemics spine — gmeow:knowsThat (which ENTAILS gmeow:believes by the
+# keystone). No truth bit anywhere, and no global "answered" flag: resolution
+# REUSES the epistemics spine rather than minting a new resolved term (P6).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inquiry/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The agent and the open Wh-question.
+ex:lillith a gmeow:Agent ;
+    gmeow:asks ex:whereIsKey .   # the question is held OPEN by lillith
+
+ex:whereIsKey a gmeow:Question ;
+    gmeow:questionType gmeow:typeWh ;
+    rdfs:label "where is the key?"@x-gmeow-english .
+
+# --- The observer whose vantage supplies an answer.
+ex:houseObserver a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+
+ex:hookLocation a gmeow:Entity ;
+    rdfs:label "the hook by the door"@x-gmeow-english .
+
+# --- One vantage's answer: a StandpointClaim that gmeow:answers the question.
+#     The answer content rides the Observation spine (observedFeature = the
+#     thing observed, observationResult = the located place); the claim is one
+#     vantage-indexed answer among possibly many (P9), never THE answer.
+ex:keyOnHook a gmeow:StandpointClaim ;
+    gmeow:answers ex:whereIsKey ;
+    gmeow:vantage ex:houseObserver ;
+    gmeow:observedFeature ex:whereIsKey ;
+    gmeow:observationResult ex:hookLocation ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal .
+
+# --- Resolution: lillith ACCEPTS the answer-claim through the epistemics spine.
+#     gmeow:knowsThat ⊑ gmeow:believes (the epistemics keystone): accepting the
+#     answer-claim closes the inquiry. The question is now RESOLVED FOR lillith
+#     — there is no global "answered" flag; another agent may still hold it open.
+ex:lillith gmeow:knowsThat ex:keyOnHook .   # entails gmeow:believes ex:keyOnHook
