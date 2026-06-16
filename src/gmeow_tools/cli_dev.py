@@ -1854,6 +1854,94 @@ _LOGIC_MODES = (
 )
 
 
+@logic_app.command("query")
+def logic_query(
+    world: Path = typer.Argument(  # noqa: B008
+        ...,
+        help="N-Quads file of the materialized world(s) — the read-only EDB.",
+    ),
+    query_file: Path = typer.Argument(  # noqa: B008
+        ...,
+        help="A .logic query: prefixes, Horn rules, optional cut, one `?- goal.`",
+    ),
+    profile: str = typer.Option(
+        "PositiveHornProfile",
+        "--profile",
+        help="Semantic profile in force. Cut (`!`) is permitted ONLY under "
+        "ProceduralPrologProfile.",
+    ),
+    world_iri: str | None = typer.Option(
+        None,
+        "--world-iri",
+        help="Target world IRI. Default: the single named graph in the N-Quads.",
+    ),
+    max_answers: int | None = typer.Option(
+        None,
+        "--max-answers",
+        help="Cap the answer set (status=partial when the cap is hit).",
+    ),
+    max_steps: int | None = typer.Option(
+        None,
+        "--max-steps",
+        help="Inference-count ceiling (status=exhausted when exceeded).",
+    ),
+    as_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit the raw {bindings, status} JSON instead of a table.",
+    ),
+) -> None:
+    """Resolve a backward goal (`.logic`) over a materialized world (issue #504, v4).
+
+    Loads the N-Quads EDB, parses the `.logic` program, enforces the cut/profile
+    gate, and routes the goal through the dispatcher — the oxigraph SPARQL fast
+    path for non-recursive pattern goals, or embedded Scryer Prolog (with
+    tabling) for recursive/unification-heavy goals. Answers are **virtual**:
+    nothing is written back into the world (cut is operational-only, never a
+    stored fact).
+    """
+    try:
+        import gmeow_logic  # type: ignore[import-untyped]
+    except ImportError as exc:  # pragma: no cover - environment guard
+        raise _fail(
+            "✗ gmeow_logic extension not built — run `make logic-py` "
+            f"(maturin develop). Underlying error: {exc}"
+        ) from exc
+
+    if not world.is_file():
+        raise _fail(f"✗ world N-Quads file not found: {world}")
+    if not query_file.is_file():
+        raise _fail(f"✗ query file not found: {query_file}")
+
+    nquads = world.read_text(encoding="utf-8")
+    program = query_file.read_text(encoding="utf-8")
+
+    try:
+        result = gmeow_logic.query(
+            nquads, program, profile, world_iri, max_answers, max_steps
+        )
+    except ValueError as exc:
+        # Cut outside ProceduralPrologProfile, malformed input, ambiguous world,
+        # or a Scryer resolution error — all surface as a hard failure.
+        raise _fail(f"✗ query failed: {exc}") from exc
+
+    if as_json:
+        import json
+
+        console.print(json.dumps(result, sort_keys=True, ensure_ascii=False))
+        return
+
+    bindings = result["bindings"]
+    status = result["status"]
+    if not bindings:
+        console.print("[yellow]no answers[/yellow]")
+    else:
+        for row in bindings:
+            rendered = ", ".join(f"{k} = {v}" for k, v in sorted(row.items()))
+            console.print(rendered if rendered else "(true)")
+    console.print(f"[dim]{len(bindings)} answer(s); status={status}[/dim]")
+
+
 @logic_app.command("compile")
 def logic_compile(
     check: bool = typer.Option(

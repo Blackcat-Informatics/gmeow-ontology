@@ -144,6 +144,60 @@ def test_logic_compile_unknown_mode_fails(runner: CliRunner) -> None:
     assert "unknown --mode" in result.output or "bad-mode" in result.output
 
 
+# --------------------------------------------------------------------------- #
+# gmeow logic query (issue #504, v4 backward goals)
+# --------------------------------------------------------------------------- #
+
+
+def _query_case(name: str) -> Path:
+    """Path to a profiles/ backward-goal conformance case (skip if absent)."""
+    from gmeow_tools.config import PROJECT_ROOT
+
+    case = Path(PROJECT_ROOT) / "conformance" / "logic" / "cases" / "profiles" / name
+    if not case.is_dir():
+        pytest.skip(f"conformance case {name} not found in this checkout")
+    return case
+
+
+def test_logic_query_recursive_ancestor(runner: CliRunner) -> None:
+    """`logic query` resolves a tabled recursive goal to the transitive closure."""
+    pytest.importorskip("gmeow_logic", reason="run 'make logic-py' first")
+    case = _query_case("goal-recursive-ancestor")
+    result = runner.invoke(
+        dev_app,
+        [
+            "logic",
+            "query",
+            str(case / "input.nq"),
+            str(case / "queries" / "ancestor.logic"),
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, f"Expected exit 0; got:\n{result.output}"
+    assert '"status": "ok"' in result.output
+    # Three ancestors (b, c, d) over the a→b→c→d chain.
+    assert result.output.count('"Y":') == 3, result.output
+
+
+def test_logic_query_cut_rejected_outside_procedural(runner: CliRunner) -> None:
+    """Cut under a non-ProceduralPrologProfile profile hard-fails (AC-2 gate)."""
+    pytest.importorskip("gmeow_logic", reason="run 'make logic-py' first")
+    case = _query_case("goal-procedural-cut")
+    result = runner.invoke(
+        dev_app,
+        [
+            "logic",
+            "query",
+            str(case / "input.nq"),
+            str(case / "queries" / "first.logic"),
+            "--profile",
+            "PositiveHornProfile",
+        ],
+    )
+    assert result.exit_code != 0
+    assert "cut" in result.output.lower()
+
+
 def test_logic_compile_help(runner: CliRunner) -> None:
     """``gmeow logic compile --help`` exits 0 and describes the command."""
     result = runner.invoke(dev_app, ["logic", "compile", "--help"])

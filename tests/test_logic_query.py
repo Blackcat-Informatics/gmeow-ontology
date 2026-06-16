@@ -57,9 +57,10 @@ def _load_query(case_dir: Path, stem: str) -> str:
 
 def _load_golden(case_dir: Path, stem: str) -> dict[str, object]:
     """Read the committed golden expected/answers/<stem>.json."""
-    return json.loads(
+    data: dict[str, object] = json.loads(
         (case_dir / "expected" / "answers" / f"{stem}.json").read_text(encoding="utf-8")
     )
+    return data
 
 
 def _profile(case_dir: Path) -> str:
