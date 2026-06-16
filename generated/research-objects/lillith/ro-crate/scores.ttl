@@ -12,28 +12,28 @@ ev:assessment-reference-baseline-abstention-quality a gmeow:Assessment ;
 ev:assessment-reference-baseline-calibration a gmeow:Assessment ;
     gmeow:assessmentCriterion ev:crit-calibration ;
     gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 0.66 ;
+    gmeow:assessmentScoreValue 0.5 ;
     gmeow:assessmentTarget ev:model-reference-baseline ;
     gmeow:vantage ev:harness .
 
 ev:assessment-reference-baseline-grounding-precision a gmeow:Assessment ;
     gmeow:assessmentCriterion ev:crit-grounding-precision ;
     gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 0.6 ;
+    gmeow:assessmentScoreValue 0.4 ;
     gmeow:assessmentTarget ev:model-reference-baseline ;
     gmeow:vantage ev:harness .
 
 ev:assessment-reference-baseline-grounding-recall a gmeow:Assessment ;
     gmeow:assessmentCriterion ev:crit-grounding-recall ;
     gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 1.0 ;
+    gmeow:assessmentScoreValue 0.6667 ;
     gmeow:assessmentTarget ev:model-reference-baseline ;
     gmeow:vantage ev:harness .
 
 ev:assessment-reference-baseline-hallucination-resistance a gmeow:Assessment ;
     gmeow:assessmentCriterion ev:crit-hallucination ;
     gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 0.6 ;
+    gmeow:assessmentScoreValue 0.4 ;
     gmeow:assessmentTarget ev:model-reference-baseline ;
     gmeow:vantage ev:harness .
 

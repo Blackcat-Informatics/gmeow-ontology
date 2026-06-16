@@ -34,7 +34,7 @@ ex:id-nip05 a gmeow:Identifier ;
 
 # The org case reuses the SAME universal record class.
 ex:blackcat a gmeow:Organization ;
-    rdfs:label "Blackcat Informatics"@en ;
+    rdfs:label "Blackcat Informatics®"@en ;
     gmeow:hasIdentifier ex:id-ror .
 
 ex:id-ror a gmeow:Identifier ;

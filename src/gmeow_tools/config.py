@@ -55,6 +55,28 @@ def version_iri(version: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Crossref deposit registrant presentation
+# --------------------------------------------------------------------------- #
+# Deposit-presentation facts about the registrant (cf. the flat record the
+# reference crossref-doi project keeps) — the mailing locale and institutional
+# acronym Crossref shows in <publisher_place> / <institution_*>. These describe
+# the registrant's Crossref record, not the ontology, so they live here rather
+# than in the self-description graph.
+
+#: Registrant mailing locale → Crossref ``<publisher_place>`` / ``<institution_place>``.
+REGISTRANT_PLACE = "Spruce Grove, AB, Canada"
+#: Registrant institutional acronym → Crossref ``<institution_acronym>``.
+REGISTRANT_ACRONYM = "BII"
+#: The dataset's registry slug — the LOD Cloud identifier
+#: (``lod-cloud.net/dataset/GMEOW``) and the Crossref deposit's
+#: ``<item_number item_number_type="site">`` value. One source so the two stay
+#: consistent.
+DATASET_SLUG = "GMEOW"
+#: The dataset's content formats → Crossref ``<format>`` (the published surface).
+DEPOSIT_FORMAT = "Turtle; RDF/XML; N-Triples; JSON-LD; OWL; SHACL; GTS"
+
+
+# --------------------------------------------------------------------------- #
 # Filesystem layout
 # --------------------------------------------------------------------------- #
 
@@ -592,11 +614,22 @@ class AlignmentTarget:
     namespace: str
     license: str
     kind: str  # "upper" | "schema" | "concept_scheme"
+    #: A registered DOI for the target vocabulary, if one exists. Most aligned
+    #: vocabularies are identified only by their namespace URI; the Crossref
+    #: ``<inter_work_relation>`` projection (see ``crossref.py``) falls back to
+    #: that URI when this is ``None``. Populate only with a *verified* DOI —
+    #: never a guessed one.
+    doi: str | None = None
 
     @property
     def policy(self) -> LinkPolicy:
         """Return the link policy implied by this target's license."""
         return policy_for_license(self.license)
+
+    @property
+    def related_identifier(self) -> str:
+        """The identifier to cite in a PID relation: the DOI if known, else URI."""
+        return self.doi or self.namespace
 
 
 #: Curated alignment targets. The spec authors extend this as alignment grows;

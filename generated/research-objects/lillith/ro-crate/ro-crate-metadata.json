@@ -67,7 +67,7 @@
     {
       "@id": "https://blackcatinformatics.ca/gmeow/ro-crate/publisher",
       "@type": "Organization",
-      "name": "Blackcat Informatics Inc."
+      "name": "Blackcat Informatics® Inc."
     },
     {
       "@id": "corpus.ttl",

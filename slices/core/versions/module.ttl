@@ -22,6 +22,10 @@ gmeow:VersionSet
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Version Set"@x-gmeow-english ;
     skos:definition "A first-class information object representing a version family or release lineage — the set of all concrete artifacts that are versions of a common stable entity. A VersionSet is an InformationObject (a kind of Entity) so it can carry identifiers, provenance, and authority links. Examples: the lineage of a software project, the edition chain of a book, the variant family of an email thread, the DOI concept record."@x-gmeow-english ;
+    skos:example "ex:gmeowLineage a gmeow:VersionSet ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the stable concept-level lineage that concrete versions belong to — the family any individual release, edition, or snapshot is a version of — so memberships can hang off it rather than off a privileged 'latest'."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a single concrete artifact (that is the gmeow:versionMember entity) and avoid collapsing the lineage into one of its versions; the set is the concept, the members are the versions (concept-vs-version distinction)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one VersionSet per lineage, carry its identifiers and authority links here, and relate each concrete version to it through a gmeow:VersionMembership rather than by direct typing."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:VersionMembership
@@ -29,6 +33,10 @@ gmeow:VersionMembership
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Version Membership"@x-gmeow-english ;
     skos:definition "A reified, standpoint-scoped claim that a concrete entity belongs to a version set with a particular role and/or scale — an observation in the universal claim stack (observation-spine bridge). Mediates between an entity (versionMember), a version set (versionSet), and an optional role/scale asserted by an authority (membershipAuthority / vantage). Mint one VersionMembership per (entity, versionSet, role, authority) tuple; when a role changes over time, close the old membership's interval or mint a fresh one — never overwrite (Principle 10). Inherits confidence, displayable, and temporal scope from Observation."@x-gmeow-english;
+    skos:example "ex:m1 a gmeow:VersionMembership ; gmeow:versionMember ex:v2 ; gmeow:versionSet ex:gmeowLineage ; gmeow:versionRole gmeow:roleLatest ; gmeow:membershipAuthority ex:pypi ."@x-gmeow-english ;
+    gmeow:useWhen "Use to claim that a concrete version belongs to a lineage with a given role or scale according to some authority — the reified relator whenever the role, period, authority, or confidence of the membership must be first-class and standpoint-indexed (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hard-coding a version role as an essential type on the artifact, and avoid overwriting a role in place; mint a new membership or close the old interval instead (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one relator per (entity, set, role, authority) tuple; fill versionMember, versionSet, and membershipAuthority, attach versionRole / versionScale / membershipInterval as needed, and inherit confidence and gmeow:displayable from Observation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 # =========================================================================== #
@@ -41,6 +49,10 @@ gmeow:versionMember
     rdfs:range gmeow:Entity ;
     rdfs:label "version member"@x-gmeow-english ;
     skos:definition "The concrete entity that participates in a version set via this membership — a software release, a book edition, an email variant, a dataset snapshot. Functional per relator: one member per VersionMembership."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:versionMember ex:gmeow_1_0_1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the one concrete version an individual VersionMembership is about — the artifact (release, edition, snapshot) being placed in the lineage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the lineage concept (that is gmeow:versionSet) and avoid asserting more than one member per relator; it is functional, so a second member collapses the two."@x-gmeow-english ;
+    gmeow:howToUse "Set exactly one versionMember on each VersionMembership and pair it with gmeow:versionSet; model a different version of the same lineage as its own membership relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:versionSet
@@ -49,6 +61,10 @@ gmeow:versionSet
     rdfs:range gmeow:VersionSet ;
     rdfs:label "version set"@x-gmeow-english ;
     skos:definition "The version set / lineage to which this membership belongs. Functional per relator: one set per VersionMembership."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:versionSet ex:gmeowLineage ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the one lineage a VersionMembership places its member into — the concept-level family the version belongs to."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the concrete artifact (that is gmeow:versionMember) and avoid more than one set per relator; it is functional."@x-gmeow-english ;
+    gmeow:howToUse "Set exactly one versionSet, an existing gmeow:VersionSet individual, alongside the relator's gmeow:versionMember."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:versionRole
@@ -57,6 +73,10 @@ gmeow:versionRole
     rdfs:range gmeow:VersionRole ;
     rdfs:label "version role"@x-gmeow-english ;
     skos:definition "The role or status classification this membership asserts for the member within the set — canonical, variant, latest, stable, LTS, deprecated, yanked, draft, published, revised, collected, withdrawn. NON-FUNCTIONAL: an entity may hold multiple roles from different authorities simultaneously (standpoint-indexed coexistence per Principle 9), and a role may change over time via new memberships rather than overwrite."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:versionRole gmeow:roleLatest ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the role or status a membership asserts for its member — latest, stable, deprecated, yanked, and so on — as a standpoint-scoped value rather than an essential type."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a single global role per artifact: competing authority roles coexist (Principle 9), so leave it non-functional and mint a new membership when the role changes rather than overwrite."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:VersionRole individual; carry differing authority opinions as separate memberships and bound a role in time with gmeow:membershipInterval."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:versionScale
@@ -65,6 +85,10 @@ gmeow:versionScale
     rdfs:range gmeow:VersionScale ;
     rdfs:label "version scale"@x-gmeow-english ;
     skos:definition "The scale classification of this membership — trivial, minor, major. NON-FUNCTIONAL: different authorities or schemes may classify the same change differently; those claims coexist."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:versionScale gmeow:scaleMajor ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify the magnitude of a version change — trivial, minor, major — for SemVer-style schemes and their non-software analogues."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as the role of the version (that is gmeow:versionRole) and avoid forcing one scale per change; rival scheme classifications coexist, so keep it non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:VersionScale individual on the membership relator; carry a competing scheme's classification as its own membership claim."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:membershipInterval
@@ -73,6 +97,10 @@ gmeow:membershipInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "membership interval"@x-gmeow-english ;
     skos:definition "The time interval over which this version membership / role claim holds. A relator carries its period this way (matching gmeow:usageInterval, gmeow:taggingInterval, gmeow:relationshipInterval) rather than via gmeow:duringInterval, which is reserved for gufo:Situation-based time-scoped relations."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:membershipInterval ex:y2024to2025 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bound a membership / role claim in time — the window over which a version held 'latest', 'stable', or 'deprecated' according to its authority."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid gmeow:duringInterval here (that is reserved for gufo:Situation-based relations) and avoid mutating an interval to flip a role; close the old membership and mint a fresh one (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Point it at a gmeow:TimeInterval; when a role changes, leave the old membership with its closed interval and add a new membership for the new period."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:membershipAuthority
@@ -81,6 +109,10 @@ gmeow:membershipAuthority
     rdfs:range gmeow:Agent ;
     rdfs:label "membership authority"@x-gmeow-english ;
     skos:definition "The agent or standpoint that asserts this version membership and its role — a project maintainer, a package registry, a publisher, a curator, or a self-asserting individual. NON-FUNCTIONAL: competing authority claims coexist without privilege (Principle 9). When the claim is promoted from a flat statement annotation, gmeow:accordingTo becomes the membershipAuthority of the relator."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:membershipAuthority ex:pypi ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent or standpoint that vouches for a membership and its role — the registry, maintainer, publisher, or curator whose claim it is, so that rival authorities can be told apart."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid privileging one authority's claim over another (Principle 9); model each authority's view as its own membership rather than overwriting, and keep this property non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Set the asserting gmeow:Agent here; when promoting a flat statement, carry its gmeow:accordingTo onto this property as the relator's authority."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 # =========================================================================== #
@@ -93,6 +125,10 @@ gmeow:versionFingerprint
     rdfs:range rdfs:Literal ;
     rdfs:label "version fingerprint"@x-gmeow-english ;
     skos:definition "A content fingerprint of the versioned entity — a hash, SWHID, content digest, or semantic identifier. Broader than gmeow:contentDigest (which is byte-exact and domain gmeow:CreativeWork, typically Manifestation or Item): versionFingerprint covers semantic fingerprints where exact bytes are not the identity criterion (e.g. a normalized form, a canonicalized serialization). Non-functional: a single entity may carry several fingerprints under different algorithms or schemes."@x-gmeow-english ;
+    skos:example "ex:v2 gmeow:versionFingerprint \"swh:1:rev:abc123\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to fingerprint a versioned entity where the identity criterion is semantic rather than byte-exact — a SWHID, a normalized-form hash, a canonicalized-serialization digest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a byte-exact digest of a creative-work manifestation or item (use gmeow:contentDigest) and avoid assuming one fingerprint per entity; several algorithms or schemes may coexist, so it is non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Attach one literal per algorithm/scheme to the versioned gmeow:Entity; record byte-exact identity separately with gmeow:contentDigest where that is the criterion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 # =========================================================================== #
@@ -104,6 +140,10 @@ gmeow:VersionRole
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Version Role"@x-gmeow-english ;
     skos:definition "A role or status that an entity holds within a version set according to an authority — a VALUE, never an Entity subclass. Standpoint-scoped: 'latest' according to a package registry may differ from 'latest' according to a downstream mirror. The seed list is an anchor, not a fence."@x-gmeow-english ;
+    skos:example "ex:roleArchived a gmeow:VersionRole ; rdfs:label \"archived\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for membership roles — the named statuses (latest, stable, deprecated, yanked, …) referenced by gmeow:versionRole, and the place to mint a new role individual when a domain needs one."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-role Entity subclasses or typing artifacts directly with a role; roles are individual values asserted through a standpoint-scoped membership, not essential types."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded individuals from gmeow:versionRole, and extend the anchor list with new gmeow:VersionRole individuals (label only) rather than subclasses when a lineage needs a role the seeds omit."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:roleCanonical     a gmeow:VersionRole ; rdfs:label "canonical"@x-gmeow-english .
@@ -148,6 +188,10 @@ gmeow:VersionScale
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Version Scale"@x-gmeow-english ;
     skos:definition "The magnitude scale of a version change — a VALUE, never an Entity subclass. Used for SemVer-style classification and analogous schemes in non-software domains."@x-gmeow-english ;
+    skos:example "ex:scaleBreaking a gmeow:VersionScale ; rdfs:label \"breaking\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for change magnitude — the named scales (trivial, minor, major) referenced by gmeow:versionScale for SemVer-style and analogous schemes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-scale Entity subclasses and avoid using it as the role of a version (that is gmeow:VersionRole); scales are individual values, not essential types."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded individuals from gmeow:versionScale, and add new gmeow:VersionScale individuals (label only) when a non-software scheme needs a magnitude the seeds omit."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> .
 
 gmeow:scaleTrivial      a gmeow:VersionScale ; rdfs:label "trivial"@x-gmeow-english .

@@ -163,3 +163,33 @@ The mapping compiler generates SSSOM/EDOAL/SPARQL projections from
 
 `★` Projections are lossy by design. A "latest" selection rule lives in the
 importer/solver, never as an OWL axiom (Principle 12).
+
+## Terms
+
+### gmeow:VersionSet · gmeow:versionFingerprint
+
+A `VersionSet` is the stable lineage a concrete artifact belongs to — the spine
+the thin flat shortcuts attach to. `versionFingerprint` carries a content
+fingerprint of a versioned entity (hash, SWHID, content digest, or semantic
+identifier); broader than the byte-exact `contentDigest`, and non-functional, so
+one entity may carry several under different schemes.
+
+### gmeow:VersionMembership · gmeow:versionMember · gmeow:versionSet · gmeow:versionRole · gmeow:versionScale · gmeow:membershipAuthority · gmeow:membershipInterval
+
+The reified `Observation` + `Relator` promoted when a role claim must carry
+authority, confidence, temporal scope, or standpoint indexing. It mediates the
+`versionMember` artifact, the `versionSet` lineage, the `versionRole` /
+`versionScale` classification (as `QualityValue` individuals), the
+`membershipAuthority` that asserts it (the vantage), and the `membershipInterval`
+over which the claim holds. Two memberships on the same artifact from two
+authorities are first-class and co-equal — never overwrite, mint a fresh one
+(Principle 9, Principle 10).
+
+### gmeow:VersionRole · gmeow:VersionScale
+
+The open value vocabularies (`gufo:QualityValue` subclasses) — a seed list, not a
+fence. `VersionRole` ranges over `roleLatest`, `roleStable`, `roleLTS`,
+`roleDeprecated`, `roleYanked`, `roleCanonical`, … ("latest"/"stable"/"yanked"
+are standpoint-scoped claims, never intrinsic types); `VersionScale` over
+`scaleTrivial` / `scaleMinor` / `scaleMajor`. Domain-specific values are minted as
+fresh individuals carrying `rdfs:label`.

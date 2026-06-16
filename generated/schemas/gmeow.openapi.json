@@ -52796,11 +52796,8 @@
             "description": "",
             "properties": {
               "identifierScheme": {
-                "items": {
-                  "type": "string"
-                },
                 "type": [
-                  "array",
+                  "string",
                   "null"
                 ]
               },
@@ -52811,11 +52808,8 @@
                 ]
               },
               "identifierValue": {
-                "items": {
-                  "type": "string"
-                },
                 "type": [
-                  "array",
+                  "string",
                   "null"
                 ]
               },

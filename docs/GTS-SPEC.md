@@ -888,8 +888,9 @@ A profile is a named set of conventions over the one format (declared in header 
 | `image`      | a `blob` (or several representations) + descriptive metadata + analysis frames.    |
 | `ai-package` | a concept + logic + observations + opinions + refuted claims + embeddings + data.  |
 | `opaque`     | `encrypt`-class frames; signatures + pseudonymous `kid`s REQUIRED; selective disclosure. |
-| `bundle`     | a GTS whose `blob`s are themselves GTS files (`mt: application/gts`); §12.1.        |
-| `files`      | a GTS archive of file-tree entries: each file is a blob described by path, size, mode, mtime, and media type (§13.2). |
+| `bundle`       | a GTS whose `blob`s are themselves GTS files (`mt: application/gts`); §12.1.        |
+| `files`        | a GTS archive of file-tree entries: each file is a blob described by path, size, mode, mtime, and media type (§13.2). |
+| `music-package`| a frame-relative musical work/expression: segments, voices, tuning/time frames, tone events, degrees of freedom, and analysis claims, plus lossy projections to notation formats (§13.4). |
 
 Profiles constrain conventions, not the wire format; a `generic` reader reads them all. The
 `evidence` profile additionally REQUIRES a head commitment (§9, item 4), and writers SHOULD emit
@@ -1020,6 +1021,72 @@ _:s0 a stream:DetachedSignature ;
 `"layout": "streamable"` is a **warning**, not an error (§14.1): provenance quads
 legitimately survive `gts → nq → gts` round trips and re-accretion after appends. The error
 class is reserved for the opposite rot — a claimed layout the bytes contradict (§3.3).
+
+### 13.4 The `music-package` profile (normative)
+
+The `music-package` profile is a single-segment GTS that carries frame-relative musical content:
+a `MusicalWork`/`MusicalExpression`, its `Voice`s and `MusicalSegment`s, `TuningSystem` and
+`MusicalTimeFrame` reference frames, atomic `ToneEvent`s, `DegreeOfFreedom` declarations, and
+standpoint-indexed analysis claims. It is the canonical transport form for the GMEOW music slice
+and the input to every notation projection.
+
+**Namespace.** The profile reuses the GMEOW music vocabulary
+(`https://blackcatinformatics.ca/gmeow/`). A `music-package` is not required to be a `dist`
+profile: it may carry only the musical content graph plus any projection blobs, and it MAY rely on
+an external `dist` snapshot for vocabulary definitions.
+
+**Header.** A `music-package` segment declares `"prof": "music-package"`. The profile is
+append-only for new claims; existing triples are never deleted, only superseded by statement-layer
+provenance (§7.3).
+
+**Core quad shape.** A minimal package contains:
+
+```text
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+:piece a gmeow:MusicalExpression ;
+    gmeow:hasVoice :voice1 .
+
+:voice1 a gmeow:Voice ;
+    gmeow:voiceTuningFrame :tuning12EDO ;
+    gmeow:voiceTimeFrame :timeGrid .
+
+:tuning12EDO a gmeow:TuningSystem .
+:timeGrid a gmeow:MusicalTimeFrame .
+
+:event1 a gmeow:ToneEvent ;
+    gmeow:segmentOf :voice1 ;
+    gmeow:toneEventPitchValue :pitchC4 ;
+    gmeow:segmentSpan :span1 .
+
+:span1 a gmeow:MusicalTimeSpan ;
+    gmeow:hasMusicalTimeFrame :timeGrid ;
+    gmeow:timeStartNumerator 0 ;
+    gmeow:timeStartDenominator 1 ;
+    gmeow:timeDurationNumerator 1 ;
+    gmeow:timeDurationDenominator 4 .
+```
+
+Time and pitch are **frame-relative** (Principle 11): `toneEventPitchValue` points to a
+`PitchValue` interpreted under the event's voice tuning frame, and offsets/durations are rational
+values interpreted under the voice time frame.
+
+**Projections.** A `music-package` MAY contain `blob` frames whose bytes are down-projected
+representations (MusicXML, MEI, ABC, LilyPond, Humdrum **kern, MIDI, Scala `.scl`, tablature,
+mensural, graphic notation). Each projection MUST be accompanied by a declared-loss manifest that
+lists the `NotationProjectionProfile` used, the `MusicalParameter`s it can represent, and the
+`ProjectionLoss`es it incurs. The manifest is a Turtle sidecar or an embedded header/comment and
+is considered part of the projection, not the canonical graph.
+
+**Bundle profile coupling.** A `bundle` profile (§12.1) whose blobs are `music-package` segments
+provides the multi-movement / multi-version transport case. Each nested segment keeps its own
+profile declaration; the outer bundle does not impose additional conventions.
+
+**Verification.** A conformant `gts verify` over a `music-package` segment checks that every
+`NotationSystem` referenced by a projection blob has a corresponding `NotationProjectionProfile`,
+and that the profile accounts for every `MusicalParameter` declared in the music slice (no silent
+omissions).
 
 ## 14. Transforms out
 

@@ -45,7 +45,7 @@ ex:yahoo360 a gmeow:OnlineService ; rdfs:label "Yahoo 360"@en ;
 
 # Founding asserted ONLY in the founderOf (agent→org) direction, so the
 # schema:founder projection must traverse the inverse arm (^founderOf).
-ex:bii a gmeow:Organization ; rdfs:label "Blackcat Informatics"@en ;
+ex:bii a gmeow:Organization ; rdfs:label "Blackcat Informatics®"@en ;
     gmeow:makesOffer ex:consultOffer .
 
 ex:consultOffer a gmeow:Offering ;

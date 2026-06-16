@@ -3,7 +3,7 @@ name: Release
 # On a version tag, build the reasoned closure, all serializations, metadata,
 # documentation, and the CrossRef DOI deposit document, and attach them as build
 # artifacts. The DOI is minted by depositing crossref-deposit.xml to CrossRef
-# (Blackcat Informatics is the registrant) — this is a deliberate manual step
+# (Blackcat Informatics® is the registrant) — this is a deliberate manual step
 # after reviewing the generated deposit (see README).
 
 on:

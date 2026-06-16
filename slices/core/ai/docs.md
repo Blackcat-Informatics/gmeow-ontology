@@ -86,3 +86,63 @@ source ─(chunkOf)─ Chunk ─(spanOfChunk)─ EvidenceSpan ─(groundedIn⁻�
 Pipeline observability around this spine — corpus, embeddings, indexes,
 retrievals, the GraphRAG entity graph — is `extensions/graphrag` (consumer:
 Project Lillith).
+
+## Terms
+
+The genuinely-new terms this slice mints, anchored to the doctrine above.
+
+### gmeow:Chunk · gmeow:chunkOf · gmeow:spanStart · gmeow:spanEnd
+
+The retrieval segment: a `gmeow:Chunk` is a contiguous slice of a source
+information object, located in it by `gmeow:chunkOf` (functional, ⊑ `partOf`)
+plus the integer offsets `gmeow:spanStart`/`gmeow:spanEnd` (zero-based, half-open
+code points). The one genuinely missing information-object kind in the
+source → Chunk → EvidenceSpan → claim spine.
+
+### gmeow:spanOfChunk · gmeow:groundedIn · gmeow:supportPolarity · gmeow:SupportPolarity
+
+The evidence seam: `gmeow:spanOfChunk` pins an `EvidenceSpan` into the retrieved
+chunk; `gmeow:groundedIn` (domain-free, per the unified observation stance) ties
+any claim node to a supporting span, and a claim with none is a flagged
+hallucination (P10, never deleted); `gmeow:supportPolarity` records the NLI/AIS
+stance from the closed three-value `gmeow:SupportPolarity` (supports / refutes /
+neutral).
+
+### gmeow:ModelInvocation · gmeow:usedModel · gmeow:hasPrompt · gmeow:samplingTemperature · gmeow:samplingTopP · gmeow:samplingMaxTokens
+
+The model-invocation activity, provenance anchor of every generated claim: one
+call to a model agent (`gmeow:usedModel`), carrying its prompts
+(`gmeow:hasPrompt`) and sampling regime (`gmeow:samplingTemperature`,
+`gmeow:samplingTopP`, `gmeow:samplingMaxTokens`). Outputs hang off the existing
+`gmeow:wasGeneratedBy`; no forward output property is minted (P5).
+
+### gmeow:Prompt · gmeow:PromptTemplate · gmeow:filledFrom · gmeow:promptRole · gmeow:PromptRole
+
+The prompt artifact: a `gmeow:Prompt` is the concrete instruction presented to a
+model — content-addressed and role-tagged (`gmeow:promptRole`, drawn from the open
+`gmeow:PromptRole` vocabulary of system/user/assistant/tool). A
+`gmeow:PromptTemplate` is the reusable, versioned, variable-bearing source a
+concrete prompt links back to via `gmeow:filledFrom`.
+
+### gmeow:ModelCard · gmeow:describesModel · gmeow:modelProvider · gmeow:modelVersionTag · gmeow:modelContextWindow · gmeow:modelTrainingCutoff
+
+The model card: a structured document `gmeow:describesModel` the `SoftwareAgent`,
+carrying `gmeow:modelProvider`, `gmeow:modelVersionTag`,
+`gmeow:modelContextWindow`, and `gmeow:modelTrainingCutoff`. The card is about the
+agent; capability claims stay attributed, contestable claim-layer observations.
+
+### gmeow:Contradiction · gmeow:contradictsClaim · gmeow:detectedBy · gmeow:contradictionKind · gmeow:ContradictionKind
+
+The surfaced contradiction: a relator binding two or more claim nodes in conflict
+(`gmeow:contradictsClaim`), attributed to its detector (`gmeow:detectedBy`) and
+kind-classified (`gmeow:contradictionKind` over the open `gmeow:ContradictionKind`
+— factual / temporal / numeric / framing). It surfaces conflict, never resolves it
+by rank (P9).
+
+### gmeow:MemoryItem · gmeow:memoryOf · gmeow:memoryKind · gmeow:MemoryKind
+
+The memory role: a `gufo:Role` on the universal claim construct — any claim can be
+remembered. `gmeow:memoryOf` names the remembering agent and `gmeow:memoryKind`
+its cognitive register (open `gmeow:MemoryKind` — episodic / semantic / working /
+procedural). Revision is supersession + `gmeow:displayable false` (P10), never
+deletion.

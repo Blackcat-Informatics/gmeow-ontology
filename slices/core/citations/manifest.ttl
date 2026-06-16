@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/citations>
     a gmeow:Slice ;
     rdfs:label "citations"@x-gmeow-english ;
-    skos:definition "The citations slice of the GMEOW ontology (core tier): GMEOW Citations Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The citations slice of the GMEOW ontology (core tier): the canonical model of citation, credit, and attribution. It reifies a citation as a gmeow:CitationAct relator (citing entity × cited work × typed gmeow:CitationIntent, optionally pinpointed by a gmeow:Selector), offers the flat gmeow:cites / gmeow:references shortcuts for the 80%-case, weights credit with gmeow:ContributionDegree, and carries source-hood as the anti-rigid gmeow:SourceRole. Citing ENACTS rather than describes the cited work (kernel gmeow:hasAboutness). The slice projects to CITATION.cff, CrossRef, and CiTO/CRediT/PROV-O/PAV by reference (Principle 5), and retires the old sources.ttl Source/Citation pair. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     dcterms:title "GMEOW Citations Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
@@ -19,4 +19,4 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
-    gmeow:sliceConsumer "The citation/credit dogfood (source/claim refactor): CITATION.cff projection, slice manifests, scholarly credit."@x-gmeow-english.
+    gmeow:sliceConsumer "The citation/credit dogfood (source/claim refactor): CITATION.cff and slice-manifest credit projection, CrossRef and CiTO/CRediT/PROV-O/PAV alignment by reference, genealogical evidence links (CitationAct via a Selector), and scholarly citation graphs."@x-gmeow-english.
