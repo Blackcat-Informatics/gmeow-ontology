@@ -113,7 +113,7 @@ files = ["src", "tests", "packages/gmeow-dev/src"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["markdown.*", "sssom.*", "pyshacl.*", "owlrl.*", "pyoxigraph.*", "linkml.*", "linkml_runtime.*", "yaml"]
+module = ["markdown.*", "sssom.*", "pyshacl.*", "owlrl.*", "pyoxigraph.*", "gmeow_shacl.*", "linkml.*", "linkml_runtime.*", "yaml"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
