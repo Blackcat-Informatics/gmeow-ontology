@@ -335,6 +335,9 @@ pub mod rdfs {
 
     pub const CLASS: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#Class");
+
+    pub const SUB_CLASS_OF: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#subClassOf");
 }
 
 /// XSD namespace base string.

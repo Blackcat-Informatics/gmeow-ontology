@@ -11,7 +11,7 @@ use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 
-use crate::model::rdf;
+use crate::model::{rdf, rdfs};
 use crate::report::ValidationReport;
 use crate::shapes::{Shapes, Target};
 
@@ -49,19 +49,58 @@ fn objects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
     result
 }
 
-/// Collect subjects with a direct `rdf:type` triple pointing to `class_iri`.
-/// No subclass inference — only quads present in `data` are consulted.
+/// The transitive closure of asserted `rdfs:subClassOf` at or below `class_iri`:
+/// the set containing `class_iri` itself plus every class that is a (transitive)
+/// subclass of it via `rdfs:subClassOf` triples **asserted in the data graph**.
+///
+/// This implements SHACL class-membership semantics (§4.2.5), which honor the
+/// subclass relationships present in the data. It is NOT OWL/RDFS inference: we
+/// read `rdfs:subClassOf` triples that exist and materialize nothing. (The
+/// "no-inference contract" means no reasoner is run, not that asserted subclass
+/// edges are ignored.) See #599.
+pub(crate) fn subclass_closure(
+    data: &Store,
+    class_iri: &oxigraph::model::NamedNode,
+) -> std::collections::HashSet<Term> {
+    let mut closure = std::collections::HashSet::new();
+    let start = Term::NamedNode(class_iri.clone());
+    closure.insert(start.clone());
+    let mut frontier = vec![start];
+    while let Some(superclass) = frontier.pop() {
+        // Any X with `X rdfs:subClassOf superclass` is a subclass to descend into.
+        for quad in data
+            .quads_for_pattern(
+                None,
+                Some(rdfs::SUB_CLASS_OF),
+                Some(superclass.as_ref()),
+                None,
+            )
+            .flatten()
+        {
+            let sub = Term::from(quad.subject);
+            if closure.insert(sub.clone()) {
+                frontier.push(sub);
+            }
+        }
+    }
+    closure
+}
+
+/// Collect subjects that are SHACL instances of `class_iri`: nodes with an
+/// `rdf:type` to `class_iri` or to any asserted (transitive) subclass of it.
 fn instances_of_class(data: &Store, class_iri: &oxigraph::model::NamedNode) -> Vec<Term> {
-    let class_term = Term::NamedNode(class_iri.clone());
+    let classes = subclass_closure(data, class_iri);
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
-    for quad in data
-        .quads_for_pattern(None, Some(rdf::TYPE), Some(class_term.as_ref()), None)
-        .flatten()
-    {
-        let t = Term::from(quad.subject);
-        if seen.insert(t.clone()) {
-            result.push(t);
+    for class in &classes {
+        for quad in data
+            .quads_for_pattern(None, Some(rdf::TYPE), Some(class.as_ref()), None)
+            .flatten()
+        {
+            let t = Term::from(quad.subject);
+            if seen.insert(t.clone()) {
+                result.push(t);
+            }
         }
     }
     result
@@ -383,9 +422,12 @@ mod tests {
         );
     }
 
-    // Test 4: no-inference target — subclass instance must NOT be reached
+    // Test 4: sh:targetClass honors ASSERTED rdfs:subClassOf (SHACL §4.2.5).
+    // This is NOT OWL inference — the subclass edge is asserted in the data; we
+    // read it, materialize nothing. (Inverted from the former no-subclass
+    // contract; see #599.)
     #[test]
-    fn target_class_no_subclass_inference() {
+    fn target_class_honors_asserted_subclass() {
         let shapes_ttl = format!(
             r#"{PREFIXES}
             ex:PersonShape a sh:NodeShape ;
@@ -396,8 +438,9 @@ mod tests {
                 ] .
             "#
         );
-        // ex:bob is typed ex:Employee which is a subClassOf ex:Person,
-        // but there is NO direct rdf:type ex:Person triple for bob.
+        // ex:bob is typed ex:Employee, and ex:Employee rdfs:subClassOf ex:Person
+        // is ASSERTED → bob is a SHACL instance of ex:Person → it is a focus node
+        // and, lacking ex:name, violates sh:minCount.
         let data_nt = concat!(
             "<http://example.org/ns#bob> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/ns#Employee> .\n",
             "<http://example.org/ns#Employee> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/ns#Person> .\n",
@@ -407,12 +450,40 @@ mod tests {
         let shapes = load_shapes_ttl(&shapes_ttl);
         let report = validate(&data, &shapes);
 
-        // bob has no direct rdf:type ex:Person → not in focus set → must conform
+        assert!(
+            !report.conforms,
+            "ex:bob IS a focus node via asserted Employee ⊑ Person; report: {report:?}"
+        );
+        assert_eq!(report.results.len(), 1);
+        assert_eq!(
+            report.results[0].focus_node.to_string(),
+            "<http://example.org/ns#bob>"
+        );
+    }
+
+    // Test 4b: a class with NO asserted subClassOf edge is not reached — we
+    // honor asserted edges only, inventing none.
+    #[test]
+    fn target_class_unasserted_subclass_not_reached() {
+        let shapes_ttl = format!(
+            r#"{PREFIXES}
+            ex:PersonShape a sh:NodeShape ;
+                sh:targetClass ex:Person ;
+                sh:property [ sh:path ex:name ; sh:minCount 1 ; ] .
+            "#
+        );
+        // ex:carol is an ex:Robot; no ex:Robot rdfs:subClassOf ex:Person triple
+        // exists → carol is not a Person-instance → conforms.
+        let data_nt = "<http://example.org/ns#carol> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/ns#Robot> .\n";
+
+        let data = load_data_nt(data_nt);
+        let shapes = load_shapes_ttl(&shapes_ttl);
+        let report = validate(&data, &shapes);
+
         assert!(
             report.conforms,
-            "ex:bob must NOT be a focus node (no direct rdf:type ex:Person); report: {report:?}"
+            "carol must NOT be reached without an asserted subClassOf edge; report: {report:?}"
         );
-        assert!(report.results.is_empty());
     }
 
     // Test 5: deactivated shape produces no results even with violating data

@@ -39,7 +39,7 @@ fn conformance_corpus() {
     // when adding a case.
     assert_eq!(
         cases.len(),
-        32,
+        33,
         "unexpected corpus case count — update this when adding/removing a corpus case"
     );
 

@@ -161,7 +161,7 @@ fn eval_constraint(
             }
         }
 
-        // ── Class (per value node, NO subclass inference) ──────────────────────
+        // ── Class (per value node; honors asserted rdfs:subClassOf, §4.2.5) ────
         Constraint::Class(class_iri) => {
             let mut results = Vec::new();
             let focus = value_nodes
@@ -171,7 +171,7 @@ fn eval_constraint(
             for value in value_nodes {
                 let violates = match value {
                     Term::Literal(_) => true,
-                    _ => !has_direct_type(store, value, class_iri),
+                    _ => !is_shacl_instance(store, value, class_iri),
                 };
                 if violates {
                     results.push(ValidationResult {
@@ -577,19 +577,18 @@ fn eval_constraint(
 
 /// Check if `value` has a direct `rdf:type` triple to `class_iri` in the
 /// default graph (NO subclass inference).
-fn has_direct_type(store: &Store, value: &Term, class_iri: &NamedNode) -> bool {
+/// Whether `value` is a SHACL instance of `class_iri`: it has an `rdf:type` to
+/// `class_iri` or to any asserted (transitive) subclass of it (SHACL §4.2.5).
+/// Asserted `rdfs:subClassOf` edges are honored; no reasoner is run. See #599.
+fn is_shacl_instance(store: &Store, value: &Term, class_iri: &NamedNode) -> bool {
     let Some(subj_ref) = term_as_subject_ref(value) else {
         return false;
     };
-    let class_term = Term::NamedNode(class_iri.clone());
+    let classes = crate::engine::subclass_closure(store, class_iri);
     store
-        .quads_for_pattern(
-            Some(subj_ref),
-            Some(rdf::TYPE),
-            Some(class_term.as_ref()),
-            None,
-        )
-        .any(|q| q.is_ok())
+        .quads_for_pattern(Some(subj_ref), Some(rdf::TYPE), None, None)
+        .flatten()
+        .any(|q| classes.contains(&q.object))
 }
 
 /// Convert a `Term` to a subject ref, or `None` for literals.
@@ -959,8 +958,10 @@ mod tests {
 
     #[test]
     fn class_fail_no_direct_type() {
-        // ex:b is typed as ex:SubFoo (a subclass of ex:Foo in "real" world),
-        // but NO inference means Class(ex:Foo) fails.
+        // ex:b is typed ex:SubFoo, and there is NO asserted ex:SubFoo
+        // rdfs:subClassOf ex:Foo triple in the data — so b is not a SHACL
+        // instance of ex:Foo and the constraint fails. (We honor asserted
+        // subClassOf, but invent none: no reasoner runs.)
         let store = load_store(
             "@prefix ex: <http://example.org/ns#> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . ex:a ex:p ex:b . ex:b rdf:type ex:SubFoo .",
         );
@@ -974,6 +975,46 @@ mod tests {
         let results = validate_shape(&store, &ex("a"), &shape);
         assert_eq!(results.len(), 1);
         assert!(component_iri(&results)[0].contains("Class"));
+    }
+
+    #[test]
+    fn class_pass_asserted_subclass() {
+        // ex:b is typed ex:SubFoo and the data ASSERTS ex:SubFoo rdfs:subClassOf
+        // ex:Foo, so b is a SHACL instance of ex:Foo (SHACL §4.2.5) and the
+        // sh:class ex:Foo constraint conforms — matching pySHACL. See #599.
+        let store = load_store(
+            "@prefix ex: <http://example.org/ns#> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . ex:a ex:p ex:b . ex:b rdf:type ex:SubFoo . ex:SubFoo rdfs:subClassOf ex:Foo .",
+        );
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::Class(NamedNode::new_unchecked(format!(
+                "{EX}Foo"
+            )))],
+        );
+        assert!(
+            validate_shape(&store, &ex("a"), &shape).is_empty(),
+            "asserted subClassOf must make ex:b a SHACL instance of ex:Foo"
+        );
+    }
+
+    #[test]
+    fn class_pass_transitive_subclass() {
+        // Transitive: ex:b a ex:C, ex:C ⊑ ex:B, ex:B ⊑ ex:A → b is an A-instance.
+        let store = load_store(
+            "@prefix ex: <http://example.org/ns#> . @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . ex:a ex:p ex:b . ex:b rdf:type ex:C . ex:C rdfs:subClassOf ex:B . ex:B rdfs:subClassOf ex:A .",
+        );
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::Class(NamedNode::new_unchecked(format!(
+                "{EX}A"
+            )))],
+        );
+        assert!(
+            validate_shape(&store, &ex("a"), &shape).is_empty(),
+            "transitive asserted subClassOf must be honored"
+        );
     }
 
     // ── datatype ───────────────────────────────────────────────────────────────
