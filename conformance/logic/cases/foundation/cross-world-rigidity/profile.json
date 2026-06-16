@@ -1,0 +1,9 @@
+{
+  "semantic_profile": "StratifiedNAFProfile",
+  "world_types": ["epistemic"],
+  "mode": "native",
+  "expected_decidability_class": "terminating/PTIME-data",
+  "certify": true,
+  "foundation_lowering": true,
+  "anti_rigidity_policy": "witness-obligation"
+}

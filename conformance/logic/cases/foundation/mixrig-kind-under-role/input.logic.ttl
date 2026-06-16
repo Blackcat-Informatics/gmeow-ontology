@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: foundation/mixrig-kind-under-role  (AC#3 — the headline case)
+# AC: foundation lowering — OntoUML MixRig discipline (issue #503).
+#
+# Reproduces reasoning_lint.anti_rigidity_discipline: a rigid sortal must never
+# specialize an anti-rigid type. ex:HonorsStudent is a logic:SubKind (rigid) that
+# specializes the anti-rigid logic:Role ex:Student → logic:MixRig (AC#3). Both
+# classes also trip logic:MixIden (each is a non-Kind sortal tracing to ZERO Kind
+# ancestors), and ex:Student additionally trips logic:FreeRole (an anti-rigid Role
+# with no rigid ancestor). The materialized violation set is therefore exactly:
+#   ex:HonorsStudent → { logic:MixIden, logic:MixRig }
+#   ex:Student       → { logic:FreeRole, logic:MixIden }
+# — the FULL lint set, faithfully reproduced.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts
+# (both stereotype puns + the logic:subClassOf edge) are duplicated there in the
+# named world ex:schema; these declarations are the program axioms the projections
+# need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/mixrig-kind-under-role/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: a rigid SubKind under an anti-rigid Role (also asserted as world facts).
+ex:HonorsStudent a logic:SubKind .
+ex:Student       a logic:Role .
+ex:HonorsStudent logic:subClassOf ex:Student .

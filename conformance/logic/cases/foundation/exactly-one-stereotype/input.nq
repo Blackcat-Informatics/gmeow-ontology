@@ -1,0 +1,4 @@
+<https://example.org/foundation/exactly-one-stereotype/Anchor> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> <https://example.org/foundation/exactly-one-stereotype/schema> .
+<https://example.org/foundation/exactly-one-stereotype/NoStereo> <https://blackcatinformatics.ca/logic/subClassOf> <https://example.org/foundation/exactly-one-stereotype/Anchor> <https://example.org/foundation/exactly-one-stereotype/schema> .
+<https://example.org/foundation/exactly-one-stereotype/TwoStereo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> <https://example.org/foundation/exactly-one-stereotype/schema> .
+<https://example.org/foundation/exactly-one-stereotype/TwoStereo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://example.org/foundation/exactly-one-stereotype/schema> .

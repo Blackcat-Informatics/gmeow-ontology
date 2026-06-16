@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: foundation/identity-overlap-mixiden
+# AC: foundation lowering — OntoUML MixIden discipline (issue #503).
+#
+# Reproduces reasoning_lint.identity_overlap: every endurant instantiates exactly
+# one Kind, so no logic:Kind may specialize another logic:Kind. ex:Dog is a
+# logic:Kind that specializes the logic:Kind ex:Animal → logic:MixIden. ex:Animal
+# is a clean top logic:Kind (no Kind ancestor) and trips nothing — the negative
+# control.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts
+# (the two Kind puns + the logic:subClassOf edge) are duplicated there in the
+# named world ex:schema; these declarations are the program axioms the projections
+# need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/identity-overlap-mixiden/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: two Kinds + a Kind-⊑-Kind edge (also asserted as world facts in input.nq).
+ex:Dog    a logic:Kind .
+ex:Animal a logic:Kind .
+ex:Dog    logic:subClassOf ex:Animal .

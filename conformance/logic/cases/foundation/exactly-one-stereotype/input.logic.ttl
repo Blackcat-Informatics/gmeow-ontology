@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Conformance case: foundation/exactly-one-stereotype
+# AC: foundation lowering — OntoUML StereotypeCardinality discipline (issue #503).
+#
+# Reproduces reasoning_lint.exactly_one_stereotype: a class must carry EXACTLY
+# one logic: stereotype. Two offenders, both tripping logic:StereotypeCardinality:
+#   * ex:NoStereo  — appears in a logic:subClassOf edge (so it is a class) but
+#     carries NO stereotype pun at all → StereotypeCardinality (the 0-branch).
+#   * ex:TwoStereo — carries TWO stereotypes (logic:Kind AND logic:Role) →
+#     StereotypeCardinality (the >1-branch). It is ALSO an anti-rigid sortal
+#     (Role) with no rigid ancestor, so it additionally trips logic:FreeRole —
+#     the FULL lint set, faithfully reproduced (anti_rigidity_discipline fires
+#     independently of exactly_one_stereotype).
+# ex:Anchor is a clean top logic:Kind (carries exactly one stereotype, no parent)
+# and trips nothing — the negative control.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts
+# (stereotype rdf:type puns + logic:subClassOf) are duplicated there in the named
+# world ex:schema; these declarations are the program axioms the projections need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/exactly-one-stereotype/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: stereotype puns + subsumption (also asserted as world facts in input.nq).
+ex:Anchor    a logic:Kind .
+ex:TwoStereo a logic:Kind, logic:Role .
+ex:NoStereo  logic:subClassOf ex:Anchor .
