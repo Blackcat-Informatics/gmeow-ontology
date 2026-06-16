@@ -1,0 +1,446 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 14/16/18 flagship — math-rock track.
+# Exercises: polymeter over a shared TempoMap, contested bar-17 meter pair,
+#            riff transformation graph, drop-D InstrumentConfiguration,
+#            and a refuted genre claim coexisting with an asserted one.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# Work and carrier voices
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockTrackWork
+    a gmeow:MusicalWork ;
+    rdfs:label "math-rock track fixture work"@x-gmeow-english ;
+    skos:definition "A fixture work exercising polymeter, contested meter, riff transformations, drop-D tuning, and contested genre attribution."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockGuitarVoice
+    a gmeow:Voice ;
+    rdfs:label "math-rock guitar voice"@x-gmeow-english ;
+    skos:definition "The guitar voice in the math-rock polymeter fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockDrumVoice
+    a gmeow:Voice ;
+    rdfs:label "math-rock drum voice"@x-gmeow-english ;
+    skos:definition "The drum voice in the math-rock polymeter fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Shared musical-time frame and TempoMap
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockTimeFrame
+    a gmeow:MusicalTimeFrame ;
+    rdfs:label "math-rock shared musical time frame"@x-gmeow-english ;
+    skos:definition "The unhosted shared musical-time frame for the math-rock track."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicalTime ;
+    gmeow:hasAxis gmeow:axisTime ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockTempoMap
+    a gmeow:TempoMap ;
+    rdfs:label "math-rock shared tempo map"@x-gmeow-english ;
+    skos:definition "Shared TempoMap for guitar and drums: quarter = 120, mapped to TAI clock time."@x-gmeow-english ;
+    gmeow:timeMappingKind gmeow:timeMappingKindTempoMap ;
+    gmeow:mapsFrame gmeow:fixtureMathRockTimeFrame ;
+    gmeow:mapsToFrame gmeow:temporalFrameTAI ;
+    gmeow:mapRatioNumerator "1"^^xsd:integer ;
+    gmeow:mapRatioDenominator "2"^^xsd:integer ;
+    gmeow:hasTempoMapSegment gmeow:fixtureMathRockTempoMapSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockTempoMapSegment
+    a gmeow:TempoMapSegment ;
+    rdfs:label "math-rock shared tempo map segment"@x-gmeow-english ;
+    skos:definition "The single constant segment of the shared math-rock TempoMap."@x-gmeow-english ;
+    gmeow:tempoMapSegmentOf gmeow:fixtureMathRockTempoMap ;
+    gmeow:segmentSpan gmeow:fixtureMathRockWholeSectionSpan ;
+    gmeow:segmentTempoMapKind gmeow:tempoMapKindConstant ;
+    gmeow:segmentMapRatioNumerator "1"^^xsd:integer ;
+    gmeow:segmentMapRatioDenominator "2"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Spans
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockWholeSectionSpan
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "math-rock whole section span"@x-gmeow-english ;
+    skos:definition "The whole polymeter section, ten 4/4 quarter-note beats long."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMathRockTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "10"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17Span
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "math-rock bar 17 span"@x-gmeow-english ;
+    skos:definition "The contested span at bar 17, six quarter-note beats long."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMathRockTimeFrame ;
+    gmeow:timeStartNumerator "64"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "6"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Polymeter: 7/8 guitar over 4/4 drums on the same TempoMap
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockGuitarMeterAssignment
+    a gmeow:MeterAssignment ;
+    rdfs:label "math-rock guitar 7/8 polymeter assignment"@x-gmeow-english ;
+    skos:definition "The guitar voice carries 7/8 concurrently with the drum voice's 4/4 over the shared TempoMap."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureMathRockGuitarVoice ;
+    gmeow:assignedMeter gmeow:metricStructure78 ;
+    gmeow:assignmentSpan gmeow:fixtureMathRockWholeSectionSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockDrumMeterAssignment
+    a gmeow:MeterAssignment ;
+    rdfs:label "math-rock drums 4/4 polymeter assignment"@x-gmeow-english ;
+    skos:definition "The drum voice carries 4/4 concurrently with the guitar voice's 7/8 over the shared TempoMap."@x-gmeow-english ;
+    gmeow:meterCarrier gmeow:fixtureMathRockDrumVoice ;
+    gmeow:assignedMeter gmeow:metricStructure44 ;
+    gmeow:assignmentSpan gmeow:fixtureMathRockWholeSectionSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Contested bar-17 meter: 6/8 vs 12/8 as coexisting standpoint claims
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockBar17SixEight
+    a gmeow:MetricStructure ;
+    rdfs:label "math-rock bar 17 6/8 metric structure"@x-gmeow-english ;
+    skos:definition "A compound-duple 6/8 metric structure proposed for bar 17."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureMathRockBar17SixEightGroup1 , gmeow:fixtureMathRockBar17SixEightGroup2 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17SixEightGroup1
+    a gmeow:MetricGroup ;
+    rdfs:label "math-rock bar 17 6/8 first 3/8 group"@x-gmeow-english ;
+    skos:definition "The first 3/8 group of the bar-17 6/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17SixEightGroup2
+    a gmeow:MetricGroup ;
+    rdfs:label "math-rock bar 17 6/8 second 3/8 group"@x-gmeow-english ;
+    skos:definition "The second 3/8 group of the bar-17 6/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.9"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17TwelveEight
+    a gmeow:MetricStructure ;
+    rdfs:label "math-rock bar 17 12/8 metric structure"@x-gmeow-english ;
+    skos:definition "A compound-quadruple 12/8 metric structure proposed for bar 17."@x-gmeow-english ;
+    gmeow:hasMetricGroup gmeow:fixtureMathRockBar17TwelveEightGroup1 , gmeow:fixtureMathRockBar17TwelveEightGroup2 , gmeow:fixtureMathRockBar17TwelveEightGroup3 , gmeow:fixtureMathRockBar17TwelveEightGroup4 ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17TwelveEightGroup1
+    a gmeow:MetricGroup ;
+    rdfs:label "math-rock bar 17 12/8 first 3/8 group"@x-gmeow-english ;
+    skos:definition "The first 3/8 group of the bar-17 12/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.0"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17TwelveEightGroup2
+    a gmeow:MetricGroup ;
+    rdfs:label "math-rock bar 17 12/8 second 3/8 group"@x-gmeow-english ;
+    skos:definition "The second 3/8 group of the bar-17 12/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.9"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17TwelveEightGroup3
+    a gmeow:MetricGroup ;
+    rdfs:label "math-rock bar 17 12/8 third 3/8 group"@x-gmeow-english ;
+    skos:definition "The third 3/8 group of the bar-17 12/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "2"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "0.9"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17TwelveEightGroup4
+    a gmeow:MetricGroup ;
+    rdfs:label "math-rock bar 17 12/8 fourth 3/8 group"@x-gmeow-english ;
+    skos:definition "The fourth 3/8 group of the bar-17 12/8 meter."@x-gmeow-english ;
+    gmeow:metricGroupOrder "3"^^xsd:nonNegativeInteger ;
+    gmeow:groupLengthNumerator "3"^^xsd:integer ;
+    gmeow:groupLengthDenominator "8"^^xsd:integer ;
+    gmeow:groupAccentWeight "1.1"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockAnalystA
+    a gmeow:Agent ;
+    rdfs:label "math-rock analyst A"@x-gmeow-english ;
+    skos:definition "A hypothetical analyst who hears bar 17 as 6/8."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockAnalystB
+    a gmeow:Agent ;
+    rdfs:label "math-rock analyst B"@x-gmeow-english ;
+    skos:definition "A hypothetical analyst who hears bar 17 as 12/8."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockMeterAnalysisFrame
+    a gmeow:ReferenceFrame ;
+    rdfs:label "math-rock meter-analysis frame"@x-gmeow-english ;
+    skos:definition "The analytical reference frame for contested meter claims in the math-rock track."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17SixEightClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "math-rock bar 17 6/8 meter claim"@x-gmeow-english ;
+    skos:definition "Analyst A claims bar 17 is best analyzed in 6/8."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMathRockTrackWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMeter ;
+    gmeow:analysisResult gmeow:fixtureMathRockBar17SixEight ;
+    gmeow:vantage gmeow:fixtureMathRockAnalystA ;
+    gmeow:analysisFrame gmeow:fixtureMathRockMeterAnalysisFrame ;
+    gmeow:confidence "0.82"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockBar17TwelveEightClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "math-rock bar 17 12/8 meter claim"@x-gmeow-english ;
+    skos:definition "Analyst B claims bar 17 is best analyzed in 12/8."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMathRockTrackWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyMeter ;
+    gmeow:analysisResult gmeow:fixtureMathRockBar17TwelveEight ;
+    gmeow:vantage gmeow:fixtureMathRockAnalystB ;
+    gmeow:analysisFrame gmeow:fixtureMathRockMeterAnalysisFrame ;
+    gmeow:confidence "0.78"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Riff transformation graph
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockRiffSpanA
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "math-rock riff A span"@x-gmeow-english ;
+    skos:definition "The one-beat span hosting riff A."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMathRockTimeFrame ;
+    gmeow:timeStartNumerator "0"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffSpanB
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "math-rock riff B span"@x-gmeow-english ;
+    skos:definition "The one-beat span hosting riff B."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMathRockTimeFrame ;
+    gmeow:timeStartNumerator "1"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffSpanC
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "math-rock riff C span"@x-gmeow-english ;
+    skos:definition "The one-beat span hosting riff C."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMathRockTimeFrame ;
+    gmeow:timeStartNumerator "2"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffSpanD
+    a gmeow:MusicalTimeSpan ;
+    rdfs:label "math-rock riff D span"@x-gmeow-english ;
+    skos:definition "The one-beat span hosting riff D."@x-gmeow-english ;
+    gmeow:hasMusicalTimeFrame gmeow:fixtureMathRockTimeFrame ;
+    gmeow:timeStartNumerator "3"^^xsd:integer ;
+    gmeow:timeStartDenominator "1"^^xsd:integer ;
+    gmeow:timeDurationNumerator "1"^^xsd:integer ;
+    gmeow:timeDurationDenominator "1"^^xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffA
+    a gmeow:MusicalSegment ;
+    rdfs:label "math-rock riff A"@x-gmeow-english ;
+    skos:definition "The primary riff in the math-rock track."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:fixtureMathRockRiffSpanA ;
+    gmeow:segmentOf gmeow:fixtureMathRockTrackWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffATransposed
+    a gmeow:MusicalSegment ;
+    rdfs:label "math-rock riff A transposed"@x-gmeow-english ;
+    skos:definition "Riff A transposed up a minor third."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:fixtureMathRockRiffSpanB ;
+    gmeow:segmentOf gmeow:fixtureMathRockTrackWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffARetrograde
+    a gmeow:MusicalSegment ;
+    rdfs:label "math-rock riff A retrograde"@x-gmeow-english ;
+    skos:definition "Riff A played in reverse order."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:fixtureMathRockRiffSpanC ;
+    gmeow:segmentOf gmeow:fixtureMathRockTrackWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffAInversion
+    a gmeow:MusicalSegment ;
+    rdfs:label "math-rock riff A inversion"@x-gmeow-english ;
+    skos:definition "Riff A inverted around a fixed pitch axis."@x-gmeow-english ;
+    gmeow:segmentKind gmeow:segmentKindRiff ;
+    gmeow:segmentSpan gmeow:fixtureMathRockRiffSpanD ;
+    gmeow:segmentOf gmeow:fixtureMathRockTrackWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffTransposition
+    a gmeow:SegmentTransformation ;
+    rdfs:label "math-rock riff A → riff A transposed"@x-gmeow-english ;
+    skos:definition "Transposition transformation linking riff A to its transposed variant."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureMathRockRiffA ;
+    gmeow:transformationTarget gmeow:fixtureMathRockRiffATransposed ;
+    gmeow:transformationType gmeow:transformTransposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffRetrograde
+    a gmeow:SegmentTransformation ;
+    rdfs:label "math-rock riff A → riff A retrograde"@x-gmeow-english ;
+    skos:definition "Retrograde transformation linking riff A to its reverse."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureMathRockRiffA ;
+    gmeow:transformationTarget gmeow:fixtureMathRockRiffARetrograde ;
+    gmeow:transformationType gmeow:transformRetrograde ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockRiffInversion
+    a gmeow:SegmentTransformation ;
+    rdfs:label "math-rock riff A → riff A inversion"@x-gmeow-english ;
+    skos:definition "Inversion transformation linking riff A to its mirror."@x-gmeow-english ;
+    gmeow:transformationSource gmeow:fixtureMathRockRiffA ;
+    gmeow:transformationTarget gmeow:fixtureMathRockRiffAInversion ;
+    gmeow:transformationType gmeow:transformInversion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Drop-D electric-guitar InstrumentConfiguration
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockDropDGuitarConfiguration
+    a gmeow:InstrumentConfiguration ;
+    rdfs:label "math-rock drop-D guitar configuration"@x-gmeow-english ;
+    skos:definition "Drop-D configuration for the math-rock guitar: electric guitar tuned down a major second on the lowest string."@x-gmeow-english ;
+    gmeow:configurationInstrumentType gmeow:instrumentTypeElectricGuitar ;
+    gmeow:configurationModification gmeow:instrumentModificationScordatura ;
+    gmeow:configurationTuningFrame gmeow:tuningSystemGuitarDropD ;
+    gmeow:configurationInterval gmeow:pitchIntervalMajorSecondDown ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Contested genre claim: math-rock asserted, refuted, and post-rock asserted
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureMathRockGenreCriticA
+    a gmeow:Agent ;
+    rdfs:label "math-rock genre critic A"@x-gmeow-english ;
+    skos:definition "A critic who asserts the track is math rock."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockGenreCriticB
+    a gmeow:Agent ;
+    rdfs:label "math-rock genre critic B"@x-gmeow-english ;
+    skos:definition "A critic who refutes the math-rock genre attribution."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:analysisPropertyGenre
+    a gmeow:AnalysisProperty ;
+    rdfs:label "genre"@x-gmeow-english ;
+    skos:definition "The musical genre attributed to a work or expression."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockGenreFrame
+    a gmeow:ReferenceFrame ;
+    rdfs:label "math-rock genre-attribution frame"@x-gmeow-english ;
+    skos:definition "The analytical reference frame for contested genre claims in the math-rock track."@x-gmeow-english ;
+    gmeow:frameRealm gmeow:frameRealmMusicAnalysis ;
+    gmeow:frameKind gmeow:frameKindAnalytical ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasAxis gmeow:axisMusicAnalysis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost "false"^^xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockGenreMathRockClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "math-rock genre math-rock claim"@x-gmeow-english ;
+    skos:definition "Critic A asserts the track belongs to the math-rock genre."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMathRockTrackWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyGenre ;
+    gmeow:analysisResult gmeow:genreMathRock ;
+    gmeow:vantage gmeow:fixtureMathRockGenreCriticA ;
+    gmeow:analysisFrame gmeow:fixtureMathRockGenreFrame ;
+    gmeow:confidence "0.90"^^xsd:decimal ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockGenreRefutedMathRockClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "math-rock genre refuted math-rock claim"@x-gmeow-english ;
+    skos:definition "Critic B explicitly refutes the math-rock genre attribution for the track."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMathRockTrackWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyGenre ;
+    gmeow:analysisResult gmeow:genreMathRock ;
+    gmeow:vantage gmeow:fixtureMathRockGenreCriticB ;
+    gmeow:analysisFrame gmeow:fixtureMathRockGenreFrame ;
+    gmeow:confidence "0.85"^^xsd:decimal ;
+    gmeow:standpointModality gmeow:refuted ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureMathRockGenrePostRockClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "math-rock genre post-rock alternative claim"@x-gmeow-english ;
+    skos:definition "Critic B co-asserts the track is better described as post-rock."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureMathRockTrackWork ;
+    gmeow:analysisProperty gmeow:analysisPropertyGenre ;
+    gmeow:analysisResult gmeow:genrePostRock ;
+    gmeow:vantage gmeow:fixtureMathRockGenreCriticB ;
+    gmeow:analysisFrame gmeow:fixtureMathRockGenreFrame ;
+    gmeow:confidence "0.80"^^xsd:decimal ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

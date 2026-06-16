@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case 3 — Cage 4′33″ complete DegreeOfFreedom profile.
+# Exercises: a full DOF grid for a work whose content is the ambient sound,
+# reusing the existing fixtureFourThirtyThreeWork individual.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Reuse the existing 4′33″ work and add the remaining DOF cells.
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureFourThirtyThreeWork
+    skos:exactMatch wd:Q221537 .
+
+gmeow:dofFourThirtyThreePitch
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ pitch free"@x-gmeow-english ;
+    skos:definition "The pitch content of 4′33″ is not specified by the work; any sounding pitches are supplied by the environment."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterPitch ;
+    gmeow:dofStatus gmeow:determinationFree ;
+    gmeow:dofConstraintText "No composed pitches; environmental sounds carry whatever pitch content occurs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeDynamics
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ dynamics delegated to environment"@x-gmeow-english ;
+    skos:definition "The dynamics of 4′33″ are delegated to the ambient environment."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterDynamics ;
+    gmeow:dofStatus gmeow:determinationDelegatedEnvironment ;
+    gmeow:dofConstraintText "Loudness is determined by whatever environmental sounds occur during the performance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeTempo
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ tempo constrained"@x-gmeow-english ;
+    skos:definition "The tempo of 4′33″ is constrained by the timing of the three movements; there is no pulsed musical tempo."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterTempo ;
+    gmeow:dofStatus gmeow:determinationConstrained ;
+    gmeow:dofConstraintText "No pulsed tempo is specified; only the total duration and movement boundaries are constrained."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeOrder
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ order constrained"@x-gmeow-english ;
+    skos:definition "The order of events in 4′33″ is constrained to three movements in sequence."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterOrder ;
+    gmeow:dofStatus gmeow:determinationConstrained ;
+    gmeow:dofConstraintText "Three movements are performed in order; the internal environmental content is unordered."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreeLocation
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ location delegated to environment"@x-gmeow-english ;
+    skos:definition "The spatial and environmental location of 4′33″ is part of the work's content."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterLocation ;
+    gmeow:dofStatus gmeow:determinationDelegatedEnvironment ;
+    gmeow:dofConstraintText "The performance space and its ambient sounds constitute the location parameter."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:dofFourThirtyThreePerformerCount
+    a gmeow:DegreeOfFreedom ;
+    rdfs:label "4′33″ performer count constrained"@x-gmeow-english ;
+    skos:definition "The number of performers in 4′33″ is constrained to one or more silent performers."@x-gmeow-english ;
+    gmeow:dofWork gmeow:fixtureFourThirtyThreeWork ;
+    gmeow:dofParameter gmeow:musicalParameterPerformerCount ;
+    gmeow:dofStatus gmeow:determinationConstrained ;
+    gmeow:dofConstraintText "At least one performer must be present and silent; no upper bound is specified."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .

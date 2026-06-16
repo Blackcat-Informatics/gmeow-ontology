@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Stress case — Cardew's Treatise graphic score.
+# Exercises: a graphic Manifestation as canonical, with two standpointed
+# symbolic transcriptions. Computational projection is delegated to FnO.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+# --------------------------------------------------------------------------- #
+# Composer agent and external authority
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCardew
+    a gmeow:Agent ;
+    rdfs:label "Cornelius Cardew"@x-gmeow-english ;
+    skos:definition "The composer of Treatise, represented as an agent in this fixture."@x-gmeow-english ;
+    skos:exactMatch wd:Q1133758 ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Cornelius_Cardew> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Work, Expression, Manifestation
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCardewTreatiseWork
+    a gmeow:MusicalWork ;
+    rdfs:label "Treatise (graphic score work)"@x-gmeow-english ;
+    skos:definition "Cardew's Treatise as an abstract Work; its identity is the graphic conception, independent of any symbolic decoding."@x-gmeow-english ;
+    gmeow:hasComposer gmeow:fixtureCardew ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp ;
+    skos:closeMatch <https://en.wikipedia.org/wiki/Treatise_(Cardew)> ;
+    gmeow:authorityLink <https://en.wikipedia.org/wiki/Treatise_(Cardew)> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCardewGraphicExpression
+    a gmeow:Expression ;
+    rdfs:label "Treatise graphic Expression"@x-gmeow-english ;
+    skos:definition "The canonical graphic Expression of Treatise, realized as a notated score in the graphic notation system."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureCardewTreatiseWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:wasGeneratedBy gmeow:fixtureCardewGraphicProcess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCardewGraphicScore
+    a gmeow:ScoreEdition ;
+    rdfs:label "Treatise graphic score edition"@x-gmeow-english ;
+    skos:definition "The printed graphic score that embodies the canonical graphic Expression."@x-gmeow-english ;
+    gmeow:embodies gmeow:fixtureCardewGraphicExpression ;
+    gmeow:hasManifestationFormat gmeow:formatPrintedScore ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Generative process for graphic-symbolic projection
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCardewGraphicProcess
+    a gmeow:GenerativeProcess ;
+    rdfs:label "Treatise graphic-to-symbolic projection process"@x-gmeow-english ;
+    skos:definition "The rule-based process by which an interpreter projects graphic score elements into a symbolic pitch/rhythm representation."@x-gmeow-english ;
+    gmeow:processKind gmeow:generativeProcessKindRuleBased ;
+    gmeow:processRuleText "Map each graphic element to a pitch, duration, and articulation according to an interpreter-specific rule set; exact mapping is solver-evaluated via fnProjectToGraphic."@x-gmeow-english ;
+    gmeow:processFunction gmeow:fnProjectToGraphic ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Two standpointed symbolic transcriptions
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCardewInterpreterA
+    a gmeow:Agent ;
+    rdfs:label "Treatise interpreter A"@x-gmeow-english ;
+    skos:definition "A hypothetical analyst who reads Treatise as a pitch-oriented symbolic score."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCardewInterpreterB
+    a gmeow:Agent ;
+    rdfs:label "Treatise interpreter B"@x-gmeow-english ;
+    skos:definition "A hypothetical analyst who reads Treatise as a texture-oriented symbolic score."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCardewTranscriptionA
+    a gmeow:Expression ;
+    rdfs:label "Treatise symbolic transcription A"@x-gmeow-english ;
+    skos:definition "One standpointed symbolic decoding of Treatise, emphasising pitch identity."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureCardewTreatiseWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:wasDerivedFrom gmeow:fixtureCardewGraphicExpression ;
+    gmeow:accordingTo gmeow:fixtureCardewInterpreterA ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCardewTranscriptionB
+    a gmeow:Expression ;
+    rdfs:label "Treatise symbolic transcription B"@x-gmeow-english ;
+    skos:definition "An alternative standpointed symbolic decoding of Treatise, emphasising texture and gesture."@x-gmeow-english ;
+    gmeow:realizes gmeow:fixtureCardewTreatiseWork ;
+    gmeow:realizationMode gmeow:realizationModeNotated ;
+    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:wasDerivedFrom gmeow:fixtureCardewGraphicExpression ;
+    gmeow:accordingTo gmeow:fixtureCardewInterpreterB ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+# --------------------------------------------------------------------------- #
+# Co-equal analytical claims about the canonical decoding
+# --------------------------------------------------------------------------- #
+
+gmeow:fixtureCardewPitchSchemaClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Treatise pitch-schema claim (interpreter A)"@x-gmeow-english ;
+    skos:definition "Claim that Treatise is best analysed as a pitch-schema via transcription A."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureCardewTreatiseWork ;
+    gmeow:analysisProperty gmeow:analysisPropertySchema ;
+    gmeow:analysisResult gmeow:fixtureCardewTranscriptionA ;
+    gmeow:vantage gmeow:fixtureCardewInterpreterA ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.82"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
+
+gmeow:fixtureCardewTextureSchemaClaim
+    a gmeow:MusicAnalysisClaim ;
+    rdfs:label "Treatise texture-schema claim (interpreter B)"@x-gmeow-english ;
+    skos:definition "Claim that Treatise is best analysed as a texture/gesture schema via transcription B."@x-gmeow-english ;
+    gmeow:analysisTarget gmeow:fixtureCardewTreatiseWork ;
+    gmeow:analysisProperty gmeow:analysisPropertySchema ;
+    gmeow:analysisResult gmeow:fixtureCardewTranscriptionB ;
+    gmeow:vantage gmeow:fixtureCardewInterpreterB ;
+    gmeow:analysisFrame gmeow:theoryFrameTransformational ;
+    gmeow:confidence "0.79"^^xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
