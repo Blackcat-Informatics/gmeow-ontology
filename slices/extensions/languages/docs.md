@@ -254,3 +254,83 @@ Glottolog and Wikidata in data via `skos:exactMatch` + `gmeow:authorityLink`.
 | Version lineage of first-class languages | a `version` string | An Ithkuil version is itself a usable language with its own scripts/names |
 | Transliteration/translation as FnO functions | a bare romanization literal | A romanization should record *how* it was derived (Hepburn vs Kunrei) |
 | AI/software creator (`SoftwareAgent`) | only human authorship | Languages an AI invents are first-class, forward-looking |
+
+## Terms
+
+This section anchors the guide to the terms declared in this slice. The base
+`gmeow:Language` / `WritingSystem` / version-lineage spine and the
+proficiency-level individuals live in adjacent slices and are not redeclared here.
+
+### gmeow:LanguageVersion · gmeow:LanguageVariety · gmeow:versionLabel
+
+A `LanguageVersion` is a dated, fully usable revision of a language (a `SubKind` of
+Language), bearing its own scripts, names, and status. A `LanguageVariety` is a
+speech variety that IS a language — dialect/sociolect/register classifications are
+standpointed claims, not OWL subclasses. `versionLabel` carries any versioned
+artifact's designation as a literal.
+
+### gmeow:languageOrigin · gmeow:LanguageOrigin · gmeow:languageModality · gmeow:LanguageModality · gmeow:languageStatus · gmeow:LanguageStatus · gmeow:designGoal
+
+The non-functional typing axis: `languageOrigin` (natural, constructed, AI-generated,
+formal, pidgin, creole, reconstructed, …), `languageModality` (spoken, signed,
+written, whistled, tactile, machine, multimodal), and `languageStatus` (living,
+historical, extinct, dormant, revived, emerging, …) draw from open value
+vocabularies; `designGoal` is a literal stating an engineered language's purpose.
+
+### gmeow:varietyKind · gmeow:LanguageVarietyKind · gmeow:varietyOf
+
+The variety classification axis: `varietyKind` (dialect, sociolect, register,
+slang, standard, creole, pidgin, koine, lingua franca, …) and `varietyOf` (the
+parent language) are both non-functional and standpoint-dependent, so a single
+variety can be a language to one standpoint and a dialect to another.
+
+### gmeow:WritingSystemUsage · gmeow:usageLanguage · gmeow:usageWritingSystem · gmeow:scriptRole · gmeow:ScriptRole · gmeow:scriptUsageInterval
+
+The reified co-mingling relator binding {language} × {writing system} × {role} ×
+{period}, mirroring names' `NameUsage`. `usageLanguage` and `usageWritingSystem`
+are its functional constituents; `scriptRole` is the functional `ScriptRole` value
+(primary, logographic content, syllabic grammar, loanword, transliteration,
+liturgical, historical, decorative); `scriptUsageInterval` carries its period
+(Turkish-in-Arabic until 1928).
+
+### gmeow:usesWritingSystem · gmeow:scriptCode · gmeow:writingSystemType · gmeow:WritingSystemType · gmeow:textDirection · gmeow:TextDirection
+
+The direct writing-system properties: `usesWritingSystem` is the non-functional,
+co-equal language→script relation; `scriptCode` is the optional ISO 15924 code;
+`writingSystemType` and `textDirection` draw open value vocabularies for structural
+kind (alphabet, abjad, abugida, syllabary, logographic, …) and direction (ltr, rtl,
+vertical, boustrophedon, non-linear, contextual).
+
+### gmeow:LanguageProficiency · gmeow:proficiencyAgent · gmeow:proficiencyLanguage · gmeow:proficiencyModality · gmeow:proficiencyLevel · gmeow:proficiencyScale · gmeow:proficiencyInterval · gmeow:levelScale
+
+The reified, per-skill, leveled proficiency relator (the `NameUsage` idiom): mint
+one per (agent, language, modality) so "native overall" and "B2 writing" coexist.
+The functional constituents fix the agent, language, skill modality, level, and
+measuring scale; `proficiencyInterval` carries its period; `levelScale` ties a
+level individual to its framework.
+
+### gmeow:knowsLanguage · gmeow:nativeLanguage
+
+The flat base relations: `knowsLanguage` states that an agent knows a language;
+`nativeLanguage` is its mother-tongue specialisation. Both are non-functional; the
+leveled per-skill detail rides `LanguageProficiency`.
+
+### gmeow:LanguageState · gmeow:stateLanguage · gmeow:stateStatusValue · gmeow:stateAuthority · gmeow:stateInterval
+
+The standpoint-scoped, analytic/historical status relator (the VersionMembership
+pattern, also an `Observation`): it binds {language} × {status} × {authority} ×
+{interval}, so competing reconstructions of a language's vitality over a period
+coexist. `stateLanguage ⊑ observedFeature`, `stateAuthority ⊑ vantage`.
+
+### gmeow:LanguageChangeEvent · gmeow:changeType · gmeow:LanguageChangeType · gmeow:affectedLanguage
+
+The diachronic-arc event (`Activity` subclass): `changeType` draws the open
+`LanguageChangeType` vocabulary (sound shift, semantic drift, borrowing, spelling
+reform, standardization, extinction, revival, split, merger, …) and
+`affectedLanguage` links the one or more languages a change touches.
+
+### gmeow:LanguageCreation
+
+The activity of creating or generating a language — a conlanger's design work or an
+AI model's generation run — linked to its product via `wasGeneratedBy` and ascribed
+to its creator (a `SoftwareAgent` for an AI language) via `wasAttributedTo`.

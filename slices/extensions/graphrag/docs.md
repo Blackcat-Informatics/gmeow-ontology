@@ -41,3 +41,65 @@ Community (level) ─summarizesCommunity⁻¹─ CommunitySummary ⊑ Summary
   extension carries the machinery around those claims.
 - **Memory recall is a RetrievalEvent** — the read half of the core MemoryItem
   doctrine.
+
+## Terms
+
+### gmeow:Corpus · gmeow:corpusMember
+
+An indexed collection of source information objects over which retrieval operates —
+the working document set, distinct from the documents slice's bibliographic
+Collection. `corpusMember` (⊑ `hasPart`) relates a corpus to a source it collects;
+non-functional, since a source may belong to many corpora.
+
+### gmeow:Embedding · gmeow:embeddingOf · gmeow:embeddingModel · gmeow:embeddingDimensions · gmeow:vectorRef
+
+A vector representation of an information object (usually a core Chunk) — the
+genuine vocabulary gap in the stack. `embeddingOf` (functional) names the
+represented object; `embeddingModel` (functional) the producing agent, so two
+models' embeddings are two individuals (P9); `embeddingDimensions` the
+dimensionality. `vectorRef` points to the payload, which stays OUTSIDE the graph
+(P12) — the graph holds the audit trail, not the floats.
+
+### gmeow:DistanceMetric · gmeow:distanceMetric
+
+An open value vocabulary of vector similarity/distance functions (cosine,
+euclidean, dot product). `distanceMetric` (functional, domain-free) carries the
+function under which an embedding or index is meaningful — cosine and euclidean
+disagree about what is 'near', so the metric is provenance, not a detail.
+
+### gmeow:VectorIndex · gmeow:indexesCorpus · gmeow:IndexAlgorithm · gmeow:indexAlgorithm · gmeow:indexParameters
+
+A built retrieval structure over a corpus's embeddings — the artifact a
+RetrievalEvent queries. `indexesCorpus` ties it to the corpus served (non-functional,
+for federated indexes); `indexAlgorithm` (functional) carries its ANN structure from
+the open `IndexAlgorithm` vocabulary (HNSW, IVF, flat); `indexParameters` records the
+build parameters verbatim as a JSON string for reproducibility.
+
+### gmeow:RetrievalEvent · gmeow:forQuery · gmeow:againstIndex · gmeow:retrievedChunk · gmeow:retrievalScore
+
+One retrieval against a vector index — the answer to 'why did the model see this
+passage?'; an agent-memory recall is a RetrievalEvent too. `forQuery` records the
+query verbatim; `againstIndex` (functional) the index queried; `retrievedChunk` each
+chunk returned, with per-chunk relevance riding the `retrievalScore` statement
+annotation so competing re-ranker scores coexist attributed (P9, P3).
+
+### gmeow:ExtractedEntity · gmeow:ExtractedRelationship · gmeow:relationshipSource · gmeow:relationshipTarget
+
+A model-extracted entity DESCRIPTION (deliberately not the entity itself — promotion
+is a separate, attributable curation act with coreference by reference, never
+`owl:sameAs`, P5), and the extracted relationship between two such descriptions.
+`relationshipSource` and `relationshipTarget` (both functional) carry the edge's tail
+and head.
+
+### gmeow:Community · gmeow:communityMember · gmeow:communityLevel
+
+A graph-clustering community (Leiden or similar) over extracted-entity descriptions,
+at a `communityLevel` of the cluster hierarchy (0 = leaf). `communityMember`
+(⊑ `hasPart`) names a clustered description; the clustering run is provenance via the
+existing `wasGeneratedBy`.
+
+### gmeow:CommunitySummary · gmeow:summarizesCommunity
+
+A pre-generated summary of a community — GraphRAG's global-question substrate,
+derived from the community's members and revisable rather than a black box.
+`summarizesCommunity` (functional) names the community condensed.

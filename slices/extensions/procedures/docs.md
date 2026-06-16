@@ -43,6 +43,63 @@ side reuses the existing event + participation machinery.
 | `gmeow:executionParticipant` | object property | flat shortcut for agent/tool assignment to an Execution |
 | `gmeow:inquiryPriority` / `inquiryTheme` / `inquirySource` / `inquiryStatus` / `resolvedByArtifact` | properties on `Procedure` | research-inquiry profile extensions |
 
+### gmeow:Procedure · gmeow:ProcedureStep
+
+A `Procedure` is a prescriptive specification — a template, recipe, protocol,
+blueprint, or workflow definition — an `InformationObject`, the plan side of the
+de-conflation. A `ProcedureStep` is an atomic step within it, carrying inputs,
+outputs, and parameters, and may itself reference a subprocess via
+`stepEnactsProcedure`.
+
+### gmeow:Execution · gmeow:executesProcedure · gmeow:executesStep · gmeow:executionParticipant
+
+An `Execution` (⊑ `Event`) is the occurrence that enacts a procedure or step,
+reusing the event/participation machinery. `executesProcedure` and `executesStep`
+link it to the plan it realises; `executionParticipant` is the flat 80%-case
+agent/tool shortcut, promoted to a `Participation` when role or evidence matters.
+
+### gmeow:ControlFlow · gmeow:flowSource · gmeow:flowTarget · gmeow:flowGuard · gmeow:flowOrder
+
+A reified relator sequencing, branching, or looping between two `ProcedureStep`s.
+`flowSource`/`flowTarget` are its functional endpoints; `flowGuard` records the
+guard `BranchConditionType` (evaluated solver-side); `flowOrder` is an optional
+explicit ordering index.
+
+### gmeow:DataFlow · gmeow:dataFlowSource · gmeow:dataFlowTarget · gmeow:dataFlowEntity
+
+A reified relator carrying a data entity from one step's output to another step's
+input — functional source and target endpoints, with a non-functional
+`dataFlowEntity` naming what flows.
+
+### gmeow:ProcedureType · gmeow:procedureType · gmeow:StepType · gmeow:procedureStepType · gmeow:BranchConditionType · gmeow:ExecutionStatus · gmeow:executionStatus
+
+The open value vocabularies (Principle 9): procedure kind (recipe, lab protocol,
+data pipeline, agent flow, CI build, business process, research plan, ingestion),
+step kind (atomic, start, end, branch, subprocess, parallel), branch-guard
+condition (if, switch, loop, parallel), and execution status (pending, running,
+succeeded, failed, cancelled, skipped) — values pointed at by the matching
+properties, never subclasses.
+
+### gmeow:hasProcedureStep · gmeow:procedureStepOf · gmeow:subProcedureOf · gmeow:hasSubProcedure · gmeow:stepEnactsProcedure
+
+Procedure composition: `hasProcedureStep`/`procedureStepOf` is step mereology
+(specialising `hasPart`/`partOf`); `subProcedureOf`/`hasSubProcedure` is the
+transitive subprocess spine; `stepEnactsProcedure` links a subprocess step to the
+`Procedure` defining its internals.
+
+### gmeow:stepInput · gmeow:stepOutput · gmeow:stepParameter
+
+The step's resources: an `Input` consumed, an `Output` produced, and a
+`Parameter` that governs behaviour without being consumed — all `owl:Thing`-ranged
+and non-functional.
+
+### gmeow:inquiryPriority · gmeow:inquiryTheme · gmeow:inquirySource · gmeow:inquiryStatus · gmeow:resolvedByArtifact
+
+The research-inquiry profile extensions on a `Procedure` of type `researchPlan`: a
+1–10 `inquiryPriority`, a thematic `inquiryTheme`, the prompting `inquirySource`,
+the `inquiryStatus` (an `ExecutionStatus` value), and the `resolvedByArtifact`
+that closes the inquiry.
+
 ## SSSOM alignments (`mapping-dsl/equivalences/procedures.ttl`)
 
 All by reference (Principle 5) — GMEOW never imports an external axiom. Compiled to
