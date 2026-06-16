@@ -93,6 +93,10 @@ pub enum Constraint {
     MinInclusive(Term),
     /// `sh:maxInclusive "100"^^xsd:integer`
     MaxInclusive(Term),
+    /// `sh:minExclusive "0"^^xsd:integer`
+    MinExclusive(Term),
+    /// `sh:maxExclusive "100"^^xsd:integer`
+    MaxExclusive(Term),
     /// `sh:and ( … )` — list of shapes, all must conform.
     And(Vec<Shape>),
     /// `sh:or ( … )` — at least one must conform.
@@ -169,7 +173,28 @@ pub struct Shapes {
 /// Returns `Err(String)` when an unsupported SHACL construct is encountered or
 /// when required structural data (e.g. `sh:path`) is missing.
 pub fn from_store(store: &Store) -> Result<Shapes, String> {
-    let mut parser = Parser::new(store);
+    from_store_with_prefixes(store, &[])
+}
+
+/// Parse shapes from a store, with the shapes document's `@prefix` declarations
+/// available as a fallback prefix map for SHACL-AF `sh:select` queries.
+///
+/// SHACL-AF queries may use prefixed names. The spec resolves them via
+/// `sh:prefixes`/`sh:declare`, but real-world shapes (and pySHACL) also rely on
+/// the shapes *document's* own `@prefix` declarations. Since an oxigraph `Store`
+/// does not retain document prefix maps, the caller (the engine) captures them
+/// from the Turtle parser and threads them here. `sh:prefixes` declarations take
+/// precedence over these document-level fallbacks.
+///
+/// # Errors
+///
+/// Returns `Err(String)` on any unsupported SHACL construct or missing
+/// structural data — see [`from_store`].
+pub fn from_store_with_prefixes(
+    store: &Store,
+    doc_prefixes: &[(String, String)],
+) -> Result<Shapes, String> {
+    let mut parser = Parser::new(store, doc_prefixes);
     parser.parse()
 }
 
@@ -197,8 +222,6 @@ fn unsupported_predicates() -> HashSet<&'static str> {
         sh::IGNORED_PROPERTIES.as_str(),
         sh::LANGUAGE_IN.as_str(),
         sh::MAX_LENGTH.as_str(),
-        sh::MIN_EXCLUSIVE.as_str(),
-        sh::MAX_EXCLUSIVE.as_str(),
         // unsupported path forms (checked on bnode path objects)
         sh::ALTERNATIVE_PATH.as_str(),
         sh::ZERO_OR_MORE_PATH.as_str(),
@@ -217,14 +240,18 @@ struct Parser<'s> {
     /// Tracks shape nodes currently being parsed to prevent infinite recursion
     /// through `sh:node` or `sh:and/or/xone` cycles.
     in_flight: HashSet<String>,
+    /// The shapes document's `@prefix` map (prefix → namespace), used as the
+    /// fallback PREFIX header for SHACL-AF `sh:select` queries.
+    doc_prefixes: Vec<(String, String)>,
 }
 
 impl<'s> Parser<'s> {
-    fn new(store: &'s Store) -> Self {
+    fn new(store: &'s Store, doc_prefixes: &[(String, String)]) -> Self {
         Self {
             store,
             unsupported: unsupported_predicates(),
             in_flight: HashSet::new(),
+            doc_prefixes: doc_prefixes.to_vec(),
         }
     }
 
@@ -357,6 +384,58 @@ impl<'s> Parser<'s> {
     /// Return the first object for `(subject, predicate, ?)`, if any.
     fn first_object_of(&self, subject: &Term, predicate: NamedNodeRef<'_>) -> Option<Term> {
         self.objects_of(subject, predicate).into_iter().next()
+    }
+
+    /// Build the SPARQL `PREFIX` header prepended to a SHACL-AF `sh:select` query.
+    ///
+    /// oxigraph's SPARQL parser has no SHACL awareness, so prefixed names in a
+    /// query must be declared in the query text. Two sources contribute, lowest
+    /// precedence first:
+    ///
+    /// 1. The shapes **document's** `@prefix` declarations (the pySHACL-compatible
+    ///    fallback — real shapes rely on these without `sh:prefixes`).
+    /// 2. SHACL-AF `sh:prefixes` → `sh:declare` on the shape and/or the
+    ///    `sh:sparql` / `sh:SPARQLTarget` node (spec §5.2.1), which **override**
+    ///    the document fallback for any colliding prefix.
+    ///
+    /// Output is one `PREFIX p: <ns>` line per prefix, sorted (a `BTreeMap` keeps
+    /// it deterministic and one-entry-per-prefix). Empty when nothing is declared.
+    fn prefix_header(&self, owners: &[&Term]) -> String {
+        let mut map: std::collections::BTreeMap<String, String> = self
+            .doc_prefixes
+            .iter()
+            .map(|(p, ns)| (p.clone(), ns.clone()))
+            .collect();
+        // `sh:prefix` is a string literal; `sh:namespace` is typically an
+        // `xsd:anyURI` literal but the SHACL spec also permits a bare IRI
+        // (NamedNode). Accept both lexical forms so an IRI-valued namespace is
+        // not silently dropped (which would omit a PREFIX line and break the
+        // dependent SHACL-AF query — a silent under-validation, P11/§11).
+        let term_value = |t: Term| match t {
+            Term::Literal(lit) => Some(lit.value().to_owned()),
+            Term::NamedNode(node) => Some(node.as_str().to_owned()),
+            _ => None, // blank node / quoted triple: not a prefix or namespace value
+        };
+        for owner in owners {
+            for prefixes_node in self.objects_of(owner, sh::PREFIXES) {
+                for declare in self.objects_of(&prefixes_node, sh::DECLARE) {
+                    let prefix = self
+                        .first_object_of(&declare, sh::PREFIX)
+                        .and_then(term_value);
+                    let namespace = self
+                        .first_object_of(&declare, sh::NAMESPACE)
+                        .and_then(term_value);
+                    if let (Some(p), Some(ns)) = (prefix, namespace) {
+                        map.insert(p, ns); // sh:prefixes overrides the document fallback
+                    }
+                }
+            }
+        }
+        let mut header = String::new();
+        for (prefix, namespace) in map {
+            header.push_str(&format!("PREFIX {prefix}: <{namespace}>\n"));
+        }
+        header
     }
 
     /// Parse a top-level node shape.
@@ -547,7 +626,7 @@ impl<'s> Parser<'s> {
             }
 
             // sh:select is required on the SPARQLTarget blank node.
-            let select = self
+            let raw_select = self
                 .first_object_of(&t_node, sh::SELECT)
                 .and_then(|t| match t {
                     Term::Literal(lit) => Some(lit.value().to_owned()),
@@ -556,6 +635,8 @@ impl<'s> Parser<'s> {
                 .ok_or_else(|| {
                     format!("sh:SPARQLTarget on shape {id} is missing a sh:select string literal")
                 })?;
+            // SHACL-AF sh:prefixes may be declared on the shape or the target node.
+            let select = format!("{}{raw_select}", self.prefix_header(&[id, &t_node]));
 
             // Parse-time query validation (hard-fail on unparsable queries).
             let _ = oxigraph::sparql::SparqlEvaluator::new()
@@ -658,6 +739,19 @@ impl<'s> Parser<'s> {
             constraints.push(Constraint::MaxInclusive(t));
         }
 
+        // sh:minExclusive / sh:maxExclusive
+        let mut min_exc: Vec<Term> = self.objects_of(id, sh::MIN_EXCLUSIVE);
+        min_exc.sort_by_key(|t| t.to_string());
+        for t in min_exc {
+            constraints.push(Constraint::MinExclusive(t));
+        }
+
+        let mut max_exc: Vec<Term> = self.objects_of(id, sh::MAX_EXCLUSIVE);
+        max_exc.sort_by_key(|t| t.to_string());
+        for t in max_exc {
+            constraints.push(Constraint::MaxExclusive(t));
+        }
+
         // sh:hasValue
         let mut hv: Vec<Term> = self.objects_of(id, sh::HAS_VALUE);
         hv.sort_by_key(|t| t.to_string());
@@ -735,7 +829,7 @@ impl<'s> Parser<'s> {
         sparql_cnodes.sort_by_key(|t| t.to_string());
         for c_node in sparql_cnodes {
             // sh:select is required.
-            let select = self
+            let raw_select = self
                 .first_object_of(&c_node, sh::SELECT)
                 .and_then(|t| match t {
                     Term::Literal(lit) => Some(lit.value().to_owned()),
@@ -746,6 +840,8 @@ impl<'s> Parser<'s> {
                         "sh:sparql constraint on shape {id} is missing a sh:select string literal"
                     )
                 })?;
+            // SHACL-AF sh:prefixes may be declared on the shape or the sh:sparql node.
+            let select = format!("{}{raw_select}", self.prefix_header(&[id, &c_node]));
 
             // Parse-time query validation (hard-fail on unparsable queries).
             let _ = oxigraph::sparql::SparqlEvaluator::new()
@@ -1197,6 +1293,39 @@ mod tests {
         assert!(
             sparql_c.unwrap().contains("$this"),
             "select text should contain '$this'"
+        );
+    }
+
+    // ── sh:namespace as a bare IRI (NamedNode), not an xsd:anyURI literal ────────
+    #[test]
+    fn test_sparql_prefixes_namespace_as_iri() {
+        // SHACL §5.2.1 permits sh:namespace to be an IRI (NamedNode); the PREFIX
+        // line must still be injected so the prefixed query name resolves.
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:NsDecls sh:declare [ sh:prefix "ex" ; sh:namespace <http://example.org/ns#> ] .
+            ex:PrefShape a sh:NodeShape ;
+                sh:targetClass ex:Foo ;
+                sh:prefixes ex:NsDecls ;
+                sh:sparql [
+                    sh:select "SELECT $this WHERE {{ $this a ex:Foo . }}" ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("IRI-valued sh:namespace must parse");
+        let shape = &shapes.node_shapes[0];
+        let select = shape
+            .constraints
+            .iter()
+            .find_map(|c| match c {
+                Constraint::Sparql { select, .. } => Some(select.clone()),
+                _ => None,
+            })
+            .expect("expected a Constraint::Sparql");
+        assert!(
+            select.contains("PREFIX ex: <http://example.org/ns#>"),
+            "IRI-valued sh:namespace must inject a PREFIX line; got: {select}"
         );
     }
 

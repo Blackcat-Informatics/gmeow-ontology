@@ -1,6 +1,6 @@
 """RDF-native SHACL validation for the GMEOW mapping and statement DSL sources.
 
-Runs pyshacl over the merged DSL graph *before* the Python graph-walkers
+Runs ``gmeow_shacl`` over the merged DSL graph *before* the Python graph-walkers
 (:mod:`gmeow_tools.mapping_dsl`, :mod:`gmeow_tools.statement_dsl`) proceed
 into dataclass parsing. Violations are surfaced as structured, per-node
 diagnostics (focus node, path, message, source file) so malformed DSL cells
@@ -12,40 +12,42 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, Graph, URIRef
-from rdflib.namespace import SH
+from rdflib import Graph, URIRef
 from rdflib.term import Node
 
+from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
     MAPPING_DSL_SHAPES_FILE,
     STATEMENT_DSL_SHAPES_FILE,
 )
-from gmeow_tools.graph import bind_prefixes
+from gmeow_tools.shacl_engine import ShaclResult
 
 
 def _format_violations(
-    report_graph: Graph, node_to_file: dict[Node, Path]
+    results: list[ShaclResult], node_to_file: dict[Node, Path]
 ) -> list[str]:
-    """Extract SHACL validation results into readable, enriched lines.
+    """Extract structured SHACL results into readable, enriched lines.
 
     Each line carries ``focus=<node> | path=<path> | msg=<message>``
     and ``source=<file>`` when the focus node is a named IRI that was
     tracked to its originating Turtle file.
     """
     violations: list[str] = []
-    for result in report_graph.subjects(RDF.type, SH.ValidationResult):
-        focus = report_graph.value(result, SH.focusNode)
-        path = report_graph.value(result, SH.resultPath)
-        message = report_graph.value(result, SH.resultMessage)
+    for result in results:
+        focus = result.get("focus")
+        path = result.get("path")
+        message = result.get("message")
         parts: list[str] = []
         if focus is not None:
-            parts.append(f"focus={focus}")
+            parts.append(f"focus={shacl_engine.term_to_str(focus)}")
         if path is not None:
-            parts.append(f"path={path}")
+            parts.append(f"path={shacl_engine.term_to_str(path)}")
         if message is not None:
             parts.append(f"msg={message}")
-        if isinstance(focus, URIRef):
-            src = node_to_file.get(focus)
+        # Source provenance only applies to named-IRI focus nodes (gmeow_shacl
+        # renders them as <iri>); blank nodes carry no file mapping.
+        if focus is not None and focus.startswith("<") and focus.endswith(">"):
+            src = node_to_file.get(URIRef(focus[1:-1]))
             if src is not None:
                 parts.append(f"source={src}")
         violations.append(" | ".join(parts))
@@ -57,33 +59,28 @@ def _validate_dsl(
     shapes_path: Path,
     node_to_file: dict[Node, Path],
 ) -> list[str]:
-    """Run pyshacl against ``graph`` using the shapes at ``shapes_path``.
+    """Validate ``graph`` against the DSL shapes at ``shapes_path`` (gmeow_shacl).
 
     Returns a list of formatted violation strings (empty == conformant).
+
+    Raises:
+        FileNotFoundError: If the shapes file is missing.
+        ValueError: Propagated from ``gmeow_shacl`` on a parse/validate error
+            (hard-fail, never a silent conforms — P11/§11).
     """
     if not shapes_path.exists():
         raise FileNotFoundError(f"DSL SHACL shapes not found: {shapes_path}")
 
-    from pyshacl import validate as shacl_validate
-
-    bind_prefixes(graph)
-    shapes_graph = Graph().parse(shapes_path, format="turtle")
-    conforms, report_graph, report_text = shacl_validate(
-        graph,
-        shacl_graph=shapes_graph,
-        advanced=True,
-        inference="none",
-        abort_on_first=False,
-        meta_shacl=False,
-    )
-    if conforms:
+    shapes_ttl = shapes_path.read_text(encoding="utf-8")
+    report = shacl_engine.validate_graph(graph, shapes_ttl)
+    if report["conforms"]:
         return []
 
-    violations = _format_violations(report_graph, node_to_file)
-    # Defensive: if pyshacl reports non-conformance but we could not parse
-    # any structured results, surface the raw report text.
+    violations = _format_violations(report["results"], node_to_file)
+    # Defensive: a non-conforming report with no parseable results must still
+    # surface (gmeow_shacl reports conforms == results-empty, so unreachable).
     if not violations:
-        violations.append(f"SHACL validation failed:\n{report_text.strip()}")
+        violations.append("SHACL validation failed: non-conforming with no results")
     return violations
 
 

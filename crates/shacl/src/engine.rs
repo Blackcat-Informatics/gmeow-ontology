@@ -229,16 +229,27 @@ pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationRepo
     }
 
     let shapes_store = Store::new().map_err(|e| format!("shapes store creation failed: {e}"))?;
+    // Drive the Turtle parser by iterator (rather than Store::load_from_reader) so
+    // we can recover the document's @prefix map — oxigraph stores do not retain
+    // prefixes, but SHACL-AF sh:select queries (and pySHACL) rely on them. See #578.
+    let mut doc_prefixes: Vec<(String, String)> = Vec::new();
     if !shapes_ttl.is_empty() {
-        shapes_store
-            .load_from_reader(
-                RdfParser::from_format(RdfFormat::Turtle).lenient(),
-                shapes_ttl.as_bytes(),
-            )
-            .map_err(|e| format!("Turtle parse error: {e}"))?;
+        let mut parser = RdfParser::from_format(RdfFormat::Turtle)
+            .lenient()
+            .for_reader(shapes_ttl.as_bytes());
+        for quad in parser.by_ref() {
+            let quad = quad.map_err(|e| format!("Turtle parse error: {e}"))?;
+            shapes_store
+                .insert(&quad)
+                .map_err(|e| format!("shapes store insert failed: {e}"))?;
+        }
+        doc_prefixes = parser
+            .prefixes()
+            .map(|(prefix, namespace)| (prefix.to_owned(), namespace.to_owned()))
+            .collect();
     }
 
-    let shapes = crate::shapes::from_store(&shapes_store)?;
+    let shapes = crate::shapes::from_store_with_prefixes(&shapes_store, &doc_prefixes)?;
     Ok(validate(&data, &shapes))
 }
 

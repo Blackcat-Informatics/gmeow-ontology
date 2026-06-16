@@ -40,7 +40,7 @@
       "name": "CONSTITUTION.md",
       "encodingFormat": "text/plain",
       "contentUrl": "CONSTITUTION.md",
-      "description": "content digest: blake3:28095794e8c96325ecafcf36dbc10266132d3da5483e62779f398811cd8d780d"
+      "description": "content digest: blake3:9d24cebbaa95509ad570cd4bf01de51f7822adbf041125a882dfc6a0f693f212"
     },
     {
       "@type": "cr:FileObject",
@@ -48,7 +48,7 @@
       "name": "README.md",
       "encodingFormat": "text/plain",
       "contentUrl": "README.md",
-      "description": "content digest: blake3:796331d99dbaab78c0f9857aedb0aa3cfaea1c30910c390634d1b34823b933ea"
+      "description": "content digest: blake3:03a4a7a8ec206e1c3dfb5803a131f2a1c32586145d5cf11822f7fb5ca61e6263"
     },
     {
       "@type": "cr:FileObject",
@@ -206,22 +206,22 @@
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-calibration",
-          "evalScores/score": 0.5
+          "evalScores/score": 0.66
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-grounding-precision",
-          "evalScores/score": 0.4
+          "evalScores/score": 0.6
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-grounding-recall",
-          "evalScores/score": 0.6667
+          "evalScores/score": 1.0
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
           "evalScores/criterion": "crit-hallucination",
-          "evalScores/score": 0.4
+          "evalScores/score": 0.6
         },
         {
           "evalScores/model": "https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline",
