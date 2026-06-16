@@ -11,11 +11,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import gts
 import httpx
 import typer
 from rich.console import Console
 
-import gts
 from gmeow_tools import __version__
 from gmeow_tools.projections import PROFILES as _PROFILES
 

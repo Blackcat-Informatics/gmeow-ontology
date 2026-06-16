@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/free-role
+# AC: foundation lowering — OntoUML FreeRole discipline (issue #503).
+#
+# Reproduces reasoning_lint.anti_rigidity_discipline: an anti-rigid sortal
+# (logic:Role / logic:Phase) must specialize a rigid sortal so it has somewhere
+# to inherit a principle of identity. ex:Wanderer is a logic:Role with NO rigid
+# (Kind/SubKind) ancestor → logic:FreeRole. It is ALSO a non-Kind sortal tracing
+# to ZERO Kind ancestors, so it additionally trips logic:MixIden — the FULL lint
+# set, faithfully reproduced (identity_overlap fires independently of
+# anti_rigidity_discipline). No instance is typed by ex:Wanderer, so the default
+# witness-obligation policy emits no instance-level obligation.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the single
+# stereotype pun is duplicated there in the named world ex:schema; this
+# declaration is the program axiom the projections need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/free-role/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: a lone Role with no rigid parent (also asserted as a world fact in input.nq).
+ex:Wanderer a logic:Role .

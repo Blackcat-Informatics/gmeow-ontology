@@ -24,11 +24,10 @@ dependencies = [
     "pyoxigraph>=0.5.8",
     # the GTS format engine — now an external package (repo: gmeow-gts),
     # resolved from PyPI; the narrow-waist glue (gts_producer/views/db/gen)
-    # consumes this published `gts` library.
-    # TODO(publish): bump to >=0.1.2 once gmeow-gts 0.1.2 is on PyPI — the
-    # producer's zstd-rsyncable path (test_gts_producer) needs the post-0.1.1
-    # codec that ships in gmeow-gts 0.1.2.
-    "gmeow-gts>=0.1.1,<0.2",
+    # consumes this published `gts` library.  0.1.2 ships the post-0.1.1 codec
+    # (producer zstd-rsyncable path) plus the gts.verify module and
+    # Signer.from_gpg_secret_key that cli/cli_dev's verify+sign commands need.
+    "gmeow-gts>=0.1.2,<0.2",
 ]
 
 [project.scripts]

@@ -1,0 +1,6 @@
+{
+  "https://example.org/foundation/free-role/schema": {
+    "quads": 9,
+    "status": "consistent"
+  }
+}

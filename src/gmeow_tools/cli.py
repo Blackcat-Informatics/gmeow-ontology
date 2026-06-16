@@ -14,12 +14,12 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import gts
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-import gts
 from gmeow_tools import __version__
 from gmeow_tools.config import GTS_GRAPH_METADATA, GTS_SNAPSHOT_FILE, NAMESPACE
 from gmeow_tools.gts_views import FoldView

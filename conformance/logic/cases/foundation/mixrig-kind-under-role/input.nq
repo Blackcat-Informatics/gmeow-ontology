@@ -1,0 +1,3 @@
+<https://example.org/foundation/mixrig-kind-under-role/HonorsStudent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SubKind> <https://example.org/foundation/mixrig-kind-under-role/schema> .
+<https://example.org/foundation/mixrig-kind-under-role/HonorsStudent> <https://blackcatinformatics.ca/logic/subClassOf> <https://example.org/foundation/mixrig-kind-under-role/Student> <https://example.org/foundation/mixrig-kind-under-role/schema> .
+<https://example.org/foundation/mixrig-kind-under-role/Student> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://example.org/foundation/mixrig-kind-under-role/schema> .

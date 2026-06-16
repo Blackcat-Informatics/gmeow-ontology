@@ -30,6 +30,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TypedDict
 
+from gts.nquads import term_token, to_nquads
+
 from gmeow_tools.config import (
     DIST_DIR,
     GTS_GRAPH_ALIGNMENTS,
@@ -41,7 +43,6 @@ from gmeow_tools.config import (
 )
 from gmeow_tools.generator import Generator, _rel, register
 from gmeow_tools.gts_views import FoldView, load_fold
-from gts.nquads import term_token, to_nquads
 
 _OWL = "http://www.w3.org/2002/07/owl#"
 _RDFS = "http://www.w3.org/2000/01/rdf-schema#"

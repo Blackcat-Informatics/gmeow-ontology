@@ -242,8 +242,9 @@ def test_llms_txt_has_no_blank_nodes(tmp_path: Path) -> None:
 
 def _view_of(graph: Graph) -> FoldView:
     """A FoldView over a handcrafted rdflib graph, via the real producer."""
-    from gmeow_tools.gts_producer import gts_from_graph
     from gts import read
+
+    from gmeow_tools.gts_producer import gts_from_graph
 
     return FoldView(read(gts_from_graph(graph)))
 

@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/relcomp-under-mediated
+# AC: foundation lowering — OntoUML RelComp discipline (issue #503).
+#
+# Reproduces reasoning_lint.relator_mediation in its logic-layer reading: a
+# concrete relator must mediate at least two DISTINCT relata (the logic layer
+# counts distinct logic:mediates relata ≥2; the gUFO functional/non-functional
+# end-weighting is a downcast concern checked in Task 6, not here).
+#   * ex:Marriage   — a concrete logic:Relator (no logic: subclass) with ONLY ONE
+#     logic:mediates relatum (ex:Spouse1) → logic:RelComp.
+#   * ex:Employment — a well-formed concrete logic:Relator with TWO DISTINCT
+#     logic:mediates relata (ex:Employer, ex:Employee) → trips nothing (negative
+#     control).
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts
+# (the Relator puns + the logic:mediates edges) are duplicated there in the named
+# world ex:schema; these declarations are the program axioms the projections need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/relcomp-under-mediated/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: an under-mediated relator and a well-formed one (also world facts in input.nq).
+ex:Marriage   a logic:Relator ;
+    logic:mediates ex:Spouse1 .
+ex:Employment a logic:Relator ;
+    logic:mediates ex:Employer, ex:Employee .

@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/cross-world-rigidity
+# AC: foundation lowering — cross-world rigidity + anti-rigidity witness policy
+#     (issue #503, Tasks 3 and 4).
+#
+# Positive cross-world rigidity is the fourth OntoUML discipline; it quantifies
+# over PAIRS of worlds and so CANNOT be an in-world Datalog rule (the chase is
+# world-local). It is evaluated by bounded closure over the finite materialized
+# world set and folded back in as logic:rigidityViolation. The lint cannot express
+# this — it is a Task-3-only capability.
+#
+# Worlds:
+#   * ex:worldA — the schema world (the rigid Kind ex:Person, the anti-rigid Role
+#     ex:Employee) plus instance typings: ex:alice and ex:bob are rigid Persons,
+#     ex:carol is an Employee.
+#   * ex:worldB — ex:alice still EXISTS (subject of ex:livesIn ex:Berlin) but is
+#     NOT typed ex:Person; ex:bob IS re-typed ex:Person.
+#
+# Expected discipline facts:
+#   * ex:alice logic:rigidityViolation ex:Person  IN ex:worldB — rigid type fails
+#     to persist into a world the instance still inhabits (the headline Task-3 fact).
+#   * ex:bob   — typed ex:Person in BOTH worlds → NO rigidity violation (the clean
+#     rigid control).
+#   * ex:carol logic:dischargeObligation ex:Employee IN ex:worldA — the anti-rigid
+#     Role instantiation raises a standing witness obligation under the profile's
+#     "witness-obligation" policy (the Task-4 demonstration).
+# Plus the type-level lint over the schema: the anti-rigid Role ex:Employee trips
+# logic:FreeRole + logic:MixIden (a Role with no rigid ancestor / zero Kind
+# ancestors) — the FULL lint set, faithfully reproduced.
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema puns and
+# all instance typings are asserted there across ex:worldA / ex:worldB; these
+# declarations are the program axioms the projections need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/cross-world-rigidity/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: a rigid Kind and an anti-rigid Role (also asserted as world facts in input.nq).
+ex:Person   a logic:Kind .
+ex:Employee a logic:Role .

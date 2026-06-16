@@ -267,6 +267,20 @@ produce exactly the verdicts `reasoning_lint.py` yields today — the conformanc
 specification of the lowering — and they additionally decide cases (cross-world rigidity, type-level
 identity) the lints cannot express.
 
+**Implemented in v3 (#503).** The three type-level disciplines are lowered in
+`src/gmeow_tools/logic_foundation.py`: `foundation_rules()` emits `logic:StratifiedNAFProfile`-certified
+IR rules that derive `logic:violation` facts for `logic:StereotypeCardinality`, `logic:MixIden`,
+`logic:FreeRole`, `logic:MixRig`, and `logic:RelComp`, with absence expressed via NAF
+(`LogicAxiom.negated`) and "two distinct values" expressed via `LogicRule.distinct_pairs` (the
+`logic:distinctBody` inequality guard, Task 1). Cross-world rigidity is decided by
+`cross_world_rigidity_violations()` — a bounded closure over the finite materialized world set —
+emitting `logic:rigidityViolation` quads in the failing world. The in-world rules run on both the
+Python oracle and the Nemo engine identically (covered by the oracle-engine parity gate); the
+cross-world closure is a Python oracle-level pass over the materialized world set. A Rust-native
+emitter in `crates/logic/src/foundation.rs` is deferred; its only payoff is a no-Python wasm path
+not required by any #503 acceptance criterion. Equivalence of the lint map and the lowered verdict
+map is proven by `tests/test_logic_foundation_lint_equivalence.py` (full-map equality).
+
 ### Anti-rigidity needs a witness policy
 
 The anti-rigidity lowering says an anti-rigid `Role`/`Phase` requires a world of existence where the
@@ -286,6 +300,15 @@ no counter-world has been materialized. A policy must be chosen:
 > [Worlds](#worlds-modality-and-counterfactuals)). Strata A and B treat the obligation as satisfiable
 > on demand; a slice may opt into the stricter witness-required or the lighter schema-only policy and
 > declare which in its profile.
+
+**Implemented in v3 (#503).** The three policy values are enforced by `anti_rigidity_obligations()`
+in `src/gmeow_tools/logic_foundation.py`. A case declares the policy in `profile.json` as
+`"anti_rigidity_policy"` with one of the three closed values: `"witness-obligation"` (default, emits
+`logic:dischargeObligation`), `"schema-only"` (emits nothing at the instance level), or
+`"witness-required"` (emits `logic:witnessRequiredViolation` absent a materialized counter-world). The
+policy governs **only** the obligation/witness facet; `logic:violation` (Task 2) and
+`logic:rigidityViolation` (Task 3) are computed by separate passes and are identical across all three
+policy values (non-suppression invariant). Witness-world construction remains deferred to #505.
 
 ## Worlds, Modality, and Counterfactuals
 
