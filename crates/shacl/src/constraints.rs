@@ -34,6 +34,7 @@ pub fn validate_shape(store: &Store, focus: &Term, shape: &Shape) -> Vec<Validat
     for constraint in &shape.constraints {
         results.extend(eval_constraint(
             store,
+            focus,
             node_value_nodes,
             constraint,
             None,
@@ -82,6 +83,7 @@ fn eval_property_shape(
     for constraint in &ps.constraints {
         let mut rs = eval_constraint(
             store,
+            focus,
             &value_nodes,
             constraint,
             Some(&ps.path),
@@ -101,9 +103,16 @@ fn eval_property_shape(
 
 /// Evaluate a single constraint against the provided value node set.
 ///
+/// `focus_node` is the SHACL focus node (subject) — always the real focus, never
+/// a path value.  For node-level constraints `focus_node == value_nodes[0]`; for
+/// property shapes `focus_node` is the subject while `value_nodes` are the path
+/// objects.  `sh:sparql`'s `$this` must bind to `focus_node` in both contexts
+/// (SHACL-AF spec: `$this` = focus node, not value node).
+///
 /// `path` is `None` for node-level constraints, `Some` for property shapes.
 fn eval_constraint(
     store: &Store,
+    focus_node: &Term,
     value_nodes: &[Term],
     constraint: &Constraint,
     path: Option<&Path>,
@@ -543,7 +552,10 @@ fn eval_constraint(
             results
         }
 
-        // ── Sparql (node-level SHACL-AF, focus = first value node or source shape)
+        // ── Sparql (SHACL-AF — $this always binds to the focus node, never to a
+        //           path value node.  SHACL-AF spec §3.4: for sh:sparql on a
+        //           property shape, $this is still the focus subject; the path
+        //           objects are NOT auto-bound.)
         //
         // The constraint blank node may carry its own sh:message / sh:severity;
         // those override the shape-level defaults at eval time.
@@ -553,15 +565,11 @@ fn eval_constraint(
             message: cmsg,
             severity: csev,
         } => {
-            let focus = value_nodes
-                .first()
-                .cloned()
-                .unwrap_or_else(|| source_shape.clone());
             let sev = csev.unwrap_or(severity);
             let msg = cmsg.clone().or_else(|| message.clone());
             crate::sparql::eval_sparql_constraint(
                 store,
-                &focus,
+                focus_node,
                 select,
                 NamedNode::from(sh::SPARQL_CONSTRAINT_COMPONENT),
                 &source_shape,
