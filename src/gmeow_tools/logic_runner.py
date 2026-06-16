@@ -61,7 +61,7 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
@@ -69,7 +69,10 @@ from rdflib.compare import isomorphic
 
 from gmeow_tools.logic_certify import certify_program
 from gmeow_tools.logic_explain import Explanation, explain
-from gmeow_tools.logic_foundation import foundation_rules
+from gmeow_tools.logic_foundation import (
+    cross_world_rigidity_violations,
+    foundation_rules,
+)
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
 from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
 from gmeow_tools.logic_materialize import (
@@ -654,6 +657,32 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         raise RunnerError(
             f"Case {case_dir.name}: materialize_program failed: {exc}"
         ) from exc
+
+    # Cross-world rigidity closure (issue #503, Task 3).  The first three OntoUML
+    # disciplines are in-world Datalog (the foundation rules above); positive
+    # rigidity quantifies over PAIRS of worlds and so CANNOT be an in-world rule —
+    # the chase is world-local.  It is therefore evaluated as a bounded closure over
+    # the FINITE materialized world set (LOGIC-SEMANTICS.md §Operational semantics)
+    # by the pure :func:`cross_world_rigidity_violations`, whose ``logic:rigidity
+    # Violation`` quads are folded back into the materialized output so they appear
+    # per world in ``materialized.nq``.
+    #
+    # Corpus-safety (issue #503): gated identically to the foundation rules — runs
+    # ONLY under the ``foundation_lowering`` opt-in AND only when ≥2 worlds
+    # materialized.  A single-world or non-opt-in case adds zero quads, so every
+    # existing golden stays byte-identical.
+    if enable_naf and len(mat_result.worlds) >= 2:
+        rigidity_quads = cross_world_rigidity_violations(mat_result)
+        if rigidity_quads:
+            combined = sorted(
+                (*mat_result.quads, *rigidity_quads),
+                key=lambda q: (q.graph, q.subject, q.predicate, q.obj),
+            )
+            mat_result = replace(
+                mat_result,
+                quads=tuple(combined),
+                derived_quad_count=mat_result.derived_quad_count + len(rigidity_quads),
+            )
 
     # N-Quads serialization
     nquads_str = _materialize_to_nquads(mat_result)

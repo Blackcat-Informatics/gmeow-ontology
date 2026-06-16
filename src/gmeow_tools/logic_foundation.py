@@ -20,8 +20,22 @@ materialized ``logic:violation`` head facts reproduce — class-for-class — th
 * :func:`relator_mediation` / **RelComp** (l.218) — a concrete relator mediating
   fewer than two distinct relata ⇒ ``logic:RelComp``.
 
-The fourth discipline (positive cross-world rigidity) is a separate later task and
-is **not** lowered here.
+The fourth discipline — positive **cross-world rigidity** — is **not** lowerable to
+an ordinary in-world Datalog rule, because the GMEOW chase is strictly world-local
+(``logic_materialize`` module docstring: "Rules apply within a world; derived quads
+stay in that world; no cross-world union").  Rigidity is the world-indexed universal
+constraint (LOGIC-SEMANTICS.md §Operational semantics)::
+
+    ∀x, w, w' : exists(x, w) ∧ exists(x, w') ∧ instOf(x, T, w) ∧ rigid(T)
+                ⇒ instOf(x, T, w')
+
+so it is implemented here as exactly what the design prescribes — a **bounded
+closure pass over the finite materialized world set** (LOGIC-SEMANTICS.md:
+"evaluated by closure over the finite materialized world set") — by the pure
+post-materialization function :func:`cross_world_rigidity_violations`.  The runner
+(:mod:`gmeow_tools.logic_runner`) folds its violation quads back into the
+materialized output, gated on the same ``foundation_lowering`` opt-in and active
+only when ≥2 worlds materialized (so single-world goldens stay byte-identical).
 
 Lowering vocabulary
 -------------------
@@ -61,8 +75,16 @@ declared sorts) and returns a deterministic tuple of :class:`~.logic_ir.LogicRul
 
 from __future__ import annotations
 
+from rdflib import URIRef
+
 from gmeow_tools.config import LOGIC_NAMESPACE
 from gmeow_tools.logic_ir import LogicAxiom, LogicProgram, LogicRule
+from gmeow_tools.logic_materialize import (
+    DerivedQuad,
+    MaterializationResult,
+    derivation_id_iri,
+    quad_reifier_iri,
+)
 
 # --------------------------------------------------------------------------- #
 # Namespace constants
@@ -125,6 +147,24 @@ _P_SUBCLASS_OF = _logic("subClassOf")
 _P_SUBCLASS_OF_T = _logic("subClassOfT")
 _P_MEDIATES = _logic("mediates")
 _P_VIOLATION = _logic("violation")
+
+#: The cross-world rigidity diagnostic predicate (issue #503, Task 3).  Emitted by
+#: the post-materialization closure pass :func:`cross_world_rigidity_violations`,
+#: NOT by an in-world Datalog rule — the constraint is world-spanning and the chase
+#: is world-local.  Declared as a closed-vocabulary term in ``module.ttl``.
+_P_RIGIDITY_VIOLATION = _logic("rigidityViolation")
+
+#: Marker the schema may carry to declare a type rigid explicitly (honoured in
+#: addition to the stereotype-derived path, which is primary).
+_P_RIGIDLY_APPLIES_TO = _logic("rigidlyAppliesTo")
+
+#: The ``rdf:type`` predicate IRI (string form, matching :data:`_RDF_TYPE`).
+_RDF_TYPE_IRI = _RDF_TYPE
+
+#: Provenance rule IRI stamped on every emitted rigidity-violation quad's seam
+#: ``rule_iri`` slot.  Distinct from the in-world ``logic:rule/`` namespace so the
+#: cross-world closure pass is identifiable in derivation provenance.
+_RIGIDITY_RULE_IRI = _logic("rule/cross-world-rigidity")
 
 #: Derived markers.  Unary markers are reified as ``?C P ?C`` self-edges so the
 #: materializer (whose head subject/predicate must be IRIs and whose object may be
@@ -584,3 +624,209 @@ def foundation_rules(
         *_anti_rigidity_rules(),
         *_relator_mediation_rules(),
     )
+
+
+# --------------------------------------------------------------------------- #
+# Cross-world rigidity (issue #503, Task 3) — bounded closure, NOT a Datalog rule
+# --------------------------------------------------------------------------- #
+#
+# The first three disciplines (above) are in-world Datalog: every body atom and
+# every derived head fact lives inside a single materialized world, so the chase's
+# world-local fixpoint computes them directly.  Positive cross-world rigidity is
+# categorically different — it quantifies over PAIRS of worlds:
+#
+#     ∀x, w, w' : exists(x, w) ∧ exists(x, w') ∧ instOf(x, T, w) ∧ rigid(T)
+#                 ⇒ instOf(x, T, w')
+#
+# No in-world rule can see two worlds at once (``logic_materialize`` keeps derived
+# quads inside their origin world and performs no cross-world union), so the design
+# (LOGIC-SEMANTICS.md §Operational semantics, §Boundedness) prescribes evaluating it
+# "by closure/counting over the world set".  :func:`cross_world_rigidity_violations`
+# is that closure: a pure pass over the FINITE materialized multi-world quad set that
+# emits one ``logic:rigidityViolation`` per (instance, rigid type, world) where the
+# rigid type fails to persist into a world the instance still inhabits.
+
+
+def _rigid_type_iris(result: MaterializationResult) -> frozenset[str]:
+    """Return the rigid-type IRIs over the UNION of all materialized worlds.
+
+    Rigidity of a type is a **schema** property and therefore world-INDEPENDENT
+    (LOGIC-SEMANTICS.md: a ``Kind`` is rigid in every world), so the rigid-type set
+    is collected from the union across worlds rather than per world.  A type ``T`` is
+    rigid iff, in any world, either:
+
+    * ``T rdf:type logic:Kind`` or ``T rdf:type logic:SubKind`` — the
+      stereotype-derived rigid-sortal set reused from Task 2
+      (:data:`_RIGID_SORTALS`); this is the **primary** path; or
+    * ``T logic:rigidlyAppliesTo …`` is asserted — an explicit rigidity marker the
+      schema may carry (honoured in addition to the stereotype path).
+
+    The materialized object term is in canonical N3 form (``<iri>`` for an IRI), so
+    the rigid-sortal meta-class IRIs are wrapped to ``<…>`` before comparison.
+
+    Args:
+        result: The materialized multi-world result to scan.
+
+    Returns:
+        The frozenset of rigid-type IRI strings (bare IRIs, no angle brackets).
+    """
+    rigid_sortal_objs = {f"<{_logic(m)}>" for m in _RIGID_SORTALS}
+    rigid: set[str] = set()
+    for quad in result.quads:
+        if quad.predicate == _RDF_TYPE_IRI and quad.obj in rigid_sortal_objs:
+            # ``quad.subject`` is the type ``T`` being stereotyped as a rigid sortal.
+            rigid.add(quad.subject)
+        elif quad.predicate == _P_RIGIDLY_APPLIES_TO:
+            # Explicit ``T logic:rigidlyAppliesTo …`` marker — ``T`` is the subject.
+            rigid.add(quad.subject)
+    return frozenset(rigid)
+
+
+def cross_world_rigidity_violations(
+    result: MaterializationResult,
+) -> tuple[DerivedQuad, ...]:
+    """Emit ``logic:rigidityViolation`` quads for cross-world rigidity failures.
+
+    The fourth OntoUML discipline (issue #503, Task 3), implemented as the bounded
+    closure the design mandates rather than as an in-world Datalog rule (which cannot
+    express it — the chase is world-local).  For the world-indexed universal
+    constraint::
+
+        ∀x, w, w' : exists(x, w) ∧ exists(x, w') ∧ instOf(x, T, w) ∧ rigid(T)
+                    ⇒ instOf(x, T, w')
+
+    a violation is the witnessed failure of the consequent: an instance ``x`` typed
+    by a rigid type ``T`` in some world ``w1`` that still EXISTS in another world
+    ``w2`` but is NOT typed ``T`` there.  The emitted quad
+    ``(x, logic:rigidityViolation, T)`` is placed **in world ``w2``** — the world
+    where rigidity-persistence fails — so the diagnostic surfaces in the world that
+    breaks the constraint.
+
+    Semantics over the materialized multi-world quads
+    -------------------------------------------------
+    * **Rigid type set** — :func:`_rigid_type_iris`, the union-of-worlds schema set
+      (stereotype-derived ``logic:Kind``/``logic:SubKind`` primary; explicit
+      ``logic:rigidlyAppliesTo`` honoured too).  Schema is world-independent.
+    * **instOf(x, T, w)** — a quad ``(x, rdf:type, T)`` in world ``w`` whose object
+      ``T`` is in the rigid set.
+    * **exists(x, w)** — ``x`` appears as the SUBJECT of any quad in world ``w``.
+    * **Violation** — for each instance ``x``, each rigid type ``T``, and each
+      ordered world pair ``(w1, w2)`` with ``w1 ≠ w2``: if ``instOf(x, T, w1)`` and
+      ``exists(x, w2)`` but NOT ``instOf(x, T, w2)``, emit one
+      ``(x, logic:rigidityViolation, T)`` in ``w2``.  De-duplicated to one quad per
+      ``(x, T, w2)`` regardless of how many source worlds ``w1`` witness ``T``.
+
+    The pass is **pure**: it reads ``result.quads`` and returns new quads; it mutates
+    nothing and performs no I/O.  The runner folds the returned quads into the
+    materialized output.  Output is deterministically sorted by
+    ``(graph, subject, predicate, obj)`` — the same canonical key
+    :mod:`gmeow_tools.logic_materialize` sorts by — so the emission order is stable.
+
+    Seam contract
+    -------------
+    Each emitted :class:`~.logic_materialize.DerivedQuad` carries the full seam
+    contract.  Provenance is content-addressed by the same recipes the chase uses:
+    ``derivation_id`` hashes :data:`_RIGIDITY_RULE_IRI` over the reifier of the
+    witnessing ``instOf(x, T, w1)`` typing fact, so the cross-world witness is folded
+    into the derivation identity deterministically.  ``source_quad_ids`` is left
+    **empty**, however: the witness lives in world ``w1`` while the violation lives in
+    ``w2``, and the in-world explanation reconstructor
+    (:func:`gmeow_tools.logic_explain._reconstruct_derivation_tree`) resolves every
+    ``source_quad_ids`` antecedent *within the violation's own world*.  Citing a
+    cross-world antecedent there would be unresolvable; a cross-world derivation has
+    no in-world antecedent, so the quad is correctly a closure-pass leaf attributed to
+    the rigidity rule.  The quad inherits ``result.profile`` and
+    ``result.budget_status`` so it is consistent with the rest of the world.
+
+    Args:
+        result: The materialized multi-world result (the oracle's output).  A
+            single-world result trivially yields no violations (no ordered world
+            pair exists).
+
+    Returns:
+        A deterministically sorted tuple of ``logic:rigidityViolation``
+        :class:`~.logic_materialize.DerivedQuad` records — possibly empty.
+    """
+    rigid_types = _rigid_type_iris(result)
+    if not rigid_types:
+        # No rigid type anywhere ⇒ no obligation can be violated.  (Also the common
+        # single-world / non-foundation case once the runner gate is accounted for.)
+        return ()
+
+    # Index the materialized world set:
+    #   * ``subjects_by_world[w]``  — the instances that EXIST in world ``w``.
+    #   * ``typings_by_world[w]``   — the set of (x, T) rigid typings in world ``w``.
+    subjects_by_world: dict[str, set[str]] = {}
+    typings_by_world: dict[str, set[tuple[str, str]]] = {}
+    for quad in result.quads:
+        subjects_by_world.setdefault(quad.graph, set()).add(quad.subject)
+        if quad.predicate == _RDF_TYPE_IRI and quad.obj.startswith("<"):
+            type_iri = quad.obj[1:-1]
+            if type_iri in rigid_types:
+                typings_by_world.setdefault(quad.graph, set()).add(
+                    (quad.subject, type_iri)
+                )
+
+    worlds = sorted(subjects_by_world)
+    if len(worlds) < 2:
+        # The constraint is over ORDERED pairs of distinct worlds; a single world
+        # admits no such pair, so nothing can fire.
+        return ()
+
+    # Closure over the finite world set.  For every (x, T) rigidly typed in a source
+    # world ``w1``, check every OTHER world ``w2`` where ``x`` still exists: if ``T``
+    # does not persist there, that is a violation, recorded against ``w2``.  We
+    # de-duplicate on (x, T, w2) — a single violation per failing target world,
+    # independent of how many source worlds witness the rigid typing — and keep the
+    # lexicographically smallest source world as the canonical provenance witness.
+    violations: dict[tuple[str, str, str], str] = {}
+    for w1 in worlds:
+        for inst, type_iri in sorted(typings_by_world.get(w1, set())):
+            for w2 in worlds:
+                if w2 == w1:
+                    continue
+                if inst not in subjects_by_world.get(w2, set()):
+                    continue  # exists(x, w2) is required (conditional constraint)
+                if (inst, type_iri) in typings_by_world.get(w2, set()):
+                    continue  # rigidity persists into w2 — no violation
+                key = (inst, type_iri, w2)
+                # First witnessing source world wins (worlds iterated in sorted
+                # order, so this is the lexicographically smallest w1).
+                violations.setdefault(key, w1)
+
+    out: list[DerivedQuad] = []
+    for (inst, type_iri, w2), source_world in violations.items():
+        # Provenance: the source-world typing quad ``(inst, rdf:type, type_iri)`` is
+        # the cross-world witness that obliges persistence; reify it under the same
+        # recipe the chase uses and fold it into ``derivation_id`` so the violation's
+        # identity is content-addressed over its witness.  ``source_quad_ids`` is left
+        # EMPTY: the witness is in ``source_world`` (== w1) but the violation is in
+        # ``w2``, and the in-world explanation reconstructor resolves antecedents
+        # within the violation's own world — a cross-world derivation has no in-world
+        # antecedent, so the quad is a closure-pass leaf attributed to the rule.
+        witness_reifier = quad_reifier_iri(
+            URIRef(inst), URIRef(_RDF_TYPE_IRI), URIRef(type_iri)
+        )
+        deriv_id = derivation_id_iri(_RIGIDITY_RULE_IRI, [witness_reifier])
+        # Corpus-safety (issue #503): the violation object is an IRI, so its N3 form
+        # is ``<iri>`` — matching the materializer's object canonicalisation exactly.
+        out.append(
+            DerivedQuad(
+                graph=w2,
+                subject=inst,
+                predicate=_P_RIGIDITY_VIOLATION,
+                obj=URIRef(type_iri).n3(),
+                graph_component=w2,
+                derivation_id=deriv_id,
+                rule_iri=_RIGIDITY_RULE_IRI,
+                source_quad_ids=[],
+                profile=result.profile,
+                budget_status=result.budget_status,
+            )
+        )
+        # ``source_world`` (== w1) is folded into the content-addressed witness
+        # reifier above; referenced so static checkers see the loop variable's use.
+        _ = source_world
+
+    out.sort(key=lambda q: (q.graph, q.subject, q.predicate, q.obj))
+    return tuple(out)

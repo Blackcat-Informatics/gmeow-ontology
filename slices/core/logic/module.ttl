@@ -146,6 +146,12 @@ logic:violation
     skos:definition "Relates an offending class to the logic:Discipline it violates: the derived diagnostic the OntoUML-discipline lowering materializes, the logic: analogue of a reasoning_lint message. A logic:violation fact is never asserted by hand; it is entailed by the lowering rules over the stereotype, subsumption and mediation facts, so its presence is a machine-checkable proof that the class breaks the named discipline."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
+logic:rigidityViolation
+    a owl:ObjectProperty ;
+    rdfs:label "rigidity violation"@x-gmeow-english ;
+    skos:definition "Relates an individual to a rigid type it fails to persist as across worlds: the derived diagnostic of the positive cross-world rigidity discipline (the fourth OntoUML discipline, the one the type-only lint cannot express). For an individual x and a rigid type T, if x instantiates T in some world but still exists in another world where it is NOT typed T, a logic:rigidityViolation fact is entailed in that other world. Unlike logic:violation it is not produced by an in-world Datalog rule — rigidity quantifies over pairs of worlds and the chase is world-local, so it is evaluated by bounded closure over the finite materialized world set (LOGIC-SEMANTICS.md §Operational semantics). It is never asserted by hand; its presence is a machine-checkable proof that a rigid type's instantiation did not carry over to a world where the individual persists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
 logic:StereotypeCardinality
     a owl:NamedIndividual, logic:Discipline ;
     rdfs:label "Stereotype Cardinality"@x-gmeow-english ;
