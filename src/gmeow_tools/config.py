@@ -67,6 +67,11 @@ def version_iri(version: str) -> str:
 REGISTRANT_PLACE = "Spruce Grove, AB, Canada"
 #: Registrant institutional acronym → Crossref ``<institution_acronym>``.
 REGISTRANT_ACRONYM = "BII"
+#: The dataset's registry slug — the LOD Cloud identifier
+#: (``lod-cloud.net/dataset/GMEOW``) and the Crossref deposit's
+#: ``<item_number item_number_type="site">`` value. One source so the two stay
+#: consistent.
+DATASET_SLUG = "GMEOW"
 #: The dataset's content formats → Crossref ``<format>`` (the published surface).
 DEPOSIT_FORMAT = "Turtle; RDF/XML; N-Triples; JSON-LD; OWL; SHACL; GTS"
 

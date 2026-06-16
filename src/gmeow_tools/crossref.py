@@ -49,6 +49,7 @@ from xml.etree import ElementTree as ET
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
+    DATASET_SLUG,
     DEPOSIT_FORMAT,
     DIST_DIR,
     ONTOLOGY_FILE,
@@ -308,7 +309,7 @@ def _add_dataset(
     _add_date(dataset, "update_date", description.release_date)
     _add_publisher_item(
         dataset,
-        item_numbers=[("doi-suffix", _doi_suffix(doi)), ("site", "gmeow")],
+        item_numbers=[("doi-suffix", _doi_suffix(doi)), ("site", DATASET_SLUG)],
         identifiers=[("other", resource)],
     )
     _child(dataset, "description", dataset_description)
@@ -398,7 +399,9 @@ def build_deposit_xml(
     _add_institution(
         db_metadata, description.registrant, REGISTRANT_ACRONYM, REGISTRANT_PLACE
     )
-    _add_publisher_item(db_metadata, item_numbers=[("site", "gmeow")], identifiers=[])
+    _add_publisher_item(
+        db_metadata, item_numbers=[("site", DATASET_SLUG)], identifiers=[]
+    )
     _add_version_info(
         db_metadata,
         description.version,
