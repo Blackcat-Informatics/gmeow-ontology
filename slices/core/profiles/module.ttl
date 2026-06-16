@@ -22,6 +22,10 @@ gmeow:Profile
     rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
     rdfs:label "Profile"@x-gmeow-english ;
     skos:definition "A closed descriptor schema for an open-but-structured facet. A Profile self-describes the properties that constitute the facet and the open value vocabularies from which their values are drawn, enabling extensibility-by-construction."@x-gmeow-english ;
+    skos:example "ex:profileReferenceFrame a gmeow:Profile ; gmeow:profileAppliesTo gmeow:ReferenceFrame ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the closed descriptor schema for an open-but-structured facet — the set of descriptor properties and the open value vocabularies a frame, value, or named slice profile is built from."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an ordinary instance of a facet (a Profile describes the schema, not a value of it) and avoid subclassing the facet's open vocabularies into the descriptor — list them with gmeow:profileOpenValue instead."@x-gmeow-english ;
+    gmeow:howToUse "Mint the Profile as an individual, name its target class with gmeow:profileAppliesTo, enumerate descriptor properties with gmeow:profileDescriptor, and the open value classes with gmeow:profileOpenValue; instances reference it via gmeow:hasProfile."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
 
 gmeow:hasProfile
@@ -29,6 +33,10 @@ gmeow:hasProfile
     rdfs:range gmeow:Profile ;
     rdfs:label "has profile"@x-gmeow-english ;
     skos:definition "Links an entity, value or frame to the Profile that governs its structure."@x-gmeow-english ;
+    skos:example "ex:wgs84 gmeow:hasProfile gmeow:profileReferenceFrame ."@x-gmeow-english ;
+    gmeow:useWhen "Use to point an entity, value, or frame at the Profile whose closed descriptor schema governs its structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for naming the class a Profile targets (that is gmeow:profileAppliesTo, asserted on the Profile) and for membership in a named slice profile (that is gmeow:sliceProfile on the slice manifest)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:hasProfile from the instance to a gmeow:Profile individual; tooling then reads the Profile's descriptors to validate which facet properties the instance may carry."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
 
 gmeow:profileAppliesTo
@@ -36,6 +44,10 @@ gmeow:profileAppliesTo
     rdfs:domain gmeow:Profile ;
     rdfs:label "profile applies to"@x-gmeow-english ;
     skos:definition "The class of entities to which this Profile applies."@x-gmeow-english ;
+    skos:example "gmeow:profileReferenceFrame gmeow:profileAppliesTo gmeow:ReferenceFrame ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a Profile to name the class whose instances its descriptor schema governs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on the instances themselves (it is a Profile-level statement) and avoid using it for the per-instance link (that is gmeow:hasProfile)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:profileAppliesTo from the Profile to the target class; an instance of that class then claims conformance with gmeow:hasProfile."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
 
 gmeow:profileDescriptor
@@ -50,6 +62,10 @@ gmeow:profileOpenValue
     rdfs:domain gmeow:Profile ;
     rdfs:label "profile open value"@x-gmeow-english ;
     skos:definition "An open value-vocabulary class (instances are individuals, never subclasses) used by this Profile."@x-gmeow-english ;
+    skos:example "gmeow:profileReferenceFrame gmeow:profileOpenValue gmeow:FrameRealm ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a Profile to name an open value-vocabulary class (instances are individuals) whose members supply values for one of the Profile's descriptor properties."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a descriptor property itself (that is gmeow:profileDescriptor) and avoid pointing it at a class meant to be extended by subclassing rather than by minting individuals."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:profileOpenValue from the Profile to each open value class; extension then happens by adding individuals to those classes, never by altering the closed descriptor schema."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
 
 # =========================================================================== #

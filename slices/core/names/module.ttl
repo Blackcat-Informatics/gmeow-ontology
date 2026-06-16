@@ -33,6 +33,10 @@ gmeow:Appellation
     rdfs:subClassOf gmeow:InformationObject, ontolex:LexicalEntry ;
     rdfs:label "Appellation"@x-gmeow-english ;
     skos:definition "A name as an information object borne by an entity — a person's name, a filename, a place name, an organization name. It carries the surface form (gmeow:fullName) and the structured parts (gmeow:hasNamePart); who uses it, toward whom, in what register and over what period is carried by gmeow:NameUsage. The universal superclass reconciling the scattered naming terms. Multiple appellations on one entity are CO-EQUAL — none is canonical or 'primary'."@x-gmeow-english ;
+    skos:example "ex:gennyAunt a gmeow:Appellation ; gmeow:fullName \"Aunt Genny\" ; gmeow:hasNamePart ex:gennyGiven ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the universal name-object umbrella when bearing a name on any entity and a more specific kind (PersonName, PlaceName, Filename) does not apply, or when modelling a name's surface form and structured parts independently of who uses it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a name-bearing fact's CONTEXT here (audience, register, period live on gmeow:NameUsage) and avoid bare gmeow:Appellation when a specific subkind fits; never treat one of an entity's many appellations as canonical or primary."@x-gmeow-english ;
+    gmeow:howToUse "Mint one Appellation per co-equal name, give it gmeow:fullName plus gmeow:nameLanguage, decompose into typed gmeow:NamePart, and bear it with gmeow:hasAppellation (or a subkind property); promote to a gmeow:NameUsage only when audience, register, or evidence must be first-class."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:PersonName
@@ -40,6 +44,14 @@ gmeow:PersonName
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Person Name"@x-gmeow-english ;
     skos:definition "A structured, typed name borne by a person — birth name, married name, chosen name, alias, religious name — with ordered, typed name parts, an optional honorific, a script/language, and a purpose (gmeow:namePurpose). A person bears many co-equal PersonNames (across life stages and across languages/scripts); their validity period is carried with gmeow:validFrom/validUntil on the bearing statement or by a gmeow:NameUsage."@x-gmeow-english ;
+    skos:example "ex:patrickHan a gmeow:PersonName ; gmeow:fullName \"欧德理\"@zh ; gmeow:nameLanguage ex:mandarin ; gmeow:namePurpose gmeow:namePurposeLegal ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a structured name borne by a person — a birth, married, chosen, religious, or professional name with typed parts, language/script, and purpose; mint one per co-equal name across life stages and across languages or scripts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for non-person bearers (use gmeow:PlaceName, gmeow:OrganizationName, gmeow:Filename), and avoid multi-tagging one PersonName with several languages — a Latin-script and a Han-script name are SEPARATE co-equal PersonNames, never one alternate-of-the-other."@x-gmeow-english ;
+    gmeow:howToUse "Mint one PersonName per co-equal name, set gmeow:fullName and gmeow:nameLanguage, decompose into gmeow:NamePart with gmeow:namePartType, tag gmeow:namePurpose, and bear it with gmeow:hasName; mark a superseded one gmeow:displayable false rather than deleting it."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:Filename
@@ -47,6 +59,10 @@ gmeow:Filename
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Filename"@x-gmeow-english ;
     skos:definition "An appellation borne by a digital file — a stem and an extension. The extension CLAIMS a content type (gmeow:claimedMediaType) which may disagree with the type detected from the bytes (gmeow:detectedMediaType); the disagreement is recorded as coexisting claims with confidence, never reasoned into a contradiction."@x-gmeow-english ;
+    skos:example "ex:report a gmeow:Filename ; gmeow:fullName \"report.pdf\" ; gmeow:claimedMediaType \"application/pdf\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the name borne by a digital file — a stem plus an extension — especially when the extension's claimed media type must be recorded alongside the type detected from the bytes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the file's content or its real-world subject (model those as the borne InformationObject), and avoid resolving a claimed-vs-detected media-type mismatch into a contradiction — record both as coexisting claims."@x-gmeow-english ;
+    gmeow:howToUse "Mint a Filename, give it gmeow:fullName, decompose into gmeow:namePartStem and gmeow:namePartExtension, and carry gmeow:claimedMediaType (from the extension) and gmeow:detectedMediaType (from the bytes) as non-functional, possibly disagreeing claims."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:PlaceName
@@ -54,6 +70,10 @@ gmeow:PlaceName
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Place Name"@x-gmeow-english ;
     skos:definition "An appellation (toponym) borne by a geographic place via gmeow:hasPlaceName — possibly endonym/exonym (gmeow:namePurpose), multilingual, or historical (held over a period via a gmeow:NameUsage / inferred gmeow:PlaceNaming). The structured, first-class replacement for the retired flat gmeow:alternateName literal, used for gazetteer matching and co-equal multilingual/historical naming."@x-gmeow-english ;
+    skos:example "ex:istanbulName a gmeow:PlaceName ; gmeow:fullName \"İstanbul\"@tr ; gmeow:namePurpose gmeow:namePurposeEndonym ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a structured toponym borne by a geographic place — an endonym, exonym, multilingual, or historical name — when gazetteer matching or co-equal place naming is needed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the retired flat gmeow:alternateName literal and avoid ranking endonym above exonym — competing and historical place names are co-equal PlaceNamings; superseded ones set gmeow:displayable false, never deletion."@x-gmeow-english ;
+    gmeow:howToUse "Mint one PlaceName per co-equal toponym, set gmeow:fullName and gmeow:nameLanguage, tag endonym/exonym with gmeow:namePurpose, and bear it with gmeow:hasPlaceName; carry the toponymic authority and period by promoting to a gmeow:PlaceNaming with gmeow:usageAuthority and gmeow:usageInterval."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:OrganizationName
@@ -61,6 +81,10 @@ gmeow:OrganizationName
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Organization Name"@x-gmeow-english ;
     skos:definition "An appellation borne by an organization — a legal name, a trading / 'doing-business-as' name, or a former name."@x-gmeow-english ;
+    skos:example "ex:dbaName a gmeow:OrganizationName ; gmeow:fullName \"Acme Widgets\" ; gmeow:namePurpose gmeow:namePurposeProfessional ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a structured name borne by an organization — a legal name, a trading or doing-business-as name, a former name, or a multilingual variant."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for person or place bearers (use gmeow:PersonName, gmeow:PlaceName) and avoid privileging the legal name as primary — co-equal trading and former names coexist; superseded ones set gmeow:displayable false."@x-gmeow-english ;
+    gmeow:howToUse "Mint one OrganizationName per co-equal name, set gmeow:fullName and gmeow:nameLanguage, distinguish kinds with gmeow:namePurpose, and bear it with gmeow:hasOrganizationName."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:NamePart
@@ -68,6 +92,10 @@ gmeow:NamePart
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Name Part"@x-gmeow-english ;
     skos:definition "A reified component of a structured appellation — a given name, a surname, a patronymic, a nobiliary particle, an Arabic nisba, a filename extension. Its kind is the value gmeow:namePartType, its text is gmeow:partText, and gmeow:partOrder records its position WITHOUT implying a Western given-before-family order."@x-gmeow-english ;
+    skos:example "ex:yamadaPart a gmeow:NamePart ; gmeow:namePartType gmeow:namePartSurname ; gmeow:partText \"山田\" ; gmeow:partOrder 0 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to decompose an appellation into its typed, ordered components when parts must be matched, expanded, or rendered separately — a given name, surname, patronymic, particle, Arabic nisba, or filename extension."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using gmeow:partOrder to encode a given-before-family default (it records the culture's actual surface order, so East-Asian family-first is simply order 0 = surname) and avoid reassembling the display form from parts — gmeow:fullName is authoritative for that."@x-gmeow-english ;
+    gmeow:howToUse "Mint one NamePart per component, set gmeow:namePartType, gmeow:partText (language-/script-tagged), and gmeow:partOrder, add gmeow:partExpansion for an abbreviated initial, and attach it with gmeow:hasNamePart."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:PronounSet
@@ -75,6 +103,10 @@ gmeow:PronounSet
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Pronoun Set"@x-gmeow-english ;
     skos:definition "A set of third-person pronouns a person goes by, in the five English forms (subject, object, possessive determiner, possessive pronoun, reflexive). Sex/gender INDEPENDENT and contextual. A known set is one of the gmeow:PronounSet value individuals; any other set is expressed by filling the five form properties on a fresh PronounSet instance."@x-gmeow-english ;
+    skos:example "ex:set a gmeow:PronounSet ; gmeow:pronounSubject \"ey\" ; gmeow:pronounObject \"em\" ; gmeow:pronounReflexive \"emself\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the third-person pronouns a person goes by — reference a seeded set (gmeow:pronounSheHer, gmeow:pronounTheyThem, …) for a known paradigm, or mint a fresh instance filling the five forms for any other set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a pronoun set from, or asserting one to imply, gender identity, gender expression, sex assigned at birth, or orientation — address is not identity; and avoid leaving a custom set short of its five forms unless it is a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
+    gmeow:howToUse "Attach the set to a person with gmeow:hasPronounSet; for a custom set fill gmeow:pronounSubject, gmeow:pronounObject, gmeow:pronounPossessiveDeterminer, gmeow:pronounPossessive, and gmeow:pronounReflexive; scope a context-specific set with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
@@ -107,6 +139,10 @@ gmeow:usageNamed
     rdfs:range gmeow:Entity ;
     rdfs:label "usage named"@x-gmeow-english ;
     skos:definition "The entity that is called by the appellation in a name-usage."@x-gmeow-english ;
+    skos:example "ex:usageFamily gmeow:usageNamed ex:genny ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the named-entity player of a gmeow:NameUsage — the entity that is called by the appellation in this use (its gufo:Relator who-is-named role)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a generic bearing property (that is gmeow:hasAppellation / gmeow:hasName) and avoid attaching it to anything but a gmeow:NameUsage; it names a relator player, not a direct fact."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:usageNamed to the entity once per NameUsage (functional), pairing it with gmeow:usageAppellation; when the named entity is a gmeow:Place the usage is inferred to be a gmeow:PlaceNaming."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageAppellation
@@ -115,6 +151,10 @@ gmeow:usageAppellation
     rdfs:range gmeow:Appellation ;
     rdfs:label "usage appellation"@x-gmeow-english ;
     skos:definition "The appellation used to call the named entity in a name-usage."@x-gmeow-english ;
+    skos:example "ex:usageFamily gmeow:usageAppellation ex:gennyAunt ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the appellation player of a gmeow:NameUsage — which gmeow:Appellation is used to call the named entity in this use."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a direct bearing property (that is gmeow:hasAppellation) and avoid attaching it to anything but a gmeow:NameUsage; it names a relator player, not a borne name."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:usageAppellation to the Appellation once per NameUsage (functional), pairing it with gmeow:usageNamed; the name's language and purpose are read from the bound Appellation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageNamer
@@ -123,6 +163,10 @@ gmeow:usageNamer
     rdfs:range gmeow:Agent ;
     rdfs:label "usage namer"@x-gmeow-english ;
     skos:definition "An agent who uses the appellation for the named entity — the speaker/perspective holder. Non-functional: a usage may be shared by an audience of agents."@x-gmeow-english ;
+    skos:example "ex:usageFamily gmeow:usageNamer ex:niece ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record who actually uses the appellation — the speaker or perspective-holder behind a gmeow:NameUsage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating the namer with the audience it is used TOWARD (gmeow:usageAudience) or the authority that sanctions it (gmeow:usageAuthority); these axes are orthogonal and must not be merged."@x-gmeow-english ;
+    gmeow:howToUse "Add one or more gmeow:usageNamer agents to a NameUsage (non-functional — a shared usage has several); keep audience, authority, and namer as distinct properties."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageAudience
@@ -131,6 +175,10 @@ gmeow:usageAudience
     rdfs:range gmeow:Entity ;
     rdfs:label "usage audience"@x-gmeow-english ;
     skos:definition "The audience or scope in which the appellation is used — an Agent, a Group/Family, or a locale community. Range is gmeow:Entity to admit all of them. Non-functional. ('Aunt Genny' is used toward the family; 欧德理 toward a Sinophone audience.)"@x-gmeow-english ;
+    skos:example "ex:usageFamily gmeow:usageAudience ex:family ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record who a name is used TOWARD — the social scope of a gmeow:NameUsage, an agent, group/family, or locale community."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating audience (who the name is used toward) with gmeow:usageAuthority / gmeow:accordingTo (who ASSERTS the usage claim) — the social scope and the standpoint frame are orthogonal axes; use gmeow:usageRelationshipScope when the scope is exactly one standing relationship."@x-gmeow-english ;
+    gmeow:howToUse "Add one or more gmeow:usageAudience entities to a NameUsage (non-functional); for a single tie, prefer gmeow:usageRelationshipScope, and keep the standpoint on gmeow:usageAuthority / gmeow:accordingTo."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageRelationshipScope
@@ -139,6 +187,10 @@ gmeow:usageRelationshipScope
     rdfs:range gmeow:InterpersonalRelationship ;
     rdfs:label "usage relationship scope"@x-gmeow-english ;
     skos:definition "The interpersonal relationship that scopes a name-usage (e.g. the aunt-niece tie within which 'Aunt Genny' is used) — reuses the contacts relator. A sharper alternative to gmeow:usageAudience when the scope is exactly one standing relationship."@x-gmeow-english ;
+    skos:example "ex:usageFamily gmeow:usageRelationshipScope ex:auntNieceTie ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a name-usage's scope is exactly one standing interpersonal relationship — the aunt-niece tie within which 'Aunt Genny' is used — reusing the contacts relator rather than naming a broader audience."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a broad or open audience (use gmeow:usageAudience there) and avoid minting a fresh relationship just to scope a usage — reference the existing gmeow:InterpersonalRelationship."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:usageRelationshipScope to the relevant gmeow:InterpersonalRelationship once per NameUsage (functional); when the scope is wider than one tie, fall back to gmeow:usageAudience."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageRegister
@@ -147,6 +199,10 @@ gmeow:usageRegister
     rdfs:range gmeow:NameRegister ;
     rdfs:label "usage register"@x-gmeow-english ;
     skos:definition "The social register of a name-usage (formal, intimate, professional, casual) — a gmeow:NameRegister value individual."@x-gmeow-english ;
+    skos:example "ex:usageFamily gmeow:usageRegister gmeow:registerIntimate ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the social register of a gmeow:NameUsage — whether the name is used formally, intimately, professionally, or casually."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid carrying register on the appellation itself (register is a fact of the USE, not of the name) and avoid inventing a free-text register — reference a gmeow:NameRegister value individual."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:usageRegister once per NameUsage (functional) to a gmeow:NameRegister individual; mint one (formal, intimate, professional, casual) per (appellation, audience, register) tuple of a usage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageInterval
@@ -155,6 +211,10 @@ gmeow:usageInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "usage interval"@x-gmeow-english ;
     skos:definition "The time interval over which a name-usage held. (A relator carries its period this way — matching contacts' relationshipInterval — rather than via duringInterval.)"@x-gmeow-english ;
+    skos:example "ex:usageFamily gmeow:usageInterval ex:childhoodYears ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the period over which a gmeow:NameUsage held — a former, historical, or life-stage-scoped name use that needs an explicit interval."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid gmeow:duringInterval for a relator's own period (use this, matching contacts' relationshipInterval) and avoid deleting a lapsed usage — set gmeow:displayable false on a superseded name instead."@x-gmeow-english ;
+    gmeow:howToUse "Point gmeow:usageInterval at a gmeow:TimeInterval; for a simple bearing without a full relator, carry validity with gmeow:validFrom/validUntil on the statement instead."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageAuthority
@@ -163,6 +223,10 @@ gmeow:usageAuthority
     rdfs:range gmeow:Agent ;
     rdfs:label "usage authority"@x-gmeow-english ;
     skos:definition "The naming / toponymic authority behind a name-usage — the gmeow:Agent (a national mapping agency, a standards body, an indigenous community, or a self-asserting individual) that confers or sanctions the appellation in this use. NON-FUNCTIONAL: joint or competing authorities coexist with no privileged claimant (anti-colonial, Principle 9), each attributable and confidence-weighted. (Introduced as namingAuthority by place-naming design; named usageAuthority for usage* consistency.)"@x-gmeow-english;
+    skos:example "ex:naming gmeow:usageAuthority ex:indigenousCouncil ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the naming or toponymic authority that confers or sanctions an appellation in a usage — a mapping agency, standards body, indigenous community, or self-asserting individual that backs the claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating the authority (who asserts/sanctions the usage, a standpoint frame) with gmeow:usageAudience (who the name is used toward) and avoid collapsing competing authorities into one — joint and competing authorities coexist with no privileged claimant (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Add one or more gmeow:usageAuthority agents to a NameUsage (non-functional), attributing and confidence-weighting each; for a refuting standpoint, mint a coexisting usage carrying its own gmeow:accordingTo rather than overriding."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
@@ -184,6 +248,10 @@ gmeow:PlaceNaming
     ] ;
     rdfs:label "Place Naming"@x-gmeow-english ;
     skos:definition "A DEFINED specialization of gmeow:NameUsage whose named entity is a gmeow:Place — a time/audience/register-scoped use of a toponym. Defined, NOT asserted: any NameUsage that names a Place is inferred to be a PlaceNaming (≡ gmeow:NameUsage ⊓ ∃gmeow:usageNamed.gmeow:Place), so place-naming reuses the NameUsage relator instead of minting a parallel relator (Principle 6, greenfield/no-redundancy). The reified counterpart of CIDOC-CRM's time-spanned crm:E48 Place Name / crm:E41 Appellation. Competing and historical place names coexist as co-equal PlaceNamings with no primary; superseded ones set gmeow:displayable false (Principle 10). The toponymic authority is gmeow:usageAuthority; the name's language is gmeow:nameLanguage on the bound gmeow:PlaceName (reached via gmeow:usageAppellation)."@x-gmeow-english ;
+    skos:example "ex:naming a gmeow:NameUsage ; gmeow:usageNamed ex:istanbul ; gmeow:usageAppellation ex:constantinopleName ; gmeow:usageInterval ex:byzantineEra ."@x-gmeow-english ;
+    gmeow:useWhen "Use (by inference) for a time-, audience-, or authority-scoped use of a toponym — a competing, historical, or authority-conferred place name that needs its own period, toponymic authority, or standpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting PlaceNaming directly (it is inferred from a NameUsage whose gmeow:usageNamed is a gmeow:Place) and avoid minting a parallel place-naming relator — reuse gmeow:NameUsage (Principle 6); never rank one place-naming as primary."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:NameUsage binding gmeow:usageNamed (a Place) and gmeow:usageAppellation (a gmeow:PlaceName), add gmeow:usageAuthority for the toponymic authority and gmeow:usageInterval for the period; the reasoner infers PlaceNaming, and the name's language reads from gmeow:nameLanguage on the bound PlaceName."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
@@ -200,6 +268,10 @@ gmeow:hasAppellation
     rdfs:range gmeow:Appellation ;
     rdfs:label "has appellation"@x-gmeow-english ;
     skos:definition "Relates an entity to an appellation (name-object) it bears. The universal name-bearing property; gmeow:hasName is the person-scoped specialization. Non-functional — entities bear many co-equal names; a bearing's period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:NameUsage when audience/register/evidence must be borne."@x-gmeow-english ;
+    skos:example "ex:thing gmeow:hasAppellation ex:thingName, ex:thingNameZh ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the universal direct bearing of a co-equal name on any entity when a person/place/organization-scoped specialization does not apply, and audience, register, or evidence need not be first-class."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it where the bearer's type fits a specialization (gmeow:hasName, gmeow:hasPlaceName, gmeow:hasOrganizationName — assert that and let hasAppellation follow), and avoid using it as a display winner; promote to gmeow:NameUsage when context must be borne."@x-gmeow-english ;
+    gmeow:howToUse "Assert one hasAppellation triple per co-equal Appellation; carry validity, gmeow:displayable false, source, or confidence on the statement layer, or promote to gmeow:NameUsage when the bearing itself must be a relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasName
@@ -226,6 +298,10 @@ gmeow:hasPlaceName
     rdfs:range gmeow:PlaceName ;
     rdfs:label "has place name"@x-gmeow-english ;
     skos:definition "Relates a geographic gmeow:Place to a structured gmeow:PlaceName (toponym) it bears; the place-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons. Non-functional — a place bears many co-equal names (endonym/exonym, multilingual, historical); none is primary, and superseded ones set gmeow:displayable false. The structured, first-class replacement for the retired flat gmeow:alternateName literal."@x-gmeow-english ;
+    skos:example "ex:istanbul gmeow:hasPlaceName ex:istanbulName, ex:constantinopleName ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bear a structured toponym on a geographic place — an endonym, exonym, multilingual, or historical name; the place-scoped mirror of gmeow:hasName."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the retired flat gmeow:alternateName literal and avoid privileging one toponym as primary — names are co-equal; carry period and toponymic authority by promoting to a gmeow:PlaceNaming, and set superseded names gmeow:displayable false."@x-gmeow-english ;
+    gmeow:howToUse "Assert one hasPlaceName triple per co-equal gmeow:PlaceName; tag endonym/exonym with gmeow:namePurpose on the name, and reify to a gmeow:PlaceNaming when authority or interval must be borne."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasOrganizationName
@@ -235,6 +311,10 @@ gmeow:hasOrganizationName
     rdfs:range gmeow:OrganizationName ;
     rdfs:label "has organization name"@x-gmeow-english ;
     skos:definition "Relates an organization to a structured gmeow:OrganizationName it bears; the organization-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons and gmeow:hasPlaceName for places. Non-functional — an organization bears many co-equal names (legal, trading, former, multilingual); none is primary, and superseded ones set gmeow:displayable false."@x-gmeow-english ;
+    skos:example "ex:acme gmeow:hasOrganizationName ex:acmeLegal, ex:acmeDba ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bear a structured name on an organization — a legal, trading, former, or multilingual name; the organization-scoped mirror of gmeow:hasName and gmeow:hasPlaceName."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid privileging the legal name as primary (co-equal trading and former names coexist) and avoid a flat name literal — bear a structured gmeow:OrganizationName; set superseded names gmeow:displayable false."@x-gmeow-english ;
+    gmeow:howToUse "Assert one hasOrganizationName triple per co-equal gmeow:OrganizationName, distinguishing kinds with gmeow:namePurpose; carry validity on the statement layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasAgreementName
@@ -244,6 +324,10 @@ gmeow:hasAgreementName
     rdfs:range gmeow:AgreementName ;
     rdfs:label "has agreement name"@x-gmeow-english ;
     skos:definition "Relates an agreement to a structured gmeow:AgreementName it bears; the agreement-scoped specialization of gmeow:hasAppellation. Non-functional — an agreement may bear many co-equal names (formal title, short name, multilingual versions); none is primary."@x-gmeow-english ;
+    skos:example "ex:treaty gmeow:hasAgreementName ex:treatyFormalTitle, ex:treatyShortName ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bear a structured name on an agreement — a formal title, short name, or multilingual version; the agreement-scoped specialization of gmeow:hasAppellation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid privileging the formal title as primary (the formal title and short name are co-equal) and avoid a flat literal — bear a structured AgreementName."@x-gmeow-english ;
+    gmeow:howToUse "Assert one hasAgreementName triple per co-equal name; carry validity and source on the statement layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasNamePart
@@ -253,6 +337,10 @@ gmeow:hasNamePart
     rdfs:range gmeow:NamePart ;
     rdfs:label "has name part"@x-gmeow-english ;
     skos:definition "Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts. A specialized information-object component relation under the universal gmeow:hasPart spine."@x-gmeow-english ;
+    skos:example "ex:patrickName gmeow:hasNamePart ex:patrickGiven, ex:audleySurname ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach the reified, typed components of an appellation when parts must be matched, expanded, or rendered separately — the names-scoped specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the generic gmeow:hasPart for name decomposition (assert hasNamePart and let it follow) and avoid splitting a name into parts purely to reconstruct a display order — gmeow:fullName is authoritative for that."@x-gmeow-english ;
+    gmeow:howToUse "Assert one hasNamePart triple per gmeow:NamePart (non-functional), each carrying gmeow:namePartType, gmeow:partText, and gmeow:partOrder."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePartType
@@ -261,6 +349,10 @@ gmeow:namePartType
     rdfs:range gmeow:NamePartType ;
     rdfs:label "name part type"@x-gmeow-english ;
     skos:definition "The kind of a name part (a gmeow:NamePartType value). Functional: a single part has one kind — a part that is both a surname and a patronymic is modelled as two parts."@x-gmeow-english ;
+    skos:example "ex:audleySurname gmeow:namePartType gmeow:namePartSurname ."@x-gmeow-english ;
+    gmeow:useWhen "Use to type a gmeow:NamePart — name which kind of component it is (given, surname, patronymic, nisba, extension, …) by referencing a gmeow:NamePartType value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid giving one part two kinds (it is functional — model a part that is both surname and patronymic as two separate parts) and avoid free-text kinds; reference or mint a gmeow:NamePartType individual."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:namePartType once per gmeow:NamePart (functional) to a gmeow:NamePartType individual; if a culture's kind is missing, mint a new value individual rather than reusing an ill-fitting one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:partText
@@ -269,6 +361,10 @@ gmeow:partText
     rdfs:range rdfs:Literal ;
     rdfs:label "part text"@x-gmeow-english ;
     skos:definition "The string value of a name part. Language-/script-tag the literal where applicable."@x-gmeow-english ;
+    skos:example "ex:audleySurname gmeow:partText \"Audley\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the literal text of a gmeow:NamePart — the actual string of a given name, surname, particle, or initial."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid carrying the whole name here (that is gmeow:fullName on the appellation) and avoid an untagged literal where a language or script is known — tag it for correct matching and rendering."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:partText on a gmeow:NamePart, language-/script-tagging the literal; add gmeow:partExpansion when the text is an abbreviated initial."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:partOrder
@@ -277,6 +373,10 @@ gmeow:partOrder
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "part order"@x-gmeow-english ;
     skos:definition "The 0-based position of a part within its appellation's surface order, as actually written in its culture. Records observed order WITHOUT implying a given-before-family default — East-Asian family-first is simply order 0 = surname."@x-gmeow-english ;
+    skos:example "ex:yamadaSurname gmeow:partOrder 0 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the 0-based written position of a gmeow:NamePart within its appellation's surface order, as actually written in its culture."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a given-before-family default into the ordering (East-Asian family-first is simply order 0 = surname) and avoid using it to drive display reassembly — gmeow:fullName is authoritative for the surface form."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:partOrder once per gmeow:NamePart (functional) to the part's 0-based position in the culture's actual order; never renumber to impose a Western order."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:partExpansion
@@ -285,6 +385,10 @@ gmeow:partExpansion
     rdfs:range rdfs:Literal ;
     rdfs:label "part expansion"@x-gmeow-english ;
     skos:definition "The expanded form of an abbreviated part — e.g. the full word a South-Indian (Tamil) initial stands for."@x-gmeow-english ;
+    skos:example "ex:initialPart gmeow:partText \"R.\" ; gmeow:partExpansion \"Ramaswamy\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the full word an abbreviated name part stands for — e.g. the expansion of a South-Indian (Tamil) initial — alongside the abbreviated gmeow:partText."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting the expansion in gmeow:partText (keep the abbreviated surface form there) and avoid it for non-abbreviated parts where there is nothing to expand."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:partExpansion on a gmeow:NamePart whose gmeow:partText is an initial, so consumers can render either the initial or its expansion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
@@ -300,6 +404,10 @@ gmeow:fullName
     rdfs:range rdfs:Literal ;
     rdfs:label "full name"@x-gmeow-english ;
     skos:definition "The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. \"山田太郎\"@ja, \"Yamada Tarō\"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist."@x-gmeow-english ;
+    skos:example "ex:yamadaName gmeow:fullName \"山田太郎\"@ja ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the complete surface form of an appellation as a single language-/script-tagged string in the natural order of its culture — the authoritative source for display."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reconstructing the display form from gmeow:NamePart order (this property is authoritative) and avoid multi-tagging one fullName with several languages — distinct-language names are separate co-equal appellations."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:fullName on the appellation, language-/script-tagging the literal; it may hold several coexisting source spellings/transliterations (non-functional), with the parts kept for matching rather than reassembly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:nameLanguage
@@ -309,6 +417,10 @@ gmeow:nameLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "name language"@x-gmeow-english ;
     skos:definition "The first-class gmeow:Language an appellation's surface form is in. Language is ALWAYS a first-class gmeow:Language (registry-INDEPENDENT, self-minted IRI) — never a bare BCP-47 literal; codes (e.g. \"ja\", \"zh\") live on the Language via gmeow:languageCode, so a code-less conlang or AI-minted language names co-equally. FUNCTIONAL — exactly one language per appellation: co-equal multilingual names are modelled as SEPARATE co-equal gmeow:Appellation instances (one per language), never by multi-tagging a single name (that is what keeps naming anti-colonial and symmetric). Drives locale-relative, symmetric display selection — never a ranking of one name above another. The script the form is written in is gmeow:nameScript (bridging to a first-class gmeow:WritingSystem)."@x-gmeow-english ;
+    skos:example "ex:yamadaName gmeow:nameLanguage ex:japanese ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the single first-class gmeow:Language an appellation's surface form is in — driving locale-relative, symmetric display selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a bare BCP-47 literal (language is always a first-class gmeow:Language carrying its own code) and avoid multi-tagging one appellation with several languages — it is functional, so co-equal multilingual names are separate appellations."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:nameLanguage once per appellation (functional) to a gmeow:Language individual; carry the script with gmeow:nameScript, and never use the language to rank one name above another."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:nameScript
@@ -317,6 +429,10 @@ gmeow:nameScript
     rdfs:range rdfs:Literal ;
     rdfs:label "name script"@x-gmeow-english ;
     skos:definition "The ISO 15924 script code of an appellation (e.g. \"Hani\", \"Arab\", \"Latn\"). Available explicitly for indexing alongside a BCP-47 script subtag on the literal."@x-gmeow-english ;
+    skos:example "ex:yamadaName gmeow:nameScript \"Jpan\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the ISO 15924 script of an appellation explicitly for indexing — alongside any BCP-47 script subtag already on the gmeow:fullName literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the language (that is gmeow:nameLanguage, a first-class gmeow:Language) and avoid an invented script code — use the ISO 15924 value."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:nameScript to the ISO 15924 code on an appellation when the script must be queried directly rather than parsed from the literal's BCP-47 subtag."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:romanization
@@ -326,6 +442,10 @@ gmeow:romanization
     rdfs:label "romanization"@x-gmeow-english ;
     skos:definition "A Latin-script transliteration of THIS SAME appellation in another script (e.g. \"Yamada Tarō\" for \"山田太郎\"; pinyin for a Chinese name). Strictly a transliteration of one name — it NEVER bridges two distinct co-equal names (a Mandarin name is not the romanization of a Latin one)."@x-gmeow-english ;
     skos:scopeNote "Name the system that produced the romanization with gmeow:transliterationScheme (languages module) — Hepburn vs Kunrei for Japanese, Pinyin vs Wade-Giles for Mandarin — so the romanization records HOW it was derived; each scheme is catalogued as an FnO function in the projection layer."@x-gmeow-english ;
+    skos:example "ex:yamadaName gmeow:romanization \"Yamada Tarō\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a Latin-script transliteration of THE SAME appellation in another script — pinyin for a Chinese name, Hepburn for a Japanese one — for indexing and accessible rendering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to bridge two distinct co-equal names (a Mandarin name is NOT the romanization of a Latin one — those are separate appellations) and avoid an unscheme'd romanization where the system matters — name it with gmeow:transliterationScheme."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:romanization on the appellation it transliterates and record the producing system with gmeow:transliterationScheme; never use it to link a Latin and a Han name as romanization-of."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePurpose
@@ -334,6 +454,10 @@ gmeow:namePurpose
     rdfs:range gmeow:NamePurpose ;
     rdfs:label "name purpose"@x-gmeow-english ;
     skos:definition "The intrinsic kind/purpose(s) of an appellation (legal, birth, chosen, professional, deadname, …) — a gmeow:NamePurpose value. Non-functional: a name may be both legal and chosen."@x-gmeow-english ;
+    skos:example "ex:chosenName gmeow:namePurpose gmeow:namePurposeChosen, gmeow:namePurposeLegal ."@x-gmeow-english ;
+    gmeow:useWhen "Use to tag the intrinsic kind(s) of an appellation — legal, birth, chosen, professional, endonym, exonym, deadname — referencing gmeow:NamePurpose value individuals."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using purpose to rank names (endonym and exonym are co-equal, not preferred-vs-alternate) and avoid the USAGE register here — purpose is intrinsic to the name, register is a fact of the use (gmeow:usageRegister)."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:NamePurpose individuals to an appellation (non-functional — a name may be both legal and chosen); pair a deadname purpose with gmeow:displayable false for suppression."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:displayable
@@ -341,6 +465,10 @@ gmeow:displayable
     rdfs:range xsd:boolean ;
     rdfs:label "displayable"@x-gmeow-english ;
     skos:definition "Whether a name or identity facet may be shown in interfaces and reports. The ONLY display control in the model — across naming (gmeow:Appellation) and identity (gmeow:IdentityFacet: gender/orientation), deliberately no preferred/primary marker (display selection is locale-relative and symmetric). It is intentionally domain-free so it applies to both. Superseded names (especially deadnames) and superseded gender/orientation labels set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core."@x-gmeow-english ;
+    skos:example "ex:deadname gmeow:displayable false ."@x-gmeow-english ;
+    gmeow:useWhen "Use to SUPPRESS a name or identity facet from interfaces and reports — a superseded name, a deadname, or a superseded gender/orientation label that must never be surfaced."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to SELECT a preferred or primary name (there is deliberately no such marker — display selection is locale-relative and symmetric) and avoid forcing one value in a merge — competing claims coexist, the cautious false winning at projection."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:displayable false on the suppressed name or facet; consumers MUST honour false and never emit the string. Pair a deadname with gmeow:namePurposeDeadname, and let the cautious value win when sources disagree."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 gmeow:displayable gmeow:docsConcern gmeow:concernDisclosure, gmeow:concernStandpoints .
 
@@ -350,6 +478,10 @@ gmeow:conferredByEvent
     rdfs:range gmeow:LifeEvent ;
     rdfs:label "conferred by event"@x-gmeow-english ;
     skos:definition "The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non-functional. The seam joining the names module to the events module's event spine."@x-gmeow-english ;
+    skos:example "ex:marriedName gmeow:conferredByEvent ex:wedding ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link an appellation to the life event that conferred or changed it — a christening, name change, marriage (a married name), or adoption — joining the names module to the events spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid carrying the conferral as a free-text note (reference a gmeow:LifeEvent with its gmeow:eventType) and avoid using it for the name's validity period — carry that on the statement or a gmeow:NameUsage."@x-gmeow-english ;
+    gmeow:howToUse "Point gmeow:conferredByEvent at a gmeow:LifeEvent carrying the appropriate gmeow:eventType; non-functional, so multiple conferring events may coexist for a name's history."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
@@ -365,6 +497,10 @@ gmeow:claimedMediaType
     rdfs:range rdfs:Literal ;
     rdfs:label "claimed media type"@x-gmeow-english ;
     skos:definition "The MIME media type CLAIMED by a filename's extension (e.g. \".pdf\" → \"application/pdf\"). A claim by the name, which may disagree with gmeow:detectedMediaType. Non-functional."@x-gmeow-english ;
+    skos:example "ex:report gmeow:claimedMediaType \"application/pdf\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the MIME media type a gmeow:Filename's extension CLAIMS — the type asserted by the name, to be compared against the type detected from the bytes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the claim as the truth (the bytes' gmeow:detectedMediaType may disagree) and avoid resolving a mismatch into a contradiction — both coexist as confidence-weighted claims."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:claimedMediaType on a Filename from its extension; pair with gmeow:detectedMediaType and let a disagreement coexist rather than asserting disjointness."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:detectedMediaType
@@ -373,6 +509,10 @@ gmeow:detectedMediaType
     rdfs:range rdfs:Literal ;
     rdfs:label "detected media type"@x-gmeow-english ;
     skos:definition "The MIME media type DETECTED from the bytes/magic of an information object (the observed type). May disagree with a filename's gmeow:claimedMediaType — a mismatch is recorded, not reasoned into a contradiction. Non-functional."@x-gmeow-english ;
+    skos:example "ex:report gmeow:detectedMediaType \"image/png\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the MIME media type DETECTED from an information object's bytes/magic — the observed type, to be compared against the extension's claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid overwriting the extension's claim with it (keep both — the claim is gmeow:claimedMediaType) and avoid reasoning a claim-vs-detected mismatch into an OWL contradiction; benign aliasing must not make the graph inconsistent."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:detectedMediaType on the information object from its bytes; a disagreement with gmeow:claimedMediaType is recorded as coexisting confidence-weighted claims, never disjointness."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
@@ -389,6 +529,10 @@ gmeow:hasPronounSet
     rdfs:label "has pronoun set"@x-gmeow-english ;
     skos:definition "Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
     gmeow:coequalFacet true ;
+    skos:example "ex:person gmeow:hasPronounSet gmeow:pronounTheyThem ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the pronoun set a person goes by — a form of address, contextual and possibly multiple; scope a context-specific set with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from, or asserting it to imply, gender identity, gender expression, sex assigned at birth, or orientation — address is not identity; and avoid making it functional, since it is a co-equal facet (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Attach a seeded or freshly-minted gmeow:PronounSet to a person with gmeow:hasPronounSet (non-functional); keep it orthogonal to the gender/orientation axes."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounSubject
@@ -397,6 +541,10 @@ gmeow:pronounSubject
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun subject"@x-gmeow-english ;
     skos:definition "The subject (nominative) form of a pronoun set, e.g. \"she\", \"they\", \"xe\"."@x-gmeow-english ;
+    skos:example "ex:set gmeow:pronounSubject \"they\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the subject (nominative) form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling only some of the five forms on a specifying set (subject, object, possessive determiner, possessive pronoun, reflexive should all be present) and avoid it on a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:pronounSubject once per gmeow:PronounSet (functional), alongside the other four form properties when minting a custom set."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounObject
@@ -405,6 +553,10 @@ gmeow:pronounObject
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun object"@x-gmeow-english ;
     skos:definition "The object (accusative) form of a pronoun set, e.g. \"her\", \"them\", \"xem\"."@x-gmeow-english ;
+    skos:example "ex:set gmeow:pronounObject \"them\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the object (accusative) form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling only some of the five forms on a specifying set and avoid it on a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:pronounObject once per gmeow:PronounSet (functional), alongside the other four form properties when minting a custom set."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounPossessiveDeterminer
@@ -413,6 +565,10 @@ gmeow:pronounPossessiveDeterminer
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun possessive determiner"@x-gmeow-english ;
     skos:definition "The possessive determiner form of a pronoun set, e.g. \"her\", \"their\", \"xyr\"."@x-gmeow-english ;
+    skos:example "ex:set gmeow:pronounPossessiveDeterminer \"their\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the possessive determiner form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the possessive pronoun form (gmeow:pronounPossessive — 'their book' versus 'the book is theirs') and avoid filling only some of the five forms on a specifying set."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:pronounPossessiveDeterminer once per gmeow:PronounSet (functional), alongside the other four form properties when minting a custom set."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounPossessive
@@ -421,6 +577,10 @@ gmeow:pronounPossessive
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun possessive"@x-gmeow-english ;
     skos:definition "The possessive pronoun form of a pronoun set, e.g. \"hers\", \"theirs\", \"xyrs\"."@x-gmeow-english ;
+    skos:example "ex:set gmeow:pronounPossessive \"theirs\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the possessive pronoun form of a gmeow:PronounSet — one of the five forms that define a custom set ('the book is theirs')."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the possessive determiner form (gmeow:pronounPossessiveDeterminer — 'their book') and avoid filling only some of the five forms on a specifying set."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:pronounPossessive once per gmeow:PronounSet (functional), alongside the other four form properties when minting a custom set."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounReflexive
@@ -429,6 +589,10 @@ gmeow:pronounReflexive
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun reflexive"@x-gmeow-english ;
     skos:definition "The reflexive form of a pronoun set, e.g. \"herself\", \"themself\", \"xemself\"."@x-gmeow-english ;
+    skos:example "ex:set gmeow:pronounReflexive \"themself\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the reflexive form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling only some of the five forms on a specifying set and avoid it on a non-specifying stance (any / ask / name-only)."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:pronounReflexive once per gmeow:PronounSet (functional), alongside the other four form properties when minting a custom set."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorific
@@ -438,6 +602,10 @@ gmeow:honorific
     rdfs:label "honorific"@x-gmeow-english ;
     skos:definition "An honorific/title of address for a person (a gmeow:Honorific value). Non-functional and contextual. A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
     gmeow:coequalFacet true ;
+    skos:example "ex:person gmeow:honorific gmeow:honorificDr ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an honorific or title of address a person goes by — a form of address, contextual and possibly multiple (gmeow:honorificMx, gmeow:honorificDr, gmeow:honorificSayyid, …)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from, or asserting it to imply, gender identity, gender expression, sex assigned at birth, or orientation — address is not identity; and avoid making it functional, since it is a co-equal facet (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Attach a gmeow:Honorific value to a person with gmeow:honorific (non-functional); the title's render placement and domain come from gmeow:honorificPosition and gmeow:honorificClass on the value."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificPosition
@@ -446,6 +614,10 @@ gmeow:honorificPosition
     rdfs:range gmeow:HonorificPosition ;
     rdfs:label "honorific position"@x-gmeow-english ;
     skos:definition "Whether an honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
+    skos:example "gmeow:honorificSan gmeow:honorificPosition gmeow:honorificPositionSuffix ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record whether a gmeow:Honorific is rendered before (prefix) or after (suffix) the name — so the projection layer places the title correctly (Dr before, -san after)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the honorific's social domain (that is gmeow:honorificClass) and avoid a free-text position — reference gmeow:honorificPositionPrefix or gmeow:honorificPositionSuffix."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:honorificPosition once per gmeow:Honorific (functional) to a gmeow:HonorificPosition individual; renderers read it to place the title around the name."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificClass
@@ -454,6 +626,10 @@ gmeow:honorificClass
     rdfs:range gmeow:HonorificClass ;
     rdfs:label "honorific class"@x-gmeow-english ;
     skos:definition "The domain/class of an honorific (academic, clerical, noble, military, judicial, social)."@x-gmeow-english ;
+    skos:example "gmeow:honorificDr gmeow:honorificClass gmeow:honorificClassAcademic ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the social/institutional domain a gmeow:Honorific is drawn from — academic, clerical, noble, military, judicial, or social."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for render placement (that is gmeow:honorificPosition) and avoid a free-text class — reference a gmeow:HonorificClass individual."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:honorificClass on a gmeow:Honorific to a gmeow:HonorificClass individual; mint a new class individual rather than a subclass when a new domain of address appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # =========================================================================== #
@@ -471,6 +647,10 @@ gmeow:NamePartType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Name Part Type"@x-gmeow-english ;
     skos:definition "The kind of a name part (given, surname, patronymic, particle, Arabic nisba, filename extension, …). A value, not a NamePart subclass: naming systems worldwide contribute an open-ended set of part kinds that share NamePart's structure."@x-gmeow-english ;
+    skos:example "ex:part gmeow:namePartType gmeow:namePartNisba ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the kind of a name part — referenced from a gmeow:NamePart via gmeow:namePartType, or extended with a new individual when a naming system contributes a part kind not yet seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a NamePart subclass for a new part kind (kinds are individuals on an open value vocabulary) and avoid forcing a culture's part into an ill-fitting Western category — add the proper individual instead."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded NamePartType individual from gmeow:namePartType on a gmeow:NamePart; extend the vocabulary by minting a new individual with rdfs:label and skos:definition rather than a subclass."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePartGiven              a gmeow:NamePartType ; rdfs:label "given name"@x-gmeow-english .
@@ -586,6 +766,10 @@ gmeow:NamePurpose
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Name Purpose"@x-gmeow-english ;
     skos:definition "The purpose/kind of a whole appellation (legal, birth, chosen, professional, deadname, …). A value, not a PersonName subclass; a person may simultaneously bear several co-equal names of different purposes."@x-gmeow-english ;
+    skos:example "ex:name gmeow:namePurpose gmeow:namePurposeChosen, gmeow:namePurposeLegal ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the intrinsic kind of a whole appellation — referenced from an appellation via gmeow:namePurpose to mark it legal, birth, chosen, professional, endonym, exonym, deadname, and so on."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a PersonName subclass per purpose (purposes are individuals, and a name may carry several at once) and avoid using purpose to rank names — endonym and exonym are co-equal, not preferred-vs-alternate."@x-gmeow-english ;
+    gmeow:howToUse "Reference one or more seeded NamePurpose individuals from gmeow:namePurpose on an appellation; extend with a new individual rather than a subclass, and pair a deadname purpose with gmeow:displayable false for suppression."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePurposeLegal        a gmeow:NamePurpose ; rdfs:label "legal name"@x-gmeow-english .
@@ -643,6 +827,10 @@ gmeow:Register
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Register"@x-gmeow-english ;
     skos:definition "A social or expressive register — the formality, intimacy, or audience-posture of an expression act (the register/persona design). The OPEN umbrella vocabulary that name registers specialize and that persona expression (norms slice) reuses: the same agent, the same norms, expressed formally in public and intimately in private. Registers are first-class value individuals with their own IRIs, labels, and definitions — never a subclass tree, never a 'primary' (Principle 9). Lives in the names core slice because register-of-address was already core here and the dependency direction (extensions reference core, never the reverse) requires the umbrella below its consumers."@x-gmeow-english;
+    skos:example "ex:address gmeow:usageRegister gmeow:registerIntimate ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open umbrella value vocabulary for social/expressive register when a register spans naming AND persona expression — extend it (or its gmeow:NameRegister specialization) with a new individual when a formality or audience-posture is not yet seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid building a register subclass tree (registers are co-equal value individuals) and avoid a name-only register where the persona-expression sense is meant — reach for the gmeow:NameRegister specialization for name address."@x-gmeow-english ;
+    gmeow:howToUse "Mint each register as an individual under gmeow:Register (or gmeow:NameRegister for name address), give it rdfs:label and skos:definition, and reference it from a usage; never declare one register primary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:NameRegister
@@ -650,6 +838,10 @@ gmeow:NameRegister
     rdfs:subClassOf gmeow:Register, gufo:QualityValue ;
     rdfs:label "Name Register"@x-gmeow-english ;
     skos:definition "The social register of a name-usage (formal, intimate, professional, casual) — the naming specialization of the gmeow:Register umbrella: a name register IS a register, so persona expression and name address draw from one vocabulary spine. A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage."@x-gmeow-english;
+    skos:example "ex:usage gmeow:usageRegister gmeow:registerFormal ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the social register of a name-usage — referenced from gmeow:usageRegister on a gmeow:NameUsage to mark a name as formal, intimate, professional, or casual."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a NameUsage subclass per register (registers are individuals) and avoid conflating register with the gender/identity axes — register is a posture of address, not an identity claim."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded NameRegister individual from gmeow:usageRegister; extend the vocabulary with a new individual under gmeow:NameRegister (it specializes gmeow:Register) rather than a subclass."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:registerFormal       a gmeow:NameRegister ; rdfs:label "formal"@x-gmeow-english .
@@ -672,6 +864,10 @@ gmeow:HonorificPosition
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Honorific Position"@x-gmeow-english ;
     skos:definition "Whether an honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
+    skos:example "ex:honorific gmeow:honorificPosition gmeow:honorificPositionSuffix ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the closed-ish value vocabulary recording whether an honorific is rendered before (prefix) or after (suffix) the name — referenced from gmeow:honorificPosition on a gmeow:Honorific."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a Honorific subclass per position (positions are individuals) and avoid using it for anything but render placement — class/domain of the honorific is gmeow:HonorificClass."@x-gmeow-english ;
+    gmeow:howToUse "Reference gmeow:honorificPositionPrefix or gmeow:honorificPositionSuffix from gmeow:honorificPosition on a Honorific individual; the projection layer reads it to place the title around the name."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificPositionPrefix a gmeow:HonorificPosition ; rdfs:label "prefix"@x-gmeow-english .
@@ -686,6 +882,10 @@ gmeow:HonorificClass
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Honorific Class"@x-gmeow-english ;
     skos:definition "The domain of an honorific (academic, clerical, noble, military, judicial, social)."@x-gmeow-english ;
+    skos:example "ex:honorific gmeow:honorificClass gmeow:honorificClassAcademic ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the social/institutional domain an honorific is drawn from (academic, clerical, noble, military, judicial, social) — referenced from gmeow:honorificClass on a gmeow:Honorific."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a Honorific subclass per class (classes are individuals) and avoid using it for render placement — that is gmeow:HonorificPosition."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded HonorificClass individual from gmeow:honorificClass on a Honorific; extend with a new individual rather than a subclass when a new domain of address appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificClassAcademic a gmeow:HonorificClass ; rdfs:label "academic"@x-gmeow-english .
@@ -714,6 +914,10 @@ gmeow:Honorific
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Honorific"@x-gmeow-english ;
     skos:definition "A title or form of address (Mr, Mx, Dr, -san, Sri, Sayyid, …). A value, not a subclass. Each carries a gmeow:honorificPosition (prefix/suffix) and, where applicable, a gmeow:honorificClass."@x-gmeow-english ;
+    skos:example "ex:person gmeow:honorific gmeow:honorificMx ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for a title or form of address (Mr, Mx, Dr, -san, Sri, Sayyid, …) — referenced from gmeow:honorific on a person, or extended with a new individual for a non-Western or gender-neutral title not yet seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an honorific from, or asserting one to imply, gender identity, gender expression, or sex assigned at birth — honorifics are a sex/gender-independent form of address; and avoid minting a subclass per title (titles are individuals)."@x-gmeow-english ;
+    gmeow:howToUse "Attach a seeded Honorific to a person with gmeow:honorific; mint a new one as an individual with gmeow:honorificPosition (prefix/suffix) and, where applicable, gmeow:honorificClass, rather than a subclass."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificMr a gmeow:Honorific ; rdfs:label "Mr"@x-gmeow-english ;

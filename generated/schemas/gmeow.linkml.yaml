@@ -905,7 +905,7 @@ classes:
     is_a: Work
   DocumentationConcern:
     class_uri: https://blackcatinformatics.ca/gmeow/DocumentationConcern
-    title: documentation concern
+    title: Documentation Concern
   Duration:
     class_uri: https://blackcatinformatics.ca/gmeow/Duration
     title: Duration

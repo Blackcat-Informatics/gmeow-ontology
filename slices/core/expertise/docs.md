@@ -44,3 +44,46 @@ proficiency machinery, employment, attestation, and surface vocabularies.
   - The level's `levelScale` should match the relator's `skillProficiencyScale` (warning).
   - A `Credential` intended to be verifiable should reference an `Attestation` (warning).
   - A `Credential`'s issuer must be an `Organization`.
+
+## Terms
+
+### gmeow:Skill · gmeow:Credential
+
+A `gufo:Kind` competency or ability an agent can apply to a task, aligned to
+`esco:Skill` by reference; and a degree, certification, badge, or license that
+qualifies an agent — its issuer is `gmeow:credentialIssuer`, its subject matter
+`gmeow:credentialFor`, and its verification is borne by a `gmeow:Attestation`
+(Principle 4).
+
+### gmeow:SkillProficiency · gmeow:skillProficiencyAgent · gmeow:skillProficiencyOf · gmeow:skillProficiencyLevel · gmeow:skillProficiencyScale · gmeow:skillProficiencyInterval
+
+The reified `gufo:Relator` binding {agent} × {skill} × {level on a scale} ×
+{interval}, mirroring languages' `LanguageProficiency`. Its functional roles fix
+the agent, the rated skill, the attained level, and the scale that level is read
+against; `skillProficiencyInterval` bounds the span the level held. Contested
+levels coexist as separate standpoint-indexed relators (Principle 9).
+
+### gmeow:hasSkill · gmeow:hasOccupation · gmeow:holdsCredential
+
+The flat 80 % shortcuts: an agent possesses a skill (`hasSkill`, a
+sub-property of `knowsAbout` touching the can-do rung); a person holds an
+occupation or job role over time (`hasOccupation`); an agent holds a credential,
+many-to-many (`holdsCredential`). Promote to the reified forms when level,
+scale, temporal scope, or standpoint must become first-class.
+
+### gmeow:credentialIssuer · gmeow:credentialFor · gmeow:occupationClassification
+
+A credential's single issuing `Organization` (functional — a different issuer is
+a different credential); what it certifies (a `Skill`, an `Occupation`, or both,
+the union range a SHACL shape); and the raw external classification codes (ESCO,
+SOC, O*NET, ISCO, NOC) carried on an occupation, scheme resolution being
+solver-side (Principle 12).
+
+### gmeow:ProficiencyScale · gmeow:ProficiencyLevel · gmeow:ProficiencyModality
+
+The domain-neutral rating machinery generalized from languages: a `ProficiencyScale`
+is the rating framework (CEFR, ILR, ACTFL, Dreyfus, NIH, assessed, self-reported);
+a `ProficiencyLevel` is an attained rung on a scale (tied to it by `levelScale`),
+meaningless without naming its scale; a `ProficiencyModality` is the channel a
+language proficiency rates (speaking, listening, reading, writing). All are value
+individuals, never subclasses (Principle 9).

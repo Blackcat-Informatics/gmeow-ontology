@@ -18,6 +18,14 @@ gmeow:ContactPoint
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Contact Point"@x-gmeow-english ;
     skos:definition "A means of reaching an agent: an email address, telephone number, postal address, or instant-messaging handle."@x-gmeow-english ;
+    skos:example "ex:lillithEmail a gmeow:ContactPoint ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the parent domain when a fact concerns a channel for reaching an agent rather than the agent itself — the anchor for contact-point usage, provider, and tenure, and the carrier of contact-data sensitivity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a bare gmeow:ContactPoint when a more specific channel applies (use gmeow:EmailAddress, gmeow:TelephoneNumber, gmeow:PostalAddress, or gmeow:InstantMessageAddress) and avoid using it for the agent that owns the channel (that is gmeow:Agent)."@x-gmeow-english ;
+    gmeow:howToUse "Type the channel as its most specific subkind, link it to its owner with gmeow:hasContactPoint, and attach gmeow:hasSensitivity so the projection layer can withhold or coarsen it for the wrong consumer."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:InstantMessageAddress
@@ -25,6 +33,14 @@ gmeow:InstantMessageAddress
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Instant Message Address"@x-gmeow-english ;
     skos:definition "A contact point reachable through an instant-messaging or chat service — a handle, channel, or service-scheme URI (xmpp:, weixin:, matrix:, …)."@x-gmeow-english ;
+    skos:example "ex:lillithMatrix a gmeow:InstantMessageAddress ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a channel reached through an instant-messaging or chat service — a handle, room, or scheme URI (xmpp:, matrix:, weixin:) — when the contact point is neither email, telephone, nor postal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an email-style address (use gmeow:EmailAddress) or a telephone-bound messenger identified by number (use gmeow:TelephoneNumber); avoid storing the owning account here — that is gmeow:OnlineAccount in the accounts slice."@x-gmeow-english ;
+    gmeow:howToUse "Type the handle as gmeow:InstantMessageAddress, link it to its owner with gmeow:hasContactPoint, and carry gmeow:hasSensitivity so a public projection can withhold or coarsen it; record the service via gmeow:contactPointProvider when the platform matters."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:EmailAddress
@@ -32,6 +48,14 @@ gmeow:EmailAddress
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Email Address"@x-gmeow-english ;
     skos:definition "A contact point reachable via the Simple Mail Transfer Protocol (SMTP)."@x-gmeow-english ;
+    skos:example "ex:lillithEmail a gmeow:EmailAddress ; gmeow:addressValue \"lillith@example.org\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an email contact point whose addr-spec structure (local part, domain part) or delivery target matters, or that an agent holds over a tenure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the plain string convenience (use the gmeow:email datatype property on the agent) and for the mailbox the address delivers into (that is gmeow:OnlineAccount, reached via gmeow:deliversToAccount)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the address as an EmailAddress, fill gmeow:addressValue (and the parts where parsed), link delivery with gmeow:deliversToAccount, and carry its personal sensitivity so it is not leaked to a public consumer."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:TelephoneNumber
@@ -39,6 +63,14 @@ gmeow:TelephoneNumber
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Telephone Number"@x-gmeow-english ;
     skos:definition "A contact point reachable by telephone."@x-gmeow-english ;
+    skos:example "ex:lillithMobile a gmeow:TelephoneNumber ; gmeow:contactPointType gmeow:contactPointTypePersonal ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a telephone contact point modelled as a first-class node — when its usage role, provider, or tenure must be recorded — rather than a bare number string."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the plain string convenience (use the gmeow:telephone datatype property on the agent) and for messaging handles that merely resemble phone numbers but reach a separate account."@x-gmeow-english ;
+    gmeow:howToUse "Mint the number as a TelephoneNumber, tag its role with gmeow:contactPointType, name its provider with gmeow:contactPointProvider, and carry its personal sensitivity for disclosure control."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:PostalAddress
@@ -47,6 +79,14 @@ gmeow:PostalAddress
     rdfs:label "Postal Address"@x-gmeow-english ;
     skos:definition "A contact point reachable by physical mail at a postal address. It is expressed in the postal/administrative topological reference frame (gmeow:referenceFramePostalAddress); its components below are the coordinate values along that frame's axes — the as-written surface form. The resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:postalAddressFrame ;
+    skos:example "ex:home a gmeow:PostalAddress ; gmeow:addressLocality \"Calgary\" ; gmeow:coarsenTo ex:cityLevel ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the as-written surface form of a mailing address — the bundle of street, locality, region, code, and country coordinate values expressed in the postal reference frame, before resolution to identifier-bearing places."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the resolved geographic place an address denotes (use gmeow:addressPlace → gmeow:Place) and for coordinates/geometry, which belong to that place, not to the surface form."@x-gmeow-english ;
+    gmeow:howToUse "Fill the component coordinate properties along the frame's axes, seam to the resolved hierarchy with gmeow:addressPlace, and mark gmeow:coarsenTo (e.g. to city level) so a public projection emits an enclosing locality rather than the exact premises."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerFoafExport ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:postalAddressFrame
@@ -56,6 +96,10 @@ gmeow:postalAddressFrame
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:label "postal address frame"@x-gmeow-english ;
     skos:definition "The postal/administrative reference frame in which this address is expressed. Functional: an address is expressed in exactly one frame. The default is gmeow:referenceFramePostalAddress."@x-gmeow-english ;
+    skos:example "ex:home gmeow:postalAddressFrame gmeow:referenceFramePostalAddress ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare which postal/administrative frame an address's coordinate values are read against — required because a value asserted without its frame is ill-formed (CONSTITUTION P11)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one frame per address (it is functional) and avoid using it for the resolved geographic place (that is gmeow:addressPlace)."@x-gmeow-english ;
+    gmeow:howToUse "Point the address at its frame individual (default gmeow:referenceFramePostalAddress) so the component coordinate properties have a well-defined axis system to be interpreted along."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Address components — coordinate values along the axes of the postal reference
@@ -70,6 +114,12 @@ gmeow:streetAddress
     rdfs:range rdfs:Literal ;
     rdfs:label "street address"@x-gmeow-english ;
     skos:definition "The street-address coordinate value of a postal address, expressed along the gmeow:axisStreetAddress axis of the postal reference frame."@x-gmeow-english ;
+    skos:example "ex:home gmeow:streetAddress \"100 Main St\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the as-written street line of an address — the most precise, premises-identifying component, and the one disclosure control most needs to coarsen away."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a single normalized form (it is non-functional — conflicting source spellings coexist) and avoid using it for the resolved street place (that is reached via gmeow:addressPlace)."@x-gmeow-english ;
+    gmeow:howToUse "Carry the line verbatim from the source; pair the address with gmeow:coarsenTo so a public projection emits the locality rather than this street-level precision."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:extendedAddress
@@ -78,6 +128,12 @@ gmeow:extendedAddress
     rdfs:range rdfs:Literal ;
     rdfs:label "extended address"@x-gmeow-english ;
     skos:definition "The extended-address coordinate value of a postal address, expressed along the gmeow:axisExtendedAddress axis of the postal reference frame."@x-gmeow-english ;
+    skos:example "ex:home gmeow:extendedAddress \"Suite 4B\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the secondary address line — suite, unit, apartment, or floor — that refines the street line within the same premises."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid folding it into gmeow:streetAddress when a source keeps them apart, and avoid using it for a post-office box (that is gmeow:postOfficeBox)."@x-gmeow-english ;
+    gmeow:howToUse "Carry the secondary line as written; it inherits the address's personal sensitivity and coarsens with it under a public projection."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:postOfficeBox
@@ -86,6 +142,12 @@ gmeow:postOfficeBox
     rdfs:range rdfs:Literal ;
     rdfs:label "post office box"@x-gmeow-english ;
     skos:definition "The post-office-box coordinate value of a postal address, expressed along the gmeow:axisPostOfficeBox axis of the postal reference frame."@x-gmeow-english ;
+    skos:example "ex:office gmeow:postOfficeBox \"PO Box 217\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a post-office-box designation that stands in place of, or alongside, a street line in the surface form of an address."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a street line (gmeow:streetAddress) or a suite within a building (gmeow:extendedAddress); a PO box is a delivery receptacle, not a premises."@x-gmeow-english ;
+    gmeow:howToUse "Carry the box designation as written; it inherits the address's personal sensitivity and coarsens with it under a public projection."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressLocality
@@ -94,6 +156,10 @@ gmeow:addressLocality
     rdfs:range rdfs:Literal ;
     rdfs:label "address locality"@x-gmeow-english ;
     skos:definition "The locality (city or town) coordinate value of a postal address, expressed along the gmeow:axisAddressLocality axis of the postal reference frame."@x-gmeow-english ;
+    skos:example "ex:home gmeow:addressLocality \"Calgary\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the city or town line of an address — the level a precise home address is typically coarsened to for public disclosure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a normalized spelling (non-functional — source variants coexist) and avoid using it for the resolved locality place (reached via gmeow:addressPlace → gmeow:containedInPlace)."@x-gmeow-english ;
+    gmeow:howToUse "Carry the locality as written; this is the usual gmeow:coarsenTo target, so a city-level public projection emits it while withholding the finer street components."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressRegion
@@ -102,6 +168,10 @@ gmeow:addressRegion
     rdfs:range rdfs:Literal ;
     rdfs:label "address region"@x-gmeow-english ;
     skos:definition "The region (state, province, or territory) coordinate value of a postal address, expressed along the gmeow:axisAddressRegion axis of the postal reference frame."@x-gmeow-english ;
+    skos:example "ex:home gmeow:addressRegion \"AB\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the state, province, or territory line of an address — a coarse, low-sensitivity component safe for broad projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a single abbreviation versus full-name form (non-functional — both coexist) and avoid using it for the resolved region place (reached via gmeow:addressPlace)."@x-gmeow-english ;
+    gmeow:howToUse "Carry the region as written; it is coarse enough that public projections normally retain it even when finer components are withheld."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:postalCode
@@ -110,6 +180,12 @@ gmeow:postalCode
     rdfs:range rdfs:Literal ;
     rdfs:label "postal code"@x-gmeow-english ;
     skos:definition "The postal/ZIP code coordinate value of a postal address, expressed along the gmeow:axisPostalCode axis of the postal reference frame."@x-gmeow-english ;
+    skos:example "ex:home gmeow:postalCode \"T2P 1J9\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the postal or ZIP code line of an address; note that a full code can be premises-identifying and so carries the same personal sensitivity as the street line."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a normalized format (non-functional — spacing and case variants coexist) and avoid treating a full code as safe for public projection — a precise code can re-identify a household."@x-gmeow-english ;
+    gmeow:howToUse "Carry the code as written; pair the address with gmeow:coarsenTo so a public projection emits a truncated or locality-level form rather than the full premises-identifying code."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:countryCode
@@ -118,6 +194,10 @@ gmeow:countryCode
     rdfs:range rdfs:Literal ;
     rdfs:label "country code"@x-gmeow-english ;
     skos:definition "The country code coordinate value of a postal address, expressed along the gmeow:axisCountryCode axis of the postal reference frame. The intended value is an ISO 3166-1 alpha-2 code (e.g. \"CA\"), but this is a convention, not an enforced datatype facet. Non-functional: sources vary (\"CA\" / \"Canada\" / \"CAN\")."@x-gmeow-english ;
+    skos:example "ex:home gmeow:countryCode \"CA\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the country line of an address — the coarsest component, low-sensitivity and safe to project broadly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid enforcing the ISO 3166-1 alpha-2 convention as a hard facet (it is advisory, non-functional, and source variants coexist) and avoid using it for the resolved country place (reached via gmeow:addressPlace)."@x-gmeow-english ;
+    gmeow:howToUse "Carry the country as written, preferring the ISO alpha-2 code where known; it is coarse enough that public projections normally retain it unconditionally."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressPlace
@@ -126,6 +206,12 @@ gmeow:addressPlace
     rdfs:range gmeow:Place ;
     rdfs:label "address place"@x-gmeow-english ;
     skos:definition "The geographic place a postal address denotes (typically the premises/building) — the seam from the as-written address to the resolved place hierarchy, its coordinates/geometry, and its external identifiers."@x-gmeow-english ;
+    skos:example "ex:home gmeow:addressPlace ex:premisesPlace ."@x-gmeow-english ;
+    gmeow:useWhen "Use to cross from the as-written surface form of an address to the resolved, identifier-bearing geographic place — the point at which coordinates, geometry, and external place IDs become available."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to restate the surface components (those are the datatype properties) and avoid attaching geometry to the address itself; geometry lives on the resolved gmeow:Place."@x-gmeow-english ;
+    gmeow:howToUse "Link the address to its premises gmeow:Place, then walk gmeow:containedInPlace for the enclosing hierarchy; mark gmeow:coarsenTo on the address so a public projection resolves only to the enclosing locality."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasContactPoint
@@ -134,6 +220,14 @@ gmeow:hasContactPoint
     rdfs:range gmeow:ContactPoint ;
     rdfs:label "has contact point"@x-gmeow-english ;
     skos:definition "Relates an agent to a means of contacting it."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasContactPoint ex:lillithEmail ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach a first-class contact point (email, telephone, postal address) to the agent that owns it, when the channel carries its own role, provider, structure, or tenure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when a bare string suffices (use gmeow:email or gmeow:telephone) and avoid using it for ownership of an online account (that is the accounts slice)."@x-gmeow-english ;
+    gmeow:howToUse "Link the agent to each gmeow:ContactPoint; the sensitivity on the contact point governs whether the projection layer emits it for a given consumer."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # --------------------------------------------------------------------------- #
@@ -149,6 +243,10 @@ gmeow:ContactPointType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Contact Point Type"@x-gmeow-english ;
     skos:definition "The usage role of a contact point — a VALUE vocabulary (individuals, never subclasses). Personal, work, personal-domain, support, billing, and emergency are examples; the set is open. Projects to schema:contactType and the vCard TYPE parameter."@x-gmeow-english ;
+    skos:example "ex:contactPointTypeBilling a gmeow:ContactPointType ; rdfs:label \"billing\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the contact-point-usage axis — the open set of roles (personal, work, support, …) a channel declares through gmeow:contactPointType."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-role subclasses (roles are individuals, P9) and avoid using it for the issuing organization (that is gmeow:contactPointProvider)."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded role individual from a contact point via gmeow:contactPointType, or mint a new individual when a fresh role appears; it projects to schema:contactType and the vCard TYPE parameter."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:contactPointType
@@ -157,6 +255,10 @@ gmeow:contactPointType
     rdfs:range gmeow:ContactPointType ;
     rdfs:label "contact point type"@x-gmeow-english ;
     skos:definition "The usage role(s) of a contact point — one or more gmeow:ContactPointType values (personal, work, …). Non-functional: a contact point may serve several roles, and competing standpoint-indexed classifications coexist (P9)."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:contactPointType gmeow:contactPointTypeWork ."@x-gmeow-english ;
+    gmeow:useWhen "Use to tag a contact point with one or more usage roles, so a projection can pick the right channel (e.g. the work email for a professional listing)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a single role (it is non-functional — a channel may be both personal and work, and competing classifications coexist) and avoid encoding the provider organization here (use gmeow:contactPointProvider)."@x-gmeow-english ;
+    gmeow:howToUse "Point the contact point at one or more gmeow:ContactPointType individuals; the projection layer reads them to select or label channels per consumer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:contactPointTypePersonal       a gmeow:ContactPointType ; rdfs:label "personal"@x-gmeow-english ;        skos:definition "A personal contact point."@x-gmeow-english .
@@ -174,6 +276,10 @@ gmeow:contactPointProvider
     rdfs:range gmeow:Agent ;
     rdfs:label "contact point provider"@x-gmeow-english ;
     skos:definition "The agent (typically an organization) that issues or scopes a contact point — the employer behind a work address, the provider behind an email's domain. Range is gmeow:Agent to avoid a contacts→organization dependency while admitting organizations. Non-functional. The context that distinguishes 'my work email at ACME' from a personal one."@x-gmeow-english ;
+    skos:example "ex:lillithWorkEmail gmeow:contactPointProvider ex:acmeCorp ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the organization (or agent) that issues or scopes a contact point — the context that distinguishes a work channel from a personal one."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the contact point's usage role (that is gmeow:contactPointType) and avoid forcing a single provider (it is non-functional)."@x-gmeow-english ;
+    gmeow:howToUse "Link the contact point to the providing gmeow:Agent; the range is left broad to admit organizations without a contacts→organization slice dependency."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:email
@@ -182,6 +288,15 @@ gmeow:email
     rdfs:range rdfs:Literal ;
     rdfs:label "email"@x-gmeow-english ;
     skos:definition "An email address at which an agent can be reached."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:email \"lillith@example.org\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat shortcut for an agent's email when only the string is needed and no role, structure, provider, or tenure must be carried."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the address needs structure, a usage role, or a tenure — promote to a first-class gmeow:EmailAddress via gmeow:hasContactPoint — and never project it to a public consumer; an email is sensitive personal data."@x-gmeow-english ;
+    gmeow:howToUse "Carry the address string on the agent; treat it as sensitive-personal so the projection layer withholds it from public targets and releases it only to internal or agent-memory consumers."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
+        gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:telephone
@@ -190,6 +305,15 @@ gmeow:telephone
     rdfs:range rdfs:Literal ;
     rdfs:label "telephone"@x-gmeow-english ;
     skos:definition "A telephone number at which an agent can be reached."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:telephone \"+1-403-555-0100\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat shortcut for an agent's telephone number when only the string is needed and no role, provider, or tenure must be carried."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the number needs a usage role or tenure — promote to a first-class gmeow:TelephoneNumber via gmeow:hasContactPoint — and never project it to a public consumer; a phone number is sensitive personal data."@x-gmeow-english ;
+    gmeow:howToUse "Carry the number string on the agent, preferring E.164 form where known; treat it as sensitive-personal so it is released only to internal or agent-memory consumers."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
+        gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Temporally-scoped contact relationships. These flat convenience properties
@@ -206,6 +330,10 @@ gmeow:hasMet
     rdfs:range gmeow:Agent ;
     rdfs:label "has met"@x-gmeow-english ;
     skos:definition "Records that two agents have met; symmetric. The occasion/period is carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasMet ex:morgan ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat shortcut to record that two agents have met, when the bare symmetric fact (optionally with a period on the statement) is all that is needed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the tie must bear its own confidence, evidence, or interval — reify it as a gmeow:AcquaintanceRelationship instead — and avoid asserting it in both directions (it is symmetric)."@x-gmeow-english ;
+    gmeow:howToUse "Assert the symmetric edge between two gmeow:Agent instances; carry the occasion with gmeow:validFrom/validUntil on the statement, or promote to the relator when the tie needs first-class structure."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasWorkedWith
@@ -214,6 +342,10 @@ gmeow:hasWorkedWith
     rdfs:range gmeow:Agent ;
     rdfs:label "has worked with"@x-gmeow-english ;
     skos:definition "Records that two agents have worked together; symmetric. The period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:ProfessionalRelationship."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasWorkedWith ex:morgan ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat shortcut to record that two agents have worked together, when the bare symmetric fact (optionally with a period on the statement) suffices."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the collaboration must bear its own interval, confidence, or evidence — reify it as a gmeow:ProfessionalRelationship — and avoid asserting it in both directions (it is symmetric)."@x-gmeow-english ;
+    gmeow:howToUse "Assert the symmetric edge between two gmeow:Agent instances; carry the period with gmeow:validFrom/validUntil on the statement, or promote to gmeow:ProfessionalRelationship when first-class structure is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasUsed
@@ -222,6 +354,10 @@ gmeow:hasUsed
     rdfs:range gmeow:Entity ;
     rdfs:label "has used"@x-gmeow-english ;
     skos:definition "Records that an agent has used some entity (a tool, service, or work). The period is carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasUsed ex:someTool ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat shortcut to record that an agent has used a tool, service, or work, when the bare directed fact (optionally with a period on the statement) is enough."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the usage is itself an occurrent that needs participants, instruments, or outcome — model that as an event — and do not treat it as symmetric (the agent uses the entity, not vice versa)."@x-gmeow-english ;
+    gmeow:howToUse "Assert the directed edge from the gmeow:Agent to the used gmeow:Entity; carry the period with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasAgreement
@@ -230,6 +366,10 @@ gmeow:hasAgreement
     rdfs:range gmeow:Agreement ;
     rdfs:label "has agreement"@x-gmeow-english ;
     skos:definition "Relates an agent to an agreement it is party to. The party-ship period is carried with gmeow:validFrom/validUntil on this statement; the agreement's own term/effective dates live on the gmeow:Agreement individual (no double-modelling)."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasAgreement ex:ndaWithAcme ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent is a party to an agreement, when the party-ship can be carried as a flat edge with its own validity period on the statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid restating the agreement's own term or effective dates here (those live on the gmeow:Agreement, no double-modelling) and avoid using it for ties that are not agreements (use the interpersonal-relationship constructs)."@x-gmeow-english ;
+    gmeow:howToUse "Link the gmeow:Agent to its gmeow:Agreement; carry the party-ship period with gmeow:validFrom/validUntil on this statement and leave the agreement's term on the agreement individual."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Reified interpersonal relationship: a standing social/professional tie between
@@ -243,6 +383,10 @@ gmeow:InterpersonalRelationship
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Interpersonal Relationship"@x-gmeow-english ;
     skos:definition "A reified standing relationship between agents (acquaintance, collaboration, …), able to bear its own time interval, confidence, and source evidence."@x-gmeow-english ;
+    skos:example "ex:tie a gmeow:InterpersonalRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a standing tie between agents must be first-class — carrying its own interval, confidence, or source evidence — beyond what the flat gmeow:hasMet/hasWorkedWith shortcuts can hold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the bare symmetric fact (use the flat shortcuts) and avoid using it for a contact channel or an address tenure (those are gmeow:ContactPoint and gmeow:AddressTenure)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator, bind its agents with gmeow:relationshipParty (at least one is required by axiom), and carry its span with gmeow:relationshipInterval; specialize to Professional or Acquaintance where the kind is known."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:ProfessionalRelationship
@@ -250,6 +394,10 @@ gmeow:ProfessionalRelationship
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     rdfs:label "Professional Relationship"@x-gmeow-english ;
     skos:definition "An interpersonal relationship arising from work — colleagues, collaborators, a client and a provider (the reified form of hasWorkedWith)."@x-gmeow-english ;
+    skos:example "ex:collab a gmeow:ProfessionalRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reified form of gmeow:hasWorkedWith — a working tie between agents that must carry its own interval, confidence, or evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the bare symmetric fact (use gmeow:hasWorkedWith) and for a purely social tie (use gmeow:AcquaintanceRelationship)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator, bind its agents with gmeow:relationshipParty, and carry its span with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:AcquaintanceRelationship
@@ -257,6 +405,10 @@ gmeow:AcquaintanceRelationship
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     rdfs:label "Acquaintance Relationship"@x-gmeow-english ;
     skos:definition "An interpersonal relationship of social acquaintance — agents who have met and know one another (the reified form of hasMet)."@x-gmeow-english ;
+    skos:example "ex:acq a gmeow:AcquaintanceRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reified form of gmeow:hasMet — a social acquaintance tie that must carry its own interval, confidence, or evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the bare symmetric fact (use gmeow:hasMet) and for a working tie (use gmeow:ProfessionalRelationship)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator, bind its agents with gmeow:relationshipParty, and carry its span with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:relationshipParty
@@ -265,6 +417,10 @@ gmeow:relationshipParty
     rdfs:range gmeow:Agent ;
     rdfs:label "relationship party"@x-gmeow-english ;
     skos:definition "An agent who is one of the parties to an interpersonal relationship. Non-functional: a relationship typically binds two parties (and is left open for group ties)."@x-gmeow-english ;
+    skos:example "ex:tie gmeow:relationshipParty ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind each agent that takes part in an interpersonal-relationship relator; at least one party is required by axiom."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing exactly two parties at the OWL level (it is non-functional and left open for group ties; the two-party constraint is a SHACL closure concern) and avoid using it on the flat shortcut edges, which bind their agents directly."@x-gmeow-english ;
+    gmeow:howToUse "Attach each participating gmeow:Agent to the relator with this property; pair with gmeow:relationshipInterval to scope the tie in time."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:relationshipInterval
@@ -273,6 +429,10 @@ gmeow:relationshipInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "relationship interval"@x-gmeow-english ;
     skos:definition "The time interval over which an interpersonal relationship held. (A relator carries its period this way rather than via duringInterval, which is reserved for gufo:Situation-based time-scoped relations.)"@x-gmeow-english ;
+    skos:example "ex:tie gmeow:relationshipInterval ex:collabInterval ."@x-gmeow-english ;
+    gmeow:useWhen "Use to scope an interpersonal-relationship relator in time — the span over which the tie held — as a first-class gmeow:TimeInterval."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using gmeow:duringInterval here (that is reserved for gufo:Situation-based time-scoped relations) and avoid putting the interval on the flat shortcut edges (use gmeow:validFrom/validUntil on those statements)."@x-gmeow-english ;
+    gmeow:howToUse "Point the relator at its gmeow:TimeInterval; this is the relator-native way to carry a period, distinct from the situation-based duringInterval idiom."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Address tenure: an email address (or other contact point) is held by an agent
@@ -284,6 +444,10 @@ gmeow:AddressTenure
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Address Tenure"@x-gmeow-english ;
     skos:definition "The reified, time-scoped fact that an agent held a contact point (e.g. an email address) over a particular interval."@x-gmeow-english ;
+    skos:example "ex:tenure a gmeow:AddressTenure ; gmeow:addressHolder ex:lillith ; gmeow:tenuredContactPoint ex:oldEmail ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an agent held a contact point over a particular interval — the way a retired email or number is carried (validUntil in the past) rather than deleted (P10)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a current channel that needs no history (attach the contact point directly with gmeow:hasContactPoint) and avoid deleting a lapsed channel — close its tenure instead."@x-gmeow-english ;
+    gmeow:howToUse "Mint the situation, bind it with gmeow:addressHolder and gmeow:tenuredContactPoint, and scope it on the temporal slice's time-scoped-relation interval; a past end-date retires the channel without erasing it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:tenuredContactPoint
@@ -292,6 +456,10 @@ gmeow:tenuredContactPoint
     rdfs:range gmeow:ContactPoint ;
     rdfs:label "tenured contact point"@x-gmeow-english ;
     skos:definition "The contact point an address-tenure concerns."@x-gmeow-english ;
+    skos:example "ex:tenure gmeow:tenuredContactPoint ex:oldEmail ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the contact point a gmeow:AddressTenure is about — the channel held over the tenure's interval."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one contact point per tenure (it is functional) and avoid using it for the agent who held it (that is gmeow:addressHolder)."@x-gmeow-english ;
+    gmeow:howToUse "Point the tenure at its single gmeow:ContactPoint; pair with gmeow:addressHolder and the time-scoped interval to complete the situation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressHolder
@@ -300,6 +468,10 @@ gmeow:addressHolder
     rdfs:range gmeow:Agent ;
     rdfs:label "address holder"@x-gmeow-english ;
     skos:definition "The agent who held the contact point over the tenure's interval."@x-gmeow-english ;
+    skos:example "ex:tenure gmeow:addressHolder ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the agent who held a contact point over a gmeow:AddressTenure's interval."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one holder per tenure (it is functional) and avoid using it for the channel itself (that is gmeow:tenuredContactPoint)."@x-gmeow-english ;
+    gmeow:howToUse "Point the tenure at its single gmeow:Agent; pair with gmeow:tenuredContactPoint and the time-scoped interval to complete the situation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # =========================================================================== #
@@ -327,6 +499,14 @@ gmeow:addressValue
     rdfs:range rdfs:Literal ;
     rdfs:label "address value"@x-gmeow-english ;
     skos:definition "The normalized addr-spec of an email address."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:addressValue \"lillith@example.org\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the single normalized addr-spec of a first-class gmeow:EmailAddress — the canonical whole, distinct from its parsed local and domain parts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one value per address (it is functional) and avoid using it for the bare agent-level shortcut (that is gmeow:email); an email value is sensitive personal data, never for public projection."@x-gmeow-english ;
+    gmeow:howToUse "Carry the normalized addr-spec on the EmailAddress; derive gmeow:localPart and gmeow:domainPart from it, and keep its personal sensitivity so it is withheld from public consumers."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:localPart
@@ -335,6 +515,12 @@ gmeow:localPart
     rdfs:range rdfs:Literal ;
     rdfs:label "local part"@x-gmeow-english ;
     skos:definition "The local part of an email address."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:localPart \"lillith\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the parsed local part (before the @) of a first-class gmeow:EmailAddress when address structure must be queried separately from the whole."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one local part per address (it is functional) and avoid publishing it to public consumers — the local part still identifies a person and is sensitive personal data."@x-gmeow-english ;
+    gmeow:howToUse "Derive the local part from gmeow:addressValue; it inherits the address's personal sensitivity and is withheld from public consumers."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:domainPart
@@ -343,6 +529,10 @@ gmeow:domainPart
     rdfs:range rdfs:Literal ;
     rdfs:label "domain part"@x-gmeow-english ;
     skos:definition "The domain part of an email address."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:domainPart \"example.org\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the parsed domain part (after the @) of a first-class gmeow:EmailAddress — the component that reveals the provider and underlies the personal-domain usage role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one domain part per address (it is functional) and avoid treating it as fully public — paired with the local part it re-forms sensitive personal data."@x-gmeow-english ;
+    gmeow:howToUse "Derive the domain part from gmeow:addressValue; read it to infer the provider or a personal-domain classification, and keep it under the address's sensitivity when projecting."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:deliversToAccount
@@ -351,4 +541,8 @@ gmeow:deliversToAccount
     rdfs:range gmeow:OnlineAccount ;
     rdfs:label "delivers to account"@x-gmeow-english ;
     skos:definition "Relates an email address to the online account it delivers to — the seam joining an address (held by an agent) to the account a message resides in."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:deliversToAccount ex:lillithMailbox ."@x-gmeow-english ;
+    gmeow:useWhen "Use to cross from an email address (held by an agent) to the gmeow:OnlineAccount whose mailbox receives its messages — the contacts→accounts seam."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating the address with the account it delivers to (the address is a contact point, the account is where messages reside) and avoid using it for non-email channels."@x-gmeow-english ;
+    gmeow:howToUse "Link the gmeow:EmailAddress to its delivery gmeow:OnlineAccount; the address carries the agent's tenure while the account anchors the stored messages."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .

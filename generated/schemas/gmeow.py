@@ -4157,7 +4157,7 @@ class DistanceMetric(ConfiguredBaseModel):
 class DocumentationConcern(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DocumentationConcern',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'documentation concern'})
+         'title': 'Documentation Concern'})
 
     pass
 

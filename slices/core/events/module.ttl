@@ -37,6 +37,10 @@ gmeow:Event
     skos:definition "A temporal occurrence in which entities participate in roles, over possibly fuzzy time, at possibly several locations, asserted by possibly conflicting sources. The universal event of the model: gmeow:Activity (provenance) and gmeow:LifeEvent re-parent onto it. The kind of occurrence is a gmeow:eventType value, never a subclass."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:eventTemporalFrame ;
     gmeow:frameRequirementSeverity "warning" ;
+    skos:example "ex:wedding a gmeow:Event ; gmeow:eventType gmeow:eventTypeMarriage ; gmeow:eventTime \"1947-06-14T11:00:00Z\"^^xsd:dateTime ; gmeow:eventLocation ex:church ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the universal occurrent whenever something HAPPENS — a wedding, a release, a survey, a battle — that bears participants, a time, a location, or sub-events; the single anchor for the four orthogonal event axes (type ⟂ role ⟂ temporal ⟂ location)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing an endurant as an Event (a person/document/place is a gmeow:Entity, not an occurrence), avoid minting an event-kind SUBCLASS (the kind is a gmeow:eventType value, Principle 9), and reach for gmeow:Activity when the occurrence is an agent-driven provenance act with inputs and outputs."@x-gmeow-english ;
+    gmeow:howToUse "Type the occurrence gmeow:Event, give it one or more gmeow:eventType values, anchor it in time (gmeow:eventTime / gmeow:eventInterval, or fuzzy gmeow:earliestStart + gmeow:latestEnd + gmeow:temporalPrecision), place it with gmeow:eventLocation, and add participants flat via gmeow:hasParticipant or reified as gmeow:Participation; carry a non-default frame on gmeow:eventTemporalFrame (Principle 11)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:LifeEvent
@@ -44,6 +48,10 @@ gmeow:LifeEvent
     rdfs:subClassOf gmeow:Event ;
     rdfs:label "Life Event"@x-gmeow-english ;
     skos:definition "An event in the life of a person or family — a birth, death, marriage, christening, name change, and so on — to which sources and confidence can be attached. A thin, person-scoped phase of gmeow:Event (NOT a type taxonomy): the specific kind is a gmeow:eventType value (gmeow:eventTypeBirth, …). The seam joining the names module to the event spine: gmeow:conferredByEvent ranges over it."@x-gmeow-english ;
+    skos:example "ex:birth a gmeow:LifeEvent ; gmeow:eventType gmeow:eventTypeBirth ; gmeow:hasParticipant ex:child ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a person- or family-scoped occurrence (birth, death, marriage, christening, name change) that genealogical sources and confidence attach to, and as the range a name-conferring gmeow:conferredByEvent points at."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for non-life occurrences (a software release or a survey is a plain gmeow:Event or gmeow:Activity), and never read it as a kind taxonomy — the specific kind is still a gmeow:eventType value, not a LifeEvent subclass."@x-gmeow-english ;
+    gmeow:howToUse "Type the occurrence gmeow:LifeEvent, give it the kind via gmeow:eventType (gmeow:eventTypeBirth / gmeow:eventTypeMarriage / …), and attach the principal as a gmeow:Participation with gmeow:roleParticipantPrincipal when role and evidence matter."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:ObservationalActivity
@@ -51,6 +59,10 @@ gmeow:ObservationalActivity
     rdfs:subClassOf gmeow:Activity ;
     rdfs:label "Observational Activity"@x-gmeow-english ;
     skos:definition "An activity whose primary purpose is to produce observations — a scientific survey, census, archaeological excavation, clinical trial, code review, audit, or any other structured act of observing, measuring, or asserting. A subclass of gmeow:Activity (and therefore of gmeow:Event) that generates gmeow:Observation individuals as first-class outputs. The event-type value vocabulary (gmeow:eventTypeSurvey, …) marks specific kinds; no subclass taxonomy is introduced (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:census2021 a gmeow:ObservationalActivity ; gmeow:eventType gmeow:eventTypeCensusActivity ; gmeow:generatedObservation ex:obs1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the occurrence's PURPOSE is to produce observations — a survey, census, excavation, clinical trial, audit, or code review — so its outputs are reachable as first-class gmeow:Observation individuals via gmeow:generatedObservation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an ordinary activity that incidentally records data (use plain gmeow:Activity), and avoid asserting it as the inverse of gmeow:wasGeneratedBy — that would force every generating activity to be observational (an OWL 2 DL typing trap)."@x-gmeow-english ;
+    gmeow:howToUse "Type the act gmeow:ObservationalActivity, mark its kind with gmeow:eventType (gmeow:eventTypeSurvey / gmeow:eventTypeAudit / …), and link each output with gmeow:generatedObservation; the property chain then associates the activity with each observation's vantage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -66,6 +78,10 @@ gmeow:EventType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Event Type"@x-gmeow-english ;
     skos:definition "The kind of an event — a VALUE, never a gmeow:Event subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:EventType individual carrying rdfs:label, not a new class. Pointed at by gmeow:eventType (non-functional)."@x-gmeow-english ;
+    skos:example "ex:eventTypeCoronation a gmeow:EventType ; rdfs:label \"coronation\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the event-kind axis — the open set of individuals (marriage, release, survey, …) that gmeow:eventType draws from; mint a fresh individual when a needed kind is not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting an event-kind SUBCLASS of gmeow:Event (Principle 9 — no overtyping); a new kind is always a fresh gmeow:EventType individual, never a class, and never a gmeow:ParticipantRole (that is the orthogonal who-did-what axis)."@x-gmeow-english ;
+    gmeow:howToUse "Add a new kind as a gmeow:EventType individual with rdfs:label and skos:definition; reference it from events via gmeow:eventType, co-typing freely since the property is non-functional."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventType
@@ -74,6 +90,10 @@ gmeow:eventType
     rdfs:range gmeow:EventType ;
     rdfs:label "event type"@x-gmeow-english ;
     skos:definition "The kind(s) of an event, drawn from the open gmeow:EventType value vocabulary. Non-functional: an occurrence may carry several types (a wedding that is also a religious rite), and competing standpoint-indexed type claims coexist rather than contradict."@x-gmeow-english ;
+    skos:example "ex:wedding gmeow:eventType gmeow:eventTypeMarriage, gmeow:eventTypeBaptism ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what KIND of occurrence an event is, drawing one or more values from gmeow:EventType; assert several when one occurrence is genuinely several kinds at once (a wedding that is also a religious rite)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the kind as an rdf:type subclass instead (Principle 9), and avoid collapsing competing source type-claims — keep it non-functional so standpoint-indexed types coexist via gmeow:accordingTo rather than contradict."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at one or more gmeow:EventType individuals; for a disputed kind, carry each claim on its own statement with gmeow:accordingTo and gmeow:confidence rather than choosing a primary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # Seed event types — absorbed from the former genealogy LifeEvent subclasses
@@ -284,6 +304,10 @@ gmeow:ParticipantRole
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Participant Role"@x-gmeow-english ;
     skos:definition "The role an entity plays in an event — a VALUE, never a participation subproperty. The set is open; a role not among the seeds is a FRESH gmeow:ParticipantRole individual with rdfs:label. Carried by gmeow:participationRole on a gmeow:Participation."@x-gmeow-english ;
+    skos:example "ex:roleBestMan a gmeow:ParticipantRole ; rdfs:label \"best man\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the participation-role axis — the open set of individuals (principal, witness, officiant, performer, …) that gmeow:participationRole draws from; mint a fresh individual for a role not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reviving a hasWitness-style participation SUBPROPERTY (the former genealogy idiom was refactored into role values, Principle 6), and avoid confusing it with gmeow:EventType — role is who-did-what, type is what-kind, two orthogonal axes."@x-gmeow-english ;
+    gmeow:howToUse "Add a new role as a gmeow:ParticipantRole individual with rdfs:label and skos:definition; reference it from a gmeow:Participation via gmeow:participationRole, which is non-functional so a participant may bear several roles."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:roleParticipantPrincipal a gmeow:ParticipantRole ; rdfs:label "principal / subject"@x-gmeow-english ; skos:definition "The entity an event is principally about (e.g. the child in a birth, the deceased in a death). Generalizes the former gmeow:hasPrincipal."@x-gmeow-english .
@@ -339,6 +363,10 @@ gmeow:TemporalPrecision
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Temporal Precision"@x-gmeow-english ;
     skos:definition "The granularity to which an event's time is known — day, month, year, decade, or circa. A value carried by gmeow:temporalPrecision; pairs with gmeow:earliestStart / gmeow:latestEnd to express a fuzzy date without abandoning DL-clean xsd:dateTime base triples."@x-gmeow-english ;
+    skos:example "ex:battle gmeow:temporalPrecision gmeow:precisionDecade ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the dating-granularity axis — the levels (day / month / year / decade / circa) that gmeow:temporalPrecision draws from to say how precisely an event's time is known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as the date itself (the bounds are gmeow:earliestStart / gmeow:latestEnd) and avoid the former free-text gmeow:eventDate string; precision is an explicit value, not prose, and is distinct from epistemic gmeow:confidence."@x-gmeow-english ;
+    gmeow:howToUse "Reference one gmeow:TemporalPrecision individual via gmeow:temporalPrecision alongside the gmeow:earliestStart + gmeow:latestEnd bounds that bracket the fuzzy date, keeping the base triples DL-clean xsd:dateTime."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:precisionDay    a gmeow:TemporalPrecision ; rdfs:label "day"@x-gmeow-english ;    skos:definition "The event's time is known to the day."@x-gmeow-english .
@@ -365,6 +393,15 @@ gmeow:Participation
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Participation"@x-gmeow-english ;
     skos:definition "A reified participation of an entity in an event, in a role, over a period, on some evidence — the same relator idiom as gmeow:NameUsage. Mint one Participation per (event, participant, role) tuple when role / period / confidence / evidence must be recorded; the 80% case uses the flat gmeow:hasParticipant. Perspectival and co-equal: a disputed role is several standpoint-indexed Participations that coexist, none privileged; a withdrawn one is kept with gmeow:displayable false, never deleted."@x-gmeow-english ;
+    skos:example "ex:p1 a gmeow:Participation ; gmeow:participationEvent ex:wedding ; gmeow:participationParticipant ex:priest ; gmeow:participationRole gmeow:roleOfficiant ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a participation must be first-class — when the role, period, confidence, evidence, or standpoint of an entity's part in an event matters (an officiant at a wedding, a disputed witness), the reified half of the gmeow:hasParticipant flat/relator pair."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the 80% case where an event simply has a participant with no role or period to record — use the flat gmeow:hasParticipant and promote only on demand (the hasMet / InterpersonalRelationship duality); never mint a per-role subclass."@x-gmeow-english ;
+    gmeow:howToUse "Mint one Participation per (event, participant, role) tuple, bind the players with gmeow:participationEvent and gmeow:participationParticipant, add gmeow:participationRole / gmeow:participationInterval / evidence as needed, and index a contested role with gmeow:accordingTo + gmeow:confidence; retract with gmeow:displayable false rather than deletion (Principle 10)."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory,
+        gmeow:consumerResearchQueue ;
+    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:participationEvent
@@ -373,6 +410,10 @@ gmeow:participationEvent
     rdfs:range gmeow:Event ;
     rdfs:label "participation event"@x-gmeow-english ;
     skos:definition "The event a participation is part of (functional — one event per participation)."@x-gmeow-english ;
+    skos:example "ex:p1 gmeow:participationEvent ex:wedding ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:Participation to the single gmeow:Event it is about — the mandatory event player of the relator."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a non-event, and avoid splitting one participation across two events — it is functional, so a participant in two events is two Participations."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:participationEvent per Participation alongside gmeow:participationParticipant; the SHACL closure shape checks both players are present."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:participationParticipant
@@ -381,6 +422,10 @@ gmeow:participationParticipant
     rdfs:range gmeow:Entity ;
     rdfs:label "participation participant"@x-gmeow-english ;
     skos:definition "The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants."@x-gmeow-english ;
+    skos:example "ex:p1 gmeow:participationParticipant ex:priest ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:Participation to the entity that took part — an agent OR a non-agent (a document signed, a place visited), since the range is gmeow:Entity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the flat gmeow:hasParticipant when you have already reified to a Participation (state the player here instead), and avoid restricting it to agents — non-agent participants are admitted by design."@x-gmeow-english ;
+    gmeow:howToUse "Assert one or more gmeow:participationParticipant per Participation (non-functional, so joint roles are several players); pair with gmeow:participationEvent and gmeow:participationRole."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:participationRole
@@ -389,6 +434,10 @@ gmeow:participationRole
     rdfs:range gmeow:ParticipantRole ;
     rdfs:label "participation role"@x-gmeow-english ;
     skos:definition "The role(s) the participant played, drawn from the open gmeow:ParticipantRole value vocabulary. NON-FUNCTIONAL — mirroring gmeow:eventType: a participation may bear several roles, and competing standpoint-indexed role claims coexist (accordingTo) rather than contradict (Principle 9). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties."@x-gmeow-english ;
+    skos:example "ex:p1 gmeow:participationRole gmeow:roleOfficiant, gmeow:roleWitness ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which gmeow:ParticipantRole value(s) a participant played in an event — officiant, witness, performer — assigning several when the part is genuinely several roles at once."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reviving a per-role subproperty (gmeow:hasWitness and kin were refactored into role values, Principle 6) and avoid collapsing disputed roles — keep it non-functional so standpoint-indexed roles coexist via gmeow:accordingTo."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Participation at one or more gmeow:ParticipantRole individuals; carry a contested role on its own statement with gmeow:accordingTo + gmeow:confidence rather than choosing a primary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:participationInterval
@@ -397,6 +446,10 @@ gmeow:participationInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "participation interval"@x-gmeow-english ;
     skos:definition "The time interval over which the participation held. (A relator carries its period this way — matching usageInterval / relationshipInterval — rather than via duringInterval.)"@x-gmeow-english ;
+    skos:example "ex:p1 gmeow:participationInterval ex:tour1992to1995 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a participation held over a bounded period — a multi-year employment, a tour of duty — and that span belongs on the relator itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the event's own gmeow:eventInterval for a participation whose span differs from the event's, and avoid gmeow:during (that orders two events, not a participation's period)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Participation at a gmeow:TimeInterval via gmeow:participationInterval, matching the usageInterval / relationshipInterval relator idiom rather than duringInterval."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -411,6 +464,13 @@ gmeow:hasParticipant
     rdfs:range gmeow:Agent ;
     rdfs:label "has participant"@x-gmeow-english ;
     skos:definition "An agent that took part in an event — the flat 80%-case shortcut. Non-functional. Promote to a gmeow:Participation node when the role, period, confidence, or evidence of the participation must be recorded."@x-gmeow-english ;
+    skos:example "ex:wedding gmeow:hasParticipant ex:bride, ex:groom ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the 80% case where an event simply has a participant and no role, period, confidence, or evidence needs its own node; period or role on the flat form can ride an RDF-star annotation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the role / period / confidence / evidence of the part must be first-class (promote to gmeow:Participation, its reified pair) and when the participant is a non-agent — the flat range is gmeow:Agent, so use a Participation for a document or place."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:hasParticipant per agent for the simple case; promote to a gmeow:Participation (bind via gmeow:participationEvent / gmeow:participationParticipant / gmeow:participationRole) the moment context must be borne — the flat/relator duality recorded by gmeow:pairsWith."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerPublicSite,
+        gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerWikidata ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -428,6 +488,10 @@ gmeow:eventInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "event interval"@x-gmeow-english ;
     skos:definition "The crisp, known time interval over which an event occurred (reuses the temporal module's gmeow:TimeInterval). For a point-like occurrence use gmeow:eventTime; for an approximate date use gmeow:earliestStart / gmeow:latestEnd + gmeow:temporalPrecision."@x-gmeow-english ;
+    skos:example "ex:conference gmeow:eventInterval ex:sept2024 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an event has a crisp, known span with both endpoints — a conference, a tour, a siege — that anchors it in time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a point-like instant (use gmeow:eventTime), for an approximate date (use gmeow:earliestStart / gmeow:latestEnd + gmeow:temporalPrecision), and for a bare LENGTH with no anchor (use gmeow:hasDuration)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at a gmeow:TimeInterval whose endpoints are xsd:dateTime; carry a non-default calendar on gmeow:eventTemporalFrame (Principle 11)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventTime
@@ -436,6 +500,10 @@ gmeow:eventTime
     rdfs:range xsd:dateTime ;
     rdfs:label "event time"@x-gmeow-english ;
     skos:definition "The instant at which a point-like event occurred (xsd:dateTime — DL-clean, never xsd:date). Replaces the former free-text gmeow:eventDate. Non-functional: competing standpoint-indexed dates coexist as confidence-weighted statements."@x-gmeow-english ;
+    skos:example "ex:birth gmeow:eventTime \"1947-06-14T09:30:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the instant of a point-like event whose date is known crisply — a birth time, a commit timestamp; the DL-clean replacement for the retired free-text gmeow:eventDate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid xsd:date literals (Principle 3 — always xsd:dateTime), avoid it for a spanning event (use gmeow:eventInterval) or a fuzzy date (use gmeow:earliestStart / gmeow:latestEnd), and never collapse competing dates — keep it non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Assert an xsd:dateTime literal; carry a disputed date on its own statement with gmeow:accordingTo + gmeow:confidence, and a non-default calendar on gmeow:eventTemporalFrame."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:earliestStart
@@ -444,6 +512,10 @@ gmeow:earliestStart
     rdfs:range xsd:dateTime ;
     rdfs:label "earliest start"@x-gmeow-english ;
     skos:definition "The earliest instant at which an event could have started — the lower bound of a fuzzy / approximate date (xsd:dateTime). Pairs with gmeow:latestEnd and a gmeow:temporalPrecision value to model uncertainty without abandoning DL-clean base triples."@x-gmeow-english ;
+    skos:example "ex:battle gmeow:earliestStart \"1850-01-01T00:00:00Z\"^^xsd:dateTime ; gmeow:latestEnd \"1859-12-31T23:59:59Z\"^^xsd:dateTime ; gmeow:temporalPrecision gmeow:precisionDecade ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the lower bound of a fuzzy or approximate date — 'sometime in the 1850s', 'circa 1200' — paired with gmeow:latestEnd and a gmeow:temporalPrecision value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a crisply known instant (use gmeow:eventTime) or span (use gmeow:eventInterval), and avoid asserting only one bound — the lower and upper bounds bracket the fuzzy date together."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:earliestStart and gmeow:latestEnd as xsd:dateTime bounds plus a gmeow:temporalPrecision value; the solver layer (P12) does any fuzzy-interval arithmetic."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:latestEnd
@@ -452,6 +524,10 @@ gmeow:latestEnd
     rdfs:range xsd:dateTime ;
     rdfs:label "latest end"@x-gmeow-english ;
     skos:definition "The latest instant by which an event must have ended — the upper bound of a fuzzy / approximate date (xsd:dateTime). Pairs with gmeow:earliestStart and a gmeow:temporalPrecision value."@x-gmeow-english ;
+    skos:example "ex:battle gmeow:latestEnd \"1859-12-31T23:59:59Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the upper bound of a fuzzy or approximate date, paired with gmeow:earliestStart and a gmeow:temporalPrecision value to bracket when an event could have occurred."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a crisp instant (gmeow:eventTime) or span (gmeow:eventInterval), and avoid stating it alone — it is the companion upper bound to gmeow:earliestStart."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:latestEnd as an xsd:dateTime alongside gmeow:earliestStart and gmeow:temporalPrecision; leave fuzzy-interval reasoning to the solver layer (P12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:temporalPrecision
@@ -460,6 +536,10 @@ gmeow:temporalPrecision
     rdfs:range gmeow:TemporalPrecision ;
     rdfs:label "temporal precision"@x-gmeow-english ;
     skos:definition "The granularity to which an event's time is known — a gmeow:TemporalPrecision value (day / month / year / decade / circa). Makes the determinacy of a date explicit instead of pretending every date is to-the-day."@x-gmeow-english ;
+    skos:example "ex:battle gmeow:temporalPrecision gmeow:precisionCirca ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare HOW PRECISELY an event's time is known — to the day, month, year, decade, or circa — making date determinacy explicit rather than pretending every date is to-the-day."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as the date itself (the bounds are gmeow:earliestStart / gmeow:latestEnd) or as epistemic gmeow:confidence; precision is the ontic granularity of the dating, an orthogonal facet (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at one gmeow:TemporalPrecision value alongside its date bounds; consumers read it to render 'c. 1850' rather than a spurious to-the-second figure."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -473,6 +553,10 @@ gmeow:eventLocation
     rdfs:range gmeow:Location ;
     rdfs:label "event location"@x-gmeow-english ;
     skos:definition "A location at which an event occurred — a geographic gmeow:Place, a gmeow:VirtualLocation, or any other gmeow:Location (the full superset). Non-functional: an event may span several locations, and competing standpoint-indexed locations coexist."@x-gmeow-english ;
+    skos:example "ex:wedding gmeow:eventLocation ex:church ."@x-gmeow-english ;
+    gmeow:useWhen "Use to place an event at a location — geographic, virtual, or otherwise — the general superset property that movement endpoints (gmeow:eventFromLocation / eventToLocation) specialize so plain-location consumers still see them."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the origin/destination of a move when the direction matters (use the from/to specializations), and avoid collapsing competing source locations — keep it non-functional so standpoint-indexed places coexist."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at one or more gmeow:Location individuals; a containing location is inferred by the gmeow:eventLocation ∘ gmeow:containedInLocation property chain, so assert only the most specific place."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventFromLocation
@@ -482,6 +566,10 @@ gmeow:eventFromLocation
     rdfs:range gmeow:Location ;
     rdfs:label "event from-location"@x-gmeow-english ;
     skos:definition "The origin of a movement event — where a migration, move, journey, or relocation departed from. A specialisation of gmeow:eventLocation (the origin IS a location of the event), so plain location consumers still see it. Pairs with gmeow:eventToLocation; the endpoint pair is the discrete sibling of the continuous gmeow:eventTrajectory (schema:MoveAction's fromLocation)."@x-gmeow-english ;
+    skos:example "ex:migration gmeow:eventFromLocation ex:ireland ; gmeow:eventToLocation ex:boston ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the origin of a movement event — where a migration, move, journey, or procession departed from — paired with gmeow:eventToLocation for the discrete endpoint case."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a stationary event (use plain gmeow:eventLocation), and avoid the endpoint pair when a continuous path is needed — use gmeow:eventTrajectory for the space-time curve instead."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:eventFromLocation and gmeow:eventToLocation as the move's endpoints; both subproperty gmeow:eventLocation, so plain-location consumers still see them as locations of the event."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventToLocation
@@ -491,6 +579,10 @@ gmeow:eventToLocation
     rdfs:range gmeow:Location ;
     rdfs:label "event to-location"@x-gmeow-english ;
     skos:definition "The destination of a movement event — where a migration, move, journey, or relocation arrived. A specialisation of gmeow:eventLocation, pairing with gmeow:eventFromLocation (schema:MoveAction's toLocation)."@x-gmeow-english ;
+    skos:example "ex:migration gmeow:eventToLocation ex:boston ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the destination of a movement event — where a migration, move, journey, or procession arrived — paired with gmeow:eventFromLocation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a stationary event (use plain gmeow:eventLocation), and avoid the endpoint pair when the continuous path matters (use gmeow:eventTrajectory)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:eventToLocation with gmeow:eventFromLocation as the move's endpoints; both subproperty gmeow:eventLocation so plain-location consumers see them."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventTrajectory
@@ -499,6 +591,10 @@ gmeow:eventTrajectory
     rdfs:range gmeow:Trajectory ;
     rdfs:label "event trajectory"@x-gmeow-english ;
     skos:definition "The trajectory of a moving event — a parade, march, migration, or procession — describing its continuous space-time path. Reuses the gmeow:Trajectory facility from the locations module (trajectory design). Non-functional: competing trajectory claims from different sources coexist (Principle 9)."@x-gmeow-english;
+    skos:example "ex:parade gmeow:eventTrajectory ex:downtownRoute ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the continuous space-time path of a moving event — a parade, march, migration, or procession — when the route itself, not just its endpoints, must be modelled."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when two discrete endpoints suffice (use gmeow:eventFromLocation / eventToLocation) and avoid collapsing competing routes — keep it non-functional so standpoint-indexed trajectories coexist."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at a gmeow:Trajectory from the locations module rather than minting a parallel path class; carry source-specific routes as coexisting claims."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventSpacetime
@@ -507,6 +603,10 @@ gmeow:eventSpacetime
     rdfs:range gmeow:LocationState ;
     rdfs:label "event spacetime"@x-gmeow-english ;
     skos:definition "A spacetime slice of an event, expressed as a gmeow:LocationState that carries location, time interval or instant, pose, and optional velocity relative to an explicit reference frame (Principle 11). Reuses LocationState rather than minting a parallel 4D class. Multiple slices may coexist for the same event."@x-gmeow-english ;
+    skos:example "ex:flight gmeow:eventSpacetime ex:slice0900, ex:slice1000 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an event needs full 4D placement — a location-plus-time slice carrying pose and optional velocity relative to an explicit reference frame — typically several slices tracing a moving occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when a plain place (gmeow:eventLocation) or a route (gmeow:eventTrajectory) suffices, and never mint a parallel 4D class — reuse gmeow:LocationState, which already carries the frame (Principle 11)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at one or more gmeow:LocationState individuals, each binding location, time, pose, and frame; multiple slices for one event coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -522,6 +622,10 @@ gmeow:subEventOf
     rdfs:range gmeow:Event ;
     rdfs:label "sub-event of"@x-gmeow-english ;
     skos:definition "Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). A specialization of the universal gmeow:partOf spine. Non-simple, so kept out of all cardinality axioms."@x-gmeow-english ;
+    skos:example "ex:talk gmeow:subEventOf ex:session ."@x-gmeow-english ;
+    gmeow:useWhen "Use for mereological event decomposition — a talk within a session within a conference — where one occurrence is genuinely PART OF a larger occurrence; the event-scoped specialization of gmeow:partOf."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the TEMPORAL gmeow:during (which only orders extents) or the SPATIAL gmeow:containedInLocation; sub-event-of is part-whole, not mere temporal nesting or co-location."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:subEventOf from the smaller event to the larger; transitivity builds the decomposition closure and generic consumers read gmeow:partOf by inheritance. Read gmeow:hasSubEvent as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:hasSubEvent
@@ -532,6 +636,10 @@ gmeow:hasSubEvent
     rdfs:range gmeow:Event ;
     rdfs:label "has sub-event"@x-gmeow-english ;
     skos:definition "Relates an event to a constituent sub-event; the transitive inverse of gmeow:subEventOf."@x-gmeow-english ;
+    skos:example "ex:conference gmeow:hasSubEvent ex:session ."@x-gmeow-english ;
+    gmeow:useWhen "Use when traversing or projecting from a whole event to its constituent sub-events — a conference rooted view listing its sessions and talks."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when gmeow:subEventOf reads more naturally (prefer the part→whole direction and let the inverse follow), and avoid confusing it with the temporal gmeow:contains."@x-gmeow-english ;
+    gmeow:howToUse "Prefer asserting gmeow:subEventOf and read gmeow:hasSubEvent as its transitive inverse; reach for it explicitly only in whole-rooted projections."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # If an event occurs at a location, it also occurs at every containing location.
@@ -551,6 +659,10 @@ gmeow:generatedObservation
     rdfs:range gmeow:Observation ;
     rdfs:label "generated observation"@x-gmeow-english ;
     skos:definition "Relates an observational activity to an observation it generated as a first-class output. The inverse direction (Observation → Activity) is covered by the general gmeow:wasGeneratedBy (provenance module), since Observation ⊑ Entity and ObservationalActivity ⊑ Activity. This property is deliberately NOT asserted as owl:inverseOf gmeow:wasGeneratedBy, because that would force every Activity that generates anything to be an ObservationalActivity (OWL 2 DL typing interaction)."@x-gmeow-english ;
+    skos:example "ex:survey gmeow:generatedObservation ex:obs1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a gmeow:ObservationalActivity to a gmeow:Observation it produced as a first-class output — a survey to its findings, an audit to its verdicts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as owl:inverseOf gmeow:wasGeneratedBy (that would force every generating activity to be observational — a DL typing trap); read the inverse direction through the general provenance gmeow:wasGeneratedBy instead."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:generatedObservation from the activity to each observation; the gmeow:generatedObservation ∘ gmeow:vantage chain then associates the activity with each observation's vantage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:eventObservation
@@ -560,6 +672,10 @@ gmeow:eventObservation
     rdfs:range gmeow:Observation ;
     rdfs:label "event observation"@x-gmeow-english ;
     skos:definition "An observation made during or about an event. Inverse of gmeow:observationEvent (observations module). Non-functional: an event may have many observations, and competing standpoint-indexed observations coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:wedding gmeow:eventObservation ex:weatherNote ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link any gmeow:Event to an observation made during or about it — distinct from gmeow:generatedObservation, which is reserved for the deliberate outputs of an gmeow:ObservationalActivity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an observation that is the activity's purpose-built product (use gmeow:generatedObservation), and avoid collapsing competing observations — keep it non-functional so standpoint-indexed ones coexist."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:eventObservation from the event, or its inverse gmeow:observationEvent from the observation; either direction is read both ways."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # An ObservationalActivity is associated with the vantage of every observation it
@@ -581,6 +697,10 @@ gmeow:EventSeries
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Event Series"@x-gmeow-english ;
     skos:definition "A recurrence or schedule that issues a series of concrete gmeow:Event occurrences — a weekly standup, an annual conference. Distinct from any one occurrence; the recurrence rule is a projection concern (iCalendar RRULE), not a core property."@x-gmeow-english ;
+    skos:example "ex:standup a gmeow:EventSeries ; gmeow:hasRecurrenceRule ex:weeklyMon ; gmeow:seriesOccurrence ex:standup20240603 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the planned recurrence or schedule that ISSUES concrete event occurrences — a weekly standup, an annual conference — when the series-vs-occurrence distinction (planned vs actual) matters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a single dated occurrence as an EventSeries (each instance is a gmeow:Event linked by gmeow:occurrenceOfSeries), and avoid hand-authoring rich recurrence structure — the RRULE is a projection concern, not core clutter."@x-gmeow-english ;
+    gmeow:howToUse "Type the schedule gmeow:EventSeries, attach a gmeow:RecurrenceRule via gmeow:hasRecurrenceRule, and link each concrete gmeow:Event it issues with gmeow:seriesOccurrence (read back via gmeow:occurrenceOfSeries)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:seriesOccurrence
@@ -589,6 +709,10 @@ gmeow:seriesOccurrence
     rdfs:range gmeow:Event ;
     rdfs:label "series occurrence"@x-gmeow-english ;
     skos:definition "Relates an event series to one of the concrete event occurrences it issues."@x-gmeow-english ;
+    skos:example "ex:standup gmeow:seriesOccurrence ex:standup20240603 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a gmeow:EventSeries to a concrete gmeow:Event occurrence it issued — the series-rooted direction of the planned/actual relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it when gmeow:occurrenceOfSeries reads more naturally (the occurrence-rooted inverse), and avoid using it to carry the recurrence rule (that is gmeow:hasRecurrenceRule)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:seriesOccurrence from the series to each issued event, or its inverse gmeow:occurrenceOfSeries from the event; one direction suffices."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:occurrenceOfSeries
@@ -598,6 +722,10 @@ gmeow:occurrenceOfSeries
     rdfs:range gmeow:EventSeries ;
     rdfs:label "occurrence of series"@x-gmeow-english ;
     skos:definition "Relates a concrete event occurrence to the series that issued it; the inverse of gmeow:seriesOccurrence."@x-gmeow-english ;
+    skos:example "ex:standup20240603 gmeow:occurrenceOfSeries ex:standup ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a concrete gmeow:Event back to the gmeow:EventSeries that issued it — the occurrence-rooted direction of the planned/actual relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it when gmeow:seriesOccurrence reads more naturally (the series-rooted inverse)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:occurrenceOfSeries from the occurrence, or its inverse gmeow:seriesOccurrence from the series; read both ways."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # =========================================================================== #
@@ -635,6 +763,10 @@ gmeow:before
     rdfs:range gmeow:Event ;
     rdfs:label "before"@x-gmeow-english ;
     skos:definition "Allen BEFORE: this event ends strictly before the related event begins (a gap between them). Transitive. Inverse of gmeow:after. (= time:intervalBefore over the events' extents; TimeML TLINK relType BEFORE; TEO before.)"@x-gmeow-english ;
+    skos:example "ex:dinner gmeow:before ex:concert ."@x-gmeow-english ;
+    gmeow:useWhen "Use to qualitatively order two events when one ends strictly before the other begins, with a gap between them — the Allen BEFORE link, useful when exact dates are unknown but the ordering is."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the events abut with no gap (use gmeow:meets), overlap (gmeow:overlaps), or when a crisp date on each event already implies the order; this relates occurrences, not their bare extents."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:before between two gmeow:Event occurrences; transitivity derives the sound closure. Read gmeow:after as its inverse; the full Allen composition table is left to the solver (P12), not OWL."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:after
@@ -644,6 +776,10 @@ gmeow:after
     rdfs:range gmeow:Event ;
     rdfs:label "after"@x-gmeow-english ;
     skos:definition "Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)"@x-gmeow-english ;
+    skos:example "ex:concert gmeow:after ex:dinner ."@x-gmeow-english ;
+    gmeow:useWhen "Use to order two events when one begins strictly after the other ends — the Allen AFTER link, the inverse view of gmeow:before."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the events abut (gmeow:metBy) or overlap (gmeow:overlappedBy), or when crisp dates already fix the order; prefer asserting gmeow:before and reading this as its inverse."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:before in the natural direction and read gmeow:after as its transitive inverse; the sound transitive closure is derived, the full Allen table stays in the solver (P12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:meets
@@ -653,6 +789,10 @@ gmeow:meets
     rdfs:range gmeow:Event ;
     rdfs:label "meets"@x-gmeow-english ;
     skos:definition "Allen MEETS: this event ends exactly when the related event begins (no gap, no overlap). NOT transitive. Inverse of gmeow:metBy. (= time:intervalMeets; TimeML IBEFORE / immediately-before; TEO meets.)"@x-gmeow-english ;
+    skos:example "ex:ceremony gmeow:meets ex:reception ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one event ends exactly when the next begins, with no gap and no overlap — a ceremony abutting its reception (the Allen MEETS link)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when there is a gap (use gmeow:before) or an overlap (gmeow:overlaps); meets is NOT transitive, so do not expect a derived chain across three abutting events."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:meets between the abutting gmeow:Event occurrences and read gmeow:metBy as its inverse; no transitive closure follows by design."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:metBy
@@ -661,6 +801,10 @@ gmeow:metBy
     rdfs:range gmeow:Event ;
     rdfs:label "met by"@x-gmeow-english ;
     skos:definition "Allen MET-BY: this event begins exactly when the related event ends; inverse of gmeow:meets. (= time:intervalMetBy; TimeML IAFTER; TEO metBy.)"@x-gmeow-english ;
+    skos:example "ex:reception gmeow:metBy ex:ceremony ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one event begins exactly when the prior event ends — the Allen MET-BY link, the inverse view of gmeow:meets."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when there is a gap (gmeow:after) or overlap (gmeow:overlappedBy); prefer asserting gmeow:meets and reading this as its inverse. Not transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:meets in the natural direction and read gmeow:metBy as its inverse; no closure is derived."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:overlaps
@@ -670,6 +814,10 @@ gmeow:overlaps
     rdfs:range gmeow:Event ;
     rdfs:label "overlaps"@x-gmeow-english ;
     skos:definition "Allen OVERLAPS: this event begins before, and ends during, the related event (their extents partially overlap). NOT transitive. Inverse of gmeow:overlappedBy. (= time:intervalOverlaps; TEO overlaps.)"@x-gmeow-english ;
+    skos:example "ex:protest gmeow:overlaps ex:curfew ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one event begins before and ends during another so their extents partially overlap — the Allen OVERLAPS link."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when one extent fully contains the other (use gmeow:during / gmeow:contains) or they merely abut (gmeow:meets); overlaps is NOT transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:overlaps between the partially-overlapping gmeow:Event occurrences and read gmeow:overlappedBy as its inverse; no closure follows."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:overlappedBy
@@ -678,6 +826,10 @@ gmeow:overlappedBy
     rdfs:range gmeow:Event ;
     rdfs:label "overlapped by"@x-gmeow-english ;
     skos:definition "Allen OVERLAPPED-BY: inverse of gmeow:overlaps. (= time:intervalOverlappedBy; TEO overlappedBy.)"@x-gmeow-english ;
+    skos:example "ex:curfew gmeow:overlappedBy ex:protest ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the inverse view of gmeow:overlaps — when an event begins during, and ends after, the related event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when one extent contains the other (gmeow:during / gmeow:contains); prefer asserting gmeow:overlaps and reading this as its inverse. Not transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:overlaps in the natural direction and read gmeow:overlappedBy as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:starts
@@ -687,6 +839,10 @@ gmeow:starts
     rdfs:range gmeow:Event ;
     rdfs:label "starts"@x-gmeow-english ;
     skos:definition "Allen STARTS: this event and the related event begin together, and this one ends first (it is an initial sub-span). NOT transitive. Inverse of gmeow:startedBy. (= time:intervalStarts; TimeML BEGINS; TEO starts.)"@x-gmeow-english ;
+    skos:example "ex:openingAct gmeow:starts ex:festival ."@x-gmeow-english ;
+    gmeow:useWhen "Use when two events begin together and this one ends first — an opening act that starts a festival (the Allen STARTS link, an initial sub-span)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with mereological gmeow:subEventOf (this is a temporal extent relation, not part-of) and avoid expecting transitive closure; starts is non-transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:starts between the co-beginning gmeow:Event occurrences and read gmeow:startedBy as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:startedBy
@@ -695,6 +851,10 @@ gmeow:startedBy
     rdfs:range gmeow:Event ;
     rdfs:label "started by"@x-gmeow-english ;
     skos:definition "Allen STARTED-BY: inverse of gmeow:starts. (= time:intervalStartedBy; TimeML BEGUN_BY; TEO startedBy.)"@x-gmeow-english ;
+    skos:example "ex:festival gmeow:startedBy ex:openingAct ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the inverse view of gmeow:starts — when this event and the related one begin together and this one ends last (it contains the initial sub-span)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with gmeow:hasSubEvent (mereological, not temporal); prefer asserting gmeow:starts and reading this as its inverse. Not transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:starts in the natural direction and read gmeow:startedBy as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:during
@@ -704,6 +864,10 @@ gmeow:during
     rdfs:range gmeow:Event ;
     rdfs:label "during"@x-gmeow-english ;
     skos:definition "Allen DURING: this event's extent falls strictly within the related event's extent (both endpoints interior). Transitive. Inverse of gmeow:contains. Distinct from gmeow:subEventOf (mereological part-of) and gmeow:containedInPlace (spatial). (= time:intervalDuring; TimeML IS_INCLUDED; TEO during.)"@x-gmeow-english ;
+    skos:example "ex:toast gmeow:during ex:reception ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one event's extent falls strictly within another's (both endpoints interior) — a toast during a reception — as a purely TEMPORAL containment of extents."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for mereological part-of (use gmeow:subEventOf) or spatial containment (use gmeow:containedInPlace); during asserts only that one extent nests in another, never part-hood or co-location."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:during from the inner event to the enclosing one; transitivity derives the sound closure and gmeow:contains reads as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:contains
@@ -712,6 +876,10 @@ gmeow:contains
     rdfs:range gmeow:Event ;
     rdfs:label "temporally contains"@x-gmeow-english ;
     skos:definition "Allen CONTAINS: this event's extent strictly contains the related event's extent; the transitive inverse of gmeow:during. A TEMPORAL relation only — not spatial (gmeow:containedInPlace) nor mereological (gmeow:hasSubEvent). (= time:intervalContains; TimeML INCLUDES; TEO contains.)"@x-gmeow-english ;
+    skos:example "ex:reception gmeow:contains ex:toast ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one event's extent strictly contains another's — the Allen CONTAINS link, the inverse view of gmeow:during, asserting TEMPORAL nesting only."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for spatial containment (gmeow:containedInPlace) or part-of decomposition (gmeow:hasSubEvent); prefer asserting gmeow:during and reading this as its transitive inverse."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:during in the natural direction and read gmeow:contains as its transitive inverse; the sound closure is derived."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:finishes
@@ -721,6 +889,10 @@ gmeow:finishes
     rdfs:range gmeow:Event ;
     rdfs:label "finishes"@x-gmeow-english ;
     skos:definition "Allen FINISHES: this event and the related event end together, and this one began later (it is a final sub-span). NOT transitive. Inverse of gmeow:finishedBy. (= time:intervalFinishes; TimeML ENDS; TEO finishes.)"@x-gmeow-english ;
+    skos:example "ex:closingAct gmeow:finishes ex:festival ."@x-gmeow-english ;
+    gmeow:useWhen "Use when two events end together and this one began later — a closing act that finishes a festival (the Allen FINISHES link, a final sub-span)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with mereological gmeow:subEventOf (temporal extent, not part-of) and avoid expecting transitive closure; finishes is non-transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:finishes between the co-ending gmeow:Event occurrences and read gmeow:finishedBy as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:finishedBy
@@ -729,6 +901,10 @@ gmeow:finishedBy
     rdfs:range gmeow:Event ;
     rdfs:label "finished by"@x-gmeow-english ;
     skos:definition "Allen FINISHED-BY: inverse of gmeow:finishes. (= time:intervalFinishedBy; TimeML ENDED_BY; TEO finishedBy.)"@x-gmeow-english ;
+    skos:example "ex:festival gmeow:finishedBy ex:closingAct ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the inverse view of gmeow:finishes — when this event and the related one end together and this one began earlier (it contains the final sub-span)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with gmeow:hasSubEvent (mereological); prefer asserting gmeow:finishes and reading this as its inverse. Not transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:finishes in the natural direction and read gmeow:finishedBy as its inverse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:coincidesWith
@@ -737,6 +913,10 @@ gmeow:coincidesWith
     rdfs:range gmeow:Event ;
     rdfs:label "coincides with"@x-gmeow-english ;
     skos:definition "Allen EQUALS: this event and the related event share the same temporal extent (co-temporal). Symmetric and transitive. Asserts TEMPORAL simultaneity only, never identity of the events themselves. (= time:intervalEquals; TimeML SIMULTANEOUS; TEO equal.)"@x-gmeow-english ;
+    skos:example "ex:keynote gmeow:coincidesWith ex:livestream ."@x-gmeow-english ;
+    gmeow:useWhen "Use when two distinct events share the same temporal extent — a keynote and its livestream — to assert TEMPORAL simultaneity (the Allen EQUALS link)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as identity of the events (it is co-temporality, never owl:sameAs) and avoid it for partial overlap (use gmeow:overlaps); it is symmetric and transitive."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:coincidesWith between the co-temporal gmeow:Event occurrences; symmetry and transitivity derive the sound closure across a simultaneity cluster."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -750,6 +930,10 @@ gmeow:Duration
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Duration"@x-gmeow-english ;
     skos:definition "A length of time as a quantity, independent of when it occurs — the running time of an event, a gap, a recurrence period. Carries an xsd:duration via gmeow:durationValue. (= time:Duration / time:TemporalDuration, schema:Duration, ISO-TimeML TIMEX3 type=DURATION, TEO Duration.)"@x-gmeow-english ;
+    skos:example "ex:runtime a gmeow:Duration ; gmeow:durationValue \"PT2H15M\"^^xsd:duration ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a LENGTH of time as a quantity, independent of when it occurs — a film's running time, a gap, a recurrence period."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an ANCHORED span (use gmeow:eventInterval / gmeow:TimeInterval, which fixes the event in time); a duration is a length only, with no start or end."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:Duration carrying an xsd:duration via gmeow:durationValue and attach it to an event with gmeow:hasDuration; the TEO normalized-duration string is a projection target, not a base triple."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:hasDuration
@@ -758,6 +942,10 @@ gmeow:hasDuration
     rdfs:range gmeow:Duration ;
     rdfs:label "has duration"@x-gmeow-english ;
     skos:definition "Relates an event to its duration (a gmeow:Duration). Distinct from gmeow:eventInterval (which anchors the event in time); a duration is a length only."@x-gmeow-english ;
+    skos:example "ex:film gmeow:hasDuration ex:runtime ."@x-gmeow-english ;
+    gmeow:useWhen "Use to give an event its LENGTH as a quantity — a film's running time, a meeting's planned duration — when only the length, not the anchoring, matters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the event's placement in time is what you mean (use gmeow:eventInterval or gmeow:eventTime); duration is a length, not an anchor."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at a gmeow:Duration via gmeow:hasDuration; the Duration carries the xsd:duration literal on gmeow:durationValue."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:durationValue
@@ -766,6 +954,10 @@ gmeow:durationValue
     rdfs:range xsd:duration ;
     rdfs:label "duration value"@x-gmeow-english ;
     skos:definition "The length of a gmeow:Duration as an xsd:duration literal (ISO 8601, e.g. P1Y2M / PT3H). DL-clean; the TEO hasNormalizedDuration 0Y0M0W0D0H0m0s string is a projection target."@x-gmeow-english ;
+    skos:example "ex:runtime gmeow:durationValue \"PT3H\"^^xsd:duration ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the actual length of a gmeow:Duration as an ISO 8601 xsd:duration literal (P1Y2M, PT3H) — the DL-clean way to carry a quantity of time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid free-text length strings or anchored dates here; this is a bare xsd:duration quantity, and the TEO normalized 0Y0M…string is a projection target, not the base triple."@x-gmeow-english ;
+    gmeow:howToUse "Assert one xsd:duration literal per gmeow:Duration via gmeow:durationValue (functional); projectors derive iCalendar or TEO normalized forms from it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -779,6 +971,10 @@ gmeow:RecurrenceRule
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Recurrence Rule"@x-gmeow-english ;
     skos:definition "A rule by which a gmeow:EventSeries repeats — weekly, every-first-Monday, annually. Carries an RFC 5545 RRULE string via gmeow:recurrenceRuleText. (= ISO-TimeML TIMEX3 type=SET with freq/quant, iCalendar RRULE, schema:Schedule, TEO periodic time interval.)"@x-gmeow-english ;
+    skos:example "ex:weeklyMon a gmeow:RecurrenceRule ; gmeow:recurrenceRuleText \"FREQ=WEEKLY;BYDAY=MO\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the rule by which a gmeow:EventSeries repeats — weekly, every-first-Monday, annually — carrying an RFC 5545 RRULE string."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching it to a single gmeow:Event occurrence (the rule belongs to the series), and avoid authoring rich recurrence structure in core — the RRULE string is the source, richer form is a projection concern."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:RecurrenceRule with an RFC 5545 string on gmeow:recurrenceRuleText and link it from the series via gmeow:hasRecurrenceRule; projectors emit iCalendar RRULE directly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:hasRecurrenceRule
@@ -787,6 +983,10 @@ gmeow:hasRecurrenceRule
     rdfs:range gmeow:RecurrenceRule ;
     rdfs:label "has recurrence rule"@x-gmeow-english ;
     skos:definition "Relates an event series to the recurrence rule by which it repeats."@x-gmeow-english ;
+    skos:example "ex:standup gmeow:hasRecurrenceRule ex:weeklyMon ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach a gmeow:RecurrenceRule to the gmeow:EventSeries it governs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching it to a single occurrence (the rule scopes the series, not one event)."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:EventSeries at a gmeow:RecurrenceRule via gmeow:hasRecurrenceRule; the rule carries its RRULE string on gmeow:recurrenceRuleText."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:recurrenceRuleText
@@ -795,6 +995,10 @@ gmeow:recurrenceRuleText
     rdfs:range xsd:string ;
     rdfs:label "recurrence rule text"@x-gmeow-english ;
     skos:definition "The recurrence rule as an RFC 5545 RRULE string (e.g. FREQ=WEEKLY;BYDAY=MO). Projected directly to iCalendar RRULE; a SET-typed TIMEX3 in ISO-TimeML."@x-gmeow-english ;
+    skos:example "ex:weeklyMon gmeow:recurrenceRuleText \"FREQ=WEEKLY;BYDAY=MO\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the recurrence as an RFC 5545 RRULE string (FREQ=WEEKLY;BYDAY=MO) on a gmeow:RecurrenceRule — the authored, projection-ready form."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the recurrence as parsed sub-properties in core (the string is the source of truth) and avoid putting it directly on an event or series instead of on the gmeow:RecurrenceRule node."@x-gmeow-english ;
+    gmeow:howToUse "Assert one RFC 5545 RRULE xsd:string per gmeow:RecurrenceRule via gmeow:recurrenceRuleText (functional); it projects straight to iCalendar RRULE."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # --------------------------------------------------------------------------- #
@@ -810,6 +1014,10 @@ gmeow:GrammaticalTense
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Grammatical Tense"@x-gmeow-english ;
     skos:definition "The grammatical tense of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (past / present / future / none). Describes the linguistic realization, not the occurrence."@x-gmeow-english ;
+    skos:example "ex:mention gmeow:eventTense gmeow:tensePast ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the grammatical-tense axis of an event MENTION in text (past / present / future / none) — strictly for ISO-TimeML interoperability."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to express WHEN an event occurred (that is gmeow:eventTime / eventInterval); tense describes a textual realization and must never be inferred from, or used to infer, actual temporal placement."@x-gmeow-english ;
+    gmeow:howToUse "Reference a gmeow:GrammaticalTense individual from a textual event mention via gmeow:eventTense; keep it on the annotation layer, orthogonal to the event's real dating."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:tensePast    a gmeow:GrammaticalTense ; rdfs:label "past"@x-gmeow-english ;    skos:definition "ISO-TimeML tense PAST."@x-gmeow-english .
@@ -827,6 +1035,10 @@ gmeow:eventTense
     rdfs:range gmeow:GrammaticalTense ;
     rdfs:label "event tense"@x-gmeow-english ;
     skos:definition "The grammatical tense of a textual mention of the event (ISO-TimeML EVENT @tense). Annotation-layer only; MUST NOT be inferred from, or used to infer, the event's gmeow:eventTime / eventInterval."@x-gmeow-english ;
+    skos:example "ex:event42 gmeow:eventTense gmeow:tensePast ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the grammatical tense of a textual mention of an event (ISO-TimeML EVENT @tense) when annotating natural-language text for interoperability."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from, or using it to infer, the event's actual gmeow:eventTime / eventInterval — tense is a linguistic-realization facet, orthogonal to temporal placement."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at one gmeow:GrammaticalTense value via gmeow:eventTense; keep it confined to the annotation layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:GrammaticalAspect
@@ -834,6 +1046,10 @@ gmeow:GrammaticalAspect
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Grammatical Aspect"@x-gmeow-english ;
     skos:definition "The grammatical aspect of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (perfective / progressive / perfective-progressive / none)."@x-gmeow-english ;
+    skos:example "ex:mention gmeow:eventAspect gmeow:aspectProgressive ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the grammatical-aspect axis of an event MENTION in text (perfective / progressive / perfective-progressive / none) — for ISO-TimeML interoperability."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to express the event's real temporal structure (that is the dating properties); aspect is a textual-realization facet, never inferred from or to actual placement."@x-gmeow-english ;
+    gmeow:howToUse "Reference a gmeow:GrammaticalAspect individual from a textual event mention via gmeow:eventAspect; keep it on the annotation layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 gmeow:aspectPerfective   a gmeow:GrammaticalAspect ; rdfs:label "perfective"@x-gmeow-english ;   skos:definition "ISO-TimeML aspect PERFECTIVE."@x-gmeow-english .
@@ -851,6 +1067,10 @@ gmeow:eventAspect
     rdfs:range gmeow:GrammaticalAspect ;
     rdfs:label "event aspect"@x-gmeow-english ;
     skos:definition "The grammatical aspect of a textual mention of the event (ISO-TimeML EVENT @aspect). Annotation-layer only; orthogonal to the event's actual temporal placement."@x-gmeow-english ;
+    skos:example "ex:event42 gmeow:eventAspect gmeow:aspectPerfective ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the grammatical aspect of a textual mention of an event (ISO-TimeML EVENT @aspect) when annotating natural-language text."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from, or using it to infer, the event's actual temporal placement — aspect is a linguistic-realization facet, orthogonal to dating."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at one gmeow:GrammaticalAspect value via gmeow:eventAspect; keep it confined to the annotation layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # =========================================================================== #
@@ -869,6 +1089,10 @@ gmeow:eventTemporalFrame
     rdfs:range gmeow:TemporalFrame ;
     rdfs:label "event temporal frame"@x-gmeow-english ;
     skos:definition "The temporal frame in which the event's date/interval is expressed — explicit for non-default frames (Principle 11)."@x-gmeow-english ;
+    skos:example "ex:festival gmeow:eventTemporalFrame ex:hebrewCalendar ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the temporal frame an event's date/interval is expressed in whenever it is NON-default — a non-Gregorian calendar, an astronomical scale — making the frame explicit (Principle 11)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it for the default gmeow:temporalFrameUTCGregorian (it is the assumed frame), and avoid stating two frames for one event — it is functional, one frame per event."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:Event at one gmeow:TemporalFrame via gmeow:eventTemporalFrame (a subproperty of gmeow:hasReferenceFrame) alongside its date triples; absent, the UTC-Gregorian default is assumed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # =========================================================================== #
@@ -893,7 +1117,11 @@ gmeow:temporalCoverage
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "temporal coverage"@x-gmeow-english ;
-    skos:definition "The temporal extent or scope of a creative work."@x-gmeow-english ;
+    skos:definition "The temporal extent or scope a creative work is ABOUT — the period its content covers, distinct from when the work itself was made."@x-gmeow-english ;
+    skos:example "ex:documentary gmeow:temporalCoverage ex:ww2Period ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the period a gmeow:CreativeWork is ABOUT — the era a documentary covers, the span a history book treats — the dcterms:temporal analogue scoped to creative works."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with WHEN the work was created (that is a creation event's gmeow:eventInterval) or with an event's own dating; coverage is aboutness-of-time, not production time."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:CreativeWork at a gmeow:TimeInterval via gmeow:temporalCoverage; reuse the temporal module's interval rather than minting a parallel span."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> .
 
 # Flat-first/reify-on-demand pairings, machine-usable.

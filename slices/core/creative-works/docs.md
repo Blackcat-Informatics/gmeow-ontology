@@ -90,6 +90,78 @@ The former flat `documents.ttl` classes were re-homed:
 retain their domains (now the `CreativeWork` umbrella) and continue to function
 for all WEMI tiers.
 
+## Terms
+
+The WEMI spine, its relations, the contribution relator, the derivation relator,
+and the open value vocabularies this slice declares, anchored to the design above.
+
+### gmeow:Work · gmeow:Expression · gmeow:Manifestation · gmeow:Item
+
+The four-tier WEMI spine as native `gufo:Kind` classes: a `gmeow:Work` is abstract
+intellectual content, a `gmeow:Expression` its realization in a language /
+notation / arrangement frame, a `gmeow:Manifestation` an edition / format /
+release, and a `gmeow:Item` a single exemplar. `gmeow:CreativeWork` is the umbrella
+over all four.
+
+### gmeow:realizes · gmeow:embodies · gmeow:exemplifies · gmeow:realizedThrough · gmeow:embodiedIn · gmeow:exemplifiedBy
+
+The tier-binding relations (FRBR R-relations by equivalence): `gmeow:realizes`
+(Expression → Work), `gmeow:embodies` (Manifestation → Expression), and
+`gmeow:exemplifies` (Item → Manifestation), with `gmeow:realizedThrough`,
+`gmeow:embodiedIn`, and `gmeow:exemplifiedBy` their inverses descending the spine.
+
+### gmeow:CreativeWorkType · gmeow:RealizationMode · gmeow:realizationMode
+
+The work's kind and mode: `gmeow:CreativeWorkType` is the open vocabulary of work
+types (literary, musical, software, film, dataset…); `gmeow:realizationMode` over
+`gmeow:RealizationMode` records how an expression is realized (notated, performed,
+oral, improvised, machine-generated…) — individuals, never subclasses (Principle
+9).
+
+### gmeow:Contribution · gmeow:contributor · gmeow:contributionTarget · gmeow:contributionRole · gmeow:ContributionRole · gmeow:contributionDegree
+
+The contribution relator: `gmeow:Contribution` binds `gmeow:contributor` ×
+`gmeow:contributionTarget` × `gmeow:contributionRole` (over the open
+`gmeow:ContributionRole` vocabulary) with provenance, period, and
+`gmeow:contributionDegree`. The reified form behind the flat 80%-case shortcuts.
+
+### gmeow:hasContributor · gmeow:hasAuthor · gmeow:hasEditor · gmeow:hasTranslator · gmeow:hasIllustrator · gmeow:hasComposer · gmeow:hasLyricist · gmeow:hasArranger · gmeow:hasConductor · gmeow:hasPerformer · gmeow:hasNarrator · gmeow:hasProducer
+
+The flat contribution shortcuts: `gmeow:hasContributor` and its role-specialized
+siblings (`gmeow:hasAuthor`, `gmeow:hasEditor`, `gmeow:hasTranslator`,
+`gmeow:hasIllustrator`, `gmeow:hasComposer`, `gmeow:hasLyricist`,
+`gmeow:hasArranger`, `gmeow:hasConductor`, `gmeow:hasPerformer`,
+`gmeow:hasNarrator`, `gmeow:hasProducer`) cover the common case; promote to a
+`gmeow:Contribution` when period, confidence, or degree must be recorded.
+
+### gmeow:CreativeDerivation · gmeow:derivationSource · gmeow:derivationProduct · gmeow:derivationType · gmeow:DerivationType
+
+The derivation relator: a `gmeow:CreativeDerivation` binds a
+`gmeow:derivationSource` work to its `gmeow:derivationProduct`, classified by
+`gmeow:derivationType` over the open `gmeow:DerivationType` vocabulary (arrangement,
+cover, remix, sample, parody, transcription, translation…).
+
+### gmeow:arrangementOf · gmeow:coverOf · gmeow:remixOf · gmeow:samples · gmeow:transcriptionOf · gmeow:quotesWork
+
+The flat derivation shortcuts: `gmeow:arrangementOf`, `gmeow:coverOf`,
+`gmeow:remixOf`, `gmeow:samples`, `gmeow:transcriptionOf`, and `gmeow:quotesWork`
+name the common work-to-work derivations directly, with the reified
+`gmeow:CreativeDerivation` available when provenance must be carried.
+
+### gmeow:ManifestationFormat · gmeow:hasManifestationFormat · gmeow:CarrierMedium · gmeow:hasCarrier · gmeow:medium · gmeow:Genre · gmeow:hasGenre · gmeow:audience
+
+The manifestation and classification facets: `gmeow:hasManifestationFormat` over
+the open `gmeow:ManifestationFormat` vocabulary, `gmeow:hasCarrier` /
+`gmeow:medium` over `gmeow:CarrierMedium`, and the descriptive `gmeow:hasGenre`
+(over `gmeow:Genre`) and `gmeow:audience` — all individuals, never subclasses.
+
+### gmeow:MusicalWork · gmeow:Recording · gmeow:ScoreEdition · gmeow:hasVersion · gmeow:requires · gmeow:isRequiredBy · gmeow:conformsTo
+
+The music-spine specializations and structural relations: `gmeow:MusicalWork` (a
+Work), `gmeow:Recording` and `gmeow:ScoreEdition` (manifestation-tier
+embodiments), plus `gmeow:hasVersion`, the `gmeow:requires`/`gmeow:isRequiredBy`
+dependency pair, and `gmeow:conformsTo` for standard conformance.
+
 ## References
 
 1. IFLA Library Reference Model (LRM), 2017.

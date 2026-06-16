@@ -45,6 +45,10 @@ gmeow:Work
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Work"@x-gmeow-english ;
     skos:definition "A distinct abstract intellectual or artistic creation, independent of any language, notation, edition, or copy — the story, the composition, the visual conception. The most abstract tier of the WEMI spine; realized through one or more gmeow:Expression. Identity changes when the creative content itself differs."@x-gmeow-english ;
+    skos:example "ex:hamlet a gmeow:Work ; gmeow:realizedThrough ex:hamletGermanTranslation ; gmeow:temporalCoverage ex:medievalDenmark ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the abstract creation itself — the thing that survives translation, re-edition, and re-performance unchanged; the level a subject (gmeow:temporalCoverage) and a creative-work type attach to."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the language, notation, or arrangement matters (that is gmeow:Expression), when an edition or format is meant (gmeow:Manifestation), or for a single copy (gmeow:Item); never attach a publisher, ISBN, or page count to a Work."@x-gmeow-english ;
+    gmeow:howToUse "Mint the Work, link its realizations with gmeow:realizedThrough, and record what it is ABOUT with gmeow:temporalCoverage/aboutness — kept distinct from when it was made; promote authorship to a gmeow:Contribution when role or period must be first-class."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Expression
@@ -54,6 +58,10 @@ gmeow:Expression
     skos:definition "A realization of a gmeow:Work in a specific language, script, notation, or arrangement. The original-language text, a translation, and an audiobook narration are distinct Expressions of one Work. The realizing language/notation is carried as a reference frame (gmeow:hasReferenceFrame), not as a subclass. Identity changes when the language, notation, or arrangement differs."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:hasReferenceFrame ;
     gmeow:frameRequirementSeverity "warning" ;
+    skos:example "ex:hamletGermanTranslation a gmeow:Expression ; gmeow:realizes ex:hamlet ; gmeow:hasReferenceFrame ex:germanLanguage ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the LANGUAGE, script, notation, or arrangement is what distinguishes this realization from the abstract Work — a translation, an audiobook narration, a score-versus-recording rendition; one tier below Work, one above Manifestation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the language-neutral abstract creation (that is gmeow:Work) and for an edition/format/release (that is gmeow:Manifestation — a paperback is not a new Expression unless its text differs); carry the realizing language as a frame, never as a subclass (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Link to the Work with gmeow:realizes, declare the realizing language/notation with gmeow:hasReferenceFrame (required-frame, P11), and let editions hang below via gmeow:embodiedIn; for music set gmeow:realizationMode rather than splitting into notated/performed subclasses."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Manifestation
@@ -61,6 +69,10 @@ gmeow:Manifestation
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Manifestation"@x-gmeow-english ;
     skos:definition "A concrete edition, format, or release that embodies a gmeow:Expression — a rights-bearing publication artifact (the 2003 Penguin paperback, the 2011 Kindle EPUB). gmeow:BookRelease, gmeow:SerialInstallment, gmeow:MediaObject, and gmeow:WebPage are specializations. Identity changes when the publication/format/edition differs."@x-gmeow-english ;
+    skos:example "ex:penguin2003 a gmeow:Manifestation ; gmeow:embodies ex:hamletGermanTranslation ; gmeow:hasManifestationFormat gmeow:formatPaperback ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an EDITION, format, or release — the publishable, ISBN-bearing, rights-bearing artifact (a paperback, an EPUB, a vinyl pressing, a web serial); the tier where publisher, format, and publication date live."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when only the language/notation differs with no new publication (that is still one gmeow:Expression), and for a single physical or digital copy on a shelf (that is gmeow:Item); never attach an ISBN or publisher to a Work or Expression."@x-gmeow-english ;
+    gmeow:howToUse "Link to the Expression with gmeow:embodies, set gmeow:hasManifestationFormat from the open format vocabulary, attach publisher via a gmeow:Contribution with gmeow:rolePublisher, and let copies hang below via gmeow:exemplifiedBy."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Item
@@ -68,6 +80,10 @@ gmeow:Item
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Item"@x-gmeow-english ;
     skos:definition "A single exemplar of a gmeow:Manifestation — one copy. An InformationObject; a physical copy is linked via gmeow:hasCarrier to a gmeow:PhysicalObject, keeping informational identity distinct from the physical carrier. Library circulation/holdings detail is out of scope for this base (carrier hook only). Identity changes when you hold a different physical or digital copy."@x-gmeow-english ;
+    skos:example "ex:myCopy a gmeow:Item ; gmeow:exemplifies ex:penguin2003 ; gmeow:hasCarrier ex:wornPaperbackVolume ."@x-gmeow-english ;
+    gmeow:useWhen "Use for ONE specific copy — the signed first edition on this shelf, a single loaned audiobook download; the bottom WEMI tier, where a physical carrier and copy-level provenance attach."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when speaking of the edition in general (that is gmeow:Manifestation — 'the 2003 paperback' as a type is not an Item); do not model library circulation/holdings here (out of scope for this base), and keep the physical substrate on the carrier, not the Item."@x-gmeow-english ;
+    gmeow:howToUse "Link to its Manifestation with gmeow:exemplifies and, for a material copy, attach the physical substrate with gmeow:hasCarrier to a gmeow:PhysicalObject — born-digital Items may omit the carrier (Principle 11)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
@@ -80,6 +96,10 @@ gmeow:realizes
     rdfs:range gmeow:Work ;
     rdfs:label "realizes"@x-gmeow-english ;
     skos:definition "Relates an Expression to the Work it realizes. Non-functional: an omnibus or aggregate Expression may realize multiple Works (e.g. an anthology). Inverse of gmeow:realizedThrough."@x-gmeow-english ;
+    skos:example "ex:hamletGermanTranslation gmeow:realizes ex:hamlet ."@x-gmeow-english ;
+    gmeow:useWhen "Use to climb from an Expression up to the abstract Work it realizes — the Expression→Work R-relation of the WEMI spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the embodiment of an Expression in an edition (use gmeow:embodiedIn) and for derivation between distinct works (use gmeow:CreativeDerivation); a cover or arrangement is a new Work-or-Expression, not a re-realization."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the Expression to the Work; an anthology Expression may realize several Works (non-functional). Read the inverse gmeow:realizedThrough for Work-rooted traversal."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:realizedThrough
@@ -89,6 +109,10 @@ gmeow:realizedThrough
     rdfs:range gmeow:Expression ;
     rdfs:label "realized through"@x-gmeow-english ;
     skos:definition "Relates a Work to an Expression that realizes it. Non-functional: a Work may have many Expressions (translations, arrangements, narrations). Inverse of gmeow:realizes."@x-gmeow-english ;
+    skos:example "ex:hamlet gmeow:realizedThrough ex:hamletGermanTranslation ."@x-gmeow-english ;
+    gmeow:useWhen "Use for Work-rooted traversal down to its realizations — enumerating the translations, arrangements, and narrations of one abstract Work."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this directly when modelling from the Expression up — prefer gmeow:realizes and read this inverse — and avoid it for editions of an Expression (that is gmeow:embodiedIn)."@x-gmeow-english ;
+    gmeow:howToUse "Prefer asserting gmeow:realizes from each Expression and read gmeow:realizedThrough by inversion; reach for it explicitly only in Work-rooted projections."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:embodies
@@ -97,6 +121,10 @@ gmeow:embodies
     rdfs:range gmeow:Expression ;
     rdfs:label "embodies"@x-gmeow-english ;
     skos:definition "Relates a Manifestation to the Expression it embodies. Non-functional: a collected edition may embody multiple Expressions. Inverse of gmeow:embodiedIn."@x-gmeow-english ;
+    skos:example "ex:penguin2003 gmeow:embodies ex:hamletGermanTranslation ."@x-gmeow-english ;
+    gmeow:useWhen "Use to climb from a concrete edition/format up to the Expression it embodies — the Manifestation→Expression R-relation of the WEMI spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid skipping the Expression tier to point a Manifestation straight at a Work (go through gmeow:embodies → gmeow:realizes), and avoid it for a single copy (use gmeow:exemplifies)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the Manifestation to its Expression; a collected/omnibus edition may embody several Expressions (non-functional). Read the inverse gmeow:embodiedIn for Expression-rooted traversal."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:embodiedIn
@@ -106,6 +134,10 @@ gmeow:embodiedIn
     rdfs:range gmeow:Manifestation ;
     rdfs:label "embodied in"@x-gmeow-english ;
     skos:definition "Relates an Expression to a Manifestation that embodies it. Non-functional: an Expression may be embodied in many Manifestations (hardcover, paperback, EPUB). Inverse of gmeow:embodies."@x-gmeow-english ;
+    skos:example "ex:hamletGermanTranslation gmeow:embodiedIn ex:penguin2003 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for Expression-rooted traversal down to its editions — enumerating the hardcover, paperback, and EPUB Manifestations of one Expression."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this directly when modelling from the Manifestation up — prefer gmeow:embodies and read this inverse — and avoid it for the Work tier (that is gmeow:realizedThrough)."@x-gmeow-english ;
+    gmeow:howToUse "Prefer asserting gmeow:embodies from each Manifestation and read gmeow:embodiedIn by inversion; reach for it explicitly only in Expression-rooted projections."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:exemplifies
@@ -114,6 +146,10 @@ gmeow:exemplifies
     rdfs:range gmeow:Manifestation ;
     rdfs:label "exemplifies"@x-gmeow-english ;
     skos:definition "Relates an Item to the Manifestation it exemplifies. Non-functional: a single Item may exemplify multiple Manifestations when catalogued as a bound volume. Inverse of gmeow:exemplifiedBy."@x-gmeow-english ;
+    skos:example "ex:myCopy gmeow:exemplifies ex:penguin2003 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to climb from a single copy up to the edition it exemplifies — the Item→Manifestation R-relation at the bottom of the WEMI spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the edition-in-general (that is the Manifestation itself, not exemplified) and for the physical substrate of the copy (use gmeow:hasCarrier)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the Item to its Manifestation; a bound volume may exemplify several Manifestations (non-functional). Read the inverse gmeow:exemplifiedBy for Manifestation-rooted copy enumeration."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:exemplifiedBy
@@ -123,6 +159,10 @@ gmeow:exemplifiedBy
     rdfs:range gmeow:Item ;
     rdfs:label "exemplified by"@x-gmeow-english ;
     skos:definition "Relates a Manifestation to an Item that exemplifies it. Non-functional: a Manifestation may have many Items (copies). Inverse of gmeow:exemplifies."@x-gmeow-english ;
+    skos:example "ex:penguin2003 gmeow:exemplifiedBy ex:myCopy ."@x-gmeow-english ;
+    gmeow:useWhen "Use for Manifestation-rooted traversal down to its copies — enumerating the individual Items of one edition (a library's holdings of a title)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this directly when modelling from the copy up — prefer gmeow:exemplifies and read this inverse — and avoid it for the embodied Expression (that is gmeow:embodies)."@x-gmeow-english ;
+    gmeow:howToUse "Prefer asserting gmeow:exemplifies from each Item and read gmeow:exemplifiedBy by inversion; reach for it explicitly only in Manifestation-rooted projections."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasCarrier
@@ -131,6 +171,10 @@ gmeow:hasCarrier
     rdfs:range gmeow:PhysicalObject ;
     rdfs:label "has carrier"@x-gmeow-english ;
     skos:definition "Relates an Item to the PhysicalObject that carries it — a printed book, a vinyl disc, a sculpture. Optional: a born-digital Item may have no carrier, or its carrier may be a server object modelled as a PhysicalObject. Keeps informational identity (the Item) distinct from physical substrate (Principle 11)."@x-gmeow-english ;
+    skos:example "ex:myCopy gmeow:hasCarrier ex:wornPaperbackVolume ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach an Item's material substrate — the physical book, disc, or canvas — keeping the informational copy distinct from the thing you can hold (Principle 11)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a born-digital Item with no material carrier (omit it), and never use it to climb the WEMI spine — the carrier is a gmeow:PhysicalObject, not a Manifestation (use gmeow:exemplifies for that)."@x-gmeow-english ;
+    gmeow:howToUse "Point the Item at a gmeow:PhysicalObject; record the carrier's medium with gmeow:medium and its physical condition or pose on the PhysicalObject, not on the Item."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
@@ -142,6 +186,10 @@ gmeow:Contribution
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Contribution"@x-gmeow-english ;
     skos:definition "A reified relator binding a contributor (Agent), a contribution target (a Work, Expression, Manifestation, or Item), a contribution role, and an optional degree, carrying provenance, period, and confidence. THE universal credit construct; creative authorship, CRediT research roles, and mapping/software authorship are all Contributions. Flat shortcuts (gmeow:hasAuthor, gmeow:hasTranslator, …) cover the 80% query case."@x-gmeow-english ;
+    skos:example "ex:c1 a gmeow:Contribution ; gmeow:contributor ex:bernhard ; gmeow:contributionTarget ex:hamletGermanTranslation ; gmeow:contributionRole gmeow:roleTranslator ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the role, period, degree, confidence, or evidence of a credit must be first-class — the reify-on-demand half of the credit pattern, covering authorship, CRediT research roles, and software contribution alike."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the plain 80% case where only the agent matters — assert a flat shortcut (gmeow:hasAuthor, gmeow:hasTranslator) instead — and avoid minting per-role subclasses of Contribution; the role is a value (gmeow:contributionRole), not a type."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator and bind gmeow:contributor, gmeow:contributionTarget, and gmeow:contributionRole (each functional per relator); add gmeow:contributionDegree, period, and confidence as needed. It pairsWith the flat gmeow:hasContributor shortcuts — promote when metadata is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributor
@@ -150,6 +198,10 @@ gmeow:contributor
     rdfs:range gmeow:Agent ;
     rdfs:label "contributor"@x-gmeow-english ;
     skos:definition "The agent that contributed to the target in this Contribution. Functional per relator: one contributor per Contribution."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:contributor ex:bernhard ."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:Contribution relator to name the single agent who contributed; one of the three required relator roles."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a creative work directly (use the flat gmeow:hasContributor or a typed shortcut) and avoid more than one per Contribution — it is functional; co-contributors get one Contribution each."@x-gmeow-english ;
+    gmeow:howToUse "Point the Contribution at exactly one gmeow:Agent; pair with gmeow:contributionTarget and gmeow:contributionRole to complete the relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributionTarget
@@ -158,6 +210,10 @@ gmeow:contributionTarget
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "contribution target"@x-gmeow-english ;
     skos:definition "The creative-work target of this Contribution — a Work, Expression, Manifestation, or Item. Functional per relator: one target per Contribution."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:contributionTarget ex:hamletGermanTranslation ."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:Contribution to name the single WEMI entity credited — choosing the tier that matches the credit (translation → an Expression, cover art → a Manifestation, authorship → a Work)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a non-creative-work and avoid more than one target per Contribution — it is functional; a credit spanning two works gets two Contributions."@x-gmeow-english ;
+    gmeow:howToUse "Point the Contribution at exactly one gmeow:CreativeWork at the right tier; pair with gmeow:contributor and gmeow:contributionRole."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributionRole
@@ -166,6 +222,10 @@ gmeow:contributionRole
     rdfs:range gmeow:ContributionRole ;
     rdfs:label "contribution role"@x-gmeow-english ;
     skos:definition "The role the contributor played in this Contribution — a value from the open gmeow:ContributionRole vocabulary. Functional per relator: one role per Contribution."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:contributionRole gmeow:roleTranslator ."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:Contribution to name the single role the contributor played, drawn from the open gmeow:ContributionRole value vocabulary (author, translator, CRediT role, software role)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the role as a Contribution subclass or as the property name (Principle 9) and avoid more than one role per Contribution — an agent in two roles gets two Contributions."@x-gmeow-english ;
+    gmeow:howToUse "Point the Contribution at one gmeow:ContributionRole individual; extend the vocabulary with new role individuals rather than subclasses when a domain needs one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributionDegree
@@ -174,6 +234,10 @@ gmeow:contributionDegree
     rdfs:range gmeow:ContributionDegree ;
     rdfs:label "contribution degree"@x-gmeow-english ;
     skos:definition "The degree or weight of the contribution — lead, equal, or supporting. Optional (≤1 per Contribution). A value from the open gmeow:ContributionDegree vocabulary."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:contributionDegree gmeow:degreeLead ."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:Contribution to weight a credit as lead, equal, or supporting — for credit ordering and first-author/lead-maintainer distinctions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to rank contributors as a privileged winner (Principle 9 — competing orderings are standpoint-indexed) and omit it entirely when degree is unknown; it is optional."@x-gmeow-english ;
+    gmeow:howToUse "Point the Contribution at one gmeow:ContributionDegree individual; leave it absent rather than guessing a degree, and carry disputed orderings on the statement layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasContributor
@@ -182,6 +246,10 @@ gmeow:hasContributor
     rdfs:range gmeow:Agent ;
     rdfs:label "has contributor"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that contributed to it — the flat 80%-case shortcut. Non-functional: a work may have many contributors. Promote to a gmeow:Contribution node when the role, period, confidence, or evidence of the contribution must be recorded."@x-gmeow-english ;
+    skos:example "ex:hamlet gmeow:hasContributor ex:shakespeare ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case — naming a contributor when the role is generic or obvious and no period, degree, confidence, or evidence needs recording; the parent of the typed shortcuts (gmeow:hasAuthor, …)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when a specific role applies (use the typed subproperty) or when the credit's role, period, degree, confidence, or evidence must be first-class — promote to a gmeow:Contribution relator."@x-gmeow-english ;
+    gmeow:howToUse "Assert the most specific typed shortcut available (gmeow:hasAuthor, gmeow:hasTranslator) and let gmeow:hasContributor follow by inheritance; it pairsWith gmeow:Contribution — promote when metadata is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasAuthor
@@ -191,6 +259,10 @@ gmeow:hasAuthor
     rdfs:range gmeow:Agent ;
     rdfs:label "has author"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent chiefly responsible for creating its intellectual content. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:hamlet gmeow:hasAuthor ex:shakespeare ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a work's author when no period, degree, confidence, or evidence needs recording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the authorship's role nuance, period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleAuthor), and avoid it for editors, translators, or illustrators (use their own shortcut)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the work to the agent; promote to a gmeow:Contribution carrying gmeow:roleAuthor when metadata is needed. Typically attaches at the gmeow:Work tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasTranslator
@@ -200,6 +272,10 @@ gmeow:hasTranslator
     rdfs:range gmeow:Agent ;
     rdfs:label "has translator"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that translated it into another language or notation. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:hamletGermanTranslation gmeow:hasTranslator ex:schlegel ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a translator; typically attaches at the gmeow:Expression tier, since a translation is a distinct Expression of the Work."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the translation's period, degree, confidence, or source-text must be first-class (promote to a gmeow:Contribution with gmeow:roleTranslator), and avoid attaching it to the language-neutral Work."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the translated Expression to the agent; promote to a gmeow:Contribution carrying gmeow:roleTranslator when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasIllustrator
@@ -209,6 +285,10 @@ gmeow:hasIllustrator
     rdfs:range gmeow:Agent ;
     rdfs:label "has illustrator"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that contributed visual illustrations. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:alicePenguinEd gmeow:hasIllustrator ex:tenniel ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming an illustrator; often attaches at the Expression or Manifestation tier where the illustrations live (an illustrated edition)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the illustration's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleIllustrator), and avoid it for cover art (use gmeow:roleCoverArtist via a Contribution)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the illustrated work to the agent; promote to a gmeow:Contribution carrying gmeow:roleIllustrator when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasNarrator
@@ -218,6 +298,10 @@ gmeow:hasNarrator
     rdfs:range gmeow:Agent ;
     rdfs:label "has narrator"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that narrated or performed an audiobook, podcast, or other spoken-word rendition. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:hamletAudiobook gmeow:hasNarrator ex:branagh ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a narrator of an audiobook, podcast, or spoken-word rendition; typically attaches to the narrated Expression or its Manifestation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the narration's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleNarrator), and avoid it for musical performers (use gmeow:hasPerformer)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the narrated rendition to the agent; promote to a gmeow:Contribution carrying gmeow:roleNarrator when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasEditor
@@ -227,6 +311,10 @@ gmeow:hasEditor
     rdfs:range gmeow:Agent ;
     rdfs:label "has editor"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that edited, compiled, or curated its content. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:nortonAnthology gmeow:hasEditor ex:greenblatt ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming an editor, compiler, or curator; often attaches at the Expression or Manifestation tier of an edited or anthologized edition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the editing's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleEditor), and avoid it for the original author (use gmeow:hasAuthor)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the edited work to the agent; promote to a gmeow:Contribution carrying gmeow:roleEditor when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
@@ -247,6 +335,10 @@ gmeow:CreativeWorkType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Creative Work Type"@x-gmeow-english ;
     skos:definition "The kind of a creative work — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:Work. Literary, musical, visual, and software are examples; the set is open."@x-gmeow-english ;
+    skos:example "gmeow:workTypeLiterary a gmeow:CreativeWorkType ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for characterizing a Work's kind — literary, musical, visual, software, dataset; an open set of individuals."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-kind subclasses of Work (Principle 9 — the kind is a value, not a subclass) and avoid conflating it with manifestation format (gmeow:ManifestationFormat) or genre (gmeow:Genre)."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:CreativeWorkType individual from a Work; extend with new individuals (not subclasses) when a domain needs a finer kind."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:ContributionRole
@@ -254,6 +346,10 @@ gmeow:ContributionRole
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Contribution Role"@x-gmeow-english ;
     skos:definition "The role an agent played in contributing to a creative work — a VALUE vocabulary (individuals, never subclasses). Author, editor, translator, illustrator, narrator, composer, performer, director, photographer, and cover-artist are examples; the set is open."@x-gmeow-english ;
+    skos:example "gmeow:roleTranslator a gmeow:ContributionRole ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the role of a credit — referenced by gmeow:contributionRole inside a Contribution, spanning creative, CRediT research, and software roles."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding roles as Contribution subclasses or as bespoke properties (Principle 9) and avoid using it for the weight of a credit (that is gmeow:ContributionDegree)."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:ContributionRole individual from gmeow:contributionRole; extend with new role individuals (not subclasses) when a domain needs one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:ManifestationFormat
@@ -261,6 +357,10 @@ gmeow:ManifestationFormat
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Manifestation Format"@x-gmeow-english ;
     skos:definition "The physical or digital format of a Manifestation — a VALUE vocabulary (individuals, never subclasses). Hardcover, paperback, EPUB, PDF, audiobook, vinyl, and web-page are examples; the set is open."@x-gmeow-english ;
+    skos:example "gmeow:formatPaperback a gmeow:ManifestationFormat ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for a Manifestation's format — hardcover, EPUB, audiobook, vinyl, web serial; referenced by gmeow:hasManifestationFormat."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-format subclasses of Manifestation (Principle 9) and avoid using it for the carrier's material medium (that is gmeow:CarrierMedium) or the kind of the Work (gmeow:CreativeWorkType)."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:ManifestationFormat individual from a Manifestation via gmeow:hasManifestationFormat; extend with new individuals (not subclasses) when a new format appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasManifestationFormat
@@ -269,6 +369,10 @@ gmeow:hasManifestationFormat
     rdfs:range gmeow:ManifestationFormat ;
     rdfs:label "has manifestation format"@x-gmeow-english ;
     skos:definition "The physical or digital format of this manifestation — hardcover, EPUB, audiobook, web serial, etc. A value from the open gmeow:ManifestationFormat vocabulary."@x-gmeow-english ;
+    skos:example "ex:penguin2003 gmeow:hasManifestationFormat gmeow:formatPaperback ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the format of a Manifestation — the publishable form (paperback, EPUB, audiobook, vinyl). Functional: one format per Manifestation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a Work, Expression, or Item (format is a Manifestation-tier fact) and avoid more than one value — a second format is a second Manifestation."@x-gmeow-english ;
+    gmeow:howToUse "Point the Manifestation at one gmeow:ManifestationFormat individual; model the physical substrate of a copy separately via gmeow:hasCarrier and gmeow:medium."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:CarrierMedium
@@ -276,6 +380,10 @@ gmeow:CarrierMedium
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Carrier Medium"@x-gmeow-english ;
     skos:definition "The medium of a physical carrier — a VALUE vocabulary (individuals, never subclasses). Print, e-ink file, optical disc, and server object are examples; the set is open."@x-gmeow-english ;
+    skos:example "gmeow:mediumPrint a gmeow:CarrierMedium ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the material medium of a physical carrier — print, e-ink file, optical disc, server object; referenced by gmeow:medium."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the publishable format (gmeow:ManifestationFormat — a 'paperback' is a format, 'print' is its carrier medium) and avoid per-medium subclasses."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:CarrierMedium individual from a creative work or carrier via gmeow:medium; extend with new individuals (not subclasses) when a new substrate appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # --------------------------------------------------------------------------- #
@@ -431,6 +539,10 @@ gmeow:requires
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "requires"@x-gmeow-english ;
     skos:definition "A related resource that is required by the described resource to support its function, delivery, or coherence."@x-gmeow-english ;
+    skos:example "ex:userGuide gmeow:requires ex:runtimeLibrary ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one creative work depends on another to function, be delivered, or remain coherent (the dcterms:requires bridge — a manual that needs its runtime, a score that needs its parts)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for derivation lineage (use gmeow:wasDerivedFrom subproperties), for standards conformance (use gmeow:conformsTo), and for versions (use gmeow:hasVersion)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the dependent work to the required one; read the inverse gmeow:isRequiredBy for the reverse direction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:isRequiredBy
@@ -440,6 +552,10 @@ gmeow:isRequiredBy
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "is required by"@x-gmeow-english ;
     skos:definition "A related resource that requires the described resource to support its function, delivery, or coherence. Inverse of gmeow:requires."@x-gmeow-english ;
+    skos:example "ex:runtimeLibrary gmeow:isRequiredBy ex:userGuide ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the reverse direction — naming what depends on this resource to function or be delivered."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when modelling from the dependent side — prefer gmeow:requires and read this inverse."@x-gmeow-english ;
+    gmeow:howToUse "Prefer asserting gmeow:requires from the dependent work and read gmeow:isRequiredBy by inversion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasVersion
@@ -449,6 +565,10 @@ gmeow:hasVersion
     rdfs:range gmeow:Entity ;
     rdfs:label "has version"@x-gmeow-english ;
     skos:definition "A related resource that is a version, edition, or adaptation of the described resource. Inverse of gmeow:versionOf."@x-gmeow-english ;
+    skos:example "ex:hamletFolio gmeow:hasVersion ex:hamletQuarto ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the lightweight dcterms:hasVersion bridge between two resources where one is a version/edition/adaptation of the other and the WEMI tiers are not being modelled explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the relationship is properly a WEMI realization/embodiment (use gmeow:realizes/gmeow:embodies) or a tracked version lineage (use the generic VersionSet/VersionMembership machinery); avoid it for derivation (gmeow:wasDerivedFrom subproperties)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the base resource to its version and read the inverse gmeow:versionOf; promote to VersionSet/VersionMembership when ordered or set-membership lineage is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:conformsTo
@@ -457,6 +577,10 @@ gmeow:conformsTo
     rdfs:range gmeow:Entity ;
     rdfs:label "conforms to"@x-gmeow-english ;
     skos:definition "An established standard to which the described resource conforms."@x-gmeow-english ;
+    skos:example "ex:metadataRecord gmeow:conformsTo ex:dublinCoreStandard ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name an established standard, specification, or profile a creative work conforms to (the dcterms:conformsTo bridge — a record conforming to a metadata schema, a score to a notation standard)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for runtime dependencies (use gmeow:requires) and for versions or derivations; conformance is to a standard, not to another work in a lineage."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the work to the standard entity (often referenced by IRI, Principle 5); the standard need not itself be a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # --- DC medium & audience -------------------------------------- #
@@ -467,6 +591,10 @@ gmeow:medium
     rdfs:range gmeow:CarrierMedium ;
     rdfs:label "medium"@x-gmeow-english ;
     skos:definition "The material or physical carrier of a creative work. A value from the open gmeow:CarrierMedium vocabulary."@x-gmeow-english ;
+    skos:example "ex:myCopy gmeow:medium gmeow:mediumPrint ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the material substrate of a creative work or copy — print, e-ink, optical disc, server object; the dcterms:medium bridge."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the publishable format (gmeow:hasManifestationFormat — 'paperback' vs its 'print' medium) and avoid using it to climb the WEMI spine."@x-gmeow-english ;
+    gmeow:howToUse "Point the work or carrier at a gmeow:CarrierMedium individual; for a single copy, pair with gmeow:hasCarrier on the gmeow:Item."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:audience
@@ -475,6 +603,10 @@ gmeow:audience
     rdfs:range gmeow:Agent ;
     rdfs:label "audience"@x-gmeow-english ;
     skos:definition "The intended audience of a creative work."@x-gmeow-english ;
+    skos:example "ex:primer gmeow:audience ex:earlyReaders ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the intended audience of a creative work (the dcterms:audience bridge — a class of readers, a target reader group modelled as an Agent)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the projection consumer of the data (that is gmeow:eligibleForConsumer / gmeow:useForConsumer) — the audience is part of the work's meaning, not a disclosure-control target."@x-gmeow-english ;
+    gmeow:howToUse "Point the work at the gmeow:Agent representing the intended audience; keep disclosure-control audiences on the orthogonal consumer axis."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
@@ -491,6 +623,10 @@ gmeow:MusicalWork
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Musical Work"@x-gmeow-english ;
     skos:definition "A work whose primary content is music — the abstract artistic conception independent of any particular notation, performance, or recording. A specialization of gmeow:Work; identity is unaffected by realization mode or notation system (Principles 4, 9, 11)."@x-gmeow-english ;
+    skos:example "ex:eroica a gmeow:MusicalWork ; gmeow:realizedThrough ex:eroicaScore ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the abstract musical conception — the composition itself, the Work tier, surviving any notation, performance, or recording unchanged (the oral-tradition guarantee)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a notated score or a sound recording (those are gmeow:ScoreEdition / gmeow:Recording at the Manifestation tier) and for a particular performed/notated realization (that is a gmeow:Expression with gmeow:realizationMode)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the MusicalWork at the Work tier; hang realizations below with gmeow:realizedThrough and recordings/scores further down — never require a notated form (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Recording
@@ -498,6 +634,10 @@ gmeow:Recording
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Recording"@x-gmeow-english ;
     skos:definition "A concrete audio manifestation of a musical work or expression — a take, master, released track, or any other fixed sound recording. Co-equal sibling of gmeow:ScoreEdition and other manifestations (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:eroica1963 a gmeow:Recording ; gmeow:embodies ex:eroicaPerformedExpr ; gmeow:hasManifestationFormat gmeow:formatStreamingAudio ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a fixed sound recording at the Manifestation tier — a take, master, or released track; the audio sibling of gmeow:ScoreEdition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the abstract composition (gmeow:MusicalWork) and for a notated edition (gmeow:ScoreEdition); a recording is not privileged over a score (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Link the Recording to its Expression with gmeow:embodies, set an audio gmeow:hasManifestationFormat, and relate samples/remixes to it through gmeow:CreativeDerivation at the recording tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:ScoreEdition
@@ -505,6 +645,10 @@ gmeow:ScoreEdition
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Score Edition"@x-gmeow-english ;
     skos:definition "A concrete notated manifestation of a musical work or expression — a printed score, engraving, MusicXML file, MEI document, or any other symbolic edition. Co-equal sibling of gmeow:Recording (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:eroicaBreitkopf a gmeow:ScoreEdition ; gmeow:embodies ex:eroicaNotatedExpr ; gmeow:hasManifestationFormat gmeow:formatPrintedScore ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a notated/symbolic edition at the Manifestation tier — a printed score, engraving, MusicXML, or MEI document; the notation sibling of gmeow:Recording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the abstract composition (gmeow:MusicalWork) and for an audio recording (gmeow:Recording); a score is not privileged over a recording (Principle 9), and notation must never be required of a Work."@x-gmeow-english ;
+    gmeow:howToUse "Link the ScoreEdition to its Expression with gmeow:embodies, set a notated gmeow:hasManifestationFormat, and treat the sheet-music form as a lossy projection of the Work, never its definition."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:CreativeDerivation
@@ -512,6 +656,10 @@ gmeow:CreativeDerivation
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Creative Derivation"@x-gmeow-english ;
     skos:definition "A reified relator binding a source creative work, a product creative work, one or more derivation types, and optional source/product segments. Tier-honest: a sample derives from a Recording region, a cover is a new Expression, and 'same Work?' is a separate standpoint-indexed gmeow:realizes claim (Principles 4, 9)."@x-gmeow-english ;
+    skos:example "ex:d1 a gmeow:CreativeDerivation ; gmeow:derivationSource ex:original ; gmeow:derivationProduct ex:remix ; gmeow:derivationType gmeow:derivationTypeRemix ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a derivation between two creative works must be first-class — its type(s), source/product segments, or provenance recorded — and when tier-honesty matters (a sample derives from a Recording region, not the abstract Work)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the flat 80% case (assert a shortcut like gmeow:coverOf, gmeow:remixOf, gmeow:samples) and avoid using it to assert 'same Work' — that is a separate standpoint-indexed gmeow:realizes claim."@x-gmeow-english ;
+    gmeow:howToUse "Mint the relator and bind gmeow:derivationSource, gmeow:derivationProduct (each functional), and one or more gmeow:derivationType; pin source/product segments at the honest tier. It pairsWith the flat wasDerivedFrom shortcuts."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Genre
@@ -519,6 +667,10 @@ gmeow:Genre
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Genre"@x-gmeow-english ;
     skos:definition "A contested, registry-independent, lineage-bearing information object used to characterise creative works. Like gmeow:Language, a genre is a first-class individual-bearing class; it is never a subclass tree and never a privileged winner of a genre dispute (Principles 5, 9)."@x-gmeow-english ;
+    skos:example "ex:bebop a gmeow:Genre ; gmeow:wasDerivedFrom ex:swing ."@x-gmeow-english ;
+    gmeow:useWhen "Use to mint a genre as a first-class, contestable, lineage-bearing object that creative works point at via gmeow:hasGenre — competing genre claims coexist as standpoint-indexed statements."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid building a genre subclass tree or anointing one genre as the privileged winner of a dispute (Principles 5, 9), and avoid conflating genre with the work's kind (gmeow:CreativeWorkType)."@x-gmeow-english ;
+    gmeow:howToUse "Mint each genre as an individual of gmeow:Genre, record its lineage with gmeow:wasDerivedFrom, and attach it to works via gmeow:hasGenre; carry disputes on the statement layer rather than as a winner."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:derivationSource
@@ -527,6 +679,10 @@ gmeow:derivationSource
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "derivation source"@x-gmeow-english ;
     skos:definition "The source creative work from which the derivation product was derived. Functional per relator: one source per CreativeDerivation."@x-gmeow-english ;
+    skos:example "ex:d1 gmeow:derivationSource ex:original ."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:CreativeDerivation to name the single source work the product was derived from — at the honest tier (a sampled Recording, a covered Work)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it outside a CreativeDerivation relator and avoid more than one source — it is functional; a mashup of two sources gets two derivations or segment pins."@x-gmeow-english ;
+    gmeow:howToUse "Point the CreativeDerivation at one source gmeow:CreativeWork; pair with gmeow:derivationProduct and gmeow:derivationType."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:derivationProduct
@@ -535,6 +691,10 @@ gmeow:derivationProduct
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "derivation product"@x-gmeow-english ;
     skos:definition "The product creative work that was derived from the source. Functional per relator: one product per CreativeDerivation."@x-gmeow-english ;
+    skos:example "ex:d1 gmeow:derivationProduct ex:remix ."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:CreativeDerivation to name the single product work that resulted from the derivation, at the honest tier (a new Expression for a cover, a new Recording for a remix)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it outside a CreativeDerivation relator and avoid more than one product — it is functional."@x-gmeow-english ;
+    gmeow:howToUse "Point the CreativeDerivation at one product gmeow:CreativeWork; pair with gmeow:derivationSource and gmeow:derivationType."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:derivationType
@@ -543,6 +703,10 @@ gmeow:derivationType
     rdfs:range gmeow:DerivationType ;
     rdfs:label "derivation type"@x-gmeow-english ;
     skos:definition "The kind(s) of derivation relating source and product — cover, remix, sample, arrangement, etc. Non-functional: a single derivation may combine types (e.g. a sampled cover)."@x-gmeow-english ;
+    skos:example "ex:d1 gmeow:derivationType gmeow:derivationTypeRemix , gmeow:derivationTypeSample ."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:CreativeDerivation to name the kind(s) of derivation — cover, remix, sample, arrangement, transcription, quotation; non-functional so a sampled cover can carry several."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the derivation kind as a relator subclass (Principle 9 — it is a value vocabulary) and avoid leaving it unset; the relator requires at least one type."@x-gmeow-english ;
+    gmeow:howToUse "Point the CreativeDerivation at one or more gmeow:DerivationType individuals; extend the vocabulary with new individuals rather than subclasses when a domain needs one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:realizationMode
@@ -551,6 +715,10 @@ gmeow:realizationMode
     rdfs:range gmeow:RealizationMode ;
     rdfs:label "realization mode"@x-gmeow-english ;
     skos:definition "The mode in which an Expression realizes its Work — notated, performed, improvised, orally transmitted, or machine-generated. A frame-carried, value-vocabulary fact at the Expression tier; no shape may require a Work to be notated (the oral-tradition guarantee)."@x-gmeow-english ;
+    skos:example "ex:eroicaNotatedExpr gmeow:realizationMode gmeow:realizationModeNotated ."@x-gmeow-english ;
+    gmeow:useWhen "Use at the gmeow:Expression tier to record HOW a musical Work is realized — notated, performed, improvised, oral, or machine-generated — as a frame-carried value rather than a subclass split."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a Work (the Work is mode-independent) and avoid any shape that requires a notated realization — the oral-tradition guarantee forbids it (Principle 9). Functional: one mode per Expression."@x-gmeow-english ;
+    gmeow:howToUse "Point the Expression at one gmeow:RealizationMode individual; a notated and a performed rendition of the same Work are two Expressions, each with its own mode."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasGenre
@@ -559,6 +727,10 @@ gmeow:hasGenre
     rdfs:range gmeow:Genre ;
     rdfs:label "has genre"@x-gmeow-english ;
     skos:definition "Relates a creative work to a genre that characterises it. Non-functional and always contestable: competing genre claims coexist as standpoint-indexed statements (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:kindOfBlue gmeow:hasGenre ex:modalJazz ."@x-gmeow-english ;
+    gmeow:useWhen "Use to characterise a creative work with one or more genres; non-functional and contestable, so multiple and competing genre claims may coexist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating any one genre claim as authoritative (carry disputes on the statement layer with gmeow:accordingTo, Principle 9) and avoid using it for the work's kind (gmeow:CreativeWorkType)."@x-gmeow-english ;
+    gmeow:howToUse "Point the work at gmeow:Genre individuals; when claims conflict, reify them as standpoint-indexed statements rather than picking a winner."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:coverOf
@@ -568,6 +740,10 @@ gmeow:coverOf
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "cover of"@x-gmeow-english ;
     skos:definition "A flat shortcut asserting that a creative work is a cover version derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeCover."@x-gmeow-english ;
+    skos:example "ex:hendrixAllAlong gmeow:coverOf ex:dylanAllAlong ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of asserting one work is a cover of another, when no segment, period, or provenance of the derivation needs recording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the derivation's type-combination, segments, or provenance must be first-class — promote to a gmeow:CreativeDerivation with gmeow:derivationTypeCover."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the cover to the original; it pairsWith gmeow:CreativeDerivation — promote when metadata is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:remixOf
@@ -577,6 +753,10 @@ gmeow:remixOf
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "remix of"@x-gmeow-english ;
     skos:definition "A flat shortcut asserting that a creative work is a remix derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeRemix."@x-gmeow-english ;
+    skos:example "ex:clubMix gmeow:remixOf ex:originalTrack ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of asserting one work is a remix of another, when no segment, period, or provenance needs recording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the derivation's segments, combined types, or provenance must be first-class — promote to a gmeow:CreativeDerivation with gmeow:derivationTypeRemix."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the remix to the source recording; it pairsWith gmeow:CreativeDerivation — promote when metadata is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:samples
@@ -586,6 +766,10 @@ gmeow:samples
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "samples"@x-gmeow-english ;
     skos:definition "A flat shortcut asserting that a creative work incorporates a sample derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeSample."@x-gmeow-english ;
+    skos:example "ex:hipHopTrack gmeow:samples ex:funkBreak ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of asserting one work samples another, when the exact source region and provenance need not be recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the sampled segment, the source recording's tier, or clearance provenance must be first-class — promote to a gmeow:CreativeDerivation with gmeow:derivationTypeSample and segment pins."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the sampling work to the sampled recording; it pairsWith gmeow:CreativeDerivation — promote when the region or provenance is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:arrangementOf
@@ -595,6 +779,10 @@ gmeow:arrangementOf
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "arrangement of"@x-gmeow-english ;
     skos:definition "A flat shortcut asserting that a creative work is an arrangement derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeArrangement."@x-gmeow-english ;
+    skos:example "ex:pianoReduction gmeow:arrangementOf ex:orchestralScore ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of asserting one work is an arrangement of another for different forces or format, when no further metadata is needed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the arrangement's segments, instrumentation, or provenance must be first-class — promote to a gmeow:CreativeDerivation with gmeow:derivationTypeArrangement; for orchestration specifically use the orchestration type."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the arrangement to the source work; it pairsWith gmeow:CreativeDerivation — promote when metadata is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:transcriptionOf
@@ -604,6 +792,10 @@ gmeow:transcriptionOf
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "transcription of"@x-gmeow-english ;
     skos:definition "A flat shortcut asserting that a creative work is a transcription derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeTranscription."@x-gmeow-english ;
+    skos:example "ex:guitarTab gmeow:transcriptionOf ex:liveRecording ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of asserting one work transcribes another into a different notation system or medium, when no further metadata is needed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the transcription's source segments, notation system, or provenance must be first-class — promote to a gmeow:CreativeDerivation with gmeow:derivationTypeTranscription."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the transcription to the source; it pairsWith gmeow:CreativeDerivation — promote when metadata is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:quotesWork
@@ -613,6 +805,10 @@ gmeow:quotesWork
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "quotes work"@x-gmeow-english ;
     skos:definition "A flat shortcut asserting that a creative work includes a quotation derived from another creative work. The reified form is a gmeow:CreativeDerivation with gmeow:derivationType gmeow:derivationTypeQuotation."@x-gmeow-english ;
+    skos:example "ex:symphony gmeow:quotesWork ex:folkTune ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of asserting one work quotes material from another, when the quoted segment and provenance need not be recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the quoted segment, period, or provenance must be first-class (promote to a gmeow:CreativeDerivation with gmeow:derivationTypeQuotation) and avoid it for citing a source bibliographically (that is the citations slice's gmeow:cites)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the quoting work to the quoted work; it pairsWith gmeow:CreativeDerivation — promote when metadata is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasComposer
@@ -622,6 +818,10 @@ gmeow:hasComposer
     rdfs:range gmeow:Agent ;
     rdfs:label "has composer"@x-gmeow-english ;
     skos:definition "Relates a creative work to the agent who composed its musical content. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:eroica gmeow:hasComposer ex:beethoven ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a composer; attaches at the gmeow:MusicalWork tier, the abstract composition independent of notation or performance."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the credit's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleComposer), and avoid it for arrangers (gmeow:hasArranger) or lyricists (gmeow:hasLyricist)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the musical Work to the agent; promote to a gmeow:Contribution carrying gmeow:roleComposer when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasLyricist
@@ -631,6 +831,10 @@ gmeow:hasLyricist
     rdfs:range gmeow:Agent ;
     rdfs:label "has lyricist"@x-gmeow-english ;
     skos:definition "Relates a creative work to the agent who wrote its lyrics. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:song gmeow:hasLyricist ex:bernieTaupin ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a lyricist — the agent who wrote a song's words."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the credit's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleLyricist), and avoid it for the composer of the music (gmeow:hasComposer) or a librettist (use gmeow:roleLibrettist)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the song or musical work to the agent; promote to a gmeow:Contribution carrying gmeow:roleLyricist when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasArranger
@@ -640,6 +844,10 @@ gmeow:hasArranger
     rdfs:range gmeow:Agent ;
     rdfs:label "has arranger"@x-gmeow-english ;
     skos:definition "Relates a creative work to the agent who arranged its musical content. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:bigBandChart gmeow:hasArranger ex:nelsonRiddle ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming an arranger; typically attaches to the arranged Expression or derived work."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the arrangement's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleArranger) and avoid it for the original composer (gmeow:hasComposer)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the arranged work to the agent; promote to a gmeow:Contribution carrying gmeow:roleArranger when metadata is needed, and pair with gmeow:arrangementOf for the derivation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasPerformer
@@ -649,6 +857,10 @@ gmeow:hasPerformer
     rdfs:range gmeow:Agent ;
     rdfs:label "has performer"@x-gmeow-english ;
     skos:definition "Relates a creative work or expression to the agent who performed it. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:eroica1963 gmeow:hasPerformer ex:karajan ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a performer; typically attaches at the performed Expression or its Recording, since performance realizes the Work."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the performance's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:rolePerformer) and avoid it for a spoken-word narrator (gmeow:hasNarrator) or conductor (gmeow:hasConductor)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the performed Expression or Recording to the agent; promote to a gmeow:Contribution carrying gmeow:rolePerformer when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasConductor
@@ -658,6 +870,10 @@ gmeow:hasConductor
     rdfs:range gmeow:Agent ;
     rdfs:label "has conductor"@x-gmeow-english ;
     skos:definition "Relates a creative work or expression to the agent who conducted its musical performance. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:eroica1963 gmeow:hasConductor ex:karajan ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a conductor; typically attaches at the performed Expression or its Recording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the credit's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleConductor) and avoid it for instrumental performers (gmeow:hasPerformer)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the performed Expression or Recording to the agent; promote to a gmeow:Contribution carrying gmeow:roleConductor when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasProducer
@@ -667,6 +883,10 @@ gmeow:hasProducer
     rdfs:range gmeow:Agent ;
     rdfs:label "has producer"@x-gmeow-english ;
     skos:definition "Relates a creative work or expression to the agent who produced its recording or performance. Flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
+    skos:example "ex:darkSideOfTheMoon gmeow:hasProducer ex:pinkFloyd ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the flat 80% case of naming a producer of a recording or performance; typically attaches at the gmeow:Recording (Manifestation) tier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the credit's period, degree, or evidence must be first-class (promote to a gmeow:Contribution with gmeow:roleProducer) and avoid it for engineers (use gmeow:roleRecordingEngineer / gmeow:roleMixingEngineer via a Contribution)."@x-gmeow-english ;
+    gmeow:howToUse "Assert from the Recording or performed Expression to the agent; promote to a gmeow:Contribution carrying gmeow:roleProducer when metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # --------------------------------------------------------------------------- #
@@ -687,6 +907,10 @@ gmeow:RealizationMode
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Realization Mode"@x-gmeow-english ;
     skos:definition "The mode in which a musical Expression realizes its Work — a VALUE vocabulary (individuals, never subclasses). The oral-tradition guarantee requires that no shape ever mandate a notated realization."@x-gmeow-english ;
+    skos:example "gmeow:realizationModeNotated a gmeow:RealizationMode ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for how a musical Expression is realized — notated, performed, improvised, oral, machine-generated; referenced by gmeow:realizationMode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid splitting Expression into notated/performed subclasses (Principle 9) and never let a shape mandate the notated mode (the oral-tradition guarantee)."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded gmeow:RealizationMode individual from an Expression via gmeow:realizationMode; extend with new individuals (not subclasses) when a new mode appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:DerivationType
@@ -694,6 +918,10 @@ gmeow:DerivationType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Derivation Type"@x-gmeow-english ;
     skos:definition "The kind of creative derivation relating a source and product — a VALUE vocabulary (individuals, never subclasses). Cover, remix, sample, arrangement, transcription, quotation, and others are co-equal seeds."@x-gmeow-english ;
+    skos:example "gmeow:derivationTypeCover a gmeow:DerivationType ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the kind of a derivation — cover, remix, sample, arrangement, transcription, quotation; referenced by gmeow:derivationType inside a CreativeDerivation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding derivation kinds as relator subclasses (Principle 9 — they are co-equal individuals) and avoid privileging one as canonical when several apply."@x-gmeow-english ;
+    gmeow:howToUse "Reference one or more seeded gmeow:DerivationType individuals from gmeow:derivationType; extend with new individuals (not subclasses) when a new kind appears."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # RealizationMode seeds

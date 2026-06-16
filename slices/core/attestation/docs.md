@@ -186,6 +186,76 @@ ex:ctEntry a gmeow:TransparencyLogEntry ;
    `Attestation` remains in the graph with its history intact.  For suppression of
    superseded labels (e.g. a corrected issuer name), use `gmeow:displayable false`.
 
+## Terms
+
+The classes, properties, and value vocabularies this module declares, anchored to
+the model above. Signature metadata (`signedBy`, `signingKey`,
+`signatureAlgorithm`, `CryptographicSignature`) and the validity/identity
+cross-cutters are reused from the trust and temporal modules, not redefined here.
+
+### gmeow:Attestation · gmeow:attester · gmeow:attestedSubject · gmeow:attestedClaim · gmeow:hasAttestation
+
+The core relator: a reified envelope recording that an `gmeow:attester` (one,
+functional) vouches for a bare `gmeow:attestedSubject` entity and/or an
+`gmeow:attestedClaim` observation, under a policy and with evidence. An entity
+reaches its attestations through the inverse `gmeow:hasAttestation`; competing
+attestations coexist (Principle 9) and an attestation proves who said what, never
+that it is true.
+
+### gmeow:attestationType · gmeow:AttestationType · gmeow:attestationPolicy · gmeow:AttestationPolicy · gmeow:issuedAt
+
+The envelope's classification and provenance: `gmeow:attestationType` names one or
+more `gmeow:AttestationType` kinds (SLSA provenance, in-toto, VC, DSSE, C2PA,
+nanopublication…); `gmeow:attestationPolicy` names the `gmeow:AttestationPolicy`
+rules the attester followed; `gmeow:issuedAt` stamps the single issue instant
+(functional). Validity rides the temporal module's `validFrom`/`validUntil`.
+
+### gmeow:AttestationArtifact · gmeow:attestationArtifact · gmeow:artifactMediaType · gmeow:hasSignature · gmeow:signatureOf
+
+The concrete carrier: an `gmeow:AttestationArtifact` is the serialized document
+(in-toto JSON, DSSE envelope, VC, C2PA manifest) linked from the logical
+attestation by `gmeow:attestationArtifact` and typed by `gmeow:artifactMediaType`.
+`gmeow:hasSignature` is the domain-free universal spine attaching a cryptographic
+signature to anything signed, with `gmeow:signatureOf` its inverse — a valid
+signature proves integrity and key control, never truth.
+
+### gmeow:VerificationActivity · gmeow:VerificationResult · gmeow:verificationActivity · gmeow:verificationResult · gmeow:verifiedBy · gmeow:hasVerificationStatus · gmeow:VerificationStatus
+
+Verification as act and outcome: a `gmeow:VerificationActivity` is the checking
+event, producing a `gmeow:VerificationResult` (`gmeow:verifiedBy` an agent,
+carrying `gmeow:hasVerificationStatus` from the `gmeow:VerificationStatus`
+vocabulary — verified / failed / expired / revoked / policy-failed /
+finality-pending). A result is one verifier's observation under one policy, not a
+global verdict; competing results coexist (Principles 9, 12).
+
+### gmeow:TransparencyLogEntry · gmeow:transparencyLogEntry · gmeow:logEntryIndex · gmeow:logEntryUrl
+
+Transparency-log evidence: a `gmeow:TransparencyLogEntry` (Rekor entry, SCITT
+receipt, CT inclusion proof) linked via `gmeow:transparencyLogEntry`, identified by
+`gmeow:logEntryIndex` (functional, log-local) and retrievable at
+`gmeow:logEntryUrl`. Inclusion proves it was logged, not that it is correct
+(Principle 1).
+
+### gmeow:LedgerTransaction · gmeow:LedgerEvent · gmeow:Block · gmeow:BlockchainNetwork · gmeow:SmartContract · gmeow:BlockchainAccount
+
+Ledger/blockchain evidence: a `gmeow:LedgerTransaction` (information-object view of
+a payload) and the on-chain `gmeow:LedgerEvent` it emits, located by `gmeow:Block`
+on a `gmeow:BlockchainNetwork`, with `gmeow:SmartContract` and
+`gmeow:BlockchainAccount` as the deployed program and the address-controlled
+signing identity. Ledger inclusion proves inclusion under chain rules, not
+real-world truth.
+
+### gmeow:transactionHash · gmeow:blockHash · gmeow:blockNumber · gmeow:chainId · gmeow:contractAddress · gmeow:signatureRecoveryAddress · gmeow:logIndex · gmeow:confirmationDepth · gmeow:finalityStatus · gmeow:LedgerFinalityStatus · gmeow:ledgerInclusionProof · gmeow:SignatureScheme
+
+The ledger identity and finality facets: hashes and identifiers
+(`gmeow:transactionHash`, `gmeow:blockHash`, `gmeow:blockNumber`, `gmeow:chainId`,
+`gmeow:contractAddress`, `gmeow:signatureRecoveryAddress`, `gmeow:logIndex`),
+settlement state (`gmeow:confirmationDepth`, `gmeow:finalityStatus` over
+`gmeow:LedgerFinalityStatus` — pending / confirmed / finalized / orphaned /
+reorged), the domain-free `gmeow:ledgerInclusionProof`, and the
+`gmeow:SignatureScheme` vocabulary of cryptographic algorithms. Finality checks run
+in the solver layer (Principle 12).
+
 ## See also
 
 - `ontology/modules/attestation.ttl` — canonical module source.

@@ -27,6 +27,10 @@ gmeow:Chunk
         [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:someValuesFrom gmeow:InformationObject ] ;
     rdfs:label "Chunk"@x-gmeow-english ;
     skos:definition "A contiguous segment of a source information object, produced by a chunking step for retrieval — the unit a retrieval returns, a model reads, and an evidence span pins into. Located in its source by gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd and content-addressed via the EXISTING gmeow:contentDigest (sources slice), so 'which exact bytes did the model see?' is answerable after the fact."@x-gmeow-english ;
+    skos:example "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart 0 ; gmeow:spanEnd 512 ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the whole source document as a Chunk (the source is a plain gmeow:InformationObject) and avoid re-chunking by re-pointing — a new segmentation mints fresh Chunk individuals, since gmeow:chunkOf is functional."@x-gmeow-english ;
+    gmeow:howToUse "Type the segment gmeow:Chunk, locate it with gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd, content-address it with the existing gmeow:contentDigest, and let evidence spans pin into it via gmeow:spanOfChunk."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:chunkOf
@@ -36,6 +40,10 @@ gmeow:chunkOf
     rdfs:range gmeow:InformationObject ;
     rdfs:label "chunk of"@x-gmeow-english ;
     skos:definition "The source information object this chunk segments. Functional: a chunk is cut from exactly one source; re-chunking produces new Chunk individuals, never a re-pointed one."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:chunkOf ex:doc ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:Chunk to the single source information object it was cut from — the parthood seam that makes 'where in the source?' answerable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing one chunk at two sources (it is functional — a different cut is a new Chunk) and avoid using it for the chunk's evidence pin (that is gmeow:spanOfChunk, span-into-chunk, not chunk-into-source)."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:chunkOf per Chunk; it specializes gmeow:partOf, so generic part/whole consumers read the segmentation by inheritance while gmeow:spanStart/spanEnd carry the exact offsets."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:spanStart
@@ -43,6 +51,10 @@ gmeow:spanStart
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "span start"@x-gmeow-english ;
     skos:definition "The starting character offset (unicode code points, zero-based, inclusive) of a span — a Chunk within its source, or an EvidenceSpan within a chunk. Domain-free: one span idiom for the retrieval substrate and the evidence layer. The TYPED sharpening of the citations slice's gmeow:selectorTextPosition (which remains the home of non-numeric position locators); mechanical AIS checking (EvidenceSpan audit machinery) needs integers, not prose."@x-gmeow-english;
+    skos:example "ex:c1 gmeow:spanStart 0 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the inclusive start offset of a span in unicode code points — a Chunk within its source or an EvidenceSpan within a chunk — when mechanical re-anchoring needs an integer, not prose."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a non-numeric position locator (use the citations slice's gmeow:selectorTextPosition) and avoid asserting a start without its matching gmeow:spanEnd — the pair defines the span."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:spanStart with gmeow:spanEnd as a zero-based half-open code-point range on the same span subject; keep both as integers so AIS coverage checks compute over them directly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:spanEnd
@@ -50,6 +62,10 @@ gmeow:spanEnd
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "span end"@x-gmeow-english ;
     skos:definition "The ending character offset (unicode code points, zero-based, exclusive) of a span. Pairs with gmeow:spanStart."@x-gmeow-english ;
+    skos:example "ex:c1 gmeow:spanEnd 512 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the exclusive end offset of a span in unicode code points, completing the half-open range opened by gmeow:spanStart."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an end offset without a matching gmeow:spanStart, and avoid prose locators (those are the citations slice's gmeow:selectorTextPosition)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:spanEnd alongside gmeow:spanStart as a zero-based exclusive code-point offset on the same span subject."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 # --------------------------------------------------------------------------- #
@@ -64,6 +80,10 @@ gmeow:spanOfChunk
     rdfs:range gmeow:Chunk ;
     rdfs:label "span of chunk"@x-gmeow-english ;
     skos:definition "The retrieved chunk this evidence span pins into — the retrieval-substrate seam of the existing evidence layer. With gmeow:spanStart/spanEnd (and the citations slice's quote selectors), the exact evidentiary bytes are recoverable and re-anchorable."@x-gmeow-english ;
+    skos:example "ex:span1 gmeow:spanOfChunk ex:c1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to anchor an existing gmeow:EvidenceSpan into the retrieved gmeow:Chunk it cites — the seam that joins the evidence layer to the retrieval substrate so the exact bytes are recoverable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the whole source (pin into the retrieved Chunk, then gmeow:chunkOf reaches the source) and avoid using it for the chunk-to-source parthood (that is gmeow:chunkOf); it is functional, one chunk per span."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:spanOfChunk per EvidenceSpan and carry the offsets with gmeow:spanStart/spanEnd; the claim then reaches its evidence via gmeow:groundedIn → span → chunk → source."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:groundedIn
@@ -71,6 +91,13 @@ gmeow:groundedIn
     rdfs:range gmeow:EvidenceSpan ;
     rdfs:label "grounded in"@x-gmeow-english ;
     skos:definition "Ties a claim node to a pinned evidence span supporting (or refuting — gmeow:supportPolarity) it. DOMAIN-FREE on purpose: a claim node is a gmeow:StandpointClaim, any other Observation, or an RDF 1.2 statement reifier — the unified observation stance (P9) means grounding applies to every claim form, and asserting a domain would leak one type onto all of them. A claim with NO groundedIn span is a flagged hallucination: retained and flagged (P10), never deleted; faithfulness (AIS) is coverage over these links."@x-gmeow-english ;
+    skos:example "ex:claim1 gmeow:groundedIn ex:span1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link any claim node to a pinned gmeow:EvidenceSpan that supports or refutes it; faithfulness (AIS) is exactly the coverage of these grounding links over a model's claims."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a domain on it or restricting it to one claim form (it is domain-free so grounding applies to every claim under P9), and never delete an ungrounded claim — leaving it without gmeow:groundedIn is the flag (P10)."@x-gmeow-english ;
+    gmeow:howToUse "Point the claim node (a gmeow:StandpointClaim, other Observation, or RDF 1.2 statement reifier) at one or more gmeow:EvidenceSpan, each carrying gmeow:supportPolarity; audit queries read the absence of a link as a hallucination."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerResearchQueue,
+        gmeow:consumerAgentMemory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:supportPolarity
@@ -79,6 +106,10 @@ gmeow:supportPolarity
     rdfs:range gmeow:SupportPolarity ;
     rdfs:label "support polarity"@x-gmeow-english ;
     skos:definition "Whether this evidence span supports, refutes, or is neutral toward the claim it grounds — the NLI/AIS verdict as data, orthogonal to the citations slice's gmeow:citationIntent (which classifies a CitationAct between works, not a span-to-claim stance). A refuting span never deletes the claim; it feeds a gmeow:Contradiction and the audit queries (P9, P10)."@x-gmeow-english ;
+    skos:example "ex:span1 gmeow:supportPolarity gmeow:polarityRefutes ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the NLI/AIS stance of a grounding span toward its claim — supports, refutes, or neutral — so faithfulness and contradiction audits read the verdict as data."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the citations slice's gmeow:citationIntent (which classifies a CitationAct between works, not a span-to-claim stance), and never let a refuting polarity delete the claim — it feeds a gmeow:Contradiction instead (P10)."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:supportPolarity per gmeow:EvidenceSpan from the closed gmeow:SupportPolarity vocabulary; a refuting span seeds a gmeow:Contradiction rather than overwriting the grounded claim."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:SupportPolarity
@@ -86,6 +117,10 @@ gmeow:SupportPolarity
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Support Polarity"@x-gmeow-english ;
     skos:definition "The closed three-value polarity of an evidence span toward its claim."@x-gmeow-english ;
+    skos:example "ex:polarityRefutes a gmeow:SupportPolarity ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the closed three-value vocabulary (supports / refutes / neutral) that gmeow:supportPolarity draws from for a span's stance toward its claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extending it with new individuals (the three values are closed, unlike the open kind vocabularies) and avoid using it for inter-work citation stance (that is gmeow:citationIntent)."@x-gmeow-english ;
+    gmeow:howToUse "Reference one of the three seeded individuals (gmeow:polaritySupports / gmeow:polarityRefutes / gmeow:polarityNeutral) from a span via gmeow:supportPolarity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:polaritySupports a gmeow:SupportPolarity ;
@@ -112,6 +147,15 @@ gmeow:ModelInvocation
     rdfs:subClassOf gmeow:Activity ;
     rdfs:label "Model Invocation"@x-gmeow-english ;
     skos:definition "One call to a generative model: the model agent (gmeow:usedModel), the prompts presented (gmeow:hasPrompt), and the sampling parameters. The provenance anchor of every generated claim — a claim node gmeow:wasGeneratedBy its invocation and gmeow:wasAttributedTo the model agent (both EXISTING provenance properties), so 'which model, under which prompt and parameters, at what time?' is answerable after the fact. Outputs are linked FROM the output via gmeow:wasGeneratedBy; no forward output property exists (P5)."@x-gmeow-english ;
+    skos:example "ex:inv1 a gmeow:ModelInvocation ; gmeow:usedModel ex:opus ; gmeow:hasPrompt ex:sysPrompt ; gmeow:eventTime \"2026-06-15T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record one call to a generative model as the provenance anchor of its outputs — which model, prompts, and sampling parameters produced a claim; the gmeow:wasGeneratedBy target of every generated claim node (the ModelInvocation idiom)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a forward output property on it (outputs link back via the existing gmeow:wasGeneratedBy, P5) and avoid using it for the model identity itself (that is gmeow:SoftwareAgent + gmeow:ModelCard); the invocation is the act, an occurrent, not the agent."@x-gmeow-english ;
+    gmeow:howToUse "Type the call gmeow:ModelInvocation (a gmeow:Activity, hence gmeow:Event), set gmeow:usedModel and one or more gmeow:hasPrompt, record sampling parameters, and carry its temporal reference frame on gmeow:eventTemporalFrame since it is an occurrent (P11); link outputs back via gmeow:wasGeneratedBy."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerResearchQueue,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:usedModel
@@ -120,6 +164,10 @@ gmeow:usedModel
     rdfs:range gmeow:SoftwareAgent ;
     rdfs:label "used model"@x-gmeow-english ;
     skos:definition "The model agent this invocation called. The model is a first-class gmeow:SoftwareAgent (P9: machine subjects are attributable, and capable of self-assertion), described by a gmeow:ModelCard."@x-gmeow-english ;
+    skos:example "ex:inv1 gmeow:usedModel ex:opus ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:ModelInvocation to the single gmeow:SoftwareAgent it called — the model whose attribution and gmeow:ModelCard make the act auditable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a gmeow:ModelCard (the card describes the model, the model is the agent) and avoid more than one model per invocation — it is functional; a second model is a second invocation."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:usedModel per ModelInvocation at a gmeow:SoftwareAgent; describe that agent separately with a gmeow:ModelCard via gmeow:describesModel."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:hasPrompt
@@ -128,6 +176,10 @@ gmeow:hasPrompt
     rdfs:range gmeow:Prompt ;
     rdfs:label "has prompt"@x-gmeow-english ;
     skos:definition "A prompt presented in this invocation. Non-functional: a chat invocation carries several prompts in conversational roles (gmeow:promptRole)."@x-gmeow-english ;
+    skos:example "ex:inv1 gmeow:hasPrompt ex:sysPrompt, ex:userPrompt ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a gmeow:ModelInvocation to each gmeow:Prompt presented in it — assert several, in their conversational roles, for a multi-turn chat invocation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid flattening prompt text onto the invocation (mint a gmeow:Prompt so it is content-addressable and role-tagged) and avoid treating it as functional — a chat carries system, user, and tool prompts together."@x-gmeow-english ;
+    gmeow:howToUse "Point the ModelInvocation at one or more gmeow:Prompt individuals, each carrying gmeow:promptRole and gmeow:contentDigest; a contested or templated prompt links to its gmeow:PromptTemplate via gmeow:filledFrom."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:samplingTemperature
@@ -136,6 +188,10 @@ gmeow:samplingTemperature
     rdfs:range xsd:decimal ;
     rdfs:label "sampling temperature"@x-gmeow-english ;
     skos:definition "The temperature parameter of this invocation. Sampling parameters are claim provenance: the same prompt at temperature 0 and 1.2 are different epistemic acts."@x-gmeow-english ;
+    skos:example "ex:inv1 gmeow:samplingTemperature 0.7 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the temperature of a gmeow:ModelInvocation as part of its provenance — the same prompt at temperature 0 versus 1.2 is a different epistemic act."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing it on the model agent or card (it is per-invocation, not per-model) and avoid treating it as an output quality score; it is an input setting, claim provenance."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:samplingTemperature as a decimal on the gmeow:ModelInvocation alongside gmeow:samplingTopP and gmeow:samplingMaxTokens so the sampling regime is fully recoverable."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:samplingTopP
@@ -144,6 +200,10 @@ gmeow:samplingTopP
     rdfs:range xsd:decimal ;
     rdfs:label "sampling top-p"@x-gmeow-english ;
     skos:definition "The nucleus-sampling parameter of this invocation."@x-gmeow-english ;
+    skos:example "ex:inv1 gmeow:samplingTopP 0.95 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the nucleus-sampling (top-p) cutoff of a gmeow:ModelInvocation as part of its provenance."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing it on the model agent or card (it is per-invocation) and avoid conflating it with gmeow:samplingTemperature — they are independent sampling controls."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:samplingTopP as a decimal on the gmeow:ModelInvocation alongside the other sampling parameters."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:samplingMaxTokens
@@ -152,6 +212,10 @@ gmeow:samplingMaxTokens
     rdfs:range xsd:positiveInteger ;
     rdfs:label "sampling max tokens"@x-gmeow-english ;
     skos:definition "The output-length ceiling of this invocation."@x-gmeow-english ;
+    skos:example "ex:inv1 gmeow:samplingMaxTokens 4096 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the output-token ceiling of a gmeow:ModelInvocation — provenance for whether an output may have been truncated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the model's context window (that is gmeow:modelContextWindow on the card, a model capability, not a per-call setting)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:samplingMaxTokens as a positive integer on the gmeow:ModelInvocation alongside the other sampling parameters."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 # --------------------------------------------------------------------------- #
@@ -165,6 +229,10 @@ gmeow:Prompt
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Prompt"@x-gmeow-english ;
     skos:definition "A concrete prompt presented to a model in an invocation — content-addressable (gmeow:contentDigest), role-tagged (gmeow:promptRole), optionally instantiating a template (gmeow:filledFrom). Prompts are provenance: a claim is only auditable when the instruction that elicited it is recorded. The system-prompt-as-persona seam (a prompt enacting a gmeow:Persona with its registers and style guide) is the norms extension's machinery, used from instance data."@x-gmeow-english ;
+    skos:example "ex:sysPrompt a gmeow:Prompt ; gmeow:promptRole gmeow:promptRoleSystem ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the concrete instruction text presented to a model in an invocation — the provenance that makes a generated claim auditable, content-addressed and role-tagged."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the reusable, variable-bearing artifact (that is gmeow:PromptTemplate, which a concrete prompt links back to via gmeow:filledFrom) and avoid modelling the persona it enacts here — that seam lives in the norms extension."@x-gmeow-english ;
+    gmeow:howToUse "Type the instruction gmeow:Prompt, tag it with gmeow:promptRole, content-address it with gmeow:contentDigest, and where it instantiates a published template point gmeow:filledFrom at the gmeow:PromptTemplate; link it to its invocation via gmeow:hasPrompt."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:PromptTemplate
@@ -172,6 +240,10 @@ gmeow:PromptTemplate
     rdfs:subClassOf gmeow:Prompt ;
     rdfs:label "Prompt Template"@x-gmeow-english ;
     skos:definition "A reusable, versioned prompt with unfilled variables — the published artifact (EvidenceSpan audit machinery ships the claim-extraction template as data, not code). Concrete prompts link back via gmeow:filledFrom."@x-gmeow-english;
+    skos:example "ex:extractTmpl a gmeow:PromptTemplate ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reusable, versioned prompt carrying unfilled variables — a published artifact (e.g. the claim-extraction template shipped as data) that concrete prompts instantiate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a filled, ready-to-send instruction as a template (that is a plain gmeow:Prompt) — the template is the unfilled, versioned source a gmeow:Prompt points back to via gmeow:filledFrom."@x-gmeow-english ;
+    gmeow:howToUse "Type the artifact gmeow:PromptTemplate, content-address each version with gmeow:contentDigest, and let concrete gmeow:Prompt individuals link to it via gmeow:filledFrom so an output traces to the exact template version."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:filledFrom
@@ -180,6 +252,10 @@ gmeow:filledFrom
     rdfs:range gmeow:PromptTemplate ;
     rdfs:label "filled from"@x-gmeow-english ;
     skos:definition "The template this concrete prompt instantiates."@x-gmeow-english ;
+    skos:example "ex:userPrompt gmeow:filledFrom ex:extractTmpl ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a concrete gmeow:Prompt to the single gmeow:PromptTemplate version it was filled from, so an output traces to the exact published template."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at another concrete prompt or at the model (the range is a template) and avoid more than one template per prompt — it is functional."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:filledFrom per templated Prompt at a gmeow:PromptTemplate; omit it for ad-hoc prompts that instantiate no published template."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:promptRole
@@ -188,6 +264,10 @@ gmeow:promptRole
     rdfs:range gmeow:PromptRole ;
     rdfs:label "prompt role"@x-gmeow-english ;
     skos:definition "The conversational role this prompt occupies (open vocabulary: system, user, assistant, tool)."@x-gmeow-english ;
+    skos:example "ex:sysPrompt gmeow:promptRole gmeow:promptRoleSystem ."@x-gmeow-english ;
+    gmeow:useWhen "Use to tag a gmeow:Prompt with the conversational role it occupies — system, user, assistant, or tool — drawn from the gmeow:PromptRole vocabulary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting several roles on one prompt (it is functional — one prompt, one role; a multi-role turn is several prompts) and avoid minting a per-role subproperty (the role is a value)."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:promptRole per Prompt at a gmeow:PromptRole individual; mint a fresh individual if a needed conversational role is not seeded, since the vocabulary is open."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:PromptRole
@@ -195,6 +275,10 @@ gmeow:PromptRole
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Prompt Role"@x-gmeow-english ;
     skos:definition "An open value vocabulary of conversational prompt roles."@x-gmeow-english ;
+    skos:example "ex:promptRoleTool a gmeow:PromptRole ; rdfs:label \"tool\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the prompt-role axis — the conversational roles (system, user, assistant, tool, …) that gmeow:promptRole draws from; mint a fresh individual for a role not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a prompt-role SUBCLASS of gmeow:Prompt (the role is a value, Principle 9) and avoid confusing it with gmeow:ParticipantRole — prompt roles are conversational turns, not event participation."@x-gmeow-english ;
+    gmeow:howToUse "Add a new role as a gmeow:PromptRole individual with rdfs:label and skos:definition; reference it from a gmeow:Prompt via gmeow:promptRole."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:promptRoleSystem a gmeow:PromptRole ;
@@ -225,6 +309,10 @@ gmeow:ModelCard
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Model Card"@x-gmeow-english ;
     skos:definition "A structured description of a model agent (gmeow:describesModel): provider, version tag, context window, training cutoff. Aligns Model Cards / ML-Schema / SPDX-AI by reference (P5). The card is a document ABOUT the agent; capability claims are claim-layer observations, attributed and contestable."@x-gmeow-english ;
+    skos:example "ex:opusCard a gmeow:ModelCard ; gmeow:describesModel ex:opus ; gmeow:modelProvider \"Anthropic\" ; gmeow:modelTrainingCutoff \"2026-01-01\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the structured document describing a model agent — provider, version tag, context window, training cutoff; the information object ABOUT the gmeow:SoftwareAgent a gmeow:ModelInvocation uses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the model itself (the agent is the gmeow:SoftwareAgent, the card is a document about it) and avoid baking capability claims into the card as facts — those are attributed, contestable claim-layer observations."@x-gmeow-english ;
+    gmeow:howToUse "Type the description gmeow:ModelCard, link it to the agent with gmeow:describesModel, and carry the declared facets (gmeow:modelProvider, gmeow:modelVersionTag, gmeow:modelContextWindow, gmeow:modelTrainingCutoff); keep capability assertions as separate attributed claims."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:describesModel
@@ -233,6 +321,10 @@ gmeow:describesModel
     rdfs:range gmeow:SoftwareAgent ;
     rdfs:label "describes model"@x-gmeow-english ;
     skos:definition "The model agent this card describes."@x-gmeow-english ;
+    skos:example "ex:opusCard gmeow:describesModel ex:opus ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:ModelCard to the single gmeow:SoftwareAgent it documents — the link from description to the model that a gmeow:ModelInvocation actually uses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid describing two agents with one card (it is functional — a card describes exactly one model) and avoid using it as the invocation's model link (that is gmeow:usedModel)."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:describesModel per ModelCard at the gmeow:SoftwareAgent; the same agent is reached from an invocation via gmeow:usedModel."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:modelProvider
@@ -241,6 +333,10 @@ gmeow:modelProvider
     rdfs:range xsd:string ;
     rdfs:label "model provider"@x-gmeow-english ;
     skos:definition "The organization providing the model, as named on the card."@x-gmeow-english ;
+    skos:example "ex:opusCard gmeow:modelProvider \"Anthropic\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the providing organization as named on a gmeow:ModelCard — the convenience string facet for the card's declared provider."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it where the provider must be a first-class linkable gmeow:Organization (model that as an agent and attribute it); this is the card's flat as-named string."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:modelProvider as a string on the gmeow:ModelCard; promote to a linked gmeow:Organization on the model agent when organizational identity matters beyond the card label."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:modelVersionTag
@@ -249,6 +345,10 @@ gmeow:modelVersionTag
     rdfs:range xsd:string ;
     rdfs:label "model version tag"@x-gmeow-english ;
     skos:definition "The provider's wire-level version identifier for the described snapshot. Citation-grade version identity rides DOI/version identity machinery's DOI machinery."@x-gmeow-english;
+    skos:example "ex:opusCard gmeow:modelVersionTag \"claude-opus-4-8[1m]\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the provider's wire-level version string for the snapshot a gmeow:ModelCard describes — the exact identifier a gmeow:ModelInvocation can be matched against."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for citation-grade version identity (that rides the DOI/version-identity machinery) and avoid treating two different version tags as the same model snapshot."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:modelVersionTag as the provider's exact version string on the gmeow:ModelCard; pair with the DOI machinery when a stable, citable version identity is required."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:modelContextWindow
@@ -257,6 +357,10 @@ gmeow:modelContextWindow
     rdfs:range xsd:positiveInteger ;
     rdfs:label "model context window"@x-gmeow-english ;
     skos:definition "The context-window size, in tokens, the card declares."@x-gmeow-english ;
+    skos:example "ex:opusCard gmeow:modelContextWindow 1000000 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the declared context-window size in tokens — the model capability a gmeow:ModelCard advertises."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the per-call output ceiling (that is gmeow:samplingMaxTokens on the invocation); the context window is a model capability, not an invocation setting."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:modelContextWindow as a positive integer (tokens) on the gmeow:ModelCard."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:modelTrainingCutoff
@@ -265,6 +369,10 @@ gmeow:modelTrainingCutoff
     rdfs:range xsd:date ;
     rdfs:label "model training cutoff"@x-gmeow-english ;
     skos:definition "The training-data cutoff date the card declares — staleness context for everything the model asserts."@x-gmeow-english ;
+    skos:example "ex:opusCard gmeow:modelTrainingCutoff \"2026-01-01\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the training-data cutoff a gmeow:ModelCard declares — the staleness context against which every claim the model makes is read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as the model's knowledge guarantee (it bounds, not certifies, currency) and avoid confusing it with an invocation's own gmeow:eventTime — the cutoff is a model property, the invocation time is the act's clock."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:modelTrainingCutoff as an xsd:date on the gmeow:ModelCard; downstream audits weigh it against a claim's subject recency."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 # --------------------------------------------------------------------------- #
@@ -279,6 +387,14 @@ gmeow:Contradiction
         [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:someValuesFrom gmeow:Entity ] ;
     rdfs:label "Contradiction"@x-gmeow-english ;
     skos:definition "A reified conflict between two or more claim nodes — surfaced, attributed (gmeow:detectedBy), kind-classified (gmeow:contradictionKind), and NEVER resolved by rank. Conflicting claims coexist accordingTo their standpoints (P9); a standpoint may mark one refuted via the EXISTING gmeow:claimModality, but no winner machinery exists anywhere in the graph. Detection is itself contestable: two detectors disagreeing are two Contradiction individuals."@x-gmeow-english ;
+    skos:example "ex:conflict1 a gmeow:Contradiction ; gmeow:contradictsClaim ex:claimA, ex:claimB ; gmeow:detectedBy ex:nliJudge ; gmeow:contradictionKind gmeow:contradictionKindFactual ."@x-gmeow-english ;
+    gmeow:useWhen "Use to SURFACE a conflict between two or more claim nodes as a first-class, attributed, kind-classified relator — making disagreement queryable without choosing a winner (P9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to resolve or rank the conflict (no winner machinery exists — conflicting claims coexist accordingTo their standpoints, and a standpoint marks one refuted via gmeow:claimModality) and avoid treating detection as settled; rival detectors are separate Contradiction individuals."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:Contradiction, bind at least two claim nodes with gmeow:contradictsClaim, attribute it with gmeow:detectedBy, classify it with gmeow:contradictionKind; leave resolution to standpoint-level gmeow:claimModality rather than deletion (P10)."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerResearchQueue ;
+    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:contradictsClaim
@@ -286,6 +402,10 @@ gmeow:contradictsClaim
     rdfs:domain gmeow:Contradiction ;
     rdfs:label "contradicts claim"@x-gmeow-english ;
     skos:definition "Relates a contradiction to one of the claim nodes in conflict — at least two per contradiction (SHACL; the OWL existential documents the relator's relata for the reasoner). The range is intentionally open: a claim node is a gmeow:StandpointClaim, another Observation, or an RDF 1.2 statement reifier, and a range assertion would leak one form's typing onto the others (the tenurePosition precedent, standpoint slice)."@x-gmeow-english ;
+    skos:example "ex:conflict1 gmeow:contradictsClaim ex:claimA, ex:claimB ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:Contradiction to each claim node in conflict — at least two, since a contradiction needs both sides to be a conflict."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a range on it (the range is left open so it admits StandpointClaim, other Observations, and RDF 1.2 statement reifiers alike) and avoid binding only one claim — the SHACL shape requires at least two."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:contradictsClaim from the Contradiction to two or more claim nodes of any form; the OWL existential documents the relata for the reasoner while SHACL enforces the minimum of two."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:detectedBy
@@ -294,6 +414,10 @@ gmeow:detectedBy
     rdfs:range gmeow:Agent ;
     rdfs:label "detected by"@x-gmeow-english ;
     skos:definition "The agent (a person, an NLI model, an evaluation run's judge) that surfaced this contradiction. Attributed because detection is contestable. Not gmeow:vantage, which is domained on Observation — a Contradiction is a relator between claims, not itself a claim."@x-gmeow-english ;
+    skos:example "ex:conflict1 gmeow:detectedBy ex:nliJudge ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attribute a gmeow:Contradiction to the agent that surfaced it — a person, an NLI model, or an eval run's judge — because detection is itself contestable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reaching for gmeow:vantage (that is domained on Observation; a Contradiction is a relator between claims, not a claim) and avoid omitting the detector — an unattributed contradiction cannot be contested."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:detectedBy at the detecting gmeow:Agent; rival detectors of the same conflict are separate gmeow:Contradiction individuals rather than several detectors on one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:contradictionKind
@@ -302,6 +426,10 @@ gmeow:contradictionKind
     rdfs:range gmeow:ContradictionKind ;
     rdfs:label "contradiction kind"@x-gmeow-english ;
     skos:definition "The flavour of conflict (open vocabulary): factual, temporal, numeric, framing."@x-gmeow-english ;
+    skos:example "ex:conflict1 gmeow:contradictionKind gmeow:contradictionKindFactual ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify the flavour of a gmeow:Contradiction — factual, temporal, numeric, or framing — from the gmeow:ContradictionKind vocabulary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting several kinds on one contradiction (it is functional — split a multi-flavour conflict into separate Contradiction individuals) and avoid reading a framing kind as factual conflict; framing is often standpoint difference, not disagreement about fact."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:contradictionKind per Contradiction at a gmeow:ContradictionKind individual; mint a fresh kind if a needed flavour is not seeded, since the vocabulary is open."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:ContradictionKind
@@ -309,6 +437,10 @@ gmeow:ContradictionKind
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Contradiction Kind"@x-gmeow-english ;
     skos:definition "An open value vocabulary of contradiction flavours."@x-gmeow-english ;
+    skos:example "ex:contradictionKindFactual a gmeow:ContradictionKind ; rdfs:label \"factual\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the contradiction-flavour axis — the kinds (factual, temporal, numeric, framing, …) that gmeow:contradictionKind draws from; mint a fresh individual for a flavour not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a contradiction-kind SUBCLASS of gmeow:Contradiction (the kind is a value, Principle 9) and avoid confusing it with gmeow:SupportPolarity — kind is the flavour of the conflict, polarity is a span's stance toward a claim."@x-gmeow-english ;
+    gmeow:howToUse "Add a new flavour as a gmeow:ContradictionKind individual with rdfs:label and skos:definition; reference it from a gmeow:Contradiction via gmeow:contradictionKind."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:contradictionKindFactual a gmeow:ContradictionKind ;
@@ -344,6 +476,14 @@ gmeow:MemoryItem
         [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:someValuesFrom gmeow:Agent ] ;
     rdfs:label "Memory Item"@x-gmeow-english ;
     skos:definition "An observation/claim in the role of an agent's remembered belief (gmeow:memoryOf the remembering agent; gmeow:memoryKind the cognitive register). A gufo:Role on the UNIVERSAL claim construct — any claim form can be remembered, and being remembered is contingent, never an essence. Belief revision is supersession with gmeow:displayable false (P10), never deletion: what an agent believed WHEN is a query, not an archaeology project. The substrate under the gmeow client's Memory and the MCP store/recall/revise triad (P14)."@x-gmeow-english ;
+    skos:example "ex:m1 a gmeow:MemoryItem ; gmeow:memoryOf ex:lillith ; gmeow:memoryKind gmeow:memoryKindSemantic ."@x-gmeow-english ;
+    gmeow:useWhen "Use to cast any observation/claim into the contingent ROLE of an agent's remembered belief — the substrate under the gmeow client's Memory and the MCP store/recall/revise triad (P14)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making memory an essence or a separate claim copy (it is a gufo:Role on the universal claim construct — the same claim may be one agent's memory and another's input) and never revise by deletion; supersede with gmeow:displayable false so 'what was believed when' stays queryable (P10)."@x-gmeow-english ;
+    gmeow:howToUse "Type the existing claim node gmeow:MemoryItem, set gmeow:memoryOf and gmeow:memoryKind, carry salience on the EXISTING statement-level gmeow:importanceLevel and recency on the statement clocks; revise by superseding with gmeow:displayable false rather than deleting."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerAgentMemory,
+        gmeow:consumerInternalArchive ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata,
+        gmeow:consumerWikipedia ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:memoryOf
@@ -352,6 +492,10 @@ gmeow:memoryOf
     rdfs:range gmeow:Agent ;
     rdfs:label "memory of"@x-gmeow-english ;
     skos:definition "The agent whose memory holds this item."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:memoryOf ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:MemoryItem to the gmeow:Agent whose memory holds it — the remembering subject of the memory role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the claim's own subject or vantage (memoryOf is the rememberer, not what the claim is about); the same claim may be one agent's memory and another's input."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:memoryOf at the remembering gmeow:Agent alongside gmeow:memoryKind; a claim remembered by several agents is several MemoryItem roles, one per rememberer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:memoryKind
@@ -360,6 +504,10 @@ gmeow:memoryKind
     rdfs:range gmeow:MemoryKind ;
     rdfs:label "memory kind"@x-gmeow-english ;
     skos:definition "The cognitive register of this memory item (open vocabulary): episodic, semantic, working, procedural."@x-gmeow-english ;
+    skos:example "ex:m1 gmeow:memoryKind gmeow:memoryKindSemantic ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify the cognitive register of a gmeow:MemoryItem — episodic, semantic, working, or procedural — from the gmeow:MemoryKind vocabulary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting several registers on one item (it is functional — one item, one register) and avoid using it for salience or recency (those ride the statement-level gmeow:importanceLevel and the statement clocks, not a second property)."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:memoryKind per MemoryItem at a gmeow:MemoryKind individual; mint a fresh register if a needed one is not seeded, since the vocabulary is open."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:MemoryKind
@@ -367,6 +515,10 @@ gmeow:MemoryKind
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Memory Kind"@x-gmeow-english ;
     skos:definition "An open value vocabulary of agent-memory registers."@x-gmeow-english ;
+    skos:example "ex:memoryKindEpisodic a gmeow:MemoryKind ; rdfs:label \"episodic\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for the memory-register axis — the cognitive registers (episodic, semantic, working, procedural, …) that gmeow:memoryKind draws from; mint a fresh individual for a register not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a register SUBCLASS of gmeow:MemoryItem (the register is a value, Principle 9) and avoid overloading it with salience or recency, which are statement-level facets, not registers."@x-gmeow-english ;
+    gmeow:howToUse "Add a new register as a gmeow:MemoryKind individual with rdfs:label and skos:definition; reference it from a gmeow:MemoryItem via gmeow:memoryKind."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
 
 gmeow:memoryKindEpisodic a gmeow:MemoryKind ;

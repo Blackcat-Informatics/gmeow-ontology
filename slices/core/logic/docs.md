@@ -55,3 +55,26 @@ terms carry no axioms. The solver, generators, runtime, full conformance corpus,
 enforcement gates in [`governance/constitution.ttl`](../../../governance/constitution.ttl) land in
 later rungs of the logic roadmap. Until then, Principle 17 is enforced by design-review practice and
 surfaces as a warning, never silently.
+
+## Terms
+
+The foundation surface is authored in the `logic:` namespace
+(`https://blackcatinformatics.ca/logic/`), **standalone by design**: `logic:` is
+the canonical ground and `gmeow:` (with gUFO, OWL, SHACL, …) is a generated lossy
+projection of it (Principle 17), so the foundation terms carry no `gmeow:`
+parentage. The `logic:` UFO⁺ sorts
+(`Kind`/`SubKind`/`Phase`/`Role`/`Category`/`Mixin`/`RoleMixin`/`PhaseMixin`/`Relator`/`Event`/`Situation`),
+the foundation relations (`rigidlyAppliesTo`/`suppliesIdentity`/`mediates`), the
+semantic profiles, the world/modal terms
+(`World`/`accessibleFrom`/`counterfactualOf`), the four quantitative axes
+(`probability`/`confidence`/`weight`/`evidenceStrength`), and the
+preservation-polarity vocabulary (`PreservationKind` and its individuals) are all
+documented term-by-term in [`module.ttl`](./module.ttl) and the design set above.
+
+### gmeow:sharpens
+
+The one `gmeow:`-side seam the foundation names: `logic:accessibleFrom` (the
+Kripke accessibility relation between worlds) generalizes the standpoint
+sharpening poset asserted on the `gmeow:` side via `gmeow:sharpens`. The
+specialization is declared on the `gmeow:` side, never minted as an axiom in this
+module, so the `logic:` foundation stays standalone (Principle 17).

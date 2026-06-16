@@ -49,6 +49,10 @@ gmeow:GTSDocument
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "GTS Document"@x-gmeow-english ;
     skos:definition "A single-file Graph Transport Substrate artifact (docs/GTS-SPEC.md): a CBOR Sequence of one or more append-only segments carrying an RDF 1.2 graph and any content-addressed binaries it references. A Manifestation in the WEMI sense — the packaged, shippable embodiment. Its composite identity is the ORDERED list of its segments' chain heads (spec §3.1); byte-concatenation of valid documents is a valid document, so a document's segment list grows by append, never by rewrite."@x-gmeow-english ;
+    skos:example "ex:bundle a gmeow:GTSDocument ; gmeow:gtsSegment ex:seg0 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to model a whole shippable GTS file as a first-class entity — when you need to talk about the package itself (its segment list, its composite identity, its provenance) rather than the individual frames or the graph it carries."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a single log within the file (use gmeow:GTSSegment) and for the content claims the document carries (those are ordinary quads); the document is the transport envelope, never the truth of its payload."@x-gmeow-english ;
+    gmeow:howToUse "Link its ordered segments with gmeow:gtsSegment and read its composite identity off the segment heads (gmeow:gtsHeadId taken in gmeow:gtsSegmentIndex order); record production and compaction lineage with gmeow:wasGeneratedBy / gmeow:wasDerivedFrom rather than on the segments."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 gmeow:GTSDocument gmeow:docsConcern gmeow:concernGTSPackaging .
 
@@ -57,6 +61,10 @@ gmeow:GTSSegment
     rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "GTS Segment"@x-gmeow-english ;
     skos:definition "One complete header-plus-frames log inside a GTS document — the unit of independent integrity (spec §3.1): a segment has its own genesis hash, its own id/prev chain, its own profile, its own transform catalog, and its own signers. Segments compose by concatenation and never vouch for one another; a third-party segment keeps its third-party attestation. Itself a Manifestation: a segment is a complete, independently shippable artifact."@x-gmeow-english ;
+    skos:example "ex:seg0 a gmeow:GTSSegment ; gmeow:gtsSegmentOf ex:bundle ; gmeow:gtsHeadId \"blake3:9f2c…\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for one independently-verifiable log within a document — the unit that carries its own chain, profile, codec catalog, and signers, and the subject a transport Attestation vouches for."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the whole file (use gmeow:GTSDocument) and for a single frame; never make one segment vouch for another — each keeps its own attestation by design."@x-gmeow-english ;
+    gmeow:howToUse "Place it in its document with gmeow:gtsSegmentOf, order it with gmeow:gtsSegmentIndex, commit its history with gmeow:gtsHeadId, declare its purpose with gmeow:gtsProfile, and attach signatures as gmeow:hasSignature / gmeow:Attestation whose attestedSubject is this segment."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 gmeow:GTSSegment gmeow:docsConcern gmeow:concernGTSPackaging .
 
@@ -65,6 +73,10 @@ gmeow:OpaqueFrame
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Opaque Frame"@x-gmeow-english ;
     skos:definition "A sealed or undecodable region of a GTS segment, surfaced by the reader as a first-class object rather than dropped (spec §7.6): an encrypted frame the reader holds no key for, a frame using a codec the reader lacks, or a damaged frame. Opacity is VANTAGE-RELATIVE epistemic state, not a property of the bytes — the same frame is transparent to a recipient holding the key (standpoint/privacy, Principle 9). The frame's bytes remain present, hash-linked, and chain-verifiable."@x-gmeow-english ;
+    skos:example "ex:frame7 a gmeow:OpaqueFrame ; gmeow:opaqueFrameIn ex:seg0 ; gmeow:opacityReason gmeow:opacityMissingKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a reader surfaces a frame it cannot decode — sealed without a key, using an unknown codec, or damaged — so the gap is described rather than silently dropped, preserving the chain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting opacity as a property of the bytes themselves — it is vantage-relative, true only for the describing reader; do not use it for a frame the reader decoded successfully, nor as a privacy classification (that is the kernel sensitivity/disclosure axes)."@x-gmeow-english ;
+    gmeow:howToUse "Anchor it to its segment with gmeow:opaqueFrameIn, state the required gmeow:opacityReason, and for sealed frames list the agents who can decrypt it with gmeow:sealedRecipient so the vantage-relativity is explicit."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 # --------------------------------------------------------------------------- #
@@ -76,6 +88,10 @@ gmeow:GTSCompaction
     rdfs:subClassOf gmeow:Activity ;
     rdfs:label "GTS Compaction"@x-gmeow-english ;
     skos:definition "An activity that rewrites a GTS document's frame layout — e.g. into delivery order for streaming (spec §3.2, ) or into a snapshot. Compaction re-authors only the ORDERING: content claims (ordinary quads, including signed statement-level claims) are rewrite-invariant by construction; transport claims over the source chain become detached evidence about the source document. The compacted document gmeow:wasGeneratedBy the compaction and gmeow:wasDerivedFrom the source document, whose segment heads remain citable through gmeow:gtsHeadId. Evidence-profile documents SHOULD NOT be compacted (see shapes); sealing the source verbatim as a nested GTS blob preserves its attestation intact."@x-gmeow-english;
+    skos:example "ex:streamPack gmeow:wasGeneratedBy ex:compact1 . ex:compact1 a gmeow:GTSCompaction ; gmeow:wasDerivedFrom ex:bundle ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a document was re-laid-out from a source — into streaming delivery order or a snapshot — so the new ordering is traceable to its origin while the carried content stays rewrite-invariant."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for any activity that changes content claims (compaction touches only ordering) and for evidence-profile sources, where re-authoring would detach the third-party transport attestation — seal those verbatim as a nested blob instead."@x-gmeow-english ;
+    gmeow:howToUse "Link the output with gmeow:wasGeneratedBy and the source with gmeow:wasDerivedFrom; keep the source's segment heads citable through gmeow:gtsHeadId so the old transport claims survive as detached evidence about the source document."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 # --------------------------------------------------------------------------- #
@@ -89,6 +105,10 @@ gmeow:gtsSegmentOf
     rdfs:range gmeow:GTSDocument ;
     rdfs:label "GTS segment of"@x-gmeow-english ;
     skos:definition "The GTS document a segment is part of. Functional: a segment instance belongs to one document (the same bytes appearing in another file are a different segment instance of the same content). A subproperty of gmeow:partOf, so disclosure coarsening walks it by default."@x-gmeow-english ;
+    skos:example "ex:seg0 gmeow:gtsSegmentOf ex:bundle ."@x-gmeow-english ;
+    gmeow:useWhen "Use to assert which document a segment belongs to — the segment-rooted direction of the document/segment parthood, the natural one to state when minting a segment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reusing one segment instance across documents (it is functional — the same bytes elsewhere are a distinct instance) and avoid asserting the document-rooted direction here (use gmeow:gtsSegment for that)."@x-gmeow-english ;
+    gmeow:howToUse "Point the segment at its single document; the inverse gmeow:gtsSegment and the generic gmeow:partOf follow automatically, so generic part/whole consumers and disclosure coarsening walk it without extra assertion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:gtsSegment
@@ -98,6 +118,10 @@ gmeow:gtsSegment
     rdfs:range gmeow:GTSSegment ;
     rdfs:label "GTS segment"@x-gmeow-english ;
     skos:definition "A segment of this GTS document — the inverse of gmeow:gtsSegmentOf. Non-functional: a document holds one or more segments, ordered by gmeow:gtsSegmentIndex."@x-gmeow-english ;
+    skos:example "ex:bundle gmeow:gtsSegment ex:seg0, ex:seg1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use in document-rooted projections and traversals — when enumerating a document's segments from the document side is the natural direction to state or query."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid relying on it for segment order (that is gmeow:gtsSegmentIndex) and avoid asserting it directly when minting a segment; prefer stating gmeow:gtsSegmentOf and reading this as its inverse."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:gtsSegmentOf from each segment and read gmeow:gtsSegment as the inverse; pair with gmeow:gtsSegmentIndex to recover the file order that fixes the document's composite identity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:gtsSegmentIndex
@@ -106,6 +130,10 @@ gmeow:gtsSegmentIndex
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "GTS segment index"@x-gmeow-english ;
     skos:definition "The zero-based position of a segment within its document's file order. The ordered list of segment heads — gmeow:gtsHeadId taken in gmeow:gtsSegmentIndex order — IS the document's composite identity (spec §3.1)."@x-gmeow-english ;
+    skos:example "ex:seg0 gmeow:gtsSegmentIndex 0 . ex:seg1 gmeow:gtsSegmentIndex 1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to fix a segment's place in its document's append-only file order — the index that, taken over the segment heads, reconstructs the document's composite identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid as a stable name or version commitment (use gmeow:gtsHeadId) and avoid leaving gaps or duplicates within a document; the indices are a dense zero-based sequence."@x-gmeow-english ;
+    gmeow:howToUse "Assign each segment a non-negative integer index in append order; read gmeow:gtsHeadId in index order to recover the ordered head list that IS the document's identity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:gtsHeadId
@@ -115,6 +143,10 @@ gmeow:gtsHeadId
     rdfs:range xsd:string ;
     rdfs:label "GTS head id"@x-gmeow-english ;
     skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head."@x-gmeow-english ;
+    skos:example "ex:seg0 gmeow:gtsHeadId \"blake3:9f2c4e…\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to commit to a segment's entire history with a single chain head — the version-fingerprint identity used to cite a segment, build a document's composite identity, or keep a compaction source citable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for byte-exact identity of the file or a blob (use gmeow:contentDigest) and avoid asserting more than one head per segment; the head is functional and commits transitively to the chain."@x-gmeow-english ;
+    gmeow:howToUse "Record the last frame's content-id as 'blake3:<hex>'; order heads by gmeow:gtsSegmentIndex to form the document's identity, and keep the head on a derived-from source so old transport claims stay citable after compaction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:gtsProfile
@@ -123,6 +155,10 @@ gmeow:gtsProfile
     rdfs:range gmeow:GTSProfile ;
     rdfs:label "GTS profile"@x-gmeow-english ;
     skos:definition "The declared profile of a segment (spec §13) — a value vocabulary individual naming the segment's purpose and requirement set. Functional per segment; a multi-segment DOCUMENT's effective requirement set is the union of its segments' profiles (spec §3.1) and is derived, never asserted."@x-gmeow-english ;
+    skos:example "ex:seg0 gmeow:gtsProfile gmeow:gtsProfileDist ."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare a segment's purpose and requirement set — distribution snapshot, evidence exhibit, ai-package, bundle, and so on — so readers know which reader contract the segment expects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a profile on the whole document (the document's effective profile is the derived union of its segments') and avoid declaring more than one per segment; the property is functional."@x-gmeow-english ;
+    gmeow:howToUse "Point the segment at one gmeow:GTSProfile individual; for a multi-segment document, compute the effective requirement set as the union of segment profiles rather than asserting it, and let extensions mint new profile individuals without editing this module."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:usesTransformCodec
@@ -131,6 +167,10 @@ gmeow:usesTransformCodec
     rdfs:range gmeow:TransformCodec ;
     rdfs:label "uses transform codec"@x-gmeow-english ;
     skos:definition "A transform codec declared in a segment's catalog and used by at least one of its frames (spec §8). Non-functional: payloads carry stackable codec chains."@x-gmeow-english ;
+    skos:example "ex:seg0 gmeow:usesTransformCodec gmeow:codecZstd, gmeow:codecCoseEncrypt0 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which catalog codecs a segment's frames actually employ — so a reader can tell, before decoding, which libraries or keys it must hold to read the segment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a single codec per segment (payloads stack chains, so it is non-functional) and avoid using it to describe a single frame's exact codec stack; it is the segment-level catalog-in-use."@x-gmeow-english ;
+    gmeow:howToUse "List each gmeow:TransformCodec the segment uses; read each codec's gmeow:codecClass to anticipate the degradation path — unknown-codec or missing-key opacity — when a capability is absent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 # --------------------------------------------------------------------------- #
@@ -144,6 +184,10 @@ gmeow:opaqueFrameIn
     rdfs:range gmeow:GTSSegment ;
     rdfs:label "opaque frame in"@x-gmeow-english ;
     skos:definition "The GTS segment an opaque frame belongs to. Functional: a frame occupies one position in one segment's chain."@x-gmeow-english ;
+    skos:example "ex:frame7 gmeow:opaqueFrameIn ex:seg0 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to anchor an opaque frame to the single segment whose chain it occupies — so the undecodable region is located within transport structure rather than floating free."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing one frame at several segments (it is functional — a frame holds one position in one chain) and avoid using it for transparent frames, which need no opacity record."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:OpaqueFrame at its segment; as a subproperty of gmeow:partOf the frame is part of the segment for generic consumers, and you then state its required gmeow:opacityReason."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:opacityReason
@@ -152,6 +196,10 @@ gmeow:opacityReason
     rdfs:range gmeow:OpacityReason ;
     rdfs:label "opacity reason"@x-gmeow-english ;
     skos:definition "Why a frame is opaque to the describing reader (spec §7.6): an encrypt-class codec without a key, a codec the reader lacks, or damage. Functional and REQUIRED (see shapes): opacity without a stated reason is indistinguishable from data loss."@x-gmeow-english ;
+    skos:example "ex:frame7 gmeow:opacityReason gmeow:opacityMissingKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a frame is surfaced as opaque — it is required, because a stated reason (missing key, unknown codec, damage) is what distinguishes a deliberately sealed or unreadable frame from silent data loss."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it on any opaque frame and avoid stacking several reasons (it is functional — one reason per reader-frame pair); the reason is relative to the describing reader, not a property of the bytes."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:OpaqueFrame at exactly one gmeow:OpacityReason; for missing-key opacity, pair it with gmeow:sealedRecipient to name the agents for whom the frame is not opaque at all."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:sealedRecipient
@@ -160,6 +208,10 @@ gmeow:sealedRecipient
     rdfs:range gmeow:Agent ;
     rdfs:label "sealed recipient"@x-gmeow-english ;
     skos:definition "An agent for whom a sealed (encrypted) opaque frame is decryptable — the frame's declared audience (spec §9.3 recipients). Non-functional: a frame may be sealed to several recipients. The vantage-relativity of opacity made explicit: for these agents the frame is not opaque at all."@x-gmeow-english ;
+    skos:example "ex:frame7 gmeow:sealedRecipient ex:lillith, ex:auditor ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a sealed (encrypt-class) opaque frame to name the agents who hold a key and can decrypt it — making explicit that opacity is vantage-relative and the frame is transparent to them."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for frames opaque through an unknown codec or damage (no recipient resolves those) and avoid treating it as an access-control grant; it describes who can decode, not a privacy-disclosure decision (that is the kernel sensitivity/disclosure axes)."@x-gmeow-english ;
+    gmeow:howToUse "List one or more gmeow:Agent recipients on a frame whose gmeow:opacityReason is gmeow:opacityMissingKey; the same frame stays opaque to every reader not on the list."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 # --------------------------------------------------------------------------- #
@@ -171,6 +223,10 @@ gmeow:GTSProfile
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "GTS Profile"@x-gmeow-english ;
     skos:definition "A named GTS profile (spec §13) — a purpose and requirement set a segment declares. An OPEN value vocabulary (individuals, never subclasses): extensions add their own profiles (e.g. a music package) without touching this module (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:musicPackage a gmeow:GTSProfile ; rdfs:label \"music-package profile\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for a segment's purpose-and-requirements declaration, or when an extension needs to mint a new packaging profile without editing the core module."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting profiles as subclasses (they are individuals on an open axis) and avoid using a profile to carry per-frame codec or signer detail; the profile names the requirement set, not the wire format."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded profile individual from a segment via gmeow:gtsProfile, or add a new gmeow:GTSProfile individual in an extension slice; a document's effective profile is the derived union of its segments'."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 gmeow:GTSProfile gmeow:docsConcern gmeow:concernGTSPackaging .
 
@@ -205,6 +261,10 @@ gmeow:TransformCodec
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Transform Codec"@x-gmeow-english ;
     skos:definition "A payload transform from the durable GTS catalog (spec §8): a named, stackable codec separating structure durability (CBOR + the spec, forever) from density and confidentiality (swappable codecs). An OPEN value vocabulary tagged by gmeow:codecClass."@x-gmeow-english ;
+    skos:example "ex:codecBrotli a gmeow:TransformCodec ; gmeow:codecClass gmeow:codecClassCompress ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for a payload transform a segment declares in its catalog, or when adding a new codec to the durable catalog as an individual."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting codecs as subclasses (they are individuals) and avoid conflating the transform with the structural format; CBOR and the spec are the durable substrate, codecs are the swappable density/confidentiality layer."@x-gmeow-english ;
+    gmeow:howToUse "Reference a codec from a segment via gmeow:usesTransformCodec and tag every codec with gmeow:codecClass so readers can anticipate the missing-capability degradation path."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:codecClass
@@ -213,6 +273,10 @@ gmeow:codecClass
     rdfs:range gmeow:CodecClass ;
     rdfs:label "codec class"@x-gmeow-english ;
     skos:definition "The capability class of a transform codec (spec §8): what a reader must hold to reverse it — a library (encode, compress) or a key (encrypt)."@x-gmeow-english ;
+    skos:example "ex:codecBrotli gmeow:codecClass gmeow:codecClassCompress ."@x-gmeow-english ;
+    gmeow:useWhen "Use to tag a transform codec with the capability a reader must hold to reverse it, so the degradation path — unknown-codec vs missing-key opacity — is derivable before decoding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one class per codec (it is functional) and avoid using it to name the specific algorithm; the class is the capability category, not the codec identity."@x-gmeow-english ;
+    gmeow:howToUse "Point each gmeow:TransformCodec at one gmeow:CodecClass (encode, compress, or encrypt); readers use it to decide whether a missing capability yields an unknown-codec or a missing-key gmeow:OpaqueFrame."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:CodecClass
@@ -220,6 +284,10 @@ gmeow:CodecClass
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Codec Class"@x-gmeow-english ;
     skos:definition "The capability class of a transform codec — encode, compress, or encrypt (spec §8). Determines the degradation path when the capability is missing: unknown-codec or missing-key opacity."@x-gmeow-english ;
+    skos:example "gmeow:codecClassEncrypt a gmeow:CodecClass ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for codec capability classes — the small set (encode, compress, encrypt) that determines whether a missing capability yields unknown-codec or missing-key opacity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting classes as subclasses (they are individuals) and avoid using this to name a concrete codec; it is the capability category, while gmeow:TransformCodec names the algorithm."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded classes (encode, compress, encrypt) from a codec via gmeow:codecClass; encrypt-class codecs degrade to missing-key opacity, the others to unknown-codec opacity when a reader lacks the library."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:codecClassEncode a gmeow:CodecClass ; rdfs:label "encode"@x-gmeow-english ;
@@ -270,6 +338,10 @@ gmeow:OpacityReason
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Opacity Reason"@x-gmeow-english ;
     skos:definition "Why a frame is opaque to a given reader (spec §7.6) — a missing capability or damage. An open value vocabulary; opacity is vantage-relative, so the reason is a fact about a reader-frame pair, not about the bytes."@x-gmeow-english ;
+    skos:example "gmeow:opacityMissingKey a gmeow:OpacityReason ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary naming why a frame is opaque to a reader — unknown codec, missing key, or damage — the required reason that keeps opacity distinguishable from data loss."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting reasons as subclasses (they are individuals) and avoid reading a reason as a property of the bytes; it is true of a reader-frame pair, so the same frame may carry no reason at all for a recipient who can decode it."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded reason from a frame via gmeow:opacityReason; pair gmeow:opacityMissingKey with gmeow:sealedRecipient to name the agents for whom the frame is transparent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
 
 gmeow:opacityUnknownCodec a gmeow:OpacityReason ; rdfs:label "unknown codec"@x-gmeow-english ;
