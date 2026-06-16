@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — ANALOGY (structure-mapping, Gentner).
+#
+# The Rutherford analogy: the atom is like the solar system. Analogical
+# inference transfers relational structure from a familiar SOURCE (the solar
+# system) to a TARGET (the atom) via a gmeow:Analogy whose element-pair
+# gmeow:Correspondence relations carry the mapping. The mapping is scored by a
+# solver-layer gmeow:systematicity (Gentner: deep relational structure beats
+# shallow attribute matches). The warrant of the analogical
+# gmeow:InferenceCommitment points at the gmeow:Analogy. Not truth-preserving,
+# so the conclusion is gmeow:probable.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inference/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:physicist a gmeow:Agent ;
+    gmeow:name "Rutherford"@x-gmeow-english .
+
+# --- The source and target domains ------------------------------------------ #
+ex:solarSystem rdfs:label "the solar system (source domain)"@x-gmeow-english .
+ex:atom        rdfs:label "the atom (target domain)"@x-gmeow-english .
+
+ex:sun       rdfs:label "the Sun"@x-gmeow-english .
+ex:planets   rdfs:label "the planets"@x-gmeow-english .
+ex:nucleus   rdfs:label "the nucleus"@x-gmeow-english .
+ex:electrons rdfs:label "the electrons"@x-gmeow-english .
+
+# --- The element-pair correspondences --------------------------------------- #
+ex:corrCentral a gmeow:Correspondence ;
+    rdfs:label "Sun <-> nucleus (central massive body)"@x-gmeow-english ;
+    gmeow:correspondingSource ex:sun ;            # functional: one source element
+    gmeow:correspondingTarget ex:nucleus .        # functional: one target element
+
+ex:corrOrbiting a gmeow:Correspondence ;
+    rdfs:label "planets <-> electrons (orbiting lighter bodies)"@x-gmeow-english ;
+    gmeow:correspondingSource ex:planets ;
+    gmeow:correspondingTarget ex:electrons .
+
+# --- The reified analogy (a relator) ---------------------------------------- #
+ex:rutherfordAnalogy a gmeow:Analogy ;
+    rdfs:label "The atom is like the solar system"@x-gmeow-english ;
+    gmeow:analogicalSource ex:solarSystem ;
+    gmeow:analogicalTarget ex:atom ;
+    gmeow:hasCorrespondence ex:corrCentral , ex:corrOrbiting ;
+    gmeow:systematicity "0.80"^^xsd:decimal .     # solver-layer (Gentner structural consistency)
+
+# --- The propositions and the analogical inference -------------------------- #
+ex:propLighterOrbitsHeavier
+    rdfs:label "lighter bodies orbit a central heavier body"@x-gmeow-english .
+ex:propElectronsOrbitNucleus
+    rdfs:label "electrons orbit the nucleus"@x-gmeow-english .
+
+ex:premOrbits a gmeow:StandpointClaim ;
+    gmeow:vantage ex:physicist ;
+    gmeow:observedFeature ex:propLighterOrbitsHeavier ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:unequivocal .
+
+ex:conclElectronsOrbit a gmeow:StandpointClaim ;
+    rdfs:label "By analogy: electrons orbit the nucleus"@x-gmeow-english ;
+    gmeow:vantage ex:physicist ;
+    gmeow:observedFeature ex:propElectronsOrbitNucleus ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:probable ;          # not truth-preserving → probable
+    gmeow:inferenceMode gmeow:modeAnalogical ;
+    gmeow:inferredFrom ex:premOrbits .
+
+ex:analogicalCommitment a gmeow:InferenceCommitment ;
+    rdfs:label "Analogical argument: solar-system structure transferred to the atom"@x-gmeow-english ;
+    gmeow:inferenceModeOf gmeow:modeAnalogical ;
+    gmeow:premise ex:premOrbits ;
+    gmeow:conclusion ex:conclElectronsOrbit ;
+    gmeow:warrant ex:rutherfordAnalogy .          # the warrant IS the structure-mapping

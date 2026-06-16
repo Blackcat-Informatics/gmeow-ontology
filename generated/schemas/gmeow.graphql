@@ -596,6 +596,12 @@ enum DayOfWeekEnum
     dayWednesday
   }
 
+enum DefeaterKindEnum
+  {
+    defeaterRebutting
+    defeaterUndercutting
+  }
+
 enum DegreeOfFreedomEnum
   {
     dofFourThirtyThreeDuration
@@ -1190,6 +1196,14 @@ enum IndexAlgorithmEnum
     indexAlgorithmFlat
     indexAlgorithmHnsw
     indexAlgorithmIvf
+  }
+
+enum InferenceModeEnum
+  {
+    modeAbduction
+    modeAnalogical
+    modeDeduction
+    modeInduction
   }
 
 enum InstrumentConfigurationEnum
@@ -3356,6 +3370,14 @@ type AgreementName
     nameScript: [String]
     romanization: [String]
     transliterationScheme: [TransliterationScheme]
+  }
+
+type Analogy
+  {
+    analogicalSource: [String]
+    analogicalTarget: [String]
+    hasCorrespondence: [Correspondence]
+    systematicity: [Float]
   }
 
 type AnalysisProperty
@@ -6055,6 +6077,12 @@ type Corpus
     corpusMember: [InformationObject]
   }
 
+type Correspondence
+  {
+    correspondingSource: String
+    correspondingTarget: String
+  }
+
 type CoupleRelationship
   {
     withinFamily: [Family]
@@ -6810,6 +6838,10 @@ type DatingMethod
   }
 
 type DayOfWeek
+  {
+  }
+
+type DefeaterKind
   {
   }
 
@@ -9733,6 +9765,82 @@ type ImportActivity
 
 type IndexAlgorithm
   {
+  }
+
+type InferenceCommitment
+  {
+    candidateHypothesis: [StandpointClaim]
+    conclusion: StandpointClaim
+    explanandum: [String]
+    hasDefeater: [StandpointClaim]
+    inferenceModeOf: InferenceMode
+    premise: [String]
+    warrant: [String]
+  }
+
+type InferenceMode
+  {
+  }
+
+type InferenceProcess
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    complies: [Norm]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: [String]
+    eventAspect: [GrammaticalAspect]
+    eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: [String]
+    eventTimeZone: TimeZone
+    eventToLocation: [Location]
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: [String]
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    performanceOf: [CreativeWork]
+    predecessorOrganization: [Organization]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: [Int]
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    successorOrganization: [Organization]
+    temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
+    experiencer: Agent
+    mentalProcessType: [MentalProcessType]
+    realizesMoment: [String]
+    hasInferenceCommitment: [InferenceCommitment]
+  }
+
+type InferenceTenure
+  {
+    duringInterval: [TimeInterval]
+    tenureOf: InferenceCommitment
   }
 
 type InformationObject
@@ -18890,6 +18998,12 @@ type SensoryPerception
     argumentAcceptability: [Float]
     claimModality: StandpointModality
     claimVeridicality: [ClaimVeridicality]
+    competesWith: [StandpointClaim]
+    defeaterKind: [DefeaterKind]
+    explains: [String]
+    explanatoryScore: [Float]
+    inferenceMode: [InferenceMode]
+    inferredFrom: [String]
     perceptionModality: SensoryModality
   }
 
@@ -20636,6 +20750,12 @@ type StandpointClaim
     argumentAcceptability: [Float]
     claimModality: StandpointModality
     claimVeridicality: [ClaimVeridicality]
+    competesWith: [StandpointClaim]
+    defeaterKind: [DefeaterKind]
+    explains: [String]
+    explanatoryScore: [Float]
+    inferenceMode: [InferenceMode]
+    inferredFrom: [String]
   }
 
 type StandpointModality
