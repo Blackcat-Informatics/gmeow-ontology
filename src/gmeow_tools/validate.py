@@ -699,6 +699,9 @@ def _shacl_cache_inputs(shapes_path: Path = SHAPES_FILE) -> list[Path]:
     }
     return [
         Path(__file__),
+        # The SHACL outcome now flows through the gmeow_shacl seam — editing it
+        # (serialization, partitioning) must invalidate the cache (#578).
+        Path(__file__).parent / "shacl_engine.py",
         shapes_path,
         *sorted(
             extra for extra in SHAPES_DIR.glob("*.ttl") if extra.name not in dsl_shapes
@@ -721,12 +724,14 @@ def _merged_shacl_cache_key() -> str:
 def _dsl_shacl_cache_key(dsl_dir: Path, label: str) -> str:
     """Return the content key for DSL SHACL validation."""
     dsl_validate_source = PROJECT_ROOT / "src" / "gmeow_tools" / "dsl_validate.py"
+    shacl_engine_source = PROJECT_ROOT / "src" / "gmeow_tools" / "shacl_engine.py"
     return _cache_key(
         [
             _files_cache_key(
                 [
                     Path(__file__),
                     dsl_validate_source,
+                    shacl_engine_source,  # DSL path also routes through the seam (#578)
                     *sorted(dsl_dir.rglob("*.ttl")),
                     *sorted(SHAPES_DIR.glob("*.ttl")),
                 ]
