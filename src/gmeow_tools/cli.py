@@ -8,11 +8,12 @@ trees. Repository maintenance lives in :mod:`gmeow_tools.cli_dev`.
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import gts
 import typer
@@ -26,6 +27,8 @@ from gmeow_tools.gts_views import FoldView
 
 if TYPE_CHECKING:
     from rdflib import Graph
+
+    from gmeow_tools.language_tags import LangSelector
 
 app = typer.Typer(
     name="gmeow",
@@ -48,6 +51,35 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
 def _default_gts_file() -> Path:
     """The bundled ontology snapshot."""
     return GTS_SNAPSHOT_FILE
+
+
+def _lang_option() -> Any:
+    """Shared --lang / -l option for language-emitting commands."""
+    return typer.Option(
+        None,
+        "--lang",
+        "-l",
+        help=(
+            "Language(s) for emitted labels and definitions: a BCP-47 tag "
+            "(en, zh, fr) or an internal tag (x-gmeow-english). Comma-separated "
+            "for multiple languages. Overrides GMEOW_LANG."
+        ),
+    )
+
+
+def _gts_tag_map(path: Path | None = None) -> dict[str, str]:
+    """Return the language-tag map for a GTS snapshot (default: bundled)."""
+    return _bundle_view(path).tag_map()
+
+
+def _resolve_lang(lang: str | None, tag_map: dict[str, str]) -> LangSelector:
+    """Resolve CLI/env input against the given tag map."""
+    from gmeow_tools.language_tags import UnknownLanguageError, resolve_lang_input
+
+    try:
+        return resolve_lang_input(lang or os.environ.get("GMEOW_LANG"), tag_map)
+    except UnknownLanguageError as exc:
+        raise _fail(str(exc)) from exc
 
 
 def _read_gts_or_fail(path: Path) -> gts.Graph:
@@ -248,11 +280,13 @@ def describe(
     gts_file: Path | None = typer.Option(  # noqa: B008
         None, "--gts", help="Describe from this .gts package instead of the bundle."
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Describe a GMEOW term as useful prose from a GTS snapshot."""
     from gmeow_tools.describe import describe as _describe
 
-    text, code = _describe(term, gts_file or _default_gts_file())
+    selector = _resolve_lang(lang, _gts_tag_map(gts_file))
+    text, code = _describe(term, gts_file or _default_gts_file(), selector=selector)
     console.print(text)
     if code:
         raise typer.Exit(code=code)
@@ -305,6 +339,7 @@ def project(
     out: Path = typer.Option(  # noqa: B008
         _DEFAULT_OUT_ROOT / "project", "--out", "-o", help="Output directory."
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Project GMEOW to a pure schema.org / FOAF / vCard / … profile.
 
@@ -324,18 +359,28 @@ def project(
         project_gts_subset,
     )
 
+    # Resolve the language selector against the input the user actually gave us
+    # (the target graph), not the hard-coded bundled snapshot.
+    if source is None or source.suffix.lower() == ".gts":
+        tag_map = _gts_tag_map(source)
+    else:
+        tag_map = _gts_tag_map(None)
+    selector = _resolve_lang(lang, tag_map)
+
     # A user GMEOW data file → run the CONSTRUCT; a .gts (or the bundle) → view.
     if source is not None and source.suffix.lower() != ".gts":
         if profile not in PROFILES:
             raise _fail(f"unknown projection profile: {profile} (a vocabulary profile)")
-        path = project_file(source, profile, dist_dir=out)
+        path = project_file(source, profile, dist_dir=out, selector=selector)
         console.print(f"[green]wrote[/green] {path}")
         return
 
     valid = set(PROFILES) | {GTS_VIEW_GMEOW, *GTS_VIEW_ALL}
     if profile not in valid:
         raise _fail(f"unknown view: {profile} (vocab | gmeow | all | maximal)")
-    path = project_gts_subset(source or _default_gts_file(), profile, dist_dir=out)
+    path = project_gts_subset(
+        source or _default_gts_file(), profile, dist_dir=out, selector=selector
+    )
     console.print(f"[green]wrote[/green] {path}")
 
 
@@ -356,6 +401,7 @@ def transpile(
         "--floor",
         help="Use the per-term floor instead of the context-aware descent.",
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Transpile consumer RDF → pure GMEOW → MAXIMAL multi-vocab (#448).
 
@@ -370,6 +416,8 @@ def transpile(
     from gmeow_tools.transpile import transpile as run_transpile
     from gmeow_tools.transpile import transpile_graph
 
+    selector = _resolve_lang(lang, _gts_tag_map(None))
+
     names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
     if names is not None:
         unknown = sorted(set(names) - set(PROFILES))
@@ -379,11 +427,20 @@ def transpile(
         if str(source) == "-":
             graph, stem = _read_turtle(source)
             result = transpile_graph(
-                graph, stem, out_dir=out, profiles=names, descend=not floor
+                graph,
+                stem,
+                out_dir=out,
+                profiles=names,
+                descend=not floor,
+                selector=selector,
             )
         else:
             result = run_transpile(
-                source, out_dir=out, profiles=names, descend=not floor
+                source,
+                out_dir=out,
+                profiles=names,
+                descend=not floor,
+                selector=selector,
             )
     except (OSError, ValueError, SyntaxError) as exc:
         raise _fail(str(exc)) from exc
@@ -416,6 +473,7 @@ def export(
     file: Path | None = typer.Option(  # noqa: B008
         None, "--gts", help="GTS snapshot to export (default: bundled snapshot)."
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Export flat consumer views from a GTS snapshot."""
     from gmeow_tools.export import (
@@ -435,20 +493,21 @@ def export(
     )
 
     view = _bundle_view(file)
+    selector = _resolve_lang(lang, _gts_tag_map(file))
     title, version = fold_meta(view)
-    terms = collect_terms(view)
+    terms = collect_terms(view, selector=selector)
     out.mkdir(parents=True, exist_ok=True)
     written = [
-        *write_csvs(terms, out),
-        write_csvw(out, title=title),
+        *write_csvs(terms, out, selector=selector),
+        write_csvw(out, title=title, selector=selector),
         write_jsonl(terms, out),
         write_markdown(terms, out, title=title, version=version),
         write_llms_txt(terms, out, title=title, version=version),
         write_nquads(view, out),
-        write_trig(view, out),
+        write_trig(view, out, selector=selector),
         write_statements_jsonl(view, out),
-        write_skos(view, out, title=title, version=version),
-        write_obographs(view, out, version=version),
+        write_skos(view, out, title=title, version=version, selector=selector),
+        write_obographs(view, out, version=version, selector=selector),
         write_shex(view, out),
     ]
     for path in written:
@@ -469,12 +528,16 @@ def docs(
         "--force",
         help="Write into a non-empty output directory.",
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Emit a browsable Markdown docs tree from a GTS snapshot."""
     from gmeow_tools.create_docs import create_docs
 
+    selector = _resolve_lang(lang, _gts_tag_map(file))
     try:
-        create_docs(file or _default_gts_file(), directory, force=force)
+        create_docs(
+            file or _default_gts_file(), directory, force=force, selector=selector
+        )
     except FileExistsError as exc:
         raise _fail(str(exc)) from exc
     except (OSError, ValueError) as exc:

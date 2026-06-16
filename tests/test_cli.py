@@ -98,6 +98,50 @@ def test_create_docs_from_bundled_snapshot(runner: CliRunner, tmp_path: Path) ->
     assert (out / "statements.md").exists()
 
 
+def test_describe_unknown_language_fails(runner: CliRunner) -> None:
+    result = runner.invoke(public_app, ["describe", "Person", "--lang", "notatag"])
+    assert result.exit_code != 0
+    assert "unknown language tag" in result.output.lower()
+    assert "Available languages" in result.output
+
+
+def test_describe_fallback_marker_for_missing_language(runner: CliRunner) -> None:
+    """The bundled snapshot only carries English, so a French request falls back."""
+    result = runner.invoke(public_app, ["describe", "Person", "--lang", "fr"])
+    assert result.exit_code == 0, result.output
+    assert "fallback: en" in result.output
+
+
+def test_describe_env_language_rejected_if_unknown(runner: CliRunner) -> None:
+    with patch.dict("os.environ", {"GMEOW_LANG": "notatag"}):
+        result = runner.invoke(public_app, ["describe", "Person"])
+    assert result.exit_code != 0
+    assert "unknown language tag" in result.output.lower()
+
+
+def test_export_respects_language_selector(runner: CliRunner, tmp_path: Path) -> None:
+    out = tmp_path / "export"
+    result = runner.invoke(public_app, ["export", "--out", str(out), "--lang", "fr"])
+    assert result.exit_code == 0, result.output
+    classes_csv = out / "gmeow-classes.csv"
+    assert classes_csv.exists()
+    text = classes_csv.read_text(encoding="utf-8")
+    assert "label_fr" in text
+    assert "label_fallback" in text
+
+
+def test_create_docs_language_fallback(runner: CliRunner, tmp_path: Path) -> None:
+    out = tmp_path / "docs-tree"
+    result = runner.invoke(
+        public_app, ["docs", "--directory", str(out), "--lang", "fr"]
+    )
+    assert result.exit_code == 0, result.output
+    person_file = out / "terms" / "classes" / "gmeow-Person.md"
+    assert person_file.exists()
+    text = person_file.read_text(encoding="utf-8")
+    assert "[fallback: en]" in text
+
+
 def test_public_cli_excludes_checkout_commands(runner: CliRunner) -> None:
     result = runner.invoke(public_app, ["--help"])
     assert result.exit_code == 0

@@ -8,8 +8,9 @@ subcommands rather than reimplementing any behaviour.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import gts
 import httpx
@@ -21,6 +22,8 @@ from gmeow_tools.projections import PROFILES as _PROFILES
 
 if TYPE_CHECKING:
     from rdflib import Graph
+
+    from gmeow_tools.language_tags import LangSelector
 
 app = typer.Typer(
     name="gmeow-dev",
@@ -36,6 +39,48 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     """Print an error and return an Exit to raise."""
     err_console.print(f"[red]{message}[/red]")
     return typer.Exit(code=code)
+
+
+def _lang_option() -> Any:
+    """Shared --lang / -l option for language-emitting commands."""
+    return typer.Option(
+        None,
+        "--lang",
+        "-l",
+        help=(
+            "Language(s) for emitted labels and definitions: a BCP-47 tag "
+            "(en, zh, fr) or an internal tag (x-gmeow-english). Comma-separated "
+            "for multiple languages. Overrides GMEOW_LANG."
+        ),
+    )
+
+
+def _gts_tag_map(path: Path | None = None) -> dict[str, str]:
+    """Return the tag map for a .gts, falling back to the repo graph if missing."""
+    from gmeow_tools.gts_views import load_fold
+
+    try:
+        return load_fold(path).tag_map()
+    except FileNotFoundError:
+        return _repo_tag_map()
+
+
+def _repo_tag_map() -> dict[str, str]:
+    """Return the tag map from the active repository ontology graph."""
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.language_tags import load_tag_map
+
+    return load_tag_map(load_merged_graph(include_imports=False))
+
+
+def _resolve_lang(lang: str | None, tag_map: dict[str, str]) -> LangSelector:
+    """Resolve CLI/env input against the supplied tag map."""
+    from gmeow_tools.language_tags import UnknownLanguageError, resolve_lang_input
+
+    try:
+        return resolve_lang_input(lang or os.environ.get("GMEOW_LANG"), tag_map)
+    except UnknownLanguageError as exc:
+        raise _fail(str(exc)) from exc
 
 
 def _read_turtle(source: Path) -> tuple[Graph, str]:
@@ -996,6 +1041,7 @@ def project(
     data: str = typer.Option(
         "", help="(deprecated alias for the positional source — a GMEOW data file)."
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Project GMEOW to a pure schema.org / FOAF / vCard / … profile.
 
@@ -1018,8 +1064,16 @@ def project(
     )
 
     src = source or (Path(data) if data else None)
+    if src is None or src.suffix.lower() == ".ttl":
+        tag_map = _repo_tag_map()
+    elif src.suffix.lower() == ".gts":
+        tag_map = _gts_tag_map(src)
+    else:
+        tag_map = _gts_tag_map(None)
+    selector = _resolve_lang(lang, tag_map)
+
     if src is None:
-        for path in project_examples():
+        for path in project_examples(selector=selector):
             console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
         return
 
@@ -1027,7 +1081,7 @@ def project(
         valid = set(PROFILES) | {GTS_VIEW_GMEOW, *GTS_VIEW_ALL}
         if profile not in valid:
             raise _fail(f"unknown view: {profile} (vocab | gmeow | all | maximal)")
-        path = project_gts_subset(src, profile)
+        path = project_gts_subset(src, profile, selector=selector)
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
         return
 
@@ -1035,7 +1089,7 @@ def project(
     for name in names:
         if name not in PROFILES:
             raise _fail(f"unknown profile: {name}")
-        path = project_file(src, name)
+        path = project_file(src, name, selector=selector)
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 
@@ -1066,6 +1120,7 @@ def transform(
         "--report",
         help="Write the coverage diff (Markdown) here instead of stdout.",
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Transpile an A-Box to MAXIMAL(G) = G + E(G) + P(G) (#34).
 
@@ -1086,13 +1141,17 @@ def transform(
     )
     from gmeow_tools.transform import transform as run_transform
 
+    selector = _resolve_lang(lang, _repo_tag_map())
+
     names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
     try:
         if str(abox) == "-":
             graph, stem = _read_turtle(abox)
-            result = transform_graph(graph, stem, out_dir=out, profiles=names)
+            result = transform_graph(
+                graph, stem, out_dir=out, profiles=names, selector=selector
+            )
         else:
-            result = run_transform(abox, out_dir=out, profiles=names)
+            result = run_transform(abox, out_dir=out, profiles=names, selector=selector)
     except (TransformAbortedError, ValueError) as exc:
         raise _fail(f"✗ {exc}") from exc
     for path in result.written:
@@ -1707,6 +1766,7 @@ def describe(
     gts: Path | None = typer.Option(  # noqa: B008
         None, "--gts", help="Describe offline from a .gts package instead of the repo."
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Describe a GMEOW term as useful prose (#325).
 
@@ -1717,13 +1777,21 @@ def describe(
     """
     from gmeow_tools.describe import describe as _describe
 
+    if gts is not None:
+        tag_map = _gts_tag_map(gts)
+    else:
+        from gmeow_tools.config import ONTOLOGY_FILE
+
+        tag_map = _repo_tag_map() if ONTOLOGY_FILE.exists() else _gts_tag_map(None)
+    selector = _resolve_lang(lang, tag_map)
+
     gts_path = gts
     if gts_path is None:
         from gmeow_tools.config import GTS_SNAPSHOT_FILE, ONTOLOGY_FILE
 
         if not ONTOLOGY_FILE.exists():
             gts_path = GTS_SNAPSHOT_FILE
-    text, code = _describe(term, gts_path)
+    text, code = _describe(term, gts_path, selector=selector)
     console.print(text)
     if code:
         raise typer.Exit(code=code)
@@ -1746,6 +1814,7 @@ def create_docs_cmd(
         "--force",
         help="Write into a non-empty output directory.",
     ),
+    lang: str | None = _lang_option(),
 ) -> None:
     """Emit a browsable Markdown docs tree from a GTS snapshot (#439).
 
@@ -1757,8 +1826,9 @@ def create_docs_cmd(
     from gmeow_tools.create_docs import create_docs
 
     path = gts_file or _default_gts_file()
+    selector = _resolve_lang(lang, _gts_tag_map(path))
     try:
-        create_docs(path, directory, force=force)
+        create_docs(path, directory, force=force, selector=selector)
     except FileExistsError as exc:
         raise _fail(str(exc)) from exc
     except (OSError, ValueError) as exc:
