@@ -110,6 +110,14 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/AgreementName
     title: Agreement Name
     is_a: Appellation
+  Analogy:
+    class_uri: https://blackcatinformatics.ca/gmeow/Analogy
+    title: Analogy
+    slots:
+    - analogicalSource
+    - analogicalTarget
+    - hasCorrespondence
+    - systematicity
   AnalysisProperty:
     class_uri: https://blackcatinformatics.ca/gmeow/AnalysisProperty
     title: Analysis Property
@@ -687,6 +695,12 @@ classes:
     is_a: InformationObject
     slots:
     - corpusMember
+  Correspondence:
+    class_uri: https://blackcatinformatics.ca/gmeow/Correspondence
+    title: Correspondence
+    slots:
+    - correspondingSource
+    - correspondingTarget
   CoupleRelationship:
     class_uri: https://blackcatinformatics.ca/gmeow/CoupleRelationship
     title: Couple Relationship
@@ -838,6 +852,9 @@ classes:
   DayOfWeek:
     class_uri: https://blackcatinformatics.ca/gmeow/DayOfWeek
     title: Day Of Week
+  DefeaterKind:
+    class_uri: https://blackcatinformatics.ca/gmeow/DefeaterKind
+    title: Defeater Kind
   DegreeOfFreedom:
     class_uri: https://blackcatinformatics.ca/gmeow/DegreeOfFreedom
     title: Degree of Freedom
@@ -1492,6 +1509,32 @@ classes:
   IndexAlgorithm:
     class_uri: https://blackcatinformatics.ca/gmeow/IndexAlgorithm
     title: Index Algorithm
+  InferenceCommitment:
+    class_uri: https://blackcatinformatics.ca/gmeow/InferenceCommitment
+    title: Inference Commitment
+    slots:
+    - candidateHypothesis
+    - conclusion
+    - explanandum
+    - hasDefeater
+    - inferenceModeOf
+    - premise
+    - warrant
+  InferenceMode:
+    class_uri: https://blackcatinformatics.ca/gmeow/InferenceMode
+    title: Inference Mode
+  InferenceProcess:
+    class_uri: https://blackcatinformatics.ca/gmeow/InferenceProcess
+    title: Inference Process
+    is_a: MentalProcess
+    slots:
+    - hasInferenceCommitment
+  InferenceTenure:
+    class_uri: https://blackcatinformatics.ca/gmeow/InferenceTenure
+    title: Inference Tenure
+    is_a: TimeScopedRelation
+    slots:
+    - tenureOf
   InformationObject:
     class_uri: https://blackcatinformatics.ca/gmeow/InformationObject
     title: Information Object
@@ -3402,6 +3445,12 @@ classes:
     - argumentAcceptability
     - claimModality
     - claimVeridicality
+    - competesWith
+    - defeaterKind
+    - explains
+    - explanatoryScore
+    - inferenceMode
+    - inferredFrom
   StandpointModality:
     class_uri: https://blackcatinformatics.ca/gmeow/StandpointModality
     title: Standpoint Modality
@@ -4030,6 +4079,18 @@ slots:
     range: Organization
     domain: Person
     multivalued: true
+  analogicalSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/analogicalSource
+    title: analogical source
+    range: uriorcurie
+    domain: Analogy
+    multivalued: true
+  analogicalTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/analogicalTarget
+    title: analogical target
+    range: uriorcurie
+    domain: Analogy
+    multivalued: true
   analysisFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/analysisFrame
     title: analysis frame
@@ -4657,6 +4718,12 @@ slots:
     range: ModelInvocation
     domain: ToolCall
     multivalued: false
+  candidateHypothesis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/candidateHypothesis
+    title: candidate hypothesis
+    range: StandpointClaim
+    domain: InferenceCommitment
+    multivalued: true
   canonicalFingerprint:
     slot_uri: https://blackcatinformatics.ca/gmeow/canonicalFingerprint
     title: canonical fingerprint
@@ -4984,6 +5051,12 @@ slots:
     range: ExtractedEntity
     domain: Community
     multivalued: true
+  competesWith:
+    slot_uri: https://blackcatinformatics.ca/gmeow/competesWith
+    title: competes with
+    range: StandpointClaim
+    domain: StandpointClaim
+    multivalued: true
   complianceVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/complianceVerdict
     title: compliance verdict
@@ -4996,6 +5069,12 @@ slots:
     range: Norm
     domain: Event
     multivalued: true
+  conclusion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/conclusion
+    title: conclusion
+    range: StandpointClaim
+    domain: InferenceCommitment
+    multivalued: false
   conditionParameter:
     slot_uri: https://blackcatinformatics.ca/gmeow/conditionParameter
     title: condition parameter
@@ -5327,6 +5406,18 @@ slots:
     range: InformationObject
     domain: Corpus
     multivalued: true
+  correspondingSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/correspondingSource
+    title: corresponding source
+    range: uriorcurie
+    domain: Correspondence
+    multivalued: false
+  correspondingTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/correspondingTarget
+    title: corresponding target
+    range: uriorcurie
+    domain: Correspondence
+    multivalued: false
   counterGoal:
     slot_uri: https://blackcatinformatics.ca/gmeow/counterGoal
     title: counter-goal
@@ -5500,6 +5591,12 @@ slots:
     title: deeper than
     range: KnowledgeLevel
     domain: KnowledgeLevel
+    multivalued: true
+  defeaterKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/defeaterKind
+    title: defeater kind
+    range: DefeaterKind
+    domain: StandpointClaim
     multivalued: true
   degreeCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/degreeCount
@@ -6182,6 +6279,24 @@ slots:
     range: Agent
     domain: MentalProcess
     multivalued: false
+  explains:
+    slot_uri: https://blackcatinformatics.ca/gmeow/explains
+    title: explains
+    range: uriorcurie
+    domain: StandpointClaim
+    multivalued: true
+  explanandum:
+    slot_uri: https://blackcatinformatics.ca/gmeow/explanandum
+    title: explanandum
+    range: uriorcurie
+    domain: InferenceCommitment
+    multivalued: true
+  explanatoryScore:
+    slot_uri: https://blackcatinformatics.ca/gmeow/explanatoryScore
+    title: explanatory score
+    range: decimal
+    domain: StandpointClaim
+    multivalued: true
   expressesNorm:
     slot_uri: https://blackcatinformatics.ca/gmeow/expressesNorm
     title: expresses norm
@@ -6787,6 +6902,12 @@ slots:
     range: Copyright
     domain: Entity
     multivalued: true
+  hasCorrespondence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasCorrespondence
+    title: has correspondence
+    range: Correspondence
+    domain: Analogy
+    multivalued: true
   hasCoupleEvent:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasCoupleEvent
     title: has couple event
@@ -6816,6 +6937,12 @@ slots:
     title: has data subject
     range: Agent
     domain: RightsStatement
+    multivalued: true
+  hasDefeater:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasDefeater
+    title: has defeater
+    range: StandpointClaim
+    domain: InferenceCommitment
     multivalued: true
   hasDescendant:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasDescendant
@@ -6950,6 +7077,12 @@ slots:
     title: has illustrator
     range: Agent
     domain: CreativeWork
+    multivalued: true
+  hasInferenceCommitment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasInferenceCommitment
+    title: has inference commitment
+    range: InferenceCommitment
+    domain: InferenceProcess
     multivalued: true
   hasInlinePart:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasInlinePart
@@ -7779,6 +7912,24 @@ slots:
     title: industry classification
     range: Identifier
     domain: Organization
+    multivalued: true
+  inferenceMode:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inferenceMode
+    title: inference mode
+    range: InferenceMode
+    domain: StandpointClaim
+    multivalued: true
+  inferenceModeOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inferenceModeOf
+    title: inference mode of
+    range: InferenceMode
+    domain: InferenceCommitment
+    multivalued: false
+  inferredFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inferredFrom
+    title: inferred from
+    range: uriorcurie
+    domain: StandpointClaim
     multivalued: true
   ingestedAt:
     slot_uri: https://blackcatinformatics.ca/gmeow/ingestedAt
@@ -9738,6 +9889,12 @@ slots:
     range: Organization
     domain: Event
     multivalued: true
+  premise:
+    slot_uri: https://blackcatinformatics.ca/gmeow/premise
+    title: premise
+    range: uriorcurie
+    domain: InferenceCommitment
+    multivalued: true
   prescribedConduct:
     slot_uri: https://blackcatinformatics.ca/gmeow/prescribedConduct
     title: prescribed conduct
@@ -11367,6 +11524,12 @@ slots:
     range: uriorcurie
     domain: NormativeSystem
     multivalued: true
+  systematicity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/systematicity
+    title: systematicity
+    range: decimal
+    domain: Analogy
+    multivalued: true
   tableOfContents:
     slot_uri: https://blackcatinformatics.ca/gmeow/tableOfContents
     title: table of contents
@@ -11486,6 +11649,12 @@ slots:
     title: tenure intention
     range: IntentionalMode
     domain: IntentionTenure
+    multivalued: false
+  tenureOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureOf
+    title: tenure of
+    range: InferenceCommitment
+    domain: InferenceTenure
     multivalued: false
   tenureParty:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenureParty
@@ -12150,6 +12319,12 @@ slots:
     range: WalletScheme
     domain: CryptoWallet
     multivalued: false
+  warrant:
+    slot_uri: https://blackcatinformatics.ca/gmeow/warrant
+    title: warrant
+    range: uriorcurie
+    domain: InferenceCommitment
+    multivalued: true
   wasAssociatedWith:
     slot_uri: https://blackcatinformatics.ca/gmeow/wasAssociatedWith
     title: was associated with
@@ -13593,6 +13768,15 @@ enums:
       dayWednesday:
         meaning: https://blackcatinformatics.ca/gmeow/dayWednesday
         title: Wednesday
+  DefeaterKindEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DefeaterKind
+    permissible_values:
+      defeaterRebutting:
+        meaning: https://blackcatinformatics.ca/gmeow/defeaterRebutting
+        title: rebutting
+      defeaterUndercutting:
+        meaning: https://blackcatinformatics.ca/gmeow/defeaterUndercutting
+        title: undercutting
   DegreeOfFreedomEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DegreeOfFreedom
     permissible_values:
@@ -14958,6 +15142,21 @@ enums:
       indexAlgorithmIvf:
         meaning: https://blackcatinformatics.ca/gmeow/indexAlgorithmIvf
         title: IVF
+  InferenceModeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/InferenceMode
+    permissible_values:
+      modeAbduction:
+        meaning: https://blackcatinformatics.ca/gmeow/modeAbduction
+        title: abduction
+      modeAnalogical:
+        meaning: https://blackcatinformatics.ca/gmeow/modeAnalogical
+        title: analogical
+      modeDeduction:
+        meaning: https://blackcatinformatics.ca/gmeow/modeDeduction
+        title: deduction
+      modeInduction:
+        meaning: https://blackcatinformatics.ca/gmeow/modeInduction
+        title: induction
   InstrumentConfigurationEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InstrumentConfiguration
     permissible_values:
