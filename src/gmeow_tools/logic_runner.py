@@ -70,6 +70,7 @@ from rdflib.compare import isomorphic
 from gmeow_tools.logic_certify import certify_program
 from gmeow_tools.logic_explain import Explanation, explain
 from gmeow_tools.logic_foundation import (
+    anti_rigidity_obligations,
     cross_world_rigidity_violations,
     foundation_rules,
 )
@@ -682,6 +683,40 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
                 mat_result,
                 quads=tuple(combined),
                 derived_quad_count=mat_result.derived_quad_count + len(rigidity_quads),
+            )
+
+    # Anti-rigidity witness policy (issue #503, Task 4).  Anti-rigidity (Role/Phase)
+    # formally requires a world of existence where the instance LACKS the type
+    # (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy).  The per-case policy
+    # — declared in ``profile.json`` as ``"anti_rigidity_policy"`` — governs ONLY the
+    # instance-level obligation facet:
+    #   * ``witness-obligation`` (DEFAULT) emits ``logic:dischargeObligation``;
+    #   * ``schema-only`` emits nothing (type-level lint only);
+    #   * ``witness-required`` emits ``logic:witnessRequiredViolation`` absent a
+    #     materialized counter-world.
+    # P3 (non-suppression): this pass NEVER emits or suppresses a ``logic:violation``
+    # / ``logic:rigidityViolation`` fact — only the obligation/witness facet differs
+    # across policies.  Construction of the counter-world itself is #505.
+    #
+    # Corpus-safety (issue #503): gated identically to the foundation rules — runs ONLY
+    # under the ``foundation_lowering`` opt-in.  The default policy keeps non-opt-in
+    # cases byte-identical (no key, no opt-in ⇒ zero quads).  Unlike the cross-world
+    # rigidity pass this is NOT gated on ≥2 worlds: ``witness-obligation`` emits in the
+    # single typing world, and a single world trivially has no counter-world (so a
+    # single-world ``witness-required`` case fires).
+    if enable_naf:
+        policy = str(profile_data.get("anti_rigidity_policy", "witness-obligation"))
+        obligation_quads = anti_rigidity_obligations(mat_result, policy)
+        if obligation_quads:
+            combined = sorted(
+                (*mat_result.quads, *obligation_quads),
+                key=lambda q: (q.graph, q.subject, q.predicate, q.obj),
+            )
+            mat_result = replace(
+                mat_result,
+                quads=tuple(combined),
+                derived_quad_count=mat_result.derived_quad_count
+                + len(obligation_quads),
             )
 
     # N-Quads serialization

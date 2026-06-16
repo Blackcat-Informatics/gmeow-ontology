@@ -154,6 +154,18 @@ _P_VIOLATION = _logic("violation")
 #: is world-local.  Declared as a closed-vocabulary term in ``module.ttl``.
 _P_RIGIDITY_VIOLATION = _logic("rigidityViolation")
 
+#: The anti-rigidity *discharge-obligation* predicate (issue #503, Task 4).  Emitted
+#: per anti-rigid instantiation under the ``witness-obligation`` policy: an obligation
+#: to construct or cite a counter-world (construction is #505), NOT a violation.
+#: Declared as a closed-vocabulary term in ``module.ttl``.
+_P_DISCHARGE_OBLIGATION = _logic("dischargeObligation")
+
+#: The anti-rigidity *witness-required* diagnostic predicate (issue #503, Task 4).
+#: Emitted per anti-rigid instantiation under the strict ``witness-required`` policy
+#: when NO materialized counter-world witnesses the instance existing untyped by the
+#: anti-rigid type.  Declared as a closed-vocabulary term in ``module.ttl``.
+_P_WITNESS_REQUIRED_VIOLATION = _logic("witnessRequiredViolation")
+
 #: Marker the schema may carry to declare a type rigid explicitly (honoured in
 #: addition to the stereotype-derived path, which is primary).
 _P_RIGIDLY_APPLIES_TO = _logic("rigidlyAppliesTo")
@@ -165,6 +177,21 @@ _RDF_TYPE_IRI = _RDF_TYPE
 #: ``rule_iri`` slot.  Distinct from the in-world ``logic:rule/`` namespace so the
 #: cross-world closure pass is identifiable in derivation provenance.
 _RIGIDITY_RULE_IRI = _logic("rule/cross-world-rigidity")
+
+#: Provenance rule IRI stamped on every emitted anti-rigidity obligation/witness
+#: quad's seam ``rule_iri`` slot (issue #503, Task 4).  Distinct from the in-world
+#: ``logic:rule/`` namespace and from the rigidity rule so the anti-rigidity policy
+#: pass is identifiable in derivation provenance.
+_ANTI_RIGIDITY_RULE_IRI = _logic("rule/anti-rigidity-witness")
+
+#: The closed enum of anti-rigidity witness policies (LOGIC-SEMANTICS.md
+#: §Anti-rigidity needs a witness policy).  ``witness-obligation`` is the default;
+#: ``schema-only`` narrows behaviour to the type-level lint; ``witness-required`` is
+#: strict.  An unknown value is a HARD FAILURE — these are a closed enum, not feature
+#: flags, and there is no silent default.
+_ANTI_RIGIDITY_POLICIES: frozenset[str] = frozenset(
+    {"witness-obligation", "schema-only", "witness-required"}
+)
 
 #: Derived markers.  Unary markers are reified as ``?C P ?C`` self-edges so the
 #: materializer (whose head subject/predicate must be IRIs and whose object may be
@@ -827,6 +854,208 @@ def cross_world_rigidity_violations(
         # ``source_world`` (== w1) is folded into the content-addressed witness
         # reifier above; referenced so static checkers see the loop variable's use.
         _ = source_world
+
+    out.sort(key=lambda q: (q.graph, q.subject, q.predicate, q.obj))
+    return tuple(out)
+
+
+# --------------------------------------------------------------------------- #
+# Anti-rigidity witness policy (issue #503, Task 4) — instance-level obligation
+# --------------------------------------------------------------------------- #
+#
+# Anti-rigidity (Role/Phase) formally requires, for each instantiation, a world of
+# existence where the instance LACKS the type (LOGIC-SEMANTICS.md §Anti-rigidity
+# needs a witness policy).  That is the dual of rigidity: where the rigid closure
+# above flags a type that FAILS to persist, the anti-rigid obligation is about a type
+# that must, somewhere, NOT hold.  Construction of such a counter-world is #505; this
+# pass only governs the *facet* of the instance-level obligation, per a closed
+# three-valued policy declared per-case in ``profile.json``:
+#
+#   * ``witness-obligation`` (DEFAULT) — emit one ``(x, logic:dischargeObligation, T)``
+#     in the world where ``x`` is typed by the anti-rigid ``T``; a standing obligation
+#     to construct or cite the counter-world, NOT a violation.
+#   * ``schema-only``                  — emit NOTHING at the instance level (the
+#     type-level FreeRole/MixRig verdicts from Task 2 are the whole story).
+#   * ``witness-required``             — strict: emit ``(x, logic:witnessRequired
+#     Violation, T)`` in the typing world UNLESS a materialized counter-world
+#     (``x`` exists but is NOT typed ``T``) discharges it.
+#
+# CRITICAL (P3 — non-suppression): the policy governs ONLY this facet.  The Task-2
+# ``logic:violation`` set and the Task-3 ``logic:rigidityViolation`` set are computed
+# elsewhere and are IDENTICAL across all three policies — no policy value may suppress
+# a violation verdict.  Only the obligation/witness facts emitted here differ.
+
+
+def _anti_rigid_type_iris(result: MaterializationResult) -> frozenset[str]:
+    """Return the anti-rigid-type IRIs over the UNION of all materialized worlds.
+
+    Anti-rigidity of a type is a **schema** property and therefore world-INDEPENDENT
+    (LOGIC-SEMANTICS.md: a ``Role``/``Phase`` is anti-rigid in every world), so the
+    set is collected from the union across worlds — exactly mirroring
+    :func:`_rigid_type_iris` for the rigid case.  A type ``T`` is anti-rigid iff, in
+    any world, ``T rdf:type logic:Role`` or ``T rdf:type logic:Phase`` — the
+    stereotype-derived anti-rigid-sortal set reused from Task 2/3
+    (:data:`_ANTI_RIGID_SORTALS`); this is the **primary** (and only) path, since the
+    schema carries no explicit anti-rigidity marker (the ``logic:rigidlyAppliesTo``
+    marker is a *positive* rigidity assertion, never a negation).
+
+    The materialized object term is in canonical N3 form (``<iri>`` for an IRI), so
+    the anti-rigid-sortal meta-class IRIs are wrapped to ``<…>`` before comparison.
+
+    Args:
+        result: The materialized multi-world result to scan.
+
+    Returns:
+        The frozenset of anti-rigid-type IRI strings (bare IRIs, no angle brackets).
+    """
+    anti_rigid_sortal_objs = {f"<{_logic(m)}>" for m in _ANTI_RIGID_SORTALS}
+    anti_rigid: set[str] = set()
+    for quad in result.quads:
+        if quad.predicate == _RDF_TYPE_IRI and quad.obj in anti_rigid_sortal_objs:
+            # ``quad.subject`` is the type ``T`` stereotyped as an anti-rigid sortal.
+            anti_rigid.add(quad.subject)
+    return frozenset(anti_rigid)
+
+
+def anti_rigidity_obligations(
+    result: MaterializationResult, policy: str
+) -> tuple[DerivedQuad, ...]:
+    """Emit the policy-appropriate anti-rigidity instance-level obligation quads.
+
+    The anti-rigidity witness policy (issue #503, Task 4; LOGIC-SEMANTICS.md
+    §Anti-rigidity needs a witness policy) governs how the instance-level obligation
+    of an anti-rigid ``Role``/``Phase`` instantiation is treated.  Anti-rigidity
+    formally requires a world of existence where the instance *lacks* the type; this
+    pass surfaces that obligation per the declared ``policy`` but does **not**
+    construct the counter-world (construction is #505).
+
+    Policy semantics
+    ----------------
+    For every anti-rigid instantiation — a quad ``(x, rdf:type, T)`` in world ``w``
+    whose object ``T`` is in the union-of-worlds anti-rigid set
+    (:func:`_anti_rigid_type_iris`):
+
+    * ``"witness-obligation"`` (default) — emit one
+      ``(x, logic:dischargeObligation, T)`` in ``w``: a standing obligation to
+      construct or cite a counter-world, NOT a violation.
+    * ``"schema-only"`` — emit NOTHING (returns ``()``); the type-level FreeRole/MixRig
+      verdicts from Task 2 are the whole instance-independent story.
+    * ``"witness-required"`` — strict: emit ``(x, logic:witnessRequiredViolation, T)``
+      in ``w`` UNLESS some materialized **counter-world** ``w2 ≠ w`` witnesses ``x``
+      existing (as the subject of any quad) but NOT typed ``T`` there.  A counter-world
+      discharges the obligation, so no witness-required violation is emitted.
+
+    Non-suppression (P3)
+    --------------------
+    This pass emits ONLY ``logic:dischargeObligation`` / ``logic:witnessRequired
+    Violation`` facts.  It never emits — and the policy never suppresses — a
+    ``logic:violation`` (Task 2) or ``logic:rigidityViolation`` (Task 3) fact; those
+    are computed by the other passes and are identical across all three policies.
+
+    Seam contract
+    -------------
+    Each emitted :class:`~.logic_materialize.DerivedQuad` carries the full seam
+    contract, exactly as :func:`cross_world_rigidity_violations`.  ``derivation_id``
+    is content-addressed: it hashes :data:`_ANTI_RIGIDITY_RULE_IRI` over the reifier
+    of the witnessing ``(x, rdf:type, T)`` typing fact.  ``source_quad_ids`` is left
+    **empty** — the discharge-obligation fact is co-located with its typing witness in
+    ``w`` (so an in-world antecedent *could* be cited), but the witness-required
+    facet's provenance is the *absence* of a counter-world (a cross-world condition
+    with no single in-world antecedent), so both facets are uniformly treated as
+    closure-pass leaves for a stable, policy-independent seam shape.  The quad inherits
+    ``result.profile`` and ``result.budget_status``.
+
+    The pass is **pure**: it reads ``result.quads`` and returns new quads; it mutates
+    nothing and performs no I/O.  Output is deterministically sorted by
+    ``(graph, subject, predicate, obj)`` — the same canonical key the chase sorts by.
+
+    Args:
+        result: The materialized multi-world result (the oracle's output).
+        policy: One of the three closed :data:`_ANTI_RIGIDITY_POLICIES` values.
+
+    Returns:
+        A deterministically sorted tuple of :class:`~.logic_materialize.DerivedQuad`
+        records — empty for ``"schema-only"`` (and whenever no anti-rigid
+        instantiation exists).
+
+    Raises:
+        ValueError: If ``policy`` is not one of the three allowed values.  This is a
+            HARD FAILURE: the policy enum is closed, with no silent default (the runner
+            supplies the ``"witness-obligation"`` default only when the profile key is
+            absent — an explicit unknown value is always an error).
+    """
+    if policy not in _ANTI_RIGIDITY_POLICIES:
+        raise ValueError(
+            f"Unknown anti_rigidity_policy {policy!r}; must be one of "
+            f"{sorted(_ANTI_RIGIDITY_POLICIES)}"
+        )
+
+    # ``schema-only`` narrows to the type-level lint: zero instance-level facts.
+    if policy == "schema-only":
+        return ()
+
+    anti_rigid_types = _anti_rigid_type_iris(result)
+    if not anti_rigid_types:
+        # No anti-rigid type anywhere ⇒ no anti-rigid instantiation can exist.
+        return ()
+
+    # Index the materialized world set:
+    #   * ``subjects_by_world[w]`` — the instances that EXIST in world ``w``.
+    #   * ``typings_by_world[w]``  — the (x, T) anti-rigid typings in world ``w``.
+    subjects_by_world: dict[str, set[str]] = {}
+    typings_by_world: dict[str, set[tuple[str, str]]] = {}
+    for quad in result.quads:
+        subjects_by_world.setdefault(quad.graph, set()).add(quad.subject)
+        if quad.predicate == _RDF_TYPE_IRI and quad.obj.startswith("<"):
+            type_iri = quad.obj[1:-1]
+            if type_iri in anti_rigid_types:
+                typings_by_world.setdefault(quad.graph, set()).add(
+                    (quad.subject, type_iri)
+                )
+
+    if policy == "witness-obligation":
+        predicate = _P_DISCHARGE_OBLIGATION
+    else:  # policy == "witness-required" — the only remaining closed value.
+        predicate = _P_WITNESS_REQUIRED_VIOLATION
+
+    out: list[DerivedQuad] = []
+    for typing_world in sorted(typings_by_world):
+        for inst, type_iri in sorted(typings_by_world[typing_world]):
+            if predicate == _P_WITNESS_REQUIRED_VIOLATION:
+                # A counter-world ``w2 ≠ w`` where ``inst`` exists but is NOT typed
+                # ``T`` discharges the strict obligation — emit nothing for it.
+                discharged = any(
+                    w2 != typing_world
+                    and inst in subjects_by_world.get(w2, set())
+                    and (inst, type_iri) not in typings_by_world.get(w2, set())
+                    for w2 in subjects_by_world
+                )
+                if discharged:
+                    continue
+            # Provenance: the typing quad ``(inst, rdf:type, T)`` is the witness; reify
+            # it under the same recipe the chase uses and fold it into ``derivation_id``
+            # so the obligation's identity is content-addressed over its witness.
+            # ``source_quad_ids`` is EMPTY (closure-pass leaf; see the docstring).
+            witness_reifier = quad_reifier_iri(
+                URIRef(inst), URIRef(_RDF_TYPE_IRI), URIRef(type_iri)
+            )
+            deriv_id = derivation_id_iri(_ANTI_RIGIDITY_RULE_IRI, [witness_reifier])
+            # Corpus-safety (issue #503): the object is an IRI, so its N3 form is
+            # ``<iri>`` — matching the materializer's object canonicalisation exactly.
+            out.append(
+                DerivedQuad(
+                    graph=typing_world,
+                    subject=inst,
+                    predicate=predicate,
+                    obj=URIRef(type_iri).n3(),
+                    graph_component=typing_world,
+                    derivation_id=deriv_id,
+                    rule_iri=_ANTI_RIGIDITY_RULE_IRI,
+                    source_quad_ids=[],
+                    profile=result.profile,
+                    budget_status=result.budget_status,
+                )
+            )
 
     out.sort(key=lambda q: (q.graph, q.subject, q.predicate, q.obj))
     return tuple(out)

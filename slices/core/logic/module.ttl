@@ -152,6 +152,18 @@ logic:rigidityViolation
     skos:definition "Relates an individual to a rigid type it fails to persist as across worlds: the derived diagnostic of the positive cross-world rigidity discipline (the fourth OntoUML discipline, the one the type-only lint cannot express). For an individual x and a rigid type T, if x instantiates T in some world but still exists in another world where it is NOT typed T, a logic:rigidityViolation fact is entailed in that other world. Unlike logic:violation it is not produced by an in-world Datalog rule — rigidity quantifies over pairs of worlds and the chase is world-local, so it is evaluated by bounded closure over the finite materialized world set (LOGIC-SEMANTICS.md §Operational semantics). It is never asserted by hand; its presence is a machine-checkable proof that a rigid type's instantiation did not carry over to a world where the individual persists."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
+logic:dischargeObligation
+    a owl:ObjectProperty ;
+    rdfs:label "discharge obligation"@x-gmeow-english ;
+    skos:definition "Relates an individual to an anti-rigid type it instantiates contingently, carrying the standing obligation to construct or cite a world of existence in which the individual lacks that type (the anti-rigidity witness). The instance-level diagnostic the anti-rigidity lowering emits under the witness-obligation policy (the default; LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy): for an individual x typed by an anti-rigid Role or Phase T in a world, a logic:dischargeObligation fact is entailed in that world. It is an obligation, NOT a violation — anti-rigid instantiation is licensed on the promise that the counter-world is satisfiable on demand (its construction is deferred); the lighter schema-only policy emits nothing instance-level, the stricter witness-required policy emits logic:witnessRequiredViolation instead. Like the other derived diagnostics it is never asserted by hand."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:witnessRequiredViolation
+    a owl:ObjectProperty ;
+    rdfs:label "witness required violation"@x-gmeow-english ;
+    skos:definition "Relates an individual to an anti-rigid type it instantiates with no materialized counter-world to witness the anti-rigidity: the instance-level diagnostic the anti-rigidity lowering emits under the strict witness-required policy (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy). For an individual x typed by an anti-rigid Role or Phase T in a world, if there is no other materialized world in which x exists but is NOT typed T, a logic:witnessRequiredViolation fact is entailed in the typing world; a counter-world that witnesses x existing untyped by T discharges the obligation and no violation is emitted. Unlike the default witness-obligation policy (which emits logic:dischargeObligation, an obligation rather than a violation) this policy treats a missing counter-world as a hard failure; the construction of the witness world itself is deferred. It is never asserted by hand; its presence is a machine-checkable proof that an anti-rigid instantiation lacks the world of existence its anti-rigidity requires."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
 logic:StereotypeCardinality
     a owl:NamedIndividual, logic:Discipline ;
     rdfs:label "Stereotype Cardinality"@x-gmeow-english ;
