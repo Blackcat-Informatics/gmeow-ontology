@@ -74,7 +74,7 @@ def test_parse_error_hard_fails() -> None:
 
 
 def test_term_normalization() -> None:
-    assert se._term_str("<http://x>") == "http://x"
-    assert se._term_str("_:b0") == "b0"
-    assert se._term_str('"literal"') == '"literal"'
-    assert se._term_str(None) == "None"
+    assert se.term_to_str("<http://x>") == "http://x"
+    assert se.term_to_str("_:b0") == "b0"
+    assert se.term_to_str('"literal"') == '"literal"'
+    assert se.term_to_str(None) == "None"

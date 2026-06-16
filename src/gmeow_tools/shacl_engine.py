@@ -117,7 +117,7 @@ def validate_graph(data_graph: Graph, shapes_ttl: str) -> ShaclReport:
     )
 
 
-def _term_str(term: str | None) -> str:
+def term_to_str(term: str | None) -> str:
     """Render a gmeow_shacl N-Triples term as rdflib's ``str(term)`` would.
 
     ``<http://x>`` → ``http://x``; ``_:b0`` → ``b0``; literals/plain pass through.
@@ -142,7 +142,7 @@ def partition_results(results: list[ShaclResult]) -> tuple[list[str], list[str]]
     violations: list[str] = []
     warnings: list[str] = []
     for r in results:
-        focus = _term_str(r.get("focus"))
+        focus = term_to_str(r.get("focus"))
         message = r.get("message")
         line = f"{focus}: {message}" if message is not None else focus
         if r.get("severity") in (SH_WARNING, SH_INFO):
