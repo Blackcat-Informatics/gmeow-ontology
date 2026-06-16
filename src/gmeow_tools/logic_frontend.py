@@ -570,7 +570,28 @@ def _extract_rules(
                     )
                 )
                 continue
-            distinct_pairs.append((str(distinct_s), str(distinct_o)))
+            # Both terms MUST be variables (``?``-prefixed): the inequality guard
+            # compares two body-bound values.  A constant would parse here but then
+            # crash the materializer (the guard variable is never bound) — reject it
+            # at the frontend with a warning and skip the guard, mirroring the
+            # missing-term handling above (issue #503 review, PR #605).
+            distinct_s_str = str(distinct_s)
+            distinct_o_str = str(distinct_o)
+            if not distinct_s_str.startswith("?") or not distinct_o_str.startswith("?"):
+                diagnostics.append(
+                    Diagnostic(
+                        severity=WARNING,
+                        code="MALFORMED_RULE_BODY",
+                        message=(
+                            "logic:distinctBody guard terms must both be variables "
+                            f"(?-prefixed); got {(distinct_s_str, distinct_o_str)!r}; "
+                            "inequality guard skipped"
+                        ),
+                        subject=_str_or_none(rule_node),
+                    )
+                )
+                continue
+            distinct_pairs.append((distinct_s_str, distinct_o_str))
 
         rules.append(
             LogicRule(

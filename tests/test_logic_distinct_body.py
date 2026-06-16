@@ -138,6 +138,44 @@ def test_distinct_body_missing_subject_emits_warning() -> None:
     assert prog.rules[0].distinct_pairs == ()
 
 
+def test_distinct_body_constant_term_emits_warning() -> None:
+    """A distinctBody guard with a non-variable (constant) term is rejected.
+
+    A constant would parse here but then crash the materializer — the guard
+    variable is never bound by the body (MaterializationError).  The frontend must
+    reject it with a WARNING and skip the guard (issue #503 review, PR #605).
+    """
+    g = Graph()
+    g.add((EX.s, RDF.type, LOGIC.Kind))
+    rule = EX.constGuardRule
+    g.add((rule, RDF.type, LOGIC.Rule))
+
+    head = BNode("cg_head")
+    g.add((head, RDF.subject, Literal("?A")))
+    g.add((head, RDF.predicate, LOGIC.hasPair))
+    g.add((head, RDF.object, Literal("?B")))
+    g.add((rule, LOGIC.head, head))
+
+    body = BNode("cg_body")
+    g.add((body, RDF.subject, Literal("?A")))
+    g.add((body, RDF.predicate, LOGIC.stereotypeOf))
+    g.add((body, RDF.object, Literal("?B")))
+    g.add((rule, LOGIC.body, body))
+
+    # Guard whose subject is a CONSTANT IRI string, not a ?-variable.
+    distinct = BNode("cg_guard")
+    g.add((distinct, RDF.subject, Literal(str(EX.notAVar))))
+    g.add((distinct, RDF.object, Literal("?B")))
+    g.add((rule, LOGIC.distinctBody, distinct))
+
+    prog, diags = parse_logic_source(g)
+
+    warning_codes = [d.code for d in diags if d.severity == WARNING]
+    assert "MALFORMED_RULE_BODY" in warning_codes
+    # The malformed guard is skipped — no inequality pair is recorded.
+    assert prog.rules[0].distinct_pairs == ()
+
+
 def test_distinct_pairs_canonicalised_symmetric() -> None:
     """Inequality is symmetric: members are sorted within each pair."""
     head = LogicAxiom(subject="?A", predicate=str(LOGIC.hasPair), obj="?B")
