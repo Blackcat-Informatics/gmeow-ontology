@@ -380,3 +380,10 @@ logic:negatedBody
     skos:definition "Relates a logic:Rule to a negated (negation-as-failure) body atom: the antecedent literal that must NOT be derivable for the rule to fire. Parallel to logic:body (the positive antecedent atoms) but read under closed-world negation, so a rule with any logic:negatedBody atom requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. The atom itself is a reified rdf:subject/rdf:predicate/rdf:object triple exactly as for logic:body; only its polarity differs."@x-gmeow-english ;
     rdfs:comment "Negation-as-failure body atom of a logic:Rule. Default-absent: a positive Horn rule has only logic:body atoms and no logic:negatedBody, so the existing positive corpus is unaffected."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:distinctBody
+    a owl:ObjectProperty ;
+    rdfs:label "distinct body"@x-gmeow-english ;
+    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged (issue #503)."@x-gmeow-english ;
+    rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical (issue #503)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
