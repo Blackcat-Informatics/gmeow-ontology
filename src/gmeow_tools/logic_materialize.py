@@ -1278,6 +1278,45 @@ def _chase_world(
     return all_quads, all_facts, loss_entries, budget_state
 
 
+def _ground_negated_atom_key(
+    atom: LogicAxiom,
+    bindings: dict[str, URIRef | Literal],
+) -> tuple[str, str, str] | None:
+    """Ground a negated atom to a canonical ``fact_index`` key, or ``None``.
+
+    Returns the ``(s, p, o)`` n3-string key when *every* term grounds to either a
+    bound variable's value or a constant IRI — enabling an O(1) membership test in
+    :func:`_atom_is_satisfied` instead of a full scan.  Returns ``None`` (so the
+    caller falls back to the scan) when any term is an unbound variable (a
+    non-DL-safe atom) or a constant *literal* object: :func:`_match_atom` compares
+    literal constants by string form, not by the datatyped ``.n3()`` the key uses,
+    so a literal-constant lookup is not exact and must scan.
+
+    Bound-variable values originate from the fact base, so their ``.n3()`` is
+    exactly the keyed form; constant IRIs key canonically as ``<iri>``.  This makes
+    the fast path byte-equivalent to the scan for every atom it accepts.
+    """
+
+    def _ground(term: str, is_literal: bool) -> str | None:
+        if _is_var(term):
+            val = bindings.get(term)
+            return None if val is None else val.n3()
+        if is_literal:
+            return None
+        return URIRef(term).n3()
+
+    s = _ground(atom.subject, False)
+    if s is None:
+        return None
+    p = _ground(atom.predicate, False)
+    if p is None:
+        return None
+    o = _ground(atom.obj, atom.obj_is_literal)
+    if o is None:
+        return None
+    return (s, p, o)
+
+
 def _atom_is_satisfied(
     atom: LogicAxiom,
     bindings: dict[str, URIRef | Literal],
@@ -1303,6 +1342,15 @@ def _atom_is_satisfied(
     Returns:
         ``True`` iff some fact matches the bound atom (so NAF would block the rule).
     """
+    # Fast path (issue #503 review): when the atom grounds fully to bound /
+    # constant-IRI terms, an O(1) key-membership test replaces the O(N) scan over
+    # every candidate binding.  Falls through to the scan for partially-bound
+    # (non-DL-safe) atoms or constant-literal objects — see
+    # :func:`_ground_negated_atom_key`.
+    ground_key = _ground_negated_atom_key(atom, bindings)
+    if ground_key is not None:
+        return ground_key in fact_index
+
     atom_s = bindings.get(atom.subject)
     atom_p = bindings.get(atom.predicate)
     atom_o = bindings.get(atom.obj)
