@@ -1028,6 +1028,7 @@ dependencies = [
 name = "gmeow-validate"
 version = "0.1.0"
 dependencies = [
+ "gmeow-shacl",
  "oxigraph",
  "pyo3",
  "regex",

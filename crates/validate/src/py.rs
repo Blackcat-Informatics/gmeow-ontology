@@ -20,7 +20,7 @@ use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList};
+use pyo3::types::{PyCapsule, PyDict, PyList};
 
 use crate::coverage;
 use crate::dsl;
@@ -94,6 +94,60 @@ impl PyLintConfig {
                 .cloned()
                 .collect::<HashSet<_>>(),
         }
+    }
+}
+
+/// A reusable oxigraph store built once from canonical source paths.
+///
+/// Python hands the source paths once; the store can then be validated against
+/// parsed SHACL shapes across multiple phases without re-parsing the sources
+/// (#634).
+#[pyclass(name = "ValidationStore")]
+struct PyValidationStore {
+    store: oxigraph::store::Store,
+    #[allow(dead_code)]
+    source_paths: Vec<String>,
+}
+
+#[pymethods]
+impl PyValidationStore {
+    #[new]
+    fn new(source_paths: Vec<String>) -> PyResult<Self> {
+        if source_paths.is_empty() {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "ValidationStore: source_paths must not be empty",
+            ));
+        }
+        let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
+        let store = store::build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            store,
+            source_paths,
+        })
+    }
+
+    /// Internal protocol: return a transient capsule that borrows the wrapped
+    /// oxigraph store.
+    ///
+    /// The capsule is consumed immediately by `gmeow_shacl.Shapes.validate_store`
+    /// so the SHACL engine can validate the store directly without an N-Triples
+    /// round-trip. Keeping the capsule alive after the store is dropped is
+    /// undefined behaviour; do not call this directly from Python.
+    fn _store_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        let addr = &self.store as *const oxigraph::store::Store as usize;
+        // SAFETY: the capsule borrows `self.store`. It must not outlive `self`.
+        PyCapsule::new_with_value(py, addr, c"gmeow-validation-store")
+    }
+
+    /// Validate this store against a parsed SHACL shapes model.
+    ///
+    /// Convenience wrapper that delegates to
+    /// `gmeow_shacl.Shapes.validate_store(self)` so the two classes can live in
+    /// their respective extension modules while still sharing the underlying
+    /// oxigraph store directly.
+    fn validate(slf: &Bound<'_, Self>, shapes: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        let report = shapes.call_method1("validate_store", (slf,))?;
+        Ok(report.unbind())
     }
 }
 
@@ -487,6 +541,7 @@ fn dsl_merge_with_provenance(
 #[pymodule]
 fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLintConfig>()?;
+    m.add_class::<PyValidationStore>()?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
     m.add_function(wrap_pyfunction!(structural_lint, m)?)?;

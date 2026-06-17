@@ -61,6 +61,14 @@ pub fn parse_file(path: &Path) -> Result<Vec<Quad>, String> {
 ///
 /// Returns `Err(message)` if any file fails to read or parse.
 pub fn build_store(paths: &[PathBuf]) -> Result<Store, String> {
+    load_sources_into_store(paths)
+}
+
+/// Alias for [`build_store`] used by the validation orchestration.
+///
+/// Loads every Turtle source in `paths` into a single oxigraph [`Store`] using
+/// lenient parsing. See [`build_store`] for details.
+pub fn load_sources_into_store(paths: &[PathBuf]) -> Result<Store, String> {
     let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
     for path in paths {
         let bytes =
