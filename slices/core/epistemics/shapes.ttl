@@ -37,8 +37,9 @@ gmeow:DoxasticStandpointClaimShape
         sh:path gmeow:defeatedBy ;
         sh:minCount 0 ;
         sh:nodeKind sh:IRI ;
+        sh:class gmeow:JustificationStatus ;
         sh:severity sh:Violation ;
-        sh:message "If present, gmeow:defeatedBy on a DoxasticStandpointClaim must be an IRI." ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticStandpointClaim must be an IRI typed as gmeow:JustificationStatus." ;
     ] .
 
 gmeow:DoxasticStateShape
@@ -91,8 +92,9 @@ gmeow:DoxasticStateShape
         sh:path gmeow:defeatedBy ;
         sh:minCount 0 ;
         sh:nodeKind sh:IRI ;
+        sh:class gmeow:JustificationStatus ;
         sh:severity sh:Violation ;
-        sh:message "If present, gmeow:defeatedBy must be an IRI." ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticState must be an IRI typed as gmeow:JustificationStatus." ;
     ] .
 
 gmeow:DoxasticTenureShape
