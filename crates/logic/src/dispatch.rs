@@ -190,8 +190,15 @@ pub fn fast_path(
             .join(" ")
     };
 
+    // Push the answer cap into the query so the store never materializes more than
+    // `max_answers + 1` distinct rows. The `+ 1` lets the loop below still observe one
+    // row beyond the cap and stamp `Partial` (it checks `len() >= max_a` before pushing).
+    let limit_clause = budget
+        .max_answers
+        .map(|n| format!(" LIMIT {}", n.saturating_add(1)))
+        .unwrap_or_default();
     let sparql = format!(
-        "SELECT DISTINCT {select_vars} WHERE {{ GRAPH <{}> {{ {} }} }}",
+        "SELECT DISTINCT {select_vars} WHERE {{ GRAPH <{}> {{ {} }} }}{limit_clause}",
         world.as_str(),
         patterns.join(" . ")
     );
