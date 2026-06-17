@@ -27,11 +27,13 @@ from gmeow_tools.config import (
     MAPPINGS_DIR,
     NAMESPACE,
     PROJECT_ROOT,
+    SLICES_DIR,
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.generator import Generator, register
 from gmeow_tools.graph import iter_import_files, iter_module_files
 from gmeow_tools.gts_producer import compile_gts
+from gmeow_tools.i18n_catalog import merge_terms
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import SELF_DESC_FILE
 from gmeow_tools.slices import discover_slices
@@ -99,7 +101,7 @@ def _tar_members(members: list[tuple[str, bytes]]) -> bytes:
     return buffer.getvalue()
 
 
-def _transform_blobs() -> list[tuple[bytes, str, str]]:
+def _transform_blobs(_graph: Graph) -> list[tuple[bytes, str, str]]:
     """Fold transform inputs into the bundle for repo-free consumer commands."""
     import json
 
@@ -217,15 +219,19 @@ def build_snapshot_bytes(
             f"guide anchor error(s) — {details}"
         )
         raise ValueError(msg)
+
+    po_paths = sorted(p for p in SLICES_DIR.glob("*/*/i18n/*.po") if p.stem != "en")
+    multilingual_graph = merge_terms(graph, po_paths)
+
     blobs = (
-        _doc_blobs(graph)
+        _doc_blobs(multilingual_graph)
         + _project_doc_blobs()
         + _ontology_doc_blobs()
-        + _transform_blobs()
+        + _transform_blobs(multilingual_graph)
     )
 
     return compile_gts(
-        graph,
+        multilingual_graph,
         STATEMENT_RDF12_FILE,
         alignment_graph=build_alignment_graph(load_mappings()),
         extra_named_graphs=[
@@ -270,6 +276,7 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "config.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "graph.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "gts_producer.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "i18n_catalog.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "self_desc.py",
@@ -308,6 +315,7 @@ class GtsSnapshotGenerator(Generator):
             *sorted((MAPPING_DSL_DIR / "projections").glob("*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/mappings/*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
+            *sorted(p for p in SLICES_DIR.glob("*/*/i18n/*.po") if p.stem != "en"),
             *ontology_docs_cache_inputs(),
             *sorted(doc_files),
         ]
