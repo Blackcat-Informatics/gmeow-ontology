@@ -20,7 +20,7 @@
 use std::path::{Path, PathBuf};
 
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{NamedOrBlankNode, Quad, Term};
+use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Quad, Term};
 use oxigraph::store::Store;
 
 use crate::model::owl;
@@ -127,6 +127,46 @@ pub fn sameas_violations(
     out
 }
 
+/// Build an oxigraph [`Store`] from an N-Triples document.
+///
+/// The validation-path SHACL data and the reasoning test shims pass graphs as
+/// N-Triples strings (the rdflib-free seam, #579) rather than as rdflib graphs.
+/// N-Triples is a strict subset of the Turtle family, so the same lenient parser
+/// [`build_store`] uses ingests it directly. Parsing is lenient for the same
+/// reason (private-use `@x-gmeow-*` language tags).
+///
+/// # Errors
+///
+/// Returns `Err(message)` if the N-Triples fails to parse.
+pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
+    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+    for triple in RdfParser::from_format(RdfFormat::NTriples)
+        .lenient()
+        .for_reader(data_nt.as_bytes())
+    {
+        let triple = triple.map_err(|e| format!("N-Triples parse error: {e}"))?;
+        store
+            .insert(&triple)
+            .map_err(|e| format!("store insert failed: {e}"))?;
+    }
+    Ok(store)
+}
+
+/// Serialize a [`Store`]'s default graph to canonical N-Triples text.
+///
+/// Uses oxigraph's own N-Triples serializer (no hand-rolled literal escaping),
+/// the same primitive the SHACL report uses. This is the rdflib-free replacement
+/// for `rdflib.Graph.serialize(format="nt")` on the validation path (#579):
+/// `merge_to_ntriples` builds the store from the Turtle sources and dumps it so
+/// the SHACL data graph never touches rdflib.
+pub fn dump_store_to_ntriples(store: &Store) -> String {
+    let mut buf: Vec<u8> = Vec::new();
+    store
+        .dump_graph_to_writer(GraphNameRef::DefaultGraph, RdfFormat::NTriples, &mut buf)
+        .expect("N-Triples serialisation into Vec<u8> is infallible");
+    String::from_utf8(buf).expect("oxigraph N-Triples output is valid UTF-8")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,5 +254,25 @@ mod tests {
             "https://example.org/b".to_owned(),
         )];
         assert!(sameas_violations(&quads, NS, &allowlist).is_empty());
+    }
+
+    #[test]
+    fn nt_round_trips_through_store() {
+        let nt = "<https://example.org/a> <https://example.org/p> <https://example.org/b> .\n";
+        let store = build_store_from_nt(nt).expect("valid N-Triples must load");
+        assert_eq!(store.len().unwrap(), 1);
+        let dumped = dump_store_to_ntriples(&store);
+        // oxigraph emits the same single triple (whitespace-normalized).
+        assert!(dumped.contains("<https://example.org/a>"));
+        assert!(dumped.contains("<https://example.org/p>"));
+        assert!(dumped.contains("<https://example.org/b>"));
+        // Re-ingesting the dump yields the identical triple count.
+        let store2 = build_store_from_nt(&dumped).expect("dump must re-load");
+        assert_eq!(store2.len().unwrap(), 1);
+    }
+
+    #[test]
+    fn nt_rejects_malformed() {
+        assert!(build_store_from_nt("this is not n-triples @@@").is_err());
     }
 }

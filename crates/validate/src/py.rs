@@ -23,6 +23,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
 use crate::coverage;
+use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::store;
@@ -102,6 +103,14 @@ impl PyLintConfig {
 fn build_store_or_err(source_paths: &[String]) -> PyResult<oxigraph::store::Store> {
     let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
     store::build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+/// Build the store from an N-Triples string (the rdflib-free data seam, #579),
+/// mapping a parse failure to a Python `ValueError`. The reasoning checks accept
+/// graphs as N-Triples now (test shims build a synthetic graph and serialize it),
+/// so this is their ingestion primitive.
+fn build_store_from_nt_or_err(data_nt: &str) -> PyResult<oxigraph::store::Store> {
+    store::build_store_from_nt(data_nt).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
 /// Structural lint over the merged sources (mirrors `validate.structural_lint`).
@@ -243,6 +252,36 @@ fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<PyObject> {
     report_dict(py, errors, Vec::new())
 }
 
+/// A gUFO anti-pattern check: `(store, cfg) -> errors`.
+type GufoCheck = fn(&oxigraph::store::Store, &GufoConfig) -> Vec<String>;
+
+/// Run one gUFO check over the merged sources (the production `validate_all`
+/// path passes file paths directly — no rdflib graph, #579).
+fn run_reasoning_paths(
+    py: Python<'_>,
+    check: GufoCheck,
+    source_paths: Vec<String>,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_or_err(&source_paths)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, check(&store, &cfg))
+}
+
+/// Run one gUFO check over an N-Triples graph string (the test-shim seam: a
+/// synthetic graph serialized to N-Triples, no rdflib in the validation-path
+/// source files, #579).
+fn run_reasoning_nt(
+    py: Python<'_>,
+    check: GufoCheck,
+    data_nt: &str,
+    namespace: String,
+) -> PyResult<PyObject> {
+    let store = build_store_from_nt_or_err(data_nt)?;
+    let cfg = GufoConfig { namespace };
+    errors_dict(py, check(&store, &cfg))
+}
+
 /// The aggregate gUFO/UFO reasoning invariants over the merged sources (mirrors
 /// `reasoning_lint.reasoning_invariants`). Runs all six anti-pattern checks and
 /// flattens their errors in declaration order.
@@ -252,82 +291,73 @@ fn reasoning_invariants(
     source_paths: Vec<String>,
     namespace: String,
 ) -> PyResult<PyObject> {
-    let store = build_store_or_err(&source_paths)?;
-    let cfg = GufoConfig { namespace };
-    errors_dict(py, gufo::reasoning_invariants(&store, &cfg))
+    run_reasoning_paths(py, gufo::reasoning_invariants, source_paths, namespace)
 }
 
-/// `exactly_one_stereotype` over the merged sources (mirrors the same-named
-/// Python check; exposed for the test shim that builds a graph per check).
+/// The aggregate reasoning invariants over an N-Triples graph (test-shim seam).
 #[pyfunction]
-fn reasoning_exactly_one_stereotype(
-    py: Python<'_>,
-    source_paths: Vec<String>,
-    namespace: String,
-) -> PyResult<PyObject> {
-    let store = build_store_or_err(&source_paths)?;
-    let cfg = GufoConfig { namespace };
-    errors_dict(py, gufo::exactly_one_stereotype(&store, &cfg))
+fn reasoning_invariants_nt(py: Python<'_>, data_nt: &str, namespace: String) -> PyResult<PyObject> {
+    run_reasoning_nt(py, gufo::reasoning_invariants, data_nt, namespace)
 }
 
-/// `identity_overlap` (MixIden) over the merged sources.
+/// `exactly_one_stereotype` over an N-Triples graph (test-shim seam).
 #[pyfunction]
-fn reasoning_identity_overlap(
+fn reasoning_exactly_one_stereotype_nt(
     py: Python<'_>,
-    source_paths: Vec<String>,
+    data_nt: &str,
     namespace: String,
 ) -> PyResult<PyObject> {
-    let store = build_store_or_err(&source_paths)?;
-    let cfg = GufoConfig { namespace };
-    errors_dict(py, gufo::identity_overlap(&store, &cfg))
+    run_reasoning_nt(py, gufo::exactly_one_stereotype, data_nt, namespace)
 }
 
-/// `anti_rigidity_discipline` (MixRig / FreeRole) over the merged sources.
+/// `identity_overlap` (MixIden) over an N-Triples graph (test-shim seam).
 #[pyfunction]
-fn reasoning_anti_rigidity_discipline(
+fn reasoning_identity_overlap_nt(
     py: Python<'_>,
-    source_paths: Vec<String>,
+    data_nt: &str,
     namespace: String,
 ) -> PyResult<PyObject> {
-    let store = build_store_or_err(&source_paths)?;
-    let cfg = GufoConfig { namespace };
-    errors_dict(py, gufo::anti_rigidity_discipline(&store, &cfg))
+    run_reasoning_nt(py, gufo::identity_overlap, data_nt, namespace)
 }
 
-/// `relator_mediation` (RelComp) over the merged sources.
+/// `anti_rigidity_discipline` (MixRig / FreeRole) over an N-Triples graph.
 #[pyfunction]
-fn reasoning_relator_mediation(
+fn reasoning_anti_rigidity_discipline_nt(
     py: Python<'_>,
-    source_paths: Vec<String>,
+    data_nt: &str,
     namespace: String,
 ) -> PyResult<PyObject> {
-    let store = build_store_or_err(&source_paths)?;
-    let cfg = GufoConfig { namespace };
-    errors_dict(py, gufo::relator_mediation(&store, &cfg))
+    run_reasoning_nt(py, gufo::anti_rigidity_discipline, data_nt, namespace)
 }
 
-/// `coequal_facet_orthogonality` (P9 #281) over the merged sources.
+/// `relator_mediation` (RelComp) over an N-Triples graph (test-shim seam).
 #[pyfunction]
-fn reasoning_coequal_facet_orthogonality(
+fn reasoning_relator_mediation_nt(
     py: Python<'_>,
-    source_paths: Vec<String>,
+    data_nt: &str,
     namespace: String,
 ) -> PyResult<PyObject> {
-    let store = build_store_or_err(&source_paths)?;
-    let cfg = GufoConfig { namespace };
-    errors_dict(py, gufo::coequal_facet_orthogonality(&store, &cfg))
+    run_reasoning_nt(py, gufo::relator_mediation, data_nt, namespace)
 }
 
-/// `frame_declaration_completeness` (P11 #283) over the merged sources.
+/// `coequal_facet_orthogonality` (P9 #281) over an N-Triples graph.
 #[pyfunction]
-fn reasoning_frame_declaration_completeness(
+fn reasoning_coequal_facet_orthogonality_nt(
     py: Python<'_>,
-    source_paths: Vec<String>,
+    data_nt: &str,
     namespace: String,
 ) -> PyResult<PyObject> {
-    let store = build_store_or_err(&source_paths)?;
-    let cfg = GufoConfig { namespace };
-    errors_dict(py, gufo::frame_declaration_completeness(&store, &cfg))
+    run_reasoning_nt(py, gufo::coequal_facet_orthogonality, data_nt, namespace)
+}
+
+/// `frame_declaration_completeness` (P11 #283) over an N-Triples graph.
+#[pyfunction]
+fn reasoning_frame_declaration_completeness_nt(
+    py: Python<'_>,
+    data_nt: &str,
+    namespace: String,
+) -> PyResult<PyObject> {
+    run_reasoning_nt(py, gufo::frame_declaration_completeness, data_nt, namespace)
 }
 
 /// Coverage analysis over the vendored entity-slice fixtures (mirrors
@@ -367,6 +397,40 @@ fn coverage_analyze(
     Ok(out.into())
 }
 
+/// Build the merged graph from `source_paths` and dump it as canonical
+/// N-Triples (the rdflib-free SHACL data seam, #579).
+///
+/// `validate.run_shacl` / `check_examples` call this to produce the SHACL data
+/// graph WITHOUT building an rdflib graph: the oxigraph store is built from the
+/// Turtle paths and serialized to N-Triples, which `gmeow_shacl.validate`
+/// ingests directly. A parse failure maps to a Python `ValueError` (hard-fail,
+/// no fallback).
+#[pyfunction]
+fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
+    let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
+    dsl::merge_to_ntriples(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+/// Build the merged DSL graph from `dsl_paths` as N-Triples, plus the focus→file
+/// provenance map (mirrors the legacy `node_to_file` walk, #579).
+///
+/// Returns `(data_nt, [(named_subject_iri, source_file_path), ...])` where the
+/// pairs record the FIRST `.ttl` file each named subject appears in, in
+/// first-seen order. `dsl_validate.py` validates `data_nt` via `gmeow_shacl` and
+/// enriches each violation with `source=` from the map — no rdflib. A parse
+/// failure maps to a Python `ValueError`.
+#[pyfunction]
+fn dsl_merge_with_provenance(
+    py: Python<'_>,
+    dsl_paths: Vec<String>,
+) -> PyResult<(String, PyObject)> {
+    let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
+    let merge =
+        dsl::merge_with_provenance(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let pairs = PyList::new(py, &merge.focus_to_file)?;
+    Ok((merge.data_nt, pairs.into()))
+}
+
 /// Python extension module `gmeow_validate`.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -383,15 +447,21 @@ fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(typed_terms, m)?)?;
     m.add_function(wrap_pyfunction!(declared_terms, m)?)?;
     m.add_function(wrap_pyfunction!(reasoning_invariants, m)?)?;
-    m.add_function(wrap_pyfunction!(reasoning_exactly_one_stereotype, m)?)?;
-    m.add_function(wrap_pyfunction!(reasoning_identity_overlap, m)?)?;
-    m.add_function(wrap_pyfunction!(reasoning_anti_rigidity_discipline, m)?)?;
-    m.add_function(wrap_pyfunction!(reasoning_relator_mediation, m)?)?;
-    m.add_function(wrap_pyfunction!(reasoning_coequal_facet_orthogonality, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_invariants_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_exactly_one_stereotype_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_identity_overlap_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_anti_rigidity_discipline_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(reasoning_relator_mediation_nt, m)?)?;
     m.add_function(wrap_pyfunction!(
-        reasoning_frame_declaration_completeness,
+        reasoning_coequal_facet_orthogonality_nt,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        reasoning_frame_declaration_completeness_nt,
         m
     )?)?;
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
+    m.add_function(wrap_pyfunction!(merge_to_ntriples, m)?)?;
+    m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
     Ok(())
 }

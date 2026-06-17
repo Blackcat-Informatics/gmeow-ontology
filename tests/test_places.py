@@ -17,7 +17,7 @@ from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.slices import module_path
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"

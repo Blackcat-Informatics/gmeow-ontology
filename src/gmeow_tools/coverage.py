@@ -19,10 +19,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import gmeow_validate
-from rdflib import URIRef
 
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
-from gmeow_tools.mappings import build_alignment_graph, load_mappings
+from gmeow_tools.mappings import aligned_iris
 
 
 @dataclass(slots=True)
@@ -53,14 +52,12 @@ def covered_iris() -> set[str]:
     Returns:
         Every non-GMEOW IRI mentioned as a subject or object in the alignment
         graph (i.e. every external term GMEOW links to).
+
+    Delegates the alignment-graph walk to :func:`gmeow_tools.mappings.aligned_iris`
+    so the coverage module stays graph-free (#579) — the graph machinery lives in
+    ``mappings.py`` next to the rest of the SSSOM/alignment-graph code.
     """
-    graph = build_alignment_graph(load_mappings())
-    iris: set[str] = set()
-    for subject, _predicate, obj in graph:
-        for node in (subject, obj):
-            if isinstance(node, URIRef):
-                iris.add(str(node))
-    return iris
+    return aligned_iris()
 
 
 def fixture_paths(fixtures_dir: Path = FIXTURES_DIR) -> list[Path]:

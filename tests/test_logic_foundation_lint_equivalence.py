@@ -76,7 +76,10 @@ from gmeow_tools.logic_foundation import foundation_rules
 from gmeow_tools.logic_ir import LogicProgram
 from gmeow_tools.logic_materialize import materialize_program
 from gmeow_tools.logic_runner import diff_case, run
-from gmeow_tools.reasoning_lint import (
+
+# Graph-accepting shims: serialize a synthetic rdflib graph and route it through
+# the graph-free production reasoning checks (#579).
+from tests._graph_nt import (
     anti_rigidity_discipline,
     identity_overlap,
     reasoning_invariants,
@@ -333,9 +336,9 @@ def _gufo_verdicts(scenario: _Scenario) -> dict[str, frozenset[str]]:
     def _record(local: str, discipline: str) -> None:
         verdicts.setdefault(local, set()).add(discipline)
 
-    # exactly_one_stereotype is imported indirectly: we call it via reasoning_lint to
-    # keep the message-keyword mapping in one place.
-    from gmeow_tools.reasoning_lint import exactly_one_stereotype
+    # exactly_one_stereotype is routed through the graph-accepting test shim
+    # (serialize → graph-free production check, #579).
+    from tests._graph_nt import exactly_one_stereotype
 
     for msg in exactly_one_stereotype(graph):
         no_meta = "carries no gUFO meta-class" in msg

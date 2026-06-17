@@ -104,7 +104,10 @@ def _build_key(
 
 def _gmeow_keys(data: Graph, shapes_ttl: str) -> set[ResultKey]:
     """The gmeow_shacl result key-set for one validation unit."""
-    report = shacl_engine.validate_graph(data, shapes_ttl)
+    # The crosscheck keeps its rdflib graph (it is the pySHACL twin); the seam is
+    # N-Triples now (#579), so serialize here before handing it to gmeow_shacl.
+    data_nt = data.serialize(format="nt", encoding="utf-8").decode("utf-8")
+    report = shacl_engine.validate_nt(data_nt, shapes_ttl)
     return {
         _build_key(
             r.get("focus"),

@@ -25,7 +25,7 @@ from pathlib import Path
 import gmeow_validate
 
 from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
-from gmeow_tools.graph import iter_source_files, load_merged_graph
+from gmeow_tools.graph import iter_source_files
 from gmeow_tools.language_tags import _ANNOTATION_PREDICATES
 from gmeow_tools.slices import discover_slices, iter_slice_module_files
 from gmeow_tools.validate import (
@@ -116,14 +116,14 @@ def test_declared_terms_rust_matches_golden() -> None:
 
 
 def test_structural_lint_wrapper_matches_golden() -> None:
-    merged = load_merged_graph()
-    result = structural_lint(merged)
+    # The wrapper now takes source paths (graph-free, #579) — the production
+    # validate_all path. It must keep reproducing the golden.
+    result = structural_lint(_source_paths())
     _assert_matches_golden("structural_lint", result.errors, result.warnings)
 
 
 def test_term_naming_lint_wrapper_matches_golden() -> None:
-    merged = load_merged_graph()
-    result = term_naming_lint(merged)
+    result = term_naming_lint(_source_paths())
     _assert_matches_golden("term_naming_lint", result.errors, result.warnings)
 
 

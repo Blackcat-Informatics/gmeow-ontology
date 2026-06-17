@@ -18,9 +18,6 @@ from importlib import metadata
 from pathlib import Path
 
 import gmeow_validate
-from rdflib import Graph, URIRef
-from rdflib.namespace import SKOS
-from rdflib.term import Node
 
 from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
@@ -37,34 +34,15 @@ from gmeow_tools.config import (
     SLICES_DIR,
     STATEMENT_DSL_DIR,
 )
-from gmeow_tools.graph import iter_source_files, load_merged_graph
+from gmeow_tools.graph import iter_source_files
 from gmeow_tools.slices import (
     iter_slice_example_files,
     iter_slice_module_files,
     iter_slice_shape_files,
 )
 
-_DEFINITION = SKOS.definition
-_USE_WHEN = URIRef(NAMESPACE + "useWhen")
-_AVOID_WHEN = URIRef(NAMESPACE + "avoidWhen")
-_HOW_TO_USE = URIRef(NAMESPACE + "howToUse")
-_USE_FOR_CONSUMER = URIRef(NAMESPACE + "useForConsumer")
-_AVOID_FOR_CONSUMER = URIRef(NAMESPACE + "avoidForConsumer")
-_PROJECTION_CONTEXT = URIRef(NAMESPACE + "ProjectionContext")
-
 #: CamelCase tokens that mark a selector privileging one co-equal claim (P9).
 _SELECTOR_TOKENS = frozenset({"primary", "preferred", "default", "main"})
-
-_CAMEL_SPLIT = re.compile(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])")
-
-_TERM_KIND_ORDER = (
-    "ontology",
-    "class",
-    "property",
-    "annotation property",
-    "datatype",
-    "individual",
-)
 
 
 def _lint_config() -> gmeow_validate.LintConfig:
@@ -89,30 +67,6 @@ def _lint_config() -> gmeow_validate.LintConfig:
         core_slice_iris,
         sorted(str(p) for p in _ANNOTATION_PREDICATES),
     )
-
-
-def _graph_source_paths(graph: Graph) -> tuple[list[str], Callable[[], None]]:
-    """Serialize *graph* to a temporary N-Triples file for the Rust lints.
-
-    The Rust lints build their own oxigraph store from file paths, so an
-    in-memory rdflib graph (the merged ontology, or a test's hand-built graph)
-    is written to one N-Triples temp file. Returns the source-path list plus a
-    cleanup callback the caller invokes when done.
-
-    N-Triples is chosen so any graph round-trips losslessly through oxigraph's
-    Turtle-family parser without prefix bookkeeping.
-    """
-    with tempfile.NamedTemporaryFile(
-        "wb", suffix=".nt", prefix="gmeow-lint-", delete=False
-    ) as handle:
-        graph.serialize(destination=handle, format="nt", encoding="utf-8")
-        path = Path(handle.name)
-
-    def _cleanup() -> None:
-        with suppress(OSError):
-            path.unlink(missing_ok=True)
-
-    return [str(path)], _cleanup
 
 
 @lru_cache(maxsize=4)
@@ -197,11 +151,12 @@ def _validation_toolchain_salt() -> str:
     """Return a cache salt for the SHACL validation toolchain versions.
 
     The production validation path is ``gmeow_shacl`` (the Rust validator) over
-    pyoxigraph-ingested data (#578). pyshacl/rdflib no longer gate the SHACL
-    result, so they are not part of the salt — one cache-invalidation regime.
+    oxigraph-ingested data (#578/#579). The legacy Python SHACL engine no longer
+    gates the result, so its versions are not part of the salt — one
+    cache-invalidation regime.
     """
     parts: list[str] = []
-    for package in ("gmeow-shacl", "pyoxigraph"):
+    for package in ("gmeow-shacl", "gmeow-validate"):
         try:
             version = metadata.version(package)
         except metadata.PackageNotFoundError:
@@ -337,42 +292,7 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
     )
 
 
-def _is_gmeow_term(term: URIRef) -> bool:
-    """Return whether an IRI is the GMEOW root or lives in its namespace."""
-    s = str(term)
-    return s.startswith(NAMESPACE) or s == ONTOLOGY_IRI
-
-
-def _term_kind(graph: Graph, term: URIRef) -> str:
-    """Return the primary structural kind of a GMEOW term based on its rdf:type.
-
-    Routed through the Rust ``gmeow_validate`` engine (#579): the per-term
-    kind resolution (``_TERM_KIND_ORDER`` priority) lives in Rust. This thin
-    wrapper looks the term up in the typed-terms map; a term with no explicit
-    ``rdf:type`` (never in the map) is an ``"individual"`` by the same
-    convention the Rust collector uses.
-    """
-    return _collect_typed_terms(graph).get(term, "individual")
-
-
-def _collect_typed_terms(graph: Graph) -> dict[URIRef, str]:
-    """Map every GMEOW-namespaced term with an rdf:type to its primary kind.
-
-    Routed through the Rust ``gmeow_validate.typed_terms`` engine (#579): the
-    type-query collection and multi-typed resolution live in Rust over an
-    oxigraph store. The graph is serialized to a temp N-Triples file and the
-    returned ``[(iri, kind)]`` pairs are rehydrated into rdflib ``URIRef``
-    keys for the Python callers that still expect them.
-    """
-    source_paths, cleanup = _graph_source_paths(graph)
-    try:
-        pairs = gmeow_validate.typed_terms(source_paths, _lint_config())
-    finally:
-        cleanup()
-    return {URIRef(iri): kind for iri, kind in pairs}
-
-
-def term_naming_lint(graph: Graph) -> ValidationResult:
+def term_naming_lint(source_paths: list[str]) -> ValidationResult:
     """Principle 9 by annotation (#281): no selector names on ontology terms.
 
     Extends :func:`gmeow_tools.statement_lint.no_preferred_rank` from
@@ -383,16 +303,17 @@ def term_naming_lint(graph: Graph) -> ValidationResult:
     carry an explicit ``gmeow:namingNote`` justification — the lint enforces
     the judgment instead of relying on audit-time discretion.
 
+    Args:
+        source_paths: The Turtle source file paths to lint (the validation path
+            passes ``iter_source_files()``; tests serialize a synthetic graph to
+            a temp N-Triples file and pass its path — graph-free here, #579).
+
     Routed through the Rust ``gmeow_validate.term_naming_lint`` engine (#579):
     the CamelCase split, selector-token match, and ``gmeow:namingNote`` escape
-    hatch all live in Rust over an oxigraph store built from the serialized
-    graph. Python supplies only the typed config.
+    hatch all live in Rust over an oxigraph store built from the source paths.
+    Python supplies only the typed config.
     """
-    source_paths, cleanup = _graph_source_paths(graph)
-    try:
-        report = gmeow_validate.term_naming_lint(source_paths, _lint_config())
-    finally:
-        cleanup()
+    report = gmeow_validate.term_naming_lint(source_paths, _lint_config())
     return ValidationResult(
         errors=list(report["errors"]),
         warnings=list(report["warnings"]),
@@ -411,7 +332,7 @@ def _discover_slices_cached() -> dict[str, object]:
     return _SLICES_CACHE
 
 
-def structural_lint(graph: Graph) -> ValidationResult:
+def structural_lint(source_paths: list[str]) -> ValidationResult:
     """Check that every GMEOW term is fully annotated.
 
     Every GMEOW-namespaced ontology header, class, property, annotation
@@ -422,7 +343,9 @@ def structural_lint(graph: Graph) -> ValidationResult:
     multiple undocumented direct subclasses.
 
     Args:
-        graph: The merged ontology graph.
+        source_paths: The Turtle source file paths to lint (the validation path
+            passes ``iter_source_files()``; tests serialize a synthetic graph to
+            a temp N-Triples file and pass its path — graph-free here, #579).
 
     Returns:
         The validation result.
@@ -430,50 +353,61 @@ def structural_lint(graph: Graph) -> ValidationResult:
     Routed through the Rust ``gmeow_validate.structural_lint`` engine (#579):
     the per-term annotation checks, Tier-1 depth grading, consumer-context
     check, dangling-target check, comprehensiveness heuristic, and the two
-    language-tag policy checks (Check 1 / Check 2, with the rdflib ``Literal``
+    language-tag policy checks (Check 1 / Check 2, with the legacy ``Literal``
     repr framing reproduced byte-exact) all live in Rust over an oxigraph
-    store built from the serialized graph. Python supplies only the typed
-    config (namespace, core-slice IRIs, annotation predicates).
+    store built from the source paths. Python supplies only the typed config
+    (namespace, core-slice IRIs, annotation predicates).
     """
-    source_paths, cleanup = _graph_source_paths(graph)
-    try:
-        report = gmeow_validate.structural_lint(source_paths, _lint_config())
-    finally:
-        cleanup()
+    report = gmeow_validate.structural_lint(source_paths, _lint_config())
     return ValidationResult(
         errors=list(report["errors"]),
         warnings=list(report["warnings"]),
     )
 
 
-def reasoning_lint(graph: Graph) -> ValidationResult:
+def reasoning_lint(source_paths: list[str]) -> ValidationResult:
     """Wrap the UFO anti-pattern checks as a :class:`ValidationResult`.
 
+    Args:
+        source_paths: The Turtle source file paths to check (the validation path
+            passes ``iter_source_files()`` — graph-free here, #579).
+
     Routed through the Rust ``gmeow_validate.reasoning_invariants`` engine
-    (#579): the merged graph is serialized and the six OntoUML anti-pattern
-    checks run over an oxigraph store. Each violation (missing/conflicting gUFO
-    stereotype, identity conflict, anti-rigidity breach, under-mediated relator,
-    co-equal facet collapse, missing frame declaration) becomes an error so
-    ``make validate`` fails if the meta-grounding is incomplete.
+    (#579): the six OntoUML anti-pattern checks run over an oxigraph store built
+    from the source paths. Each violation (missing/conflicting gUFO stereotype,
+    identity conflict, anti-rigidity breach, under-mediated relator, co-equal
+    facet collapse, missing frame declaration) becomes an error so ``make
+    validate`` fails if the meta-grounding is incomplete.
     """
-    source_paths, cleanup = _graph_source_paths(graph)
-    try:
-        report = gmeow_validate.reasoning_invariants(source_paths, str(NAMESPACE))
-    finally:
-        cleanup()
+    report = gmeow_validate.reasoning_invariants(source_paths, str(NAMESPACE))
     return ValidationResult(
         errors=list(report["errors"]),
         warnings=list(report["warnings"]),
     )
 
 
-def run_shacl(
-    data_graph: Graph, *, shapes_path: Path = SHAPES_FILE
-) -> ValidationResult:
-    """Validate a data graph against the GMEOW SHACL shapes.
+def merged_ntriples(source_paths: list[str]) -> str:
+    """Build the merged graph from *source_paths* as canonical N-Triples (#579).
+
+    The graph-free SHACL data seam: the oxigraph store is built in Rust from the
+    Turtle paths and dumped to N-Triples, which ``run_shacl`` hands to
+    ``gmeow_shacl``. No Python graph object is ever constructed on the path.
+
+    Raises:
+        ValueError: If any source fails to parse (hard-fail, no fallback).
+    """
+    nt: str = gmeow_validate.merge_to_ntriples(source_paths)
+    return nt
+
+
+def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationResult:
+    """Validate an N-Triples data graph against the GMEOW SHACL shapes.
 
     Args:
-        data_graph: The merged ontology graph to validate.
+        data_nt: The data graph to validate, serialized as N-Triples (produced by
+            :func:`merged_ntriples` in Rust — graph-free on the validation path,
+            #579). Out-of-path callers holding a Python graph (tests,
+            ``audit.py``) serialize it to N-Triples themselves before calling.
         shapes_path: Path to the SHACL shapes Turtle file.
 
     Returns:
@@ -492,7 +426,7 @@ def run_shacl(
         raise FileNotFoundError(f"SHACL shapes not found: {shapes_path}")
 
     shapes_ttl = _shapes_turtle(shapes_path)
-    report = shacl_engine.validate_graph(data_graph, shapes_ttl)
+    report = shacl_engine.validate_nt(data_nt, shapes_ttl)
     result = ValidationResult()
     if report["conforms"]:
         return result
@@ -514,6 +448,8 @@ def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
     """Validate every ``.ttl`` file under *dsl_dir* against its SHACL shapes.
 
     Returns a :class:`ValidationResult` whose errors carry per-file provenance.
+    The merged N-Triples and the focus→file map are built in Rust
+    (``gmeow_validate.dsl_merge_with_provenance``) — graph-free here (#579).
     """
     from gmeow_tools.dsl_validate import (
         validate_mapping_dsl,
@@ -521,18 +457,11 @@ def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
     )
 
     result = ValidationResult()
-    graph = Graph()
-    node_to_file: dict[Node, Path] = {}
-    for path in sorted(dsl_dir.rglob("*.ttl")):
-        graph.parse(path, format="turtle")
-        file_graph = Graph().parse(path, format="turtle")
-        for subject in file_graph.subjects():
-            if isinstance(subject, URIRef) and subject not in node_to_file:
-                node_to_file[subject] = path
+    dsl_paths = [str(p) for p in sorted(dsl_dir.rglob("*.ttl"))]
     if label == "mapping":
-        violations = validate_mapping_dsl(graph, node_to_file)
+        violations = validate_mapping_dsl(dsl_paths)
     else:
-        violations = validate_statement_dsl(graph, node_to_file)
+        violations = validate_statement_dsl(dsl_paths)
     if violations:
         result.errors.append(
             f"{label} DSL SHACL violations:\n  " + "\n  ".join(violations)
@@ -621,37 +550,42 @@ def _dsl_shacl_cache_key(dsl_dir: Path, label: str) -> str:
     )
 
 
-def _run_example_shacl(merged: Graph, data: Graph) -> ValidationResult:
-    """Validate one example graph against the merged ontology graph."""
-    return run_shacl(merged + data)
+def _run_example_shacl(source_paths: list[str], example: Path) -> ValidationResult:
+    """Validate one example merged with the ontology against the SHACL shapes.
+
+    The merge (ontology sources + the example file) → N-Triples is built in Rust
+    (``merge_to_ntriples``) — no Python graph object (#579).
+    """
+    data_nt = merged_ntriples([*source_paths, str(example)])
+    return run_shacl(data_nt)
 
 
 def check_examples(
-    merged: Graph, *, base_cache_key: str | None = None
+    source_paths: list[str], *, base_cache_key: str | None = None
 ) -> ValidationResult:
     """Validate every slice example against the ontology + SHACL (#332).
 
     Examples are canonical worked data, not test scaffolding: each file is
-    parsed, merged with the ontology, and SHACL-validated in isolation. Results
+    merged with the ontology sources and SHACL-validated in isolation. Results
     are cached by ontology/shapes/example content so repeated local and CI runs
-    do not spend minutes revalidating unchanged examples.
+    do not spend minutes revalidating unchanged examples. The merge runs in Rust
+    over file paths (graph-free, #579); a per-example parse failure surfaces as a
+    ``ValueError`` framed against the example path.
     """
     result = ValidationResult()
     base_cache_key = base_cache_key or _merged_shacl_cache_key()
     for example in iter_slice_example_files():
         name = example.relative_to(SLICES_DIR).as_posix()
-        data = Graph()
+        example_key = _cache_key([base_cache_key, _files_cache_key([example])])
         try:
-            data.parse(example, format="turtle")
-        except Exception as exc:
+            shacl = _cached_result(
+                "example-shacl",
+                example_key,
+                partial(_run_example_shacl, source_paths, example),
+            )
+        except ValueError as exc:
             result.errors.append(f"example {name}: does not parse: {exc}")
             continue
-        example_key = _cache_key([base_cache_key, _files_cache_key([example])])
-        shacl = _cached_result(
-            "example-shacl",
-            example_key,
-            partial(_run_example_shacl, merged, data),
-        )
         for err in shacl.errors:
             result.errors.append(f"example {name}: {err}")
         for warn in shacl.warnings:
@@ -668,7 +602,9 @@ _MALFORMED_ANCHOR_PATTERN = re.compile(
 _STUB_MARKER = "This is a STUB guide"
 
 
-def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResult:
+def guide_anchor_lint(
+    source_paths: list[str], root: Path | None = None
+) -> ValidationResult:
     """Tier-2 structural binding (#325): guides are bound to the graph.
 
     Every slice must carry a non-stub ``docs.md`` whose ``### gmeow:X``
@@ -676,21 +612,20 @@ def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResul
     the build, and a slice without a guide fails. Anchors owned by another
     slice are legal cross-references; anchors matching no term are errors.
 
+    Args:
+        source_paths: The Turtle source file paths whose declared GMEOW terms
+            the anchors resolve against (the validation path passes
+            ``iter_source_files()`` — graph-free here, #579).
+        root: Override the slice-discovery root (tests).
+
     The declared-term set is computed by the Rust
-    ``gmeow_validate.declared_terms`` engine (#579) over the serialized graph;
-    the markdown anchor parsing and resolution stay in Python.
+    ``gmeow_validate.declared_terms`` engine (#579) over the source paths; the
+    markdown anchor parsing and resolution stay in Python (plain string IRIs).
     """
     from gmeow_tools.config import SLICES_DIR
 
     result = ValidationResult()
-    source_paths, cleanup = _graph_source_paths(graph)
-    try:
-        declared = {
-            URIRef(iri)
-            for iri in gmeow_validate.declared_terms(source_paths, _lint_config())
-        }
-    finally:
-        cleanup()
+    declared = set(gmeow_validate.declared_terms(source_paths, _lint_config()))
     base = root if root is not None else SLICES_DIR
     for manifest in sorted(base.glob("*/*/manifest.ttl")):
         slice_dir = manifest.parent
@@ -718,7 +653,7 @@ def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResul
                 f"guides should be term-anchored (#325)"
             )
         for local in anchors:
-            term = URIRef(NAMESPACE + local)
+            term = NAMESPACE + local
             if term not in declared:
                 result.errors.append(
                     f"slice {name}: docs.md anchors gmeow:{local}, which is "
@@ -732,18 +667,27 @@ def validate_all() -> ValidationResult:
     result = check_syntax()
     result.extend(check_sameas_ban())
     if not result.ok:
-        # No point loading a merged graph if a file will not parse or the
+        # No point building the merged graph if a file will not parse or the
         # sameAs ban is violated.
         return result
-    merged = load_merged_graph()
-    result.extend(structural_lint(merged))
-    result.extend(term_naming_lint(merged))
+    # The merged ontology is passed to every gate as FILE PATHS — the Rust
+    # lints/SHACL build their own oxigraph store; no Python graph object is ever
+    # constructed on the validation path (#579).
+    source_paths = [str(p) for p in iter_source_files()]
+    result.extend(structural_lint(source_paths))
+    result.extend(term_naming_lint(source_paths))
     result.extend(slice_ownership_lint())
-    result.extend(guide_anchor_lint(merged))
-    result.extend(reasoning_lint(merged))
+    result.extend(guide_anchor_lint(source_paths))
+    result.extend(reasoning_lint(source_paths))
     shacl_key = _merged_shacl_cache_key()
-    result.extend(_cached_result("merged-shacl", shacl_key, lambda: run_shacl(merged)))
-    result.extend(check_examples(merged, base_cache_key=shacl_key))
+    result.extend(
+        _cached_result(
+            "merged-shacl",
+            shacl_key,
+            lambda: run_shacl(merged_ntriples(source_paths)),
+        )
+    )
+    result.extend(check_examples(source_paths, base_cache_key=shacl_key))
     result.extend(
         _cached_result(
             "dsl-shacl",

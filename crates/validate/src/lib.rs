@@ -23,6 +23,7 @@
 //! dependency.
 
 pub mod coverage;
+pub mod dsl;
 pub mod gufo;
 pub mod lint;
 pub mod model;

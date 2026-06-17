@@ -427,7 +427,10 @@ def _run_range_shacl(output: Graph, detail: list[str]) -> int:
         shapes = _generate_range_shapes(prefix)
         if shapes is None:
             continue
-        report = shacl_engine.validate_graph(output, shapes.serialize(format="turtle"))
+        # acceptance.py keeps its rdflib graph; the validation seam is N-Triples
+        # now (#579), so serialize here before handing it to gmeow_shacl.
+        output_nt = output.serialize(format="nt", encoding="utf-8").decode("utf-8")
+        report = shacl_engine.validate_nt(output_nt, shapes.serialize(format="turtle"))
         if report["conforms"]:
             continue
         n = len(report["results"])

@@ -27,7 +27,7 @@ from pathlib import Path
 import gmeow_validate
 
 from gmeow_tools.config import NAMESPACE
-from gmeow_tools.graph import iter_source_files, load_merged_graph
+from gmeow_tools.graph import iter_source_files
 from gmeow_tools.validate import reasoning_lint
 
 _GOLDEN = (
@@ -52,6 +52,7 @@ def test_reasoning_invariants_rust_matches_golden() -> None:
 
 
 def test_reasoning_lint_wrapper_matches_golden() -> None:
-    result = reasoning_lint(load_merged_graph())
+    # The wrapper now takes source paths (graph-free, #579) — the production path.
+    result = reasoning_lint(_source_paths())
     assert sorted(result.errors) == _golden()
     assert result.warnings == []

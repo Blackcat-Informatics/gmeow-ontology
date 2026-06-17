@@ -16,7 +16,7 @@ from rdflib import RDF, Graph, Literal, Namespace
 from rdflib.namespace import RDFS, SH, SKOS, XSD
 from rdflib.term import Node
 
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")

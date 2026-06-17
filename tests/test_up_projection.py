@@ -460,7 +460,7 @@ def test_up_project_claims_are_shacl_valid() -> None:
     Annotation shape.
     """
     from gmeow_tools.config import STATEMENT_DSL_SHAPES_FILE
-    from gmeow_tools.validate import run_shacl
+    from tests._graph_nt import run_shacl
 
     src = Graph()
     a = URIRef("https://ex.org/a")

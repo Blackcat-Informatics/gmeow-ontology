@@ -1,20 +1,21 @@
-"""The SHACL validation seam: rdflib data → pyoxigraph ingestion → ``gmeow_shacl``.
+"""The SHACL validation seam: N-Triples data → ``gmeow_shacl``.
 
-This module is the single dependency-inversion boundary every pySHACL entry
-point now calls (#578, part of EPIC #575 — replace pySHACL with the Rust
-``gmeow_shacl`` validator built on oxigraph). Callers hand in an rdflib
-``Graph`` (the contract they already satisfy); this seam serializes it to
-N-Triples, hands it plus the SHACL shapes to ``gmeow_shacl.validate``, and
-returns the structured report. pySHACL/rdflib stay only as the cross-check twin
-(#578) until #579 deletes them from the validation path entirely.
+This module is the single dependency-inversion boundary every SHACL entry point
+on the validation path now calls (#578/#579, part of EPIC #575 — replace the
+legacy Python SHACL engine with the Rust ``gmeow_shacl`` validator built on
+oxigraph). Callers hand in the data graph **already serialized to N-Triples**
+(the merged ontology, an example, the DSL graph — produced by
+``gmeow_validate.merge_to_ntriples`` in Rust, never from a Python graph object);
+this seam hands that plus the SHACL shapes to ``gmeow_shacl.validate`` and returns
+the structured report. As of #579 this module imports no graph library at all:
+the validation path is graph-free end to end.
 
 Why no RDF-1.2 round-trip here: every source the merged graph is built from —
 ``slices/*/*/module.ttl``, the root ontology, ``imports/*.ttl`` — and every
 slice example is plain-triple Turtle (the RDF-1.2 statement layer is projected
-to its OWL axiom-annotation form *before* it reaches validation). rdflib's
-N-Triples codec cannot even represent RDF-1.2 reifying triples, so quoted-triple
-data does not transit this seam; the crate's own ``corpus/21`` conformance case
-covers RDF-1.2 validation under ``cargo test``.
+to its OWL axiom-annotation form *before* it reaches validation). oxigraph's
+N-Triples codec carries the data losslessly; the crate's own ``corpus/21``
+conformance case covers RDF-1.2 validation under ``cargo test``.
 """
 
 from __future__ import annotations
@@ -23,8 +24,6 @@ from collections.abc import Iterable
 from importlib import metadata
 from pathlib import Path
 from typing import TypedDict, cast
-
-from rdflib import Graph
 
 
 class ShaclResult(TypedDict):
@@ -69,20 +68,11 @@ def gmeow_shacl_version() -> str:
         ) from exc
 
 
-def graph_to_ntriples(data_graph: Graph) -> str:
-    """Serialize an rdflib data graph to N-Triples for oxigraph ingestion.
-
-    Passes ``encoding`` explicitly: rdflib's N-Triples serializer warns when it
-    is ``None`` (it always uses UTF-8 regardless), so we ask for bytes and decode.
-    """
-    return data_graph.serialize(format="nt", encoding="utf-8").decode("utf-8")
-
-
 def shapes_files_to_turtle(paths: Iterable[Path]) -> str:
     """Merge SHACL shape files into one Turtle document, preserving prefixes.
 
-    This is the rdflib-free shapes-ingestion seam (#578): the shapes never touch
-    rdflib on the production path. The merge is a raw-text concatenation — NOT a
+    This is the graph-free shapes-ingestion seam (#578): the shapes never touch a
+    graph library on the production path. The merge is a raw-text concatenation — NOT a
     triple-store round-trip — because ``gmeow_shacl`` resolves the prefixed names
     inside ``sh:select`` SHACL-AF queries from the document's lexical ``@prefix``
     declarations. A store round-trip discards prefix maps (they are not part of
@@ -94,11 +84,13 @@ def shapes_files_to_turtle(paths: Iterable[Path]) -> str:
     return "\n".join(path.read_text(encoding="utf-8") for path in paths)
 
 
-def validate_graph(data_graph: Graph, shapes_ttl: str) -> ShaclReport:
-    """Validate an rdflib data graph against SHACL shapes via ``gmeow_shacl``.
+def validate_nt(data_nt: str, shapes_ttl: str) -> ShaclReport:
+    """Validate an N-Triples data graph against SHACL shapes via ``gmeow_shacl``.
 
     Args:
-        data_graph: The data graph to validate (merged ontology, example, …).
+        data_nt: The data graph to validate (merged ontology, example, DSL graph),
+            already serialized to N-Triples by ``gmeow_validate.merge_to_ntriples``
+            (Rust/oxigraph — graph-free on the validation path, #579).
         shapes_ttl: The SHACL shapes graph, serialized as Turtle.
 
     Returns:
@@ -115,17 +107,15 @@ def validate_graph(data_graph: Graph, shapes_ttl: str) -> ShaclReport:
 
     return cast(
         ShaclReport,
-        gmeow_shacl.validate(
-            shapes_ttl=shapes_ttl, data_nt=graph_to_ntriples(data_graph)
-        ),
+        gmeow_shacl.validate(shapes_ttl=shapes_ttl, data_nt=data_nt),
     )
 
 
 def term_to_str(term: str | None) -> str:
-    """Render a gmeow_shacl N-Triples term as rdflib's ``str(term)`` would.
+    """Render a gmeow_shacl N-Triples term as a bare ``str(term)`` would.
 
     ``<http://x>`` → ``http://x``; ``_:b0`` → ``b0``; literals/plain pass through.
-    Keeps the report lines byte-identical to the legacy pySHACL path.
+    Keeps the report lines byte-identical to the legacy validation path.
     """
     if term is None:
         return "None"
