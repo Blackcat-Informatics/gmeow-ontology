@@ -19,6 +19,17 @@ from pathlib import Path
 
 from rdflib import Graph, Literal, URIRef
 
+__all__ = [
+    "PoEntry",
+    "PoParseError",
+    "SyncReport",
+    "apply_md_sync",
+    "apply_ttl_sync",
+    "parse_po",
+    "sync_english_file",
+    "sync_english_from_po",
+]
+
 
 class PoParseError(ValueError):
     """Raised when a PO file cannot be parsed."""
