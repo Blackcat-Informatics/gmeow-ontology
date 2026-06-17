@@ -301,19 +301,20 @@ produce exactly the verdicts `reasoning_lint.py` yields today — the conformanc
 specification of the lowering — and they additionally decide cases (cross-world rigidity, type-level
 identity) the lints cannot express.
 
-**Implemented in v3 (#503).** The three type-level disciplines are lowered in
-`src/gmeow_tools/logic_foundation.py`: `foundation_rules()` emits `logic:StratifiedNAFProfile`-certified
-IR rules that derive `logic:violation` facts for `logic:StereotypeCardinality`, `logic:MixIden`,
-`logic:FreeRole`, `logic:MixRig`, and `logic:RelComp`, with absence expressed via NAF
-(`LogicAxiom.negated`) and "two distinct values" expressed via `LogicRule.distinct_pairs` (the
-`logic:distinctBody` inequality guard, Task 1). Cross-world rigidity is decided by
-`cross_world_rigidity_violations()` — a bounded closure over the finite materialized world set —
-emitting `logic:rigidityViolation` quads in the failing world. The in-world rules run on both the
-Python oracle and the Nemo engine identically (covered by the oracle-engine parity gate); the
-cross-world closure is a Python oracle-level pass over the materialized world set. A Rust-native
-emitter in `crates/logic/src/foundation.rs` is deferred; its only payoff is a no-Python wasm path
-not required by any #503 acceptance criterion. Equivalence of the lint map and the lowered verdict
-map is proven by `tests/test_logic_foundation_lint_equivalence.py` (full-map equality).
+**Implemented natively in Rust (#503 lowered the disciplines; #636 retired the Python oracle).** The
+five type-level disciplines are evaluated by `crates/logic/src/foundation.rs` (exposed as
+`gmeow_logic.foundation(input_nq, anti_rigidity_policy)`): it derives `logic:violation` facts for
+`logic:StereotypeCardinality`, `logic:MixIden`, `logic:FreeRole`, `logic:MixRig`, and `logic:RelComp`
+under `logic:StratifiedNAFProfile`-certified stratified NAF, with absence expressed via
+negation-as-failure and "two distinct values" via the inequality (distinct-pairs) guard. Cross-world
+rigidity is decided in the same evaluator by a bounded closure over the finite materialized world set,
+emitting `logic:rigidityViolation` quads in the failing world. The runner
+(`src/gmeow_tools/logic_runner.py`) calls the native evaluator for every case that opts in via
+`profile.json` `"foundation_lowering": true` and maps its full-provenance rows onto the
+`MaterializationResult` every downstream consumer reads. The Python oracle that originally hosted this
+lowering has been deleted (no fallback, no-optionality doctrine). Correctness is proven end-to-end by
+the foundation conformance goldens through `tests/test_logic_foundation_lint_equivalence.py`
+(`test_foundation_conformance_cases_are_green`).
 
 ### Anti-rigidity needs a witness policy
 
@@ -335,8 +336,9 @@ no counter-world has been materialized. A policy must be chosen:
 > on demand; a slice may opt into the stricter witness-required or the lighter schema-only policy and
 > declare which in its profile.
 
-**Implemented in v3 (#503).** The three policy values are enforced by `anti_rigidity_obligations()`
-in `src/gmeow_tools/logic_foundation.py`. A case declares the policy in `profile.json` as
+**Implemented natively in Rust (#503; #636).** The three policy values are enforced by the
+anti-rigidity pass in `crates/logic/src/foundation.rs` (via `gmeow_logic.foundation`'s
+`anti_rigidity_policy` argument). A case declares the policy in `profile.json` as
 `"anti_rigidity_policy"` with one of the three closed values: `"witness-obligation"` (default, emits
 `logic:dischargeObligation`), `"schema-only"` (emits nothing at the instance level), or
 `"witness-required"` (emits `logic:witnessRequiredViolation` absent a materialized counter-world). The
