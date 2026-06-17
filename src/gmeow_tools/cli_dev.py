@@ -2392,5 +2392,62 @@ def sync_english(
     )
 
 
+@i18n_app.command(name="merge")
+def merge(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root to search for slices.",
+    ),
+    output: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--output",
+        "-o",
+        help="Output Turtle file. Defaults to stdout.",
+    ),
+    lang: str | None = typer.Option(
+        None,
+        "--lang",
+        help="BCP-47 language tag to merge (e.g. 'fr'). Defaults to all languages.",
+    ),
+) -> None:
+    """Merge committed PO translations into a multilingual RDF graph.
+
+    Discovers ``*.po`` files under ``<root>/slices/*/*/i18n/`` and adds their
+    translated triples to the merged English ontology graph. The result is a
+    single Turtle graph carrying language-tagged labels, definitions, and
+    comments without modifying canonical ``.ttl`` or ``.md`` sources.
+    """
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.i18n_catalog import _language_from_po, merge_terms
+
+    po_paths = sorted(root.glob("slices/*/*/i18n/*.po"))
+    if lang is not None:
+        lang_lower = lang.lower()
+        po_paths = [
+            p
+            for p in po_paths
+            if _language_from_po(p.read_text(encoding="utf-8")).lower() == lang_lower
+        ]
+
+    base_graph = load_merged_graph(include_imports=False)
+    merged_graph = merge_terms(base_graph, po_paths)
+    added = len(merged_graph) - len(base_graph)
+
+    ttl = merged_graph.serialize(format="turtle")
+    if output is None:
+        console.print(ttl, end="")
+        output_note = "stdout"
+    else:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(ttl, encoding="utf-8")
+        output_note = str(output)
+
+    err_console.print(
+        f"[green]✓ merged {len(po_paths)} PO file(s), "
+        f"{added} translated triple(s) added → {output_note}[/green]"
+    )
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

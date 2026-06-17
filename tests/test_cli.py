@@ -377,6 +377,18 @@ def test_dev_i18n_extract(runner: CliRunner, tmp_path: Path) -> None:
     ) in text
 
 
+def test_dev_i18n_merge_outputs_multilingual_graph(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    out = tmp_path / "merged.ttl"
+    result = runner.invoke(dev_app, ["i18n", "merge", "--output", str(out)])
+    assert result.exit_code == 0, result.output
+    assert out.exists()
+    text = out.read_text(encoding="utf-8")
+    assert "Existence d'entité" in text
+    assert "PO file(s)" in result.output
+
+
 def test_workspace_declares_separate_dev_package() -> None:
     root = Path(__file__).resolve().parents[1]
     main = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
