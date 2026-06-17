@@ -39,6 +39,7 @@ Tier-2 uplift backlog.
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 18/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
+| imagination | core | core | 1 | 1 | 4 | 0 | 2 | 5/5 | full |
 | inference | core | core | 6 | 7 | 21 | 0 | 5 | 0/28 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 16 | 27 | 0 | 1 | 27/43 | full |
@@ -47,7 +48,7 @@ Tier-2 uplift backlog.
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
 | logic | core | core | 0 | 15 | 17 | 17 | 0 | 0/32 | full |
-| mentation | core | core | 4 | 3 | 3 | 0 | 1 | 6/6 | full |
+| mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 52/52 | full |
@@ -76,4 +77,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 11/11 | full |
 
-**67 slices** · documentation: 67 full guides, 0 stubs remaining (#325); advisory coverage: 1102/1189 core class/property terms (#471).
+**68 slices** · documentation: 68 full guides, 0 stubs remaining (#325); advisory coverage: 1109/1196 core class/property terms (#471).

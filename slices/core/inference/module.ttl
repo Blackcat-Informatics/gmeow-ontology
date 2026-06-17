@@ -20,7 +20,7 @@ DOCTRINE.
   * Modes differ by a VALUE + a WARRANT, never by subsumption (the deception discipline — divergence is a gmeow:InferenceMode value, not a subclass). The four Peircean modes (gmeow:modeDeduction / modeInduction / modeAbduction / modeAnalogical) ride one class, never a taxonomy.
   * No re-minted truth bit (Principle 6): strength rides the EXISTING logic: axes (logic:weight / logic:confidence / logic:evidenceStrength / logic:probability — BY REFERENCE, no asserted triples into logic:); modality reuses the EXISTING gmeow:StandpointModality (gmeow:unequivocal / probable / conceivable / refuted / bullshit).
   * ENDURANT / OCCURRENT SPLIT (gUFO's master split — the reason this slice does NOT mint a single double-typed gmeow:Inference). Two classes:
-      - gmeow:InferenceProcess rdfs:subClassOf gmeow:MentalProcess — the OCCURRENT reasoning episode (perdurant); the reparenting hook the mentation slice (#586) reserves. Carries gmeow:experiencer and gmeow:mentalProcessType gmeow:processReasoning; gmeow:realizesMoment the belief it produces.
+      - gmeow:InferenceProcess rdfs:subClassOf gmeow:MentalProcess — the OCCURRENT reasoning episode (perdurant); the reparenting hook the mentation slice (#586) reserves. Carries gmeow:experiencer and gmeow:mentalProcessType gmeow:processReasoning; gmeow:producesMentalMoment the belief it creates.
       - gmeow:InferenceCommitment rdfs:subClassOf gufo:Relator — the ENDURANT structured argument relation (premises x conclusion x warrant x defeaters x assessor); the gmeow:Commitment idiom.
       - gmeow:hasInferenceCommitment bridges process to commitment.
   * Three tiers of fidelity (flat-first, reify on demand — Principle 4): (1) FLAT spine on the claim — gmeow:inferredFrom + gmeow:inferenceMode, the 80% case; (2) the REIFIED gmeow:InferenceCommitment relator when the argument structure matters; (3) the OCCURRENT gmeow:InferenceProcess when the reasoning episode joins the agent's mental timeline.
@@ -40,7 +40,7 @@ gmeow:InferenceProcess
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gmeow:MentalProcess ;
     rdfs:label "Inference Process"@x-gmeow-english ;
-    skos:definition "The occurrent reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The perdurant face of inference: a gmeow:MentalProcess borne by exactly one gmeow:experiencer and carrying gmeow:mentalProcessType gmeow:processReasoning, the reparenting hook the mentation slice reserves. It gmeow:realizesMoment the belief it produces and reaches its argument structure via gmeow:hasInferenceCommitment. Distinct from the endurant gmeow:InferenceCommitment (the argument relation it instantiates) — keeping the gUFO endurant/occurrent split clean."@x-gmeow-english ;
+    skos:definition "The occurrent reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The perdurant face of inference: a gmeow:MentalProcess borne by exactly one gmeow:experiencer and carrying gmeow:mentalProcessType gmeow:processReasoning, the reparenting hook the mentation slice reserves. It gmeow:producesMentalMoment the belief it creates and reaches its argument structure via gmeow:hasInferenceCommitment. Distinct from the endurant gmeow:InferenceCommitment (the argument relation it instantiates) — keeping the gUFO endurant/occurrent split clean."@x-gmeow-english ;
     skos:scopeNote "The occurrent kind of an inference is recorded as gmeow:mentalProcessType gmeow:processReasoning, NOT as a dedicated gmeow:EventType value: an 'eventTypeInference' individual was deliberately NOT minted (Principle 4 — one canonical source), since processReasoning already names this occurrent fact on the mentation spine."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
 
@@ -95,7 +95,7 @@ gmeow:inferredFrom
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:label "inferred from"@x-gmeow-english ;
     skos:definition "Relates a concluded gmeow:StandpointClaim to a premise it was inferred from — the flat, reification-free shortcut (the 80% case). NOT functional: a conclusion may rest on several premises. When the full argument structure matters, reify with a gmeow:InferenceCommitment (gmeow:pairsWith) whose gmeow:premise / gmeow:conclusion carry the same content."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN: a premise may be another gmeow:StandpointClaim, a gmeow:Proposition, an observation, or any reified statement. Mirrors the open-range precedent of gmeow:observedFeature / gmeow:realizesMoment."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN: a premise may be another gmeow:StandpointClaim, a gmeow:Proposition, an observation, or any reified statement. Mirrors the open-range precedent of gmeow:observedFeature."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
 gmeow:inferredFrom gmeow:pairsWith gmeow:InferenceCommitment .
 
