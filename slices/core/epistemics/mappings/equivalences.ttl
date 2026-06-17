@@ -1,0 +1,149 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
+@prefix iao:    <http://purl.obolibrary.org/obo/IAO_> .
+@prefix sumo:   <https://www.ontologyportal.org/SUMO.owl#> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences for the epistemics slice — GMEOW authoring source.
+# Compiled to mappings/gmeow-epistemics.sssom.tsv by `gmeow compile-mappings`.
+# All alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
+# Wikidata QIDs verified by entity page 2026-06-17: Q108163 (proposition) retained;
+# Q446151 and Q9081 from the issue did not match the intended concepts and are dropped.
+
+gmeow:mapsetEpistemics a gmeow:MappingSet ;
+    rdfs:label "epistemics mapping set"@x-gmeow-english ;
+    skos:definition "The SSSOM mapping set for the epistemics slice — aligns propositional attitudes, doxastic states, and the lightweight justification hook to external upper ontologies and concept schemes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/epistemics" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Epistemics slice alignments (Principle 5 — by reference only).
+        AXIOMATIC GROUNDING: gmeow:DoxasticState is a gufo:Kind subclass of gmeow:MentalMoment,
+        and gmeow:MentalMoment is itself a named gufo:Category under gufo:IntrinsicMode (kernel slice);
+        this grounding is documented in the set comment rather than asserted as a mapping row.
+        CRMinf: gmeow:DoxasticState aligns to I2_Belief; gmeow:Proposition to I4_Proposition_Set;
+        gmeow:justifiedBy (lightweight belief→justifier hook) aligns to I5_Inference_Making / J2_concluded_that.
+        SUMO: gmeow:believes and gmeow:knowsThat are related by reference to SUMO believes / knows,
+        with an explicit note that GMEOW knowsThat is NON-FACTIVE.
+        Wikidata: gmeow:Proposition → Q108163 (proposition). Q446151 and Q9081 from the issue did not
+        match the intended concepts on entity-page inspection and are left unaligned.
+        IAO: gmeow:Proposition is a relatedMatch to IAO information content entity (IAO_0000030).
+        ATOMIC belief edges and AIF S-/RA-nodes are referenced in prose only; no stable, resolvable
+        RDF namespace suitable for SSSOM rows is available.
+        gmeow:claimModality is already aligned to crminf:J5_holds_to_be in the standpoint slice and is
+        not duplicated here. gmeow:credence and gmeow:accepts have no canonical RDF vocabulary and are
+        left unaligned. Epistemic-modal operators (KK/S4/S5/KD45) belong to the logic: slice profiles.""" .
+
+# Axiomatic grounding — DoxasticState is already gufo:IntrinsicMode via MentalMoment.
+# Documented in the set comment; no mapping row needed.
+
+# CRMinf — DoxasticState as a (temporal) belief held by an agent.
+gmeow:eqEpistemics001 a gmeow:TermEquivalence ;
+    rdfs:label "DoxasticState ↔ crminf:I2_Belief closeMatch"@x-gmeow-english ;
+    skos:definition "CloseMatch between gmeow:DoxasticState and CRMinf I2 Belief — both are an agent's held attitude toward a proposition. GMEOW's DoxasticState is an endurant mental moment; CRMinf I2 is a temporal entity, so the alignment is close but not exact."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:DoxasticState ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crminf:I2_Belief ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "gmeow:DoxasticState is an endurant mental moment (gufo:IntrinsicMode); crminf:I2_Belief is a temporal entity — close but not co-extensional" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+# CRMinf — Proposition as a proposition set / the content of a belief.
+gmeow:eqEpistemics002 a gmeow:TermEquivalence ;
+    rdfs:label "Proposition ↔ crminf:I4_Proposition_Set relatedMatch"@x-gmeow-english ;
+    skos:definition "RelatedMatch between gmeow:Proposition and CRMinf I4 Proposition_Set — the truth-apt content that a belief is about. GMEOW's Proposition is a single described state of affairs; I4 is a set of propositions, hence related rather than close."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:Proposition ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I4_Proposition_Set ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "gmeow:Proposition is a single truth-apt content; crminf:I4_Proposition_Set is a set of such contents" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+# IAO — Proposition as information content entity.
+gmeow:eqEpistemics003 a gmeow:TermEquivalence ;
+    rdfs:label "Proposition ↔ IAO information content entity relatedMatch"@x-gmeow-english ;
+    skos:definition "RelatedMatch between gmeow:Proposition and IAO_0000030 (information content entity). A proposition is a generically dependent continuant that is about something and can be true or false."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:Proposition ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject iao:0000030 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "gmeow:Proposition is a socially-constructed, truth-apt content; IAO_0000030 is the broader information content entity class" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+# Wikidata — Proposition.
+gmeow:eqEpistemics004 a gmeow:TermEquivalence ;
+    rdfs:label "Proposition ↔ Wikidata proposition relatedMatch"@x-gmeow-english ;
+    skos:definition "RelatedMatch between gmeow:Proposition and Wikidata Q108163 (proposition). Verified by entity page."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:Proposition ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q108163 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Wikidata Q108163 'proposition' — entity-page verified 2026-06-17" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+# SUMO / Wikidata — believes.
+gmeow:eqEpistemics005 a gmeow:TermEquivalence ;
+    rdfs:label "believes ↔ SUMO believes relatedMatch"@x-gmeow-english ;
+    skos:definition "Loose relatedMatch between gmeow:believes and SUMO believes. GMEOW's believes is a non-factive, standpoint-indexed attitude with open range; SUMO believes is a modal attitude predicate. The SUMO OWL serialization IRIs are not resolvable over HTTPS, so the alignment is by reference only."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:believes ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject sumo:believes ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "SUMO believes is conceptually adjacent; GMEOW believes is non-factive, standpoint-indexed, and open-range. ATOMIC belief edges are referenced in prose only (no stable RDF namespace)" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+# SUMO / Wikidata — knowsThat (non-factive).
+gmeow:eqEpistemics006 a gmeow:TermEquivalence ;
+    rdfs:label "knowsThat ↔ SUMO knows relatedMatch"@x-gmeow-english ;
+    skos:definition "Loose relatedMatch between gmeow:knowsThat and SUMO knows, explicitly weakened: GMEOW knowsThat is NON-FACTIVE (no global truth commitment), whereas SUMO/CYC knows is typically read as factive. The alignment is conceptual, by reference only."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:knowsThat ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject sumo:knows ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "SUMO knows is typically factive; GMEOW knowsThat is explicitly non-factive — relatedMatch only. Wikidata Q9081 from the issue did not resolve to a relevant concept and is dropped" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+# CRMinf — justifiedBy as inference-making / conclusion hook.
+gmeow:eqEpistemics007 a gmeow:TermEquivalence ;
+    rdfs:label "justifiedBy ↔ crminf:I5_Inference_Making closeMatch"@x-gmeow-english ;
+    skos:definition "CloseMatch between gmeow:justifiedBy and crminf:I5_Inference_Making — the lightweight belief→justifier hook points at the inference-making act that supports the belief. The full argument structure lives in the sibling justification child (#561)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:justifiedBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crminf:I5_Inference_Making ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "gmeow:justifiedBy is the belief→justifier hook; crminf:I5_Inference_Making is the reasoning event that produces a belief" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+gmeow:eqEpistemics008 a gmeow:TermEquivalence ;
+    rdfs:label "justifiedBy ↔ crminf:J2_concluded_that relatedMatch"@x-gmeow-english ;
+    skos:definition "RelatedMatch between gmeow:justifiedBy and crminf:J2_concluded_that — the justifier link connects a belief to the conclusion relation of an inference-making act."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:alignSubject gmeow:justifiedBy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:J2_concluded_that ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "J2_concluded_that relates an inference-making act to the belief it concludes; gmeow:justifiedBy inverts the direction of support" ;
+    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .

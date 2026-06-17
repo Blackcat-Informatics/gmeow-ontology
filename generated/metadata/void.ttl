@@ -126,6 +126,7 @@
 @prefix spdx: <http://spdx.org/rdf/terms#> .
 @prefix spdxlic: <http://spdx.org/licenses/> .
 @prefix sta: <http://www.opengis.net/def/ont/sensorthings/1.1/> .
+@prefix sumo: <https://www.ontologyportal.org/SUMO.owl#> .
 @prefix swh: <https://www.softwareheritage.org/data-model/> .
 @prefix tags: <http://www.holygoat.co.uk/owl/redwood/0.1/tags/> .
 @prefix teo: <https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#> .
@@ -389,18 +390,18 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-CRMinf-a4a18b-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.ics.forth.gr/isl/CRMinf/ (9)"@en ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.ics.forth.gr/isl/CRMinf/ (11)"@en ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget crminf: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 9 .
+    void:triples 11 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-CRMinf-a4a18b-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to http://www.ics.forth.gr/isl/CRMinf/ (7)"@en ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://www.ics.forth.gr/isl/CRMinf/ (9)"@en ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget crminf: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 7 .
+    void:triples 9 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-CurrencyAmount-ac499a-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/ (4)"@en ;
@@ -492,6 +493,13 @@
     void:objectsTarget soma: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:relatedMatch links to https://www.ontologyportal.org/SUMO.owl# (2)"@en ;
+    void:linkPredicate skos:relatedMatch ;
+    void:objectsTarget sumo: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 2 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-TEO_1.0.0.owl-93d7d8-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl# (14)"@en ;
@@ -802,11 +810,11 @@
     void:triples 49 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to http://www.wikidata.org/entity/ (27)"@en ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://www.wikidata.org/entity/ (28)"@en ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget wd: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 27 .
+    void:triples 28 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-fabio-9130c4-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://purl.org/spar/fabio/ (4)"@en ;
@@ -1180,11 +1188,11 @@
     void:triples 6 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-obo-fb5887-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to http://purl.obolibrary.org/obo/ (6)"@en ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://purl.obolibrary.org/obo/ (7)"@en ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget bfo: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 6 .
+    void:triples 7 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-oboe-core.owl-46f535-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl# (4)"@en ;
@@ -1759,6 +1767,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ObsCore-c0af2d-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ProductsAndServices-23cfaa-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SOMA.owl-e21121-skos_relatedMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-SUMO.owl-23b6a4-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-TEO_1.0.0.owl-93d7d8-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-activitystreams-e6071e-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-bibframe-851bbf-owl_equivalentClass>,
