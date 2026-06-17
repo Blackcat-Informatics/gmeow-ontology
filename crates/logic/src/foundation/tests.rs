@@ -79,6 +79,12 @@ fn split_nq_terms(body: &str) -> Vec<&str> {
             while i < bytes.len() && bytes[i] != b'>' {
                 i += 1;
             }
+            // `&body[start..=i]` would panic with an opaque out-of-bounds slice if
+            // the '<' were never closed; assert with a clear message instead.
+            assert!(
+                i < bytes.len(),
+                "malformed N-Quads term: unclosed '<' at byte {start} in {body:?}"
+            );
             // include the '>'
             out.push(&body[start..=i]);
         }
