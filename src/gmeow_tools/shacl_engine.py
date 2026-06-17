@@ -1,14 +1,12 @@
 """The SHACL validation seam: N-Triples data → ``gmeow_shacl``.
 
-This module is the single dependency-inversion boundary every SHACL entry point
-on the validation path now calls (#578/#579, part of EPIC #575 — replace the
-legacy Python SHACL engine with the Rust ``gmeow_shacl`` validator built on
-oxigraph). Callers hand in the data graph **already serialized to N-Triples**
-(the merged ontology, an example, the DSL graph — produced by
-``gmeow_validate.merge_to_ntriples`` in Rust, never from a Python graph object);
-this seam hands that plus the SHACL shapes to ``gmeow_shacl.validate`` and returns
-the structured report. As of #579 this module imports no graph library at all:
-the validation path is graph-free end to end.
+This module is the dependency-inversion boundary for callers that already hold
+their data graph as N-Triples: the DSL provenance merge, the test suite's
+synthetic rdflib graphs, and ``audit.py``. The production ``make validate`` path
+now validates the shared oxigraph store directly through
+``gmeow_validate.validate_all_native`` (#634); it no longer serializes the merged
+ontology or slice examples to N-Triples. This seam remains for the legacy/test
+N-Triples callers above.
 
 Why no RDF-1.2 round-trip here: every source the merged graph is built from —
 ``slices/*/*/module.ttl``, the root ontology, ``imports/*.ttl`` — and every
@@ -88,9 +86,9 @@ def validate_nt(data_nt: str, shapes_ttl: str) -> ShaclReport:
     """Validate an N-Triples data graph against SHACL shapes via ``gmeow_shacl``.
 
     Args:
-        data_nt: The data graph to validate (merged ontology, example, DSL graph),
-            already serialized to N-Triples by ``gmeow_validate.merge_to_ntriples``
-            (Rust/oxigraph — graph-free on the validation path, #579).
+        data_nt: The data graph to validate, already serialized to N-Triples
+            (legacy/test/DSL callers only; the production ``make validate`` path
+            uses direct store validation, #634).
         shapes_ttl: The SHACL shapes graph, serialized as Turtle.
 
     Returns:

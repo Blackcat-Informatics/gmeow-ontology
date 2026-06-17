@@ -558,13 +558,13 @@ fn coverage_analyze(
 }
 
 /// Build the merged graph from `source_paths` and dump it as canonical
-/// N-Triples (the rdflib-free SHACL data seam, #579).
+/// N-Triples (legacy/test-only seam, #579/#634).
 ///
-/// `validate.run_shacl` / `check_examples` call this to produce the SHACL data
-/// graph WITHOUT building an rdflib graph: the oxigraph store is built from the
-/// Turtle paths and serialized to N-Triples, which `gmeow_shacl.validate`
-/// ingests directly. A parse failure maps to a Python `ValueError` (hard-fail,
-/// no fallback).
+/// The production `make validate` path now validates the shared oxigraph store
+/// directly in Rust and no longer uses N-Triples as internal transport. This
+/// function remains exposed for tests and legacy callers that still need an
+/// N-Triples serialization of a merged Turtle corpus. A parse failure maps to a
+/// Python `ValueError` (hard-fail, no fallback).
 #[pyfunction]
 fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
     if source_paths.is_empty() {

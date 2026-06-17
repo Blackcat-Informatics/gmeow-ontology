@@ -1,20 +1,20 @@
 """Validation: Turtle syntax, structural lint, and SHACL conformance.
 
-These checks run in pure Python (no Docker required) so contributors can lint
-locally and CI can gate cheaply before the heavier reasoning step.
+These checks run without Docker so contributors can lint locally and CI can gate
+cheaply before the heavier reasoning step. The orchestration in
+:func:`validate_all` is a thin Python wrapper around the Rust-native
+``gmeow_validate.validate_all_native`` entrypoint (#634): the Rust engine builds
+the ontology store once, parses the SHACL shapes once, and runs every phase
+against the shared store. The legacy N-Triples SHACL seam survives only as a
+convenience for tests and ``audit.py``.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
-import tempfile
-from collections.abc import Callable
-from contextlib import suppress
 from dataclasses import dataclass, field
-from functools import lru_cache, partial
-from importlib import metadata
+from functools import lru_cache
 from pathlib import Path
 
 import gmeow_validate
@@ -38,7 +38,6 @@ from gmeow_tools.config import (
 )
 from gmeow_tools.graph import iter_source_files
 from gmeow_tools.slices import (
-    iter_slice_example_files,
     iter_slice_module_files,
     iter_slice_shape_files,
 )
@@ -143,53 +142,8 @@ class ValidationResult:
         self.timings.extend(other.timings)
 
 
-# DECISION (#579): KEEP this `.cache/validate` layer for this PR. It skips
-# re-running SHACL over unchanged inputs; removing it now risks a CI-time
-# regression with no offsetting benefit while the Rust validation path is new.
-# Re-assessing whether Rust-native revalidation is fast enough to drop the cache
-# is a tracked follow-up. See docs/validation-thresholds.md ("Validation cache
-# decision").
+#: Content-addressed cache root used by the Rust validation orchestration.
 _VALIDATION_CACHE_DIR = PROJECT_ROOT / ".cache" / "validate"
-
-
-def _cache_key(parts: list[str]) -> str:
-    """Return a short stable hash for cache-key parts."""
-    h = hashlib.sha256()
-    for part in parts:
-        h.update(part.encode("utf-8"))
-        h.update(b"\0")
-    return h.hexdigest()[:16]
-
-
-def _files_cache_key(paths: list[Path]) -> str:
-    """Return a content hash for validation cache inputs."""
-    from gmeow_tools.generator import source_hash
-
-    return source_hash(paths)
-
-
-def _validation_toolchain_salt() -> str:
-    """Return a cache salt for the SHACL validation toolchain versions.
-
-    The production validation path is ``gmeow_shacl`` (the Rust validator) over
-    oxigraph-ingested data (#578/#579). The legacy Python SHACL engine no longer
-    gates the result, so its versions are not part of the salt — one
-    cache-invalidation regime.
-    """
-    parts: list[str] = []
-    for package in ("gmeow-shacl", "gmeow-validate"):
-        try:
-            version = metadata.version(package)
-        except metadata.PackageNotFoundError:
-            version = "missing"
-        parts.append(f"{package}={version}")
-    return _cache_key(parts)
-
-
-def _validation_cache_path(kind: str, key: str) -> Path:
-    """Return the validation cache path for a keyed result."""
-    safe_kind = re.sub(r"[^A-Za-z0-9_.-]+", "-", kind)
-    return _VALIDATION_CACHE_DIR / safe_kind / f"{key}.json"
 
 
 def _read_cached_result(path: Path) -> ValidationResult | None:
@@ -211,6 +165,9 @@ def _read_cached_result(path: Path) -> ValidationResult | None:
 
 def _write_cached_result(path: Path, result: ValidationResult) -> None:
     """Persist a validation result, best-effort."""
+    import tempfile
+    from contextlib import suppress
+
     tmp_path: Path | None = None
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -233,19 +190,6 @@ def _write_cached_result(path: Path, result: ValidationResult) -> None:
         if tmp_path is not None:
             with suppress(OSError):
                 tmp_path.unlink(missing_ok=True)
-
-
-def _cached_result(
-    kind: str, key: str, compute: Callable[[], ValidationResult]
-) -> ValidationResult:
-    """Return a cached validation result, computing and storing on miss."""
-    path = _validation_cache_path(kind, key)
-    cached = _read_cached_result(path)
-    if cached is not None:
-        return cached
-    result = compute()
-    _write_cached_result(path, result)
-    return result
 
 
 def check_syntax() -> ValidationResult:
@@ -407,36 +351,24 @@ def reasoning_lint(source_paths: list[str]) -> ValidationResult:
     )
 
 
-def merged_ntriples(source_paths: list[str]) -> str:
-    """Build the merged graph from *source_paths* as canonical N-Triples (#579).
-
-    The graph-free SHACL data seam: the oxigraph store is built in Rust from the
-    Turtle paths and dumped to N-Triples, which ``run_shacl`` hands to
-    ``gmeow_shacl``. No Python graph object is ever constructed on the path.
-
-    Raises:
-        ValueError: If any source fails to parse (hard-fail, no fallback).
-    """
-    nt: str = gmeow_validate.merge_to_ntriples(source_paths)
-    return nt
-
-
 def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationResult:
-    """Validate an N-Triples data graph against the GMEOW SHACL shapes.
+    """Test/audit helper: validate an N-Triples data graph against the SHACL shapes.
+
+    The production ``make validate`` path no longer serializes the merged
+    ontology to N-Triples; it validates the shared oxigraph store directly in
+    Rust (#634). This function remains as a convenience for the test suite and
+    for ``audit.py``, which still build small rdflib graphs and serialize them
+    to N-Triples.
 
     Args:
-        data_nt: The data graph to validate, serialized as N-Triples (produced by
-            :func:`merged_ntriples` in Rust — graph-free on the validation path,
-            #579). Out-of-path callers holding a Python graph (tests,
-            ``audit.py``) serialize it to N-Triples themselves before calling.
+        data_nt: The data graph to validate, serialized as N-Triples.
         shapes_path: Path to the SHACL shapes Turtle file.
 
     Returns:
         The validation result, bucketed by SHACL severity: ``sh:Violation``
         results become errors, while ``sh:Warning`` / ``sh:Info`` results become
         warnings. A warning-only graph therefore still passes (``result.ok`` is
-        ``True``) — which is the point of the Warning severity on the suppression
-        contract (a source may legitimately lag setting ``gmeow:displayable``).
+        ``True``).
 
     Raises:
         FileNotFoundError: If the shapes file is missing.
@@ -462,31 +394,6 @@ def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationRes
     # in practice, but a silent pass on non-conformance is the worst outcome).
     if not violations and not warnings:
         result.errors.append("SHACL validation failed: non-conforming with no results")
-    return result
-
-
-def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
-    """Validate every ``.ttl`` file under *dsl_dir* against its SHACL shapes.
-
-    Returns a :class:`ValidationResult` whose errors carry per-file provenance.
-    The merged N-Triples and the focus→file map are built in Rust
-    (``gmeow_validate.dsl_merge_with_provenance``) — graph-free here (#579).
-    """
-    from gmeow_tools.dsl_validate import (
-        validate_mapping_dsl,
-        validate_statement_dsl,
-    )
-
-    result = ValidationResult()
-    dsl_paths = [str(p) for p in sorted(dsl_dir.rglob("*.ttl"))]
-    if label == "mapping":
-        violations = validate_mapping_dsl(dsl_paths)
-    else:
-        violations = validate_statement_dsl(dsl_paths)
-    if violations:
-        result.errors.append(
-            f"{label} DSL SHACL violations:\n  " + "\n  ".join(violations)
-        )
     return result
 
 
@@ -516,126 +423,6 @@ def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
         errors=list(report["errors"]),
         warnings=list(report["warnings"]),
     )
-
-
-def _shacl_cache_inputs(shapes_path: Path = SHAPES_FILE) -> list[Path]:
-    """Return files that affect normal SHACL validation outcomes."""
-    dsl_shapes = {
-        "mapping-dsl-shapes.ttl",
-        "statement-dsl-shapes.ttl",
-        "slice-manifest-shapes.ttl",
-        shapes_path.name,
-    }
-    return [
-        Path(__file__),
-        # The SHACL outcome now flows through the gmeow_shacl seam — editing it
-        # (serialization, partitioning) must invalidate the cache (#578).
-        Path(__file__).parent / "shacl_engine.py",
-        shapes_path,
-        *sorted(
-            extra for extra in SHAPES_DIR.glob("*.ttl") if extra.name not in dsl_shapes
-        ),
-        *sorted(GENERATED_SHAPES_DIR.glob("*.ttl")),
-        *iter_slice_shape_files(),
-    ]
-
-
-def _merged_shacl_cache_key() -> str:
-    """Return the content key for merged ontology SHACL validation."""
-    return _cache_key(
-        [
-            _files_cache_key([*iter_source_files(), *_shacl_cache_inputs()]),
-            _validation_toolchain_salt(),
-        ]
-    )
-
-
-def _dsl_shacl_cache_key(dsl_dir: Path, label: str) -> str:
-    """Return the content key for DSL SHACL validation."""
-    dsl_validate_source = PROJECT_ROOT / "src" / "gmeow_tools" / "dsl_validate.py"
-    shacl_engine_source = PROJECT_ROOT / "src" / "gmeow_tools" / "shacl_engine.py"
-    return _cache_key(
-        [
-            _files_cache_key(
-                [
-                    Path(__file__),
-                    dsl_validate_source,
-                    shacl_engine_source,  # DSL path also routes through the seam (#578)
-                    *sorted(dsl_dir.rglob("*.ttl")),
-                    *sorted(SHAPES_DIR.glob("*.ttl")),
-                ]
-            ),
-            label,
-            _validation_toolchain_salt(),
-        ]
-    )
-
-
-def _run_example_shacl(source_paths: list[str], example: Path) -> ValidationResult:
-    """Validate one example merged with the ontology against the SHACL shapes.
-
-    The merge (ontology sources + the example file) → N-Triples is built in Rust
-    (``merge_to_ntriples``) — no Python graph object (#579).
-    """
-    data_nt = merged_ntriples([*source_paths, str(example)])
-    return run_shacl(data_nt)
-
-
-def check_example_coverage(root: Path | None = None) -> ValidationResult:
-    """Every slice MUST ship at least one validating example (#579).
-
-    A slice with no ``examples/*.ttl`` file is an ERROR, not a silent advisory
-    skip: examples are canonical worked data and the only thing that keeps a
-    slice's terms exercised against the live SHACL shapes. File discovery stays
-    in Python (the per-example SHACL validation runs through Rust in
-    :func:`check_examples`); this gate only asserts the example's PRESENCE.
-
-    Mirrors the ``slices/*/*/manifest.ttl`` iteration used by
-    :func:`guide_anchor_lint` and :func:`slice_ownership_lint`.
-    """
-    base = root if root is not None else SLICES_DIR
-    result = ValidationResult()
-    for manifest in sorted(base.glob("*/*/manifest.ttl")):
-        slice_dir = manifest.parent
-        if not any(slice_dir.glob("examples/*.ttl")):
-            result.errors.append(
-                f"slice {slice_dir.name}: no examples/*.ttl — every slice must "
-                f"ship at least one validating example (#579)"
-            )
-    return result
-
-
-def check_examples(
-    source_paths: list[str], *, base_cache_key: str | None = None
-) -> ValidationResult:
-    """Validate every slice example against the ontology + SHACL (#332).
-
-    Examples are canonical worked data, not test scaffolding: each file is
-    merged with the ontology sources and SHACL-validated in isolation. Results
-    are cached by ontology/shapes/example content so repeated local and CI runs
-    do not spend minutes revalidating unchanged examples. The merge runs in Rust
-    over file paths (graph-free, #579); a per-example parse failure surfaces as a
-    ``ValueError`` framed against the example path.
-    """
-    result = ValidationResult()
-    base_cache_key = base_cache_key or _merged_shacl_cache_key()
-    for example in iter_slice_example_files():
-        name = example.relative_to(SLICES_DIR).as_posix()
-        example_key = _cache_key([base_cache_key, _files_cache_key([example])])
-        try:
-            shacl = _cached_result(
-                "example-shacl",
-                example_key,
-                partial(_run_example_shacl, source_paths, example),
-            )
-        except ValueError as exc:
-            result.errors.append(f"example {name}: does not parse: {exc}")
-            continue
-        for err in shacl.errors:
-            result.errors.append(f"example {name}: {err}")
-        for warn in shacl.warnings:
-            result.warnings.append(f"example {name}: {warn}")
-    return result
 
 
 _ANCHOR_PATTERN = re.compile(r"^###\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE)
