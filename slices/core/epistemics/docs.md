@@ -66,7 +66,6 @@ All alignments are by reference (Principle 5); GMEOW never imports an external a
 | `gmeow:Proposition` | `wd:Q108163` | `skos:relatedMatch` | Wikidata "proposition", entity-page verified |
 | `gmeow:believes` | `sumo:believes` | `skos:relatedMatch` | SUMO's predicate is conceptually adjacent; GMEOW's is non-factive and standpoint-indexed |
 | `gmeow:knowsThat` | `sumo:knows` | `skos:relatedMatch` | explicitly **non-factive**: GMEOW `knowsThat` entails only `believes`, never global truth |
-| `gmeow:justifiedBy` | `crminf:I5_Inference_Making` | `skos:closeMatch` | the lightweight belief→justifier hook |
 | `gmeow:justifiedBy` | `crminf:J2_concluded_that` | `skos:relatedMatch` | direction of support is inverted |
 
 `gmeow:credence` and `gmeow:accepts` are left unaligned: no canonical, resolvable RDF vocabulary

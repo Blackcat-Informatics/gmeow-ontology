@@ -30,7 +30,8 @@ gmeow:mapsetEpistemics a gmeow:MappingSet ;
         and gmeow:MentalMoment is itself a named gufo:Category under gufo:IntrinsicMode (kernel slice);
         this grounding is documented in the set comment rather than asserted as a mapping row.
         CRMinf: gmeow:DoxasticState aligns to I2_Belief; gmeow:Proposition to I4_Proposition_Set;
-        gmeow:justifiedBy (lightweight belief→justifier hook) aligns to I5_Inference_Making / J2_concluded_that.
+        gmeow:justifiedBy (lightweight belief→justifier hook) aligns to crminf:J2_concluded_that.
+        I5_Inference_Making is referenced in prose only as the related CRMinf inference-making act;
         SUMO: gmeow:believes and gmeow:knowsThat are related by reference to SUMO believes / knows,
         with an explicit note that GMEOW knowsThat is NON-FACTIVE.
         Wikidata: gmeow:Proposition → Q108163 (proposition). Q446151 and Q9081 from the issue did not
@@ -123,19 +124,7 @@ gmeow:eqEpistemics006 a gmeow:TermEquivalence ;
     gmeow:comment "SUMO knows is typically factive; GMEOW knowsThat is explicitly non-factive — relatedMatch only. Wikidata Q9081 from the issue did not resolve to a relevant concept and is dropped" ;
     gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
 
-# CRMinf — justifiedBy as inference-making / conclusion hook.
-gmeow:eqEpistemics007 a gmeow:TermEquivalence ;
-    rdfs:label "justifiedBy ↔ crminf:I5_Inference_Making closeMatch"@x-gmeow-english ;
-    skos:definition "CloseMatch between gmeow:justifiedBy and crminf:I5_Inference_Making — the lightweight belief→justifier hook points at the inference-making act that supports the belief. The full argument structure lives in the sibling justification child (#561)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
-    gmeow:alignSubject gmeow:justifiedBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I5_Inference_Making ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "gmeow:justifiedBy is the belief→justifier hook; crminf:I5_Inference_Making is the reasoning event that produces a belief" ;
-    gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
-
+# CRMinf — justifiedBy as the inverse-side conclusion hook of an inference-making act.
 gmeow:eqEpistemics008 a gmeow:TermEquivalence ;
     rdfs:label "justifiedBy ↔ crminf:J2_concluded_that relatedMatch"@x-gmeow-english ;
     skos:definition "RelatedMatch between gmeow:justifiedBy and crminf:J2_concluded_that — the justifier link connects a belief to the conclusion relation of an inference-making act."@x-gmeow-english ;
