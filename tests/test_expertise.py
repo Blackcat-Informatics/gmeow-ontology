@@ -87,6 +87,39 @@ def test_proficiency_levels_carry_scale() -> None:
         ) in graph
 
 
+def test_dreyfus_scale_and_levels_are_expertise_owned() -> None:
+    """The Dreyfus skill-acquisition scale and its five levels are declared in the
+    EXPERTISE slice — their domain slice, Dreyfus being a SKILL scale — not the
+    languages extension where they were historically mis-homed. This keeps a core
+    gmeow:LearningEvent trajectory (gmeow:fromLevel / gmeow:toLevel, #584) that
+    references them inside its dependency closure (learning depends on expertise,
+    not on the languages extension). Each carries the three mandatory annotations
+    and the expertise slice IRI; the five levels point at gmeow:scaleDreyfus."""
+    graph = _graph()
+    skos_definition = URIRef("http://www.w3.org/2004/02/skos/core#definition")
+    expertise_iri = URIRef(GMEOW + "slices/expertise")
+    levels = (
+        "dreyfusNovice",
+        "dreyfusAdvancedBeginner",
+        "dreyfusCompetent",
+        "dreyfusProficient",
+        "dreyfusExpert",
+    )
+    for name in ("scaleDreyfus", *levels):
+        term = URIRef(GMEOW + name)
+        assert (term, RDFS.isDefinedBy, expertise_iri) in graph, (
+            f"{name} must be defined by the expertise slice (its domain slice)"
+        )
+        assert (term, RDFS.label, None) in graph, f"{name} missing rdfs:label"
+        assert (term, skos_definition, None) in graph, f"{name} missing skos:definition"
+    for level in levels:
+        assert (
+            URIRef(GMEOW + level),
+            URIRef(GMEOW + "levelScale"),
+            URIRef(GMEOW + "scaleDreyfus"),
+        ) in graph, f"{level} must carry gmeow:levelScale gmeow:scaleDreyfus"
+
+
 def test_credential_properties_exist() -> None:
     """Credential depth properties are declared with correct OWL types."""
     graph = _graph()

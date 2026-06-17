@@ -22,14 +22,12 @@
 # grammar-defined, machine-modality, and has no human native speakers.
 # =========================================================================== #
 
-
 gmeow:LanguageVersion
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Language ;
     rdfs:label "Language Version"@x-gmeow-english ;
     skos:definition "A concrete, dated revision of a language that is itself a fully usable language (Ithkuil 1993 / 2011 / New Ithkuil; an AI language v1 / v2). Subclass of gmeow:Language so a version bears its own scripts, names and status; gmeow:versionOf links it to the lineage language, gmeow:supersedes orders versions, and gmeow:wasDerivedFrom records derivation. Forward-looking for rapidly-versioned AI languages."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-
 
 gmeow:WritingSystemUsage
     a owl:Class, gufo:Kind ;
@@ -106,7 +104,6 @@ gmeow:languageStatus
     rdfs:label "language status"@x-gmeow-english ;
     skos:definition "The vitality status of a language (a gmeow:LanguageStatus value). Non-functional: source classifications coexist; period carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-
 
 gmeow:designGoal
     a owl:DatatypeProperty ;
@@ -598,9 +595,6 @@ gmeow:scaleACTFL skos:definition "The actfl proficiency scale — a named framew
 gmeow:scaleSelfReported a gmeow:ProficiencyScale ; rdfs:label "self-reported"@x-gmeow-english .
 gmeow:scaleSelfReported skos:definition "The self reported proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-gmeow:scaleDreyfus      a gmeow:ProficiencyScale ; rdfs:label "Dreyfus"@x-gmeow-english .
-gmeow:scaleDreyfus skos:definition "The dreyfus proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 gmeow:scaleNIH          a gmeow:ProficiencyScale ; rdfs:label "NIH"@x-gmeow-english .
 gmeow:scaleNIH skos:definition "The nih proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
@@ -631,26 +625,10 @@ gmeow:levelNative skos:definition "The native proficiency level — a milestone 
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 gmeow:levelHeritage a gmeow:ProficiencyLevel ; rdfs:label "heritage"@x-gmeow-english .
 
-# Dreyfus model (skill scale)
 gmeow:levelHeritage skos:definition "The heritage proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-gmeow:dreyfusNovice          a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus novice"@x-gmeow-english ;          gmeow:levelScale gmeow:scaleDreyfus .
-gmeow:dreyfusNovice skos:definition "The novice proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-gmeow:dreyfusAdvancedBeginner a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus advanced beginner"@x-gmeow-english ; gmeow:levelScale gmeow:scaleDreyfus .
-gmeow:dreyfusAdvancedBeginner skos:definition "The advanced beginner proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-gmeow:dreyfusCompetent       a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus competent"@x-gmeow-english ;       gmeow:levelScale gmeow:scaleDreyfus .
-gmeow:dreyfusCompetent skos:definition "The competent proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-gmeow:dreyfusProficient      a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus proficient"@x-gmeow-english ;      gmeow:levelScale gmeow:scaleDreyfus .
-gmeow:dreyfusProficient skos:definition "The proficient proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
-gmeow:dreyfusExpert          a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus expert"@x-gmeow-english ;          gmeow:levelScale gmeow:scaleDreyfus .
 
 # NIH proficiency scale (skill scale)
-gmeow:dreyfusExpert skos:definition "The expert proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 gmeow:nihBeginner     a gmeow:ProficiencyLevel ; rdfs:label "NIH beginner"@x-gmeow-english ;     gmeow:levelScale gmeow:scaleNIH .
 gmeow:nihBeginner skos:definition "The beginner proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .

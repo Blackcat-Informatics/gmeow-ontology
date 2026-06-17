@@ -221,5 +221,58 @@ gmeow:SkillProficiency rdfs:subClassOf
 # reuse these value classes, so they belong in the kernel every consumer already
 # depends on. SkillProficiency's roles above still reference gmeow:ProficiencyLevel
 # / gmeow:ProficiencyScale by the same IRI (now kernel-defined); the individuals
-# (Dreyfus, NIH, assessed, CEFR, …) remain in their domain slices.
+# remain in their DOMAIN slice. The Dreyfus scale + its five levels are a SKILL-
+# acquisition vocabulary, so their domain slice is expertise — declared just
+# below (#584; previously mis-homed in the languages extension). The language
+# scales/levels (CEFR, ILR, ACTFL, NIH, assessed, native, …) stay in languages.
 # =========================================================================== #
+
+# =========================================================================== #
+# VALUE INDIVIDUALS — the Dreyfus model of skill acquisition (scale + 5 levels).
+# Stuart & Hubert Dreyfus's ordered skill-proficiency scale. gmeow:ProficiencyScale
+# / gmeow:ProficiencyLevel are the kernel value classes (above); these individuals
+# live here because Dreyfus is a SKILL scale. Referenced by gmeow:SkillProficiency
+# (gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale) and by the learning
+# slice's gmeow:LearningEvent trajectories (gmeow:fromLevel / gmeow:toLevel, #584).
+# =========================================================================== #
+
+gmeow:scaleDreyfus
+    a gmeow:ProficiencyScale ;
+    rdfs:label "Dreyfus"@x-gmeow-english ;
+    skos:definition "The Dreyfus model of skill acquisition — an ordered skill-proficiency scale (novice ≺ advanced beginner ≺ competent ≺ proficient ≺ expert) describing how an agent's command of a skill deepens from rule-following toward fluent, intuitive mastery as experience accrues."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+
+gmeow:dreyfusNovice
+    a gmeow:ProficiencyLevel ;
+    rdfs:label "Dreyfus novice"@x-gmeow-english ;
+    gmeow:levelScale gmeow:scaleDreyfus ;
+    skos:definition "The novice level of the Dreyfus scale — rule-bound, context-free application of taught procedures, with little situational judgement."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+
+gmeow:dreyfusAdvancedBeginner
+    a gmeow:ProficiencyLevel ;
+    rdfs:label "Dreyfus advanced beginner"@x-gmeow-english ;
+    gmeow:levelScale gmeow:scaleDreyfus ;
+    skos:definition "The advanced-beginner level of the Dreyfus scale — beginning to recognise recurring situational elements, still leaning on rules but accumulating practical experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+
+gmeow:dreyfusCompetent
+    a gmeow:ProficiencyLevel ;
+    rdfs:label "Dreyfus competent"@x-gmeow-english ;
+    gmeow:levelScale gmeow:scaleDreyfus ;
+    skos:definition "The competent level of the Dreyfus scale — planning deliberately and selecting among situational elements toward a goal, taking responsibility for outcomes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+
+gmeow:dreyfusProficient
+    a gmeow:ProficiencyLevel ;
+    rdfs:label "Dreyfus proficient"@x-gmeow-english ;
+    gmeow:levelScale gmeow:scaleDreyfus ;
+    skos:definition "The proficient level of the Dreyfus scale — perceiving situations holistically and intuitively, while still deciding the response analytically."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+
+gmeow:dreyfusExpert
+    a gmeow:ProficiencyLevel ;
+    rdfs:label "Dreyfus expert"@x-gmeow-english ;
+    gmeow:levelScale gmeow:scaleDreyfus ;
+    skos:definition "The expert level of the Dreyfus scale — fluent, intuitive performance in which situation-recognition and response are fused, with deliberation reserved for the genuinely novel."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
