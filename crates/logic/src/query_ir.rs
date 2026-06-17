@@ -280,8 +280,10 @@ fn parse_prefix_directive(body: &str) -> Result<Option<(String, String)>, String
     let alias = inner[..comma].trim().to_owned();
     let iri_part = inner[comma + 1..].trim();
 
-    // IRI must be single-quoted.
-    if !iri_part.starts_with('\'') || !iri_part.ends_with('\'') {
+    // IRI must be single-quoted. The `len() < 2` guard rejects a lone `'`: it
+    // satisfies both `starts_with`/`ends_with`, but `iri_part[1..len-1]` would be
+    // `[1..0]` and panic on the out-of-bounds slice.
+    if !iri_part.starts_with('\'') || !iri_part.ends_with('\'') || iri_part.len() < 2 {
         return Err(format!("prefix IRI must be single-quoted in: {body:?}"));
     }
     let iri = iri_part[1..iri_part.len() - 1].to_owned();
@@ -616,6 +618,23 @@ mod tests {
             fact.head.args[1],
             QTerm::Const("<https://example.org/profiles/positive-horn/bob>".to_owned())
         );
+    }
+
+    // ── Malformed prefix IRI: must Err, never panic on the quote-strip slice ───
+
+    #[test]
+    fn prefix_lone_single_quote_errs_not_panics() {
+        // A lone `'` satisfies both starts_with/ends_with; without the len guard
+        // the `iri_part[1..len-1]` strip is `[1..0]` and panics. Must be a clean Err.
+        let err = parse_prefix_directive("prefix(ex, ')").unwrap_err();
+        assert!(err.contains("single-quoted"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn prefix_empty_quotes_errs() {
+        // `''` strips to the empty IRI — caught by the empty-IRI check, also an Err.
+        let err = parse_prefix_directive("prefix(ex, '')").unwrap_err();
+        assert!(err.contains("empty"), "unexpected error: {err}");
     }
 
     // ── Prefix + 2 rules + goal parse ─────────────────────────────────────────
