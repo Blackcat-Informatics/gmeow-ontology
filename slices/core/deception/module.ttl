@@ -55,12 +55,12 @@ gmeow:projectedStandpoint
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:DoxasticStandpointClaim ;
     rdfs:label "projected standpoint"@x-gmeow-english ;
-    skos:definition "The doxastic standpoint claim that the deceiver projects to the deceived party — a gmeow:DoxasticStandpointClaim whose gmeow:claimOfBelief observes the projected gmeow:DoxasticState. It is the public or communicated position that diverges from the held standpoint in a deception event. Non-functional: a complex deception may project several standpoints to different audiences."@x-gmeow-english ;
-    skos:scopeNote "Range is gmeow:DoxasticStandpointClaim — a StandpointClaim that observes a projected gmeow:DoxasticState via gmeow:claimOfBelief."@x-gmeow-english ;
+    skos:definition "The doxastic standpoint claim that the deceiver projects to the deceived party — a gmeow:DoxasticStandpointClaim whose optional gmeow:claimOfBelief, when present, observes the projected gmeow:DoxasticState (e.g., a low-credence avowed stance). It is the public or communicated position that diverges from the held standpoint in a deception event. Non-functional: a complex deception may project several standpoints to different audiences."@x-gmeow-english ;
+    skos:scopeNote "Range is gmeow:DoxasticStandpointClaim — a StandpointClaim that may, but need not, observe a projected gmeow:DoxasticState via gmeow:claimOfBelief."@x-gmeow-english ;
     skos:example "ex:lie gmeow:projectedStandpoint ex:projectedClaim ."@x-gmeow-english ;
     gmeow:useWhen "Use to name the position a deceiver communicates to the victim — the outer half of the held≠projected divergence, modelled as a gmeow:DoxasticStandpointClaim; for paltering the projected claim is literally true yet conversationally misleading (pair with gmeow:implicates)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the deceiver's private belief (that is gmeow:heldStandpoint) and avoid treating projection as a truth verdict on the proposition — refutation belongs on a StandpointClaim's modality, not here, and competing standpoints coexist (Principle 9)."@x-gmeow-english ;
-    gmeow:howToUse "Mint a gmeow:DoxasticStandpointClaim communicated to the victim, link it via gmeow:claimOfBelief to the projected gmeow:DoxasticState, attach it via gmeow:projectedStandpoint, and contrast it with the divergent gmeow:heldStandpoint; for an omission leave the projected standpoint absent and let the gap itself carry the mechanism."@x-gmeow-english ;
+    gmeow:howToUse "Mint a gmeow:DoxasticStandpointClaim communicated to the victim; optionally link it via gmeow:claimOfBelief to a projected gmeow:DoxasticState (for example a low-credence avowed stance), attach it via gmeow:projectedStandpoint, and contrast it with the divergent gmeow:heldStandpoint; for an omission leave the projected standpoint absent and let the gap itself carry the mechanism."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> .
 
 # =========================================================================== #
