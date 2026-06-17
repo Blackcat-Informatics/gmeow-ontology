@@ -74,7 +74,6 @@ gmeow:hasRole	skos:exactMatch	org:role		semapv:ManualMappingCuration	0.85	the me
 gmeow:hasSibling	owl:equivalentProperty	rel:siblingOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSibling	owl:equivalentProperty	schema:sibling		semapv:ManualMappingCuration	1.0	
 gmeow:hasSite	skos:closeMatch	org:hasSite		semapv:ManualMappingCuration	0.9	gmeow:hasSite has range gmeow:Location, while org:hasSite has range org:Site; no alignment of gmeow:Location to org:Site exists, so owl:equivalentProperty is too strong.
-gmeow:hasSkill	skos:closeMatch	schema:knowsAbout		semapv:ManualMappingCuration	0.7	schema.org knowsAbout — broader, lossy flattening of SkillProficiency
 gmeow:hasSkill	skos:closeMatch	schema:skills		semapv:ManualMappingCuration	0.8	schema.org skills — the leveled SkillProficiency relator collapses to a flat skill link
 gmeow:hasSpouse	owl:equivalentProperty	rel:spouseOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSpouse	owl:equivalentProperty	schema:spouse		semapv:ManualMappingCuration	1.0	
