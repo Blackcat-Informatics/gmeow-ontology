@@ -13,7 +13,7 @@ use std::collections::HashSet;
 use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Term};
 use oxigraph::store::Store;
 
-use crate::model::{rdf, rdfs, sh};
+use crate::model::{gmeow, rdf, rdfs, sh};
 use crate::report::Severity;
 
 // ── Public types ───────────────────────────────────────────────────────────────
@@ -129,10 +129,16 @@ pub struct PropertyShape {
     pub path: Path,
     /// Constraints on values reached via the path.
     pub constraints: Vec<Constraint>,
+    /// Node shapes that RDF 1.2 reifiers for this focus/path/value triple must conform to.
+    pub reifier_shapes: Vec<Shape>,
+    /// Whether at least one RDF 1.2 reifier is required for each focus/path/value triple.
+    pub reification_required: bool,
     /// Severity override (default `Violation`).
     pub severity: Severity,
     /// Optional human-readable message.
     pub message: Option<String>,
+    /// Optional GMEOW ABox/TBox/RBox/CBox role annotations on this property shape.
+    pub box_roles: Vec<NamedNode>,
 }
 
 /// A node shape.
@@ -152,6 +158,8 @@ pub struct Shape {
     pub message: Option<String>,
     /// Whether `sh:deactivated true` is set.
     pub deactivated: bool,
+    /// Optional GMEOW ABox/TBox/RBox/CBox role annotations on this shape.
+    pub box_roles: Vec<NamedNode>,
 }
 
 /// The parsed shapes graph — a collection of top-level [`Shape`]s.
@@ -386,6 +394,21 @@ impl<'s> Parser<'s> {
         self.objects_of(subject, predicate).into_iter().next()
     }
 
+    /// Collect deterministic GMEOW graph-box role annotations from a shape node.
+    fn box_roles_of(&self, subject: &Term) -> Vec<NamedNode> {
+        let mut roles: Vec<NamedNode> = self
+            .objects_of(subject, gmeow::GRAPH_BOX_ROLE)
+            .into_iter()
+            .filter_map(|t| match t {
+                Term::NamedNode(n) => Some(n),
+                _ => None,
+            })
+            .collect();
+        roles.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+        roles.dedup_by(|a, b| a.as_str() == b.as_str());
+        roles
+    }
+
     /// Build the SPARQL `PREFIX` header prepended to a SHACL-AF `sh:select` query.
     ///
     /// oxigraph's SPARQL parser has no SHACL awareness, so prefixed names in a
@@ -454,6 +477,7 @@ impl<'s> Parser<'s> {
                 severity: Severity::Violation,
                 message: None,
                 deactivated: false,
+                box_roles: vec![],
             });
         }
         self.in_flight.insert(id_str.clone());
@@ -518,6 +542,7 @@ impl<'s> Parser<'s> {
 
         // -- Node-level constraints --
         let constraints = self.parse_constraints(id)?;
+        let box_roles = self.box_roles_of(id);
 
         Ok(Shape {
             id: id.clone(),
@@ -527,6 +552,7 @@ impl<'s> Parser<'s> {
             severity,
             message,
             deactivated,
+            box_roles,
         })
     }
 
@@ -926,12 +952,33 @@ impl<'s> Parser<'s> {
 
         // constraints on the property shape
         let constraints = self.parse_constraints(ps_node)?;
+        let box_roles = self.box_roles_of(ps_node);
+
+        let mut reifier_shape_nodes: Vec<Term> = self.objects_of(ps_node, sh::REIFIER_SHAPE);
+        reifier_shape_nodes.sort_by_key(|t| t.to_string());
+        if !reifier_shape_nodes.is_empty() && !matches!(path, Path::Predicate(_)) {
+            return Err(format!(
+                "sh:reifierShape on property shape {ps_str} requires an IRI sh:path"
+            ));
+        }
+        let mut reifier_shapes = Vec::new();
+        for node in reifier_shape_nodes {
+            reifier_shapes.push(self.parse_node_shape(node)?);
+        }
+
+        let reification_required = self
+            .objects_of(ps_node, sh::REIFICATION_REQUIRED)
+            .into_iter()
+            .any(|t| matches!(t, Term::Literal(lit) if lit.value() == "true"));
 
         Ok(PropertyShape {
             path,
             constraints,
+            reifier_shapes,
+            reification_required,
             severity,
             message,
+            box_roles,
         })
     }
 
@@ -1042,6 +1089,7 @@ impl<'s> Parser<'s> {
                 severity: Severity::Violation,
                 message: None,
                 deactivated: false,
+                box_roles: vec![],
             });
         }
 
@@ -1069,6 +1117,7 @@ impl<'s> Parser<'s> {
                 severity: Severity::Violation,
                 message: None,
                 deactivated: false,
+                box_roles: vec![],
             })
         } else {
             self.parse_node_shape(id)
@@ -1519,6 +1568,33 @@ mod tests {
         assert!(
             result.is_err(),
             "sh:zeroOrMorePath must cause a hard error, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn test_reifier_shape_requires_predicate_path() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:ContextualShape a sh:NodeShape ;
+                sh:targetClass ex:Node ;
+                sh:property [
+                    sh:path [ sh:inversePath ex:knows ] ;
+                    sh:reifierShape ex:StatementContextShape ;
+                ] .
+
+            ex:StatementContextShape a sh:NodeShape .
+        "#
+        );
+        let store = load_store(&ttl);
+        let result = from_store(&store);
+        assert!(
+            result.is_err(),
+            "sh:reifierShape on a non-IRI path must cause a hard error"
+        );
+        let err = result.unwrap_err();
+        assert!(
+            err.contains("requires an IRI sh:path"),
+            "error should document the supported path boundary, got: {err}"
         );
     }
 }

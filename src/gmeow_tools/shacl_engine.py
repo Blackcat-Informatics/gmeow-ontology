@@ -23,7 +23,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from importlib import metadata
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 
 class ShaclResult(TypedDict):
@@ -36,6 +36,9 @@ class ShaclResult(TypedDict):
     component: str
     source_shape: str
     message: str | None
+    source_box_roles: NotRequired[list[str]]
+    path_box_roles: NotRequired[list[str]]
+    result_box_roles: NotRequired[list[str]]
 
 
 class ShaclReport(TypedDict):
@@ -50,6 +53,14 @@ _SH = "http://www.w3.org/ns/shacl#"
 SH_VIOLATION = _SH + "Violation"
 SH_WARNING = _SH + "Warning"
 SH_INFO = _SH + "Info"
+
+_GMEOW = "https://blackcatinformatics.ca/gmeow/"
+_BOX_LABELS = {
+    _GMEOW + "boxABox": "ABox",
+    _GMEOW + "boxTBox": "TBox",
+    _GMEOW + "boxRBox": "RBox",
+    _GMEOW + "boxCBox": "CBox",
+}
 
 
 def gmeow_shacl_version() -> str:
@@ -126,6 +137,12 @@ def term_to_str(term: str | None) -> str:
     return term
 
 
+def _role_prefix(result: ShaclResult) -> str:
+    roles = result.get("result_box_roles") or []
+    labels = sorted({_BOX_LABELS.get(role, role.rsplit("/", 1)[-1]) for role in roles})
+    return f"[{'/'.join(labels)}] " if labels else ""
+
+
 def partition_results(results: list[ShaclResult]) -> tuple[list[str], list[str]]:
     """Split structured ``gmeow_shacl`` results into (violations, warnings).
 
@@ -138,7 +155,10 @@ def partition_results(results: list[ShaclResult]) -> tuple[list[str], list[str]]
     for r in results:
         focus = term_to_str(r.get("focus"))
         message = r.get("message")
-        line = f"{focus}: {message}" if message is not None else focus
+        prefix = _role_prefix(r)
+        line = (
+            f"{prefix}{focus}: {message}" if message is not None else f"{prefix}{focus}"
+        )
         if r.get("severity") in (SH_WARNING, SH_INFO):
             warnings.append(line)
         else:

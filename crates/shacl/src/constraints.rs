@@ -6,10 +6,12 @@
 //! Evaluates all non-SPARQL SHACL Core constraint components plus the
 //! recursive shape evaluator.  PyO3-free.
 
-use oxigraph::model::{NamedNode, NamedOrBlankNodeRef, Term};
+use oxigraph::model::{
+    GraphNameRef, NamedNode, NamedOrBlankNode, NamedOrBlankNodeRef, Term, Triple,
+};
 use oxigraph::store::Store;
 
-use crate::model::{rdf, sh};
+use crate::model::{gmeow, rdf, sh};
 use crate::path;
 use crate::report::ValidationResult;
 use crate::shapes::{Constraint, NodeKindValue, Path, PropertyShape, Shape};
@@ -32,14 +34,11 @@ pub fn validate_shape(store: &Store, focus: &Term, shape: &Shape) -> Vec<Validat
     // --- Node-level constraints (value nodes = [focus], no path) ---
     let node_value_nodes = std::slice::from_ref(focus);
     for constraint in &shape.constraints {
-        results.extend(eval_constraint(
-            store,
-            focus,
-            node_value_nodes,
-            constraint,
-            None,
-            shape,
-        ));
+        let mut rs = eval_constraint(store, focus, node_value_nodes, constraint, None, shape);
+        for r in &mut rs {
+            r.apply_box_roles(&shape.box_roles, &[]);
+        }
+        results.extend(rs);
     }
 
     // --- Property shapes ---
@@ -66,6 +65,12 @@ fn eval_property_shape(
 ) -> Vec<ValidationResult> {
     let value_nodes = path::eval(store, focus, &ps.path);
     let path_term = path::path_to_term(&ps.path);
+    let source_roles: Vec<NamedNode> = if ps.box_roles.is_empty() {
+        parent_shape.box_roles.clone()
+    } else {
+        ps.box_roles.clone()
+    };
+    let path_roles = path_box_roles(store, &ps.path);
 
     // Build a synthetic shape wrapping the property shape so result
     // metadata (source_shape, severity, message) can come from the PS.
@@ -77,6 +82,7 @@ fn eval_property_shape(
         severity: ps.severity,
         message: ps.message.clone(),
         deactivated: false,
+        box_roles: source_roles.clone(),
     };
 
     let mut results = Vec::new();
@@ -98,10 +104,160 @@ fn eval_property_shape(
                 r.result_path = Some(path_term.clone());
             }
             r.focus_node = focus.clone();
+            r.apply_box_roles(&source_roles, &path_roles);
         }
         results.extend(rs);
     }
+    results.extend(eval_reifier_shapes(
+        store,
+        focus,
+        &value_nodes,
+        ps,
+        &ps_as_shape,
+        &source_roles,
+        &path_roles,
+        &path_term,
+    ));
     results
+}
+
+fn eval_reifier_shapes(
+    store: &Store,
+    focus: &Term,
+    value_nodes: &[Term],
+    ps: &PropertyShape,
+    ps_as_shape: &Shape,
+    source_roles: &[NamedNode],
+    path_roles: &[NamedNode],
+    path_term: &Term,
+) -> Vec<ValidationResult> {
+    if ps.reifier_shapes.is_empty() && !ps.reification_required {
+        return vec![];
+    }
+    let Path::Predicate(predicate) = &ps.path else {
+        return vec![];
+    };
+
+    let source_roles = with_cbox_role(source_roles);
+    let mut results = Vec::new();
+    for value in value_nodes {
+        let Some(triple_term) = triple_term(focus, predicate, value) else {
+            continue;
+        };
+        let reifiers = reifiers_for(store, &triple_term);
+        if reifiers.is_empty() && ps.reification_required {
+            let mut result = ValidationResult {
+                focus_node: focus.clone(),
+                result_path: Some(path_term.clone()),
+                value: Some(triple_term.clone()),
+                source_constraint_component: NamedNode::from(
+                    sh::REIFIER_SHAPE_CONSTRAINT_COMPONENT,
+                ),
+                source_shape: ps_as_shape.id.clone(),
+                severity: ps.severity,
+                message: ps.message.clone(),
+                source_box_roles: vec![],
+                path_box_roles: vec![],
+                result_box_roles: vec![],
+            };
+            result.apply_box_roles(&source_roles, path_roles);
+            results.push(result);
+            continue;
+        }
+
+        for reifier in &reifiers {
+            for reifier_shape in &ps.reifier_shapes {
+                let inner_results = validate_shape(store, reifier, reifier_shape);
+                if inner_results.is_empty() {
+                    continue;
+                }
+                for inner in inner_results {
+                    let mut result = ValidationResult {
+                        focus_node: focus.clone(),
+                        result_path: Some(path_term.clone()),
+                        value: Some(triple_term.clone()),
+                        source_constraint_component: NamedNode::from(
+                            sh::REIFIER_SHAPE_CONSTRAINT_COMPONENT,
+                        ),
+                        source_shape: inner.source_shape.clone(),
+                        severity: inner.severity,
+                        message: inner
+                            .message
+                            .clone()
+                            .or_else(|| reifier_shape.message.clone())
+                            .or_else(|| ps.message.clone()),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
+                    };
+                    result.apply_box_roles(&source_roles, path_roles);
+                    results.push(result);
+                }
+            }
+        }
+    }
+    results
+}
+
+fn triple_term(focus: &Term, predicate: &NamedNode, value: &Term) -> Option<Term> {
+    let subject = match focus {
+        Term::NamedNode(node) => NamedOrBlankNode::NamedNode(node.clone()),
+        Term::BlankNode(node) => NamedOrBlankNode::BlankNode(node.clone()),
+        _ => return None,
+    };
+    Some(Term::Triple(Box::new(Triple::new(
+        subject,
+        predicate.clone(),
+        value.clone(),
+    ))))
+}
+
+fn reifiers_for(store: &Store, triple_term: &Term) -> Vec<Term> {
+    let mut reifiers: Vec<Term> = store
+        .quads_for_pattern(
+            None,
+            Some(rdf::REIFIES),
+            Some(triple_term.as_ref()),
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .filter_map(|q| q.ok().map(|q| Term::from(q.subject)))
+        .collect();
+    reifiers.sort_by_key(|t| t.to_string());
+    reifiers.dedup();
+    reifiers
+}
+
+fn path_box_roles(store: &Store, path: &Path) -> Vec<NamedNode> {
+    let predicate = match path {
+        Path::Predicate(predicate) => predicate,
+        Path::Inverse(inner) => match inner.as_ref() {
+            Path::Predicate(predicate) => predicate,
+            _ => return vec![],
+        },
+    };
+    let mut roles: Vec<NamedNode> = store
+        .quads_for_pattern(
+            Some(NamedOrBlankNodeRef::NamedNode(predicate.as_ref())),
+            Some(gmeow::GRAPH_BOX_ROLE),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .filter_map(|q| match q.ok()?.object {
+            Term::NamedNode(node) => Some(node),
+            _ => None,
+        })
+        .collect();
+    roles.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+    roles.dedup_by(|a, b| a.as_str() == b.as_str());
+    roles
+}
+
+fn with_cbox_role(source_roles: &[NamedNode]) -> Vec<NamedNode> {
+    let mut roles = source_roles.to_vec();
+    roles.push(NamedNode::from(gmeow::BOX_CBOX));
+    roles.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+    roles.dedup_by(|a, b| a.as_str() == b.as_str());
+    roles
 }
 
 // ── Per-constraint evaluator ───────────────────────────────────────────────────
@@ -141,6 +297,9 @@ fn eval_constraint(
                 source_shape: source_shape.clone(),
                 severity,
                 message: message.clone(),
+                source_box_roles: vec![],
+                path_box_roles: vec![],
+                result_box_roles: vec![],
             }
         };
         ($component:expr, $focus:expr, $value:expr) => {
@@ -152,6 +311,9 @@ fn eval_constraint(
                 source_shape: source_shape.clone(),
                 severity,
                 message: message.clone(),
+                source_box_roles: vec![],
+                path_box_roles: vec![],
+                result_box_roles: vec![],
             }
         };
     }
@@ -201,6 +363,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -226,6 +391,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -251,6 +419,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -274,6 +445,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -298,6 +472,9 @@ fn eval_constraint(
                     source_shape: source_shape.clone(),
                     severity,
                     message: message.clone(),
+                    source_box_roles: vec![],
+                    path_box_roles: vec![],
+                    result_box_roles: vec![],
                 }]
             } else {
                 vec![]
@@ -334,6 +511,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -364,6 +544,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -400,6 +583,9 @@ fn eval_constraint(
                         message: message
                             .clone()
                             .or_else(|| Some(format!("duplicate language tag: {lang}"))),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -431,6 +617,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -459,6 +648,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -489,6 +681,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -517,6 +712,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -541,6 +739,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -565,6 +766,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -589,6 +793,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -612,6 +819,9 @@ fn eval_constraint(
                         source_shape: source_shape.clone(),
                         severity,
                         message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
                     });
                 }
             }
@@ -943,6 +1153,7 @@ mod tests {
             severity: Severity::Violation,
             message: None,
             deactivated: false,
+            box_roles: vec![],
         }
     }
 
@@ -955,12 +1166,16 @@ mod tests {
             property_shapes: vec![PropertyShape {
                 path: Path::Predicate(NamedNode::new_unchecked(path_iri)),
                 constraints,
+                reifier_shapes: vec![],
+                reification_required: false,
                 severity: Severity::Violation,
                 message: None,
+                box_roles: vec![],
             }],
             severity: Severity::Violation,
             message: None,
             deactivated: false,
+            box_roles: vec![],
         }
     }
 
@@ -1708,12 +1923,16 @@ mod tests {
                     format!("{EX}parent"),
                 )))),
                 constraints: vec![Constraint::MinCount(1)],
+                reifier_shapes: vec![],
+                reification_required: false,
                 severity: Severity::Violation,
                 message: None,
+                box_roles: vec![],
             }],
             severity: Severity::Violation,
             message: None,
             deactivated: false,
+            box_roles: vec![],
         };
         // ex:parent_node has 1 inverse-parent (ex:child) → passes minCount(1).
         let results = validate_shape(&store, &ex("parent_node"), &shape);
@@ -1735,12 +1954,16 @@ mod tests {
                     format!("{EX}parent"),
                 )))),
                 constraints: vec![Constraint::MinCount(1)],
+                reifier_shapes: vec![],
+                reification_required: false,
                 severity: Severity::Violation,
                 message: None,
+                box_roles: vec![],
             }],
             severity: Severity::Violation,
             message: None,
             deactivated: false,
+            box_roles: vec![],
         };
         // ex:orphan has no inverse-parent triples → fails minCount(1).
         let results = validate_shape(&store, &ex("orphan"), &shape);
@@ -1855,6 +2078,7 @@ mod tests {
             severity: Severity::Violation,
             message: None,
             deactivated: true,
+            box_roles: vec![],
         };
         // Focus node is a literal — would fail, but shape is deactivated.
         let literal_focus = Term::Literal(Literal::new_simple_literal("anything"));

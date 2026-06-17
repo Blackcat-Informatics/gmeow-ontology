@@ -1468,6 +1468,9 @@ classes:
     title: Granularity Level
     slots:
     - coarserThan
+  GraphBoxRole:
+    class_uri: https://blackcatinformatics.ca/gmeow/GraphBoxRole
+    title: Graph Box Role
   GrooveProfile:
     class_uri: https://blackcatinformatics.ca/gmeow/GrooveProfile
     title: Groove Profile
@@ -6796,6 +6799,10 @@ slots:
     range: GovernanceModel
     domain: Project
     multivalued: true
+  graphBoxRole:
+    slot_uri: https://blackcatinformatics.ca/gmeow/graphBoxRole
+    title: graph box role
+    range: GraphBoxRole
   grooveGridUnit:
     slot_uri: https://blackcatinformatics.ca/gmeow/grooveGridUnit
     title: groove grid unit
@@ -15414,6 +15421,21 @@ enums:
       granularityYear:
         meaning: https://blackcatinformatics.ca/gmeow/granularityYear
         title: year level
+  GraphBoxRoleEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GraphBoxRole
+    permissible_values:
+      boxABox:
+        meaning: https://blackcatinformatics.ca/gmeow/boxABox
+        title: ABox role
+      boxCBox:
+        meaning: https://blackcatinformatics.ca/gmeow/boxCBox
+        title: CBox role
+      boxRBox:
+        meaning: https://blackcatinformatics.ca/gmeow/boxRBox
+        title: RBox role
+      boxTBox:
+        meaning: https://blackcatinformatics.ca/gmeow/boxTBox
+        title: TBox role
   GrooveProfileEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GrooveProfile
     permissible_values:

@@ -223,6 +223,21 @@ def test_reference_pages_have_term_metadata(ontology_docs_tree: Path) -> None:
 
 
 @pytest.mark.ci_only
+def test_reference_pages_surface_graph_box_roles(ontology_docs_tree: Path) -> None:
+    part_of = (
+        ontology_docs_tree / "markdown" / "reference" / "properties" / "gmeow-partOf.md"
+    )
+    text = part_of.read_text(encoding="utf-8")
+    index = (
+        ontology_docs_tree / "markdown" / "reference" / "properties" / "index.md"
+    ).read_text(encoding="utf-8")
+
+    assert "- **Box roles:** [`gmeow:boxRBox`](../individuals/gmeow-boxRBox.md)" in text
+    assert "| [`gmeow:partOf`](gmeow-partOf.md)" in index
+    assert "[`gmeow:boxRBox`](../individuals/gmeow-boxRBox.md)" in index
+
+
+@pytest.mark.ci_only
 def test_reference_pages_surface_advisory_usage_metadata(
     ontology_docs_tree: Path,
 ) -> None:
@@ -522,6 +537,7 @@ def test_static_search_indexes_include_terms_slices_and_recipes(
     assert '"path": "slices/logic/design/LOGIC/index.html"' in search_index
     assert '"recipe": "person-names-and-display"' in search_index
     assert '"kind": "example"' in search_index
+    assert "gmeow:boxRBox" in search_index
     assert (
         '"path": "examples/index.html#example-slices-core-names-examples-person-names"'
         in search_index

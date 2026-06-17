@@ -77,6 +77,7 @@ _SKOS_EXAMPLE = _SKOS + "example"
 _DCT_DESCRIPTION = _DCTERMS + "description"
 _DOCS_CONCERN = NAMESPACE + "docsConcern"
 _DOCS_CONCERN_CLASS = NAMESPACE + "DocumentationConcern"
+_GRAPH_BOX_ROLE = NAMESPACE + "graphBoxRole"
 _USE_WHEN = NAMESPACE + "useWhen"
 _AVOID_WHEN = NAMESPACE + "avoidWhen"
 _HOW_TO_USE = NAMESPACE + "howToUse"
@@ -493,6 +494,7 @@ class DocTerm:
     use_for_consumer: list[str] = field(default_factory=list)
     avoid_for_consumer: list[str] = field(default_factory=list)
     concerns: list[str] = field(default_factory=list)
+    box_roles: list[str] = field(default_factory=list)
     linkages: list[DocLinkage] = field(default_factory=list)
 
 
@@ -1573,7 +1575,10 @@ def _doc_term(view: FoldView, term: Term) -> DocTerm:
             for obj in view.objects(tid, _DOCS_CONCERN)
             if view.is_iri(obj)
         ]
+        box_roles = _public_curies(view, tid, _GRAPH_BOX_ROLE)
         owner = _owner(view, tid)
+    else:
+        box_roles = []
 
     return DocTerm(
         category=term.category,
@@ -1599,6 +1604,7 @@ def _doc_term(view: FoldView, term: Term) -> DocTerm:
         use_for_consumer=use_for_consumer,
         avoid_for_consumer=avoid_for_consumer,
         concerns=sorted(set(concerns)),
+        box_roles=box_roles,
     )
 
 
@@ -2848,14 +2854,15 @@ def _category_index(category: str, terms: list[DocTerm]) -> Page:
         "",
         f"{len(terms)} documented {label.lower()}.",
         "",
-        "| Term | Label | Defined By | Linkages |",
-        "|---|---|---|---|",
+        "| Term | Label | Defined By | Box Roles | Linkages |",
+        "|---|---|---|---|---|",
     ]
     for term in terms:
         link = _markdown_link(f"`{term.curie}`", Path(term.filename))
+        roles = ", ".join(f"`{role}`" for role in term.box_roles) or "-"
         lines.append(
             f"| {link} | {_escape_md_cell(term.label)} | `{term.owner or '-'}` | "
-            f"{len(term.linkages)} |"
+            f"{roles} | {len(term.linkages)} |"
         )
     lines.append("")
     return Page(
@@ -2876,6 +2883,10 @@ def _term_page(term: DocTerm, model: DocsModel) -> Page:
     ]
     if term.owner:
         lines.append(f"- **Defined by:** `{term.owner}`")
+    if term.box_roles:
+        lines.append(
+            "- **Box roles:** " + ", ".join(f"`{role}`" for role in term.box_roles)
+        )
     lines.append("")
     if term.definition:
         lines.extend([term.definition, ""])
@@ -4048,6 +4059,7 @@ def _search_index(model: DocsModel) -> list[dict[str, object]]:
                         term.owner,
                         *term.parents,
                         *term.types,
+                        *term.box_roles,
                         *term.domain.split(),
                         *term.range.split(),
                     }

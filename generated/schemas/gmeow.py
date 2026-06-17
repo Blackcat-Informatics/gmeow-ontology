@@ -1167,6 +1167,13 @@ class GranularityLevelEnum(str, Enum):
     year_level = "granularityYear"
 
 
+class GraphBoxRoleEnum(str, Enum):
+    ABox_role = "boxABox"
+    CBox_role = "boxCBox"
+    RBox_role = "boxRBox"
+    TBox_role = "boxTBox"
+
+
 class GrooveProfileEnum(str, Enum):
     swing_groove_profile = "grooveProfileSwing"
 
@@ -8067,6 +8074,14 @@ class GranularityLevel(ConfiguredBaseModel):
     coarserThan: Optional[list[GranularityLevel]] = Field(default=None, title="coarser than", json_schema_extra = { "linkml_meta": {'domain': 'GranularityLevel',
          'domain_of': ['GranularityLevel'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/coarserThan'} })
+
+
+class GraphBoxRole(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/GraphBoxRole',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Graph Box Role'})
+
+    pass
 
 
 class GrooveProfile(Entity):
@@ -61229,6 +61244,7 @@ GovernanceModel.model_rebuild()
 GrammaticalAspect.model_rebuild()
 GrammaticalTense.model_rebuild()
 GranularityLevel.model_rebuild()
+GraphBoxRole.model_rebuild()
 GrooveProfile.model_rebuild()
 GrooveProfileKind.model_rebuild()
 Group.model_rebuild()
