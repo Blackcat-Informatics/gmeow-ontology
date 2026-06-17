@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: worlds-C/nested-budget (#505)
+# A counterfactual query that declares depth_budget(0) trips the
+# nested-counterfactual depth budget before construction and degrades to
+# status "incomplete" rather than constructing without bound.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/worlds-c/nested-budget/> .
+
+ex:Thing a logic:Kind .

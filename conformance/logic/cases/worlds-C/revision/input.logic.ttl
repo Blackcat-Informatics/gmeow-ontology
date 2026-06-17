@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: worlds-C/revision (Stratum-C counterfactuals, #505)
+# Deterministic AGM revision under the default profile:
+#   - consequent : admit status(server, down) -> alert fires (AC-1) without
+#                  leaking into the base store (AC-2, asserted by the test).
+#   - determined : an over-determined antecedent {primary, backup} arbitrated by
+#                  gmeow:overrides -> the more-entrenched value wins (AC-3, one world).
+#   - tie        : an over-determined antecedent {blue, green} with no entrenchment
+#                  edge -> a genuine tie -> status "unknown" (AC-3, no branch).
+#
+# The base world's facts (and the gmeow:overrides entrenchment edge) live in
+# input.nq; the revision rules + counterfactual queries live in queries/*.logic.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/worlds-c/revision/> .
+
+# Schema: sort used by the projection back-ends.
+ex:Thing a logic:Kind .

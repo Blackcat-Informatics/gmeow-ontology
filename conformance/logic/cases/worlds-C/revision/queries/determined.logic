@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% AC-3 (deterministic): an over-determined antecedent {primary, backup} for the
+% functional slot route(traffic, ·). The base world's gmeow:overrides edge
+% primary >- backup makes the maximum unique -> primary wins -> exactly one world.
+:- prefix(ex, 'https://example.org/worlds-c/revision/').
+:- counterfactual(ex:cf, ex:base).
+:- assume(ex:route(ex:traffic, ex:primary)).
+:- assume(ex:route(ex:traffic, ex:backup)).
+?- ex:route(ex:traffic, Z).

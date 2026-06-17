@@ -1,0 +1,10 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Depth-budget trip: depth_budget(0) exhausts the nested-counterfactual budget
+% before any world is constructed -> status "incomplete" (never unbounded).
+:- prefix(ex, 'https://example.org/worlds-c/nested-budget/').
+:- counterfactual(ex:cf, ex:base).
+:- assume(ex:flagged(ex:s, ex:yes)).
+:- depth_budget(0).
+?- ex:flagged(ex:s, Z).
