@@ -126,13 +126,10 @@ def test_justified_by_has_named_domain_and_range() -> None:
     assert (prop, RDFS.range, _t("JustificationGround")) in g
 
     subject_union = _union_members(g, _t("JustificationSubject"))
-    assert _t("DoxasticState") in subject_union
-    assert _t("StandpointClaim") in subject_union
+    assert subject_union == {_t("DoxasticState"), _t("StandpointClaim")}
 
     ground_union = _union_members(g, _t("JustificationGround"))
-    assert _t("EvidenceSpan") in ground_union
-    assert _t("Attestation") in ground_union
-    assert _t("DoxasticState") in ground_union
+    assert ground_union == {_t("EvidenceSpan"), _t("Attestation"), _t("DoxasticState")}
 
 
 def test_defeated_by_has_status_range() -> None:
