@@ -53,9 +53,18 @@ def _profile(case_dir: Path) -> str:
 
 
 def _discover() -> list[tuple[str, str]]:
-    """Return (case_name, query_stem) for every worlds-C query, sorted."""
+    """Return (case_name, query_stem) for every worlds-C query, sorted.
+
+    A missing corpus directory yields an empty list rather than raising at import
+    time, so ``test_worlds_c_corpus_is_present`` can run and report the absence
+    with its own assertion instead of crashing collection.
+    """
     pairs: list[tuple[str, str]] = []
-    for case_dir in sorted(p for p in _WORLDS_C.iterdir() if p.is_dir()):
+    try:
+        case_dirs = sorted(p for p in _WORLDS_C.iterdir() if p.is_dir())
+    except FileNotFoundError:
+        return pairs
+    for case_dir in case_dirs:
         for qfile in sorted((case_dir / "queries").glob("*.logic")):
             pairs.append((case_dir.name, qfile.stem))
     return pairs
@@ -109,12 +118,28 @@ def test_ac3_tie_is_unknown_not_a_branch() -> None:
 
 
 def test_ac2_base_world_is_not_mutated() -> None:
-    """AC-2: after a counterfactual overwrite, the base world still reads its
-    original value (the constructed world never leaks into the base store)."""
+    """AC-2: a counterfactual that overwrites a functional slot must not leak into
+    the base store — after running it, the base world still reads its original
+    value (the constructed world is a fresh, isolated graph).
+
+    The test first *exercises* the overwrite (the consequent case admits
+    status(server, down) and fires alert in W_cf), so the assertion below is a
+    genuine non-mutation check rather than a bare baseline read.
+    """
     case_dir = _WORLDS_C / "revision"
     nquads = (case_dir / "input.nq").read_text(encoding="utf-8")
-    # A plain (non-counterfactual) goal against the base world: status(server, ·)
-    # must still be 'up' — the counterfactual 'down' overwrite is confined to W_cf.
+
+    # (1) Run the counterfactual that overwrites status(server, up) -> down in
+    #     W_cf and fires the alert rule there. It must succeed inside W_cf.
+    cf_query = (case_dir / "queries" / "consequent.logic").read_text(encoding="utf-8")
+    cf = gmeow_logic.query(nquads, cf_query, _profile(case_dir), None, None, None)
+    assert cf["status"] == "ok", cf
+    fired = {b["Z"] for b in cf["bindings"]}
+    assert fired == {"<https://example.org/worlds-c/revision/fired>"}, cf
+
+    # (2) Re-query the base world with a plain (non-counterfactual) goal: status
+    #     must still be 'up' — the 'down' overwrite was confined to W_cf and never
+    #     mutated the base store.
     base_query = (
         ":- prefix(ex, 'https://example.org/worlds-c/revision/').\n"
         "?- ex:status(ex:server, Z).\n"
