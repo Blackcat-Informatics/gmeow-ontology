@@ -29,7 +29,11 @@ gmeow:DoxasticStandpointClaimShape
     sh:property [
         sh:path gmeow:justifiedBy ;
         sh:minCount 0 ;
-        sh:class [ owl:unionOf (gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState) ] ;
+        sh:or (
+            [ sh:class gmeow:EvidenceSpan ]
+            [ sh:class gmeow:Attestation ]
+            [ sh:class gmeow:DoxasticState ]
+        ) ;
         sh:severity sh:Violation ;
         sh:message "If present, a justification ground (gmeow:justifiedBy) must be an EvidenceSpan, Attestation, or DoxasticState." ;
     ] ;
