@@ -321,6 +321,40 @@ msgstr "new value"
         updated = ttl.read_text(encoding="utf-8")
         assert '"""new value"""@x-gmeow-english' in updated
 
+    def test_replaces_triple_quoted_literal_with_escaped_triple_quote(
+        self, tmp_path: Path
+    ) -> None:
+        # Regression: _LITERAL_RE must skip escaped quotes inside triple-quoted
+        # literals and terminate only at the real closing delimiter.
+        ttl = _write_ttl(
+            tmp_path,
+            '''@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:thing rdfs:comment """Escaped triple-quote \\""" inside."""@x-gmeow-english .
+''',
+        )
+        po = _write_po(
+            tmp_path,
+            """
+msgctxt "http://example.org/thing|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "Escaped triple-quote \\"\\"\\" inside."
+msgstr "Updated escaped triple-quote \\"\\"\\" inside."
+""",
+        )
+        report = sync_english_from_po(po, ttl)
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = ttl.read_text(encoding="utf-8")
+        assert (
+            '"""Updated escaped triple-quote \\""" inside."""@x-gmeow-english'
+            in updated
+        )
+        assert "Escaped triple-quote" not in updated
+        assert "@prefix ex:" in updated
+        assert "@prefix rdfs:" in updated
+
     def test_datatyped_literals_without_english_tag_are_skipped(
         self, tmp_path: Path
     ) -> None:

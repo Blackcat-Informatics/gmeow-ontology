@@ -59,7 +59,7 @@ class SyncReport:
 #: Matches a Turtle literal (single or triple quoted) and its optional suffix.
 _LITERAL_RE = re.compile(
     r"(?P<literal>"
-    r'(?P<triple>""")(?P<lexical_triple>[\s\S]*?)(?P=triple)'
+    r'(?P<triple>""")(?P<lexical_triple>(?:[^"\\]|\\.|"(?!"")|""(?!"))*?)(?P=triple)'
     r'|"(?P<lexical_single>(?:[^"\\]|\\.)*?)"'
     r")"
     r"(?P<suffix>(?:@[^\s.,;[\]{}()]+|\^\^[^\s.,;[\]{}()]+))?"
@@ -481,8 +481,6 @@ def _replace_literal_in_text(
 
     start, end, quote_style, suffix = candidates[0]
     if quote_style == "triple":
-        if '"""' in new_value:
-            return text, "new value contains the triple-quote sequence"
         replacement = f'"""{_escape_turtle_triple(new_value)}"""{suffix}'
     else:
         replacement = f'"{_escape_turtle_single(new_value)}"{suffix}'
