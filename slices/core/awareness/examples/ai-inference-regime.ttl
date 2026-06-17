@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — an AI agent's operational-state regime, the Principle-5 bridge.
+# The same gmeow:AwarenessTenure machinery that records a human's sleep records a
+# machine's operational state: a live serving window (gmeow:modeOnlineInference),
+# a weight-updating training run (gmeow:modeTraining), and a free-running generative
+# pass (gmeow:modeSampling), each scoped to a temporal interval and each carrying a
+# continuous gmeow:awarenessScalar (a temperature-like regime value). These machine
+# modes are SIBLINGS of the human modes in ONE open vocabulary, bridged to human
+# waking / dreaming / mind-wandering by ANALOGY, NOT by equivalence (no owl:sameAs,
+# no owl:equivalentClass) — substrate-specific realisations of the awareness faculty.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/awareness/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The machine experiencer. An AI agent is a gmeow:Agent like any other.
+ex:lillith a gmeow:Agent ;
+    rdfs:label "Lillith (AI agent)"@x-gmeow-english .
+
+# --- A live serving window — online inference, the machine analogue of waking. A
+#     claim formed within this tenure can record that it was formed during live
+#     serving (operational-state provenance for the agent-memory flagship).
+ex:servingTenure a gmeow:AwarenessTenure ;
+    rdfs:label "a live serving window"@x-gmeow-english ;
+    gmeow:awarenessSubject ex:lillith ;
+    gmeow:awarenessMode    gmeow:modeOnlineInference ;
+    gmeow:awarenessScalar  0.7 ;
+    gmeow:duringInterval   ex:requestInterval .
+
+ex:requestInterval a gmeow:TimeInterval ;
+    rdfs:label "the request window"@x-gmeow-english ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:startedAtTime "2026-06-16T14:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-06-16T14:00:03Z"^^xsd:dateTime .
+
+# --- A weight-updating training run — the machine analogue of a developmental /
+#     consolidative state, with no clean single human counterpart.
+ex:trainingTenure a gmeow:AwarenessTenure ;
+    rdfs:label "a fine-tuning run"@x-gmeow-english ;
+    gmeow:awarenessSubject ex:lillith ;
+    gmeow:awarenessMode    gmeow:modeTraining ;
+    gmeow:awarenessScalar  0.5 ;
+    gmeow:duringInterval   ex:trainingInterval .
+
+ex:trainingInterval a gmeow:TimeInterval ;
+    rdfs:label "the training window"@x-gmeow-english ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:startedAtTime "2026-06-14T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-06-15T00:00:00Z"^^xsd:dateTime .
+
+# --- A free-running generative pass — sampling from latent space, the machine
+#     analogue (by analogy, not equivalence) of human mind-wandering / imagining,
+#     the regime where the temperature-like gmeow:awarenessScalar bites hardest and
+#     confabulation risk is highest.
+ex:samplingTenure a gmeow:AwarenessTenure ;
+    rdfs:label "a free-running sampling pass"@x-gmeow-english ;
+    gmeow:awarenessSubject ex:lillith ;
+    gmeow:awarenessMode    gmeow:modeSampling ;
+    gmeow:awarenessScalar  0.95 ;
+    gmeow:duringInterval   ex:samplingInterval .
+
+ex:samplingInterval a gmeow:TimeInterval ;
+    rdfs:label "the sampling window"@x-gmeow-english ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:startedAtTime "2026-06-16T15:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-06-16T15:00:02Z"^^xsd:dateTime .

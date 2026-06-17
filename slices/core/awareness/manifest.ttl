@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/awareness>
+    a gmeow:Slice ;
+    rdfs:label "awareness"@x-gmeow-english ;
+    skos:definition "The awareness slice of the GMEOW ontology (core tier): GMEOW Awareness Module — the state-of-the-experiencer axis of mind, orthogonal to WHAT is entertained (content) and to the ATTITUDE taken toward it. It is the Principle-5 human↔machine bridge: a single open value vocabulary (gmeow:AwarenessMode) holds the human modes (waking, drowsy, asleep, dreaming, REM, lucid-dreaming, mind-wandering, focused, flow, meditative, sedated, comatose) BESIDE the machine modes (online-inference, offline-replay, training, sampling, dormant) as SIBLINGS, where AI online-inference / offline-replay / training / sampling are the machine analogues of waking / dreaming / focused / drowsy bridged by analogy, NOT by equivalence. A graded arousal ladder (gmeow:AwarenessLevel, high→low) and a continuous gmeow:awarenessScalar sit beside the named modes, and gmeow:AwarenessTenure reifies an agent-in-a-mode over a temporal interval. The dreaming act (mentation gmeow:processDreaming) and the lucidity seam (metacognition gmeow:MetacognitiveState online during dreaming) are consumed BY REFERENCE — no asserted triples into those namespaces. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+    dcterms:title "GMEOW Awareness Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceProfile "claims" , "memory" ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:sliceConsumer "AI operational-state provenance and human consciousness modelling (Principle 15) — a stored claim can record the operational state of the experiencer that formed it: was it formed during gmeow:modeOnlineInference (live serving) versus gmeow:modeOfflineReplay (offline rumination over logged context) or gmeow:modeTraining, and at what sampling regime (gmeow:awarenessScalar)? The human face models consciousness, sleep staging, meditation, and clinical arousal (gmeow:levelObtunded / gmeow:levelUnresponsive mapping to the Glasgow Coma Scale by reference); a gmeow:AwarenessTenure pins each state to a temporal interval (temporal slice). Dreaming and lucidity compose here by reference (#589): gmeow:modeLucidDreaming is gmeow:modeDreaming with metacognition (gmeow:MetacognitiveState) online, documented at the seam, never re-minted."@x-gmeow-english .
