@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/dreaming>
+    a gmeow:Slice ;
+    rdfs:label "dreaming"@x-gmeow-english ;
+    skos:definition "The dreaming slice of the GMEOW ontology (extension tier): GMEOW Dreaming Module — a published composition over the experiential/mentation layer with no new primitives. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    dcterms:title "GMEOW Dreaming Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceProfile "dreaming" ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/imagination> ,
+        <https://blackcatinformatics.ca/gmeow/slices/awareness> ,
+        <https://blackcatinformatics.ca/gmeow/slices/learning> ,
+        <https://blackcatinformatics.ca/gmeow/slices/inference> ,
+        <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    gmeow:sliceConsumer "AI offline generative replay, synthetic experience, and counterfactual rehearsal over agent memory (GTS ai-package), and human dream-journaling / sleep-research corpora. Part of the Mentation program (#580)."@x-gmeow-english .
