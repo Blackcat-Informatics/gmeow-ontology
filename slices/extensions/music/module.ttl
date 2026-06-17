@@ -6060,7 +6060,7 @@ gmeow:pitchValue24EDOG4 gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pitchValueC4Fixture gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pitchValueG4Fixture gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pitchValueJI7Over4 gmeow:graphBoxRole gmeow:boxABox .
-gmeow:pivotSourceValue gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:pivotSourceValue gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:pivotTargetValue gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:playingTechniqueArco gmeow:graphBoxRole gmeow:boxABox .
 gmeow:playingTechniqueBentNote gmeow:graphBoxRole gmeow:boxABox .
@@ -6183,7 +6183,7 @@ gmeow:transformSpectralCompression gmeow:graphBoxRole gmeow:boxABox .
 gmeow:transformTimbreReorchestration gmeow:graphBoxRole gmeow:boxABox .
 gmeow:transformTransposition gmeow:graphBoxRole gmeow:boxABox .
 gmeow:transformationParameter gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:transformationSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:transformationSource gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:transformationTarget gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:transformationType gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:tuningAnchor gmeow:graphBoxRole gmeow:boxRBox .

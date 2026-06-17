@@ -361,3 +361,16 @@ gmeow:knowsThat gmeow:graphBoxRole gmeow:boxRBox .
 <https://blackcatinformatics.ca/gmeow/slices/epistemics> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:suspendsJudgementOn gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:tenureOfDoxasticState gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Four-box policy additions (issue four-box-validation-policy) ---
+gmeow:DoxasticStandpointClaim gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:JustificationGround gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:JustificationStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:JustificationSubject gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:claimOfBelief gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:defeatedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:justifiedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:justificationStatusDefeated gmeow:graphBoxRole gmeow:boxABox .
+gmeow:justificationStatusGettier gmeow:graphBoxRole gmeow:boxABox .
+gmeow:justificationStatusRebutted gmeow:graphBoxRole gmeow:boxABox .
+gmeow:justificationStatusUndercut gmeow:graphBoxRole gmeow:boxABox .

@@ -114,7 +114,7 @@ gmeow:statement-dsl skos:definition "The GMEOW statement DSL vocabulary — term
 
 gmeow:StatementMetadata gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
 gmeow:annProperty gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:annValue gmeow:graphBoxRole gmeow:boxABox .
+gmeow:annValue gmeow:graphBoxRole gmeow:boxRBox, gmeow:boxABox .
 gmeow:annotation gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:qObject gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:qObjectLiteral gmeow:graphBoxRole gmeow:boxRBox .
