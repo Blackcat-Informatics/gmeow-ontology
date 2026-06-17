@@ -53,3 +53,15 @@ gmeow:InvalidRole
     text = render_text(report)
     assert "Missing roles (1)" in text
     assert "Invalid roles (1)" in text
+
+
+def test_box_role_audit_with_empty_paths_audits_nothing(tmp_path: Path) -> None:
+    report = audit_box_roles([])
+    assert report.ok
+    assert report.term_count == 0
+    assert report.role_counts == {}
+    assert report.missing == []
+    assert report.invalid == []
+    text = render_text(report)
+    assert "Typed GMEOW terms: 0" in text
+    assert "All typed GMEOW terms have explicit typed graph-box roles." in text

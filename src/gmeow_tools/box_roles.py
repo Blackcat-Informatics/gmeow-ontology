@@ -76,7 +76,7 @@ class BoxRoleAudit:
 
 def audit_box_roles(paths: list[Path] | None = None) -> BoxRoleAudit:
     """Audit explicit ``gmeow:graphBoxRole`` coverage for typed GMEOW terms."""
-    source_paths = paths or default_audit_paths()
+    source_paths = default_audit_paths() if paths is None else paths
     graph = Graph()
     bind_prefixes(graph)
     source_by_term: dict[URIRef, Path] = {}
@@ -209,8 +209,6 @@ def _term_kind(types: set[URIRef]) -> str:
         return "property"
     if RDFS.Datatype in types:
         return "datatype"
-    if any(rdf_type in _KNOWN_TYPES for rdf_type in types):
-        return "individual"
     return _KIND_ORDER[-1]
 
 
