@@ -18,10 +18,20 @@ _FIXTURE = (
 
 @pytest.fixture
 def graph() -> Graph:
+    """Load and return the epistemics belief-revision fixture graph.
+
+    Returns:
+        Parsed RDF graph containing the belief-revision example data.
+    """
     return Graph().parse(_FIXTURE, format="turtle")
 
 
 def test_old_doxastic_tenure_is_closed(graph: Graph) -> None:
+    """Verify the original doxastic tenure has a single xsd:dateTime end time.
+
+    Args:
+        graph: Fixture graph containing the belief-revision example.
+    """
     old_interval = EX.originalInterval
     assert (old_interval, GMEOW.endedAtTime, None) in graph
     ends = list(graph.objects(old_interval, GMEOW.endedAtTime))
@@ -31,11 +41,21 @@ def test_old_doxastic_tenure_is_closed(graph: Graph) -> None:
 
 
 def test_old_doxastic_tenure_is_suppressed(graph: Graph) -> None:
+    """Verify the superseded original tenure is marked as not displayable.
+
+    Args:
+        graph: Fixture graph containing the belief-revision example.
+    """
     old_tenure = EX.originalTenure
     assert (old_tenure, GMEOW.displayable, Literal(False)) in graph
 
 
 def test_old_doxastic_state_is_retained(graph: Graph) -> None:
+    """Verify the original belief remains typed and linked to its agent and content.
+
+    Args:
+        graph: Fixture graph containing the belief-revision example.
+    """
     old_state = EX.originalBelief
     assert (old_state, RDF.type, GMEOW.DoxasticState) in graph
     assert (old_state, GMEOW.epistemicAgent, EX.operator) in graph
@@ -43,6 +63,11 @@ def test_old_doxastic_state_is_retained(graph: Graph) -> None:
 
 
 def test_new_doxastic_state_is_present(graph: Graph) -> None:
+    """Verify the revised belief is present as a DoxasticState for the operator.
+
+    Args:
+        graph: Fixture graph containing the belief-revision example.
+    """
     new_state = EX.revisedBelief
     assert (new_state, RDF.type, GMEOW.DoxasticState) in graph
     assert (new_state, GMEOW.epistemicAgent, EX.operator) in graph
@@ -50,12 +75,22 @@ def test_new_doxastic_state_is_present(graph: Graph) -> None:
 
 
 def test_new_doxastic_tenure_is_open(graph: Graph) -> None:
+    """Verify the revised tenure interval has started but has not yet ended.
+
+    Args:
+        graph: Fixture graph containing the belief-revision example.
+    """
     new_interval = EX.revisedInterval
     assert (new_interval, GMEOW.startedAtTime, None) in graph
     assert (new_interval, GMEOW.endedAtTime, None) not in graph
 
 
 def test_qualitative_modality_via_linked_standpoint_claim(graph: Graph) -> None:
+    """Verify both beliefs link to standpoint claims with the expected modalities.
+
+    Args:
+        graph: Fixture graph containing the belief-revision example.
+    """
     original_claim = EX.originalClaim
     revised_claim = EX.revisedClaim
     assert (EX.originalBelief, GMEOW.doxasticClaim, original_claim) in graph
