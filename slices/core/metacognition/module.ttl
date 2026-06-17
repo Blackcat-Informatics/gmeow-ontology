@@ -1,0 +1,185 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/metacognition>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Metacognition Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Metacognition Module — second-order epistemics: the reflexive turn whose subject is the agent's OWN first-order mental moments and claims, together with calibration (the fit between avowed confidence and accuracy), known-unknowns, epistemic self-trust, and the reflection act that can defeat one's own inference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> ;
+    rdfs:comment """The reflexive companion to the epistemics, cognition, and standpoint slices. The whole epistemic stack is FIRST-ORDER — an agent believes a proposition (epistemics), knows about a subject (cognition), claims a feature from a vantage (standpoint). Metacognition is the SECOND-ORDER turn: states whose subject is one of the agent's OWN first-order states or claims, plus the calibration of avowed confidence against accuracy. For a trustworthy AI memory this is decisive — "how sure am I that I'm right, and do I know where my knowledge stops" is what separates a calibrated agent from a confabulating one (Principle 15).
+
+DOCTRINE.
+  * Reflexivity by reuse, not new machinery: a metacognitive judgement IS a gmeow:StandpointClaim whose gmeow:observedFeature is one of the agent's own claims / mental moments and whose gmeow:vantage is that same agent. gmeow:MetacognitiveState is the endurant mode (a gmeow:MentalMoment sibling of gmeow:CognitiveState and gmeow:IntentionalMode); gmeow:metaTarget is the reflexivity edge to the first-order state it reflects upon.
+  * Sibling, never sub-mode (documentation only): gmeow:MetacognitiveState is a co-equal child of gmeow:MentalMoment beside gmeow:CognitiveState, gmeow:IntentionalMode, and the doxastic states (epistemics #560/#561). There is deliberately NO rdfs:subClassOf making it a kind of CognitiveState — "thinking about thinking is a kind of thinking" would erase the reflexive-vs-first-order distinction, exactly as gmeow:Question is not a gmeow:Proposition.
+  * Calibration is a value, not a verdict: gmeow:calibration assigns a closed gmeow:CalibrationStatus (wellCalibrated / overconfident / underconfident) to a metacognitive state. Dunning–Kruger is overconfident at low competence — the existing cognition fixture, now modelled. The numeric Brier-style gmeow:calibrationError is SOLVER-LAYER (Principle 12): an owl:AnnotationProperty, invisible to the reasoner, computed externally and never materialised as a reasoned axiom.
+  * Known-unknowns motivate inquiry by reference: gmeow:awareOfNotKnowing records the boundary of an agent's knowledge (a known-unknown); the gap mints a question by REUSING inquiry's open-domain gmeow:evokes — there is no new "motivates" term (Principle 6), and the bridge to the inquiry slice is documented routing, not an axiom.
+  * Self-trust reuses the trust slice: gmeow:epistemicSelfTrust is the flat 80% surface (an agent trusts its own faculty / source); its rich form is a gmeow:StandpointClaim over the agent's own faculty carrying gmeow:trustLevel by reference to the trust slice, never a re-minted trust relator (Principle 6).
+  * Reflection can defeat one's own reasoning: gmeow:eventTypeReflection types an event of reviewing one's own inference; a reflection may install a gmeow:hasDefeater on one's own gmeow:InferenceCommitment, triggering belief revision as suppression (gmeow:displayable false, Principle 10) — a documented bridge to the inference slice, never an axiom.
+  * No truth or status bit: there is no isCalibrated / isReflected / isTrue term; metacognitive state rides reified claims and the calibration value vocabulary (Principle 6)."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# METACOGNITIVE STATE — the reflexive turn as an intrinsic mental moment. The
+# second-order sibling of gmeow:CognitiveState (cognition) and gmeow:IntentionalMode
+# (teleology) under gmeow:MentalMoment (kernel): a gufo:Kind mode, never a Relator,
+# so it carries no someValuesFrom mediation block.
+# =========================================================================== #
+
+gmeow:MetacognitiveState
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:MentalMoment ;
+    rdfs:label "Metacognitive State"@x-gmeow-english ;
+    skos:definition "An agent's intrinsic SECOND-ORDER mental moment — a state whose subject is one of the agent's OWN first-order mental moments or claims (a belief about a belief, a confidence about a confidence, an awareness of a gap in one's knowledge). The reflexive sibling of gmeow:CognitiveState (the knowing mode) and gmeow:IntentionalMode (the conative mode), gathered under gmeow:MentalMoment (kernel) so an agent's whole mental life is queryable as one family (Principle 15). Inheres in exactly one agent. Its reflexivity edge is gmeow:metaTarget; its calibration rides gmeow:calibration."@x-gmeow-english ;
+    skos:scopeNote "Sibling, not sub-mode (documentation only — no axiom): gmeow:MetacognitiveState is a co-equal child of gmeow:MentalMoment, never an rdfs:subClassOf gmeow:CognitiveState. Subsuming it under the first-order knowing mode would erase the reflexive distinction (the gmeow:Question / gmeow:Proposition precedent). A metacognitive judgement is canonically realised as a gmeow:StandpointClaim whose gmeow:vantage is the agent and whose gmeow:observedFeature is the agent's own first-order state — reuse, not new machinery (Principle 6)."@x-gmeow-english ;
+    skos:example "ex:samDoubtsOwnGrasp a gmeow:MetacognitiveState ; gmeow:metaTarget ex:samKnowsQuantum ; gmeow:calibration gmeow:overconfident ."@x-gmeow-english ;
+    gmeow:useWhen "Use to type an agent's second-order mental moment as a first-class state — a reflection on its own belief, confidence, knowledge, or its boundary — so metacognition is queried alongside the first-order doxastic, cognitive, and conative modes under gmeow:MentalMoment (Principle 15)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subsuming it under gmeow:CognitiveState (it is the reflexive sibling, not a kind of first-order knowing — Principle 9), avoid double-typing it as a gmeow:StandpointClaim (the claim is the realisation, the state is the mode), and avoid it for a reasoning EPISODE that unfolds in time (that is a gmeow:MentalProcess, mentation)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one MetacognitiveState inhering in the agent; point gmeow:metaTarget at the first-order state or claim it reflects upon, assign gmeow:calibration when calibration is at stake, and realise the judgement as a gmeow:StandpointClaim (vantage = the agent, observedFeature = the agent's own state) when the vantage-indexed claim is itself the fact (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+# =========================================================================== #
+# META TARGET — the reflexivity edge. Domain gmeow:MetacognitiveState; range
+# OPEN (the cognition / inquiry open-range precedent): the target may be a
+# first-order gmeow:MentalMoment, a gmeow:StandpointClaim, or a
+# gmeow:InferenceCommitment, documented in prose. Asserting a range (or an
+# owl:unionOf) would prematurely close the reflexive surface.
+# =========================================================================== #
+
+gmeow:metaTarget
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MetacognitiveState ;
+    rdfs:label "meta target"@x-gmeow-english ;
+    skos:definition "The reflexivity edge: relates a gmeow:MetacognitiveState to the first-order mental moment or claim it reflects upon. The RANGE is left intentionally open — the target is typically a first-order gmeow:MentalMoment (a belief, a knowing), a gmeow:StandpointClaim, or a gmeow:InferenceCommitment — but asserting a range (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional: one metacognitive state may reflect upon several first-order states. This is CONCEPTUAL reflexivity (the target is the agent's OWN state), never OWL reflexivity — the property is deliberately not owl:ReflexiveProperty (the metastate and its target are different individuals)."@x-gmeow-english ;
+    skos:scopeNote "Same-agent reflexivity is a SHACL constraint, never an OWL axiom: the gmeow:metaTarget of a metacognitive state inhering in agent A should inhere in / be vantaged by A. Enforcing it in OWL would require owl:ReflexiveProperty (out of EL and semantically false here); it belongs in gmeow:MetacognitiveStateShape (closed-world), not in the reasoned core (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:samDoubtsOwnGrasp gmeow:metaTarget ex:samKnowsQuantum ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a gmeow:MetacognitiveState to the first-order state or claim it is ABOUT — the edge that makes a state second-order — pointing it at a belief, a knowing, a standpoint claim, or an inference of the same agent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid declaring it owl:ReflexiveProperty (the reflexivity is conceptual, not logical — the metastate and its target are distinct individuals, and reflexivity leaves EL), avoid asserting an rdfs:range (the target surface stays open, Principle 13), and avoid making it functional; one reflection may span several first-order states."@x-gmeow-english ;
+    gmeow:howToUse "Point gmeow:metaTarget from the metacognitive state at the agent's own first-order gmeow:MentalMoment, gmeow:StandpointClaim, or gmeow:InferenceCommitment; enforce same-agent ownership in SHACL rather than OWL, and read the edge to surface what an agent is reflecting upon."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+# =========================================================================== #
+# CALIBRATION STATUS — a closed value vocabulary of the fit between avowed
+# confidence and accuracy (individuals, never subclasses). Mirrors the
+# gmeow:QuestionType / gmeow:KnowledgeLevel value-vocab pattern.
+# =========================================================================== #
+
+gmeow:CalibrationStatus
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Calibration Status"@x-gmeow-english ;
+    skos:definition "The qualitative fit between an agent's avowed confidence and its actual accuracy — a closed value vocabulary: gmeow:wellCalibrated (confidence tracks accuracy), gmeow:overconfident (confidence exceeds accuracy — the Dunning–Kruger pole), and gmeow:underconfident (accuracy exceeds confidence — the impostor pole). Its members are individuals, never subclasses. The numeric magnitude of the gap is the solver-layer gmeow:calibrationError; this is the qualitative reading."@x-gmeow-english ;
+    skos:example "ex:samDoubtsOwnGrasp gmeow:calibration gmeow:overconfident ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the qualitative calibration of a gmeow:MetacognitiveState — well-calibrated, over-, or under-confident — when the direction of the confidence/accuracy gap is what consumers route on."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing it to add a status (the vocabulary is closed and its members are individuals) and avoid using it to carry the numeric error magnitude (that is the solver-layer gmeow:calibrationError, not a value individual)."@x-gmeow-english ;
+    gmeow:howToUse "Reference the three seeded gmeow:CalibrationStatus individuals from a gmeow:MetacognitiveState via gmeow:calibration; carry the numeric Brier-style gap, when computed, as a gmeow:calibrationError annotation on the asserting statement."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+gmeow:wellCalibrated
+    a gmeow:CalibrationStatus ;
+    rdfs:label "well calibrated"@x-gmeow-english ;
+    skos:definition "Confidence tracks accuracy: the agent's avowed confidence matches how often it is right — the target calibration of a trustworthy agent. The midpoint of the over-/under-confident axis."@x-gmeow-english .
+gmeow:wellCalibrated rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+gmeow:overconfident
+    a gmeow:CalibrationStatus ;
+    rdfs:label "overconfident"@x-gmeow-english ;
+    skos:definition "Confidence exceeds accuracy: the agent is more sure than it should be — the Dunning–Kruger pole, characteristically overconfidence at low competence. The confabulation risk a trustworthy memory must flag."@x-gmeow-english .
+gmeow:overconfident rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+gmeow:underconfident
+    a gmeow:CalibrationStatus ;
+    rdfs:label "underconfident"@x-gmeow-english ;
+    skos:definition "Accuracy exceeds confidence: the agent is less sure than it should be — the impostor pole, where knowledge is held but distrusted. The opposite failure to overconfidence."@x-gmeow-english .
+gmeow:underconfident rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+# =========================================================================== #
+# CALIBRATION — assigning a qualitative status; and CALIBRATION ERROR — the
+# numeric Brier-style magnitude, a SOLVER-LAYER annotation (Principle 12),
+# invisible to the reasoner and never a materialised axiom.
+# =========================================================================== #
+
+gmeow:calibration
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MetacognitiveState ;
+    rdfs:range gmeow:CalibrationStatus ;
+    rdfs:label "calibration"@x-gmeow-english ;
+    skos:definition "Assigns a qualitative gmeow:CalibrationStatus (wellCalibrated / overconfident / underconfident) to a gmeow:MetacognitiveState — the direction of the gap between avowed confidence and accuracy. NOT functional: calibration is itself a vantage-indexed claim (a self-assessment and an external assessment may coexist, Principle 9), so several statuses may attach across frames. The range points only at the locally-owned closed value vocabulary."@x-gmeow-english ;
+    skos:example "ex:samDoubtsOwnGrasp gmeow:calibration gmeow:overconfident ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the qualitative calibration of a metacognitive state — the direction of the confidence/accuracy gap — so consumers can flag overconfident self-assessments and surface underconfident ones."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it outside the closed gmeow:CalibrationStatus vocabulary, avoid using it to carry the numeric magnitude (that is gmeow:calibrationError), and avoid forcing exactly one status — a self-assessment and an external assessment may coexist as vantage-indexed claims (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Point gmeow:calibration from a gmeow:MetacognitiveState at a gmeow:CalibrationStatus individual; carry whose-assessment on the statement via gmeow:accordingTo when contested, and attach the numeric gmeow:calibrationError when a solver has computed it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+gmeow:calibrationError
+    a owl:AnnotationProperty ;
+    rdfs:label "calibration error"@x-gmeow-english ;
+    skos:definition "A SOLVER-LAYER numeric measure of miscalibration (Principle 12) — a Brier-style score in the closed interval [0,1] attached to the statement asserting a metacognitive calibration, quantifying the gap between avowed confidence and accuracy (0 = perfectly calibrated). An owl:AnnotationProperty by design, exactly like gmeow:confidence: it is INVISIBLE to the reasoner and can never become a materialised axiom, so the calibration metric stays computed-not-asserted. The qualitative direction is gmeow:calibration; this is the magnitude."@x-gmeow-english ;
+    skos:example "ex:samCalibrationClaim gmeow:calibrationError 0.62 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach a solver-computed Brier-style miscalibration magnitude in [0,1] to the statement that asserts a metacognitive calibration, when the numeric error is worth recording alongside the qualitative gmeow:calibration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling it as an owl:DatatypeProperty with a domain — that would make it a reasoned ABox edge and risk the reasoner touching it, violating the solver boundary (Principle 12) — and avoid deriving any entailment from it; it is recorded structure, not logic."@x-gmeow-english ;
+    gmeow:howToUse "Attach gmeow:calibrationError as an annotation on the calibration statement (the reified claim or the triple), carrying the externally-computed Brier-style value in [0,1]; leave its computation entirely to the solver layer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+# =========================================================================== #
+# KNOWN-UNKNOWNS — the boundary of an agent's knowledge. Domain gmeow:Agent;
+# range OPEN (the cognition flat-spine precedent): the not-known subject may be
+# an entity or a proposition. A known-unknown MOTIVATES a question by REUSING
+# inquiry's open-domain gmeow:evokes — no new "motivates" term (Principle 6).
+# =========================================================================== #
+
+gmeow:awareOfNotKnowing
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "aware of not knowing"@x-gmeow-english ;
+    skos:definition "A known-unknown: an agent is aware that it does NOT know a subject — the second-order recognition of a gap in its own knowledge, the explicit boundary of what it knows. The reflexive complement of the cognition knowledge spectrum (gmeow:isAwareOf … gmeow:hasMastered): where those record what an agent knows, this records a recognised edge of that knowledge. The RANGE is left intentionally open — the not-known may be a gmeow:Entity or a gmeow:Proposition — and is documented in prose. NOT functional: an agent recognises many gaps at once."@x-gmeow-english ;
+    skos:scopeNote "Known-unknowns motivate inquiry by reference (documentation only — no new axiom): a recognised gap typically mints a gmeow:Question, modelled by REUSING inquiry's open-domain gmeow:evokes (the not-known subject evokes the question) and the inquiry spine (gmeow:seeksToKnow), never by a new gmeow:motivates property (Principle 6). The bridge to the inquiry slice is documented routing, not an entailment."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:awareOfNotKnowing ex:protocolX ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the boundary of an agent's knowledge — a known-unknown the agent explicitly recognises — so a trustworthy memory can surface what it does not know and turn the gap into an inquiry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for mere absence of a fact (a known-unknown is a RECOGNISED gap, second-order, not the open-world silence of an unasserted triple), avoid asserting an rdfs:range (the not-known surface stays open), and avoid minting a gmeow:motivates partner; reuse gmeow:evokes to raise the question."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:awareOfNotKnowing from the agent to the not-known subject; to raise the inquiry, point gmeow:evokes from that subject at a gmeow:Question and hold it open with gmeow:seeksToKnow — reusing the inquiry slice rather than minting new terms."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+# =========================================================================== #
+# EPISTEMIC SELF-TRUST — feeling-of-knowing. Domain gmeow:Agent; range OPEN: the
+# trusted faculty / source / own-state. The flat 80% surface; its rich form is a
+# gmeow:StandpointClaim over the agent's own faculty carrying gmeow:trustLevel by
+# reference to the trust slice — no re-minted trust relator (Principle 6).
+# =========================================================================== #
+
+gmeow:epistemicSelfTrust
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:label "epistemic self-trust"@x-gmeow-english ;
+    skos:definition "The reliability an agent accords to one of its OWN epistemic faculties or sources — feeling-of-knowing: how far the agent trusts its own memory, perception, or reasoning on a matter. The flat 80% surface (an agent trusts its own faculty / source); the RANGE is left open (the trusted faculty, source, or own-state), documented in prose. NOT functional: an agent trusts different faculties to different degrees. A metacognitive form of trust, second-order because its object is the agent's own epistemic apparatus rather than an external trustee."@x-gmeow-english ;
+    skos:scopeNote "Reuse the trust slice, do not re-mint it (Principle 6): the rich, graded form of self-trust is a gmeow:StandpointClaim whose gmeow:vantage is the agent and whose gmeow:observedFeature is the agent's own faculty / source, carrying gmeow:trustLevel (trust slice) — self-trust is trust-about-oneself, the gmeow:trustor and gmeow:trustee coinciding. This property is the cheap surface; promote to the standpoint-claim idiom when the degree, scale, or vantage of self-trust is itself the fact. The bridge to the trust slice is documented routing, asserting no triples into it."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:epistemicSelfTrust ex:lillithEpisodicMemory ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an agent's reliance on its own epistemic faculty or source — feeling-of-knowing, the trust an agent places in its own memory, perception, or reasoning — the cheap surface a trustworthy memory reads when deciding how far to lean on a recalled belief."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for trust in an EXTERNAL agent or source (that is the trust slice's gmeow:TrustAssertion directly), avoid re-minting trust machinery (reuse gmeow:trustLevel by reference for the graded form), and avoid asserting an rdfs:range; the trusted-faculty surface stays open."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:epistemicSelfTrust from the agent to its own faculty / source for the flat case; for the graded form, mint a gmeow:StandpointClaim (vantage = the agent, observedFeature = the agent's own faculty) carrying gmeow:trustLevel from the trust slice, rather than minting a new degree term."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+# =========================================================================== #
+# REFLECTION — the act of reviewing one's own reasoning, a gmeow:EventType value
+# individual (the eventTypeDeception pattern). A reflection may install a
+# gmeow:hasDefeater on one's own gmeow:InferenceCommitment, triggering belief
+# revision as suppression (gmeow:displayable false, Principle 10) — a documented
+# bridge to the inference slice, never an axiom.
+# =========================================================================== #
+
+gmeow:eventTypeReflection
+    a gmeow:EventType ;
+    rdfs:label "reflection"@x-gmeow-english ;
+    skos:definition "An event of an agent reviewing its OWN reasoning — re-examining a prior inference, belief, or self-assessment. A value individual of gmeow:EventType (the eventTypeDeception pattern), so a reflection is typed and queryable as an occurrent kind. A reflection may install a gmeow:hasDefeater on one of the agent's own gmeow:InferenceCommitment individuals, triggering belief revision — modelled as SUPPRESSION (gmeow:displayable false on the defeated conclusion, the prior inference retained as audit), never deletion (Principle 10). The bridge to the inference slice is documented routing, not an axiom."@x-gmeow-english ;
+    skos:scopeNote "Boundary with the mentation slice (documentation only): gmeow:eventTypeReflection types a reviewable occurrent KIND, like gmeow:eventTypeDeception. A reflection that unfolds as a reasoning PROCESS is a gmeow:MentalProcess (mentation); to avoid two canonical sources for one fact (Principle 4), use this EventType for the reviewable act and the mentation process type for the unfolding episode, not both for the same individual."@x-gmeow-english ;
+    skos:example "ex:lillithReview a gmeow:Event ; gmeow:eventType gmeow:eventTypeReflection ."@x-gmeow-english ;
+    gmeow:useWhen "Use to type an event of an agent reviewing its own reasoning — a reflection act that may revise a prior belief — when the reviewable occurrence is the fact of interest, e.g. recording that a reflection defeated an earlier inference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the unfolding reasoning EPISODE itself (that is a gmeow:MentalProcess, mentation — one canonical source per fact, Principle 4) and avoid treating the reflection→revision link as an entailment; the gmeow:hasDefeater installation is asserted, not derived."@x-gmeow-english ;
+    gmeow:howToUse "Type a reflection event with gmeow:eventType gmeow:eventTypeReflection; record belief revision by installing gmeow:hasDefeater on the agent's own gmeow:InferenceCommitment and suppressing the defeated conclusion with gmeow:displayable false, retaining the prior inference as audit (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
