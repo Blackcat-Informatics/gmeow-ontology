@@ -10,11 +10,12 @@
 # gmeow:veridicalityUntrue. Nothing here needs a "deception class": ordinary
 # claims, an event type, and the held/projected gap do all the work.
 #
-# Re-grounded for issue #561: the held belief is reified as a gmeow:DoxasticState
-# and reported by a gmeow:DoxasticStandpointClaim via gmeow:claimOfBelief. The
-# projected claim is also typed gmeow:DoxasticStandpointClaim, but it deliberately
-# omits gmeow:claimOfBelief to emphasize that no corresponding held doxastic
-# state exists — the spokesperson does not believe the vendor-caused proposition.
+# Re-grounded for issue #561: both standpoints are reified as gmeow:DoxasticState
+# instances and reported by gmeow:DoxasticStandpointClaim instances via
+# gmeow:claimOfBelief. The held belief has high credence; the projected belief has
+# low credence — the spokesperson publicly avows the vendor-caused proposition
+# while actually disbelieving it. The deception is the divergence between the
+# high-credence held state and the low-credence projected state.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -55,14 +56,25 @@ ex:heldClaim a gmeow:DoxasticStandpointClaim ;
     gmeow:claimModality gmeow:unequivocal ;
     gmeow:observationMethod gmeow:methodExpertJudgement .
 
+# --- The spokesperson's publicly PROJECTED belief state: the vendor caused it,
+#     but held with very low credence — the spokesperson disbelieves what they
+#     avow. The low credence is the structural signature of the lie.
+ex:spokespersonProjectedBelief a gmeow:DoxasticState ;
+    rdfs:label "spokesperson's projected belief: vendor caused the outage (avowed, low credence)"@x-gmeow-english ;
+    gmeow:epistemicAgent ex:spokesperson ;
+    gmeow:doxasticContent ex:vendorCauseProposition ;
+    gmeow:doxasticClaim ex:projectedClaim ;
+    gmeow:credence "0.05"^^xsd:decimal .
+
 # --- What the spokesperson publicly PROJECTS: the vendor caused it. Asserted
 #     unequivocally, but UNTRUE — the falsehood is a veridicality value on the
-#     claim, never an isFalse flag. No claimOfBelief is supplied because this
-#     projected standpoint is not grounded in any held DoxasticState of the
-#     spokesperson; the omission is the structural signature of the lie.
+#     claim, never an isFalse flag. The claim is backed by the low-credence
+#     projected DoxasticState; the gap between the avowed unequivocal claim and
+#     the 0.05 credence is the deception.
 ex:projectedClaim a gmeow:DoxasticStandpointClaim ;
     gmeow:vantage ex:spokesperson ;
     gmeow:observedFeature ex:vendorCauseProposition ;
+    gmeow:claimOfBelief ex:spokespersonProjectedBelief ;
     gmeow:claimModality gmeow:unequivocal ;
     gmeow:claimVeridicality gmeow:veridicalityUntrue ;
     gmeow:observationMethod gmeow:methodExpertJudgement .
