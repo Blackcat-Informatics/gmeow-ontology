@@ -11,9 +11,12 @@
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+
+static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// A cached validation result.
 ///
@@ -158,13 +161,17 @@ impl ValidationCache {
             serde_json::to_vec(result).map_err(|e| format!("serialize cached result: {e}"))?;
 
         let tmp_name = format!(
-            ".{}.{}",
+            ".{}.{}.{}",
             path.file_name().unwrap_or_default().to_string_lossy(),
-            std::process::id()
+            std::process::id(),
+            TMP_COUNTER.fetch_add(1, Ordering::Relaxed)
         );
         let tmp_path = parent.join(tmp_name);
         let write_result: Result<(), String> = (|| {
-            let mut file = fs::File::create(&tmp_path)
+            let mut file = fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&tmp_path)
                 .map_err(|e| format!("create temp cache file {}: {e}", tmp_path.display()))?;
             file.write_all(&payload)
                 .map_err(|e| format!("write temp cache file {}: {e}", tmp_path.display()))?;
