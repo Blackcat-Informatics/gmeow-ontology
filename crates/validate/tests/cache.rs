@@ -6,14 +6,20 @@
 use std::collections::{BTreeSet, HashSet};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use gmeow_validate::cache::{CachedResult, ValidationCache};
 use gmeow_validate::lint::LintConfig;
 use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
 
+static TEST_DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
+
 fn temp_project_root() -> PathBuf {
-    let dir =
-        std::env::temp_dir().join(format!("gmeow_validate_cache_test_{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!(
+        "gmeow_validate_cache_test_{}_{}",
+        std::process::id(),
+        TEST_DIR_COUNTER.fetch_add(1, Ordering::Relaxed)
+    ));
     fs::create_dir_all(&dir).unwrap();
     dir
 }

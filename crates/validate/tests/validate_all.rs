@@ -15,7 +15,7 @@ use gmeow_validate::validate_all::{
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 fn write_tmp(name: &str, contents: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(name);
+    let path = std::env::temp_dir().join(format!("{}_{}", name, std::process::id()));
     std::fs::write(&path, contents).unwrap();
     path
 }
