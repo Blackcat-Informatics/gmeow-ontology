@@ -28,6 +28,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.logic_runner import diff_case, run
 
@@ -89,6 +91,10 @@ def test_foundation_conformance_cases_are_green() -> None:
         and (d / "profile.json").exists()
     )
     # The six foundation cases (one per lowered discipline + the cross-world case).
+    pytest.importorskip(
+        "gmeow_logic",
+        reason="gmeow_logic native extension not installed — run 'make logic-py' first",
+    )
     assert len(case_dirs) == 6, [d.name for d in case_dirs]
     for case_dir in case_dirs:
         outputs = run(case_dir)
