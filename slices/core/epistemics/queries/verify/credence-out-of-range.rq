@@ -4,5 +4,5 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
 SELECT ?state ?credence WHERE {
     ?state gmeow:credence ?credence .
-    FILTER (?credence < 0 || ?credence > 1)
+    FILTER (!isNumeric(?credence) || ?credence < 0 || ?credence > 1)
 }
