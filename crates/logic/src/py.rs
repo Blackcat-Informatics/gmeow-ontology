@@ -611,12 +611,14 @@ fn query(
     // binding list plus a canonical status string.
     let (answer_bindings, status_str): (Vec<crate::query_ir::Binding>, String) =
         if crate::counterfactual::is_counterfactual(&program) {
+            // Honor a program-declared `depth_budget(N)`; otherwise the engine default.
+            let depth = program
+                .counterfactual
+                .as_ref()
+                .and_then(|c| c.depth_budget)
+                .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
             let cf = crate::counterfactual::construct_and_resolve(
-                &store,
-                &program,
-                profile,
-                &budget,
-                crate::counterfactual::DEFAULT_DEPTH_BUDGET,
+                &store, &program, profile, &budget, depth,
             )
             .map_err(value_err)?;
             (cf.bindings, cf.status.as_str().to_owned())

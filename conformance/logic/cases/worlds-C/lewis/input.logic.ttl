@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: worlds-C/lewis (#505)
+# The opt-in, budget-capped Lewis multi-world profile (non-default). An
+# over-determined antecedent {blue, green} with no entrenchment edge yields two
+# closest worlds; under LewisCredulousProfile the answer is their UNION (φ holds
+# in some closest world) rather than "unknown".
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/worlds-c/lewis/> .
+
+ex:Thing a logic:Kind .

@@ -854,7 +854,15 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # Backward goal resolution (issue #504): resolve every queries/*.logic file
     # over the materialized EDB via gmeow_logic.query.  Empty dict for cases
     # without a queries/ directory (no overhead, byte-identical to pre-#504).
-    answers = _resolve_answers(case_dir, nquads_str, semantic_profile_str, budget)
+    # The query-resolution profile may differ from the materialization profile:
+    # a Stratum-C counterfactual case (#505) keeps a valid materialization
+    # ``semantic_profile`` (e.g. PositiveHornProfile) and selects its counterfactual
+    # revision mode via the optional ``counterfactual_profile`` key (e.g.
+    # ``LewisCredulousProfile``), which is passed straight to ``gmeow_logic.query``.
+    query_profile = str(
+        profile_data.get("counterfactual_profile", semantic_profile_str)
+    )
+    answers = _resolve_answers(case_dir, nquads_str, query_profile, budget)
 
     # Projections
     proj_outputs = _run_projections(program)

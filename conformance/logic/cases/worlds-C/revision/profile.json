@@ -1,0 +1,5 @@
+{
+  "semantic_profile": "PositiveHornProfile",
+  "world_types": ["counterfactual"],
+  "mode": "native"
+}
