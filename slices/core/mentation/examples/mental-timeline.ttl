@@ -10,7 +10,7 @@
 #      capacity via gmeow:realizesMentalMoment (ontological participation bridge).
 #   2. A gmeow:MentalProcess of type processReasoning — Ada works through a proof.
 #      gmeow:producesMentalMoment points at ex:beliefQEDholds — the reasoning CREATES
-#      a new belief that did not exist beforehand (a gmeow:MentalMoment once #556 lands).
+#      a new belief that did not exist beforehand (a gmeow:MentalMoment).
 #   3. A gmeow:Experience (the phenomenal subset of MentalProcess) of type
 #      processDreaming — Ada's dream last night. gmeow:Experience is used because
 #      there is something it is like to undergo a dream (the qualia-bearing subset).
@@ -42,9 +42,10 @@ ex:morningPerception a gmeow:MentalProcess ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:realizesMentalMoment ex:perceivedMorningLight .  # ontological participation: manifests the perceptual capacity
 
-# The open-range target — will be gmeow:MentalMoment once #556 lands.
-ex:perceivedMorningLight
-    rdfs:label "Ada's perceptual state: morning light perceived"@x-gmeow-english .
+# The bridge target: a gmeow:MentalMoment (an intrinsic mode inhering in the agent).
+ex:perceivedMorningLight a gmeow:MentalMoment ;
+    rdfs:label "Ada's perceptual state: morning light perceived"@x-gmeow-english ;
+    gmeow:inheresIn ex:ada .
 
 # --------------------------------------------------------------------------- #
 # 2. Proving a theorem — a MentalProcess of type processReasoning
@@ -58,10 +59,11 @@ ex:solvingTheProof a gmeow:MentalProcess ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:producesMentalMoment ex:beliefQEDholds .         # creation: reasoning brings this NEW belief into being
 
-# Placeholder target: reasoning produces a fresh belief not held beforehand.
-# Once gmeow:MentalMoment (kernel/cognition #556) lands this will be typed properly.
-ex:beliefQEDholds
-    rdfs:label "belief: the proof concludes (QED)"@x-gmeow-english .
+# The bridge target: a fresh belief not held beforehand — a gmeow:MentalMoment
+# (the endurant doxastic mode) inhering in the agent.
+ex:beliefQEDholds a gmeow:MentalMoment ;
+    rdfs:label "belief: the proof concludes (QED)"@x-gmeow-english ;
+    gmeow:inheresIn ex:ada .
 
 # --------------------------------------------------------------------------- #
 # 3. Last night's dream — a gmeow:Experience (the phenomenal subset)
