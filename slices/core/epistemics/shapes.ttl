@@ -146,7 +146,7 @@ gmeow:WithdrawnDoxasticTenureSuppressionShape
 gmeow:DoxasticStateJustifierWarningShape
     a sh:NodeShape ;
     rdfs:label "DoxasticState justifier warning shape"@x-gmeow-english ;
-    skos:definition "Warns when a DoxasticState's gmeow:justifiedBy value is not an EvidenceSpan, StandpointClaim, or InferenceCommitment. The OWL range remains open (Principle 13); this is advisory only."@x-gmeow-english ;
+    skos:definition "Warns when a DoxasticState's gmeow:justifiedBy value is not an EvidenceSpan, Attestation, or DoxasticState. The OWL range remains open (Principle 13); this is advisory only."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     sh:targetClass gmeow:DoxasticState ;
     sh:severity sh:Warning ;
@@ -154,8 +154,8 @@ gmeow:DoxasticStateJustifierWarningShape
         sh:path gmeow:justifiedBy ;
         sh:or (
             [ sh:class gmeow:EvidenceSpan ]
-            [ sh:class gmeow:StandpointClaim ]
-            [ sh:class gmeow:InferenceCommitment ]
+            [ sh:class gmeow:Attestation ]
+            [ sh:class gmeow:DoxasticState ]
         ) ;
-        sh:message "gmeow:justifiedBy should point to an EvidenceSpan, StandpointClaim, or InferenceCommitment (range is open; this is a warning)." ;
+        sh:message "gmeow:justifiedBy should point to an EvidenceSpan, Attestation, or DoxasticState (range is open; this is a warning)." ;
     ] .

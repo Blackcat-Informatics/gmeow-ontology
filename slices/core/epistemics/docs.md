@@ -126,8 +126,8 @@ spine to a `gmeow:DoxasticState`.
 ### `gmeow:justifiedBy`
 
 The lightweight belief→justifier hook. `gmeow:justifiedBy` points from a `gmeow:DoxasticState`
-to the thing that supports it — typically an `EvidenceSpan`, a `StandpointClaim`, or an
-`InferenceCommitment`. It is non-functional: a belief may rest on multiple independent grounds,
+to the thing that supports it — typically an `EvidenceSpan`, an `Attestation`, or another
+`DoxasticState`. It is non-functional: a belief may rest on multiple independent grounds,
 and competing justifications coexist (Principle 9).
 
 This property is intentionally thin. It records *that* a doxastic state is supported, not the
