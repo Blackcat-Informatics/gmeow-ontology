@@ -20,13 +20,14 @@ use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList};
+use pyo3::types::{PyCapsule, PyDict, PyList};
 
 use crate::coverage;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::store;
+use crate::validate_all::{self, ValidateOptions};
 
 /// Build the standard `{"errors": [...], "warnings": [...]}` report dict.
 fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> PyResult<Py<PyAny>> {
@@ -94,6 +95,127 @@ impl PyLintConfig {
                 .cloned()
                 .collect::<HashSet<_>>(),
         }
+    }
+}
+
+/// Options for the native validation orchestration.
+///
+/// Carries the boolean timing flag plus the optional inputs some phases need
+/// (`sameas_allowlist`, slice-ownership registry, slices directory, and DSL
+/// shape texts). Every field has a sensible default so callers can opt into
+/// phases by setting the relevant fields.
+#[pyclass(name = "ValidateOptions", from_py_object)]
+#[derive(Clone)]
+struct PyValidateOptions {
+    timings: bool,
+    sameas_allowlist: Vec<(String, String)>,
+    module_specs: Vec<(String, String)>,
+    slices_dir: Option<String>,
+    mapping_shapes_ttl: Option<String>,
+    statement_shapes_ttl: Option<String>,
+    /// Project root used to locate `.cache/validate`. When `None`, the cache is
+    /// disabled. Task 4 wires Python to pass `PROJECT_ROOT`.
+    project_root: Option<String>,
+}
+
+#[pymethods]
+impl PyValidateOptions {
+    #[new]
+    #[pyo3(signature = (
+        timings = false,
+        sameas_allowlist = None,
+        module_specs = None,
+        slices_dir = None,
+        mapping_shapes_ttl = None,
+        statement_shapes_ttl = None,
+        project_root = None,
+    ))]
+    fn new(
+        timings: bool,
+        sameas_allowlist: Option<Vec<(String, String)>>,
+        module_specs: Option<Vec<(String, String)>>,
+        slices_dir: Option<String>,
+        mapping_shapes_ttl: Option<String>,
+        statement_shapes_ttl: Option<String>,
+        project_root: Option<String>,
+    ) -> Self {
+        Self {
+            timings,
+            sameas_allowlist: sameas_allowlist.unwrap_or_default(),
+            module_specs: module_specs.unwrap_or_default(),
+            slices_dir,
+            mapping_shapes_ttl,
+            statement_shapes_ttl,
+            project_root,
+        }
+    }
+}
+
+impl PyValidateOptions {
+    fn to_engine(&self) -> ValidateOptions {
+        ValidateOptions {
+            timings: self.timings,
+            sameas_allowlist: self.sameas_allowlist.clone(),
+            module_specs: self.module_specs.clone(),
+            slices_dir: self.slices_dir.clone(),
+            mapping_shapes_ttl: self.mapping_shapes_ttl.clone(),
+            statement_shapes_ttl: self.statement_shapes_ttl.clone(),
+            project_root: self.project_root.as_ref().map(PathBuf::from),
+        }
+    }
+}
+
+/// A reusable oxigraph store built once from canonical source paths.
+///
+/// Python hands the source paths once; the store can then be validated against
+/// parsed SHACL shapes across multiple phases without re-parsing the sources
+/// (#634).
+#[pyclass(name = "ValidationStore")]
+struct PyValidationStore {
+    store: oxigraph::store::Store,
+    #[allow(dead_code)]
+    source_paths: Vec<String>,
+}
+
+#[pymethods]
+impl PyValidationStore {
+    #[new]
+    fn new(source_paths: Vec<String>) -> PyResult<Self> {
+        if source_paths.is_empty() {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "ValidationStore: source_paths must not be empty",
+            ));
+        }
+        let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
+        let store = store::build_store(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            store,
+            source_paths,
+        })
+    }
+
+    /// Internal protocol: return a transient capsule that borrows the wrapped
+    /// oxigraph store.
+    ///
+    /// The capsule is consumed immediately by `gmeow_shacl.Shapes.validate_store`
+    /// so the SHACL engine can validate the store directly without an N-Triples
+    /// round-trip. Keeping the capsule alive after the store is dropped is
+    /// undefined behaviour; do not call this directly from Python.
+    fn _store_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        let addr = &self.store as *const oxigraph::store::Store as usize;
+        // SAFETY: the capsule borrows `self.store`. It must not outlive `self`.
+        PyCapsule::new_with_value(py, addr, c"gmeow-validation-store")
+    }
+
+    /// Validate this store against a parsed SHACL shapes model.
+    ///
+    /// Convenience wrapper that delegates to
+    /// `gmeow_shacl.Shapes.validate_store(self)` so the two classes can live in
+    /// their respective extension modules while still sharing the underlying
+    /// oxigraph store directly.
+    fn validate(slf: &Bound<'_, Self>, shapes: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        let report = shapes.call_method1("validate_store", (slf,))?;
+        Ok(report.unbind())
     }
 }
 
@@ -436,13 +558,13 @@ fn coverage_analyze(
 }
 
 /// Build the merged graph from `source_paths` and dump it as canonical
-/// N-Triples (the rdflib-free SHACL data seam, #579).
+/// N-Triples (legacy/test-only seam, #579/#634).
 ///
-/// `validate.run_shacl` / `check_examples` call this to produce the SHACL data
-/// graph WITHOUT building an rdflib graph: the oxigraph store is built from the
-/// Turtle paths and serialized to N-Triples, which `gmeow_shacl.validate`
-/// ingests directly. A parse failure maps to a Python `ValueError` (hard-fail,
-/// no fallback).
+/// The production `make validate` path now validates the shared oxigraph store
+/// directly in Rust and no longer uses N-Triples as internal transport. This
+/// function remains exposed for tests and legacy callers that still need an
+/// N-Triples serialization of a merged Turtle corpus. A parse failure maps to a
+/// Python `ValueError` (hard-fail, no fallback).
 #[pyfunction]
 fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
     if source_paths.is_empty() {
@@ -479,6 +601,56 @@ fn dsl_merge_with_provenance(
     Ok((merge.data_nt, pairs.into_any().unbind()))
 }
 
+/// Native validation orchestration entrypoint (#634).
+///
+/// Builds the ontology store once, parses the SHACL shapes once, runs every
+/// validation phase, and returns a dict with `errors`, `warnings`, `timings`,
+/// and `declared_terms`. Optional phases (example coverage/SHACL, DSL SHACL)
+/// are enabled by the corresponding fields in `options`.
+#[pyfunction]
+fn validate_all_native(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    shapes_ttl: String,
+    mapping_dsl_dir: String,
+    statement_dsl_dir: String,
+    config: PyLintConfig,
+    options: PyValidateOptions,
+) -> PyResult<Py<PyAny>> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "validate_all_native: source_paths must not be empty",
+        ));
+    }
+
+    let run = validate_all::ValidationRun::run(
+        &source_paths,
+        &shapes_ttl,
+        &mapping_dsl_dir,
+        &statement_dsl_dir,
+        &config.to_engine(),
+        &options.to_engine(),
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let out = PyDict::new(py);
+    out.set_item("errors", PyList::new(py, &run.errors)?)?;
+    out.set_item("warnings", PyList::new(py, &run.warnings)?)?;
+    out.set_item("declared_terms", PyList::new(py, &run.declared_terms)?)?;
+
+    let timings = PyList::empty(py);
+    for t in &run.timings {
+        let d = PyDict::new(py);
+        d.set_item("phase", &t.phase)?;
+        d.set_item("elapsed_ms", t.elapsed_ms)?;
+        d.set_item("metadata", t.metadata.as_deref().unwrap_or(""))?;
+        timings.append(d)?;
+    }
+    out.set_item("timings", timings)?;
+
+    Ok(out.into_any().unbind())
+}
+
 /// Python extension module `gmeow_validate`.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -487,6 +659,8 @@ fn dsl_merge_with_provenance(
 #[pymodule]
 fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLintConfig>()?;
+    m.add_class::<PyValidateOptions>()?;
+    m.add_class::<PyValidationStore>()?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
     m.add_function(wrap_pyfunction!(structural_lint, m)?)?;
@@ -511,5 +685,6 @@ fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
     m.add_function(wrap_pyfunction!(merge_to_ntriples, m)?)?;
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
     Ok(())
 }

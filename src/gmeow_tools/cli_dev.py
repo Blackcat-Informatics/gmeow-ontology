@@ -311,15 +311,27 @@ def compile_statements_pyoxigraph() -> None:
 
 
 @app.command()
-def validate() -> None:
+def validate(
+    timings: bool = typer.Option(False, "--timings", help="Report per-phase timings."),
+) -> None:
     """Validate Turtle syntax, term annotations, and SHACL conformance."""
     from gmeow_tools.validate import validate_all
 
-    result = validate_all()
+    result = validate_all(timings=timings)
     for warning in result.warnings:
         err_console.print(f"[yellow]warning[/yellow] {warning}")
     for error in result.errors:
         err_console.print(f"[red]error[/red] {error}")
+    if timings and result.timings:
+        err_console.print("[dim]timings:[/dim]")
+        for record in result.timings:
+            phase = record.get("phase", "?")
+            elapsed = record.get("elapsed_ms", 0)
+            meta = record.get("metadata") or ""
+            line = f"  {phase}: {elapsed} ms"
+            if meta:
+                line += f" ({meta})"
+            err_console.print(f"[dim]{line}[/dim]")
     if result.ok:
         console.print("[green]✓ validation passed[/green]")
     else:
