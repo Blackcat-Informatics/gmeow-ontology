@@ -727,9 +727,9 @@ pub struct FoundationQuad {
 // ── Internal fact representation ─────────────────────────────────────────────────
 //
 // A fact is a fully-ground `(subject_iri, predicate_iri, object_iri)`.  Every
-// foundation term is an IRI, so we store bare IRI strings and compute N3 by
-// wrapping in angle brackets.  The dedup key is the triple of N3 forms, matching
-// the Python `(s.n3(), p.n3(), o.n3())` key exactly.
+// foundation term is an IRI, so we store bare IRI strings; N3 (`<iri>`) is computed
+// on demand only where a serialized form is needed.  The dedup key is the triple of
+// bare IRIs, matching the Python `fact_index` key under the same first-wins order.
 
 /// A ground fact (all IRIs).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -740,9 +740,16 @@ struct Fact {
 }
 
 impl Fact {
-    /// The N3-form dedup key `(<s>, <p>, <o>)` — mirrors the Python `fact_index` key.
+    /// The dedup key `(s, p, o)` of bare IRIs — mirrors the Python `fact_index` key.
+    /// The angle-bracket (N3) form is not needed: the key is purely internal
+    /// (membership dedup + provenance source recovery), and the wrap/strip round
+    /// trip only added allocations, so the bare IRIs are stored directly.
     fn key(&self) -> (String, String, String) {
-        (n3(&self.subject), n3(&self.predicate), n3(&self.object))
+        (
+            self.subject.clone(),
+            self.predicate.clone(),
+            self.object.clone(),
+        )
     }
 }
 
@@ -775,7 +782,7 @@ fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
 
 /// Insertion-ordered fact store with O(1) dedup, mirroring the Python `fact_index`.
 ///
-/// The Python `fact_index` is a `dict` keyed by the N3 triple, iterated in insertion
+/// The Python `fact_index` is a `dict` keyed by the IRI triple, iterated in insertion
 /// order during the join (so binding enumeration order is deterministic and
 /// first-wins).  This wrapper keeps the same two invariants: a `Vec<Fact>` carries
 /// the iteration order, and a `HashSet` of keys provides the membership test.
@@ -792,7 +799,7 @@ impl FactStore {
         }
     }
 
-    /// Insert `fact` if its N3 key is new; return `true` if it was inserted.
+    /// Insert `fact` if its key is new; return `true` if it was inserted.
     fn insert(&mut self, fact: Fact) -> bool {
         let key = fact.key();
         if self.keys.contains(&key) {
@@ -803,7 +810,7 @@ impl FactStore {
         true
     }
 
-    /// Whether a fact with this N3 key exists.
+    /// Whether a fact with this key exists.
     fn contains_key(&self, key: &(String, String, String)) -> bool {
         self.keys.contains(key)
     }
@@ -894,7 +901,7 @@ fn negated_atom_satisfied(atom: &Atom, sol: &Solution, store: &FactStore) -> boo
     let p = ground(&atom.predicate, sol);
     let o = ground(&atom.object, sol);
     if let (Some(s), Some(p), Some(o)) = (&s, &p, &o) {
-        return store.contains_key(&(n3(s), n3(p), n3(o)));
+        return store.contains_key(&(s.clone(), p.clone(), o.clone()));
     }
     // Partially-bound fallback: scan (defensive; not exercised by the foundation rules).
     for f in &store.facts {
@@ -1064,11 +1071,8 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
                     // Python filter to URIRef subj/pred never drops any here).
                     let mut sources: Vec<String> = Vec::with_capacity(sol.source_keys.len());
                     for sk in &sol.source_keys {
-                        // sk is (<s>, <p>, <o>) N3; recover the bare IRIs by stripping <>.
-                        let s = strip_angle(&sk.0);
-                        let p = strip_angle(&sk.1);
-                        let o = strip_angle(&sk.2);
-                        sources.push(triple_reifier(s, p, o)?);
+                        // sk holds the bare (s, p, o) IRIs of a matched body fact.
+                        sources.push(triple_reifier(&sk.0, &sk.1, &sk.2)?);
                     }
                     let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                     let deriv = mint_derivation_id(ANON_RULE_IRI, &src_refs);
@@ -1098,11 +1102,15 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
     Ok(out)
 }
 
-/// Strip a leading `<` and trailing `>` from an N3 IRI form.
+/// Strip a leading `<` and trailing `>` from an N3 IRI form, returning the inner
+/// IRI only when both delimiters are present (so callers can gate on N3-ness).
+fn strip_angle_opt(n3: &str) -> Option<&str> {
+    n3.strip_prefix('<').and_then(|s| s.strip_suffix('>'))
+}
+
+/// Strip a leading `<` and trailing `>` from an N3 IRI form; identity if absent.
 fn strip_angle(n3: &str) -> &str {
-    n3.strip_prefix('<')
-        .and_then(|s| s.strip_suffix('>'))
-        .unwrap_or(n3)
+    strip_angle_opt(n3).unwrap_or(n3)
 }
 
 // ── Cross-world rigidity (post-pass) ─────────────────────────────────────────────
@@ -1152,7 +1160,7 @@ fn cross_world_rigidity_violations(
             .or_default()
             .insert(q.subject.clone());
         if q.predicate == RDF_TYPE {
-            if let Some(type_iri) = q.object.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
+            if let Some(type_iri) = strip_angle_opt(&q.object) {
                 if rigid_types.contains(type_iri) {
                     typings_by_world
                         .entry(q.graph.clone())
@@ -1261,7 +1269,7 @@ fn anti_rigidity_obligations(
             .or_default()
             .insert(q.subject.clone());
         if q.predicate == RDF_TYPE {
-            if let Some(type_iri) = q.object.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
+            if let Some(type_iri) = strip_angle_opt(&q.object) {
                 if anti_rigid_types.contains(type_iri) {
                     typings_by_world
                         .entry(q.graph.clone())
