@@ -40,6 +40,7 @@ ex:lesson a gmeow:Teaching ;
 #     teacher, producing the cognitive state it settled.
 ex:lillithLearns a gmeow:LearningEvent ;
     gmeow:experiencer ex:lillith ;
+    gmeow:mentalProcessType gmeow:processLearning ;
     gmeow:learningType gmeow:learningBeingTaught ;
     gmeow:learnedFrom ex:mentor ;
     gmeow:produces ex:lillithBalances ;
@@ -54,6 +55,7 @@ ex:lillithBalances a gmeow:CognitiveState ;
 #     learners, two LearningEvents, one instruction relation.
 ex:rowanLearns a gmeow:LearningEvent ;
     gmeow:experiencer ex:rowan ;
+    gmeow:mentalProcessType gmeow:processLearning ;
     gmeow:learningType gmeow:learningBeingTaught ;
     gmeow:learnedFrom ex:mentor ;
     gmeow:produces ex:rowanBalances ;

@@ -13,9 +13,10 @@ The slice is deliberately spare:
 * The VARIETY of a learning event is a ``gmeow:LearningEventType`` value carried
   by ``gmeow:learningType`` (non-functional), never a subclass of
   ``gmeow:LearningEvent`` (Principle 9) — the dedicated kind-vocab mirroring the
-  inference slice's ``gmeow:InferenceMode``. The CLASS names the learning-ness,
-  so NO class-trivial ``gmeow:mentalProcessType`` value is minted (the
-  inference-slice precedent that dropped ``eventTypeInference``, Principle 4).
+  inference slice's ``gmeow:InferenceMode``. Each event also carries
+  ``gmeow:mentalProcessType gmeow:processLearning`` (the occurrent marker declared
+  once on the mentation spine, Principle 6) so it indexes uniformly on the mental
+  timeline, exactly as ``gmeow:InferenceProcess`` carries ``processReasoning``.
 * ``gmeow:subjectTaught`` / ``gmeow:learnedFrom`` / ``gmeow:fromLevel`` /
   ``gmeow:toLevel`` / ``gmeow:produces`` keep an OPEN range (Principle 13): the
   targets are retired (``gmeow:Source``) or not yet built (``gmeow:Concept``).
@@ -100,14 +101,21 @@ def test_learning_event_reparents_mental_process() -> None:
     assert (event, RDFS.subClassOf, _t("MentalProcess")) in g
 
 
-def test_no_class_trivial_process_type() -> None:
-    """The class names the learning-ness, so NO class-trivial gmeow:processLearning
-    value is minted (Principle 4 — one canonical source, the inference-slice
-    precedent), and the slice asserts no gmeow:mentalProcessType on the class."""
+def test_process_learning_marker_rides_instances_not_the_class() -> None:
+    """A gmeow:LearningEvent carries gmeow:mentalProcessType gmeow:processLearning
+    so it indexes uniformly on the agent's mental timeline (exactly as
+    gmeow:InferenceProcess carries gmeow:processReasoning). Two invariants:
+
+    * processLearning is declared ONCE, on the mentation spine — the learning
+      module references it but never redeclares it (Principle 6, one canonical
+      source), so it carries no MentalProcessType typing in this module's graph.
+    * The marker rides each LearningEvent INSTANCE, never the CLASS: the class
+      subsumes, instances index the timeline (no overtyping, Principle 9)."""
     g = _graph()
     process_learning = _t("processLearning")
-    assert (process_learning, None, None) not in g
-    assert (None, None, process_learning) not in g
+    # Not redeclared here — owned by the mentation spine (Principle 6).
+    assert (process_learning, RDF.type, _t("MentalProcessType")) not in g
+    # The value rides instances, not the class itself (no overtyping).
     assert (_t("LearningEvent"), _t("mentalProcessType"), None) not in g
 
 

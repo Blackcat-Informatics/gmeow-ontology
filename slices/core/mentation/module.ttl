@@ -62,7 +62,7 @@ gmeow:MentalProcessType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Mental Process Type"@x-gmeow-english ;
-    skos:definition "The kind of a mental process — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:EventType idiom): gmeow:processPerception, gmeow:processAttention, gmeow:processReasoning, gmeow:processImagining, gmeow:processDeliberation, gmeow:processRecollection, gmeow:processMindWandering, gmeow:processDreaming. New kinds are minted as individuals, never as subclasses of gmeow:MentalProcess (Principle 9: no overtyping)."@x-gmeow-english ;
+    skos:definition "The kind of a mental process — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:EventType idiom): gmeow:processPerception, gmeow:processAttention, gmeow:processReasoning, gmeow:processImagining, gmeow:processDeliberation, gmeow:processRecollection, gmeow:processMindWandering, gmeow:processDreaming, gmeow:processLearning. New kinds are minted as individuals, never as subclasses of gmeow:MentalProcess (Principle 9: no overtyping)."@x-gmeow-english ;
     skos:example "gmeow:processReasoning a gmeow:MentalProcessType ."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for the kind of a mental process — referenced from gmeow:mentalProcessType to tag an episode as perception, reasoning, imagining, dreaming, and so on (the gmeow:EventType idiom)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid expressing the kind as a subclass of gmeow:MentalProcess (kinds are individuals of this class, never subclasses — Principle 9, no overtyping) and avoid using it for the phenomenal/sub-personal distinction, which is the gmeow:Experience subclass."@x-gmeow-english ;
@@ -183,4 +183,10 @@ gmeow:processDreaming
     a gmeow:MentalProcessType ;
     rdfs:label "dreaming"@x-gmeow-english ;
     skos:definition "A dreaming episode — an offline, typically sleep-bound gmeow:Experience of imagined content; composed into the dreaming extension (#589) with awareness mode and content-origin."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .
+
+gmeow:processLearning
+    a gmeow:MentalProcessType ;
+    rdfs:label "learning"@x-gmeow-english ;
+    skos:definition "A learning episode — the occurrent that transitions an agent's knowledge or skill state (acquisition, being-taught, consolidation, transfer, unlearning). The occurrent face of a gmeow:LearningEvent (learning slice, #584); learning events carry it as their gmeow:mentalProcessType so they take a uniform place on the mental timeline alongside reasoning, perception, and dreaming."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .

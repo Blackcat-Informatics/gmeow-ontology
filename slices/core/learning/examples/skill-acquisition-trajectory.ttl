@@ -27,6 +27,7 @@ ex:textbook a gmeow:CreativeWork ;
 # --- Event 1: skill acquisition, novice → advanced beginner (the spring).
 ex:firstLessons a gmeow:LearningEvent ;
     gmeow:experiencer ex:lillith ;
+    gmeow:mentalProcessType gmeow:processLearning ;
     gmeow:learningType gmeow:learningSkillAcquisition ;
     gmeow:learnedFrom ex:textbook ;
     gmeow:fromLevel gmeow:dreyfusNovice ;
@@ -55,6 +56,7 @@ ex:springInterval a gmeow:TimeInterval ;
 #     Two varieties co-apply (P9): it both consolidates and further acquires.
 ex:summerPractice a gmeow:LearningEvent ;
     gmeow:experiencer ex:lillith ;
+    gmeow:mentalProcessType gmeow:processLearning ;
     gmeow:learningType gmeow:learningConsolidation, gmeow:learningSkillAcquisition ;
     gmeow:fromLevel gmeow:dreyfusAdvancedBeginner ;
     gmeow:toLevel gmeow:dreyfusExpert ;
