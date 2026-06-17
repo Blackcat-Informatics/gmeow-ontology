@@ -24,6 +24,9 @@ mcp = FastMCP("gmeow")
 #: Cached language selector validated at server startup.
 _STARTUP_SELECTOR: LangSelector | None = None
 
+#: Cached collected terms keyed by resolved language tag list.
+_TERMS_CACHE: dict[str | None, list[Term]] = {}
+
 
 def _view() -> FoldView:
     """Load the bundled GTS snapshot into a fold view."""
@@ -60,7 +63,11 @@ def _summary(term: Term) -> str:
 def _terms(lang: str | None = None) -> list[Term]:
     """Collect public GMEOW terms from the bundled GTS snapshot."""
     view = _view()
-    return collect_terms(view, selector=_selector(view, lang))
+    selector = _selector(view, lang)
+    cache_key = ",".join(selector.requested)
+    if cache_key not in _TERMS_CACHE:
+        _TERMS_CACHE[cache_key] = list(collect_terms(view, selector=selector))
+    return list(_TERMS_CACHE[cache_key])
 
 
 def _lookup_term(query: str, lang: str | None = None) -> dict[str, Any] | None:
