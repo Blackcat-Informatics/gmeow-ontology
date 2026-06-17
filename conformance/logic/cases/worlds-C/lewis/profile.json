@@ -1,0 +1,6 @@
+{
+  "semantic_profile": "PositiveHornProfile",
+  "counterfactual_profile": "LewisCredulousProfile",
+  "world_types": ["counterfactual"],
+  "mode": "native"
+}

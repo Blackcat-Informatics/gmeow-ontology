@@ -599,17 +599,38 @@ fn query(
     // 4. Build the read-only EDB accessor for this world.
     let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(value_err)?;
 
-    // 5. Dispatch (the cut/profile gate runs inside dispatch_query).
+    // 5. Dispatch. A Stratum-C counterfactual program (#505) routes through
+    //    transient world construction; a plain v4 backward goal runs against the
+    //    materialized world via the cut/profile-gated dispatcher.
     let budget = Budget {
         max_answers,
         max_steps,
     };
-    let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
-        .map_err(value_err)?;
+    // The counterfactual path returns a CfAnswer (status may be "unknown" or
+    // "incomplete"); the plain path returns an AnswerSet. Normalize both to a
+    // binding list plus a canonical status string.
+    let (answer_bindings, status_str): (Vec<crate::query_ir::Binding>, String) =
+        if crate::counterfactual::is_counterfactual(&program) {
+            // Honor a program-declared `depth_budget(N)`; otherwise the engine default.
+            let depth = program
+                .counterfactual
+                .as_ref()
+                .and_then(|c| c.depth_budget)
+                .unwrap_or(crate::counterfactual::DEFAULT_DEPTH_BUDGET);
+            let cf = crate::counterfactual::construct_and_resolve(
+                &store, &program, profile, &budget, depth,
+            )
+            .map_err(value_err)?;
+            (cf.bindings, cf.status.as_str().to_owned())
+        } else {
+            let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
+                .map_err(value_err)?;
+            (answer.bindings, answer.status.as_str().to_owned())
+        };
 
     // 6. Build the Python result dict: {"bindings": [...], "status": "..."}.
     let bindings = PyList::empty(py);
-    for binding in &answer.bindings {
+    for binding in &answer_bindings {
         let row = PyDict::new(py);
         for (var, val) in binding {
             row.set_item(var, val)?;
@@ -618,7 +639,7 @@ fn query(
     }
     let result = PyDict::new(py);
     result.set_item("bindings", bindings)?;
-    result.set_item("status", answer.status.as_str())?;
+    result.set_item("status", status_str)?;
     Ok(result.into_any().unbind())
 }
 

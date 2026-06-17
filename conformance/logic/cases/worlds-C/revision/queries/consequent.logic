@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% AC-1: a counterfactual query yields the expected consequent.
+% Base: status(server, up). Antecedent overwrites the functional slot to
+% status(server, down); the rule then fires alert(server, fired) inside W_cf.
+:- prefix(ex, 'https://example.org/worlds-c/revision/').
+:- counterfactual(ex:cf, ex:base).
+:- assume(ex:status(ex:server, ex:down)).
+ex:alert(X, ex:fired) :- ex:status(X, ex:down).
+?- ex:alert(ex:server, Z).
