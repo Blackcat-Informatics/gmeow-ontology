@@ -258,8 +258,8 @@ jobs:
       - name: Wikidata QID/PID syntax gate
         run: uv run --package gmeow-dev gmeow-dev wikidata
 
-      - name: Coverage gaps
-        run: uv run --package gmeow-dev gmeow-dev coverage --gaps
+      - name: Vendored-entity coverage — hard class/predicate floors (#579)
+        run: uv run --package gmeow-dev gmeow-dev coverage --gaps --min-class 0.92 --min-predicate 0.85
 
       - name: Transpile acceptance — hard aggregate recall floor (#579)
         run: uv run --package gmeow-dev gmeow-dev acceptance --min-recall 60

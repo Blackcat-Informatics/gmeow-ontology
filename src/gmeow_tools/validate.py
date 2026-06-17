@@ -128,6 +128,12 @@ class ValidationResult:
         self.warnings.extend(other.warnings)
 
 
+# DECISION (#579): KEEP this `.cache/validate` layer for this PR. It skips
+# re-running SHACL over unchanged inputs; removing it now risks a CI-time
+# regression with no offsetting benefit while the Rust validation path is new.
+# Re-assessing whether Rust-native revalidation is fast enough to drop the cache
+# is a tracked follow-up. See docs/validation-thresholds.md ("Validation cache
+# decision").
 _VALIDATION_CACHE_DIR = PROJECT_ROOT / ".cache" / "validate"
 
 
