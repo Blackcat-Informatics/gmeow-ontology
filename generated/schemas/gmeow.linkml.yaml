@@ -562,6 +562,25 @@ classes:
     - assessedEvent
     - assessedNorm
     - complianceVerdict
+  Concept:
+    class_uri: https://blackcatinformatics.ca/gmeow/Concept
+    title: Concept
+    is_a: SocialObject
+    slots:
+    - composedOf
+    - subsumes
+  ConceptCategorization:
+    class_uri: https://blackcatinformatics.ca/gmeow/ConceptCategorization
+    title: Concept Categorization
+    is_a: StandpointClaim
+    slots:
+    - typicality
+  ConceptTenure:
+    class_uri: https://blackcatinformatics.ca/gmeow/ConceptTenure
+    title: Concept Tenure
+    is_a: TimeScopedRelation
+    slots:
+    - conceptHoldsFor
   Condition:
     class_uri: https://blackcatinformatics.ca/gmeow/Condition
     title: Condition
@@ -1125,6 +1144,7 @@ classes:
     - hasVersion
     - hasVoice
     - hasWebPage
+    - instanceOfConcept
     - isAbout
     - isAccessibleForFree
     - isReferencedBy
@@ -5252,6 +5272,18 @@ slots:
     range: Norm
     domain: Event
     multivalued: true
+  composedOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/composedOf
+    title: composed of
+    range: Concept
+    domain: Concept
+    multivalued: true
+  conceptHoldsFor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/conceptHoldsFor
+    title: concept holds for
+    range: Concept
+    domain: ConceptTenure
+    multivalued: false
   conclusion:
     slot_uri: https://blackcatinformatics.ca/gmeow/conclusion
     title: conclusion
@@ -8234,6 +8266,12 @@ slots:
     range: PhysicalObject
     domain: Inscription
     multivalued: false
+  instanceOfConcept:
+    slot_uri: https://blackcatinformatics.ca/gmeow/instanceOfConcept
+    title: instance of concept
+    range: Concept
+    domain: Entity
+    multivalued: true
   instantValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/instantValue
     title: instant value
@@ -11809,6 +11847,12 @@ slots:
     range: uriorcurie
     domain: Teaching
     multivalued: true
+  subsumes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/subsumes
+    title: subsumes
+    range: Concept
+    domain: Concept
+    multivalued: true
   successorOrganization:
     slot_uri: https://blackcatinformatics.ca/gmeow/successorOrganization
     title: successor organization
@@ -12402,6 +12446,12 @@ slots:
     title: type prevents
     range: EventType
     domain: EventType
+    multivalued: true
+  typicality:
+    slot_uri: https://blackcatinformatics.ca/gmeow/typicality
+    title: typicality
+    range: decimal
+    domain: ConceptCategorization
     multivalued: true
   unLocode:
     slot_uri: https://blackcatinformatics.ca/gmeow/unLocode

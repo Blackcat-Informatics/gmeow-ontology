@@ -62,6 +62,7 @@ ex:plutoCategorizationIAU a gmeow:ConceptCategorization ;
     gmeow:vantage ex:iau2006 ;
     gmeow:observedFeature ex:pluto ;
     gmeow:observationResult ex:planet ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
     gmeow:typicality "0.3"^^xsd:decimal ;
     gmeow:claimModality gmeow:conceivable ;
     gmeow:confidence "0.95"^^xsd:decimal .
@@ -75,6 +76,7 @@ ex:plutoCategorizationTextbook a gmeow:ConceptCategorization ;
     gmeow:vantage ex:schoolTextbook ;
     gmeow:observedFeature ex:pluto ;
     gmeow:observationResult ex:planet ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
     gmeow:typicality "0.85"^^xsd:decimal ;
     gmeow:claimModality gmeow:probable ;
     gmeow:accordingTo ex:schoolTextbook .
