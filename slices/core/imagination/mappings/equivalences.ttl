@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+
+# Term equivalences for the imagination slice — GMEOW authoring source.
+# Compiled to mappings/gmeow-imagination.sssom.tsv by `gmeow compile-mappings`.
+# All alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
+
+gmeow:mapsetImagination a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-imagination.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/imagination" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Imagination slice alignments — the as-if attitude flavour of mind and the content-origin / reality-monitoring value vocabulary.
+
+        EXTERNAL FRAMEWORKS NAMED IN PROSE (no stable, resolvable RDF namespace available):
+        * Source-monitoring framework (Marcia K. Johnson): the cognitive account of how an agent
+          attributes the SOURCE of a memory or thought — perceived vs imagined vs told — is the direct
+          basis of the gmeow:ContentOrigin value vocabulary (gmeow:originPerceived / originRemembered /
+          originImagined / …). It is published as psychology literature, not as an OWL-resolvable
+          ontology, so no TermEquivalence row can be written; the conceptual debt is recorded here.
+        * Mimesis as make-believe (Kendall Walton): the philosophy-of-fiction account of imagining
+          as a prop-governed game of make-believe underpins gmeow:imagines and the fiction =
+          licensed-imagining bridge to gmeow:veridicalityLicensedFalsehood (deception slice). No stable
+          IRI vocabulary exists; named in prose only.
+        * Reality-monitoring (Johnson & Raye): the perceived-vs-imagined discrimination that
+          gmeow:contentOrigin operationalises for agent memory — the recalled-vs-confabulated test.
+          No resolvable namespace; prose only.
+
+        The gmeow:imagines / gmeow:supposes attitudes and the gmeow:imaginedWorld link have no stable
+        external IRI counterpart (possible-world semantics is realised internally by the logic slice's
+        logic:World, a gmeow: term, not an external vocabulary) and are intentionally left unmapped.""" ;
+    gmeow:setTrailer "# No frame-selecting mapping (Principle 9): GMEOW does not assert a single 'correct' theory of imagination or source-monitoring; the value-vocab members are co-equal." .
+
+# PROV-O 'Generation' (prov:Generation) — gmeow:originGenerated marks content whose
+# source is a generative activity (the AI face: an LLM sampling its latent space). PROV
+# models the ACTIVITY-PROVENANCE of an entity's coming-into-being, whereas
+# gmeow:originGenerated is a CONTENT-ORIGIN value attached to a claim for reality-monitoring;
+# the overlap is the generative-origin concept, hence a deliberately low-confidence
+# relatedMatch (not closeMatch), and only for the generated value, not the whole vocabulary.
+gmeow:eqImagination001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:originGenerated ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:Generation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "gmeow:originGenerated marks content whose source is a generative process (machine synthesis); prov:Generation is the activity by which an entity comes into being. The shared notion is generative origin, but PROV is activity-provenance and gmeow:originGenerated is a reality-monitoring content-origin value — loose relatedMatch only." ;
+    gmeow:sssomFile "gmeow-imagination.sssom.tsv" .
