@@ -16,5 +16,8 @@ SELECT ?term WHERE {
     UNION
     { ?term rdfs:range ?range }
     UNION
-    { ?term owl:inverseOf [ rdfs:range ?range ] }
+    {
+        { ?term owl:inverseOf ?inverse } UNION { ?inverse owl:inverseOf ?term }
+        ?inverse rdfs:range ?range .
+    }
 }
