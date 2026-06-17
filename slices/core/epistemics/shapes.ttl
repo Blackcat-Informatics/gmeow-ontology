@@ -40,9 +40,9 @@ gmeow:DoxasticStandpointClaimShape
     sh:property [
         sh:path gmeow:defeatedBy ;
         sh:minCount 0 ;
-        sh:class gmeow:JustificationStatus ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "If present, gmeow:defeatedBy on a DoxasticStandpointClaim must point to a gmeow:JustificationStatus." ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticStandpointClaim must be an IRI." ;
     ] .
 
 gmeow:DoxasticStateShape
@@ -98,9 +98,9 @@ gmeow:DoxasticStateShape
     sh:property [
         sh:path gmeow:defeatedBy ;
         sh:minCount 0 ;
-        sh:class gmeow:JustificationStatus ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "If present, gmeow:defeatedBy must point to a gmeow:JustificationStatus." ;
+        sh:message "If present, gmeow:defeatedBy must be an IRI." ;
     ] .
 
 gmeow:DoxasticTenureShape
