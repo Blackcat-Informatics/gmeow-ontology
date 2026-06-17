@@ -245,8 +245,12 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
                     return Err("program has more than one depth_budget(...) directive".to_owned());
                 }
                 cf_depth_budget = Some(parse_depth_budget_directive(body)?);
+            } else {
+                // An unrecognized directive is an error, not a no-op: silently
+                // ignoring one means a typo (e.g. `:- depth_buget(...)`) would
+                // disable an intended guardrail without any signal.
+                return Err(format!("unrecognized directive: {body:?}"));
             }
-            // Other (unknown) directives are silently ignored.
         } else if let Some(goal_body) = clause.strip_prefix("?-") {
             // Goal clause.
             if goal.is_some() {
@@ -270,6 +274,15 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
     // ── Assemble the optional counterfactual declaration ─────────────────────
     let counterfactual = match cf_worlds {
         Some((cf_world, base_world)) => {
+            // A counterfactual must admit at least one antecedent fact: an empty
+            // `A` is a no-op revision (it asserts nothing hypothetical), almost
+            // always a malformed query (the `assume(...)` was forgotten or typo'd).
+            if cf_antecedent.is_empty() {
+                return Err(
+                    "counterfactual(...) directive requires at least one assume(...) antecedent"
+                        .to_owned(),
+                );
+            }
             // Antecedent atoms must be ground — `A` is a concrete hypothetical fact,
             // not a query pattern. Reject any variable to keep the revision deterministic.
             for atom in &cf_antecedent {
@@ -1005,6 +1018,40 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         )
         .unwrap_err();
         assert!(err.contains("must differ"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn reject_unrecognized_directive() {
+        // A typo'd directive (here `depth_buget`) must fail loudly rather than be
+        // silently dropped — otherwise the intended guardrail vanishes unnoticed.
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:cf, ex:base).\n\
+             :- assume(ex:a(ex:s, ex:o)).\n\
+             :- depth_buget(2).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("unrecognized directive"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn reject_counterfactual_with_empty_antecedent() {
+        // A counterfactual with no assume(...) admits nothing hypothetical: a
+        // no-op revision, rejected as malformed.
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:cf, ex:base).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("at least one assume"),
+            "unexpected error: {err}"
+        );
     }
 
     #[test]
