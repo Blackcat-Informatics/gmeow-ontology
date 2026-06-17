@@ -227,7 +227,7 @@ class TestCompareExplanationSkeleton:
         never on surface prose.  This test verifies that two Explanation objects
         with identical cited_iris but different prose_lines compare as identical.
         """
-        from gmeow_tools.logic_explain import Explanation, ExplanationStep
+        from gmeow_tools.logic_materialize import Explanation, ExplanationStep
 
         # Build two minimal Explanation objects with same cited_iris but
         # different prose_lines.
