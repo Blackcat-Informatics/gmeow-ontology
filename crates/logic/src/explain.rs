@@ -221,15 +221,28 @@ fn strip_iri_n3(n3: &str) -> Option<&str> {
 
 // ── Index ────────────────────────────────────────────────────────────────────
 
-/// Build the `(graph, reifier)` → row-index lookup.  Mirrors `_build_reifier_index`.
+/// Precompute one reifier IRI per row (same order as `rows`).
 ///
-/// On a duplicate `(graph, reifier)` the LAST row wins, matching the Python `dict`
-/// overwrite semantics (`index[(dq.graph, reifier)] = dq`).
-fn build_reifier_index(rows: &[Row]) -> HashMap<(String, String), usize> {
-    let mut index: HashMap<(String, String), usize> = HashMap::with_capacity(rows.len());
-    for (i, row) in rows.iter().enumerate() {
-        let reifier = reifier_from_row(row);
-        index.insert((row.graph.clone(), reifier), i);
+/// Reifiers are SHA-1-derived `String`s that cannot be borrowed from `Row`, so we
+/// materialise them once into an owned `Vec` whose lifetime can then be tied to the
+/// borrow-based index.
+fn precompute_reifiers(rows: &[Row]) -> Vec<String> {
+    rows.iter().map(reifier_from_row).collect()
+}
+
+/// Build the `(graph, reifier)` → row-index lookup from pre-computed reifiers.
+///
+/// Borrows graph IRIs from `rows` and reifier strings from `reifiers`; both slices
+/// must outlive the returned map.  On a duplicate `(graph, reifier)` the LAST row
+/// wins, matching the Python `dict` overwrite semantics
+/// (`index[(dq.graph, reifier)] = dq`).
+fn build_reifier_index<'a>(
+    rows: &'a [Row],
+    reifiers: &'a [String],
+) -> HashMap<(&'a str, &'a str), usize> {
+    let mut index: HashMap<(&'a str, &'a str), usize> = HashMap::with_capacity(rows.len());
+    for (i, (row, reifier)) in rows.iter().zip(reifiers.iter()).enumerate() {
+        index.insert((row.graph.as_str(), reifier.as_str()), i);
     }
     index
 }
@@ -241,15 +254,23 @@ fn build_reifier_index(rows: &[Row]) -> HashMap<(String, String), usize> {
 /// Returns steps in DFS order: the current step first, then each antecedent subtree.
 /// Mirrors `_reconstruct_derivation_tree` exactly (sorted antecedents, world-scoped
 /// resolution, cycle guard on the `(graph, reifier)` visited set).
-fn reconstruct_tree(
-    target_reifier: &str,
-    graph_iri: &str,
-    rows: &[Row],
-    index: &HashMap<(String, String), usize>,
+///
+/// # Backtracking visited set
+///
+/// `visited` is a single `Vec` threaded through the entire recursion.  Before
+/// descending into children we push the current `(graph_iri, target_reifier)` key
+/// and pop it again after all children return, so the allocation is O(D) rather
+/// than O(D²).  The borrowed `(&str, &str)` elements avoid per-step `String`
+/// allocation entirely.
+fn reconstruct_tree<'a>(
+    target_reifier: &'a str,
+    graph_iri: &'a str,
+    rows: &'a [Row],
+    index: &HashMap<(&str, &str), usize>,
     depth: u32,
-    visited: &[(String, String)],
+    visited: &mut Vec<(&'a str, &'a str)>,
 ) -> Result<Vec<ExplanationStep>, ExplainError> {
-    let lookup_key = (graph_iri.to_owned(), target_reifier.to_owned());
+    let lookup_key = (graph_iri, target_reifier);
 
     let row_idx = match index.get(&lookup_key) {
         Some(idx) => *idx,
@@ -272,33 +293,30 @@ fn reconstruct_tree(
     let is_asserted = row.rule_iri == ASSERT_RULE_IRI;
 
     // Antecedent reifiers: sorted, excluding the self-reference asserted facts carry.
-    let mut antecedent_reifiers: Vec<&String> = row
+    let mut antecedent_reifiers: Vec<&str> = row
         .source_quad_ids
         .iter()
         .filter(|src| src.as_str() != target_reifier)
+        .map(String::as_str)
         .collect();
     antecedent_reifiers.sort();
 
-    // Extend the visited set for the recursive descent.
-    let mut child_visited: Vec<(String, String)> = visited.to_vec();
-    child_visited.push(lookup_key);
+    // Push current node before descending; pop after all children return (backtracking).
+    visited.push(lookup_key);
 
     let mut child_steps: Vec<ExplanationStep> = Vec::new();
     let mut source_step_ids: Vec<String> = Vec::new();
     for src_reifier in antecedent_reifiers {
-        let sub_steps = reconstruct_tree(
-            src_reifier,
-            graph_iri,
-            rows,
-            index,
-            depth + 1,
-            &child_visited,
-        )?;
+        let sub_steps = reconstruct_tree(src_reifier, graph_iri, rows, index, depth + 1, visited)?;
         if let Some(first) = sub_steps.first() {
             source_step_ids.push(first.derivation_id.clone());
         }
         child_steps.extend(sub_steps);
     }
+
+    // Pop current node after all children have been processed.
+    visited.pop();
+
     source_step_ids.sort();
 
     let step = ExplanationStep {
@@ -363,8 +381,9 @@ pub fn explain_one(rows: &[Row], target_index: usize) -> Result<Explanation, Exp
             len: rows.len(),
         });
     }
-    let index = build_reifier_index(rows);
-    explain_with_index(rows, target_index, &index)
+    let reifiers = precompute_reifiers(rows);
+    let index = build_reifier_index(rows, &reifiers);
+    explain_with_index(rows, &reifiers, target_index, &index)
 }
 
 /// Build an explanation for every row, in input order.  Mirrors the Python
@@ -374,29 +393,34 @@ pub fn explain_one(rows: &[Row], target_index: usize) -> Result<Explanation, Exp
 ///
 /// Propagates any [`ExplainError`] from reconstructing an individual quad's tree.
 pub fn explain_all(rows: &[Row]) -> Result<Vec<Explanation>, ExplainError> {
-    let index = build_reifier_index(rows);
+    let reifiers = precompute_reifiers(rows);
+    let index = build_reifier_index(rows, &reifiers);
     let mut out: Vec<Explanation> = Vec::with_capacity(rows.len());
     for i in 0..rows.len() {
-        out.push(explain_with_index(rows, i, &index)?);
+        out.push(explain_with_index(rows, &reifiers, i, &index)?);
     }
     Ok(out)
 }
 
 /// Shared core: build the explanation for `target_index` against a prebuilt index.
+///
+/// `reifiers[i]` must be the pre-computed reifier IRI for `rows[i]`.
 fn explain_with_index(
     rows: &[Row],
+    reifiers: &[String],
     target_index: usize,
-    index: &HashMap<(String, String), usize>,
+    index: &HashMap<(&str, &str), usize>,
 ) -> Result<Explanation, ExplainError> {
     let target = &rows[target_index];
-    let target_reifier = reifier_from_row(target);
+    let target_reifier = &reifiers[target_index];
 
-    let steps = reconstruct_tree(&target_reifier, &target.graph, rows, index, 0, &[])?;
+    let mut visited: Vec<(&str, &str)> = Vec::new();
+    let steps = reconstruct_tree(target_reifier, &target.graph, rows, index, 0, &mut visited)?;
     let cited_iris = build_cited_iris(&steps, &target.graph);
 
     Ok(Explanation {
         target_derivation_id: target.derivation_id.clone(),
-        target_quad_reifier: target_reifier,
+        target_quad_reifier: target_reifier.clone(),
         world_iri: target.graph.clone(),
         step_skeleton: steps,
         cited_iris,
