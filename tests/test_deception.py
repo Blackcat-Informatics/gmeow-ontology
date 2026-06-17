@@ -64,8 +64,8 @@ def test_divergence_properties_exist() -> None:
 
 
 def test_blame_deflection_example_uses_doxastic_standpoint_claims() -> None:
-    """Issue #561 re-grounding: the blame-deflection example parses and its
-    held/projected standpoints are typed gmeow:DoxasticStandpointClaim."""
+    """Issue #561 re-grounding: every held/projected standpoint in the
+    blame-deflection example is typed gmeow:DoxasticStandpointClaim."""
     g = Graph()
     example = (
         Path(__file__).resolve().parents[1]
@@ -73,20 +73,16 @@ def test_blame_deflection_example_uses_doxastic_standpoint_claims() -> None:
     )
     g.parse(example, format="turtle")
 
-    held = {
-        o
-        for s, p, o in g
-        if p == GMEOW.heldStandpoint
-        and (o, RDF.type, GMEOW.DoxasticStandpointClaim) in g
-    }
-    projected = {
-        o
-        for s, p, o in g
-        if p == GMEOW.projectedStandpoint
-        and (o, RDF.type, GMEOW.DoxasticStandpointClaim) in g
-    }
-    assert held, "expected at least one held DoxasticStandpointClaim"
-    assert projected, "expected at least one projected DoxasticStandpointClaim"
+    held = {o for s, p, o in g if p == GMEOW.heldStandpoint}
+    projected = {o for s, p, o in g if p == GMEOW.projectedStandpoint}
+    assert held, "expected at least one held standpoint"
+    assert projected, "expected at least one projected standpoint"
+    for standpoint in held | projected:
+        assert (
+            standpoint,
+            RDF.type,
+            GMEOW.DoxasticStandpointClaim,
+        ) in g, f"{standpoint} is not a DoxasticStandpointClaim"
 
 
 def test_deceptive_intent_claim_property_exists() -> None:
