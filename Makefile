@@ -109,7 +109,7 @@ crossref: ## Generate the CrossRef DOI deposit XML.
 
 docs: ontology-docs ## Alias for ontology-docs.
 
-ontology-docs: ## Generate the unified ontology-docs site into dist/ontology-docs.
+ontology-docs: ## Generate the unified ontology-docs site into ontology-docs/.
 	$(GMEOW_DEV) docs
 
 docs-full: ontology-docs-full ## Alias for ontology-docs-full.
