@@ -610,7 +610,10 @@ def gts_command(ctx: typer.Context) -> None:
             has_file_arg = any(not arg.startswith("-") for arg in tail)
         if not has_file_arg:
             forwarded.insert(1, str(GTS_SNAPSHOT_FILE))
-    result = subprocess.run([exe, *forwarded], check=False)
+    try:
+        result = subprocess.run([exe, *forwarded], check=False)
+    except OSError as exc:
+        raise _fail(f"failed to run gts: {exc}") from exc
     sys.exit(result.returncode)
 
 
