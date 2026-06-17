@@ -1,0 +1,466 @@
+"""English i18n synchronization engine.
+
+Merges translations from a gettext PO catalog back into canonical Turtle source
+files using a 3-way merge.  The PO file records the previous English value in
+``msgid`` and the proposed new value in ``msgstr``; ``msgctxt`` encodes the
+subject and predicate identity.  Only literals carrying the internal
+``@x-gmeow-english`` tag are updated, and the original Turtle formatting is
+preserved by text-level replacement rather than re-serialization.
+
+Principle 4 (one canonical source): this tool writes back to the authored
+Turtle modules, never to generated artifacts.
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from rdflib import Graph, Literal, URIRef
+
+
+class PoParseError(ValueError):
+    """Raised when a PO file cannot be parsed."""
+
+
+@dataclass(frozen=True, slots=True)
+class PoEntry:
+    """One PO catalog entry.
+
+    Attributes:
+        msgctxt: Subject-predicate identity, formatted as ``"<IRI>|<predicate>"``.
+        msgid: The English value at the time of extraction / last sync.
+        msgstr: The proposed new English value.
+    """
+
+    msgctxt: str
+    msgid: str
+    msgstr: str
+
+
+@dataclass
+class SyncReport:
+    """Result of synchronizing one PO file against one Turtle source.
+
+    Attributes:
+        changed_files: Paths of Turtle files that were modified.
+        conflicts: Human-readable conflict descriptions.
+        skipped: Human-readable descriptions of skipped entries.
+        unchanged: Human-readable descriptions of unchanged entries.
+    """
+
+    changed_files: list[Path] = field(default_factory=list)
+    conflicts: list[str] = field(default_factory=list)
+    skipped: list[str] = field(default_factory=list)
+    unchanged: list[str] = field(default_factory=list)
+
+
+#: Matches a Turtle literal (single or triple quoted) and its optional suffix.
+_LITERAL_RE = re.compile(
+    r"(?P<literal>"
+    r'(?P<triple>""")(?P<lexical_triple>[\s\S]*?)(?P=triple)'
+    r'|"(?P<lexical_single>(?:[^"\\]|\\.)*?)"'
+    r")"
+    r"(?P<suffix>(?:@[^\s.,;[\]{}()]+|\^\^[^\s.,;[\]{}()]+))?"
+    r"(?=[\s.,;[\]{}()]|$)",
+    re.DOTALL,
+)
+
+#: Matches an @prefix declaration in a Turtle file.
+_PREFIX_RE = re.compile(
+    r"@prefix\s+([a-zA-Z_][a-zA-Z0-9_-]*)\s*:\s*<([^>]+)>\s*\.",
+)
+
+#: Matches a standalone PO continuation string.
+_PO_STRING_RE = re.compile(r'^"(?:[^"\\]|\\.)*"$')
+
+
+def _unescape_po(value: str) -> str:
+    r"""Reverse PO escape sequences in *value*.
+
+    Handles the sequences required by the task: ``\"``, ``\\``, and ``\n``.
+    Other C-style escapes are passed through so the parser stays minimal.
+    """
+    value = value.replace("\\\\", "\x00")
+    value = value.replace('\\"', '"')
+    value = value.replace("\\n", "\n")
+    value = value.replace("\\t", "\t")
+    value = value.replace("\\r", "\r")
+    return value.replace("\x00", "\\")
+
+
+def _unescape_turtle(value: str) -> str:
+    """Decode a Turtle string literal into its lexical form."""
+    try:
+        return value.encode("utf-8").decode("unicode_escape")
+    except UnicodeDecodeError as exc:
+        raise PoParseError(f"invalid Turtle escape sequence: {exc}") from exc
+
+
+def _escape_turtle_single(value: str) -> str:
+    """Escape *value* for a Turtle single-quoted string literal."""
+    return (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+
+
+def _escape_turtle_triple(value: str) -> str:
+    """Escape *value* for a Turtle triple-quoted string literal."""
+    return value.replace("\\", "\\\\").replace('"""', '\\"""')
+
+
+def _concat_po_strings(tokens: list[str]) -> str:
+    """Concatenate one or more PO quoted tokens and unescape the result."""
+    parts: list[str] = []
+    for token in tokens:
+        if token.startswith('"""') and token.endswith('"""'):
+            parts.append(token[3:-3])
+        elif token.startswith('"') and token.endswith('"'):
+            parts.append(token[1:-1])
+        else:
+            raise PoParseError(f"invalid PO string token: {token!r}")
+    return _unescape_po("".join(parts))
+
+
+def _make_entry(fields: dict[str, list[str]]) -> PoEntry:
+    """Build a :class:`PoEntry` from parsed fields."""
+    if "msgid" not in fields:
+        raise PoParseError("PO entry missing msgid")
+    return PoEntry(
+        msgctxt=_concat_po_strings(fields.get("msgctxt", ['""'])),
+        msgid=_concat_po_strings(fields["msgid"]),
+        msgstr=_concat_po_strings(fields.get("msgstr", ['""'])),
+    )
+
+
+def parse_po(text: str) -> list[PoEntry]:
+    """Parse a PO file into a list of :class:`PoEntry` records.
+
+    Supports single-line ``"..."`` and multi-line ``\"\"\"...\"\"\"`` strings,
+    PO escape sequences, comments, and unknown fields are skipped.  Continuation
+    lines are concatenated as specified by gettext.
+
+    Args:
+        text: Raw PO file content.
+
+    Returns:
+        A list of parsed entries in source order.
+
+    Raises:
+        PoParseError: If a structural error is encountered.
+    """
+    entries: list[PoEntry] = []
+    fields: dict[str, list[str]] = {}
+    current_key: str | None = None
+
+    def flush() -> None:
+        nonlocal fields, current_key
+        if fields:
+            try:
+                entry = _make_entry(fields)
+            except PoParseError:
+                entry = None
+            if entry and entry.msgctxt:
+                entries.append(entry)
+        fields = {}
+        current_key = None
+
+    header_key = re.compile(r"^(msgctxt|msgid|msgstr)\s+")
+    single_token = re.compile(
+        r"^(msgctxt|msgid|msgstr)\s+"
+        r'((?:"""[\s\S]*?""")|(?:"(?:[^"\\]|\\.)*"))$'
+    )
+
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            flush()
+            continue
+
+        m = single_token.match(line)
+        if m:
+            current_key = m.group(1)
+            fields.setdefault(current_key, []).append(m.group(2))
+            continue
+
+        if _PO_STRING_RE.match(line):
+            if current_key is None:
+                raise PoParseError(f"PO continuation line without a field: {line!r}")
+            fields[current_key].append(line)
+            continue
+
+        if header_key.match(line):
+            # An unknown or empty gettext field (e.g. ``msgid_plural``) starts a
+            # new logical key but we do not store its value.  Reset continuation
+            # state so following string lines are not attached to the previous
+            # known field.
+            current_key = None
+            continue
+
+        # Any other unrecognised line ends the current entry.
+        flush()
+
+    flush()
+    return entries
+
+
+def _extract_prefixes(text: str) -> dict[str, str]:
+    """Return the ``prefix -> namespace`` map declared in a Turtle file."""
+    return {m.group(1): m.group(2) for m in _PREFIX_RE.finditer(text)}
+
+
+def _iri_text_forms(iri: str, prefixes: dict[str, str]) -> list[str]:
+    """Return text forms to look for when locating *iri* in a Turtle file.
+
+    Includes the bracketed full IRI plus every declared prefixed name that
+    expands to *iri*.
+    """
+    forms = [f"<{iri}>"]
+    for prefix, namespace in prefixes.items():
+        if iri.startswith(namespace):
+            local = iri[len(namespace) :]
+            if local and re.match(r"^[a-zA-Z_][a-zA-Z0-9_-]*$", local):
+                forms.append(f"{prefix}:{local}")
+    return forms
+
+
+def _find_statement_start(text: str, pos: int) -> int:
+    """Approximate the start of the Turtle statement containing *pos*.
+
+    Searches backwards for a ``'.'`` that looks like a statement terminator.
+    This is intentionally a heuristic: the tool works on canonical, hand-edited
+    ontology sources where decimals and IRIs containing dots are rare in the
+    annotation positions being updated.
+    """
+    search = pos
+    while True:
+        idx = text.rfind(".", 0, search)
+        if idx < 0:
+            return 0
+        before = text[idx - 1] if idx > 0 else " "
+        after = text[idx + 1] if idx + 1 < len(text) else " "
+        if before not in "0123456789" and after in " \t\n\r":
+            return idx + 1
+        search = idx
+
+
+def _filter_by_context(
+    text: str,
+    candidates: list[tuple[int, int, str, str]],
+    subject_forms: list[str],
+    predicate_forms: list[str],
+) -> list[tuple[int, int, str, str]]:
+    """Keep only literal occurrences inside a statement mentioning the subject.
+
+    The predicate must also appear between the statement start and the literal,
+    which narrows the match to the intended triple.
+    """
+    scoped: list[tuple[int, int, str, str]] = []
+    for start, end, quote_style, suffix in candidates:
+        stmt_start = _find_statement_start(text, start)
+        segment = text[stmt_start:start]
+        has_subject = any(form in segment for form in subject_forms)
+        has_predicate = any(form in segment for form in predicate_forms)
+        if has_subject and has_predicate:
+            scoped.append((start, end, quote_style, suffix))
+    return scoped
+
+
+def _replace_literal_in_text(
+    text: str,
+    subject: URIRef,
+    predicate: URIRef,
+    old_value: str,
+    new_value: str,
+) -> tuple[str, str | None]:
+    """Replace one English literal in *text* while preserving formatting.
+
+    Returns the updated text, or ``(text, error)`` if the literal cannot be
+    found or is ambiguous.
+    """
+    prefixes = _extract_prefixes(text)
+    subject_forms = _iri_text_forms(str(subject), prefixes)
+    predicate_forms = _iri_text_forms(str(predicate), prefixes)
+
+    candidates: list[tuple[int, int, str, str]] = []
+    for m in _LITERAL_RE.finditer(text):
+        if m.group("triple"):
+            lexical = m.group("lexical_triple") or ""
+            quote_style = "triple"
+        else:
+            lexical = m.group("lexical_single") or ""
+            quote_style = "single"
+        try:
+            decoded = _unescape_turtle(lexical)
+        except PoParseError:
+            continue
+        if decoded != old_value:
+            continue
+        suffix = m.group("suffix") or ""
+        candidates.append((m.start(), m.end(), quote_style, suffix))
+
+    if not candidates:
+        return text, f"literal {old_value!r} not found in source text"
+
+    if len(candidates) > 1:
+        scoped = _filter_by_context(text, candidates, subject_forms, predicate_forms)
+        if len(scoped) == 1:
+            candidates = scoped
+        else:
+            return text, (
+                f"conflict: ambiguous literal {old_value!r}: "
+                f"{len(candidates)} occurrences in source text"
+            )
+
+    start, end, quote_style, suffix = candidates[0]
+    if quote_style == "triple":
+        if '"""' in new_value:
+            return text, "new value contains the triple-quote sequence"
+        replacement = f'"""{_escape_turtle_triple(new_value)}"""{suffix}'
+    else:
+        replacement = f'"{_escape_turtle_single(new_value)}"{suffix}'
+
+    return text[:start] + replacement + text[end:], None
+
+
+def _current_english_literal(
+    graph: Graph, subject: URIRef, predicate: URIRef
+) -> Literal | None:
+    """Return the unique ``@x-gmeow-english`` literal for the triple pattern."""
+    matches: list[Literal] = []
+    for obj in graph.objects(subject, predicate):
+        if isinstance(obj, Literal) and obj.language == "x-gmeow-english":
+            matches.append(obj)
+    if not matches:
+        return None
+    # Multiple identical lexical values are harmless; distinct values are a
+    # structural problem that the caller should treat as ambiguous.
+    distinct = {str(m) for m in matches}
+    if len(distinct) > 1:
+        raise PoParseError(
+            f"multiple distinct @x-gmeow-english literals for {subject} {predicate}"
+        )
+    return matches[0]
+
+
+def _apply_entry(entry: PoEntry, ttl_text: str, graph: Graph) -> tuple[str, str | None]:
+    """Apply one PO entry to *ttl_text* using a 3-way merge.
+
+    Returns ``(new_text, None)`` on success, ``(ttl_text, reason)`` on skip or
+    conflict.  The reason string is suitable for a :class:`SyncReport`.
+    """
+    identity = entry.msgctxt
+    if "|" not in identity:
+        return ttl_text, f"malformed identity {identity!r}"
+
+    subject_iri, predicate_iri = identity.split("|", 1)
+    try:
+        subject = URIRef(subject_iri)
+        predicate = URIRef(predicate_iri)
+    except ValueError as exc:
+        return ttl_text, f"invalid IRI in identity {identity!r}: {exc}"
+
+    old_value = entry.msgid
+    new_value = entry.msgstr
+
+    try:
+        current_literal = _current_english_literal(graph, subject, predicate)
+    except PoParseError as exc:
+        return ttl_text, str(exc)
+    if current_literal is None:
+        return ttl_text, f"no @x-gmeow-english literal for {identity}"
+
+    current_value = str(current_literal)
+
+    if old_value == current_value and old_value == new_value:
+        return ttl_text, None
+    if old_value == current_value and old_value != new_value:
+        return _replace_literal_in_text(
+            ttl_text, subject, predicate, current_value, new_value
+        )
+    if old_value != current_value and old_value == new_value:
+        return ttl_text, f"source changed, PO unchanged for {identity}"
+
+    # old_value != current_value and old_value != new_value
+    if current_value == new_value:
+        # Source already contains the proposed value; no update needed.
+        return ttl_text, None
+    return (
+        ttl_text,
+        f"conflict: source and PO both changed for {identity}",
+    )
+
+
+def sync_english_from_po(
+    po_path: Path,
+    ttl_path: Path,
+    *,
+    dry_run: bool = False,
+) -> SyncReport:
+    """Synchronize English translations from *po_path* into *ttl_path*.
+
+    The PO file supplies ``msgctxt`` (subject|predicate), ``msgid`` (old
+    English), and ``msgstr`` (new English).  The function performs a 3-way
+    merge against the current Turtle source and, unless *dry_run* is ``True``,
+    writes the result back to *ttl_path*.
+
+    Args:
+        po_path: Path to the PO catalog.
+        ttl_path: Path to the Turtle source file to update.
+        dry_run: If ``True``, compute the report without writing to disk.
+
+    Returns:
+        A :class:`SyncReport` describing the outcome.
+    """
+    report = SyncReport()
+    po_text = po_path.read_text(encoding="utf-8")
+    entries = parse_po(po_text)
+    ttl_text = ttl_path.read_text(encoding="utf-8")
+
+    try:
+        graph = Graph()
+        graph.parse(data=ttl_text, format="turtle")
+    except Exception as exc:
+        report.conflicts.append(f"failed to parse {ttl_path}: {exc}")
+        return report
+
+    changed = False
+    for entry in entries:
+        if not entry.msgctxt:
+            report.skipped.append(f"empty msgctxt for msgid {entry.msgid!r}")
+            continue
+
+        new_text, error = _apply_entry(entry, ttl_text, graph)
+        if error:
+            if error.startswith("conflict:"):
+                report.conflicts.append(error)
+            else:
+                report.skipped.append(error)
+            continue
+
+        if new_text != ttl_text:
+            changed = True
+            ttl_text = new_text
+            # Re-parse so subsequent entries see the updated current values.
+            try:
+                graph = Graph()
+                graph.parse(data=ttl_text, format="turtle")
+            except Exception as exc:
+                report.conflicts.append(
+                    f"failed to re-parse {ttl_path} after update: {exc}"
+                )
+                return report
+        else:
+            report.unchanged.append(entry.msgctxt)
+
+    if changed:
+        report.changed_files.append(ttl_path)
+        if not dry_run:
+            ttl_path.write_text(ttl_text, encoding="utf-8")
+
+    return report
