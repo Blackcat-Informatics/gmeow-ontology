@@ -6,6 +6,7 @@
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix snomed: <http://snomed.info/id/> .
 
 # Term equivalences for the awareness slice — GMEOW authoring source.
 # Compiled to mappings/gmeow-awareness.sssom.tsv by `gmeow compile-mappings`.
@@ -40,21 +41,21 @@ gmeow:mapsetAwareness a gmeow:MappingSet ;
         documented in prose, never asserted.""" ;
     gmeow:setTrailer "# No frame-selecting mapping (Principle 9): GMEOW asserts no single 'correct' theory of consciousness or sleep staging; the value-vocab members are co-equal, and the human↔machine analogue is by reference only." .
 
-# NSWO / sleep-staging — gmeow:modeAsleep names the general sleep state. Sleep-staging
-# vocabularies model sleep as a clinical/physiological process-state; gmeow:modeAsleep is a
-# state-of-the-experiencer awareness value. The shared notion is the sleep state, hence a
-# deliberately low-confidence relatedMatch (not closeMatch). The NSWO has no single stable,
-# freely-resolvable OWL IRI for "asleep", so the object is named by reference as a sleep concept.
+# Sleep state — gmeow:modeAsleep names the general sleep state. Clinical terminologies model
+# being asleep as a finding; gmeow:modeAsleep is a state-of-the-experiencer awareness value. The
+# shared notion is the sleep state, hence a deliberately low-confidence relatedMatch (not
+# closeMatch). The object is the SNOMED CT "Asleep" finding; the NSWO / sleep-staging account
+# named in the set comment is the wider conceptual basis, by reference (Principle 5).
 gmeow:eqAwareness001 a gmeow:TermEquivalence ;
-    rdfs:label "modeAsleep ↔ sleep-state concept relatedMatch"@x-gmeow-english ;
-    skos:definition "Loose relatedMatch (confidence 0.4) between gmeow:modeAsleep — the general sleep awareness mode — and the sleep-state concept of the NSWO / clinical sleep-staging vocabularies. The shared notion is the sleep state; the concepts are not co-extensional (one is a state-of-the-experiencer value, the other a physiological process-state classification)."@x-gmeow-english ;
+    rdfs:label "modeAsleep ↔ SNOMED Asleep relatedMatch"@x-gmeow-english ;
+    skos:definition "Loose relatedMatch (confidence 0.3) between gmeow:modeAsleep — the general sleep awareness mode — and the SNOMED CT 'Asleep' finding (and, by reference, the NSWO / clinical sleep-staging account of the sleep state). The shared notion is the sleep state; the concepts are not co-extensional (one is a state-of-the-experiencer value, the other a clinical finding / physiological process-state classification)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     gmeow:alignSubject gmeow:modeAsleep ;
     gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject <http://purl.obolibrary.org/obo/NSWO_sleep> ;
+    gmeow:alignObject snomed:248218005 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.3 ;
-    gmeow:comment "gmeow:modeAsleep is a state-of-the-experiencer awareness value; the NSWO sleep concept is a physiological process-state. Shared notion: the sleep state — loose relatedMatch only, with the external IRI a placeholder for the by-reference NSWO sleep concept." ;
+    gmeow:comment "gmeow:modeAsleep is a state-of-the-experiencer awareness value; SNOMED CT 'Asleep' (248218005) is a clinical finding. Shared notion: the sleep state — loose relatedMatch only; the NSWO sleep-staging account is referenced in the set comment, not imported." ;
     gmeow:sssomFile "gmeow-awareness.sssom.tsv" .
 
 # Glasgow Coma Scale — gmeow:levelUnresponsive is the arousal floor of coma. The GCS is an
@@ -66,7 +67,7 @@ gmeow:eqAwareness002 a gmeow:TermEquivalence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     gmeow:alignSubject gmeow:levelUnresponsive ;
     gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject <http://purl.bioontology.org/ontology/SNOMEDCT/371632003> ;
+    gmeow:alignObject snomed:371632003 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.3 ;
     gmeow:comment "gmeow:levelUnresponsive is the arousal floor; the object is a coma / Glasgow-Coma-Scale consciousness concept named by reference (SNOMED CT 'Coma'). Shared notion: unarousable unresponsiveness — loose relatedMatch only, no imported numeric scale." ;

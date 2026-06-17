@@ -284,6 +284,20 @@ classes:
   AvailabilityStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/AvailabilityStatus
     title: Availability Status
+  AwarenessLevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/AwarenessLevel
+    title: Awareness Level
+    slots:
+    - levelRank
+  AwarenessMode:
+    class_uri: https://blackcatinformatics.ca/gmeow/AwarenessMode
+    title: Awareness Mode
+  AwarenessTenure:
+    class_uri: https://blackcatinformatics.ca/gmeow/AwarenessTenure
+    title: Awareness Tenure
+    is_a: TimeScopedRelation
+    slots:
+    - awarenessSubject
   Axis:
     class_uri: https://blackcatinformatics.ca/gmeow/Axis
     title: Axis
@@ -4644,6 +4658,27 @@ slots:
     range: uriorcurie
     domain: Agent
     multivalued: true
+  awarenessLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessLevel
+    title: awareness level
+    range: AwarenessLevel
+    multivalued: true
+  awarenessMode:
+    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessMode
+    title: awareness mode
+    range: AwarenessMode
+    multivalued: true
+  awarenessScalar:
+    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessScalar
+    title: awareness scalar
+    range: decimal
+    multivalued: true
+  awarenessSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessSubject
+    title: awareness subject
+    range: Agent
+    domain: AwarenessTenure
+    multivalued: true
   bcc:
     slot_uri: https://blackcatinformatics.ca/gmeow/bcc
     title: bcc
@@ -8485,6 +8520,12 @@ slots:
     title: legal identifier
     range: Identifier
     domain: Organization
+    multivalued: true
+  levelRank:
+    slot_uri: https://blackcatinformatics.ca/gmeow/levelRank
+    title: level rank
+    range: integer
+    domain: AwarenessLevel
     multivalued: true
   levelScale:
     slot_uri: https://blackcatinformatics.ca/gmeow/levelScale
@@ -12887,6 +12928,81 @@ enums:
       availabilityStatusTentative:
         meaning: https://blackcatinformatics.ca/gmeow/availabilityStatusTentative
         title: tentative
+  AwarenessLevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AwarenessLevel
+    permissible_values:
+      levelAlert:
+        meaning: https://blackcatinformatics.ca/gmeow/levelAlert
+        title: alert
+      levelDrowsy:
+        meaning: https://blackcatinformatics.ca/gmeow/levelDrowsy
+        title: drowsy
+      levelHyperalert:
+        meaning: https://blackcatinformatics.ca/gmeow/levelHyperalert
+        title: hyperalert
+      levelObtunded:
+        meaning: https://blackcatinformatics.ca/gmeow/levelObtunded
+        title: obtunded
+      levelRelaxed:
+        meaning: https://blackcatinformatics.ca/gmeow/levelRelaxed
+        title: relaxed
+      levelUnresponsive:
+        meaning: https://blackcatinformatics.ca/gmeow/levelUnresponsive
+        title: unresponsive
+  AwarenessModeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AwarenessMode
+    permissible_values:
+      modeAsleep:
+        meaning: https://blackcatinformatics.ca/gmeow/modeAsleep
+        title: asleep
+      modeComatose:
+        meaning: https://blackcatinformatics.ca/gmeow/modeComatose
+        title: comatose
+      modeDormant:
+        meaning: https://blackcatinformatics.ca/gmeow/modeDormant
+        title: dormant
+      modeDreaming:
+        meaning: https://blackcatinformatics.ca/gmeow/modeDreaming
+        title: dreaming
+      modeDrowsy:
+        meaning: https://blackcatinformatics.ca/gmeow/modeDrowsy
+        title: drowsy
+      modeFlow:
+        meaning: https://blackcatinformatics.ca/gmeow/modeFlow
+        title: flow
+      modeFocused:
+        meaning: https://blackcatinformatics.ca/gmeow/modeFocused
+        title: focused
+      modeLucidDreaming:
+        meaning: https://blackcatinformatics.ca/gmeow/modeLucidDreaming
+        title: lucid dreaming
+      modeMeditative:
+        meaning: https://blackcatinformatics.ca/gmeow/modeMeditative
+        title: meditative
+      modeMindWandering:
+        meaning: https://blackcatinformatics.ca/gmeow/modeMindWandering
+        title: mind wandering
+      modeOfflineReplay:
+        meaning: https://blackcatinformatics.ca/gmeow/modeOfflineReplay
+        title: offline replay
+      modeOnlineInference:
+        meaning: https://blackcatinformatics.ca/gmeow/modeOnlineInference
+        title: online inference
+      modeREM:
+        meaning: https://blackcatinformatics.ca/gmeow/modeREM
+        title: REM sleep
+      modeSampling:
+        meaning: https://blackcatinformatics.ca/gmeow/modeSampling
+        title: sampling
+      modeSedated:
+        meaning: https://blackcatinformatics.ca/gmeow/modeSedated
+        title: sedated
+      modeTraining:
+        meaning: https://blackcatinformatics.ca/gmeow/modeTraining
+        title: training
+      modeWaking:
+        meaning: https://blackcatinformatics.ca/gmeow/modeWaking
+        title: waking
   AxisEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Axis
     permissible_values:

@@ -228,6 +228,35 @@ class AvailabilityStatusEnum(str, Enum):
     tentative = "availabilityStatusTentative"
 
 
+class AwarenessLevelEnum(str, Enum):
+    alert = "levelAlert"
+    drowsy = "levelDrowsy"
+    hyperalert = "levelHyperalert"
+    obtunded = "levelObtunded"
+    relaxed = "levelRelaxed"
+    unresponsive = "levelUnresponsive"
+
+
+class AwarenessModeEnum(str, Enum):
+    asleep = "modeAsleep"
+    comatose = "modeComatose"
+    dormant = "modeDormant"
+    dreaming = "modeDreaming"
+    drowsy = "modeDrowsy"
+    flow = "modeFlow"
+    focused = "modeFocused"
+    lucid_dreaming = "modeLucidDreaming"
+    meditative = "modeMeditative"
+    mind_wandering = "modeMindWandering"
+    offline_replay = "modeOfflineReplay"
+    online_inference = "modeOnlineInference"
+    REM_sleep = "modeREM"
+    sampling = "modeSampling"
+    sedated = "modeSedated"
+    training = "modeTraining"
+    waking = "modeWaking"
+
+
 class AxisEnum(str, Enum):
     address_locality_axis = "axisAddressLocality"
     address_region_axis = "axisAddressRegion"
@@ -3523,6 +3552,24 @@ class AvailabilityStatus(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/AvailabilityStatus',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Availability Status'})
+
+    pass
+
+
+class AwarenessLevel(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/AwarenessLevel',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Awareness Level'})
+
+    levelRank: Optional[list[int]] = Field(default=None, title="level rank", json_schema_extra = { "linkml_meta": {'domain': 'AwarenessLevel',
+         'domain_of': ['AwarenessLevel'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/levelRank'} })
+
+
+class AwarenessMode(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/AwarenessMode',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Awareness Mode'})
 
     pass
 
@@ -51692,6 +51739,19 @@ class AddressTenure(TimeScopedRelation):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/duringInterval'} })
 
 
+class AwarenessTenure(TimeScopedRelation):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/AwarenessTenure',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Awareness Tenure'})
+
+    awarenessSubject: Optional[list[Agent]] = Field(default=None, title="awareness subject", json_schema_extra = { "linkml_meta": {'domain': 'AwarenessTenure',
+         'domain_of': ['AwarenessTenure'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/awarenessSubject'} })
+    duringInterval: Optional[list[TimeInterval]] = Field(default=None, title="during interval", json_schema_extra = { "linkml_meta": {'domain': 'TimeScopedRelation',
+         'domain_of': ['TimeScopedRelation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/duringInterval'} })
+
+
 class ContainmentTenure(TimeScopedRelation):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ContainmentTenure',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -60807,6 +60867,8 @@ AttestationType.model_rebuild()
 AuthorityLevel.model_rebuild()
 Availability.model_rebuild()
 AvailabilityStatus.model_rebuild()
+AwarenessLevel.model_rebuild()
+AwarenessMode.model_rebuild()
 Axis.model_rebuild()
 Bookmark.model_rebuild()
 BranchConditionType.model_rebuild()
@@ -61344,6 +61406,7 @@ TimeMappingKind.model_rebuild()
 TimeScale.model_rebuild()
 TimeScopedRelation.model_rebuild()
 AddressTenure.model_rebuild()
+AwarenessTenure.model_rebuild()
 ContainmentTenure.model_rebuild()
 EntityExistence.model_rebuild()
 InferenceTenure.model_rebuild()

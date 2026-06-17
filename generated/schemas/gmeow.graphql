@@ -159,6 +159,37 @@ enum AvailabilityStatusEnum
     availabilityStatusTentative
   }
 
+enum AwarenessLevelEnum
+  {
+    levelAlert
+    levelDrowsy
+    levelHyperalert
+    levelObtunded
+    levelRelaxed
+    levelUnresponsive
+  }
+
+enum AwarenessModeEnum
+  {
+    modeAsleep
+    modeComatose
+    modeDormant
+    modeDreaming
+    modeDrowsy
+    modeFlow
+    modeFocused
+    modeLucidDreaming
+    modeMeditative
+    modeMindWandering
+    modeOfflineReplay
+    modeOnlineInference
+    modeREM
+    modeSampling
+    modeSedated
+    modeTraining
+    modeWaking
+  }
+
 enum AxisEnum
   {
     axisAddressLocality
@@ -3990,6 +4021,21 @@ type Availability
 
 type AvailabilityStatus
   {
+  }
+
+type AwarenessLevel
+  {
+    levelRank: [Int]
+  }
+
+type AwarenessMode
+  {
+  }
+
+type AwarenessTenure
+  {
+    duringInterval: [TimeInterval]
+    awarenessSubject: [Agent]
   }
 
 type Axis

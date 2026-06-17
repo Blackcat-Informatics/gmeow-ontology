@@ -159,6 +159,37 @@ export enum AvailabilityStatusEnum {
     tentative = "availabilityStatusTentative",
 };
 
+export enum AwarenessLevelEnum {
+
+    alert = "levelAlert",
+    drowsy = "levelDrowsy",
+    hyperalert = "levelHyperalert",
+    obtunded = "levelObtunded",
+    relaxed = "levelRelaxed",
+    unresponsive = "levelUnresponsive",
+};
+
+export enum AwarenessModeEnum {
+
+    asleep = "modeAsleep",
+    comatose = "modeComatose",
+    dormant = "modeDormant",
+    dreaming = "modeDreaming",
+    drowsy = "modeDrowsy",
+    flow = "modeFlow",
+    focused = "modeFocused",
+    lucid_dreaming = "modeLucidDreaming",
+    meditative = "modeMeditative",
+    mind_wandering = "modeMindWandering",
+    offline_replay = "modeOfflineReplay",
+    online_inference = "modeOnlineInference",
+    REM_sleep = "modeREM",
+    sampling = "modeSampling",
+    sedated = "modeSedated",
+    training = "modeTraining",
+    waking = "modeWaking",
+};
+
 export enum AxisEnum {
 
     address_locality_axis = "axisAddressLocality",
@@ -3550,6 +3581,23 @@ export interface Availability {
 
 
 export interface AvailabilityStatus {
+}
+
+
+
+export interface AwarenessLevel {
+    levelRank?: number[],
+}
+
+
+
+export interface AwarenessMode {
+}
+
+
+
+export interface AwarenessTenure extends TimeScopedRelation {
+    awarenessSubject?: Agent[],
 }
 
 
