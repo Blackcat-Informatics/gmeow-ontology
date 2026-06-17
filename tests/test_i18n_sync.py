@@ -13,6 +13,7 @@ from gmeow_tools.cli_dev import app as dev_app
 from gmeow_tools.i18n_sync import (
     PoEntry,
     PoParseError,
+    _unescape_turtle,
     apply_md_sync,
     parse_po,
     sync_english_file,
@@ -125,6 +126,29 @@ def test_parse_po_continuation_without_field_raises() -> None:
     text = '"orphan string"'
     with pytest.raises(PoParseError, match="continuation line without a field"):
         parse_po(text)
+
+
+class TestUnescapeTurtle:
+    """Regression tests for _unescape_turtle UTF-8 handling."""
+
+    def test_accented_literal_unchanged(self) -> None:
+        assert _unescape_turtle("pâté") == "pâté"
+
+    def test_non_latin_literal_unchanged(self) -> None:
+        assert _unescape_turtle("日本語") == "日本語"
+
+    def test_mix_of_escapes_and_utf8(self) -> None:
+        assert _unescape_turtle("Line 1\\nLine 2 — pâté") == "Line 1\nLine 2 — pâté"
+
+    def test_unicode_escape_non_ascii(self) -> None:
+        assert _unescape_turtle("p\\u00E2té") == "pâté"
+
+    def test_backslash_and_quote_escapes(self) -> None:
+        assert _unescape_turtle(r"a\\b\"c") == r'a\b"c'
+
+    def test_invalid_escape_raises(self) -> None:
+        with pytest.raises(PoParseError, match="invalid Turtle escape"):
+            _unescape_turtle("bad\\x")
 
 
 def _write_ttl(tmp_path: Path, content: str) -> Path:

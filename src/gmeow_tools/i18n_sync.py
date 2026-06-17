@@ -91,11 +91,62 @@ def _unescape_po(value: str) -> str:
 
 
 def _unescape_turtle(value: str) -> str:
-    """Decode a Turtle string literal into its lexical form."""
-    try:
-        return value.encode("utf-8").decode("unicode_escape")
-    except UnicodeDecodeError as exc:
-        raise PoParseError(f"invalid Turtle escape sequence: {exc}") from exc
+    r"""Decode a Turtle string literal into its lexical form.
+
+    Handles ``\n``, ``\t``, ``\r``, ``\\``, ``\"``, ``\uXXXX`` and
+    ``\UXXXXXXXX`` while leaving literal UTF-8 characters untouched.
+    """
+    result: list[str] = []
+    i = 0
+    length = len(value)
+    while i < length:
+        ch = value[i]
+        if ch != "\\":
+            result.append(ch)
+            i += 1
+            continue
+
+        if i + 1 >= length:
+            raise PoParseError("invalid Turtle escape sequence")
+
+        next_ch = value[i + 1]
+        if next_ch == "n":
+            result.append("\n")
+            i += 2
+        elif next_ch == "t":
+            result.append("\t")
+            i += 2
+        elif next_ch == "r":
+            result.append("\r")
+            i += 2
+        elif next_ch == "\\":
+            result.append("\\")
+            i += 2
+        elif next_ch == '"':
+            result.append('"')
+            i += 2
+        elif next_ch == "u":
+            if i + 6 > length:
+                raise PoParseError("invalid Turtle escape sequence")
+            hex_chars = value[i + 2 : i + 6]
+            try:
+                result.append(chr(int(hex_chars, 16)))
+            except ValueError as exc:
+                raise PoParseError(f"invalid Turtle escape sequence: {exc}") from exc
+            i += 6
+        elif next_ch == "U":
+            if i + 10 > length:
+                raise PoParseError("invalid Turtle escape sequence")
+            hex_chars = value[i + 2 : i + 10]
+            try:
+                result.append(chr(int(hex_chars, 16)))
+            except ValueError as exc:
+                raise PoParseError(f"invalid Turtle escape sequence: {exc}") from exc
+            i += 10
+        else:
+            raise PoParseError("invalid Turtle escape sequence")
+
+    return "".join(result)
 
 
 def _escape_turtle_single(value: str) -> str:
