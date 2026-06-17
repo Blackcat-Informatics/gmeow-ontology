@@ -951,10 +951,16 @@ classes:
   DocumentationConcern:
     class_uri: https://blackcatinformatics.ca/gmeow/DocumentationConcern
     title: Documentation Concern
+  DoxasticStandpointClaim:
+    class_uri: https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim
+    title: doxastic standpoint claim
+    is_a: StandpointClaim
+    slots:
+    - claimOfBelief
   DoxasticState:
     class_uri: https://blackcatinformatics.ca/gmeow/DoxasticState
     title: Doxastic State
-    is_a: MentalMoment
+    is_a: JustificationGround
     slots:
     - credence
     - doxasticClaim
@@ -1722,6 +1728,18 @@ classes:
     - jurisdictionDeterminacy
     - jurisdictionPlace
     - jurisdictionPolity
+  JustificationGround:
+    class_uri: https://blackcatinformatics.ca/gmeow/JustificationGround
+    title: Justification Ground
+  JustificationStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/JustificationStatus
+    title: Justification Status
+  JustificationSubject:
+    class_uri: https://blackcatinformatics.ca/gmeow/JustificationSubject
+    title: Justification Subject
+    slots:
+    - defeatedBy
+    - justifiedBy
   KeyScheme:
     class_uri: https://blackcatinformatics.ca/gmeow/KeyScheme
     title: Key Scheme
@@ -3525,7 +3543,7 @@ classes:
   StandpointClaim:
     class_uri: https://blackcatinformatics.ca/gmeow/StandpointClaim
     title: Standpoint Claim
-    is_a: Observation
+    is_a: JustificationSubject
     slots:
     - argumentAcceptability
     - claimModality
@@ -5038,6 +5056,12 @@ slots:
     range: StandpointModality
     domain: StandpointClaim
     multivalued: false
+  claimOfBelief:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimOfBelief
+    title: claim of belief
+    range: DoxasticState
+    domain: DoxasticStandpointClaim
+    multivalued: false
   claimVeridicality:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimVeridicality
     title: claim veridicality
@@ -5742,6 +5766,12 @@ slots:
     title: deeper than
     range: KnowledgeLevel
     domain: KnowledgeLevel
+    multivalued: true
+  defeatedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/defeatedBy
+    title: defeated by
+    range: JustificationStatus
+    domain: JustificationSubject
     multivalued: true
   defeaterKind:
     slot_uri: https://blackcatinformatics.ca/gmeow/defeaterKind
@@ -7918,7 +7948,7 @@ slots:
   heldStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/heldStandpoint
     title: held standpoint
-    range: StandpointClaim
+    range: DoxasticStandpointClaim
     domain: Event
     multivalued: true
   holdingAgent:
@@ -8438,6 +8468,12 @@ slots:
     range: Agent
     domain: JurisdictionTenure
     multivalued: false
+  justifiedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/justifiedBy
+    title: justified by
+    range: JustificationGround
+    domain: JustificationSubject
+    multivalued: true
   keyAlgorithm:
     slot_uri: https://blackcatinformatics.ca/gmeow/keyAlgorithm
     title: key algorithm
@@ -10308,7 +10344,7 @@ slots:
   projectedStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/projectedStandpoint
     title: projected standpoint
-    range: StandpointClaim
+    range: DoxasticStandpointClaim
     domain: Event
     multivalued: true
   projectionFunction:
@@ -15709,6 +15745,21 @@ enums:
       invoiceStatusSent:
         meaning: https://blackcatinformatics.ca/gmeow/invoiceStatusSent
         title: sent
+  JustificationStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/JustificationStatus
+    permissible_values:
+      justificationStatusDefeated:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusDefeated
+        title: defeated
+      justificationStatusGettier:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusGettier
+        title: Gettier case
+      justificationStatusRebutted:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusRebutted
+        title: rebutted
+      justificationStatusUndercut:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusUndercut
+        title: undercut
   KeySchemeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/KeyScheme
     permissible_values:

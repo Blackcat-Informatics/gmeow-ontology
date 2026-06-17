@@ -574,7 +574,7 @@ gmeow:paramDeceptionCue a fno:Parameter ;
 gmeow:paramHeldStandpoint a fno:Parameter ;
     fno:predicate gmeow:heldStandpoint ;
     fno:required true ;
-    fno:type gmeow:StandpointClaim .
+    fno:type gmeow:DoxasticStandpointClaim .
 
 gmeow:paramImplicates a fno:Parameter ;
     fno:predicate gmeow:implicates ;
@@ -589,7 +589,7 @@ gmeow:paramMaximViolationType a fno:Parameter ;
 gmeow:paramProjectedStandpoint a fno:Parameter ;
     fno:predicate gmeow:projectedStandpoint ;
     fno:required true ;
-    fno:type gmeow:StandpointClaim .
+    fno:type gmeow:DoxasticStandpointClaim .
 
 gmeow:paramPropagationMutationDistance a fno:Parameter ;
     fno:predicate gmeow:propagationMutationDistance ;

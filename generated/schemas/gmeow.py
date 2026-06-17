@@ -1293,6 +1293,13 @@ class InvoiceStatusEnum(str, Enum):
     sent = "invoiceStatusSent"
 
 
+class JustificationStatusEnum(str, Enum):
+    defeated = "justificationStatusDefeated"
+    Gettier_case = "justificationStatusGettier"
+    rebutted = "justificationStatusRebutted"
+    undercut = "justificationStatusUndercut"
+
+
 class KeySchemeEnum(str, Enum):
     Nostr = "keySchemeNostr"
     OpenPGP = "keySchemePGP"
@@ -5531,7 +5538,7 @@ class Event(ConfiguredBaseModel):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -5564,7 +5571,7 @@ class Event(ConfiguredBaseModel):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -5682,7 +5689,7 @@ class Activity(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -5715,7 +5722,7 @@ class Activity(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -5842,7 +5849,7 @@ class BuildActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -5875,7 +5882,7 @@ class BuildActivity(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -5996,7 +6003,7 @@ class CodeReview(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -6029,7 +6036,7 @@ class CodeReview(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -6180,7 +6187,7 @@ class Commit(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -6213,7 +6220,7 @@ class Commit(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -6591,7 +6598,7 @@ class Execution(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -6624,7 +6631,7 @@ class Execution(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -6881,7 +6888,7 @@ class FinancialTransaction(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -6914,7 +6921,7 @@ class FinancialTransaction(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -7222,7 +7229,7 @@ class GTSCompaction(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -7255,7 +7262,7 @@ class GTSCompaction(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -8854,7 +8861,7 @@ class ImportActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -8887,7 +8894,7 @@ class ImportActivity(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -17818,7 +17825,7 @@ class JournalEntry(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -17851,7 +17858,7 @@ class JournalEntry(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -17875,6 +17882,54 @@ class JournalEntry(Event):
     violates: Optional[list[Norm]] = Field(default=None, title="violates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/violates'} })
+
+
+class JustificationGround(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/JustificationGround',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Justification Ground'})
+
+    pass
+
+
+class DoxasticState(JustificationGround):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DoxasticState',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Doxastic State'})
+
+    credence: Optional[list[Decimal]] = Field(default=None, title="credence", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credence'} })
+    doxasticClaim: Optional[StandpointClaim] = Field(default=None, title="doxastic claim", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/doxasticClaim'} })
+    doxasticContent: Optional[Proposition] = Field(default=None, title="doxastic content", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/doxasticContent'} })
+    epistemicAgent: Optional[Agent] = Field(default=None, title="epistemic agent", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicAgent'} })
+
+
+class JustificationStatus(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/JustificationStatus',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Justification Status'})
+
+    pass
+
+
+class JustificationSubject(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/JustificationSubject',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Justification Subject'})
+
+    defeatedBy: Optional[list[JustificationStatus]] = Field(default=None, title="defeated by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/defeatedBy'} })
+    justifiedBy: Optional[list[JustificationGround]] = Field(default=None, title="justified by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/justifiedBy'} })
 
 
 class KeyScheme(ConfiguredBaseModel):
@@ -18453,7 +18508,7 @@ class LanguageChangeEvent(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -18486,7 +18541,7 @@ class LanguageChangeEvent(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -18612,7 +18667,7 @@ class LanguageCreation(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -18645,7 +18700,7 @@ class LanguageCreation(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -19449,7 +19504,7 @@ class LedgerEvent(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -19482,7 +19537,7 @@ class LedgerEvent(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -20212,7 +20267,7 @@ class LifeEvent(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -20245,7 +20300,7 @@ class LifeEvent(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -23593,25 +23648,6 @@ class CognitiveState(MentalMoment):
     pass
 
 
-class DoxasticState(MentalMoment):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DoxasticState',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Doxastic State'})
-
-    credence: Optional[list[Decimal]] = Field(default=None, title="credence", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
-         'domain_of': ['DoxasticState'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credence'} })
-    doxasticClaim: Optional[StandpointClaim] = Field(default=None, title="doxastic claim", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
-         'domain_of': ['DoxasticState'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/doxasticClaim'} })
-    doxasticContent: Optional[Proposition] = Field(default=None, title="doxastic content", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
-         'domain_of': ['DoxasticState'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/doxasticContent'} })
-    epistemicAgent: Optional[Agent] = Field(default=None, title="epistemic agent", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
-         'domain_of': ['DoxasticState'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicAgent'} })
-
-
 class MentalProcess(Event):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MentalProcess',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -23716,7 +23752,7 @@ class MentalProcess(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -23749,7 +23785,7 @@ class MentalProcess(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -23879,7 +23915,7 @@ class Experience(MentalProcess):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -23912,7 +23948,7 @@ class Experience(MentalProcess):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -24045,7 +24081,7 @@ class InferenceProcess(MentalProcess):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -24078,7 +24114,7 @@ class InferenceProcess(MentalProcess):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -24223,7 +24259,7 @@ class LearningEvent(MentalProcess):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -24256,7 +24292,7 @@ class LearningEvent(MentalProcess):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -24391,7 +24427,7 @@ class Merge(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -24424,7 +24460,7 @@ class Merge(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -26157,7 +26193,7 @@ class ModelInvocation(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -26190,7 +26226,7 @@ class ModelInvocation(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -29370,7 +29406,7 @@ class ObservationalActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -29403,7 +29439,7 @@ class ObservationalActivity(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -31758,7 +31794,7 @@ class Payment(FinancialTransaction):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -31791,7 +31827,7 @@ class Payment(FinancialTransaction):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -36498,7 +36534,7 @@ class Push(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -36531,7 +36567,7 @@ class Push(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -38792,7 +38828,7 @@ class Release(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -38825,7 +38861,7 @@ class Release(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -39333,7 +39369,7 @@ class RetrievalEvent(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -39366,7 +39402,7 @@ class RetrievalEvent(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -48584,7 +48620,7 @@ class ReadingOrder(Standpoint):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
-class StandpointClaim(Observation):
+class StandpointClaim(JustificationSubject):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/StandpointClaim',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Standpoint Claim'})
@@ -48616,39 +48652,55 @@ class StandpointClaim(Observation):
     inferredFrom: Optional[list[str]] = Field(default=None, title="inferred from", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
          'domain_of': ['StandpointClaim'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inferredFrom'} })
-    credibilityScore: Optional[list[Decimal]] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
-    facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
-    facetVantage: Optional[list[Agent]] = Field(default=None, title="facet vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetVantage'} })
-    observationEvent: Optional[list[Event]] = Field(default=None, title="observation event", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationEvent'} })
-    observationMethod: Optional[ObservationMethod] = Field(default=None, title="observation method", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationMethod'} })
-    observationResult: Optional[list[Entity]] = Field(default=None, title="observation result", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationResult'} })
-    observationType: Optional[list[ObservationType]] = Field(default=None, title="observation type", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationType'} })
-    observedFeature: Optional[list[str]] = Field(default=None, title="observed feature", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observedFeature'} })
-    perceptionEnvironment: Optional[SensoryEnvironment] = Field(default=None, title="perception environment", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/perceptionEnvironment'} })
-    timbreObservationResult: Optional[TimbreDescriptor] = Field(default=None, title="timbre observation result", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/timbreObservationResult'} })
-    vantage: Optional[list[Entity]] = Field(default=None, title="vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/vantage'} })
+    defeatedBy: Optional[list[JustificationStatus]] = Field(default=None, title="defeated by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/defeatedBy'} })
+    justifiedBy: Optional[list[JustificationGround]] = Field(default=None, title="justified by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/justifiedBy'} })
+
+
+class DoxasticStandpointClaim(StandpointClaim):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'doxastic standpoint claim'})
+
+    claimOfBelief: Optional[DoxasticState] = Field(default=None, title="claim of belief", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticStandpointClaim',
+         'domain_of': ['DoxasticStandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimOfBelief'} })
+    argumentAcceptability: Optional[list[Decimal]] = Field(default=None, title="argument acceptability", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/argumentAcceptability'} })
+    claimModality: Optional[StandpointModality] = Field(default=None, title="claim modality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimModality'} })
+    claimVeridicality: Optional[list[ClaimVeridicality]] = Field(default=None, title="claim veridicality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimVeridicality'} })
+    competesWith: Optional[list[StandpointClaim]] = Field(default=None, title="competes with", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/competesWith'} })
+    defeaterKind: Optional[list[DefeaterKind]] = Field(default=None, title="defeater kind", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/defeaterKind'} })
+    explains: Optional[list[str]] = Field(default=None, title="explains", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/explains'} })
+    explanatoryScore: Optional[list[Decimal]] = Field(default=None, title="explanatory score", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/explanatoryScore'} })
+    inferenceMode: Optional[list[InferenceMode]] = Field(default=None, title="inference mode", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/inferenceMode'} })
+    inferredFrom: Optional[list[str]] = Field(default=None, title="inferred from", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/inferredFrom'} })
+    defeatedBy: Optional[list[JustificationStatus]] = Field(default=None, title="defeated by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/defeatedBy'} })
+    justifiedBy: Optional[list[JustificationGround]] = Field(default=None, title="justified by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/justifiedBy'} })
 
 
 class SensoryPerception(StandpointClaim):
@@ -48686,39 +48738,12 @@ class SensoryPerception(StandpointClaim):
     inferredFrom: Optional[list[str]] = Field(default=None, title="inferred from", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
          'domain_of': ['StandpointClaim'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inferredFrom'} })
-    credibilityScore: Optional[list[Decimal]] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
-    facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
-    facetVantage: Optional[list[Agent]] = Field(default=None, title="facet vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetVantage'} })
-    observationEvent: Optional[list[Event]] = Field(default=None, title="observation event", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationEvent'} })
-    observationMethod: Optional[ObservationMethod] = Field(default=None, title="observation method", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationMethod'} })
-    observationResult: Optional[list[Entity]] = Field(default=None, title="observation result", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationResult'} })
-    observationType: Optional[list[ObservationType]] = Field(default=None, title="observation type", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationType'} })
-    observedFeature: Optional[list[str]] = Field(default=None, title="observed feature", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observedFeature'} })
-    perceptionEnvironment: Optional[SensoryEnvironment] = Field(default=None, title="perception environment", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/perceptionEnvironment'} })
-    timbreObservationResult: Optional[TimbreDescriptor] = Field(default=None, title="timbre observation result", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/timbreObservationResult'} })
-    vantage: Optional[list[Entity]] = Field(default=None, title="vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/vantage'} })
+    defeatedBy: Optional[list[JustificationStatus]] = Field(default=None, title="defeated by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/defeatedBy'} })
+    justifiedBy: Optional[list[JustificationGround]] = Field(default=None, title="justified by", json_schema_extra = { "linkml_meta": {'domain': 'JustificationSubject',
+         'domain_of': ['JustificationSubject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/justifiedBy'} })
 
 
 class StandpointModality(ConfiguredBaseModel):
@@ -50582,7 +50607,7 @@ class Task(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -50615,7 +50640,7 @@ class Task(Event):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -52707,7 +52732,7 @@ class ToolCall(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -52740,7 +52765,7 @@ class ToolCall(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -54195,7 +54220,7 @@ class VerificationActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    heldStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
     implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -54228,7 +54253,7 @@ class VerificationActivity(Activity):
     predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
-    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[DoxasticStandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
     propagationMutationDistance: Optional[list[int]] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
@@ -61323,6 +61348,10 @@ InvoiceStatus.model_rebuild()
 Issue.model_rebuild()
 Item.model_rebuild()
 JournalEntry.model_rebuild()
+JustificationGround.model_rebuild()
+DoxasticState.model_rebuild()
+JustificationStatus.model_rebuild()
+JustificationSubject.model_rebuild()
 KeyScheme.model_rebuild()
 KinRelationship.model_rebuild()
 CoupleRelationship.model_rebuild()
@@ -61377,7 +61406,6 @@ Employment.model_rebuild()
 MemoryKind.model_rebuild()
 MentalMoment.model_rebuild()
 CognitiveState.model_rebuild()
-DoxasticState.model_rebuild()
 MentalProcess.model_rebuild()
 Experience.model_rebuild()
 InferenceProcess.model_rebuild()
@@ -61633,6 +61661,7 @@ Spectrum.model_rebuild()
 Standpoint.model_rebuild()
 ReadingOrder.model_rebuild()
 StandpointClaim.model_rebuild()
+DoxasticStandpointClaim.model_rebuild()
 SensoryPerception.model_rebuild()
 StandpointModality.model_rebuild()
 StepParentChild.model_rebuild()

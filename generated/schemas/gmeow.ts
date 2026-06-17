@@ -1313,6 +1313,14 @@ export enum InvoiceStatusEnum {
     sent = "invoiceStatusSent",
 };
 
+export enum JustificationStatusEnum {
+
+    defeated = "justificationStatusDefeated",
+    Gettier_case = "justificationStatusGettier",
+    rebutted = "justificationStatusRebutted",
+    undercut = "justificationStatusUndercut",
+};
+
 export enum KeySchemeEnum {
 
     Nostr = "keySchemeNostr",
@@ -4394,7 +4402,13 @@ export interface DocumentationConcern {
 
 
 
-export interface DoxasticState extends MentalMoment {
+export interface DoxasticStandpointClaim extends StandpointClaim {
+    claimOfBelief?: DoxasticState,
+}
+
+
+
+export interface DoxasticState extends JustificationGround {
     credence?: number[],
     doxasticClaim?: StandpointClaim,
     doxasticContent?: Proposition,
@@ -4626,7 +4640,7 @@ export interface Event {
     hasDuration?: Duration[],
     hasParticipant?: Agent[],
     hasSubEvent?: Event[],
-    heldStandpoint?: StandpointClaim[],
+    heldStandpoint?: DoxasticStandpointClaim[],
     implicates?: Entity[],
     latestEnd?: string[],
     maximViolationType?: MaximViolationType[],
@@ -4637,7 +4651,7 @@ export interface Event {
     overlaps?: Event[],
     performanceOf?: CreativeWork[],
     predecessorOrganization?: Organization[],
-    projectedStandpoint?: StandpointClaim[],
+    projectedStandpoint?: DoxasticStandpointClaim[],
     propagationMutationDistance?: number[],
     startedBy?: Event[],
     starts?: Event[],
@@ -5264,6 +5278,23 @@ export interface JurisdictionTenure extends TimeScopedRelation {
     jurisdictionDeterminacy?: Determinacy[],
     jurisdictionPlace?: Place,
     jurisdictionPolity?: Agent,
+}
+
+
+
+export interface JustificationGround {
+}
+
+
+
+export interface JustificationStatus {
+}
+
+
+
+export interface JustificationSubject {
+    defeatedBy?: JustificationStatus[],
+    justifiedBy?: JustificationGround[],
 }
 
 
@@ -7335,7 +7366,7 @@ export interface Standpoint extends Entity {
 
 
 
-export interface StandpointClaim extends Observation {
+export interface StandpointClaim extends JustificationSubject {
     argumentAcceptability?: number[],
     claimModality?: StandpointModality,
     claimVeridicality?: ClaimVeridicality[],
