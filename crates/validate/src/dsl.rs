@@ -68,7 +68,8 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
     }
 
     Ok(DslMerge {
-        data_nt: dump_store_to_ntriples(&store),
+        data_nt: dump_store_to_ntriples(&store)
+            .map_err(|e| format!("N-Triples serialization failed: {e}"))?,
         focus_to_file,
     })
 }
@@ -81,7 +82,7 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
 /// Returns `Err(message)` if any file fails to read or parse.
 pub fn merge_to_ntriples(paths: &[PathBuf]) -> Result<String, String> {
     let store = build_merged_store(paths)?;
-    Ok(dump_store_to_ntriples(&store))
+    dump_store_to_ntriples(&store).map_err(|e| format!("N-Triples serialization failed: {e}"))
 }
 
 /// Build one merged store from the Turtle `paths` (lenient parsing).

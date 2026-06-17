@@ -120,6 +120,11 @@ fn structural_lint(
     source_paths: Vec<String>,
     cfg: PyLintConfig,
 ) -> PyResult<Py<PyAny>> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "structural_lint: paths to lint must not be empty",
+        ));
+    }
     let store = build_store_or_err(&source_paths)?;
     let report = lint::structural_lint(&store, &cfg.to_engine());
     lint_report_dict(py, report)
@@ -132,6 +137,11 @@ fn term_naming_lint(
     source_paths: Vec<String>,
     cfg: PyLintConfig,
 ) -> PyResult<Py<PyAny>> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "term_naming_lint: paths to lint must not be empty",
+        ));
+    }
     let store = build_store_or_err(&source_paths)?;
     let report = lint::term_naming_lint(&store, &cfg.to_engine());
     lint_report_dict(py, report)
@@ -172,6 +182,11 @@ fn typed_terms(
     source_paths: Vec<String>,
     cfg: PyLintConfig,
 ) -> PyResult<Py<PyAny>> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "typed_terms: paths to scan must not be empty",
+        ));
+    }
     let store = build_store_or_err(&source_paths)?;
     let pairs: Vec<(String, String)> = lint::collect_typed_terms(&store, &cfg.to_engine())
         .into_iter()
@@ -187,6 +202,11 @@ fn declared_terms(
     source_paths: Vec<String>,
     cfg: PyLintConfig,
 ) -> PyResult<Py<PyAny>> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "declared_terms: paths to scan must not be empty",
+        ));
+    }
     let store = build_store_or_err(&source_paths)?;
     let terms = lint::declared_terms(&store, &cfg.to_engine());
     Ok(PyList::new(py, &terms)?.into_any().unbind())
@@ -198,6 +218,11 @@ fn declared_terms(
 /// `"syntax error in {path}: {exc}"`. Returns `{"errors": [...], "warnings": []}`.
 #[pyfunction]
 fn check_syntax(py: Python<'_>, paths: Vec<String>) -> PyResult<Py<PyAny>> {
+    if paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "check_syntax: paths to check must not be empty",
+        ));
+    }
     let mut errors: Vec<String> = Vec::new();
     for path in &paths {
         if let Err(exc) = store::parse_file(std::path::Path::new(path)) {
@@ -295,6 +320,11 @@ fn reasoning_invariants(
     source_paths: Vec<String>,
     namespace: String,
 ) -> PyResult<Py<PyAny>> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "reasoning_invariants: paths to check must not be empty",
+        ));
+    }
     run_reasoning_paths(py, gufo::reasoning_invariants, source_paths, namespace)
 }
 
@@ -415,6 +445,11 @@ fn coverage_analyze(
 /// no fallback).
 #[pyfunction]
 fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "merge_to_ntriples: paths to merge must not be empty",
+        ));
+    }
     let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
     dsl::merge_to_ntriples(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
 }
@@ -432,6 +467,11 @@ fn dsl_merge_with_provenance(
     py: Python<'_>,
     dsl_paths: Vec<String>,
 ) -> PyResult<(String, Py<PyAny>)> {
+    if dsl_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "dsl_merge_with_provenance: paths to merge must not be empty",
+        ));
+    }
     let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
     let merge =
         dsl::merge_with_provenance(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;

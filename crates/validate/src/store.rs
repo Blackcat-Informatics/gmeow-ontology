@@ -21,7 +21,7 @@ use std::path::{Path, PathBuf};
 
 use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Quad, Term};
-use oxigraph::store::Store;
+use oxigraph::store::{SerializerError, Store};
 
 use crate::model::owl;
 
@@ -159,12 +159,17 @@ pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
 /// for `rdflib.Graph.serialize(format="nt")` on the validation path (#579):
 /// `merge_to_ntriples` builds the store from the Turtle sources and dumps it so
 /// the SHACL data graph never touches rdflib.
-pub fn dump_store_to_ntriples(store: &Store) -> String {
+///
+/// # Errors
+///
+/// Returns `Err(SerializerError)` if the oxigraph serializer fails (e.g., an
+/// unexpected `Storage` error from the underlying store).
+pub fn dump_store_to_ntriples(store: &Store) -> Result<String, SerializerError> {
     let mut buf: Vec<u8> = Vec::new();
-    store
-        .dump_graph_to_writer(GraphNameRef::DefaultGraph, RdfFormat::NTriples, &mut buf)
-        .expect("N-Triples serialisation into Vec<u8> is infallible");
-    String::from_utf8(buf).expect("oxigraph N-Triples output is valid UTF-8")
+    store.dump_graph_to_writer(GraphNameRef::DefaultGraph, RdfFormat::NTriples, &mut buf)?;
+    // SAFETY: The W3C N-Triples spec mandates US-ASCII output; oxigraph
+    // escapes all non-ASCII codepoints, so the byte buffer is valid UTF-8.
+    Ok(String::from_utf8(buf).expect("oxigraph N-Triples output is guaranteed UTF-8"))
 }
 
 #[cfg(test)]
@@ -261,7 +266,8 @@ mod tests {
         let nt = "<https://example.org/a> <https://example.org/p> <https://example.org/b> .\n";
         let store = build_store_from_nt(nt).expect("valid N-Triples must load");
         assert_eq!(store.len().unwrap(), 1);
-        let dumped = dump_store_to_ntriples(&store);
+        let dumped =
+            dump_store_to_ntriples(&store).expect("in-memory store serialization must succeed");
         // oxigraph emits the same single triple (whitespace-normalized).
         assert!(dumped.contains("<https://example.org/a>"));
         assert!(dumped.contains("<https://example.org/p>"));
