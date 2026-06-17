@@ -163,6 +163,40 @@ The governing rules:
 
 ProbLog-style inference is thus a *profile*, not a default reading of every confidence number.
 
+#### Marginals by weighted model counting (v6, #506)
+
+Probabilistic inference under `logic:ProbabilisticProfile` computes **exact marginals by weighted
+model counting**. A probabilistic fact is a Bernoulli variable; a **total choice** θ fixes a truth
+value for every probabilistic variable. The probability of θ is:
+
+- under **`logic:FullIndependence`**: `P(θ) = ∏_{f true in θ} p_f · ∏_{f false in θ} (1 − p_f)`;
+- under a **`logic:DependencyModel`**: a declared explicit joint table over a correlated fact set
+  replaces the product for those facts (each `logic:JointOutcome` carries its `logic:jointProbability`,
+  and the outcomes must be exhaustive and sum to one); facts outside the correlated set stay
+  independent and factorize as usual.
+
+For each θ the least Herbrand model of `(Horn rules ∪ deterministic facts ∪ the facts θ makes true)`
+is computed, and the **marginal of a query binding** is `Σ_{θ : binding ∈ model(θ)} P(θ)`. Inference
+is exact by enumeration — `#P-hard` in general, as the decidability certifier records
+(`probabilistic/#P-hard`).
+
+The further governing requirements (the named failure mode this prevents — treating un-modelled
+metadata as a probability model):
+
+> A declared `logic:probabilityModel` is **required**. A `logic:ProbabilisticProfile` query with
+> probabilistic facts but **no** declared model returns status `unknown` — it never silently assumes
+> independence. A `logic:confidence` (or `logic:weight`, or `logic:evidenceStrength`) annotation is
+> **never** read as a probability: a confidence-annotated fact is an asserted (deterministic) fact
+> whose annotation is metadata, so its marginal is `1.0`, not the confidence value.
+
+**Query surface and answer schema.** The query layer exposes the model and probabilistic facts as
+directives (a compiled surface for the ontology terms above, exactly as `:- counterfactual(...)` is
+the surface for `logic:counterfactualOf`): `:- probability_model(full_independence | dependency).`,
+`:- probability(pred(S, O), p).`, `:- joint(p, atom1, atom2, …).` (one joint outcome — the listed
+atoms are true, the rest false), and `:- confidence(pred(S, O), c).` (asserted-fact metadata, never a
+probability). Each answer binding under this profile carries an extra `probability` field, e.g.
+`{ "X": "<…>", "probability": 0.75 }`; non-probabilistic profiles emit no such field.
+
 ## Turing-Completeness, Decidability, and Termination
 
 **Turing-completeness is a design goal, not a side effect.** `logic:` is meant to compute, not

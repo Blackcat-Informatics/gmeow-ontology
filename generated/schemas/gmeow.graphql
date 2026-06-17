@@ -1161,6 +1161,14 @@ enum GranularityLevelEnum
     granularityYear
   }
 
+enum GraphBoxRoleEnum
+  {
+    boxABox
+    boxCBox
+    boxRBox
+    boxTBox
+  }
+
 enum GrooveProfileEnum
   {
     grooveProfileSwing
@@ -9312,6 +9320,10 @@ type GrammaticalTense
 type GranularityLevel
   {
     coarserThan: [GranularityLevel]
+  }
+
+type GraphBoxRole
+  {
   }
 
 type GrooveProfile

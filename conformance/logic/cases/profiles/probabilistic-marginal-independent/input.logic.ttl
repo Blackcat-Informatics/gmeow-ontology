@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/probabilistic-marginal-independent
+# AC (#506): marginals computed correctly under a DECLARED independence model.
+# Two independent probabilistic facts (rain=0.5, sprinkler=0.5) feed a noisy-OR
+# rule (wet :- rain; wet :- sprinkler). Under logic:FullIndependence the marginal
+# of `wet` is 1 - (1-0.5)(1-0.5) = 0.75. The probabilistic facts, the model, and
+# the Horn rules live in queries/wet.logic; the EDB here is only a world seed.
+#
+# See README.md for the full total-choice (θ) enumeration that the 0.75 golden is.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/probabilistic-marginal-independent/> .
+
+# Schema: a sort for the projection back-ends; the inference is query-driven.
+ex:Condition a logic:Kind .

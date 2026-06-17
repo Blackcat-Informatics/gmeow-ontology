@@ -154,6 +154,12 @@ pub mod sh {
     pub const NODE: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#node");
 
+    pub const REIFIER_SHAPE: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#reifierShape");
+
+    pub const REIFICATION_REQUIRED: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#reificationRequired");
+
     // ── Shape metadata (benign, not constraints) ───────────────────────────────
 
     pub const SEVERITY: NamedNodeRef<'static> =
@@ -328,6 +334,29 @@ pub mod sh {
 
     pub const NODE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#NodeConstraintComponent");
+
+    pub const REIFIER_SHAPE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#ReifierShapeConstraintComponent");
+}
+
+/// GMEOW namespace constants (`https://blackcatinformatics.ca/gmeow/`).
+pub mod gmeow {
+    use super::NamedNodeRef;
+
+    pub const GRAPH_BOX_ROLE: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("https://blackcatinformatics.ca/gmeow/graphBoxRole");
+
+    pub const BOX_ABOX: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("https://blackcatinformatics.ca/gmeow/boxABox");
+
+    pub const BOX_TBOX: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("https://blackcatinformatics.ca/gmeow/boxTBox");
+
+    pub const BOX_RBOX: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("https://blackcatinformatics.ca/gmeow/boxRBox");
+
+    pub const BOX_CBOX: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("https://blackcatinformatics.ca/gmeow/boxCBox");
 }
 
 /// RDF namespace constants (`http://www.w3.org/1999/02/22-rdf-syntax-ns#`).
@@ -345,6 +374,9 @@ pub mod rdf {
 
     pub const NIL: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
+
+    pub const REIFIES: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies");
 }
 
 /// RDFS namespace constants.

@@ -51905,6 +51905,23 @@
             "title": "GranularityLevelEnum",
             "type": "string"
         },
+        "GraphBoxRole": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "GraphBoxRole",
+            "type": "object"
+        },
+        "GraphBoxRoleEnum": {
+            "description": "",
+            "enum": [
+                "boxABox",
+                "boxCBox",
+                "boxRBox",
+                "boxTBox"
+            ],
+            "title": "GraphBoxRoleEnum",
+            "type": "string"
+        },
         "GrooveProfile": {
             "additionalProperties": false,
             "description": "",

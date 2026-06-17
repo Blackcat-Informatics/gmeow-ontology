@@ -1172,6 +1172,14 @@ export enum GranularityLevelEnum {
     year_level = "granularityYear",
 };
 
+export enum GraphBoxRoleEnum {
+
+    ABox_role = "boxABox",
+    CBox_role = "boxCBox",
+    RBox_role = "boxRBox",
+    TBox_role = "boxTBox",
+};
+
 export enum GrooveProfileEnum {
 
     swing_groove_profile = "grooveProfileSwing",
@@ -4961,6 +4969,11 @@ export interface GrammaticalTense {
 
 export interface GranularityLevel {
     coarserThan?: GranularityLevel[],
+}
+
+
+
+export interface GraphBoxRole {
 }
 
 

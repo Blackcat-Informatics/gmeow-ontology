@@ -53,6 +53,23 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    regenerate/check the bundle from canonical sources rather than resolving the
    binary file by hand.
 
+## Box Roles In The Package
+
+GTS keeps one transport waist, but the graphs inside that package serve
+different roles:
+
+| GTS surface | Box role | Meaning |
+|---|---|---|
+| default graph | TBox/RBox | The authored ontology vocabulary, properties, roles, and shape-visible annotations |
+| `gmeow:graph/statements` | CBox | RDF 1.2 reifiers and statement annotations: provenance, confidence, time, standpoint, evidence, and related assertion context |
+| `gmeow:graph/alignments` | TBox/RBox | Projection and mapping metadata that explains how GMEOW terms and properties bridge outward |
+| `gmeow:graph/imports` | TBox/RBox | Vendored or extracted reference vocabularies used for reasoning and validation context |
+| `gmeow:graph/metadata` | CBox/TBox | Package, citation, VoID/DCAT, and documentation metadata about the bundle itself |
+
+These roles are descriptive metadata for package readers and validation
+diagnostics. They do not change the narrow-waist rule: exports still consume the
+verified GTS fold, never the canonical source tree directly.
+
 ## Why
 
 Exporters that each re-read and re-interpret the sources drift from one

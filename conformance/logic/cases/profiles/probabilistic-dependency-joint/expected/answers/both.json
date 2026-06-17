@@ -1,0 +1,9 @@
+{
+  "bindings": [
+    {
+      "X": "<https://example.org/profiles/probabilistic-dependency-joint/on>",
+      "probability": 0.5
+    }
+  ],
+  "status": "ok"
+}

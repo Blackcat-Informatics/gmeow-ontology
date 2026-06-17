@@ -1,0 +1,9 @@
+{
+  "bindings": [
+    {
+      "X": "<https://example.org/profiles/probabilistic-marginal-independent/yes>",
+      "probability": 0.75
+    }
+  ],
+  "status": "ok"
+}
