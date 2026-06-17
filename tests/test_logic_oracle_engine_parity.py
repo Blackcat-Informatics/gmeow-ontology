@@ -66,7 +66,10 @@ from gmeow_tools.logic_materialize import (  # noqa: E402
     DerivedQuad,
     materialize_program,
 )
-from gmeow_tools.logic_projections import project_nemo  # noqa: E402
+from gmeow_tools.logic_projections import (  # noqa: E402
+    extract_nemo_rules_section,
+    project_nemo,
+)
 
 # --------------------------------------------------------------------------- #
 # Corpus root + case discovery
@@ -156,30 +159,10 @@ _CASE_PROFILE: dict[str, SemanticProfileId] = {
 # --------------------------------------------------------------------------- #
 
 
-def _extract_rules_section(nemo_content: str) -> str:
-    """Return only the ``% === Rules ===`` section from a ``.rls`` string.
-
-    The ``project_nemo`` output includes two sections:
-
-    * ``% === Ground facts (axioms) ===`` — schema-level metadata axioms
-      (logic:type declarations, logic:head / logic:body reification nodes).
-      These are NOT materialization inputs; they describe the rule structure
-      in RDF terms, and including them in the engine call produces spurious
-      output predicates (logic:body, logic:head etc.) with blank-node-like
-      IRI objects that the Rust decoder cannot round-trip.
-
-    * ``% === Rules ===`` — the actual Nemo inference rules.  These are the
-      only input the engine needs to reproduce the oracle's chase.
-
-    Returns everything from the rules-section header to the end of string.
-    If the header is absent (no rules in the program), returns an empty string.
-    """
-    marker = "% === Rules ==="
-    idx = nemo_content.find(marker)
-    if idx == -1:
-        return ""
-    # Return the rule text after the section header
-    return nemo_content[idx + len(marker) :].strip()
+# The canonical extractor lives in ``logic_projections`` (the runner and the
+# ``logic-certify`` CLI use the same Rust-authoritative certification path);
+# this alias keeps the call sites below readable.
+_extract_rules_section = extract_nemo_rules_section
 
 
 # --------------------------------------------------------------------------- #

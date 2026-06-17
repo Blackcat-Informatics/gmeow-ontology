@@ -69,7 +69,6 @@ from rdflib.compare import isomorphic
 
 from gmeow_tools.logic_certify import (
     PredicateDepGraph,
-    certify_program,
     stratify,
 )
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
@@ -87,6 +86,7 @@ from gmeow_tools.logic_materialize import (
 from gmeow_tools.logic_projections import (
     ProjectionResult,
     build_projection_report,
+    extract_nemo_rules_section,
     project_canonical_rdf12,
     project_datalog,
     project_gufo,
@@ -445,6 +445,59 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
         )
 
     return tuple(explanations)
+
+
+# --------------------------------------------------------------------------- #
+# Static certification (native, Rust-authoritative — issue #497)
+# --------------------------------------------------------------------------- #
+
+
+def _certify_native(
+    program: LogicProgram,
+    declared_profile: SemanticProfileId,
+    case_label: str,
+) -> dict[str, object]:
+    """Statically certify ``program`` against ``declared_profile`` via the Rust core.
+
+    The native ``gmeow_logic.certify`` certifier is the reasoning authority
+    (Principle 17, the "maximally use Rust" doctrine); the Python
+    ``logic_certify.certify_program`` oracle is retained only as a secondary
+    validator (``tests/test_logic_oracle_engine_parity.py``). The engine takes
+    the ``% === Rules ===`` section of ``project_nemo`` (the ground-fact axioms
+    are not certification inputs) plus the declared profile, and returns the
+    verdict dict (``certified``, ``decidability_class``, ``profile_id``, sorted
+    ``violations``) — the exact shape the conformance ``certification.json``
+    golden compares.
+
+    Args:
+        program: The parsed logic program IR.
+        declared_profile: The :class:`SemanticProfileId` the case declares.
+        case_label: Case name for error messages.
+
+    Returns:
+        The certification verdict as a JSON-able dict.
+
+    Raises:
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard
+            fail, no Python fallback) or the native certifier raises.
+    """
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_label}: gmeow_logic native extension is not installed "
+            "(certification is Rust-authoritative since #497) — run 'make logic-py'."
+        ) from exc
+
+    rules_only = extract_nemo_rules_section(project_nemo(program).content)
+    try:
+        verdict = gmeow_logic.certify(rules_only, str(declared_profile))
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_label}: gmeow_logic.certify failed for profile "
+            f"{declared_profile!s}: {exc}"
+        ) from exc
+    return dict(verdict)
 
 
 # --------------------------------------------------------------------------- #
@@ -880,11 +933,11 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             semantic_profile_str,
         )
 
-    # Static certification against the DECLARED profile (issue #502, Task 5).
-    # This is pure analysis over the IR and never raises; a non-empty
-    # ``violations`` list is surfaced (not raised) so the conformance diff can
-    # compare it as a golden artifact.
-    certification = certify_program(program, declared_profile).to_json()
+    # Static certification against the DECLARED profile (issue #502, Task 5;
+    # made Rust-authoritative in #497).  Pure analysis over the projected rules;
+    # a non-empty ``violations`` list is surfaced (not raised) so the conformance
+    # diff can compare it as a golden artifact.
+    certification = _certify_native(program, declared_profile, case_dir.name)
 
     # Build the input ConjunctiveGraph for the materializer.
     # Projection-only cases carry no named-graph worlds (flat Turtle program);
