@@ -1,0 +1,3 @@
+<https://example.org/profiles/goal-recursive-ancestor/a> <https://example.org/profiles/goal-recursive-ancestor/parentOf> <https://example.org/profiles/goal-recursive-ancestor/b> <https://example.org/profiles/goal-recursive-ancestor/world> .
+<https://example.org/profiles/goal-recursive-ancestor/b> <https://example.org/profiles/goal-recursive-ancestor/parentOf> <https://example.org/profiles/goal-recursive-ancestor/c> <https://example.org/profiles/goal-recursive-ancestor/world> .
+<https://example.org/profiles/goal-recursive-ancestor/c> <https://example.org/profiles/goal-recursive-ancestor/parentOf> <https://example.org/profiles/goal-recursive-ancestor/d> <https://example.org/profiles/goal-recursive-ancestor/world> .

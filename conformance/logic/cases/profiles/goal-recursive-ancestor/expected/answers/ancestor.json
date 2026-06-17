@@ -1,0 +1,14 @@
+{
+  "bindings": [
+    {
+      "Y": "<https://example.org/profiles/goal-recursive-ancestor/b>"
+    },
+    {
+      "Y": "<https://example.org/profiles/goal-recursive-ancestor/c>"
+    },
+    {
+      "Y": "<https://example.org/profiles/goal-recursive-ancestor/d>"
+    }
+  ],
+  "status": "ok"
+}

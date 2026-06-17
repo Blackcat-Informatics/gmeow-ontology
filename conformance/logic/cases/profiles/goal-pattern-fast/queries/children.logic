@@ -1,0 +1,8 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Pattern goal (no rules): routes through the SPARQL fast path.
+% ex:parentOf(ex:a, Y) matches both direct children b and c.
+% Expected: bindings Y={b,c}, status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-pattern-fast/').
+?- ex:parentOf(ex:a, Y).

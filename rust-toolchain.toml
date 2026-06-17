@@ -4,10 +4,16 @@
 # Nightly Rust is required because the `nemo` engine (a hard dependency of
 # gmeow-logic) uses unstable features: macro_metavar_expr, iter_intersperse,
 # and slice_swap_unchecked.  There is no fallback — nemo does not compile on
-# stable.  Floating nightly is chosen so CI always picks up fixes without
-# pinning churn; if a specific nightly breaks the build, pin it here.
-# Tracking issues: #499, PR #531 (logic-engine-scaffold).
+# stable.  Tracking issues: #499, PR #531 (logic-engine-scaffold).
+#
+# PINNED (was floating "nightly"): a later nightly (e.g. 9e2abe0c6) miscompiles
+# the embedded scryer-prolog backward-goal path into a deterministic allocation
+# abort (alloc.rs:121, SIGABRT) in CI — reproducing via BOTH the gmeow-logic
+# rust test and the sequential Python conformance path, on the recursive-ancestor
+# goal (#504). nightly-2025-11-08 resolves it cleanly. Floating nightly forfeits
+# reproducibility for an engine whose unsafe FFI is toolchain-sensitive; bump this
+# pin deliberately and re-verify the logic conformance suite. Tracking: #504.
+# CI keeps this in lockstep via the dtolnay `toolchain:` inputs in ci.yml.
 [toolchain]
-channel = "nightly"
+channel = "nightly-2025-11-08"
 components = ["rustfmt", "clippy"]
-targets = ["wasm32-unknown-unknown"]

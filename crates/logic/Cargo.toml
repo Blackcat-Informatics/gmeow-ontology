@@ -18,21 +18,19 @@ path = "src/lib.rs"
 [dependencies]
 # oxigraph in-memory Store only (worlds = named graphs), with RDF 1.2 support.
 # default-features off drops the `rocksdb` backend (oxrocksdb-sys, a C/C++ build
-# we never use and which oxigraph already excludes on wasm); `rdf-12` enables the
-# RDF 1.2 parser/serializer the whole logic layer is built on. One in-memory
-# store, one code path on every target — correct dependency configuration.
+# we never use); `rdf-12` enables the RDF 1.2 parser/serializer the whole logic
+# layer is built on. One in-memory store, one code path — correct dependency.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 blake3 = "1"
 sha1 = "0.10"
 
-# pyo3 is native-only: it cannot link into wasm targets (platform-correct, not
-# an optionality toggle — we have zero degraded fallbacks on native).
-# nemo is native-only: its transitive deps (reqwest, tower-lsp) use OS networking
-# and the CPython ABI — unavailable on wasm32.  This is a HARD dependency: the
-# build MUST succeed with the full Nemo reasoner linked; there is no fallback.
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# pyo3: PyO3 Python bindings. Hard dependency — HARD FAIL if absent.
 pyo3 = { version = "0.24", features = ["extension-module", "abi3-py313"] }
+
+# nemo: forward-chaining existential-rule reasoner. Hard dependency — the build
+# MUST succeed with the full Nemo reasoner linked; there is no fallback.
 nemo = { git = "https://github.com/knowsys/nemo", rev = "4415bc2e180adf33a7a4b98ddc41be9914b7584e" }
+
 # tokio is required to drive Nemo's async chase API (load_string / reason /
 # predicate_rows).  We match the exact feature set Nemo itself declares
 # (features = ["rt", "macros"]) and rely on Cargo's existing lock resolution
@@ -40,12 +38,13 @@ nemo = { git = "https://github.com/knowsys/nemo", rev = "4415bc2e180adf33a7a4b98
 # flavour is used (same as nemo-cli's #[tokio::main(flavor = "current_thread")]).
 tokio = { version = "1", features = ["rt", "macros"] }
 
-# wasm-bindgen is wasm-only: it binds to the JavaScript host runtime which does
-# not exist on native targets.  The `js` feature on oxigraph wires getrandom's
-# wasm_js backend and js-sys — required for wasm32-unknown-unknown.
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = "0.2"
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12", "js"] }
+# scryer-prolog: embedded Prolog (SLD + tabling) for v4 backward goal resolution
+# over the materialized EDB (facts-as-DB). BSD-3-Clause (AGPL-compatible). Hard
+# dependency — HARD FAIL if absent; no degraded fallback. default-features = false
+# drops the Prolog-library extras irrelevant to embedding (ffi/http/tls/repl/crypto:
+# libffi, reqwest, warp, native-tls, rustyline), keeping the core machine plus
+# library(tabling)/library(lists) the engine needs.
+scryer-prolog = { version = "0.10", default-features = false }
 
 [dev-dependencies]
 serde_json = "1"

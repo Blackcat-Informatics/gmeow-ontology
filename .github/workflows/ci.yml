@@ -67,7 +67,7 @@ jobs:
       - name: Install Rust (nightly, native only)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2025-11-08
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -130,13 +130,19 @@ jobs:
       - name: Install Rust (nightly, native only)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2025-11-08
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
+
+      # The logic conformance suite below resolves backward goals through the
+      # gmeow_logic native engine (#504). Without it the goal-* cases fail with
+      # "No module named 'gmeow_logic'" and the Principle-7 gate is vacuous.
+      - name: Build + install gmeow_logic extension (#504 — conformance resolves goals through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
 
       # CI-only Python tests cover heavyweight generated docs, GTS snapshot
       # determinism, and secondary export surfaces. Keep module scopes together
@@ -166,9 +172,8 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2025-11-08
           components: clippy, rustfmt
-          targets: wasm32-unknown-unknown
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -181,9 +186,6 @@ jobs:
 
       - name: Workspace tests (gmeow-logic, gmeow-shacl)
         run: cargo test
-
-      - name: wasm target builds (gmeow-logic in-browser reasoner)
-        run: cargo build -p gmeow-logic --target wasm32-unknown-unknown
 
   ontology:
     runs-on: ubuntu-latest
@@ -221,7 +223,7 @@ jobs:
       - name: Install Rust (nightly, native only)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2025-11-08
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -370,7 +372,7 @@ jobs:
       - name: Install Rust (nightly, native only)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2025-11-08
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -408,7 +410,7 @@ jobs:
       - name: Install Rust (nightly, native only)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2025-11-08
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1

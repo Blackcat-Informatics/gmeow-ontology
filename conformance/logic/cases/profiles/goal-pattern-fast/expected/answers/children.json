@@ -1,0 +1,11 @@
+{
+  "bindings": [
+    {
+      "Y": "<https://example.org/profiles/goal-pattern-fast/b>"
+    },
+    {
+      "Y": "<https://example.org/profiles/goal-pattern-fast/c>"
+    }
+  ],
+  "status": "ok"
+}
