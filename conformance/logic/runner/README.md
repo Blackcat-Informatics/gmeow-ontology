@@ -8,10 +8,11 @@ JS/Go port — implements one adapter, and the runner diff-compares each output 
 `expected/` files. Identical-files-or-red-build is what makes "oracle ≡ engine" (Principle 7) a
 machine-checked guarantee rather than a hope.
 
-> **Status: contract only.** No runner is implemented yet, and no `make conformance` target is added
-> by this scaffold — both land with the engine (the EPIC #497 rungs), per
-> [`../../../slices/core/logic/design/LOGIC-CONFORMANCE.md`](../../../slices/core/logic/design/LOGIC-CONFORMANCE.md)
-> §Runner contract. This file fixes the interface the rungs must obey.
+> **Status: live.** The runner is implemented as `gmeow-dev conformance` (wired to `make
+> conformance`) and the EPIC #497 rungs (#498–#506) have all landed. The **Rust core is the
+> reasoning authority**: every committed `expected/` artifact is the output it produces, and the
+> Python oracle is a **secondary validator** held to the same corpus (`test_logic_oracle_engine_parity.py`).
+> This file fixes the adapter interface every engine obeys.
 
 ## The adapter
 
@@ -29,9 +30,9 @@ run(input, mode) -> {
 ```
 
 `input` is a case directory (`input.logic.ttl` + `profile.json` + optional `queries/`); `mode`
-selects the engine/fragment (e.g. `native`, `owl-dl`, `owl-el`, `datalog`). The Python oracle
-implements it first (the executable spec); the Rust core must pass the identical corpus; a port
-self-certifies the same way.
+selects the engine/fragment (e.g. `native`, `owl-dl`, `owl-el`, `datalog`). The Rust core is the
+canonical engine that the committed corpus is keyed to; the Python oracle must pass the identical
+corpus as an independent cross-check; any future port self-certifies the same way.
 
 ## Comparison semantics
 
