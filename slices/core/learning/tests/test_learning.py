@@ -34,11 +34,14 @@ from pathlib import Path
 from rdflib import Graph, URIRef
 from rdflib.namespace import OWL, RDF, RDFS
 
+from gmeow_tools.validate import run_shacl
+
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
 SKOS_DEFINITION = URIRef("http://www.w3.org/2004/02/skos/core#definition")
 SLICE_IRI = URIRef("https://blackcatinformatics.ca/gmeow/slices/learning")
 _MODULE = Path(__file__).resolve().parents[1] / "module.ttl"
+_SHAPES = Path(__file__).resolve().parents[1] / "shapes.ttl"
 
 _TYPE_INDIVIDUALS = (
     "learningConceptFormation",
@@ -223,3 +226,83 @@ def test_every_declared_term_is_annotated() -> None:
         assert (term, RDFS.isDefinedBy, SLICE_IRI) in g, (
             f"{name} missing rdfs:isDefinedBy slice IRI"
         )
+
+
+# --------------------------------------------------------------------------- #
+# SHACL — gmeow:TeachingShape: a well-formed Teaching conforms; the load-bearing
+# closed-world rules (teacher ≠ learner, and learner must be a gmeow:Agent) are
+# flagged. Mirrors the inference slice's premise ≠ conclusion SHACL coverage so
+# the shape cannot regress silently behind the module-level structural checks.
+# --------------------------------------------------------------------------- #
+
+
+def _data(instance_ttl: str) -> Graph:
+    """Slice module (for class/property defs) + an inline instance graph.
+
+    Agents are typed locally (``a gmeow:Agent``) so the ``sh:class gmeow:Agent``
+    constraints on teacher / learner are satisfiable without loading the full
+    merged graph — keeping these guards fast, the inference-slice precedent.
+    """
+    g = Graph()
+    g.parse(_MODULE, format="turtle")
+    g.parse(data=instance_ttl, format="turtle")
+    return g
+
+
+_PRELUDE = """
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <http://example.org/lrn/> .
+ex:alice a gmeow:Agent .
+ex:bob   a gmeow:Agent .
+ex:welding a gmeow:Skill .
+"""
+
+_WELLFORMED_TEACHING = (
+    _PRELUDE
+    + """
+ex:t1 a gmeow:Teaching ;
+    gmeow:teacher ex:alice ;
+    gmeow:learner ex:bob ;
+    gmeow:subjectTaught ex:welding .
+"""
+)
+
+# teacher == learner: an agent cannot teach itself (sh:sparql constraint).
+_SELF_TEACHING = (
+    _PRELUDE
+    + """
+ex:bad a gmeow:Teaching ;
+    gmeow:teacher ex:alice ;
+    gmeow:learner ex:alice ;
+    gmeow:subjectTaught ex:welding .
+"""
+)
+
+# learner that is not a gmeow:Agent (sh:class gmeow:Agent constraint on learner).
+_NON_AGENT_LEARNER = (
+    _PRELUDE
+    + """
+ex:tool a gmeow:Artifact .
+ex:bad2 a gmeow:Teaching ;
+    gmeow:teacher ex:alice ;
+    gmeow:learner ex:tool ;
+    gmeow:subjectTaught ex:welding .
+"""
+)
+
+
+def test_wellformed_teaching_conforms() -> None:
+    result = run_shacl(_data(_WELLFORMED_TEACHING), shapes_path=_SHAPES)
+    assert result.ok, result.errors
+
+
+def test_teacher_equals_learner_is_flagged() -> None:
+    result = run_shacl(_data(_SELF_TEACHING), shapes_path=_SHAPES)
+    assert not result.ok
+    assert "an agent cannot teach itself" in " ".join(result.errors)
+
+
+def test_non_agent_learner_is_flagged() -> None:
+    result = run_shacl(_data(_NON_AGENT_LEARNER), shapes_path=_SHAPES)
+    assert not result.ok
+    assert "each learner must be a gmeow:Agent" in " ".join(result.errors)
