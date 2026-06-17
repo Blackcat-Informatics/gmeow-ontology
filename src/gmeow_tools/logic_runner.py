@@ -984,6 +984,16 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         # (and StableModel / WellFounded programs the stratified oracle cannot
         # compute) fall through with ``enable_naf=False`` and keep their lossy
         # positive materialization with the loss recorded — byte-identical.
+        #
+        # NOTE (#497): the default forward chase remains the Python oracle. Routing
+        # it through native ``gmeow_logic.materialize`` (the Nemo engine) was
+        # attempted and is BLOCKED — Nemo rejects non-stratifiable StableModel /
+        # WellFounded programs outright (``SelectionStrategyError``), and its
+        # provenance structure is not the reifier graph the native explain / query /
+        # counterfactual consumers reconstruct. Making materialization
+        # Rust-authoritative is tracked as the dedicated #497 follow-up; the Nemo
+        # engine remains the Principle-7 secondary validator
+        # (test_logic_oracle_engine_parity.py) until that work lands.
         try:
             mat_result = materialize_program(
                 program,
