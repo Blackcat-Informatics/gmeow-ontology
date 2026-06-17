@@ -100,7 +100,7 @@ gmeow:CognitiveState
     skos:example "ex:lillithKnowsPython a gmeow:CognitiveState ; gmeow:inheresIn ex:lillith ."@x-gmeow-english ;
     gmeow:useWhen "Use to type an agent's intrinsic knowing mode as a first-class mental moment — the endurant state that grounds the knowledge spectrum and is queried alongside doxastic and conative modes under gmeow:MentalMoment (Principle 15)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid double-typing the same knowing relation as both a CognitiveState (mode) and a gmeow:KnowledgeProficiency (relator) — they are different individuals (Principle 12); avoid it for the flat 80% case (use the gmeow:isAwareOf … gmeow:hasMastered spectrum) and for a reasoning EPISODE that unfolds in time (that is a gmeow:MentalProcess, mentation)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one CognitiveState inhering in the agent; carry the depth as the flat spectrum or promote to a gmeow:KnowledgeProficiency relator when level/scale/interval/standpoint matter, and let the mentation slice's gmeow:realizesMoment bridge a knowing-process to the moment it settles."@x-gmeow-english ;
+    gmeow:howToUse "Mint one CognitiveState inhering in the agent; carry the depth as the flat spectrum or promote to a gmeow:KnowledgeProficiency relator when level/scale/interval/standpoint matter, and let the mentation slice's gmeow:producesMentalMoment (new belief) or gmeow:realizesMentalMoment (manifest capacity) bridge a knowing-process to the moment it settles."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerInternalArchive,
         gmeow:consumerAgentMemory,
         gmeow:consumerResearchQueue ;

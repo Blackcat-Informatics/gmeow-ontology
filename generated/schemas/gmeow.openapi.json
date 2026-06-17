@@ -40088,6 +40088,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -40106,9 +40115,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -40154,6 +40163,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -54586,6 +54604,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -54604,9 +54631,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -54652,6 +54679,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -74561,6 +74597,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -74579,9 +74624,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -74627,6 +74672,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",

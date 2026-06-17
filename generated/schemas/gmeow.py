@@ -23524,9 +23524,15 @@ class MentalProcess(Event):
     mentalProcessType: Optional[list[MentalProcessType]] = Field(default=None, title="mental process type", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
          'domain_of': ['MentalProcess'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mentalProcessType'} })
-    realizesMoment: Optional[list[str]] = Field(default=None, title="realizes moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+    producesMentalMoment: Optional[list[MentalMoment]] = Field(default=None, title="produces mental moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
          'domain_of': ['MentalProcess'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizesMoment'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/producesMentalMoment'} })
+    realizesMentalMoment: Optional[list[MentalMoment]] = Field(default=None, title="realizes mental moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+         'domain_of': ['MentalProcess'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizesMentalMoment'} })
+    updatesMentalTenure: Optional[list[TimeScopedRelation]] = Field(default=None, title="updates mental tenure", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+         'domain_of': ['MentalProcess'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/updatesMentalTenure'} })
     after: Optional[list[Event]] = Field(default=None, title="after", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/after'} })
@@ -23681,9 +23687,15 @@ class Experience(MentalProcess):
     mentalProcessType: Optional[list[MentalProcessType]] = Field(default=None, title="mental process type", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
          'domain_of': ['MentalProcess'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mentalProcessType'} })
-    realizesMoment: Optional[list[str]] = Field(default=None, title="realizes moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+    producesMentalMoment: Optional[list[MentalMoment]] = Field(default=None, title="produces mental moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
          'domain_of': ['MentalProcess'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizesMoment'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/producesMentalMoment'} })
+    realizesMentalMoment: Optional[list[MentalMoment]] = Field(default=None, title="realizes mental moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+         'domain_of': ['MentalProcess'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizesMentalMoment'} })
+    updatesMentalTenure: Optional[list[TimeScopedRelation]] = Field(default=None, title="updates mental tenure", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+         'domain_of': ['MentalProcess'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/updatesMentalTenure'} })
     after: Optional[list[Event]] = Field(default=None, title="after", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/after'} })
@@ -23841,9 +23853,15 @@ class InferenceProcess(MentalProcess):
     mentalProcessType: Optional[list[MentalProcessType]] = Field(default=None, title="mental process type", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
          'domain_of': ['MentalProcess'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mentalProcessType'} })
-    realizesMoment: Optional[list[str]] = Field(default=None, title="realizes moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+    producesMentalMoment: Optional[list[MentalMoment]] = Field(default=None, title="produces mental moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
          'domain_of': ['MentalProcess'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizesMoment'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/producesMentalMoment'} })
+    realizesMentalMoment: Optional[list[MentalMoment]] = Field(default=None, title="realizes mental moment", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+         'domain_of': ['MentalProcess'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizesMentalMoment'} })
+    updatesMentalTenure: Optional[list[TimeScopedRelation]] = Field(default=None, title="updates mental tenure", json_schema_extra = { "linkml_meta": {'domain': 'MentalProcess',
+         'domain_of': ['MentalProcess'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/updatesMentalTenure'} })
     after: Optional[list[Event]] = Field(default=None, title="after", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/after'} })

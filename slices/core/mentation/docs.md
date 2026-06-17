@@ -68,17 +68,35 @@ carry several type values (a reverie that is both imagining and mind-wandering).
 
 **Domain:** `gmeow:MentalProcess` · **Range:** `gmeow:MentalProcessType` · **Non-functional**
 
-### gmeow:realizesMoment
+### gmeow:realizesMentalMoment
 
-Relates a mental process to a mental moment it produces or updates — the occurrent-to-endurant
-bridge across the gUFO endurant/occurrent divide: a reasoning realizes a belief, a perceiving
-realizes a perceptual claim. NOT functional — one process may settle several moments. Range is
-intentionally **open** at this tier (the doxastic-spine precedent): it will point at a
-`gmeow:MentalMoment` once the endurant umbrella lands with kernel/cognition #556; until then it may
-point at any reified mode, belief-state, or claim the process produces. Renamed from the design's
-`realizes` to avoid colliding with the WEMI `gmeow:realizes` (Expression → Work) — Principle 4.
+Ontological participation: relates a mental process to a `gmeow:MentalMoment` it **manifests** —
+the process expresses or makes-present an already-potential capacity, state, or mode rather than
+creating a fresh one. Use for perceptions that bring a latent perceptual faculty into actuation, or
+processes that express an existing disposition. NOT functional — one process may manifest several
+moments.
 
-**Domain:** `gmeow:MentalProcess` · **Range:** open (intentionally no `rdfs:range`) · **Non-functional**
+**Domain:** `gmeow:MentalProcess` · **Range:** `gmeow:MentalMoment` · **Non-functional**
+
+### gmeow:producesMentalMoment
+
+Creation: relates a mental process to a NEW `gmeow:MentalMoment` it **brings into being** — the
+process is the causal origin of a fresh belief, knowledge-state, or perceptual claim that did not
+exist beforehand. Use for reasoning that settles a fresh belief, an abductive inference that
+produces a hypothesis, or a perception that generates a new claim. NOT functional — one process may
+produce several moments.
+
+**Domain:** `gmeow:MentalProcess` · **Range:** `gmeow:MentalMoment` · **Non-functional**
+
+### gmeow:updatesMentalTenure
+
+Diachronic transition: relates a mental process to a `gmeow:TimeScopedRelation` (a held, time-scoped
+state or tenure) that the process **changes** — the process revises, extends, or closes a belief
+tenure, a knowledge tenure, or any other time-scoped mental holding. Use for deliberations that
+update a belief tenure, learning episodes that revise a knowledge tenure, or recollections that
+reopen a suppressed tenure. NOT functional — one process may update several tenures.
+
+**Domain:** `gmeow:MentalProcess` · **Range:** `gmeow:TimeScopedRelation` · **Non-functional**
 
 ## Value individuals — `gmeow:MentalProcessType`
 
@@ -129,12 +147,11 @@ composed into the dreaming extension (#589) with awareness mode and content-orig
 - **Value-vocab, not taxonomy** (Principle 9) — the kind of a process is a `gmeow:mentalProcessType`
   value (a `gmeow:MentalProcessType` individual), never a subclass of `gmeow:MentalProcess`. The one
   genuine subclass is `gmeow:Experience` — the phenomenally-conscious subset.
-- **Open-range bridge** — `gmeow:realizesMoment` has no `rdfs:range` at this tier (the doxastic-spine
-  precedent). It will range over `gmeow:MentalMoment` once the endurant umbrella lands with
-  kernel/cognition #556; until then it points at any mode, belief-state, or claim the process
-  produces.
-- **Renamed from `realizes`** (Principle 4) — the design used `realizes`; renamed to `realizesMoment`
-  to avoid colliding with the WEMI `gmeow:realizes` (Expression → Work) in the creative-works slice.
+- **Three precise bridges** — `gmeow:realizesMentalMoment` (manifest an existing capacity/state),
+  `gmeow:producesMentalMoment` (create a new moment), `gmeow:updatesMentalTenure` (change a held
+  time-scoped tenure). All three are non-functional; the first two range over `gmeow:MentalMoment`,
+  the third over `gmeow:TimeScopedRelation`. Renamed from the design's `realizes` to avoid colliding
+  with the WEMI `gmeow:realizes` (Expression → Work) — Principle 4.
 - **Reparenting hooks stay open** — `gmeow:InferenceProcess` (#581) and `gmeow:LearningEvent` (#584) declare
   `rdfs:subClassOf gmeow:MentalProcess` from their own slices, never pre-declared here.
 

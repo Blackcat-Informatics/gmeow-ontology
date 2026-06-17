@@ -8140,7 +8140,9 @@ type Experience
     violates: [Norm]
     experiencer: Agent
     mentalProcessType: [MentalProcessType]
-    realizesMoment: [String]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
   }
 
 type Expression
@@ -9884,7 +9886,9 @@ type InferenceProcess
     violates: [Norm]
     experiencer: Agent
     mentalProcessType: [MentalProcessType]
-    realizesMoment: [String]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
     hasInferenceCommitment: [InferenceCommitment]
   }
 
@@ -12293,7 +12297,9 @@ type MentalProcess
     violates: [Norm]
     experiencer: Agent
     mentalProcessType: [MentalProcessType]
-    realizesMoment: [String]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
   }
 
 type MentalProcessType

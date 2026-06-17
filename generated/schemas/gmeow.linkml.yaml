@@ -2007,7 +2007,9 @@ classes:
     slots:
     - experiencer
     - mentalProcessType
-    - realizesMoment
+    - producesMentalMoment
+    - realizesMentalMoment
+    - updatesMentalTenure
   MentalProcessType:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalProcessType
     title: Mental Process Type
@@ -10077,6 +10079,12 @@ slots:
     title: process rule text
     range: string
     domain: GenerativeProcess
+  producesMentalMoment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/producesMentalMoment
+    title: produces mental moment
+    range: MentalMoment
+    domain: MentalProcess
+    multivalued: true
   proficiencyAgent:
     slot_uri: https://blackcatinformatics.ca/gmeow/proficiencyAgent
     title: proficiency agent
@@ -10412,10 +10420,10 @@ slots:
     range: Work
     domain: Expression
     multivalued: true
-  realizesMoment:
-    slot_uri: https://blackcatinformatics.ca/gmeow/realizesMoment
-    title: realizes moment
-    range: uriorcurie
+  realizesMentalMoment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/realizesMentalMoment
+    title: realizes mental moment
+    range: MentalMoment
     domain: MentalProcess
     multivalued: true
   receivedAt:
@@ -12179,6 +12187,12 @@ slots:
     title: understands
     range: Entity
     domain: Agent
+    multivalued: true
+  updatesMentalTenure:
+    slot_uri: https://blackcatinformatics.ca/gmeow/updatesMentalTenure
+    title: updates mental tenure
+    range: TimeScopedRelation
+    domain: MentalProcess
     multivalued: true
   usageAppellation:
     slot_uri: https://blackcatinformatics.ca/gmeow/usageAppellation

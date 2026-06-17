@@ -6,12 +6,11 @@
 # Three mental occurrents illustrate the mentation slice's core idioms:
 #   1. A gmeow:MentalProcess of type processPerception — Ada notices morning light.
 #      Carries a temporal frame the same way gmeow:Event takes one (events idiom,
-#      gmeow:eventTime + gmeow:eventTemporalFrame), and links back to a perceptual
-#      claim via gmeow:realizesMoment (open-range bridge).
+#      gmeow:eventTime + gmeow:eventTemporalFrame), and MANIFESTS a perceptual
+#      capacity via gmeow:realizesMentalMoment (ontological participation bridge).
 #   2. A gmeow:MentalProcess of type processReasoning — Ada works through a proof.
-#      gmeow:realizesMoment points at ex:beliefQEDholds, a placeholder node that will
-#      be typed gmeow:MentalMoment once slice kernel/cognition #556 lands; open-range
-#      at this tier is deliberate and documented in the slice.
+#      gmeow:producesMentalMoment points at ex:beliefQEDholds — the reasoning CREATES
+#      a new belief that did not exist beforehand (a gmeow:MentalMoment once #556 lands).
 #   3. A gmeow:Experience (the phenomenal subset of MentalProcess) of type
 #      processDreaming — Ada's dream last night. gmeow:Experience is used because
 #      there is something it is like to undergo a dream (the qualia-bearing subset).
@@ -41,7 +40,7 @@ ex:morningPerception a gmeow:MentalProcess ;
     gmeow:mentalProcessType gmeow:processPerception ;     # value-vocab slot, not a subclass
     gmeow:eventTime "2026-06-15T07:12:00Z"^^xsd:dateTime ; # temporal frame — same idiom as events/wedding.ttl
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
-    gmeow:realizesMoment ex:perceivedMorningLight .       # open-range: the perceptual claim produced
+    gmeow:realizesMentalMoment ex:perceivedMorningLight .  # ontological participation: manifests the perceptual capacity
 
 # The open-range target — will be gmeow:MentalMoment once #556 lands.
 ex:perceivedMorningLight
@@ -57,9 +56,9 @@ ex:solvingTheProof a gmeow:MentalProcess ;
     gmeow:mentalProcessType gmeow:processReasoning ;      # an inference episode unfolding in time
     gmeow:eventTime "2026-06-15T09:30:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
-    gmeow:realizesMoment ex:beliefQEDholds .              # the resulting belief — open range
+    gmeow:producesMentalMoment ex:beliefQEDholds .         # creation: reasoning brings this NEW belief into being
 
-# Placeholder target: open-range means any mode/claim/state is acceptable here.
+# Placeholder target: reasoning produces a fresh belief not held beforehand.
 # Once gmeow:MentalMoment (kernel/cognition #556) lands this will be typed properly.
 ex:beliefQEDholds
     rdfs:label "belief: the proof concludes (QED)"@x-gmeow-english .
@@ -74,5 +73,5 @@ ex:lastNightsDream a gmeow:Experience ;                   # qualia-bearing: ther
     gmeow:mentalProcessType gmeow:processDreaming ;       # offline, sleep-bound imagined content
     gmeow:eventTime "2026-06-15T03:00:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
-    # No gmeow:realizesMoment: a dream need not update a belief state;
-    # gmeow:realizesMoment is non-functional so its absence is valid.
+    # No bridge property: a dream need not produce or update a belief state;
+    # all three bridge properties are non-functional so their absence is valid.

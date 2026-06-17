@@ -5541,7 +5541,9 @@ export interface MentalMoment {
 export interface MentalProcess extends Event {
     experiencer?: Agent,
     mentalProcessType?: MentalProcessType[],
-    realizesMoment?: string[],
+    producesMentalMoment?: MentalMoment[],
+    realizesMentalMoment?: MentalMoment[],
+    updatesMentalTenure?: TimeScopedRelation[],
 }
 
 

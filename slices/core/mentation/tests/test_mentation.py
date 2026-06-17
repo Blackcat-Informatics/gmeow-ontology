@@ -11,9 +11,14 @@ Guards the minimal core of the mentation slice:
   * gmeow:MentalProcessType is a value-vocab class (gufo:AbstractIndividualType,
     ⊑ gufo:QualityValue — no subclasses, only individuals; Principle 9)
   * all eight gmeow:process* seed individuals are declared as MentalProcessType
-  * gmeow:realizesMoment is open-range (no rdfs:range at this tier, not functional)
+  * gmeow:realizesMentalMoment is non-functional, domain MentalProcess,
+    range MentalMoment
+  * gmeow:producesMentalMoment is non-functional, domain MentalProcess,
+    range MentalMoment
+  * gmeow:updatesMentalTenure is non-functional, domain MentalProcess,
+    range TimeScopedRelation
   * gmeow:realizes is NOT declared here (owned by creative-works; Principle 4)
-  * annotation completeness for all 14 terms (Principle 8)
+  * annotation completeness for all 16 terms (Principle 8)
 """
 
 from __future__ import annotations
@@ -31,7 +36,13 @@ _MODULE = Path(__file__).resolve().parents[1] / "module.ttl"
 _SLICE_IRI = URIRef(GMEOW + "slices/mentation")
 
 _CLASSES = ("MentalProcess", "Experience", "MentalProcessType")
-_PROPERTIES = ("experiencer", "mentalProcessType", "realizesMoment")
+_PROPERTIES = (
+    "experiencer",
+    "mentalProcessType",
+    "realizesMentalMoment",
+    "producesMentalMoment",
+    "updatesMentalTenure",
+)
 _INDIVIDUALS = (
     "processPerception",
     "processAttention",
@@ -140,20 +151,50 @@ def test_all_eight_process_individuals() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# realizesMoment — open range, non-functional
+# Three bridge properties — non-functional, precise ranges
 # --------------------------------------------------------------------------- #
 
 
-def test_realizesmoment_is_open_range() -> None:
-    """realizesMoment: ObjectProperty, domain MentalProcess, open range."""
+def test_realizesmentalmoment_property() -> None:
+    """realizesMentalMoment: non-functional ObjectProperty.
+
+    domain MentalProcess, range MentalMoment.
+    """
     g = _graph()
-    rm = _t("realizesMoment")
-    assert (rm, RDF.type, OWL.ObjectProperty) in g
-    assert (rm, RDFS.domain, _t("MentalProcess")) in g
-    # Open range: NO rdfs:range triple at this tier (doxastic-spine precedent)
-    assert (rm, RDFS.range, None) not in g
-    # Non-functional: one process may settle several moments
-    assert (rm, RDF.type, OWL.FunctionalProperty) not in g
+    prop = _t("realizesMentalMoment")
+    assert (prop, RDF.type, OWL.ObjectProperty) in g
+    assert (prop, RDFS.domain, _t("MentalProcess")) in g
+    assert (prop, RDFS.range, _t("MentalMoment")) in g
+    # Non-functional: one process may manifest several moments
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in g
+
+
+def test_producesmentalmoment_property() -> None:
+    """producesMentalMoment: non-functional ObjectProperty.
+
+    domain MentalProcess, range MentalMoment.
+    """
+    g = _graph()
+    prop = _t("producesMentalMoment")
+    assert (prop, RDF.type, OWL.ObjectProperty) in g
+    assert (prop, RDFS.domain, _t("MentalProcess")) in g
+    assert (prop, RDFS.range, _t("MentalMoment")) in g
+    # Non-functional: one process may produce several moments
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in g
+
+
+def test_updatesmentaltenure_property() -> None:
+    """updatesMentalTenure: non-functional ObjectProperty.
+
+    domain MentalProcess, range TimeScopedRelation.
+    """
+    g = _graph()
+    prop = _t("updatesMentalTenure")
+    assert (prop, RDF.type, OWL.ObjectProperty) in g
+    assert (prop, RDFS.domain, _t("MentalProcess")) in g
+    assert (prop, RDFS.range, _t("TimeScopedRelation")) in g
+    # Non-functional: one process may update several tenures
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in g
 
 
 # --------------------------------------------------------------------------- #
@@ -164,11 +205,10 @@ def test_realizesmoment_is_open_range() -> None:
 def test_realizes_collision_guard() -> None:
     """gmeow:realizes must NOT appear here (creative-works owns it — Principle 4).
 
-    gmeow:realizesMoment MUST be declared.
+    All three bridge properties MUST be declared.
     """
     g = _graph()
     realizes = _t("realizes")
-    realizes_moment = _t("realizesMoment")
     # gmeow:realizes must not appear in ANY triple position in this module
     # (subject, predicate, or object) — creative-works owns it (Principle 4).
     msg = (
@@ -177,10 +217,16 @@ def test_realizes_collision_guard() -> None:
     assert next(g.triples((realizes, None, None)), None) is None, msg
     assert next(g.triples((None, realizes, None)), None) is None, msg
     assert next(g.triples((None, None, realizes)), None) is None, msg
-    # gmeow:realizesMoment must be declared
-    assert (realizes_moment, RDF.type, None) in g, (
-        "gmeow:realizesMoment must be declared in mentation"
-    )
+    # All three bridge properties must be declared
+    for prop_name in (
+        "realizesMentalMoment",
+        "producesMentalMoment",
+        "updatesMentalTenure",
+    ):
+        prop = _t(prop_name)
+        assert (prop, RDF.type, None) in g, (
+            f"gmeow:{prop_name} must be declared in mentation"
+        )
 
 
 # --------------------------------------------------------------------------- #
@@ -189,7 +235,7 @@ def test_realizes_collision_guard() -> None:
 
 
 def test_every_term_annotated() -> None:
-    """All 14 terms: rdfs:label, skos:definition, rdfs:isDefinedBy → mentation slice."""
+    """All 16 terms: rdfs:label, skos:definition, rdfs:isDefinedBy → mentation slice."""
     g = _graph()
     for name in _ALL_TERMS:
         term = _t(name)

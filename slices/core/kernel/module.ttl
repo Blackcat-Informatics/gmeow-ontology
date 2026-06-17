@@ -658,7 +658,7 @@ gmeow:MentalMoment
     skos:example "ex:knowingPython a gmeow:CognitiveState ; rdfs:subClassOf gmeow:MentalMoment ."@x-gmeow-english ;
     gmeow:useWhen "Use as the shared parent to subclass an agent-state mode from (gmeow:CognitiveState, a doxastic state, gmeow:IntentionalMode), or to query an agent's whole endurant mental life as one family without walking the cognition / epistemics / teleology branches separately (Principle 15)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid instantiating it directly (it is an abstract umbrella — type the specific mode instead) and avoid it for mental OCCURRENTS that unfold in time (perceiving, reasoning, dreaming); those are gmeow:MentalProcess, the perdurant sibling, not a MentalMoment."@x-gmeow-english ;
-    gmeow:howToUse "Subclass the concrete mode (gmeow:CognitiveState, gmeow:IntentionalMode, a doxastic state) under it from each consumer slice; a single agent-memory query over gmeow:MentalMoment then returns knowing, believing, and intending together, and gmeow:realizesMoment (mentation) bridges a process to the moment it settles."@x-gmeow-english ;
+    gmeow:howToUse "Subclass the concrete mode (gmeow:CognitiveState, gmeow:IntentionalMode, a doxastic state) under it from each consumer slice; a single agent-memory query over gmeow:MentalMoment then returns knowing, believing, and intending together, and gmeow:producesMentalMoment / gmeow:realizesMentalMoment (mentation) bridge a process to the moment it settles."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #

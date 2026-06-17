@@ -9,7 +9,7 @@
 #   gmeow:InferenceProcess  --hasInferenceCommitment-->  gmeow:InferenceCommitment
 #       (the occurrent reasoning episode)                  (the endurant argument)
 #            |                                                   |
-#       realizesMoment                                      conclusion
+#       producesMentalMoment                               conclusion
 #            v                                                   v
 #       the accepted belief  <--- (the winning hypothesis) ---  gmeow:StandpointClaim
 #
@@ -81,4 +81,4 @@ ex:diagnosticReasoning a gmeow:InferenceProcess ;
     gmeow:eventTime "2026-06-15T10:05:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:hasInferenceCommitment ex:abductiveCommitment ;     # occurrent -> endurant bridge
-    gmeow:realizesMoment ex:hypInfluenza .                    # the belief the reasoning produced
+    gmeow:producesMentalMoment ex:hypInfluenza .               # production: reasoning creates this new belief
