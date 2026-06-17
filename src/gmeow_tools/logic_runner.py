@@ -629,6 +629,7 @@ def _materialize_foundation(
     case_dir: Path,
     input_graph: ConjunctiveGraph,
     profile_data: dict[str, object],
+    budget: BudgetParams | None,
 ) -> MaterializationResult:
     """Evaluate a foundation-lowering case via the native ``gmeow_logic.foundation``.
 
@@ -651,14 +652,33 @@ def _materialize_foundation(
         input_graph: The parsed world-fact ConjunctiveGraph (from ``input.nq``).
         profile_data: The parsed ``profile.json`` dict; ``anti_rigidity_policy``
             selects the closed witness policy (default ``"witness-obligation"``).
+        budget: The parsed budget governor, or ``None`` for unbounded.  The native
+            foundation evaluator does not (yet) honour budget ceilings, so a
+            non-``None`` value is a hard failure rather than a silently-ignored
+            parameter (see Raises).
 
     Returns:
         A :class:`~.logic_materialize.MaterializationResult` over the native rows.
 
     Raises:
         RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
-            no Python fallback) or the native evaluation raises.
+            no Python fallback); if the case declares ``budget_params`` (the native
+            foundation path cannot enforce a budget, so it must not fabricate a
+            ``budget_status``); or if the native evaluation raises.
     """
+    # No-optionality / hard-fail (no silent degradation): the native foundation
+    # evaluator runs to full fixpoint and has no budget governor.  A case that
+    # declares ``budget_params`` would otherwise receive a fabricated
+    # ``budget_status="ok"`` / ``incomplete=False`` artifact that does not reflect
+    # any enforced ceiling.  Fail loudly instead of emitting a misleading result.
+    if budget is not None:
+        raise RunnerError(
+            f"Case {case_dir.name}: foundation_lowering cases cannot declare "
+            f"budget_params — the native gmeow_logic.foundation evaluator has no "
+            f"budget governor and must not fabricate a budget_status. Remove "
+            f"budget_params from profile.json (the foundation chase is unbounded)."
+        )
+
     try:
         import gmeow_logic
     except ImportError as exc:
@@ -851,7 +871,9 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # Task 2): the Python OntoUML-discipline oracle (``logic_foundation.py``) has
     # been retired — there is no Python fallback (no-optionality doctrine).
     if profile_data.get("foundation_lowering") is True:
-        mat_result = _materialize_foundation(case_dir, input_graph, profile_data)
+        mat_result = _materialize_foundation(
+            case_dir, input_graph, profile_data, budget
+        )
     else:
         enable_naf = _program_has_stratifiable_negation(program)
         # NAF correctness (issue #503 review, PR #605): evaluate ``logic:negatedBody``
