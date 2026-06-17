@@ -302,6 +302,79 @@ logic:evidenceStrength
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #
+# Probability models (LOGIC-SEMANTICS.md §Confidence, probability, weight, and
+# evidence). Probabilistic inference under logic:ProbabilisticProfile requires
+# an EXPLICITLY DECLARED independence or dependency model — the profile never
+# silently assumes independence over the logic:probability facts. A rule set
+# (or world) names its model via logic:probabilityModel: either the well-known
+# logic:FullIndependence individual (every probabilistic fact an independent
+# Bernoulli variable, the ProbLog default made explicit) or a logic:DependencyModel
+# carrying an explicit joint distribution over a correlated fact set. Marginals
+# are exact weighted-model-counting sums over total choices; #P-hard in general.
+# --------------------------------------------------------------------------- #
+
+logic:ProbabilityModel
+    a owl:Class ;
+    rdfs:label "Probability Model"@x-gmeow-english ;
+    skos:definition "A declared independence or dependency model governing probabilistic inference for a rule set or world. Probabilistic inference under logic:ProbabilisticProfile is available ONLY when such a model is declared via logic:probabilityModel: the model fixes the joint distribution over the logic:probability facts so that marginals are well-defined. Absent a declared model the profile refuses to infer probabilities — it never silently assumes independence, because treating un-modelled confidence metadata as a probability model is the named failure mode this vocabulary exists to prevent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:probabilityModel
+    a owl:ObjectProperty ;
+    rdfs:label "probability model"@x-gmeow-english ;
+    rdfs:range logic:ProbabilityModel ;
+    skos:definition "Links a rule set or world to the logic:ProbabilityModel that governs its probabilistic inference. Required for any probabilistic query under logic:ProbabilisticProfile: with no logic:probabilityModel declared, probabilistic inference returns unknown rather than assuming independence over the logic:probability facts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:FullIndependence
+    a owl:NamedIndividual, logic:ProbabilityModel ;
+    rdfs:label "Full Independence"@x-gmeow-english ;
+    skos:definition "The well-known probability model under which every logic:probability fact is an independent Bernoulli variable — the ProbLog default, made explicit rather than assumed. The probability of a total choice is the product over the chosen facts of their probabilities times the product over the unchosen of their complements; a query's marginal is the sum of total-choice probabilities over the choices whose least Herbrand model derives it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:DependencyModel
+    a owl:Class ;
+    rdfs:subClassOf logic:ProbabilityModel ;
+    rdfs:label "Dependency Model"@x-gmeow-english ;
+    skos:definition "A probability model carrying an EXPLICIT joint distribution over a correlated set of logic:probability facts: where logic:FullIndependence factorizes as a product, a dependency model substitutes a declared joint table (logic:correlates names the correlated facts; logic:jointOutcome enumerates the joint outcomes with their logic:jointProbability). Facts outside the correlated set remain independent and factorize as usual. The declared joint outcomes must be exhaustive and sum to one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:correlates
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DependencyModel ;
+    rdfs:label "correlates"@x-gmeow-english ;
+    skos:definition "Relates a logic:DependencyModel to a logic:probability-annotated fact (the reified base triple) that participates in the model's explicit joint distribution. The set of correlated facts is the support over which logic:jointOutcome enumerates joint assignments; any logic:probability fact NOT correlated by the model is treated as independent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:JointOutcome
+    a owl:Class ;
+    rdfs:label "Joint Outcome"@x-gmeow-english ;
+    skos:definition "One row of a logic:DependencyModel's explicit joint table: a single joint assignment of truth values to the model's correlated facts, together with logic:jointProbability for that assignment. The facts asserted true in this outcome are named by logic:outcomeAssignment; correlated facts not named are taken to be false in this outcome."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:jointOutcome
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DependencyModel ;
+    rdfs:range logic:JointOutcome ;
+    rdfs:label "joint outcome"@x-gmeow-english ;
+    skos:definition "Relates a logic:DependencyModel to one logic:JointOutcome of its explicit joint table. The outcomes a model declares must be mutually exclusive and exhaustive over the assignments to its logic:correlates set, and their logic:jointProbability values must sum to one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:outcomeAssignment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:JointOutcome ;
+    rdfs:label "outcome assignment"@x-gmeow-english ;
+    skos:definition "Relates a logic:JointOutcome to a correlated logic:probability fact (the reified base triple) that is TRUE in this outcome. Correlated facts of the model that are not named by any logic:outcomeAssignment of an outcome are false in that outcome — the assignment is read as the positive set, the complement against the model's logic:correlates support."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:jointProbability
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:JointOutcome ;
+    rdfs:label "joint probability"@x-gmeow-english ;
+    skos:definition "The probability mass a logic:DependencyModel assigns to one logic:JointOutcome — the joint probability of that exact assignment of truth values to the model's correlated facts. Distinct from logic:probability (a per-fact marginal): the joint outcomes of a model partition its correlated sample space and their logic:jointProbability values sum to one."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
 # Preservation polarity (LOGIC-CONFORMANCE.md §The loss ledger). For reasoning
 # projections, "lossy" is not enough: a consumer needs to know what a
 # projection GUARANTEES about answers, not only what it omits. Each projection
