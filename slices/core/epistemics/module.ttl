@@ -232,9 +232,6 @@ gmeow:DoxasticStandpointClaim
     gmeow:howToUse "Mint one DoxasticStandpointClaim per (agent, proposition, belief-modality) tuple; set its vantage to the agent, observedFeature to the proposition, claimModality to the qualitative belief value, and claimOfBelief to the underlying DoxasticState. Justification and defeat are modeled via gmeow:justifiedBy and gmeow:defeatedBy in the sibling child."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
 
-gmeow:DoxasticStandpointClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:claimOfBelief ; owl:someValuesFrom gmeow:DoxasticState ] .
-
 gmeow:claimOfBelief
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:DoxasticStandpointClaim ;
