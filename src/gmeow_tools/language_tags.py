@@ -412,7 +412,12 @@ class LangSelector:
         return "en"
 
 
-def resolve_lang_input(raw: str | None, tag_map: dict[str, str]) -> LangSelector:
+def resolve_lang_input(
+    raw: str | None,
+    tag_map: dict[str, str],
+    *,
+    available: Iterable[str] | None = None,
+) -> LangSelector:
     """Resolve CLI/env language input into a :class:`LangSelector`.
 
     * ``None``/empty → default ``(en,)``.
@@ -420,10 +425,19 @@ def resolve_lang_input(raw: str | None, tag_map: dict[str, str]) -> LangSelector
     * Public BCP-47 tags are lower-cased.
     * Comma-separated lists preserve order and are de-duplicated.
     * Unknown tags raise :class:`UnknownLanguageError` with the available list.
+
+    Args:
+        raw: The raw language request, e.g. ``"fr,en"`` or ``None``.
+        tag_map: Mapping from internal ``x-gmeow-*`` tags to public BCP-47.
+        available: Optional set of allowed public BCP-47 tags. When omitted,
+            the values of *tag_map* are used (the full mapped catalog).
     """
-    available = frozenset(tag_map.values())
+    if available is None:
+        available_set = frozenset(tag_map.values())
+    else:
+        available_set = frozenset(available)
     if not raw or not raw.strip():
-        return LangSelector(requested=("en",), available=available)
+        return LangSelector(requested=("en",), available=available_set)
 
     tokens = [token.strip() for token in raw.split(",") if token.strip()]
     resolved: list[str] = []
@@ -433,22 +447,22 @@ def resolve_lang_input(raw: str | None, tag_map: dict[str, str]) -> LangSelector
             bcp = tag_map.get(token)
             if bcp is None:
                 raise UnknownLanguageError(
-                    token, sorted(available, key=lambda t: (t != "en", t))
+                    token, sorted(available_set, key=lambda t: (t != "en", t))
                 )
             normalized = bcp.lower()
         else:
             normalized = token.lower()
         if normalized not in seen:
-            if normalized not in available:
+            if normalized not in available_set:
                 raise UnknownLanguageError(
-                    token, sorted(available, key=lambda t: (t != "en", t))
+                    token, sorted(available_set, key=lambda t: (t != "en", t))
                 )
             seen.add(normalized)
             resolved.append(normalized)
 
     if not resolved:
-        return LangSelector(requested=("en",), available=available)
-    return LangSelector(requested=tuple(resolved), available=available)
+        return LangSelector(requested=("en",), available=available_set)
+    return LangSelector(requested=tuple(resolved), available=available_set)
 
 
 def _bcp47_for_literal(lit: Literal, tag_map: dict[str, str]) -> str | None:

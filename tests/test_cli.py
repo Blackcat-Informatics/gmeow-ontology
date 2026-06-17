@@ -107,6 +107,23 @@ def test_describe_unknown_language_fails(runner: CliRunner) -> None:
     assert "Available languages" in result.output
 
 
+def test_describe_unknown_language_error_is_content_aware(runner: CliRunner) -> None:
+    """When content is limited, the error list does not advertise the full catalog."""
+    mock_view = MagicMock()
+    mock_view.tag_map.return_value = {
+        "x-gmeow-english": "en",
+        "x-gmeow-french": "fr",
+        "x-gmeow-chinese": "zh",
+    }
+    mock_view.available_languages.return_value = frozenset({"en", "fr"})
+
+    with patch("gmeow_tools.cli._bundle_view", return_value=mock_view):
+        result = runner.invoke(public_app, ["describe", "Person", "--lang", "notatag"])
+    assert result.exit_code != 0
+    assert "Available languages: en, fr" in result.output
+    assert "zh" not in result.output
+
+
 def test_describe_fallback_marker_for_missing_language(runner: CliRunner) -> None:
     """The bundled snapshot only carries English, so a French request falls back."""
     result = runner.invoke(public_app, ["describe", "Person", "--lang", "fr"])

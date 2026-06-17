@@ -68,18 +68,15 @@ def _lang_option() -> Any:
     )
 
 
-def _gts_tag_map(path: Path | None = None) -> dict[str, str]:
-    """Return the language-tag map for a GTS snapshot (default: bundled)."""
-    return _bundle_view(path).tag_map()
-
-
-def _resolve_lang(lang: str | None, tag_map: dict[str, str]) -> LangSelector:
-    """Resolve CLI/env input against the given tag map."""
+def _resolve_lang(lang: str | None, view: FoldView) -> LangSelector:
+    """Resolve CLI/env input against the languages present in the snapshot."""
     from gmeow_tools.language_tags import UnknownLanguageError, resolve_lang_input
 
     try:
         return resolve_lang_input(
-            lang if lang is not None else os.environ.get("GMEOW_LANG"), tag_map
+            lang if lang is not None else os.environ.get("GMEOW_LANG"),
+            view.tag_map(),
+            available=view.available_languages(),
         )
     except UnknownLanguageError as exc:
         raise _fail(str(exc)) from exc
@@ -288,7 +285,8 @@ def describe(
     """Describe a GMEOW term as useful prose from a GTS snapshot."""
     from gmeow_tools.describe import describe as _describe
 
-    selector = _resolve_lang(lang, _gts_tag_map(gts_file))
+    view = _bundle_view(gts_file)
+    selector = _resolve_lang(lang, view)
     text, code = _describe(term, gts_file or _default_gts_file(), selector=selector)
     console.print(text)
     if code:
@@ -365,10 +363,10 @@ def project(
     # Resolve the language selector against the input the user actually gave us
     # (the target graph), not the hard-coded bundled snapshot.
     if source is None or source.suffix.lower() == ".gts":
-        tag_map = _gts_tag_map(source)
+        view = _bundle_view(source)
     else:
-        tag_map = _gts_tag_map(None)
-    selector = _resolve_lang(lang, tag_map)
+        view = _bundle_view(None)
+    selector = _resolve_lang(lang, view)
 
     # A user GMEOW data file → run the CONSTRUCT; a .gts (or the bundle) → view.
     if source is not None and source.suffix.lower() != ".gts":
@@ -419,7 +417,7 @@ def transpile(
     from gmeow_tools.transpile import transpile as run_transpile
     from gmeow_tools.transpile import transpile_graph
 
-    selector = _resolve_lang(lang, _gts_tag_map(None))
+    selector = _resolve_lang(lang, _bundle_view(None))
 
     names = None if profiles == "all" else [p.strip() for p in profiles.split(",")]
     if names is not None:
@@ -496,7 +494,7 @@ def export(
     )
 
     view = _bundle_view(file)
-    selector = _resolve_lang(lang, _gts_tag_map(file))
+    selector = _resolve_lang(lang, view)
     title, version = fold_meta(view)
     terms = collect_terms(view, selector=selector)
     out.mkdir(parents=True, exist_ok=True)
@@ -536,7 +534,8 @@ def docs(
     """Emit a browsable Markdown docs tree from a GTS snapshot."""
     from gmeow_tools.create_docs import create_docs
 
-    selector = _resolve_lang(lang, _gts_tag_map(file))
+    view = _bundle_view(file)
+    selector = _resolve_lang(lang, view)
     try:
         create_docs(
             file or _default_gts_file(), directory, force=force, selector=selector

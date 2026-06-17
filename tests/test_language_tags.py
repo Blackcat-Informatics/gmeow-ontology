@@ -60,6 +60,23 @@ def test_resolve_lang_input_rejects_unknown_internal_tag() -> None:
         resolve_lang_input("x-gmeow-klingon", _tag_map())
 
 
+def test_resolve_lang_input_respects_custom_available_set() -> None:
+    """When *available* is supplied, validation and LangSelector.available use it."""
+    tag_map = _tag_map()
+    selector = resolve_lang_input("fr", tag_map, available={"en", "fr"})
+    assert selector.requested == ("fr",)
+    assert selector.available == frozenset({"en", "fr"})
+
+
+def test_resolve_lang_input_rejects_tag_outside_custom_available() -> None:
+    """A tag in the full tag map but absent from *available* is rejected."""
+    tag_map = _tag_map()
+    with pytest.raises(UnknownLanguageError) as exc_info:
+        resolve_lang_input("zh", tag_map, available={"en", "fr"})
+    assert "zh" in str(exc_info.value)
+    assert exc_info.value.available == ["en", "fr"]
+
+
 def test_select_literal_prefers_requested_language() -> None:
     literals = [
         Literal("Hello", lang="x-gmeow-english"),

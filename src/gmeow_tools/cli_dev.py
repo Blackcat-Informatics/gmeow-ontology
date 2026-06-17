@@ -81,7 +81,9 @@ def _resolve_lang(lang: str | None, tag_map: dict[str, str]) -> LangSelector:
 
     try:
         return resolve_lang_input(
-            lang if lang is not None else os.environ.get("GMEOW_LANG"), tag_map
+            lang if lang is not None else os.environ.get("GMEOW_LANG"),
+            tag_map,
+            available=frozenset(tag_map.values()),
         )
     except UnknownLanguageError as exc:
         raise _fail(str(exc)) from exc
