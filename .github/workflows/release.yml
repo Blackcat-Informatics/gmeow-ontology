@@ -65,7 +65,7 @@ jobs:
           fi
           mkdir -p /tmp/gpg
           printf '%s' "$GMEOW_RELEASE_SIGNING_KEY" > /tmp/gpg/signing-key.asc
-          uv run --package gmeow-dev gmeow-dev gts compile-full \
+          uv run --package gmeow-dev gmeow-dev compile-gts-full \
             --sign-key /tmp/gpg/signing-key.asc \
             --public-key keys/gmeow-release-key.asc \
             -o dist/gmeow.gts

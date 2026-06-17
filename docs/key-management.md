@@ -41,9 +41,11 @@ gmeow verify dist/gmeow.gts
 gmeow verify dist/gmeow.gts --trusted-key keys/gmeow-release-key.asc
 
 # Inspect file metadata without running signature verification
+# (delegates to the external `gts` binary installed with `gmeow-gts`)
 gmeow gts info --no-verify dist/gmeow.gts
 
 # Extract the embedded public key for manual WoT checks
+# (delegates to the external `gts` binary; `extract-key` requires upstream gmeow-gts#12)
 gmeow gts extract-key dist/gmeow.gts -o /tmp/embedded.asc
 ```
 
@@ -73,7 +75,7 @@ Both `.github/workflows/release.yml` and `.github/workflows/pypi-publish-gmeow.y
 sign the snapshot before uploading artifacts:
 
 ```yaml
-- run: uv run --package gmeow-dev gmeow-dev gts compile-full \
+- run: uv run --package gmeow-dev gmeow-dev compile-gts-full \
          --sign-key /tmp/gpg/signing-key.asc \
          --public-key keys/gmeow-release-key.asc \
          -o generated/dist/gmeow.gts

@@ -27,19 +27,21 @@ The key fingerprint is also the GTS signing `kid` embedded in every signed
 ### Using `gmeow gts verify` (recommended)
 
 ```bash
-pip install gmeow
+pip install gmeow gmeow-gts
 python -m gmeow_tools.cli gts verify path/to/gmeow.gts
 ```
 
-The CLI extracts the embedded transport public key, checks its fingerprint
-against the committed `keys/gmeow-release-key.asc` if you pass
-`--trusted-key`, and verifies every COSE signature in the file.
+The `gmeow gts verify` command delegates to the external `gts` binary
+installed with `gmeow-gts`. It extracts the embedded transport public key,
+checks its fingerprint against the committed `keys/gmeow-release-key.asc` if
+you pass `--trusted-key`, and verifies every COSE signature in the file.
 
 ### Manual WoT cross-check
 
 1. Extract the embedded public key:
 
    ```bash
+   # Delegates to the external `gts` binary; `extract-key` requires upstream gmeow-gts#12
    gmeow gts extract-key gmeow.gts -o /tmp/embedded.asc
    ```
 

@@ -244,8 +244,11 @@ generated, drift-gated artifact; per-query explanations are produced at reasonin
 
 ## CLI shape
 
-The CLI is Typer with nested sub-apps (`src/gmeow_tools/cli.py`; see `gts_app`/`evals_app` via
-`app.add_typer`, `cli.py:332,1168`). The logic surface follows the same pattern:
+The CLI is Typer with a mix of top-level commands and nested sub-apps (`src/gmeow_tools/cli.py`,
+`src/gmeow_tools/cli_dev.py`). The public `gmeow` surface now carries a thin `gts` shim that shells
+out to the external `gts` binary installed with `gmeow-gts`; bundle builds are developer-facing
+top-level `gmeow-dev compile-gts` / `gmeow-dev compile-gts-full` commands; evaluation commands
+remain grouped under `evals_app`. The logic surface follows the same pattern:
 
 ```bash
 gmeow logic compile            # compile logic: → IR → canonical artifact + projections
