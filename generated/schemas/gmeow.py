@@ -51744,7 +51744,7 @@ class AwarenessTenure(TimeScopedRelation):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Awareness Tenure'})
 
-    awarenessSubject: Optional[list[Agent]] = Field(default=None, title="awareness subject", json_schema_extra = { "linkml_meta": {'domain': 'AwarenessTenure',
+    awarenessSubject: Optional[Agent] = Field(default=None, title="awareness subject", json_schema_extra = { "linkml_meta": {'domain': 'AwarenessTenure',
          'domain_of': ['AwarenessTenure'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/awarenessSubject'} })
     duringInterval: Optional[list[TimeInterval]] = Field(default=None, title="during interval", json_schema_extra = { "linkml_meta": {'domain': 'TimeScopedRelation',

@@ -5936,12 +5936,13 @@
             "description": "",
             "properties": {
               "awarenessSubject": {
-                "items": {
-                  "$ref": "#/$defs/Agent"
-                },
-                "type": [
-                  "array",
-                  "null"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               },
               "duringInterval": {

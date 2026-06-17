@@ -4678,7 +4678,7 @@ slots:
     title: awareness subject
     range: Agent
     domain: AwarenessTenure
-    multivalued: true
+    multivalued: false
   bcc:
     slot_uri: https://blackcatinformatics.ca/gmeow/bcc
     title: bcc

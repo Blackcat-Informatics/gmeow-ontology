@@ -3597,7 +3597,7 @@ export interface AwarenessMode {
 
 
 export interface AwarenessTenure extends TimeScopedRelation {
-    awarenessSubject?: Agent[],
+    awarenessSubject?: Agent,
 }
 
 

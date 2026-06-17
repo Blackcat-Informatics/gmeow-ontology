@@ -201,6 +201,7 @@ def test_awareness_subject_bearer_edge() -> None:
     g = _graph()
     subj = _t("awarenessSubject")
     assert (subj, RDF.type, OWL.ObjectProperty) in g
+    assert (subj, RDF.type, OWL.FunctionalProperty) in g
     assert (subj, RDFS.domain, _t("AwarenessTenure")) in g
     assert (subj, RDFS.range, _t("Agent")) in g
 

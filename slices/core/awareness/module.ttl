@@ -271,7 +271,7 @@ gmeow:levelRank
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> .
 
 gmeow:awarenessSubject
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AwarenessTenure ;
     rdfs:range gmeow:Agent ;
     rdfs:label "awareness subject"@x-gmeow-english ;

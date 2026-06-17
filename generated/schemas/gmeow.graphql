@@ -4035,7 +4035,7 @@ type AwarenessMode
 type AwarenessTenure
   {
     duringInterval: [TimeInterval]
-    awarenessSubject: [Agent]
+    awarenessSubject: Agent
   }
 
 type Axis
