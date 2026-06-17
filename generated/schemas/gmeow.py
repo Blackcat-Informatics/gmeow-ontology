@@ -23578,6 +23578,25 @@ class CognitiveState(MentalMoment):
     pass
 
 
+class DoxasticState(MentalMoment):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DoxasticState',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Doxastic State'})
+
+    credence: Optional[list[Decimal]] = Field(default=None, title="credence", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credence'} })
+    doxasticClaim: Optional[StandpointClaim] = Field(default=None, title="doxastic claim", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/doxasticClaim'} })
+    doxasticContent: Optional[Proposition] = Field(default=None, title="doxastic content", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/doxasticContent'} })
+    epistemicAgent: Optional[Agent] = Field(default=None, title="epistemic agent", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticState',
+         'domain_of': ['DoxasticState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicAgent'} })
+
+
 class MentalProcess(Event):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MentalProcess',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -51980,6 +51999,19 @@ class ContainmentTenure(TimeScopedRelation):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/duringInterval'} })
 
 
+class DoxasticTenure(TimeScopedRelation):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DoxasticTenure',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Doxastic Tenure'})
+
+    tenureOfDoxasticState: Optional[DoxasticState] = Field(default=None, title="tenure of doxastic state", json_schema_extra = { "linkml_meta": {'domain': 'DoxasticTenure',
+         'domain_of': ['DoxasticTenure'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState'} })
+    duringInterval: Optional[list[TimeInterval]] = Field(default=None, title="during interval", json_schema_extra = { "linkml_meta": {'domain': 'TimeScopedRelation',
+         'domain_of': ['TimeScopedRelation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/duringInterval'} })
+
+
 class EntityExistence(TimeScopedRelation):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/EntityExistence',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -61329,6 +61361,7 @@ Employment.model_rebuild()
 MemoryKind.model_rebuild()
 MentalMoment.model_rebuild()
 CognitiveState.model_rebuild()
+DoxasticState.model_rebuild()
 MentalProcess.model_rebuild()
 Experience.model_rebuild()
 InferenceProcess.model_rebuild()
@@ -61623,6 +61656,7 @@ TimeScopedRelation.model_rebuild()
 AddressTenure.model_rebuild()
 AwarenessTenure.model_rebuild()
 ContainmentTenure.model_rebuild()
+DoxasticTenure.model_rebuild()
 EntityExistence.model_rebuild()
 InferenceTenure.model_rebuild()
 InquiryTenure.model_rebuild()

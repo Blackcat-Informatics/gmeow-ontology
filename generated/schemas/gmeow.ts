@@ -4386,6 +4386,21 @@ export interface DocumentationConcern {
 
 
 
+export interface DoxasticState extends MentalMoment {
+    credence?: number[],
+    doxasticClaim?: StandpointClaim,
+    doxasticContent?: Proposition,
+    epistemicAgent?: Agent,
+}
+
+
+
+export interface DoxasticTenure extends TimeScopedRelation {
+    tenureOfDoxasticState?: DoxasticState,
+}
+
+
+
 export interface Duration extends Entity {
     durationValue?: string,
 }

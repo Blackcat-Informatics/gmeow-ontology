@@ -17,7 +17,6 @@ Tier-2 uplift backlog.
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 34/34 | full |
 | archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 1 | - | full |
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 44/44 | full |
-| awareness | core | core | 2 | 3 | 5 | 0 | 2 | 8/8 | full |
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 40/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 16/16 | full |
 | cognition | core | core | 2 | 3 | 14 | 0 | 4 | 17/17 | full |
@@ -30,7 +29,7 @@ Tier-2 uplift backlog.
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |
-| epistemics | core | core | 1 | 1 | 5 | 0 | 1 | 6/6 | full |
+| epistemics | core | core | 3 | 3 | 10 | 0 | 2 | 13/13 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 55/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 10/10 | full |
 | expertise | core | core | 5 | 3 | 11 | 0 | 1 | 14/14 | full |
@@ -40,18 +39,15 @@ Tier-2 uplift backlog.
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 18/18 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
-| imagination | core | core | 1 | 1 | 4 | 0 | 2 | 5/5 | full |
 | inference | core | core | 6 | 7 | 21 | 0 | 5 | 0/28 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 16 | 27 | 0 | 1 | 27/43 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 10/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
-| learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | core | 0 | 15 | 17 | 17 | 1 | 0/32 | full |
-| mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
-| metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
+| logic | core | core | 0 | 15 | 17 | 17 | 0 | 0/32 | full |
+| mentation | core | core | 4 | 3 | 3 | 0 | 1 | 6/6 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 52/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
@@ -62,7 +58,7 @@ Tier-2 uplift backlog.
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 51/51 | full |
 | places | core | core | 7 | 46 | 140 | 0 | 1 | 186/186 | full |
 | procedures | extension | extensions | 2 | 9 | 26 | 0 | 1 | - | full |
-| profiles | core | core | 3 | 1 | 4 | 0 | 1 | 4/5 | full |
+| profiles | core | core | 3 | 1 | 4 | 0 | 0 | 4/5 | full |
 | provenance | core | core | 3 | 4 | 9 | 0 | 1 | 10/13 | full |
 | quality | core | core | 2 | 2 | 2 | 0 | 1 | 4/4 | full |
 | rights | core | core | 4 | 22 | 48 | 0 | 1 | 70/70 | full |
@@ -79,4 +75,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 11/11 | full |
 
-**70 slices** · documentation: 70 full guides, 0 stubs remaining (#325); advisory coverage: 1128/1215 core class/property terms (#471).
+**66 slices** · documentation: 66 full guides, 0 stubs remaining (#325); advisory coverage: 1102/1189 core class/property terms (#471).
