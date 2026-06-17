@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/probabilistic-confidence-guard
+# AC (#506): a logic:confidence annotation is NOT auto-interpreted as a probability
+# (the guard test goes RED if violated). The diagnosis(patient, flu) fact is
+# asserted in the EDB (input.nq) and carries confidence 0.9 (the
+# `:- confidence(...)` directive in queries/diagnosis.logic). Under
+# logic:ProbabilisticProfile with a declared model, the marginal of the asserted
+# fact MUST be 1.0 — the confidence 0.9 is metadata, never a probability. If a
+# wrong implementation promoted confidence to probability, the marginal would be
+# 0.9 and this case's golden (and the guard test) would fail.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/probabilistic-confidence-guard/> .
+
+ex:Patient a logic:Kind .

@@ -1,0 +1,14 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% confidence ≠ probability guard (#506 AC-2; red if violated).
+% diagnosis(patient, flu) is an asserted fact (in input.nq) carrying confidence
+% 0.9. Under ProbabilisticProfile with a declared model, its marginal MUST be 1.0
+% — confidence is metadata, NEVER a probability. A binding probability of 0.9
+% would mean confidence leaked into the probability model: the failure mode this
+% case exists to catch.
+% Expected: X = ex:flu with probability 1.0 (NOT 0.9), status ok.
+:- prefix(ex, 'https://example.org/profiles/probabilistic-confidence-guard/').
+:- probability_model(full_independence).
+:- confidence(ex:diagnosis(ex:patient, ex:flu), 0.9).
+?- ex:diagnosis(ex:patient, X).
