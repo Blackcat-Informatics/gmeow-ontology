@@ -433,9 +433,9 @@ def resolve_lang_input(
             the values of *tag_map* are used (the full mapped catalog).
     """
     if available is None:
-        available_set = frozenset(tag_map.values())
+        available_set = frozenset(v.lower() for v in tag_map.values())
     else:
-        available_set = frozenset(available)
+        available_set = frozenset(a.lower() for a in available)
     if not raw or not raw.strip():
         return LangSelector(requested=("en",), available=available_set)
 
