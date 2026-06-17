@@ -23,9 +23,10 @@ import json
 from pathlib import Path
 
 import gmeow_validate
+from rdflib import RDF, URIRef
 
 from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
-from gmeow_tools.graph import iter_source_files
+from gmeow_tools.graph import iter_source_files, load_merged_graph
 from gmeow_tools.language_tags import _ANNOTATION_PREDICATES
 from gmeow_tools.slices import discover_slices, iter_slice_module_files
 from gmeow_tools.validate import (
@@ -41,12 +42,6 @@ _GOLDEN_DIR = Path(__file__).parent / "fixtures" / "lint-golden"
 def _golden(name: str) -> dict[str, list[str]]:
     payload = json.loads((_GOLDEN_DIR / f"{name}.json").read_text(encoding="utf-8"))
     assert isinstance(payload, dict)
-    return payload
-
-
-def _golden_list(name: str) -> list[str]:
-    payload = json.loads((_GOLDEN_DIR / f"{name}.json").read_text(encoding="utf-8"))
-    assert isinstance(payload, list)
     return payload
 
 
@@ -104,9 +99,41 @@ def test_slice_ownership_lint_rust_matches_golden() -> None:
     )
 
 
-def test_declared_terms_rust_matches_golden() -> None:
-    terms = sorted(gmeow_validate.declared_terms(_source_paths(), _lint_config()))
-    assert terms == _golden_list("declared_terms")  # golden is a sorted list
+def _declared_terms_from_rdflib() -> set[str]:
+    """Independent live enumeration of declared GMEOW terms, via rdflib.
+
+    Mirrors the Rust ``gmeow_validate.declared_terms`` definition
+    (``crates/validate/src/lint.rs::collect_typed_terms``): every GMEOW-namespaced
+    *named* IRI (``is_gmeow_term`` = ``startswith(namespace) or == ontology_iri``)
+    that is the subject of at least one ``rdf:type`` triple; blank-node subjects
+    are excluded. Computed over the same merged sources, so the two paths agree by
+    construction rather than against a frozen snapshot.
+    """
+    ns, ont = str(NAMESPACE), str(ONTOLOGY_IRI)
+    graph = load_merged_graph(include_imports=True)
+    return {
+        str(s)
+        for s in graph.subjects(RDF.type, None)
+        if isinstance(s, URIRef) and (str(s).startswith(ns) or str(s) == ont)
+    }
+
+
+def test_declared_terms_rust_matches_source() -> None:
+    """``gmeow_validate.declared_terms`` agrees with an INDEPENDENT rdflib
+    enumeration over the same sources — true parity that does not drift on every
+    term addition (the prior frozen-golden form red-flagged on each new term).
+
+    Also pins the structural contract the engine guarantees: the result is sorted,
+    duplicate-free, non-empty, and every entry is a GMEOW-namespaced IRI.
+    """
+    terms = gmeow_validate.declared_terms(_source_paths(), _lint_config())
+    ns, ont = str(NAMESPACE), str(ONTOLOGY_IRI)
+    assert terms, "declared_terms must not be empty"
+    assert terms == sorted(set(terms)), "declared_terms must be sorted and unique"
+    assert all(t.startswith(ns) or t == ont for t in terms), (
+        "every declared term must be a GMEOW-namespaced IRI"
+    )
+    assert set(terms) == _declared_terms_from_rdflib()
 
 
 # --------------------------------------------------------------------------- #
