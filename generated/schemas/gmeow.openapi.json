@@ -64823,6 +64823,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -64841,9 +64850,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -64898,6 +64907,15 @@
               "toLevel": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -75328,6 +75346,7 @@
               "processDeliberation",
               "processDreaming",
               "processImagining",
+              "processLearning",
               "processMindWandering",
               "processPerception",
               "processReasoning",

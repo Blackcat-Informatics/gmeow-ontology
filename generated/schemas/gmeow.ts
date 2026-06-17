@@ -1555,6 +1555,7 @@ export enum MentalProcessTypeEnum {
     deliberation = "processDeliberation",
     dreaming = "processDreaming",
     imagining = "processImagining",
+    learning = "processLearning",
     mind_wandering = "processMindWandering",
     perception = "processPerception",
     reasoning = "processReasoning",

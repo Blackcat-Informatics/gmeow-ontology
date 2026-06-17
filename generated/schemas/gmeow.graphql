@@ -1555,6 +1555,7 @@ enum MentalProcessTypeEnum
     processDeliberation
     processDreaming
     processImagining
+    processLearning
     processMindWandering
     processPerception
     processReasoning
@@ -11175,7 +11176,9 @@ type LearningEvent
     violates: [Norm]
     experiencer: Agent
     mentalProcessType: [MentalProcessType]
-    realizesMoment: [String]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
     fromLevel: [String]
     learnedFrom: [String]
     learningType: [LearningEventType]
