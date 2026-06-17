@@ -26,6 +26,7 @@ from gmeow_tools.config import (
     FIXTURES_DIR,
     GENERATED_SHAPES_DIR,
     MAPPING_DSL_DIR,
+    MAPPING_DSL_SHAPES_FILE,
     NAMESPACE,
     ONTOLOGY_IRI,
     PROJECT_ROOT,
@@ -33,6 +34,7 @@ from gmeow_tools.config import (
     SHAPES_FILE,
     SLICES_DIR,
     STATEMENT_DSL_DIR,
+    STATEMENT_DSL_SHAPES_FILE,
 )
 from gmeow_tools.graph import iter_source_files
 from gmeow_tools.slices import (
@@ -110,12 +112,24 @@ def _shapes_turtle(shapes_path: Path) -> str:
     return shacl_engine.shapes_files_to_turtle(files)
 
 
+@lru_cache(maxsize=2)
+def _dsl_shapes_turtle(shapes_path: Path) -> str:
+    """Read (and cache) a DSL-specific SHACL shapes file as Turtle text.
+
+    The mapping and statement DSL shapes are authored as dedicated files in
+    ``shapes/`` and parsed directly by the Rust SHACL engine during DSL
+    validation (#634).
+    """
+    return shapes_path.read_text(encoding="utf-8")
+
+
 @dataclass(slots=True)
 class ValidationResult:
     """Outcome of a validation pass."""
 
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    timings: list[dict[str, object]] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -126,6 +140,7 @@ class ValidationResult:
         """Merge another result into this one."""
         self.errors.extend(other.errors)
         self.warnings.extend(other.warnings)
+        self.timings.extend(other.timings)
 
 
 # DECISION (#579): KEEP this `.cache/validate` layer for this PR. It skips
@@ -633,7 +648,10 @@ _STUB_MARKER = "This is a STUB guide"
 
 
 def guide_anchor_lint(
-    source_paths: list[str], root: Path | None = None
+    source_paths: list[str],
+    root: Path | None = None,
+    *,
+    declared_terms: list[str] | None = None,
 ) -> ValidationResult:
     """Tier-2 structural binding (#325): guides are bound to the graph.
 
@@ -647,6 +665,8 @@ def guide_anchor_lint(
             the anchors resolve against (the validation path passes
             ``iter_source_files()`` — graph-free here, #579).
         root: Override the slice-discovery root (tests).
+        declared_terms: Optional pre-computed declared GMEOW-term IRIs. When
+            provided, the expensive Rust declared-term scan is skipped (#634).
 
     The declared-term set is computed by the Rust
     ``gmeow_validate.declared_terms`` engine (#579) over the source paths; the
@@ -655,7 +675,10 @@ def guide_anchor_lint(
     from gmeow_tools.config import SLICES_DIR
 
     result = ValidationResult()
-    declared = set(gmeow_validate.declared_terms(source_paths, _lint_config()))
+    if declared_terms is not None:
+        declared = set(declared_terms)
+    else:
+        declared = set(gmeow_validate.declared_terms(source_paths, _lint_config()))
     base = root if root is not None else SLICES_DIR
     for manifest in sorted(base.glob("*/*/manifest.ttl")):
         slice_dir = manifest.parent
@@ -692,45 +715,65 @@ def guide_anchor_lint(
     return result
 
 
-def validate_all() -> ValidationResult:
-    """Run syntax, structural lint, SHACL, and sameAs-ban checks."""
-    result = check_syntax()
-    result.extend(check_sameas_ban())
-    if not result.ok:
-        # No point building the merged graph if a file will not parse or the
-        # sameAs ban is violated.
-        return result
-    # The merged ontology is passed to every gate as FILE PATHS — the Rust
-    # lints/SHACL build their own oxigraph store; no Python graph object is ever
-    # constructed on the validation path (#579).
+def validate_all(timings: bool = False) -> ValidationResult:
+    """Run syntax, structural lint, SHACL, and sameAs-ban checks.
+
+    This is now a thin Python compatibility wrapper around the Rust-native
+    ``gmeow_validate.validate_all_native`` orchestration (#634). The Rust
+    engine builds the ontology store once, parses the SHACL shapes once, and
+    runs every phase against the shared store. Python keeps the guide-anchor
+    lint (it needs the slice filesystem) and translates the returned dict into
+    the existing :class:`ValidationResult` model.
+
+    Args:
+        timings: When ``True``, ask the Rust engine to record per-phase wall
+            timings and surface them in :attr:`ValidationResult.timings` for
+            the CLI to report.
+    """
+    # Ensure the content-addressed cache root exists before Rust needs it.
+    _VALIDATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
     source_paths = [str(p) for p in iter_source_files()]
-    result.extend(structural_lint(source_paths))
-    result.extend(term_naming_lint(source_paths))
-    result.extend(slice_ownership_lint())
-    result.extend(guide_anchor_lint(source_paths))
-    result.extend(reasoning_lint(source_paths))
-    shacl_key = _merged_shacl_cache_key()
-    result.extend(
-        _cached_result(
-            "merged-shacl",
-            shacl_key,
-            lambda: run_shacl(merged_ntriples(source_paths)),
-        )
+    shapes_ttl = _shapes_turtle(SHAPES_FILE)
+    mapping_shapes_ttl = _dsl_shapes_turtle(MAPPING_DSL_SHAPES_FILE)
+    statement_shapes_ttl = _dsl_shapes_turtle(STATEMENT_DSL_SHAPES_FILE)
+
+    modules = iter_slice_module_files()
+    module_specs = [
+        (str(module), f"{NAMESPACE}slices/{module.parent.name}") for module in modules
+    ]
+
+    config = _lint_config()
+    options = gmeow_validate.ValidateOptions(
+        timings=timings,
+        sameas_allowlist=[(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
+        module_specs=module_specs,
+        slices_dir=str(SLICES_DIR),
+        mapping_shapes_ttl=mapping_shapes_ttl,
+        statement_shapes_ttl=statement_shapes_ttl,
+        project_root=str(PROJECT_ROOT),
     )
-    result.extend(check_example_coverage())
-    result.extend(check_examples(source_paths, base_cache_key=shacl_key))
-    result.extend(
-        _cached_result(
-            "dsl-shacl",
-            _dsl_shacl_cache_key(MAPPING_DSL_DIR, "mapping"),
-            lambda: _dsl_shacl(MAPPING_DSL_DIR, "mapping"),
-        )
+
+    report = gmeow_validate.validate_all_native(
+        source_paths,
+        shapes_ttl,
+        str(MAPPING_DSL_DIR),
+        str(STATEMENT_DSL_DIR),
+        config,
+        options,
     )
-    result.extend(
-        _cached_result(
-            "dsl-shacl",
-            _dsl_shacl_cache_key(STATEMENT_DSL_DIR, "statement"),
-            lambda: _dsl_shacl(STATEMENT_DSL_DIR, "statement"),
-        )
+
+    result = ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+        timings=list(report.get("timings", [])),
     )
+
+    # Guide-anchor lint stays Python-side: it resolves markdown anchors in
+    # slice docs.md against the declared GMEOW terms returned by Rust. Skip it
+    # when earlier phases already failed (mirrors the original orchestration).
+    if result.ok:
+        declared_terms = list(report.get("declared_terms", []))
+        result.extend(guide_anchor_lint(source_paths, declared_terms=declared_terms))
+
     return result
