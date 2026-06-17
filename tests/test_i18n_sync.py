@@ -394,9 +394,9 @@ msgstr "new"
         assert len(report.skipped) == 1
         assert "no @x-gmeow-english literal" in report.skipped[0]
 
-    def test_conflict_when_literal_ambiguous(self, tmp_path: Path) -> None:
-        # Same subject, same value, two predicates: replacing only ex:p is
-        # ambiguous from a text search perspective.
+    def test_disambiguates_by_predicate(self, tmp_path: Path) -> None:
+        # Same subject, same value, two predicates: the subject+predicate
+        # context filter must pick the intended occurrence.
         ttl = _write_ttl(
             tmp_path,
             """@prefix ex: <http://example.org/> .
@@ -414,9 +414,44 @@ msgstr "changed"
 """,
         )
         report = sync_english_from_po(po, ttl)
-        assert not report.changed_files
-        assert len(report.conflicts) == 1
-        assert "ambiguous literal" in report.conflicts[0]
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        updated = ttl.read_text(encoding="utf-8")
+        assert 'ex:p "changed"@x-gmeow-english' in updated
+        assert 'ex:q "shared"@x-gmeow-english' in updated
+
+    def test_period_in_preceding_literal_does_not_cause_false_ambiguity(
+        self, tmp_path: Path
+    ) -> None:
+        # A period inside an earlier literal must not be mistaken for a
+        # statement terminator when locating the subject+predicate context.
+        ttl = _write_ttl(
+            tmp_path,
+            """@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+ex:s rdfs:comment "Sentence one. Sentence two."@en ;
+    rdfs:label "Shared"@x-gmeow-english ;
+    skos:altLabel "Shared"@x-gmeow-english .
+""",
+        )
+        po = _write_po(
+            tmp_path,
+            """
+msgctxt "http://example.org/s|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Shared"
+msgstr "Updated Label"
+""",
+        )
+        report = sync_english_from_po(po, ttl)
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = ttl.read_text(encoding="utf-8")
+        assert 'rdfs:label "Updated Label"@x-gmeow-english' in updated
+        assert 'skos:altLabel "Shared"@x-gmeow-english' in updated
+        assert 'rdfs:comment "Sentence one. Sentence two."@en' in updated
 
     def test_dry_run_does_not_write(self, tmp_path: Path) -> None:
         ttl = _write_ttl(

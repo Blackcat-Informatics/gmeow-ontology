@@ -75,6 +75,21 @@ _PREFIX_RE = re.compile(
 #: Matches a standalone PO continuation string.
 _PO_STRING_RE = re.compile(r'^"(?:[^"\\]|\\.)*"$')
 
+#: Structural Turtle tokens used to locate the subject+predicate of a literal.
+_CONTEXT_TOKEN_RE = re.compile(
+    r"(?P<iri><[^>]+>)"
+    r"|(?P<prefixed>[a-zA-Z_][a-zA-Z0-9_-]*:[a-zA-Z_][a-zA-Z0-9_-]*)"
+    r"|(?P<bnode>_:[a-zA-Z_][a-zA-Z0-9_-]*)"
+    r"|(?P<bnstart>\[)"
+    r"|(?P<bnend>\])"
+    r"|(?P<sep>[;,])"
+    r"|(?P<dot>\.)"
+    r"|(?P<keyword_a>\ba\b)"
+)
+
+_SUBJECT_KINDS = frozenset({"iri", "prefixed", "bnode", "bnstart"})
+_PREDICATE_INTRODUCER_KINDS = _SUBJECT_KINDS | {"bnend", "sep"}
+
 
 def _unescape_po(value: str) -> str:
     r"""Reverse PO escape sequences in *value*.
@@ -283,24 +298,122 @@ def _iri_text_forms(iri: str, prefixes: dict[str, str]) -> list[str]:
     return forms
 
 
-def _find_statement_start(text: str, pos: int) -> int:
-    """Approximate the start of the Turtle statement containing *pos*.
+def _tokenize_turtle(text: str, end: int | None = None) -> list[tuple[int, str, str]]:
+    """Return structural Turtle tokens as ``(position, kind, value)`` up to *end*.
 
-    Searches backwards for a ``'.'`` that looks like a statement terminator.
-    This is intentionally a heuristic: the tool works on canonical, hand-edited
-    ontology sources where decimals and IRIs containing dots are rare in the
-    annotation positions being updated.
+    String literals (double quoted only, matching the rest of this module) and
+    comments are skipped so that periods, semicolons, and IRIs inside literals
+    cannot be mistaken for statement structure.
     """
-    search = pos
-    while True:
-        idx = text.rfind(".", 0, search)
-        if idx < 0:
-            return 0
-        before = text[idx - 1] if idx > 0 else " "
-        after = text[idx + 1] if idx + 1 < len(text) else " "
-        if before not in "0123456789" and after in " \t\n\r":
-            return idx + 1
-        search = idx
+    if end is None:
+        end = len(text)
+    tokens: list[tuple[int, str, str]] = []
+    i = 0
+    while i < end:
+        ch = text[i]
+        if ch.isspace():
+            i += 1
+            continue
+        if ch == "#":
+            while i < end and text[i] != "\n":
+                i += 1
+            continue
+        if text.startswith('"""', i):
+            j = text.find('"""', i + 3, end)
+            if j < 0:
+                break
+            i = j + 3
+            continue
+        if ch == '"':
+            j = i + 1
+            while j < end:
+                if text[j] == "\\" and j + 1 < end:
+                    j += 2
+                elif text[j] == '"':
+                    j += 1
+                    break
+                else:
+                    j += 1
+            i = j
+            continue
+        m = _CONTEXT_TOKEN_RE.match(text, i)
+        if m:
+            kind = m.lastgroup
+            assert kind is not None
+            tokens.append((i, kind, m.group(0)))
+            i = m.end()
+            continue
+        i += 1
+    return tokens
+
+
+def _extract_context(
+    text: str,
+    pos: int,
+    subject_forms: list[str],
+    predicate_forms: list[str],
+) -> tuple[str | None, str | None]:
+    """Return the nearest subject+predicate text forms for the literal at *pos*.
+
+    Scans structural tokens before *pos* to find the predicate that actually
+    introduces the literal, then the subject that owns that predicate.  Because
+    literals and comments are skipped by the tokenizer, punctuation inside
+    literals cannot be mistaken for a statement boundary.
+    """
+    tokens = _tokenize_turtle(text, pos)
+    idx = len(tokens)
+    for i, (tpos, _kind, _value) in enumerate(tokens):
+        if tpos >= pos:
+            idx = i
+            break
+
+    predicate: str | None = None
+    predicate_idx = -1
+    # Scan backward from the literal, skipping object tokens, until we find a
+    # token that is in predicate position (after a subject or a ';' separator).
+    for i in range(idx - 1, -1, -1):
+        _tpos, kind, value = tokens[i]
+        if kind == "dot":
+            break
+        if kind == "sep":
+            # ';' introduces a predicate, ',' introduces another object.
+            # Both tell us to keep scanning backward.
+            continue
+        if kind not in ("iri", "prefixed", "keyword_a"):
+            continue
+        if i == 0:
+            continue
+        prev_kind, prev_value = tokens[i - 1][1], tokens[i - 1][2]
+        if prev_kind not in _PREDICATE_INTRODUCER_KINDS:
+            continue
+        if prev_kind == "sep" and prev_value != ";":
+            continue
+        predicate = value
+        predicate_idx = i
+        break
+
+    if predicate is None or predicate not in predicate_forms:
+        return None, predicate
+
+    subject: str | None = None
+    for i in range(predicate_idx - 1, -1, -1):
+        _tpos, kind, value = tokens[i]
+        if kind == "dot":
+            break
+        if kind not in _SUBJECT_KINDS:
+            continue
+        if kind == "bnstart":
+            subject = value
+            break
+        if i == 0:
+            subject = value
+            break
+        prev_kind = tokens[i - 1][1]
+        if prev_kind == "dot":
+            subject = value
+            break
+
+    return subject, predicate
 
 
 def _filter_by_context(
@@ -309,18 +422,13 @@ def _filter_by_context(
     subject_forms: list[str],
     predicate_forms: list[str],
 ) -> list[tuple[int, int, str, str]]:
-    """Keep only literal occurrences inside a statement mentioning the subject.
-
-    The predicate must also appear between the statement start and the literal,
-    which narrows the match to the intended triple.
-    """
+    """Keep only literal occurrences governed by the expected subject+predicate."""
     scoped: list[tuple[int, int, str, str]] = []
     for start, end, quote_style, suffix in candidates:
-        stmt_start = _find_statement_start(text, start)
-        segment = text[stmt_start:start]
-        has_subject = any(form in segment for form in subject_forms)
-        has_predicate = any(form in segment for form in predicate_forms)
-        if has_subject and has_predicate:
+        subject, predicate = _extract_context(
+            text, start, subject_forms, predicate_forms
+        )
+        if subject in subject_forms and predicate in predicate_forms:
             scoped.append((start, end, quote_style, suffix))
     return scoped
 
