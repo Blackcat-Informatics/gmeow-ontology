@@ -280,6 +280,16 @@ def test_gts_shim_does_not_inject_for_extract_key_with_file(
     )
 
 
+@patch("gmeow_tools.cli.subprocess.run", side_effect=OSError("permission denied"))
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_handles_os_error(
+    _which: Any, _mock_run: Any, runner: CliRunner
+) -> None:
+    result = runner.invoke(public_app, ["gts", "info"])
+    assert result.exit_code != 0
+    assert "failed to run gts" in result.output
+
+
 def test_dev_cli_keeps_checkout_commands(runner: CliRunner) -> None:
     result = runner.invoke(dev_app, ["--help"])
     assert result.exit_code == 0
