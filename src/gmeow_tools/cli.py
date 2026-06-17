@@ -601,10 +601,15 @@ def gts_command(ctx: typer.Context) -> None:
     forwarded = list(ctx.args)
     if not forwarded:
         forwarded = ["--help"]
-    elif forwarded[0] in {"info", "verify", "ls", "fold"} and (
-        len(forwarded) == 1 or forwarded[1].startswith("-")
-    ):
-        forwarded.insert(1, str(GTS_SNAPSHOT_FILE))
+    elif forwarded[0] in {"info", "verify", "ls", "fold", "extract-key"}:
+        tail = forwarded[1:]
+        if "--" in tail:
+            marker = tail.index("--")
+            has_file_arg = marker + 1 < len(tail)
+        else:
+            has_file_arg = any(not arg.startswith("-") for arg in tail)
+        if not has_file_arg:
+            forwarded.insert(1, str(GTS_SNAPSHOT_FILE))
     result = subprocess.run([exe, *forwarded], check=False)
     sys.exit(result.returncode)
 
