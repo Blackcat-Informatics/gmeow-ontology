@@ -19,7 +19,8 @@
 DOCTRINE.
   * Keystone: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes — knowledge is justified, standpoint-true belief held from a vantage, and there is NO factive knows. Asserting knowsThat materialises believes; the reverse never holds; neither commits global truth. The reasoner never promotes justified-true-belief to knowledge — that verdict (and its Gettier defeaters) is solver work (Principle 12).
   * No truth bit: there is no isTrue, no truth datatype, no factivity axiom anywhere. Truth-per-frame rides the standpoint modality (gmeow:standpointModality on a flattened statement, gmeow:claimModality on a reified StandpointClaim), reused from the standpoint slice, never re-minted (Principle 6).
-  * Flat-first (Principle 4 / Principle 13): the believes / doubts / suspendsJudgementOn / accepts / knowsThat spine is the cheap 80% surface with an OPEN range (point at any reified statement or claim). The reified tier (DoxasticState, credence, doxasticClaim, DoxasticTenure) and the mental-moment grounding live in this module as the promotion target when credence, temporal scope, or standpoint modality must be first-class; justification grounds land in a sibling child (#561).
+  * Flat-first (Principle 4 / Principle 13): the believes / doubts / suspendsJudgementOn / accepts / knowsThat spine is the cheap 80% surface with an OPEN range (point at any reified statement or claim). The reified tier (DoxasticState, credence, doxasticClaim, DoxasticTenure) and the mental-moment grounding live in this module as the promotion target when credence, temporal scope, or standpoint modality must be first-class.
+  * Justification hook: gmeow:justifiedBy links a DoxasticState to its supporting EvidenceSpan / StandpointClaim / InferenceCommitment. Full inferential argumentation remains in sibling child #561.
   * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot subproperty an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
   * Acceptance is not belief: gmeow:accepts is pragmatic (a premise taken on for argument) and entails neither belief nor truth (Principle 1)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
@@ -178,6 +179,17 @@ gmeow:credence
     gmeow:useWhen "Use to record a numeric degree-of-belief on a reified DoxasticState when graded strength is itself first-class."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the flat gmeow:believes spine (use gmeow:standpointModality on the statement instead) and avoid conflating it with gmeow:confidence or gmeow:claimModality."@x-gmeow-english ;
     gmeow:howToUse "Attach one or more xsd:decimal values in [0,1] to a DoxasticState; pair with doxasticClaim carrying claimModality for the qualitative side."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+gmeow:justifiedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DoxasticState ;
+    rdfs:label "justified by"@x-gmeow-english ;
+    skos:definition "A doxastic state is supported by a justifier — typically an EvidenceSpan, a StandpointClaim, or an InferenceCommitment. Non-functional: a belief may rest on multiple independent grounds. This is the lightweight belief→justifier hook used by the flagship example; the full inference-making machinery (I5_Inference_Making, argument structure, defeaters) lives in the sibling justification child (#561)."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally open (Principle 13). The property is non-functional and carries no entailment that the belief is true — GMEOW remains non-factive."@x-gmeow-english ;
+    gmeow:useWhen "Use when a reified DoxasticState needs to point at the evidence, claim, or argument that supports it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the full inferential argument structure is needed; use the sibling justification child (#561) instead."@x-gmeow-english ;
+    gmeow:howToUse "Point from a DoxasticState to one or more EvidenceSpan / StandpointClaim / InferenceCommitment individuals."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
 
 # =========================================================================== #
