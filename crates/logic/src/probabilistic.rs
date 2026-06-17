@@ -44,6 +44,12 @@ const EPS: f64 = 1e-9;
 /// Decimals of precision the returned marginals are rounded to, so the float matches
 /// the captured golden JSON byte-for-byte under `json.dumps` shortest-repr comparison.
 const ROUND_DECIMALS: i32 = 10;
+/// Hard cap on the number of independent probabilistic facts. Exact weighted model
+/// counting enumerates `2^N` total choices, so `N` is bounded both to keep the
+/// `1u64 << N` shift well-defined (it would overflow at `N ≥ 64`) and to refuse
+/// runs that would exhaust memory/CPU well before that. Over the cap is a hard
+/// failure with a clear message — never a silent truncation (no-optionality doctrine).
+const MAX_INDEPENDENT_FACTS: usize = 20;
 
 /// A ground RDF fact: `(bare predicate IRI, subject const, object const)`.
 ///
@@ -234,10 +240,31 @@ pub fn evaluate(
 /// Enumerate every total choice as `(facts true in the choice, P(choice))`.
 fn enumerate_choices(program: &QProgram) -> Result<Vec<(Vec<Fact>, f64)>, String> {
     // Independent probabilistic facts (always present; under a dependency model
-    // they are the facts OUTSIDE the correlated set).
+    // they are the facts OUTSIDE the correlated set). Each fact must be declared
+    // at most once: a duplicate `:- probability(...)` would otherwise be counted
+    // as two independent variables, silently corrupting the marginal — so a repeat
+    // is a hard failure, not a merge.
     let mut indep: Vec<(Fact, f64)> = Vec::new();
+    let mut seen: HashSet<Fact> = HashSet::new();
     for pf in &program.prob_facts {
-        indep.push((atom_to_fact(&pf.atom)?, parse_prob(&pf.prob)?));
+        let fact = atom_to_fact(&pf.atom)?;
+        if !seen.insert(fact.clone()) {
+            return Err(format!(
+                "duplicate probability(...) declaration for fact {fact:?}; each probabilistic \
+                 fact must be declared at most once"
+            ));
+        }
+        indep.push((fact, parse_prob(&pf.prob)?));
+    }
+
+    // Exact enumeration is 2^N over the independent facts; refuse an N that would
+    // overflow the `1u64 << N` shift or exhaust memory/CPU (see MAX_INDEPENDENT_FACTS).
+    if indep.len() > MAX_INDEPENDENT_FACTS {
+        return Err(format!(
+            "too many independent probabilistic facts ({}); exact weighted model counting is \
+             limited to {MAX_INDEPENDENT_FACTS} to avoid overflow and out-of-memory",
+            indep.len()
+        ));
     }
 
     // The independent power set, each subset with its product weight.
@@ -632,6 +659,45 @@ mod tests {
         let prog = parse_query_program(&src).unwrap();
         let ans = evaluate(&store, WORLD, &prog, PROFILE).unwrap();
         assert_eq!(marginal_for(&ans, "X", "yes"), Some(1.0));
+    }
+
+    // ── Duplicate probabilistic fact is rejected (no double-counting) ─────────
+
+    #[test]
+    fn duplicate_probability_fact_is_rejected() {
+        // The same fact declared twice would be counted as two independent
+        // variables, corrupting the marginal — must hard-fail.
+        let store = WorldStore::new();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- probability_model(full_independence).\n\
+             :- probability(ex:rain(ex:today, ex:yes), 0.5).\n\
+             :- probability(ex:rain(ex:today, ex:yes), 0.3).\n\
+             ?- ex:rain(ex:today, X).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let err = evaluate(&store, WORLD, &prog, PROFILE).unwrap_err();
+        assert!(err.contains("duplicate"), "unexpected error: {err}");
+    }
+
+    // ── Too many independent facts is refused, not panicked ───────────────────
+
+    #[test]
+    fn too_many_independent_facts_is_rejected() {
+        // 2^N enumeration is capped: over MAX_INDEPENDENT_FACTS hard-fails with a
+        // clear message rather than overflowing the shift or exhausting memory.
+        let store = WorldStore::new();
+        let mut src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- probability_model(full_independence).\n"
+        );
+        for i in 0..(MAX_INDEPENDENT_FACTS + 1) {
+            src.push_str(&format!(":- probability(ex:f{i}(ex:s, ex:yes), 0.5).\n"));
+        }
+        src.push_str("?- ex:f0(ex:s, X).\n");
+        let prog = parse_query_program(&src).unwrap();
+        let err = evaluate(&store, WORLD, &prog, PROFILE).unwrap_err();
+        assert!(err.contains("too many"), "unexpected error: {err}");
     }
 
     // ── Cut is rejected under the probabilistic profile ───────────────────────

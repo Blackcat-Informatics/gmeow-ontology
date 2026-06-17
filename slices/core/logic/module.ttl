@@ -343,7 +343,7 @@ logic:correlates
     a owl:ObjectProperty ;
     rdfs:domain logic:DependencyModel ;
     rdfs:label "correlates"@x-gmeow-english ;
-    skos:definition "Relates a logic:DependencyModel to a logic:probability-annotated fact (the reified base triple) that participates in the model's explicit joint distribution. The set of correlated facts is the support over which logic:jointOutcome enumerates joint assignments; any logic:probability fact NOT correlated by the model is treated as independent."@x-gmeow-english ;
+    skos:definition "Relates a logic:DependencyModel to a logic:probability-annotated fact (the reified base triple) that participates in the model's explicit joint distribution. The set of correlated facts is the support over which logic:jointOutcome enumerates joint assignments; any logic:probability fact NOT correlated by the model is treated as independent. The range is intentionally left open (no rdfs:range): a correlated fact is a reified logic:probability statement, which carries no dedicated class in this standalone module."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:JointOutcome
@@ -364,14 +364,14 @@ logic:outcomeAssignment
     a owl:ObjectProperty ;
     rdfs:domain logic:JointOutcome ;
     rdfs:label "outcome assignment"@x-gmeow-english ;
-    skos:definition "Relates a logic:JointOutcome to a correlated logic:probability fact (the reified base triple) that is TRUE in this outcome. Correlated facts of the model that are not named by any logic:outcomeAssignment of an outcome are false in that outcome — the assignment is read as the positive set, the complement against the model's logic:correlates support."@x-gmeow-english ;
+    skos:definition "Relates a logic:JointOutcome to a correlated logic:probability fact (the reified base triple) that is TRUE in this outcome. Correlated facts of the model that are not named by any logic:outcomeAssignment of an outcome are false in that outcome — the assignment is read as the positive set, the complement against the model's logic:correlates support. The range is intentionally left open (no rdfs:range), for the same reason as logic:correlates: its object is a reified logic:probability statement, which carries no dedicated class in this standalone module."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:jointProbability
     a owl:DatatypeProperty ;
     rdfs:domain logic:JointOutcome ;
     rdfs:label "joint probability"@x-gmeow-english ;
-    skos:definition "The probability mass a logic:DependencyModel assigns to one logic:JointOutcome — the joint probability of that exact assignment of truth values to the model's correlated facts. Distinct from logic:probability (a per-fact marginal): the joint outcomes of a model partition its correlated sample space and their logic:jointProbability values sum to one."@x-gmeow-english ;
+    skos:definition "The probability mass a logic:DependencyModel assigns to one logic:JointOutcome — the joint probability of that exact assignment of truth values to the model's correlated facts. Distinct from logic:probability (a per-fact marginal): the joint outcomes of a model partition its correlated sample space and their logic:jointProbability values sum to one. The range is intentionally left open (no rdfs:range), matching the other quantitative axes (logic:probability, logic:confidence, logic:weight, logic:evidenceStrength), which this standalone module declares without an xsd range: the value is a unit-interval decimal."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #
