@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Test French translation catalog for i18n lint.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Valid entry matching a current @x-gmeow-english literal.
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAdoption|rdfs:label"
+msgid "adoption"
+msgstr "adoption"
+
+# Valid entry matching a current @x-gmeow-english literal.
+msgctxt "https://blackcatinformatics.ca/gmeow/chainId|rdfs:label"
+msgid "chain id"
+msgstr "identifiant de chaîne"
+
+# Orphaned entry: the term does not exist in the merged ontology.
+msgctxt "https://blackcatinformatics.ca/gmeow/NonExistentLintTerm|rdfs:label"
+msgid "missing term"
+msgstr "terme manquant"
+
+# Stale entry: the msgid no longer matches the current English literal.
+msgctxt "https://blackcatinformatics.ca/gmeow/placeTypeCity|rdfs:label"
+msgid "old city label"
+msgstr "ancienne étiquette de ville"
+
+#, fuzzy
+msgctxt "https://blackcatinformatics.ca/gmeow/axisImaginedSpaceY|rdfs:label"
+msgid "imagined space Y"
+msgstr "espace imaginaire Y"

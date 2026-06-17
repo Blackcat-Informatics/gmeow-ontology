@@ -651,7 +651,9 @@ def sync_english_from_po(
     changed = False
     for entry in entries:
         if not entry.msgctxt:
-            report.skipped.append(f"empty msgctxt for msgid {entry.msgid!r}")
+            # Silently skip the catalog header (empty msgctxt and empty msgid).
+            if entry.msgid:
+                report.skipped.append(f"empty msgctxt for msgid {entry.msgid!r}")
             continue
 
         new_text, error = _apply_entry(entry, ttl_text, graph)
@@ -760,6 +762,10 @@ def apply_md_sync(
 
     changed = False
     for entry in entries:
+        # Silently skip the catalog header (empty msgid).
+        if not entry.msgid:
+            continue
+
         new_text, error = _apply_md_entry(md_text, entry)
         if error:
             if error.startswith("conflict:"):

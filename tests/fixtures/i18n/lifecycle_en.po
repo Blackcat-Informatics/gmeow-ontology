@@ -1,4 +1,12 @@
 # English translations for the synthetic lifecycle module.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 msgctxt "http://example.org/i18n-fixture/lifecycle#Lifecycle|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Lifecycle"
 msgstr "Lifecycle Process"

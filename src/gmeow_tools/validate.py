@@ -563,4 +563,16 @@ def validate_all(timings: bool = False) -> ValidationResult:
         declared_terms = list(report.get("declared_terms", []))
         result.extend(guide_anchor_lint(source_paths, declared_terms=declared_terms))
 
+    # PO i18n lint: structural validity, orphaned/stale entries, and fuzzy
+    # ratio gates (#572).  Kept Python-side because it reads authored PO files
+    # and the merged rdflib English graph.
+    try:
+        from gmeow_tools.i18n_lint import lint_po_files
+
+        i18n_report = lint_po_files(PROJECT_ROOT)
+        result.warnings.extend(i18n_report.warnings)
+        result.errors.extend(i18n_report.errors)
+    except Exception as exc:  # pragma: no cover - guard against unknown failures
+        result.errors.append(f"i18n PO lint failed: {exc}")
+
     return result
