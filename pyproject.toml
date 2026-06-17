@@ -110,6 +110,10 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
 files = ["src", "tests", "packages/gmeow-dev/src"]
+# Resolve the gmeow_logic stub (crates/logic/python/gmeow_logic/__init__.pyi)
+# from the source tree, so type-checking does not depend on the maturin
+# extension being `develop`-installed first (CI runs mypy before that build).
+mypy_path = ["crates/logic/python"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
