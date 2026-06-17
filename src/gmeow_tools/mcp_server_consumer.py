@@ -38,10 +38,13 @@ def _selector(view: FoldView, lang: str | None = None) -> LangSelector:
     """Resolve ``lang`` or ``GMEOW_LANG`` against the snapshot's tag map.
 
     ``lang`` takes precedence over ``GMEOW_LANG``; both fall back to English.
+    When ``lang`` is omitted, the selector validated at server startup is reused.
     An unknown tag raises :class:`~gmeow_tools.language_tags.UnknownLanguageError`.
     """
     from gmeow_tools.language_tags import resolve_lang_input
 
+    if lang is None and _STARTUP_SELECTOR is not None:
+        return _STARTUP_SELECTOR
     raw = lang if lang is not None else os.environ.get("GMEOW_LANG")
     return resolve_lang_input(raw, view.tag_map(), available=view.available_languages())
 
