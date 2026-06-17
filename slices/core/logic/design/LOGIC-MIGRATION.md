@@ -39,14 +39,26 @@ corpus either way (Principle 7):
 
 The Python oracle is permanent either way (Principle 7).
 
-**Status (2026-06): v0–v5 have landed.** The monotonic core, profile certifier, foundation lowering,
-backward goals, and Stratum-C counterfactuals are all merged and gated by the corpus; only the v6
-probabilistic layer remains. For the **generative** strata (v4 backward goals, v5 counterfactuals) the
-Rust engine is the executable spec and conformance is pinned by golden answer fixtures
-(`queries/*.logic` → `expected/answers/*.json`); the Python oracle remains the authority for
-materialization (Strata A/B). The v5 surface is documented in
+**Status (2026-06): v0–v6 have landed — the migration ladder is complete.** The monotonic core,
+profile certifier, foundation lowering, backward goals, Stratum-C counterfactuals, and the v6
+probabilistic/weighted layer are all merged and gated by the corpus. For the **generative** strata
+(v4 backward goals, v5 counterfactuals, v6 probabilistic marginals) the Rust engine is the executable
+spec and conformance is pinned by golden answer fixtures (`queries/*.logic` →
+`expected/answers/*.json`); the Python oracle remains the authority for materialization (Strata A/B).
+The v5 surface is documented in
 [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion) and
 [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md); the corpus lives under `conformance/logic/cases/worlds-C/`.
+
+**v6 (probabilistic/weighted layer, #506).** Exact marginal inference by weighted model counting
+under `logic:ProbabilisticProfile`, gated by an **explicitly declared** `logic:ProbabilityModel`
+(`logic:FullIndependence` or a `logic:DependencyModel` carrying an explicit joint). Probabilistic
+facts (`logic:probability`) enter inference only through the declared model; a `logic:confidence`
+annotation is **never** read as a probability, and probabilistic facts with no declared model refuse
+with status `unknown` rather than assuming independence. The evaluator is Rust-native
+(`crates/logic/src/probabilistic.rs`), exposed through `gmeow_logic.query` (each binding carries a
+`probability`); the surface is documented in
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence) and the corpus
+lives under `conformance/logic/cases/profiles/probabilistic-*`.
 
 ## Adapter phases
 
