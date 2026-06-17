@@ -33297,6 +33297,80 @@
             "title": "DocumentationConcernEnum",
             "type": "string"
         },
+        "DoxasticState": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "credence": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "doxasticClaim": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/StandpointClaim"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "doxasticContent": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Proposition"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "epistemicAgent": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Agent"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "DoxasticState",
+            "type": "object"
+        },
+        "DoxasticTenure": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "duringInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tenureOfDoxasticState": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DoxasticState"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "DoxasticTenure",
+            "type": "object"
+        },
         "Duration": {
             "additionalProperties": false,
             "description": "",

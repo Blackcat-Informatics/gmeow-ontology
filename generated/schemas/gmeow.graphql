@@ -7366,6 +7366,20 @@ type DocumentationConcern
   {
   }
 
+type DoxasticState
+  {
+    credence: [Float]
+    doxasticClaim: StandpointClaim
+    doxasticContent: Proposition
+    epistemicAgent: Agent
+  }
+
+type DoxasticTenure
+  {
+    duringInterval: [TimeInterval]
+    tenureOfDoxasticState: DoxasticState
+  }
+
 type Duration
   {
     acquireLicensePage: [String]

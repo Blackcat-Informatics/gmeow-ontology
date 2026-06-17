@@ -951,6 +951,21 @@ classes:
   DocumentationConcern:
     class_uri: https://blackcatinformatics.ca/gmeow/DocumentationConcern
     title: Documentation Concern
+  DoxasticState:
+    class_uri: https://blackcatinformatics.ca/gmeow/DoxasticState
+    title: Doxastic State
+    is_a: MentalMoment
+    slots:
+    - credence
+    - doxasticClaim
+    - doxasticContent
+    - epistemicAgent
+  DoxasticTenure:
+    class_uri: https://blackcatinformatics.ca/gmeow/DoxasticTenure
+    title: Doxastic Tenure
+    is_a: TimeScopedRelation
+    slots:
+    - tenureOfDoxasticState
   Duration:
     class_uri: https://blackcatinformatics.ca/gmeow/Duration
     title: Duration
@@ -5575,6 +5590,12 @@ slots:
     range: CoverageDepth
     domain: CitationAct
     multivalued: true
+  credence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/credence
+    title: credence
+    range: decimal
+    domain: DoxasticState
+    multivalued: true
   credentialFor:
     slot_uri: https://blackcatinformatics.ca/gmeow/credentialFor
     title: credential for
@@ -6017,6 +6038,18 @@ slots:
     range: uriorcurie
     domain: Project
     multivalued: true
+  doxasticClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/doxasticClaim
+    title: doxastic claim
+    range: StandpointClaim
+    domain: DoxasticState
+    multivalued: false
+  doxasticContent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/doxasticContent
+    title: doxastic content
+    range: Proposition
+    domain: DoxasticState
+    multivalued: false
   durationValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/durationValue
     title: duration value
@@ -6178,6 +6211,12 @@ slots:
     range: TimeInterval
     domain: SensoryEnvironment
     multivalued: true
+  epistemicAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/epistemicAgent
+    title: epistemic agent
+    range: Agent
+    domain: DoxasticState
+    multivalued: false
   epistemicSelfTrust:
     slot_uri: https://blackcatinformatics.ca/gmeow/epistemicSelfTrust
     title: epistemic self-trust
@@ -11900,6 +11939,12 @@ slots:
     title: tenure of
     range: InferenceCommitment
     domain: InferenceTenure
+    multivalued: false
+  tenureOfDoxasticState:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState
+    title: tenure of doxastic state
+    range: DoxasticState
+    domain: DoxasticTenure
     multivalued: false
   tenureParty:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenureParty
