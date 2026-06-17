@@ -840,7 +840,12 @@ fn ground(term: &TermPat, sol: &Solution) -> Option<String> {
 /// solution or `None`.  Mirrors `_match_atom` + `_merge_bindings`: a repeated variable
 /// must agree, a constant must equal the fact term exactly.
 fn match_atom(atom: &Atom, f: &Fact, base: &Solution) -> Option<Solution> {
-    let mut sol = base.clone();
+    // Defer cloning `base` until the atom actually matches.  This runs once per
+    // candidate fact in the join loop, so cloning up front allocates a fresh
+    // Solution for every *non-matching* fact (the common case).  Validate against
+    // the existing bindings first, accumulating any new ones, and materialize the
+    // merged Solution only on a confirmed match.
+    let mut new_bindings: Vec<(&'static str, String)> = Vec::new();
     for (pat, fact_term) in [
         (&atom.subject, &f.subject),
         (&atom.predicate, &f.predicate),
@@ -852,16 +857,28 @@ fn match_atom(atom: &Atom, f: &Fact, base: &Solution) -> Option<Solution> {
                     return None;
                 }
             }
-            TermPat::Var(name) => match sol.get(name) {
-                Some(existing) => {
-                    if existing != fact_term {
-                        return None;
+            TermPat::Var(name) => {
+                // A repeated variable must agree with a value already bound in
+                // `base` or earlier in this same atom.
+                let existing = base.get(name).or_else(|| {
+                    new_bindings
+                        .iter()
+                        .find(|(k, _)| *k == *name)
+                        .map(|(_, v)| v.as_str())
+                });
+                match existing {
+                    Some(existing) => {
+                        if existing != fact_term {
+                            return None;
+                        }
                     }
+                    None => new_bindings.push((name, fact_term.clone())),
                 }
-                None => sol.bindings.push((name, fact_term.clone())),
-            },
+            }
         }
     }
+    let mut sol = base.clone();
+    sol.bindings.extend(new_bindings);
     Some(sol)
 }
 
