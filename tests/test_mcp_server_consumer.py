@@ -103,10 +103,18 @@ def test_gmeow_llms_txt_threads_lang_to_selector(
     assert seen == [None, "fr"]
 
 
+def test_gmeow_lookup_term_rejects_unknown_per_call_lang() -> None:
+    """An unknown per-call lang returns a clean JSON error."""
+    data = _json_response(gmeow_lookup_term("gmeow:Person", lang="xx-unknown"))
+    assert data["ok"] is False
+    assert "unknown language tag" in str(data["error"]).lower()
+
+
 def test_gmeow_llms_txt_rejects_unknown_per_call_lang() -> None:
-    """An unknown per-call lang raises UnknownLanguageError."""
-    with pytest.raises(UnknownLanguageError):
-        gmeow_llms_txt(lang="xx-unknown")
+    """An unknown per-call lang returns a clean text error."""
+    text = gmeow_llms_txt(lang="xx-unknown")
+    assert text.startswith("# Error:")
+    assert "unknown language tag" in text.lower()
 
 
 async def _read_resource(uri: str) -> str:

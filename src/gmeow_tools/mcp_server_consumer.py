@@ -15,6 +15,7 @@ from gts import read
 from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE
 from gmeow_tools.export import Term, collect_terms, fold_meta, marked
 from gmeow_tools.gts_views import FoldView
+from gmeow_tools.language_tags import UnknownLanguageError
 
 if TYPE_CHECKING:
     from gmeow_tools.language_tags import LangSelector
@@ -102,7 +103,10 @@ def gmeow_lookup_term(term: str, lang: str | None = None) -> str:
         term: CURIE, local name, IRI, or label fragment to look up.
         lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
     """
-    result = _lookup_term(term, lang)
+    try:
+        result = _lookup_term(term, lang)
+    except UnknownLanguageError as exc:
+        return json.dumps({"ok": False, "error": str(exc)})
     if result is None:
         return json.dumps({"ok": False, "error": f"Term not found: {term}"})
     result["ok"] = True
@@ -116,39 +120,42 @@ def gmeow_llms_txt(lang: str | None = None) -> str:
     Args:
         lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
     """
-    view = _view()
-    selector = _selector(view, lang)
-    title, version = fold_meta(view)
-    terms = collect_terms(view, selector=selector)
-    classes = [t for t in terms if t.category == "class"]
-    properties = [t for t in terms if t.category == "property"]
-    individuals = [t for t in terms if t.category == "individual"]
-    lines = [
-        f"# {title}",
-        "",
-        f"Vocabulary {version}. Namespace: {NAMESPACE}.",
-        "",
-        "## Classes",
-        "",
-    ]
-    for term in classes:
-        parents = f" (subClassOf {', '.join(term.parents)})" if term.parents else ""
-        lines.append(f"- {term.curie}{parents}: {_summary(term)}")
-    lines += ["", "## Properties", ""]
-    for term in properties:
-        signature = (
-            f" [{term.domain or '?'} -> {term.range or '?'}]"
-            if term.domain or term.range
-            else ""
-        )
-        functional = " (functional)" if term.functional else ""
-        lines.append(f"- {term.curie}{signature}{functional}: {_summary(term)}")
-    if individuals:
-        lines += ["", "## Individuals", ""]
-        for term in individuals:
-            types = f" (a {', '.join(term.types)})" if term.types else ""
-            lines.append(f"- {term.curie}{types}: {_summary(term)}")
-    return "\n".join(lines) + "\n"
+    try:
+        view = _view()
+        selector = _selector(view, lang)
+        title, version = fold_meta(view)
+        terms = collect_terms(view, selector=selector)
+        classes = [t for t in terms if t.category == "class"]
+        properties = [t for t in terms if t.category == "property"]
+        individuals = [t for t in terms if t.category == "individual"]
+        lines = [
+            f"# {title}",
+            "",
+            f"Vocabulary {version}. Namespace: {NAMESPACE}.",
+            "",
+            "## Classes",
+            "",
+        ]
+        for term in classes:
+            parents = f" (subClassOf {', '.join(term.parents)})" if term.parents else ""
+            lines.append(f"- {term.curie}{parents}: {_summary(term)}")
+        lines += ["", "## Properties", ""]
+        for term in properties:
+            signature = (
+                f" [{term.domain or '?'} -> {term.range or '?'}]"
+                if term.domain or term.range
+                else ""
+            )
+            functional = " (functional)" if term.functional else ""
+            lines.append(f"- {term.curie}{signature}{functional}: {_summary(term)}")
+        if individuals:
+            lines += ["", "## Individuals", ""]
+            for term in individuals:
+                types = f" (a {', '.join(term.types)})" if term.types else ""
+                lines.append(f"- {term.curie}{types}: {_summary(term)}")
+        return "\n".join(lines) + "\n"
+    except UnknownLanguageError as exc:
+        return f"# Error: {exc}\n"
 
 
 def _memory() -> Any:
