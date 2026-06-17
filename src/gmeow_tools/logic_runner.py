@@ -61,7 +61,7 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
@@ -73,15 +73,12 @@ from gmeow_tools.logic_certify import (
     stratify,
 )
 from gmeow_tools.logic_explain import Explanation, explain
-from gmeow_tools.logic_foundation import (
-    anti_rigidity_obligations,
-    cross_world_rigidity_violations,
-    foundation_rules,
-)
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
 from gmeow_tools.logic_ir import LogicAxiom, LogicProgram, SemanticProfileId
 from gmeow_tools.logic_materialize import (
+    _ASSERT_RULE_IRI,
     BudgetParams,
+    DerivedQuad,
     MaterializationError,
     MaterializationResult,
     materialize_program,
@@ -624,6 +621,103 @@ def _resolve_answers(
 
 
 # --------------------------------------------------------------------------- #
+# Foundation lowering (issue #636) — native Rust evaluation
+# --------------------------------------------------------------------------- #
+
+
+def _materialize_foundation(
+    case_dir: Path,
+    input_graph: ConjunctiveGraph,
+    profile_data: dict[str, object],
+) -> MaterializationResult:
+    """Evaluate a foundation-lowering case via the native ``gmeow_logic.foundation``.
+
+    The OntoUML-discipline lowering (``logic:violation``), the cross-world rigidity
+    closure (``logic:rigidityViolation``) and the anti-rigidity witness policy
+    (``logic:dischargeObligation`` / ``logic:witnessRequiredViolation``) are all
+    computed by the native Rust evaluator (issue #636).  The retired Python oracle
+    (``logic_foundation.py``) is gone — there is no fallback (no-optionality
+    doctrine: a missing extension is a hard failure).
+
+    The input world facts (``input.nq``, one named graph per world) are serialized
+    to N-Quads and handed to ``gmeow_logic.foundation``; its full-provenance rows
+    are mapped one-to-one onto :class:`~.logic_materialize.DerivedQuad` records and
+    assembled into a :class:`~.logic_materialize.MaterializationResult` that every
+    downstream consumer (explanations, verdicts, projections, certification) reads
+    unchanged.
+
+    Args:
+        case_dir: The conformance case directory (used only for error messages).
+        input_graph: The parsed world-fact ConjunctiveGraph (from ``input.nq``).
+        profile_data: The parsed ``profile.json`` dict; ``anti_rigidity_policy``
+            selects the closed witness policy (default ``"witness-obligation"``).
+
+    Returns:
+        A :class:`~.logic_materialize.MaterializationResult` over the native rows.
+
+    Raises:
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
+            no Python fallback) or the native evaluation raises.
+    """
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            f"but the case opts into foundation_lowering — run 'make logic-py' "
+            f"first: {exc}"
+        ) from exc
+
+    # Serialize the world-fact graph to N-Quads for the native evaluator (one named
+    # graph per world; the same surface the Rust foundation loader expects).
+    input_nq_text = input_graph.serialize(format="nquads")
+
+    policy = str(profile_data.get("anti_rigidity_policy", "witness-obligation"))
+    try:
+        rows = gmeow_logic.foundation(input_nq_text, policy)
+    except ValueError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic.foundation failed: {exc}"
+        ) from exc
+
+    quads: list[DerivedQuad] = [
+        DerivedQuad(
+            graph=row["graph"],
+            subject=row["subject"],
+            predicate=row["predicate"],
+            obj=row["obj"],
+            # Foundation worlds are flat named graphs: the graph IS the component.
+            graph_component=row["graph"],
+            derivation_id=row["derivation_id"],
+            rule_iri=row["rule_iri"],
+            source_quad_ids=list(row["source_quad_ids"]),
+            profile=row["profile"],
+            budget_status=row["budget_status"],
+        )
+        for row in rows
+    ]
+
+    worlds = frozenset(q.graph for q in quads)
+    # Derived = every quad that is not a verbatim asserted input fact.
+    derived_count = sum(1 for q in quads if q.rule_iri != _ASSERT_RULE_IRI)
+    input_count = len(quads) - derived_count
+
+    return MaterializationResult(
+        quads=tuple(quads),
+        worlds=worlds,
+        # Foundation cases materialize under PositiveHorn semantics (matching the
+        # native evaluator's stamped profile and the committed goldens); the
+        # declared StratifiedNAF profile is exercised by the static certifier.
+        profile=str(SemanticProfileId.POSITIVE_HORN),
+        loss_entries=(),
+        input_quad_count=input_count,
+        derived_quad_count=derived_count,
+        budget_status="ok",
+        incomplete=False,
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Public API: run()
 # --------------------------------------------------------------------------- #
 
@@ -748,105 +842,36 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # the result is byte-identical to pre-#502 behaviour.
     budget = _parse_budget_params(case_dir, profile_data)
 
-    # Foundation lowering (issue #503, Task 2).  ONLY injected when a case opts in
-    # via ``profile.json`` ``"foundation_lowering": true`` — never auto-gated on
+    # Foundation lowering (issue #503 / #636).  ONLY when a case opts in via
+    # ``profile.json`` ``"foundation_lowering": true`` — never auto-gated on
     # stereotype presence, so the existing projections/kind-hierarchy case (which
     # declares logic:Kind/SubKind/Role + a logic:subClassOf chain) stays
-    # byte-identical (Corpus-safety, issue #503).  When opted in, the materialiser
-    # runs an augmented program (original axioms/profiles + original rules + the
-    # OntoUML-discipline lowering rules) with stratified NAF enabled.
-    materialize_program_obj = program
-    enable_naf = False
+    # byte-identical (Corpus-safety, issue #503).  The foundation path is evaluated
+    # entirely by the native Rust evaluator ``gmeow_logic.foundation`` (issue #636,
+    # Task 2): the Python OntoUML-discipline oracle (``logic_foundation.py``) has
+    # been retired — there is no Python fallback (no-optionality doctrine).
     if profile_data.get("foundation_lowering") is True:
-        materialize_program_obj = LogicProgram(
-            axioms=program.axioms,
-            rules=(*program.rules, *foundation_rules(program)),
-            profiles=program.profiles,
-            source_iri=program.source_iri,
-        )
-        enable_naf = True
-    elif _program_has_stratifiable_negation(program):
+        mat_result = _materialize_foundation(case_dir, input_graph, profile_data)
+    else:
+        enable_naf = _program_has_stratifiable_negation(program)
         # NAF correctness (issue #503 review, PR #605): evaluate ``logic:negatedBody``
         # as real stratified negation-as-failure for ANY stratifiable negation
         # program, not only the foundation-lowering opt-in.  Non-stratifiable sets
         # (and StableModel / WellFounded programs the stratified oracle cannot
         # compute) fall through with ``enable_naf=False`` and keep their lossy
         # positive materialization with the loss recorded — byte-identical.
-        enable_naf = True
-
-    # Materialize
-    try:
-        mat_result = materialize_program(
-            materialize_program_obj,
-            input_graph,
-            profile=SemanticProfileId.POSITIVE_HORN,
-            budget=budget,
-            enable_naf=enable_naf,
-        )
-    except MaterializationError as exc:
-        raise RunnerError(
-            f"Case {case_dir.name}: materialize_program failed: {exc}"
-        ) from exc
-
-    # Cross-world rigidity closure (issue #503, Task 3).  The first three OntoUML
-    # disciplines are in-world Datalog (the foundation rules above); positive
-    # rigidity quantifies over PAIRS of worlds and so CANNOT be an in-world rule —
-    # the chase is world-local.  It is therefore evaluated as a bounded closure over
-    # the FINITE materialized world set (LOGIC-SEMANTICS.md §Operational semantics)
-    # by the pure :func:`cross_world_rigidity_violations`, whose ``logic:rigidity
-    # Violation`` quads are folded back into the materialized output so they appear
-    # per world in ``materialized.nq``.
-    #
-    # Corpus-safety (issue #503): gated identically to the foundation rules — runs
-    # ONLY under the ``foundation_lowering`` opt-in AND only when ≥2 worlds
-    # materialized.  A single-world or non-opt-in case adds zero quads, so every
-    # existing golden stays byte-identical.
-    if enable_naf and len(mat_result.worlds) >= 2:
-        rigidity_quads = cross_world_rigidity_violations(mat_result)
-        if rigidity_quads:
-            combined = sorted(
-                (*mat_result.quads, *rigidity_quads),
-                key=lambda q: (q.graph, q.subject, q.predicate, q.obj),
+        try:
+            mat_result = materialize_program(
+                program,
+                input_graph,
+                profile=SemanticProfileId.POSITIVE_HORN,
+                budget=budget,
+                enable_naf=enable_naf,
             )
-            mat_result = replace(
-                mat_result,
-                quads=tuple(combined),
-                derived_quad_count=mat_result.derived_quad_count + len(rigidity_quads),
-            )
-
-    # Anti-rigidity witness policy (issue #503, Task 4).  Anti-rigidity (Role/Phase)
-    # formally requires a world of existence where the instance LACKS the type
-    # (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy).  The per-case policy
-    # — declared in ``profile.json`` as ``"anti_rigidity_policy"`` — governs ONLY the
-    # instance-level obligation facet:
-    #   * ``witness-obligation`` (DEFAULT) emits ``logic:dischargeObligation``;
-    #   * ``schema-only`` emits nothing (type-level lint only);
-    #   * ``witness-required`` emits ``logic:witnessRequiredViolation`` absent a
-    #     materialized counter-world.
-    # P3 (non-suppression): this pass NEVER emits or suppresses a ``logic:violation``
-    # / ``logic:rigidityViolation`` fact — only the obligation/witness facet differs
-    # across policies.  Construction of the counter-world itself is #505.
-    #
-    # Corpus-safety (issue #503): gated identically to the foundation rules — runs ONLY
-    # under the ``foundation_lowering`` opt-in.  The default policy keeps non-opt-in
-    # cases byte-identical (no key, no opt-in ⇒ zero quads).  Unlike the cross-world
-    # rigidity pass this is NOT gated on ≥2 worlds: ``witness-obligation`` emits in the
-    # single typing world, and a single world trivially has no counter-world (so a
-    # single-world ``witness-required`` case fires).
-    if enable_naf:
-        policy = str(profile_data.get("anti_rigidity_policy", "witness-obligation"))
-        obligation_quads = anti_rigidity_obligations(mat_result, policy)
-        if obligation_quads:
-            combined = sorted(
-                (*mat_result.quads, *obligation_quads),
-                key=lambda q: (q.graph, q.subject, q.predicate, q.obj),
-            )
-            mat_result = replace(
-                mat_result,
-                quads=tuple(combined),
-                derived_quad_count=mat_result.derived_quad_count
-                + len(obligation_quads),
-            )
+        except MaterializationError as exc:
+            raise RunnerError(
+                f"Case {case_dir.name}: materialize_program failed: {exc}"
+            ) from exc
 
     # N-Quads serialization
     nquads_str = _materialize_to_nquads(mat_result)
