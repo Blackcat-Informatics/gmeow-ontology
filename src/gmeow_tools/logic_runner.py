@@ -430,7 +430,15 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
             ExplanationStep(
                 derivation_id=str(step["derivation_id"]),
                 rule_iri=str(step["rule_iri"]),
+                quad_reifier=str(step["quad_reifier"]),
+                subject_iri=str(step["subject_iri"]),
+                predicate_iri=str(step["predicate_iri"]),
+                obj_n3=str(step["obj_n3"]),
+                graph_iri=str(step["graph_iri"]),
                 term_iris=tuple(str(t) for t in step["term_iris"]),
+                source_step_ids=tuple(str(s) for s in step["source_step_ids"]),
+                is_asserted=bool(step["is_asserted"]),
+                depth=int(step["depth"]),
             )
             for step in row["step_skeleton"]
         )
@@ -489,7 +497,12 @@ def _certify_native(
             "(certification is Rust-authoritative since #497) — run 'make logic-py'."
         ) from exc
 
-    rules_only = extract_nemo_rules_section(project_nemo(program).content)
+    try:
+        rules_only = extract_nemo_rules_section(project_nemo(program).content)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_label}: NEMO projection for certification failed: {exc}"
+        ) from exc
     try:
         verdict = gmeow_logic.certify(rules_only, str(declared_profile))
     except (ValueError, RuntimeError) as exc:
@@ -991,7 +1004,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         # WellFounded programs outright (``SelectionStrategyError``), and its
         # provenance structure is not the reifier graph the native explain / query /
         # counterfactual consumers reconstruct. Making materialization
-        # Rust-authoritative is tracked as the dedicated #497 follow-up; the Nemo
+        # Rust-authoritative is tracked as the dedicated #651 follow-up; the Nemo
         # engine remains the Principle-7 secondary validator
         # (test_logic_oracle_engine_parity.py) until that work lands.
         try:

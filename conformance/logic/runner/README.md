@@ -48,8 +48,10 @@ The explanation rule is load-bearing: a language model may vary the wording, but
 axioms, rules, and sources it cites (the faithful-by-construction property — a generated explanation
 may cite only IRIs that appear in the proof trace or witness graph it explains).
 
-## Wiring (deferred)
+## Wiring
 
-When the first engine lands, the runner wires into a `make conformance` target and — once the native
-solver is the `make check` reasoning authority — into `make check`. Until then this corpus is a
-specification, not a gate.
+The runner is wired into `make conformance` via `gmeow-dev conformance`. The corpus is an active
+gate: every `expected/` artifact is committed from the native solver's output, and `make conformance`
+fails if the current engine diverges from those committed artifacts. The native solver output defines
+the canonical `expected/` files — re-bless only by running the native solver and committing its
+output.

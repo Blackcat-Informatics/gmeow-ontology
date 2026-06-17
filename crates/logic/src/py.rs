@@ -770,7 +770,9 @@ fn foundation(
 /// - `world_iri` (str)
 /// - `target_derivation_id` (str)
 /// - `cited_iris` (sorted `list[str]`)
-/// - `step_skeleton` (`list[dict]`, each `{derivation_id, rule_iri, term_iris}`).
+/// - `step_skeleton` (`list[dict]`, each carrying the full [`crate::explain::ExplanationStep`]
+///   surface: `derivation_id`, `rule_iri`, `quad_reifier`, `subject_iri`, `predicate_iri`,
+///   `obj_n3`, `graph_iri`, `term_iris`, `source_step_ids`, `is_asserted`, `depth`).
 ///
 /// # Errors
 ///
@@ -789,6 +791,25 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
         })
     }
 
+    /// Try `"obj"` first (the explain payload convention), then fall back to
+    /// `"object"` (the key emitted by `derived_quad_to_dict` / materialize).
+    /// Raises `PyValueError` if neither key is present.
+    fn get_obj_str(d: &Bound<'_, PyDict>) -> PyResult<String> {
+        if let Some(item) = d.get_item("obj")? {
+            return item.extract::<String>().map_err(|_| {
+                pyo3::exceptions::PyValueError::new_err("explain: key \"obj\" must be a str")
+            });
+        }
+        if let Some(item) = d.get_item("object")? {
+            return item.extract::<String>().map_err(|_| {
+                pyo3::exceptions::PyValueError::new_err("explain: key \"object\" must be a str")
+            });
+        }
+        Err(pyo3::exceptions::PyValueError::new_err(
+            "explain: row missing key \"obj\" (or \"object\")",
+        ))
+    }
+
     let mut rows: Vec<Row> = Vec::with_capacity(quads.len());
     for d in &quads {
         let sources_item = d.get_item("source_quad_ids")?.ok_or_else(|| {
@@ -803,7 +824,7 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
             graph: get_str(d, "graph")?,
             subject: get_str(d, "subject")?,
             predicate: get_str(d, "predicate")?,
-            obj: get_str(d, "obj")?,
+            obj: get_obj_str(d)?,
             derivation_id: get_str(d, "derivation_id")?,
             rule_iri: get_str(d, "rule_iri")?,
             source_quad_ids,
@@ -828,8 +849,17 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
             let sd = PyDict::new(py);
             sd.set_item("derivation_id", step.derivation_id.as_str())?;
             sd.set_item("rule_iri", step.rule_iri.as_str())?;
+            sd.set_item("quad_reifier", step.quad_reifier.as_str())?;
+            sd.set_item("subject_iri", step.subject_iri.as_str())?;
+            sd.set_item("predicate_iri", step.predicate_iri.as_str())?;
+            sd.set_item("obj_n3", step.obj_n3.as_str())?;
+            sd.set_item("graph_iri", step.graph_iri.as_str())?;
             let terms: Vec<&str> = step.term_iris.iter().map(String::as_str).collect();
             sd.set_item("term_iris", terms)?;
+            let src_ids: Vec<&str> = step.source_step_ids.iter().map(String::as_str).collect();
+            sd.set_item("source_step_ids", src_ids)?;
+            sd.set_item("is_asserted", step.is_asserted)?;
+            sd.set_item("depth", step.depth)?;
             steps.append(sd)?;
         }
         d.set_item("step_skeleton", steps)?;

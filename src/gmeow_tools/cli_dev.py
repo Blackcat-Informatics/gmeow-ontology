@@ -2041,7 +2041,10 @@ def certify(
             "✗ certify: gmeow_logic native extension is not installed "
             "(certification is Rust-authoritative since #497) — run 'make logic-py'."
         ) from exc
-    rules_only = extract_nemo_rules_section(project_nemo(program).content)
+    try:
+        rules_only = extract_nemo_rules_section(project_nemo(program).content)
+    except (ValueError, RuntimeError) as exc:
+        raise _fail(f"✗ certify: cannot project/extract NEMO rules: {exc}") from exc
     try:
         verdict = gmeow_logic.certify(rules_only, str(declared_profile))
     except (ValueError, RuntimeError) as exc:
