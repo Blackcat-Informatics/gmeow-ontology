@@ -8,6 +8,7 @@ import pytest
 from rdflib import Graph, Literal, Namespace
 from rdflib.namespace import RDF, RDFS, SKOS
 
+from gmeow_tools.export import marked
 from gmeow_tools.language_tags import (
     UnknownLanguageError,
     filter_graph,
@@ -137,3 +138,10 @@ def test_filter_graph_keeps_only_selected_language() -> None:
     definitions = set(graph.objects(term, SKOS.definition))
     assert len(definitions) == 1
     assert str(definitions.pop()) == "An English definition"
+
+
+def test_marked_is_public_export() -> None:
+    """The fallback marker helper is exported publicly as ``marked``."""
+    assert marked("hello", False) == "hello"
+    assert marked("hello", True) == "hello [fallback: en]"
+    assert marked("bonjour", True, fallback_lang="fr") == "bonjour [fallback: fr]"

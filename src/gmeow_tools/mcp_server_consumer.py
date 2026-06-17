@@ -13,7 +13,7 @@ from fastmcp import FastMCP
 from gts import read
 
 from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE
-from gmeow_tools.export import Term, _marked, collect_terms, fold_meta
+from gmeow_tools.export import Term, collect_terms, fold_meta, marked
 from gmeow_tools.gts_views import FoldView
 
 if TYPE_CHECKING:
@@ -42,7 +42,7 @@ def _selector(view: FoldView) -> LangSelector:
 
 def _summary(term: Term) -> str:
     """Selected definition-or-label with a fallback marker when appropriate."""
-    return _marked(
+    return marked(
         term.definition or term.label,
         term.definition_fallback or term.label_fallback,
     )

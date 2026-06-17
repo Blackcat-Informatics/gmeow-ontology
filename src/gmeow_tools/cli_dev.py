@@ -51,7 +51,8 @@ def _lang_option() -> Any:
         help=(
             "Language(s) for emitted labels and definitions: a BCP-47 tag "
             "(en, zh, fr) or an internal tag (x-gmeow-english). Comma-separated "
-            "for multiple languages. Overrides GMEOW_LANG."
+            "for multiple languages. Overrides GMEOW_LANG. An empty value "
+            "(--lang '') selects the default English carrier."
         ),
     )
 
@@ -79,7 +80,9 @@ def _resolve_lang(lang: str | None, tag_map: dict[str, str]) -> LangSelector:
     from gmeow_tools.language_tags import UnknownLanguageError, resolve_lang_input
 
     try:
-        return resolve_lang_input(lang or os.environ.get("GMEOW_LANG"), tag_map)
+        return resolve_lang_input(
+            lang if lang is not None else os.environ.get("GMEOW_LANG"), tag_map
+        )
     except UnknownLanguageError as exc:
         raise _fail(str(exc)) from exc
 

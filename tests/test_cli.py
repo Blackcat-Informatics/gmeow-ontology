@@ -121,6 +121,22 @@ def test_describe_env_language_rejected_if_unknown(runner: CliRunner) -> None:
     assert "unknown language tag" in result.output.lower()
 
 
+def test_describe_explicit_empty_lang_overrides_env(runner: CliRunner) -> None:
+    """--lang '' wins over GMEOW_LANG and selects the default English carrier."""
+    with patch.dict("os.environ", {"GMEOW_LANG": "fr"}):
+        result = runner.invoke(public_app, ["describe", "Person", "--lang", ""])
+    assert result.exit_code == 0, result.output
+    assert "fallback: en" not in result.output
+
+
+def test_describe_env_empty_lang_defaults_to_english(runner: CliRunner) -> None:
+    """An empty GMEOW_LANG env value maps to the default English carrier."""
+    with patch.dict("os.environ", {"GMEOW_LANG": ""}):
+        result = runner.invoke(public_app, ["describe", "Person"])
+    assert result.exit_code == 0, result.output
+    assert "Person" in result.output
+
+
 def test_export_respects_language_selector(runner: CliRunner, tmp_path: Path) -> None:
     out = tmp_path / "export"
     result = runner.invoke(public_app, ["export", "--out", str(out), "--lang", "fr"])
