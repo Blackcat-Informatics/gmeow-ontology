@@ -434,6 +434,16 @@ export enum ContentDispositionEnum {
     inline = "contentDispositionInline",
 };
 
+export enum ContentOriginEnum {
+
+    believed = "originBelieved",
+    generated = "originGenerated",
+    imagined = "originImagined",
+    perceived = "originPerceived",
+    remembered = "originRemembered",
+    supposed = "originSupposed",
+};
+
 export enum ContentSegmentTypeEnum {
 
     back_matter = "segmentTypeBackMatter",
@@ -3311,6 +3321,7 @@ export interface Agent {
     holdsAccount?: OnlineAccount[],
     holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
+    imagines?: string[],
     inquiresInto?: string[],
     interestedIn?: Entity[],
     isAwareOf?: Entity[],
@@ -3325,6 +3336,7 @@ export interface Agent {
     remembers?: Entity[],
     seeksToKnow?: string[],
     slogan?: string[],
+    supposes?: string[],
     suspendsJudgementOn?: string[],
     telephone?: string[],
     understands?: Entity[],
@@ -3934,6 +3946,11 @@ export interface ContainmentTenure extends TimeScopedRelation {
 
 
 export interface ContentDisposition {
+}
+
+
+
+export interface ContentOrigin {
 }
 
 
@@ -5524,7 +5541,9 @@ export interface MentalMoment {
 export interface MentalProcess extends Event {
     experiencer?: Agent,
     mentalProcessType?: MentalProcessType[],
-    realizesMoment?: string[],
+    producesMentalMoment?: MentalMoment[],
+    realizesMentalMoment?: MentalMoment[],
+    updatesMentalTenure?: TimeScopedRelation[],
 }
 
 

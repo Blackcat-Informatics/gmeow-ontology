@@ -174,6 +174,17 @@ def test_dev_gts_cli_keeps_compile_commands(runner: CliRunner) -> None:
     assert "compile-full" in result.output
 
 
+def test_dev_i18n_help_lists_sync_english(runner: CliRunner) -> None:
+    result = runner.invoke(dev_app, ["i18n", "--help"])
+    assert result.exit_code == 0, result.output
+    assert "sync-english" in result.output
+
+
+def test_dev_i18n_sync_english_dry_run(runner: CliRunner) -> None:
+    result = runner.invoke(dev_app, ["i18n", "sync-english", "--dry-run"])
+    assert result.exit_code == 0, result.output
+
+
 def test_workspace_declares_separate_dev_package() -> None:
     root = Path(__file__).resolve().parents[1]
     main = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))

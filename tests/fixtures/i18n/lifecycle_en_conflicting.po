@@ -1,0 +1,24 @@
+# English translations that conflict with an independently edited master.
+msgctxt "http://example.org/i18n-fixture/lifecycle#Lifecycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lifecycle"
+msgstr "Conflicting Lifecycle Label"
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#Lifecycle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Original lifecycle description."
+msgstr "Conflicting lifecycle definition."
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#Active|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Active"
+msgstr "Conflicting Active Label"
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#Active|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Original active state description."
+msgstr "Conflicting active definition."
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#hasState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has state"
+msgstr "conflicting label"
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#hasState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an entity to its lifecycle state."
+msgstr "Conflicting definition."

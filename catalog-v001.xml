@@ -43,6 +43,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/graphrag" uri="slices/extensions/graphrag/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/gts" uri="slices/core/gts/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/images" uri="slices/extensions/images/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/imagination" uri="slices/core/imagination/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/inference" uri="slices/core/inference/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/inquiry" uri="slices/core/inquiry/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/kernel" uri="slices/core/kernel/module.ttl"/>

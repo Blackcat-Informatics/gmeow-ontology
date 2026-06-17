@@ -906,6 +906,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -1024,6 +1033,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -11935,6 +11953,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -12053,6 +12080,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -21730,6 +21766,25 @@
               "contentDispositionInline"
             ],
             "title": "ContentDispositionEnum",
+            "type": "string"
+          },
+          "ContentOrigin": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ContentOrigin",
+            "type": "object"
+          },
+          "ContentOriginEnum": {
+            "description": "",
+            "enum": [
+              "originBelieved",
+              "originGenerated",
+              "originImagined",
+              "originPerceived",
+              "originRemembered",
+              "originSupposed"
+            ],
+            "title": "ContentOriginEnum",
             "type": "string"
           },
           "ContentSegment": {
@@ -40033,6 +40088,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -40051,9 +40115,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -40099,6 +40163,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -54531,6 +54604,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -54549,9 +54631,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -54597,6 +54679,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -74506,6 +74597,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -74524,9 +74624,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -74572,6 +74672,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -96115,6 +96224,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "industryClassification": {
                 "items": {
                   "$ref": "#/$defs/Identifier"
@@ -96289,6 +96407,15 @@
               "subOrganizationOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -101341,6 +101468,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -101486,6 +101622,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -131146,6 +131291,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -131264,6 +131418,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -139444,6 +139607,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -139562,6 +139734,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
