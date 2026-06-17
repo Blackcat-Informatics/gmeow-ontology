@@ -81,17 +81,16 @@ comments). With all three budget parameters `None` (the default), `materialize`
 output is byte-identical to the pre-#502 behaviour: chase order preserved, every
 quad `"ok"`.
 
-## Foundation lowering (issue #503)
+## Foundation lowering (issues #503, #636)
 
-Foundation lowering is the move of the four OntoUML structural disciplines from external Python
+Foundation lowering is the move of the five OntoUML structural disciplines from external Python
 checks (`src/gmeow_tools/reasoning_lint.py`) into executable `logic:` IR rules that materialize
 `logic:violation` and related diagnostic quads over `logic:` facts.
 
 ### What it does
 
-Three of the four disciplines are expressed as in-world `logic:StratifiedNAFProfile` Datalog rules
-emitted by `foundation_rules()` in `src/gmeow_tools/logic_foundation.py`. The rules derive
-`?C logic:violation <label>` facts for:
+Five disciplines are expressed as in-world `logic:StratifiedNAFProfile` Datalog rules. The rules
+derive `?C logic:violation <label>` facts for:
 
 - `logic:StereotypeCardinality` — a class with zero or more than one stereotype;
 - `logic:MixIden` — identity-overlap (a `Kind` with a `Kind` proper-ancestor, or a non-`Kind`
@@ -100,32 +99,35 @@ emitted by `foundation_rules()` in `src/gmeow_tools/logic_foundation.py`. The ru
 - `logic:MixRig` — a rigid sortal with an anti-rigid-type ancestor;
 - `logic:RelComp` — a concrete `Relator` mediating fewer than two distinct relata.
 
-The fourth discipline — positive cross-world rigidity — cannot be expressed as an in-world Datalog
-rule because the chase is world-local. It is evaluated by a bounded closure pass
-(`cross_world_rigidity_violations()`) over the finite materialized world set, emitting
-`logic:rigidityViolation` quads in the world where rigidity persistence fails.
+Positive cross-world rigidity cannot be expressed as an in-world Datalog rule because the chase
+is world-local. It is evaluated by a bounded closure pass over the finite materialized world set,
+emitting `logic:rigidityViolation` quads in the world where rigidity persistence fails. The
+anti-rigidity witness policy (`witness-obligation` / `witness-required` / `schema-only`) is a
+companion pass that emits `logic:dischargeObligation` / `logic:witnessRequiredViolation` per the
+declared policy without ever suppressing a violation.
 
-### Python-authoritative; Rust mirror deferred
+### Native Rust evaluator (issue #636)
 
-The lowering is **Python-authoritative**: `logic_foundation.py` generates the Nemo `.rls` rule
-text that the Rust engine runs. Because the Nemo rule text is opaque to the Rust layer, the
-in-world foundation rules run identically on both engines and are covered by the existing
-`oracle ≡ engine` parity gate. The cross-world rigidity closure and anti-rigidity obligation
-passes are Python oracle-level computations over the materialized world set; the Rust engine
-receives their output folded into the materialized quad set.
+The lowering is **evaluated natively in Rust** by `crates/logic/src/foundation.rs` (entry point:
+the `gmeow_logic.foundation(nquads, policy)` PyO3 binding). The in-world discipline rules, the
+cross-world rigidity closure, and the anti-rigidity witness passes all run inside that evaluator,
+which emits fully-provenanced quads (reifiers + derivation IDs via the shared `provenance` recipe).
 
-A Rust-native emitter (`crates/logic/src/foundation.rs`) is deferred; it is not required by any
-issue-503 acceptance criterion.
+The earlier Python oracle (`src/gmeow_tools/logic_foundation.py`) has been **retired** — there is
+no Python emitter and no fallback (no-optionality doctrine: a missing `gmeow_logic` extension is a
+hard failure, not a degraded path). Golden-fixture parity is preserved by construction: the
+`conformance/logic/cases/foundation/` corpus goldens are unchanged and now certify the Rust
+evaluator directly, with no oracle in the path.
 
-### `enable_naf` addition to the oracle
+### Stratified NAF
 
-Foundation lowering requires stratified NAF to express absence (a class with no stereotype, a
-sortal with no rigid ancestor). The `materialize_program()` function in `logic_materialize.py`
-accepts an `enable_naf` parameter (added in #503): when `True`, the rule set is partitioned into
-strata using the same dependency-graph stratification as the certifier, and each stratum is chased
-to fixpoint before the next. With `enable_naf=False` (the default) the behaviour is byte-identical
-to pre-#503: a single-stratum fixpoint with no NAF evaluation. Foundation lowering is gated on
-`"foundation_lowering": true` in `profile.json`; cases that do not opt in add zero quads.
+The discipline rules need stratified NAF to express absence (a class with no stereotype, a sortal
+with no rigid ancestor); the native evaluator partitions the rule set into strata and chases each
+to fixpoint before the next. Foundation lowering is gated on `"foundation_lowering": true` in
+`profile.json`; cases that do not opt in add zero quads. (For non-foundation programs that declare
+stratifiable negation, the Python `materialize_program()` path retains its own `enable_naf`
+stratified chase; programs the stratified oracle cannot compute fall through to a lossy positive
+materialization with the loss recorded.)
 
 ---
 

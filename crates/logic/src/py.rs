@@ -668,18 +668,100 @@ fn query(
     Ok(result.into_any().unbind())
 }
 
+// ── foundation ──────────────────────────────────────────────────────────────────
+
+/// Evaluate the OntoUML *foundation* disciplines natively (issue #636).
+///
+/// Native Rust port of the Python foundation oracle
+/// (`gmeow_tools.logic_foundation` + the `enable_naf` materializer path).  Parses
+/// `input` N-Quads into a world-indexed [`WorldStore`] (named graphs = worlds),
+/// runs the stratified semi-naive chase plus the cross-world rigidity and
+/// anti-rigidity post-passes, and returns the asserted + derived quads as Python
+/// dicts.  Provenance (reifier + derivation IDs) is byte-identical to the oracle
+/// (see [`crate::foundation`]).
+///
+/// # Arguments
+///
+/// - `input` — the EDB facts as N-Quads (named graphs = worlds).
+/// - `anti_rigidity_policy` — one of `"witness-obligation"` (default),
+///   `"schema-only"`, `"witness-required"`.  An unknown value is a HARD FAILURE
+///   (raises `ValueError`) — the policy is a closed enum with no silent default.
+///
+/// # Returns
+///
+/// A `list[dict]` with keys `graph`, `subject`, `predicate`, `obj`,
+/// `derivation_id`, `rule_iri`, `source_quad_ids`, `profile`, `budget_status`.
+///
+/// # Errors
+///
+/// Raises `ValueError` for an N-Quads parse error or an unknown policy, and
+/// `RuntimeError` for an internal evaluation/provenance failure.
+#[pyfunction]
+#[pyo3(signature = (input, anti_rigidity_policy=None))]
+fn foundation(
+    py: Python<'_>,
+    input: &str,
+    anti_rigidity_policy: Option<&str>,
+) -> PyResult<Vec<Py<PyAny>>> {
+    use crate::foundation::{evaluate, AntiRigidityPolicy};
+
+    // Closed enum — unknown value is a hard error (no silent default).  The default
+    // when the key is absent is "witness-obligation".
+    let policy = match anti_rigidity_policy {
+        Some(value) => {
+            AntiRigidityPolicy::from_str(value).map_err(pyo3::exceptions::PyValueError::new_err)?
+        }
+        None => AntiRigidityPolicy::WitnessObligation,
+    };
+
+    if input.trim().is_empty() {
+        return Ok(vec![]);
+    }
+
+    // Parse N-Quads into a world-indexed store (preserving worlds = named graphs).
+    let store = WorldStore::new();
+    store
+        .load_nquads(input)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let quads = evaluate(&store, policy).map_err(|e| {
+        pyo3::exceptions::PyRuntimeError::new_err(format!("foundation evaluation failed: {e}"))
+    })?;
+
+    let profile = crate::foundation::profile_iri();
+    let budget_status = crate::foundation::budget_status();
+
+    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(quads.len());
+    for q in &quads {
+        let d = PyDict::new(py);
+        d.set_item("graph", q.graph.as_str())?;
+        d.set_item("subject", q.subject.as_str())?;
+        d.set_item("predicate", q.predicate.as_str())?;
+        d.set_item("obj", q.object.as_str())?;
+        d.set_item("derivation_id", q.derivation_id.as_str())?;
+        d.set_item("rule_iri", q.rule_iri.as_str())?;
+        d.set_item("source_quad_ids", q.source_quad_ids.clone())?;
+        d.set_item("profile", profile)?;
+        d.set_item("budget_status", budget_status)?;
+        out.push(d.into_any().unbind());
+    }
+    Ok(out)
+}
+
 // ── Module registration ───────────────────────────────────────────────────────
 
 /// Python extension module `gmeow_logic`.
 ///
 /// Exposes:
 /// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
+/// - `foundation(input, anti_rigidity_policy=None) -> list[dict]` (issue #636)
 /// - `certify(rules, profile) -> dict`
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
 ///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
+    m.add_function(wrap_pyfunction!(foundation, m)?)?;
     m.add_function(wrap_pyfunction!(certify, m)?)?;
     m.add_function(wrap_pyfunction!(query, m)?)?;
     Ok(())

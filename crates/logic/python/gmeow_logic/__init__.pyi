@@ -22,6 +22,10 @@ def materialize(
     max_answers: int | None = ...,
     time_ms: int | None = ...,
 ) -> dict[str, Any]: ...
+def foundation(
+    input: str,
+    anti_rigidity_policy: str | None = ...,
+) -> list[dict[str, Any]]: ...
 def certify(rules: str, profile: str) -> dict[str, Any]: ...
 def query(
     world_nquads: str,
