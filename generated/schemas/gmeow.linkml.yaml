@@ -66,11 +66,13 @@ classes:
     - accepts
     - asks
     - attendsTo
+    - awareOfNotKnowing
     - believes
     - curiousAbout
     - doubts
     - email
     - endorses
+    - epistemicSelfTrust
     - founderOf
     - hasAgreement
     - hasContactPoint
@@ -381,6 +383,9 @@ classes:
   CalendarSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/CalendarSystem
     title: Calendar System
+  CalibrationStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/CalibrationStatus
+    title: Calibration Status
   Capacity:
     class_uri: https://blackcatinformatics.ca/gmeow/Capacity
     title: Capacity
@@ -2103,6 +2108,13 @@ classes:
   MessageParticipantRole:
     class_uri: https://blackcatinformatics.ca/gmeow/MessageParticipantRole
     title: Message Participant Role
+  MetacognitiveState:
+    class_uri: https://blackcatinformatics.ca/gmeow/MetacognitiveState
+    title: Metacognitive State
+    is_a: MentalMoment
+    slots:
+    - calibration
+    - metaTarget
   MeterAssignment:
     class_uri: https://blackcatinformatics.ca/gmeow/MeterAssignment
     title: Meter Assignment
@@ -4661,6 +4673,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/avoidWhen
     title: avoid when
     range: string
+  awareOfNotKnowing:
+    slot_uri: https://blackcatinformatics.ca/gmeow/awareOfNotKnowing
+    title: aware of not knowing
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
   bcc:
     slot_uri: https://blackcatinformatics.ca/gmeow/bcc
     title: bcc
@@ -4786,6 +4804,16 @@ slots:
     range: string
     domain: EmailMessage
     multivalued: true
+  calibration:
+    slot_uri: https://blackcatinformatics.ca/gmeow/calibration
+    title: calibration
+    range: CalibrationStatus
+    domain: MetacognitiveState
+    multivalued: true
+  calibrationError:
+    slot_uri: https://blackcatinformatics.ca/gmeow/calibrationError
+    title: calibration error
+    range: string
   calledByInvocation:
     slot_uri: https://blackcatinformatics.ca/gmeow/calledByInvocation
     title: called by invocation
@@ -6154,6 +6182,12 @@ slots:
     range: Agent
     domain: DoxasticState
     multivalued: false
+  epistemicSelfTrust:
+    slot_uri: https://blackcatinformatics.ca/gmeow/epistemicSelfTrust
+    title: epistemic self-trust
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
   eulerOrder:
     slot_uri: https://blackcatinformatics.ca/gmeow/eulerOrder
     title: Euler order
@@ -9007,6 +9041,12 @@ slots:
     title: met by
     range: Event
     domain: Event
+    multivalued: true
+  metaTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/metaTarget
+    title: meta target
+    range: uriorcurie
+    domain: MetacognitiveState
     multivalued: true
   meterCarrier:
     slot_uri: https://blackcatinformatics.ca/gmeow/meterCarrier
@@ -13359,6 +13399,18 @@ enums:
       calendarPersian:
         meaning: https://blackcatinformatics.ca/gmeow/calendarPersian
         title: Persian (Solar Hijri) calendar
+  CalibrationStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CalibrationStatus
+    permissible_values:
+      overconfident:
+        meaning: https://blackcatinformatics.ca/gmeow/overconfident
+        title: overconfident
+      underconfident:
+        meaning: https://blackcatinformatics.ca/gmeow/underconfident
+        title: underconfident
+      wellCalibrated:
+        meaning: https://blackcatinformatics.ca/gmeow/wellCalibrated
+        title: well calibrated
   CarrierMediumEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CarrierMedium
     permissible_values:
@@ -14610,6 +14662,9 @@ enums:
       eventTypeRecordingSession:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeRecordingSession
         title: recording session
+      eventTypeReflection:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeReflection
+        title: reflection
       eventTypeRehearsal:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeRehearsal
         title: rehearsal
