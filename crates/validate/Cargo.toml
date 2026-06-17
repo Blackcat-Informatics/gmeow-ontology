@@ -21,6 +21,9 @@ path = "src/lib.rs"
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # Reserved for future lint ports that need regex (kept in lockstep with shacl).
 regex = "1"
+# Serialization for timing records and JSON result export (#634).
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 # SHACL engine: the Rust-native validation orchestration reuses parsed shapes
 # and validates the shared store directly (#634). The engine core is PyO3-free;
 # only the py modules on both sides touch PyO3.

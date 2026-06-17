@@ -27,6 +27,7 @@ use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::store;
+use crate::validate_all::{self, ValidateOptions};
 
 /// Build the standard `{"errors": [...], "warnings": [...]}` report dict.
 fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> PyResult<Py<PyAny>> {
@@ -93,6 +94,66 @@ impl PyLintConfig {
                 .iter()
                 .cloned()
                 .collect::<HashSet<_>>(),
+        }
+    }
+}
+
+/// Options for the native validation orchestration.
+///
+/// Carries the boolean timing flag plus the optional inputs some phases need
+/// (`sameas_allowlist`, slice-ownership registry, slices directory, and DSL
+/// shape texts). Every field has a sensible default so callers can opt into
+/// phases by setting the relevant fields.
+#[pyclass(name = "ValidateOptions", from_py_object)]
+#[derive(Clone)]
+struct PyValidateOptions {
+    timings: bool,
+    sameas_allowlist: Vec<(String, String)>,
+    module_specs: Vec<(String, String)>,
+    slices_dir: Option<String>,
+    mapping_shapes_ttl: Option<String>,
+    statement_shapes_ttl: Option<String>,
+}
+
+#[pymethods]
+impl PyValidateOptions {
+    #[new]
+    #[pyo3(signature = (
+        timings = false,
+        sameas_allowlist = None,
+        module_specs = None,
+        slices_dir = None,
+        mapping_shapes_ttl = None,
+        statement_shapes_ttl = None,
+    ))]
+    fn new(
+        timings: bool,
+        sameas_allowlist: Option<Vec<(String, String)>>,
+        module_specs: Option<Vec<(String, String)>>,
+        slices_dir: Option<String>,
+        mapping_shapes_ttl: Option<String>,
+        statement_shapes_ttl: Option<String>,
+    ) -> Self {
+        Self {
+            timings,
+            sameas_allowlist: sameas_allowlist.unwrap_or_default(),
+            module_specs: module_specs.unwrap_or_default(),
+            slices_dir,
+            mapping_shapes_ttl,
+            statement_shapes_ttl,
+        }
+    }
+}
+
+impl PyValidateOptions {
+    fn to_engine(&self) -> ValidateOptions {
+        ValidateOptions {
+            timings: self.timings,
+            sameas_allowlist: self.sameas_allowlist.clone(),
+            module_specs: self.module_specs.clone(),
+            slices_dir: self.slices_dir.clone(),
+            mapping_shapes_ttl: self.mapping_shapes_ttl.clone(),
+            statement_shapes_ttl: self.statement_shapes_ttl.clone(),
         }
     }
 }
@@ -533,6 +594,56 @@ fn dsl_merge_with_provenance(
     Ok((merge.data_nt, pairs.into_any().unbind()))
 }
 
+/// Native validation orchestration entrypoint (#634).
+///
+/// Builds the ontology store once, parses the SHACL shapes once, runs every
+/// validation phase, and returns a dict with `errors`, `warnings`, `timings`,
+/// and `declared_terms`. Optional phases (example coverage/SHACL, DSL SHACL)
+/// are enabled by the corresponding fields in `options`.
+#[pyfunction]
+fn validate_all_native(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    shapes_ttl: String,
+    mapping_dsl_dir: String,
+    statement_dsl_dir: String,
+    config: PyLintConfig,
+    options: PyValidateOptions,
+) -> PyResult<Py<PyAny>> {
+    if source_paths.is_empty() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "validate_all_native: source_paths must not be empty",
+        ));
+    }
+
+    let run = validate_all::ValidationRun::run(
+        &source_paths,
+        &shapes_ttl,
+        &mapping_dsl_dir,
+        &statement_dsl_dir,
+        &config.to_engine(),
+        &options.to_engine(),
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let out = PyDict::new(py);
+    out.set_item("errors", PyList::new(py, &run.errors)?)?;
+    out.set_item("warnings", PyList::new(py, &run.warnings)?)?;
+    out.set_item("declared_terms", PyList::new(py, &run.declared_terms)?)?;
+
+    let timings = PyList::empty(py);
+    for t in &run.timings {
+        let d = PyDict::new(py);
+        d.set_item("phase", &t.phase)?;
+        d.set_item("elapsed_ms", t.elapsed_ms)?;
+        d.set_item("metadata", t.metadata.as_deref().unwrap_or(""))?;
+        timings.append(d)?;
+    }
+    out.set_item("timings", timings)?;
+
+    Ok(out.into_any().unbind())
+}
+
 /// Python extension module `gmeow_validate`.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -541,6 +652,7 @@ fn dsl_merge_with_provenance(
 #[pymodule]
 fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLintConfig>()?;
+    m.add_class::<PyValidateOptions>()?;
     m.add_class::<PyValidationStore>()?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
@@ -566,5 +678,6 @@ fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
     m.add_function(wrap_pyfunction!(merge_to_ntriples, m)?)?;
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
     Ok(())
 }

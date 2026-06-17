@@ -28,6 +28,7 @@ pub mod gufo;
 pub mod lint;
 pub mod model;
 pub mod store;
+pub mod validate_all;
 
 // PyO3 bindings — the only module that imports pyo3.
 pub mod py;
