@@ -75,6 +75,44 @@ def test_warning_severity_buckets_to_warnings() -> None:
     assert warnings == [f"{_NS}alice: name required"]
 
 
+def test_partition_results_prefixes_box_roles_when_present() -> None:
+    violations, warnings = se.partition_results(
+        [
+            {
+                "focus": f"<{_NS}stmt>",
+                "path": None,
+                "value": None,
+                "severity": se.SH_VIOLATION,
+                "component": "http://www.w3.org/ns/shacl#ReifierShapeConstraintComponent",
+                "source_shape": f"<{_NS}Shape>",
+                "message": "context required",
+                "result_box_roles": ["https://blackcatinformatics.ca/gmeow/boxCBox"],
+            }
+        ]
+    )
+    assert violations == [f"[CBox] {_NS}stmt: context required"]
+    assert warnings == []
+
+
+def test_partition_results_uses_hash_iri_local_name_for_unknown_roles() -> None:
+    violations, warnings = se.partition_results(
+        [
+            {
+                "focus": f"<{_NS}stmt>",
+                "path": None,
+                "value": None,
+                "severity": se.SH_VIOLATION,
+                "component": "http://www.w3.org/ns/shacl#ConstraintComponent",
+                "source_shape": f"<{_NS}Shape>",
+                "message": "context required",
+                "result_box_roles": ["http://example.org/roles#NovelRole"],
+            }
+        ]
+    )
+    assert violations == [f"[NovelRole] {_NS}stmt: context required"]
+    assert warnings == []
+
+
 def test_parse_error_hard_fails() -> None:
     # A malformed shapes document must raise, never silently "conform" (P11/§11).
     with pytest.raises(ValueError):

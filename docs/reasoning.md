@@ -10,6 +10,15 @@ answer different questions, and GMEOW uses both deliberately.
 > validates.* (Knublauch, ["SHACL and OWL Compared"](https://spinrdf.org/shacl-and-owl.html);
 > [SHACL-AF](https://www.w3.org/TR/shacl-af/).)
 
+GMEOW also annotates graph roles with `gmeow:graphBoxRole` (see
+[`docs/four-boxes.md`](./four-boxes.md)). In this document, the ABox is the
+asserted data graph being checked, the TBox is the vocabulary/shape/logic layer,
+the RBox is the property and role behavior that reasoners and path constraints
+traverse, and the CBox is statement context: RDF 1.2 reifiers plus provenance,
+evidence, confidence, time, standpoint, determinacy, and disclosure metadata.
+Those labels help reports and docs explain which layer failed; they do not
+change which sources are canonical or which projection is generated.
+
 ## Why not "just use OWL cardinality"?
 
 Under the **open-world assumption**, OWL never reports a *violation* — it draws *inferences*.

@@ -285,6 +285,20 @@ def test_describe_resolves_and_renders_the_target_shape() -> None:
     assert "Guide: slices/core/names/docs.md" in text
 
 
+def test_describe_renders_graph_box_roles() -> None:
+    g = _graph()
+    assert (GM.GraphBoxRole, RDF.type, OWL.Class) in g
+    assert (GM.graphBoxRole, RDF.type, OWL.AnnotationProperty) in g
+    assert (GM.partOf, GM.graphBoxRole, GM.boxRBox) in g
+    tag_map = load_tag_map(g)
+    selector = resolve_lang_input(None, tag_map)
+    card = build_card(g, GM.partOf, selector=selector, tag_map=tag_map)
+    assert card.box_roles == ["gmeow:boxRBox"]
+    text = render_card(card)
+    assert "Box roles" in text
+    assert "gmeow:boxRBox" in text
+
+
 def test_describe_suggests_on_ambiguity() -> None:
     g = _graph()
     term, candidates = resolve_term(g, "narrat")

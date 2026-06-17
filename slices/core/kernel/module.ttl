@@ -111,6 +111,7 @@ gmeow:partOf
     gmeow:useWhen "Use when a generic consumer needs to ask whether one thing is part of a larger whole across domains, or to query the transitive part/whole closure without committing to a specific kind of parthood."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the kind of parthood matters — use a narrower subproperty (gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread) — and avoid relying on proper-part, direct-part, or asymmetry semantics, none of which are asserted here."@x-gmeow-english ;
     gmeow:howToUse "Assert the most specific part/whole subproperty for the domain; generic consumers then read gmeow:partOf by inheritance. Model time-scoped or role-bearing parthood as a relator rather than on this simple transitive spine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:hasPart
@@ -123,6 +124,7 @@ gmeow:hasPart
     gmeow:useWhen "Use when traversing or projecting from whole to part across domains, or when a renderer needs a generic decomposition without committing to one privileged part model."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting gmeow:hasPart directly when a domain subproperty exists; assert the specialized part relation (or its inverse) and let gmeow:hasPart follow by inheritance and inversion."@x-gmeow-english ;
     gmeow:howToUse "Prefer asserting gmeow:partOf (or a domain subproperty) and read gmeow:hasPart as its inverse; reach for it explicitly only in whole-rooted projections where the inverse direction is the natural one to state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
@@ -158,6 +160,7 @@ gmeow:coarserThan
     gmeow:useWhen "Use to order two granularity levels so a coarsening target ('no finer than city') is well-defined, or to seed a per-domain resolution ladder (spatial, temporal)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for ordering ordinary quantitative values (that is a measurement, not a granularity level) and avoid wiring it between domains' ladders without an explicit cross-domain alignment."@x-gmeow-english ;
     gmeow:howToUse "Assert gmeow:coarserThan from the coarser level to the finer one and let transitivity build the ladder; align levels to external resolution vocabularies (time:TemporalUnit, ISO 19112 LocationType) with skos:exactMatch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:hasGranularity
@@ -226,24 +229,28 @@ gmeow:requiresFrame
     a owl:AnnotationProperty ;
     rdfs:label "requires frame"@x-gmeow-english ;
     skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, frame-relativity gate): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:frameRequirementSeverity \"warning\" to downgrade from violation."@x-gmeow-english;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:frameRequirementSeverity
     a owl:AnnotationProperty ;
     rdfs:label "frame requirement severity"@x-gmeow-english ;
     skos:definition "Optional severity for a gmeow:requiresFrame declaration: \"warning\" downgrades the generated frame-relativity shape from sh:Violation to sh:Warning (used while a module's data corpus is still being brought up to frame completeness). Absent means violation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:coarsenGuarded
     a owl:AnnotationProperty ;
     rdfs:label "coarsen guarded"@x-gmeow-english ;
     skos:definition "Marks a property as PRECISION-BEARING for disclosure control (precision guard, CONSTITUTION P10): when a projection branch reads this property of a subject, the mapping compiler injects a guard so the subject's precise values never pass a gmeow:coarsenTo mark — the coarse form is published only by a profile's explicit coarsening branch. Ontology-derived, never a hand list: annotating a new precise-value property extends every generated projection's guards on the next regenerate."@x-gmeow-english;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:frameCardinality
     a owl:AnnotationProperty ;
     rdfs:label "frame cardinality"@x-gmeow-english ;
     skos:definition "Optional cardinality override for a gmeow:requiresFrame declaration: \"exactly-one\" or \"at-least-one\". Absent, the cardinality is derived from the frame property's character — owl:FunctionalProperty means exactly one, otherwise at least one. The override exists for carriers whose frame property is logically non-functional (the property serves several carrier classes with different multiplicities) but whose instances each live in a single frame, e.g. gmeow:Pose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 # --------------------------------------------------------------------------- #
@@ -503,18 +510,89 @@ gmeow:DocumentationConcern
     gmeow:useWhen "Use to declare a cross-cutting documentation theme that terms from many slices opt into, so a generated guide page is backed by the graph rather than by a private renderer taxonomy."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid creating a concern for a single slice's local narrative (that belongs in its docs.md guide) and avoid per-concern subclasses; concerns are individuals referenced by gmeow:docsConcern."@x-gmeow-english ;
     gmeow:howToUse "Mint the concern as an individual, then annotate participating terms with gmeow:docsConcern pointing at it; the documentation generator collects them into one themed page."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:docsConcern
     a owl:AnnotationProperty ;
     rdfs:label "documentation concern link"@x-gmeow-english ;
     skos:definition "Links a term, slice, or documentation-bearing resource to a gmeow:DocumentationConcern. Used only by documentation projections; it carries no logical semantics and does not affect the OWL 2 DL core."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:GraphBoxRole
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Graph Box Role"@x-gmeow-english ;
+    skos:definition "A documentation and validation role describing which graph layer a term, shape, module, or graph artifact primarily serves: assertional data (ABox), terminology/schema (TBox), role/property behavior (RBox), or contextual statement metadata (CBox). Roles are descriptive annotations, may be multi-valued, and never partition the ontology into exactly one box per resource."@x-gmeow-english ;
+    skos:example "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a term, shape, generated report, or documentation surface needs to say whether it is about asserted data, schema/logic, role/property behavior, or statement context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using box roles as logical class membership, named-graph routing, or an exactly-one partition; a construct can legitimately serve more than one box."@x-gmeow-english ;
+    gmeow:howToUse "Annotate the subject with one or more gmeow:graphBoxRole values. Tooling may render the roles in describe output, generated docs, validation reports, and GTS/package summaries, but the annotations do not alter OWL entailments."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:graphBoxRole
+    a owl:AnnotationProperty ;
+    rdfs:range gmeow:GraphBoxRole ;
+    rdfs:label "graph box role"@x-gmeow-english ;
+    skos:definition "Links a term, shape, module, graph artifact, or validation result source to one or more gmeow:GraphBoxRole individuals. The role is advisory metadata for documentation, validation diagnostics, and package consumers; it carries no OWL logical semantics."@x-gmeow-english ;
+    skos:example "gmeow:partOf gmeow:graphBoxRole gmeow:boxRBox ."@x-gmeow-english ;
+    gmeow:useWhen "Use to make a construct's graph-layer role explicit for readers and tools, especially when validation output needs to distinguish data, schema, role/property, and statement-context failures."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as an ownership, import, or named-graph directive; the canonical source/projection rules still decide where data is authored and generated."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more role individuals such as gmeow:boxTBox or gmeow:boxCBox. Consumers should preserve unknown future roles and must not assume the value set is closed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:boxABox
+    a gmeow:GraphBoxRole ;
+    rdfs:label "ABox role"@x-gmeow-english ;
+    skos:definition "Assertional graph role: concrete instance data, examples, claims, and payload triples that are validated, transported, projected, or reasoned over by GMEOW tooling."@x-gmeow-english ;
+    skos:example "A slice example graph or a user's imported data graph is ABox-role content."@x-gmeow-english ;
+    gmeow:useWhen "Use for resources that primarily describe asserted instance content rather than the schema that constrains it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for term definitions, class/property axioms, and shape declarations unless those resources are themselves being treated as data."@x-gmeow-english ;
+    gmeow:howToUse "Annotate examples, payload graph descriptors, and validation report context with this role when users need to see that a diagnostic came from asserted data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:boxTBox
+    a gmeow:GraphBoxRole ;
+    rdfs:label "TBox role"@x-gmeow-english ;
+    skos:definition "Terminological graph role: classes, datatypes, shapes, profiles, restrictions, logic-profile declarations, and other schema or vocabulary constructs that describe how assertions are structured."@x-gmeow-english ;
+    skos:example "gmeow:GraphBoxRole and a SHACL node shape both carry the TBox role."@x-gmeow-english ;
+    gmeow:useWhen "Use for terms, shapes, modules, and profile declarations that define the vocabulary or constraints used by data."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for ordinary instance claims unless the claim is explicitly about schema or vocabulary resources."@x-gmeow-english ;
+    gmeow:howToUse "Annotate schema-bearing resources so docs and validation output can identify vocabulary/shape problems separately from data and statement-context problems."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:boxRBox
+    a gmeow:GraphBoxRole ;
+    rdfs:label "RBox role"@x-gmeow-english ;
+    skos:definition "Role/property graph role: property axioms and relationship behavior, including inverses, transitivity, property chains, disjointness, path behavior, and role-like constraints over predicates."@x-gmeow-english ;
+    skos:example "gmeow:partOf carries the RBox role because it is a transitive role/property spine."@x-gmeow-english ;
+    gmeow:useWhen "Use for properties, path shapes, and role-behavior declarations where the important diagnostic context is the predicate or relation itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for every object property automatically when the property is merely a simple data slot and no role behavior is being documented."@x-gmeow-english ;
+    gmeow:howToUse "Annotate relationship spines, generated path constraints, and property-behavior documentation so reports can identify RBox failures without reverse-engineering the shape IRI."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:boxCBox
+    a gmeow:GraphBoxRole ;
+    rdfs:label "CBox role"@x-gmeow-english ;
+    skos:definition "Contextual graph role: metadata about assertions, especially RDF 1.2 reifiers and statement annotations carrying provenance, evidence, confidence, temporal scope, standpoint, determinacy, validity, or disclosure context."@x-gmeow-english ;
+    skos:example "A reifier that records confidence and evidence for an assertion is CBox-role data."@x-gmeow-english ;
+    gmeow:useWhen "Use for statement context and assertion envelopes, especially when a shape or report is validating metadata attached to a reified statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for deployment configuration or package-profile metadata unless it is explicitly contextual metadata about an assertion; use Profile/GTS configuration surfaces for operational configuration."@x-gmeow-english ;
+    gmeow:howToUse "Annotate statement-metadata terms and reifier-focused SHACL shapes so validation can surface contextual assertion failures as CBox diagnostics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:concernStatementMetadata
     a gmeow:DocumentationConcern ;
     rdfs:label "statement metadata"@x-gmeow-english ;
     skos:definition "Native RDF 1.2 reifiers, statement annotations, confidence, provenance, and temporal scope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:concernStandpoints

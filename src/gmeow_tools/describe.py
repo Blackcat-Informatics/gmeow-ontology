@@ -76,6 +76,7 @@ class TermCard:
     avoid_for_consumer: list[str] = field(default_factory=list)
     pairs_with: list[str] = field(default_factory=list)
     paired_from: list[str] = field(default_factory=list)
+    box_roles: list[str] = field(default_factory=list)
     alignments: list[str] = field(default_factory=list)
     guide: str = ""
 
@@ -263,6 +264,7 @@ def build_card(
     )
     card.pairs_with = sorted(_short(o) for o in graph.objects(term, GM.pairsWith))
     card.paired_from = sorted(_short(s) for s in graph.subjects(GM.pairsWith, term))
+    card.box_roles = sorted(_short(o) for o in graph.objects(term, GM.graphBoxRole))
 
     defined_by = graph.value(term, RDFS.isDefinedBy)
     if defined_by is not None:
@@ -354,6 +356,8 @@ def render_card(card: TermCard) -> str:
         )
     for source in card.paired_from:
         lines.append(f"  [magenta]Flat form[/magenta]  {source} — the 80% shortcut")
+    if card.box_roles:
+        lines.append("  [blue]Box roles[/blue]  " + " · ".join(card.box_roles))
     if card.alignments:
         lines.append("  [green]Aligned[/green]  " + " · ".join(card.alignments[:8]))
     if card.guide:
