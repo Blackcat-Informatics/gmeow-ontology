@@ -8,9 +8,10 @@
 Propositional epistemic relations — an agent's attitudes toward propositions/claims: belief, doubt,
 suspension, pragmatic acceptance, and non-factive knowledge-that. The propositional companion to the
 cognition slice (objectual, agent → entity): epistemics relates an agent to a **proposition**, not to
-an entity. This minimal core seeds the slice with the truth-apt `gmeow:Proposition` and the flat
-doxastic spine; the reified tier (a doxastic state, credence, justification) and the mental-moment
-grounding land in sibling children (#560 / #561 / #562).
+an entity. This slice provides both the flat doxastic spine and the reified tier: `gmeow:Proposition`,
+`gmeow:DoxasticState` (a `kernel:MentalMoment`), `gmeow:credence`, `gmeow:doxasticClaim`
+(linked to a `standpoint:StandpointClaim`), and `gmeow:DoxasticTenure` (a `temporal:TimeScopedRelation`).
+Justification grounds land in a sibling child (#561).
 
 ## The flat doxastic spine
 
@@ -72,5 +73,32 @@ belief nor truth.
 
 ## Dependencies
 
-Depends on `kernel` (`gmeow:SocialObject`, `gmeow:Agent`). The `believes → accordingTo` bridge to
-`standpoint` is documentation only at this tier; `standpoint` becomes a hard dependency at #561.
+Depends on `kernel` (`gmeow:SocialObject`, `gmeow:Agent`, `gmeow:MentalMoment`), `temporal`
+(`gmeow:TimeScopedRelation`, `gmeow:duringInterval`, `gmeow:TimeInterval`), and `standpoint`
+(`gmeow:StandpointClaim`, `gmeow:claimModality`, `gmeow:StandpointModality`). The flat
+`believes → accordingTo` bridge is documentation only at this tier; the reified tier hard-depends on
+standpoint and temporal.
+
+## Reified doxastic tier
+
+When credence, temporal scope, or the mental moment itself must be first-class, promote from the flat
+spine to a `gmeow:DoxasticState`.
+
+| Term | Role |
+|---|---|
+| `gmeow:DoxasticState` | The agent's intrinsic believing mode — a `kernel:MentalMoment`. |
+| `gmeow:epistemicAgent` | The believer (functional, domain `DoxasticState`, range `Agent`). |
+| `gmeow:doxasticContent` | The believed `gmeow:Proposition` (functional). |
+| `gmeow:doxasticClaim` | Links to a `standpoint:StandpointClaim` carrying the qualitative `claimModality`. |
+| `gmeow:credence` | Graded degree-of-belief `[0,1]` as `xsd:decimal` (non-functional). |
+| `gmeow:DoxasticTenure` | Time-scoped belief-revision history — a `temporal:TimeScopedRelation`. |
+| `gmeow:tenureOfDoxasticState` | The `DoxasticState` whose holding interval the tenure records (functional). |
+
+### `revise_belief` — suppression, not deletion
+
+Revising a belief closes the prior `gmeow:DoxasticTenure` by setting `gmeow:endedAtTime` on its
+interval and marks the **tenure** `gmeow:displayable false`. The original `gmeow:DoxasticState` is
+retained as audit. A new `DoxasticState` (and a new open `DoxasticTenure`) records the revised belief.
+This is the same suppression pattern used by `inference:InferenceTenure` (Principle 10).
+
+Example: see `slices/core/epistemics/examples/belief-revision.ttl`.
