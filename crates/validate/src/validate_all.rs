@@ -767,7 +767,7 @@ fn collect_ttl_paths_recursive(dir: &Path, paths: &mut Vec<PathBuf>) -> Result<(
     for entry in std::fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))? {
         let entry = entry.map_err(|e| format!("dir entry in {}: {e}", dir.display()))?;
         let path = entry.path();
-        if path.is_dir() {
+        if path.is_dir() && !path.is_symlink() {
             collect_ttl_paths_recursive(&path, paths)?;
         } else if path.extension().and_then(|s| s.to_str()) == Some("ttl") {
             paths.push(path);
