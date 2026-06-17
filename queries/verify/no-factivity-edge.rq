@@ -1,0 +1,20 @@
+# Negative test: no factivity edge in the doxastic spine.
+# A factivity commitment would be: a spine property declared owl:FunctionalProperty,
+# a spine property with an rdfs:range, or any isTrue property.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?term WHERE {
+    VALUES ?spineProp {
+        gmeow:believes gmeow:knowsThat gmeow:doubts
+        gmeow:suspendsJudgementOn gmeow:accepts
+    }
+    ?term rdfs:subPropertyOf* ?spineProp .
+    { ?term a owl:FunctionalProperty }
+    UNION
+    { ?term rdfs:range ?range }
+    UNION
+    { ?term owl:inverseOf [ rdfs:range ?range ] }
+}

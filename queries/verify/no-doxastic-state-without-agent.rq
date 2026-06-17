@@ -1,0 +1,8 @@
+# Negative test: every DoxasticState must have an epistemic agent.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?state WHERE {
+    ?state a gmeow:DoxasticState .
+    FILTER NOT EXISTS { ?state gmeow:epistemicAgent ?agent }
+}

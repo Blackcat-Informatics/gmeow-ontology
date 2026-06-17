@@ -1,0 +1,8 @@
+# Negative test: credence values must be in [0,1].
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?state ?credence WHERE {
+    ?state gmeow:credence ?credence .
+    FILTER (?credence < 0 || ?credence > 1)
+}
