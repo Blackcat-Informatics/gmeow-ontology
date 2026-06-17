@@ -307,6 +307,13 @@ enum CalendarSystemEnum
     calendarPersian
   }
 
+enum CalibrationStatusEnum
+  {
+    overconfident
+    underconfident
+    wellCalibrated
+  }
+
 enum CarrierMediumEnum
   {
     mediumEInkFile
@@ -844,6 +851,7 @@ enum EventTypeEnum
     eventTypePromotion
     eventTypePush
     eventTypeRecordingSession
+    eventTypeReflection
     eventTypeRehearsal
     eventTypeRelease
     eventTypeRename
@@ -3326,11 +3334,13 @@ type Agent
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -4658,11 +4668,13 @@ type Builder
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -4774,6 +4786,10 @@ type CalendarMethod
   }
 
 type CalendarSystem
+  {
+  }
+
+type CalibrationStatus
   {
   }
 
@@ -12616,6 +12632,12 @@ type MessageParticipantRole
   {
   }
 
+type MetacognitiveState
+  {
+    calibration: [CalibrationStatus]
+    metaTarget: [String]
+  }
+
 type MeterAssignment
   {
     assignedMeter: MetricStructure
@@ -14793,11 +14815,13 @@ type Organization
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -15336,11 +15360,13 @@ type Person
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -18901,11 +18927,13 @@ type Sensor
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -19963,11 +19991,13 @@ type SoftwareAgent
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]

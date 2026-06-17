@@ -735,6 +735,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -774,6 +783,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -11746,6 +11764,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -11785,6 +11812,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -12698,6 +12734,22 @@
               "calendarPersian"
             ],
             "title": "CalendarSystemEnum",
+            "type": "string"
+          },
+          "CalibrationStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "CalibrationStatus",
+            "type": "object"
+          },
+          "CalibrationStatusEnum": {
+            "description": "",
+            "enum": [
+              "overconfident",
+              "underconfident",
+              "wellCalibrated"
+            ],
+            "title": "CalibrationStatusEnum",
             "type": "string"
           },
           "Capacity": {
@@ -38345,6 +38397,7 @@
               "eventTypePromotion",
               "eventTypePush",
               "eventTypeRecordingSession",
+              "eventTypeReflection",
               "eventTypeRehearsal",
               "eventTypeRelease",
               "eventTypeRename",
@@ -77512,6 +77565,32 @@
             "title": "MessageParticipantRoleEnum",
             "type": "string"
           },
+          "MetacognitiveState": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "calibration": {
+                "items": {
+                  "$ref": "#/$defs/CalibrationStatus"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "metaTarget": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "MetacognitiveState",
+            "type": "object"
+          },
           "MeterAssignment": {
             "additionalProperties": false,
             "description": "",
@@ -95829,6 +95908,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -95868,6 +95956,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -100929,6 +101026,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -100968,6 +101074,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -130860,6 +130975,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -130899,6 +131023,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -139140,6 +139273,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -139179,6 +139321,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",

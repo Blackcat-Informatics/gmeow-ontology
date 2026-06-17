@@ -371,6 +371,12 @@ class CalendarSystemEnum(str, Enum):
     Persian_LEFT_PARENTHESISSolar_HijriRIGHT_PARENTHESIS_calendar = "calendarPersian"
 
 
+class CalibrationStatusEnum(str, Enum):
+    overconfident = "overconfident"
+    underconfident = "underconfident"
+    well_calibrated = "wellCalibrated"
+
+
 class CarrierMediumEnum(str, Enum):
     e_ink_file = "mediumEInkFile"
     optical_disc = "mediumOpticalDisc"
@@ -865,6 +871,7 @@ class EventTypeEnum(str, Enum):
     promotion = "eventTypePromotion"
     push = "eventTypePush"
     recording_session = "eventTypeRecordingSession"
+    reflection = "eventTypeReflection"
     rehearsal = "eventTypeRehearsal"
     release = "eventTypeRelease"
     rename = "eventTypeRename"
@@ -3111,6 +3118,9 @@ class Agent(ConfiguredBaseModel):
     attendsTo: Optional[list[Entity]] = Field(default=None, title="attends to", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attendsTo'} })
+    awareOfNotKnowing: Optional[list[str]] = Field(default=None, title="aware of not knowing", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/awareOfNotKnowing'} })
     believes: Optional[list[str]] = Field(default=None, title="believes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/believes'} })
@@ -3126,6 +3136,9 @@ class Agent(ConfiguredBaseModel):
     endorses: Optional[list[Agent]] = Field(default=None, title="endorses", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/endorses'} })
+    epistemicSelfTrust: Optional[list[str]] = Field(default=None, title="epistemic self-trust", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicSelfTrust'} })
     founderOf: Optional[list[Organization]] = Field(default=None, title="founder of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/founderOf'} })
@@ -3567,6 +3580,14 @@ class CalendarSystem(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/CalendarSystem',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Calendar System'})
+
+    pass
+
+
+class CalibrationStatus(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/CalibrationStatus',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Calibration Status'})
 
     pass
 
@@ -25091,6 +25112,19 @@ class MessageParticipantRole(ConfiguredBaseModel):
     pass
 
 
+class MetacognitiveState(MentalMoment):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MetacognitiveState',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Metacognitive State'})
+
+    calibration: Optional[list[CalibrationStatus]] = Field(default=None, title="calibration", json_schema_extra = { "linkml_meta": {'domain': 'MetacognitiveState',
+         'domain_of': ['MetacognitiveState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/calibration'} })
+    metaTarget: Optional[list[str]] = Field(default=None, title="meta target", json_schema_extra = { "linkml_meta": {'domain': 'MetacognitiveState',
+         'domain_of': ['MetacognitiveState'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/metaTarget'} })
+
+
 class MeterAssignment(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MeterAssignment',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -30297,6 +30331,9 @@ class Organization(Agent):
     attendsTo: Optional[list[Entity]] = Field(default=None, title="attends to", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attendsTo'} })
+    awareOfNotKnowing: Optional[list[str]] = Field(default=None, title="aware of not knowing", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/awareOfNotKnowing'} })
     believes: Optional[list[str]] = Field(default=None, title="believes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/believes'} })
@@ -30312,6 +30349,9 @@ class Organization(Agent):
     endorses: Optional[list[Agent]] = Field(default=None, title="endorses", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/endorses'} })
+    epistemicSelfTrust: Optional[list[str]] = Field(default=None, title="epistemic self-trust", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicSelfTrust'} })
     founderOf: Optional[list[Organization]] = Field(default=None, title="founder of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/founderOf'} })
@@ -31593,6 +31633,9 @@ class Person(Agent):
     attendsTo: Optional[list[Entity]] = Field(default=None, title="attends to", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attendsTo'} })
+    awareOfNotKnowing: Optional[list[str]] = Field(default=None, title="aware of not knowing", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/awareOfNotKnowing'} })
     believes: Optional[list[str]] = Field(default=None, title="believes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/believes'} })
@@ -31608,6 +31651,9 @@ class Person(Agent):
     endorses: Optional[list[Agent]] = Field(default=None, title="endorses", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/endorses'} })
+    epistemicSelfTrust: Optional[list[str]] = Field(default=None, title="epistemic self-trust", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicSelfTrust'} })
     founderOf: Optional[list[Organization]] = Field(default=None, title="founder of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/founderOf'} })
@@ -42091,6 +42137,9 @@ class Sensor(Agent):
     attendsTo: Optional[list[Entity]] = Field(default=None, title="attends to", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attendsTo'} })
+    awareOfNotKnowing: Optional[list[str]] = Field(default=None, title="aware of not knowing", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/awareOfNotKnowing'} })
     believes: Optional[list[str]] = Field(default=None, title="believes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/believes'} })
@@ -42106,6 +42155,9 @@ class Sensor(Agent):
     endorses: Optional[list[Agent]] = Field(default=None, title="endorses", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/endorses'} })
+    epistemicSelfTrust: Optional[list[str]] = Field(default=None, title="epistemic self-trust", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicSelfTrust'} })
     founderOf: Optional[list[Organization]] = Field(default=None, title="founder of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/founderOf'} })
@@ -45434,6 +45486,9 @@ class SoftwareAgent(Agent):
     attendsTo: Optional[list[Entity]] = Field(default=None, title="attends to", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attendsTo'} })
+    awareOfNotKnowing: Optional[list[str]] = Field(default=None, title="aware of not knowing", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/awareOfNotKnowing'} })
     believes: Optional[list[str]] = Field(default=None, title="believes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/believes'} })
@@ -45449,6 +45504,9 @@ class SoftwareAgent(Agent):
     endorses: Optional[list[Agent]] = Field(default=None, title="endorses", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/endorses'} })
+    epistemicSelfTrust: Optional[list[str]] = Field(default=None, title="epistemic self-trust", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicSelfTrust'} })
     founderOf: Optional[list[Organization]] = Field(default=None, title="founder of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/founderOf'} })
@@ -45555,6 +45613,9 @@ class Builder(SoftwareAgent):
     attendsTo: Optional[list[Entity]] = Field(default=None, title="attends to", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attendsTo'} })
+    awareOfNotKnowing: Optional[list[str]] = Field(default=None, title="aware of not knowing", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/awareOfNotKnowing'} })
     believes: Optional[list[str]] = Field(default=None, title="believes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/believes'} })
@@ -45570,6 +45631,9 @@ class Builder(SoftwareAgent):
     endorses: Optional[list[Agent]] = Field(default=None, title="endorses", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/endorses'} })
+    epistemicSelfTrust: Optional[list[str]] = Field(default=None, title="epistemic self-trust", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/epistemicSelfTrust'} })
     founderOf: Optional[list[Organization]] = Field(default=None, title="founder of", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/founderOf'} })
@@ -60679,6 +60743,7 @@ CadastralReferenceType.model_rebuild()
 Calendar.model_rebuild()
 CalendarMethod.model_rebuild()
 CalendarSystem.model_rebuild()
+CalibrationStatus.model_rebuild()
 CarrierMedium.model_rebuild()
 CausalLink.model_rebuild()
 CausalModality.model_rebuild()
@@ -60930,6 +60995,7 @@ MessageKeyword.model_rebuild()
 MessageKind.model_rebuild()
 MessageParticipant.model_rebuild()
 MessageParticipantRole.model_rebuild()
+MetacognitiveState.model_rebuild()
 MeterAssignment.model_rebuild()
 MetricGroup.model_rebuild()
 MetricKind.model_rebuild()

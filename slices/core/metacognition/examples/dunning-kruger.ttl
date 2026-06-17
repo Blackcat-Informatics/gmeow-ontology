@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — Dunning–Kruger as a MODELLED metacognitive miscalibration, the
+# second-order companion to the cognition slice's dunning-kruger.ttl. Where that
+# example records two coexisting first-order gmeow:KnowledgeProficiency claims at
+# divergent depths (Principle 9), this one turns the reflexive lens on Sam's OWN
+# self-assessment: a gmeow:MetacognitiveState whose gmeow:metaTarget is Sam's
+# self-attributed mastery, carrying gmeow:calibration gmeow:overconfident. The
+# numeric Brier-style gap rides gmeow:calibrationError — a SOLVER-LAYER annotation
+# (Principle 12), invisible to the reasoner. The calibration is itself a
+# vantage-indexed claim (Principle 9): the assessor judges Sam overconfident; GMEOW
+# records the judgement, it does not adjudicate a global verdict.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/metacognition/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+ex:sam      a gmeow:Person ; gmeow:name "Sam"@x-gmeow-english .
+ex:assessor a gmeow:Person ; gmeow:name "External Assessor"@x-gmeow-english .
+
+# --- First-order: Sam, by Sam's own lights, has MASTERED quantum computing
+#     (reusing the cognition slice's gmeow:KnowledgeProficiency by reference).
+ex:samQuantumSelf a gmeow:KnowledgeProficiency ;
+    gmeow:knowledgeProficiencyAgent   ex:sam ;
+    gmeow:knowledgeProficiencySubject wd:Q192995 ;        # quantum computing
+    gmeow:knowledgeProficiencyLevel   gmeow:knowledgeMastered ;
+    gmeow:knowledgeProficiencyScale   gmeow:scaleKnowledgeDepth ;
+    gmeow:accordingTo                 ex:sam .            # self-attributed vantage
+
+# --- Second-order: Sam's metacognitive state reflecting on that self-assessment.
+#     metaTarget is the reflexivity edge onto Sam's own first-order proficiency
+#     (the same-agent ownership is a SHACL concern, not an OWL axiom); calibration
+#     reads the direction of the confidence/accuracy gap.
+ex:samSelfRegard a gmeow:MetacognitiveState ;
+    gmeow:metaTarget  ex:samQuantumSelf ;
+    gmeow:calibration gmeow:overconfident .
+
+# --- The calibration is a vantage-indexed claim (Principle 9): the assessor,
+#     observing Sam's self-regard against a knows-about assessment, judges it
+#     overconfident and records the Brier-style magnitude as a solver-layer
+#     annotation on the claim (computed-not-asserted, Principle 12).
+ex:samCalibrationClaim a gmeow:StandpointClaim ;
+    gmeow:vantage           ex:assessor ;
+    gmeow:observedFeature   ex:samSelfRegard ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality     gmeow:probable ;
+    gmeow:calibrationError  0.62 .

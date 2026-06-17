@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a KNOWN-UNKNOWN that mints an inquiry, with NO new bridge term.
+# Lillith recognises the boundary of her own knowledge (gmeow:awareOfNotKnowing),
+# the second-order complement of the cognition knowledge spectrum. The recognised
+# gap motivates a question by REUSING inquiry's open-domain gmeow:evokes (the
+# not-known subject evokes the question) and the inquiry spine (gmeow:seeksToKnow)
+# — there is no gmeow:motivates term (Principle 6), and the bridge to the inquiry
+# slice is documented routing, not an entailment. This is the trustworthy-agent
+# move: surfacing what it does not know as an open inquiry rather than confabulating.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/metacognition/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:lillith   a gmeow:Agent .
+ex:protocolX a gmeow:Entity ; rdfs:label "protocol X"@x-gmeow-english .
+
+# --- Known-unknown: Lillith is aware that she does NOT know protocol X — a
+#     recognised gap (second-order), not the open-world silence of an unasserted
+#     triple. The boundary of her knowledge, recorded for a trustworthy memory.
+ex:lillith gmeow:awareOfNotKnowing ex:protocolX .
+
+# --- The gap evokes a question (reusing inquiry's open-domain gmeow:evokes — the
+#     not-known subject sits legally in its subject position, so no new motivates
+#     term is minted), which Lillith then holds open and seeks to know.
+ex:protocolX gmeow:evokes ex:howDoesProtocolXWork .
+
+ex:howDoesProtocolXWork a gmeow:Question ;
+    gmeow:questionType gmeow:typeHow ;
+    rdfs:label "how does protocol X work?"@x-gmeow-english .
+
+ex:lillith gmeow:seeksToKnow ex:howDoesProtocolXWork .   # the inquiry spine, reused
