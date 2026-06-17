@@ -187,6 +187,7 @@ gmeow:justifiedBy
     rdfs:label "justified by"@x-gmeow-english ;
     skos:definition "A doxastic state is supported by a justifier — typically an EvidenceSpan, a StandpointClaim, or an InferenceCommitment. Non-functional: a belief may rest on multiple independent grounds. This is the lightweight belief→justifier hook used by the flagship example; the full inference-making machinery (I5_Inference_Making, argument structure, defeaters) lives in the sibling justification child (#561)."@x-gmeow-english ;
     skos:scopeNote "Range is intentionally open (Principle 13). The property is non-functional and carries no entailment that the belief is true — GMEOW remains non-factive."@x-gmeow-english ;
+    skos:example "ex:opBeliefOriginal gmeow:justifiedBy ex:evidenceSpan1 ."@x-gmeow-english ;
     gmeow:useWhen "Use when a reified DoxasticState needs to point at the evidence, claim, or argument that supports it."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the full inferential argument structure is needed; use the sibling justification child (#561) instead."@x-gmeow-english ;
     gmeow:howToUse "Point from a DoxasticState to one or more EvidenceSpan / StandpointClaim / InferenceCommitment individuals."@x-gmeow-english ;
