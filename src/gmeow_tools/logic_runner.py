@@ -695,7 +695,11 @@ def _materialize_foundation(
     policy = str(profile_data.get("anti_rigidity_policy", "witness-obligation"))
     try:
         rows = gmeow_logic.foundation(input_nq_text, policy)
-    except ValueError as exc:
+    except (ValueError, RuntimeError) as exc:
+        # gmeow_logic.foundation surfaces input/policy errors as ValueError and
+        # evaluator/provenance failures as RuntimeError; both must be wrapped in
+        # RunnerError so the runner contract holds (a RuntimeError would otherwise
+        # escape the case-level error boundary).
         raise RunnerError(
             f"Case {case_dir.name}: gmeow_logic.foundation failed: {exc}"
         ) from exc
