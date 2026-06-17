@@ -77,6 +77,25 @@ fn is_procedural_profile(profile: &str) -> bool {
         || profile.ends_with(PROCEDURAL_SHORT_NAME)
 }
 
+// ── Probabilistic profile recognition (#506) ─────────────────────────────────
+
+/// The canonical full IRI for the probabilistic profile.
+pub const PROBABILISTIC_PROFILE: &str = "https://blackcatinformatics.ca/logic/ProbabilisticProfile";
+
+/// The bare short name accepted as an alias for [`PROBABILISTIC_PROFILE`].
+const PROBABILISTIC_SHORT_NAME: &str = "ProbabilisticProfile";
+
+/// Return `true` if `profile` denotes the probabilistic profile.
+///
+/// Matching mirrors [`is_procedural_profile`]: full IRI, bare short name, or any
+/// prefixed form ending in the short name (`logic:ProbabilisticProfile`, etc.).
+/// Probabilistic inference (#506) is available ONLY under this profile.
+pub fn is_probabilistic_profile(profile: &str) -> bool {
+    profile == PROBABILISTIC_PROFILE
+        || profile == PROBABILISTIC_SHORT_NAME
+        || profile.ends_with(PROBABILISTIC_SHORT_NAME)
+}
+
 // ── Lewis multi-world profile recognition (#505) ─────────────────────────────
 
 /// The opt-in, budget-capped Lewis multi-world profiles. Non-default: Stratum-C

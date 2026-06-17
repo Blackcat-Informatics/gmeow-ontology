@@ -101,6 +101,71 @@ pub struct QCounterfactual {
     pub depth_budget: Option<u64>,
 }
 
+/// An independent probabilistic fact (#506), declared by the query-layer directive
+/// `:- probability(pred(S, O), p).`
+///
+/// The ground atom `pred(S, O)` is an independent Bernoulli variable that is true
+/// with probability `prob` and false with probability `1 - prob`. The probability is
+/// carried as its raw decimal token (parsed to `f64` by the evaluator) so this IR
+/// stays `Eq`/hashable and preserves the source text exactly.
+///
+/// Surface (a query-layer directive, NOT an ontology term — exactly as
+/// `:- counterfactual(...)` is the surface for `logic:counterfactualOf`, this is the
+/// surface for `logic:probability` under `logic:FullIndependence`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QProbFact {
+    /// The ground atom this probability annotates.
+    pub atom: QAtom,
+    /// Raw decimal token for the probability in `[0, 1]` (e.g. `"0.7"`).
+    pub prob: String,
+}
+
+/// One row of a dependency model's explicit joint table (#506), declared by
+/// `:- joint(p, atom1, atom2, ...).`
+///
+/// The listed atoms are exactly those TRUE in this joint outcome; every other
+/// correlated atom of the model is false in this outcome. `prob` is the joint
+/// probability mass of this exact assignment (the surface for `logic:JointOutcome`
+/// with `logic:jointProbability`). Outcomes must be mutually exclusive and their
+/// probabilities must sum to one (checked by the evaluator).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QJointOutcome {
+    /// Ground atoms true in this outcome (the positive set; complement = false).
+    pub true_atoms: Vec<QAtom>,
+    /// Raw decimal token for this outcome's joint probability.
+    pub prob: String,
+}
+
+/// The declared probability model governing probabilistic inference (#506) — the
+/// surface for `logic:ProbabilityModel`.
+///
+/// Probabilistic inference requires one of these to be declared; with no model the
+/// evaluator refuses (returns `unknown`) rather than assuming independence.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QProbModel {
+    /// `logic:FullIndependence`: every probabilistic fact is independent.
+    FullIndependence,
+    /// `logic:DependencyModel`: an explicit joint over a correlated fact set.
+    Dependency {
+        /// The joint table rows.
+        joints: Vec<QJointOutcome>,
+    },
+}
+
+/// A confidence annotation (#506), declared by `:- confidence(pred(S, O), c).`
+///
+/// Carried for completeness and to make the confidence≠probability guard concrete:
+/// a confidence-annotated atom is an asserted (deterministic) fact whose annotation
+/// is metadata — the evaluator NEVER reads `confidence` as a probability. If a wrong
+/// implementation promoted it, the conformance guard goes red.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QConfidence {
+    /// The ground atom the confidence annotates (an asserted fact).
+    pub atom: QAtom,
+    /// Raw decimal token for the confidence in `[0, 1]` (NEVER a probability).
+    pub confidence: String,
+}
+
 /// A complete parsed program: a set of rules and exactly one goal.
 ///
 /// Prefix declarations are consumed during parsing; the resulting IRIs are
@@ -114,6 +179,13 @@ pub struct QProgram {
     /// `Some` iff this is a Stratum-C counterfactual query (#505); `None` for a
     /// plain v4 backward goal resolved directly against the materialized world.
     pub counterfactual: Option<QCounterfactual>,
+    /// Independent probabilistic facts declared by `:- probability(...)` (#506).
+    pub prob_facts: Vec<QProbFact>,
+    /// The declared probability model, if any (`:- probability_model(...)`) (#506).
+    pub prob_model: Option<QProbModel>,
+    /// Confidence annotations declared by `:- confidence(...)` (#506) — asserted
+    /// facts whose confidence is metadata, never a probability.
+    pub confidences: Vec<QConfidence>,
 }
 
 // ── Answer types ──────────────────────────────────────────────────────────────
@@ -183,6 +255,15 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
     let mut cf_antecedent: Vec<QAtom> = Vec::new();
     let mut cf_depth_budget: Option<u64> = None;
 
+    // ── Probabilistic accumulators (#506) ────────────────────────────────────
+    // `prob_model_kind` is the bare keyword from `:- probability_model(...)`;
+    // joints accumulate from `:- joint(...)` rows; prob_facts/confidences from
+    // `:- probability(...)` / `:- confidence(...)`.
+    let mut prob_model_kind: Option<String> = None;
+    let mut prob_joints: Vec<QJointOutcome> = Vec::new();
+    let mut prob_facts: Vec<QProbFact> = Vec::new();
+    let mut confidences: Vec<QConfidence> = Vec::new();
+
     // ── Phase 1: collect raw logical clauses ─────────────────────────────────
     // We join continuation lines into complete clauses terminated by `.`.
     let mut pending = String::new();
@@ -245,6 +326,19 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
                     return Err("program has more than one depth_budget(...) directive".to_owned());
                 }
                 cf_depth_budget = Some(parse_depth_budget_directive(body)?);
+            } else if body.starts_with("probability_model(") {
+                if prob_model_kind.is_some() {
+                    return Err(
+                        "program has more than one probability_model(...) directive".to_owned()
+                    );
+                }
+                prob_model_kind = Some(parse_probability_model_directive(body)?);
+            } else if body.starts_with("probability(") {
+                prob_facts.push(parse_probability_directive(body, &prefixes)?);
+            } else if body.starts_with("joint(") {
+                prob_joints.push(parse_joint_directive(body, &prefixes)?);
+            } else if body.starts_with("confidence(") {
+                confidences.push(parse_confidence_directive(body, &prefixes)?);
             } else {
                 // An unrecognized directive is an error, not a no-op: silently
                 // ignoring one means a typo (e.g. `:- depth_buget(...)`) would
@@ -319,10 +413,61 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
         }
     };
 
+    // ── Assemble the optional probability model (#506) ───────────────────────
+    let prob_model = match prob_model_kind.as_deref() {
+        Some("full_independence") => {
+            // Joints are meaningless without a dependency model: a `joint(...)`
+            // under full independence is a malformed declaration, not a no-op.
+            if !prob_joints.is_empty() {
+                return Err(
+                    "joint(...) directive present under probability_model(full_independence); \
+                     joint tables require probability_model(dependency)"
+                        .to_owned(),
+                );
+            }
+            Some(QProbModel::FullIndependence)
+        }
+        Some("dependency") => {
+            // A dependency model must carry at least one joint outcome — an empty
+            // joint table declares no distribution at all.
+            if prob_joints.is_empty() {
+                return Err(
+                    "probability_model(dependency) requires at least one joint(...) outcome"
+                        .to_owned(),
+                );
+            }
+            Some(QProbModel::Dependency {
+                joints: prob_joints,
+            })
+        }
+        Some(other) => {
+            return Err(format!(
+                "unknown probability_model kind {other:?} \
+                 (expected 'full_independence' or 'dependency')"
+            ));
+        }
+        None => {
+            // A joint(...) without a declared dependency model is malformed: the
+            // joints have no model to belong to. (probability(...) facts WITHOUT a
+            // model are allowed here — the evaluator turns that into the required
+            // `unknown` refusal, the no-model guard.)
+            if !prob_joints.is_empty() {
+                return Err(
+                    "joint(...) directive present without a probability_model(dependency) directive"
+                        .to_owned(),
+                );
+            }
+            None
+        }
+    };
+
     Ok(QProgram {
         rules,
         goal,
         counterfactual,
+        prob_facts,
+        prob_model,
+        confidences,
     })
 }
 
@@ -349,12 +494,18 @@ fn find_clause_end(s: &str) -> Option<usize> {
                 i += 1; // skip closing quote
             }
             b'.' => {
-                // A `.` is a clause terminator if followed by whitespace, another
-                // delimiter, or end-of-string — not if it's part of an IRI fragment.
-                // Heuristic: if preceded by `)` or alphanumeric/closing-delim it's
-                // a terminator.  We accept any `.` at this stage and rely on the
-                // grammar to catch malformed input.
-                return Some(i);
+                // A clause-terminating `.` is followed by whitespace or end-of-input
+                // (the standard Prolog convention). A `.` that is part of a decimal
+                // literal (`0.5`) or an angle-bracketed IRI (`<…/a.b>`) is followed by
+                // a non-space character and is NOT a terminator. Dots inside
+                // single-quoted IRIs are already skipped by the quote branch above.
+                match bytes.get(i + 1) {
+                    None => return Some(i),
+                    Some(c) if c.is_ascii_whitespace() => return Some(i),
+                    _ => {
+                        i += 1;
+                    }
+                }
             }
             _ => {
                 i += 1;
@@ -466,6 +617,118 @@ fn parse_depth_budget_directive(body: &str) -> Result<u64, String> {
         .trim()
         .parse::<u64>()
         .map_err(|e| format!("depth_budget(...) must be a non-negative integer in {body:?}: {e}"))
+}
+
+// ── Probabilistic directive parsers (#506) ───────────────────────────────────
+
+/// Validate a probability/confidence decimal token: must parse as `f64` and lie
+/// in `[0, 1]`. Returns the trimmed token verbatim (the IR keeps the raw text).
+fn validate_unit_decimal(tok: &str, what: &str) -> Result<String, String> {
+    let t = tok.trim();
+    let v: f64 = t
+        .parse::<f64>()
+        .map_err(|e| format!("{what} value {t:?} is not a decimal: {e}"))?;
+    if !(0.0..=1.0).contains(&v) || v.is_nan() {
+        return Err(format!("{what} value {t:?} must be in [0, 1]"));
+    }
+    Ok(t.to_owned())
+}
+
+/// Require every term of `atom` to be a constant (no variables) — probabilistic
+/// facts, joint outcomes, and confidence annotations are over concrete facts.
+fn require_ground(atom: &QAtom, what: &str) -> Result<(), String> {
+    if atom.args.iter().any(|t| matches!(t, QTerm::Var(_))) {
+        return Err(format!(
+            "{what} atom must be ground (no variables): {:?}",
+            atom.pred
+        ));
+    }
+    Ok(())
+}
+
+/// Parse a `probability_model(kind)` directive body (the part after `:-`).
+///
+/// `kind` is a bare keyword: `full_independence` or `dependency`.
+fn parse_probability_model_directive(body: &str) -> Result<String, String> {
+    let inner = body
+        .strip_prefix("probability_model(")
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| format!("malformed probability_model directive: {body:?}"))?;
+    let kind = inner.trim();
+    if kind.is_empty() {
+        return Err(format!("probability_model(...) kind is empty in: {body:?}"));
+    }
+    Ok(kind.to_owned())
+}
+
+/// Parse a `probability(pred(S, O), p)` directive body (the part after `:-`).
+fn parse_probability_directive(
+    body: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> Result<QProbFact, String> {
+    let inner = body
+        .strip_prefix("probability(")
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| format!("malformed probability directive: {body:?}"))?;
+    let parts = split_comma_top(inner);
+    if parts.len() != 2 {
+        return Err(format!(
+            "probability(...) takes exactly an atom and a probability; got {} parts in {body:?}",
+            parts.len()
+        ));
+    }
+    let atom = parse_atom(parts[0].trim(), prefixes)?;
+    require_ground(&atom, "probability")?;
+    let prob = validate_unit_decimal(parts[1], "probability")?;
+    Ok(QProbFact { atom, prob })
+}
+
+/// Parse a `joint(p, atom1, atom2, ...)` directive body (the part after `:-`).
+///
+/// The first argument is the joint probability; the rest are the atoms TRUE in
+/// this outcome (possibly none — an all-false outcome). Atoms must be ground.
+fn parse_joint_directive(
+    body: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> Result<QJointOutcome, String> {
+    let inner = body
+        .strip_prefix("joint(")
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| format!("malformed joint directive: {body:?}"))?;
+    let parts = split_comma_top(inner);
+    if parts.is_empty() {
+        return Err(format!("joint(...) requires a probability in {body:?}"));
+    }
+    let prob = validate_unit_decimal(parts[0], "joint")?;
+    let mut true_atoms = Vec::new();
+    for tok in &parts[1..] {
+        let atom = parse_atom(tok.trim(), prefixes)?;
+        require_ground(&atom, "joint")?;
+        true_atoms.push(atom);
+    }
+    Ok(QJointOutcome { true_atoms, prob })
+}
+
+/// Parse a `confidence(pred(S, O), c)` directive body (the part after `:-`).
+fn parse_confidence_directive(
+    body: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> Result<QConfidence, String> {
+    let inner = body
+        .strip_prefix("confidence(")
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| format!("malformed confidence directive: {body:?}"))?;
+    let parts = split_comma_top(inner);
+    if parts.len() != 2 {
+        return Err(format!(
+            "confidence(...) takes exactly an atom and a confidence; got {} parts in {body:?}",
+            parts.len()
+        ));
+    }
+    let atom = parse_atom(parts[0].trim(), prefixes)?;
+    require_ground(&atom, "confidence")?;
+    let confidence = validate_unit_decimal(parts[1], "confidence")?;
+    Ok(QConfidence { atom, confidence })
 }
 
 // ── Rule parser ───────────────────────────────────────────────────────────────
