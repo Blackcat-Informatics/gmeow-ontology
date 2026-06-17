@@ -15,6 +15,7 @@ gmeow:DoxasticStateShape
     a sh:NodeShape ;
     rdfs:label "DoxasticState well-formedness shape"@x-gmeow-english ;
     skos:definition "SHACL constraints for gmeow:DoxasticState: exactly one believer, one proposition, one linked StandpointClaim; optional credence in [0,1]."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     sh:targetClass gmeow:DoxasticState ;
     sh:property [
         sh:path gmeow:epistemicAgent ;
@@ -54,6 +55,7 @@ gmeow:DoxasticTenureShape
     a sh:NodeShape ;
     rdfs:label "DoxasticTenure well-formedness shape"@x-gmeow-english ;
     skos:definition "SHACL constraints for gmeow:DoxasticTenure: exactly one DoxasticState and one TimeInterval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     sh:targetClass gmeow:DoxasticTenure ;
     sh:property [
         sh:path gmeow:tenureOfDoxasticState ;
@@ -78,6 +80,7 @@ gmeow:WithdrawnDoxasticTenureSuppressionShape
     a sh:NodeShape ;
     rdfs:label "Withdrawn doxastic tenure suppression shape"@x-gmeow-english ;
     skos:definition "Warns when a closed DoxasticTenure is not marked displayable false — suppression, not deletion (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     sh:targetClass gmeow:DoxasticTenure ;
     sh:severity sh:Warning ;
     sh:sparql [
