@@ -42,10 +42,12 @@ ex:morningPerception a gmeow:MentalProcess ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:realizesMentalMoment ex:perceivedMorningLight .  # ontological participation: manifests the perceptual capacity
 
-# The bridge target: a gmeow:MentalMoment (an intrinsic mode inhering in the agent).
+# The bridge target: a gmeow:MentalMoment (the intrinsic perceptual mode). Its
+# bearer is the process's gmeow:experiencer (ex:ada); like the cognition idiom
+# (ex:adaPythonKnowing a gmeow:CognitiveState) the mode is typed without asserting
+# inherence — gufo:inheresIn is an alignment target, not an asserted axiom (P5).
 ex:perceivedMorningLight a gmeow:MentalMoment ;
-    rdfs:label "Ada's perceptual state: morning light perceived"@x-gmeow-english ;
-    gmeow:inheresIn ex:ada .
+    rdfs:label "Ada's perceptual state: morning light perceived"@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # 2. Proving a theorem — a MentalProcess of type processReasoning
@@ -60,10 +62,10 @@ ex:solvingTheProof a gmeow:MentalProcess ;
     gmeow:producesMentalMoment ex:beliefQEDholds .         # creation: reasoning brings this NEW belief into being
 
 # The bridge target: a fresh belief not held beforehand — a gmeow:MentalMoment
-# (the endurant doxastic mode) inhering in the agent.
+# (the endurant doxastic mode). Its bearer is the experiencer (ex:ada); typed
+# without asserting inherence, per the P5 alignment-target convention.
 ex:beliefQEDholds a gmeow:MentalMoment ;
-    rdfs:label "belief: the proof concludes (QED)"@x-gmeow-english ;
-    gmeow:inheresIn ex:ada .
+    rdfs:label "belief: the proof concludes (QED)"@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # 3. Last night's dream — a gmeow:Experience (the phenomenal subset)

@@ -87,8 +87,9 @@ ex:diagnosticReasoning a gmeow:InferenceProcess ;
 
 # --- The mental moment the reasoning produces (endurant doxastic mode) ------- #
 # Distinct from the StandpointClaim conclusion (ex:hypInfluenza, the content the
-# commitment concludes): this is the clinician's NEW belief — a gmeow:MentalMoment
-# inhering in the agent, the moment the reasoning episode brings into being.
+# commitment concludes): this is the clinician's NEW belief — a gmeow:MentalMoment,
+# the moment the reasoning episode brings into being. Its bearer is the process's
+# gmeow:experiencer (ex:clinician); typed without asserting inherence (gufo:inheresIn
+# is the alignment target, not an asserted axiom — Principle 5).
 ex:beliefInfluenza a gmeow:MentalMoment ;
-    rdfs:label "The clinician's belief that the patient has influenza"@x-gmeow-english ;
-    gmeow:inheresIn ex:clinician .
+    rdfs:label "The clinician's belief that the patient has influenza"@x-gmeow-english .
