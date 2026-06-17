@@ -413,6 +413,130 @@ def test_dev_i18n_merge_outputs_multilingual_graph(
     assert "PO file(s)" in result.output
 
 
+def _write_test_po(
+    path: Path,
+    language: str,
+    entries: list[tuple[str, str, str, bool]],
+) -> None:
+    """Write a minimal PO catalog for export tests."""
+    lines = [
+        'msgid ""',
+        'msgstr ""',
+        f'"Language: {language}\\n"',
+        '"MIME-Version: 1.0\\n"',
+        '"Content-Type: text/plain; charset=UTF-8\\n"',
+        '"Content-Transfer-Encoding: 8bit\\n"',
+        "",
+    ]
+    for msgctxt, msgid, msgstr, fuzzy in entries:
+        if fuzzy:
+            lines.append("#, fuzzy")
+        lines.append(f'msgctxt "{msgctxt}"')
+        lines.append(f'msgid "{msgid}"')
+        lines.append(f'msgstr "{msgstr}"')
+        lines.append("")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def test_dev_i18n_help_lists_export_commands(runner: CliRunner) -> None:
+    result = runner.invoke(dev_app, ["i18n", "--help"])
+    assert result.exit_code == 0, result.output
+    assert "export-csv" in result.output
+    assert "export-xliff" in result.output
+
+
+def test_dev_i18n_export_csv_shape(runner: CliRunner, tmp_path: Path) -> None:
+    po = tmp_path / "slices" / "core" / "testslice" / "i18n" / "fr.po"
+    _write_test_po(
+        po,
+        "fr",
+        [
+            ("http://example.org/Term|rdfs:label", "Term", "Terme", False),
+            (
+                "http://example.org/Term|skos:definition",
+                "A term.",
+                "Un terme.",
+                True,
+            ),
+        ],
+    )
+    result = runner.invoke(dev_app, ["i18n", "export-csv", "--root", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    lines = result.output.strip().splitlines()
+    assert lines[0] == "slice,term_iri,predicate,language,msgid,msgstr,fuzzy"
+    assert "testslice,http://example.org/Term,rdfs:label,fr,Term,Terme,false" in lines
+    assert (
+        "testslice,http://example.org/Term,skos:definition,fr,A term.,Un terme.,true"
+        in lines
+    )
+
+
+def test_dev_i18n_export_csv_to_file(runner: CliRunner, tmp_path: Path) -> None:
+    po = tmp_path / "slices" / "core" / "testslice" / "i18n" / "fr.po"
+    _write_test_po(
+        po,
+        "fr",
+        [("http://example.org/Term|rdfs:label", "Term", "Terme", False)],
+    )
+    out = tmp_path / "export.csv"
+    result = runner.invoke(
+        dev_app, ["i18n", "export-csv", "--root", str(tmp_path), "-o", str(out)]
+    )
+    assert result.exit_code == 0, result.output
+    assert out.exists()
+    text = out.read_text(encoding="utf-8")
+    assert "slice,term_iri,predicate,language,msgid,msgstr,fuzzy" in text
+
+
+def test_dev_i18n_export_xliff_shape(runner: CliRunner, tmp_path: Path) -> None:
+    po = tmp_path / "slices" / "core" / "testslice" / "i18n" / "fr.po"
+    _write_test_po(
+        po,
+        "fr",
+        [("http://example.org/Term|rdfs:label", "Term", "Terme", False)],
+    )
+    result = runner.invoke(dev_app, ["i18n", "export-xliff", "--root", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    assert '<xliff version="1.2"' in result.output
+    assert 'source-language="en"' in result.output
+    assert 'target-language="fr"' in result.output
+    assert '<file original="slices/core/testslice"' in result.output
+    assert '<trans-unit id="http://example.org/Term|rdfs:label"' in result.output
+    assert "<source>Term</source>" in result.output
+    assert "<target>Terme</target>" in result.output
+    assert "Term: http://example.org/Term Predicate: rdfs:label" in result.output
+
+
+def test_dev_i18n_export_xliff_escapes_xml(runner: CliRunner, tmp_path: Path) -> None:
+    po = tmp_path / "slices" / "core" / "testslice" / "i18n" / "fr.po"
+    _write_test_po(
+        po,
+        "fr",
+        [("http://example.org/Term|rdfs:label", "A & B", "A et B", False)],
+    )
+    result = runner.invoke(dev_app, ["i18n", "export-xliff", "--root", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    assert "<source>A &amp; B</source>" in result.output
+
+
+def test_dev_i18n_export_xliff_to_file(runner: CliRunner, tmp_path: Path) -> None:
+    po = tmp_path / "slices" / "core" / "testslice" / "i18n" / "fr.po"
+    _write_test_po(
+        po,
+        "fr",
+        [("http://example.org/Term|rdfs:label", "Term", "Terme", False)],
+    )
+    out = tmp_path / "export.xlf"
+    result = runner.invoke(
+        dev_app, ["i18n", "export-xliff", "--root", str(tmp_path), "-o", str(out)]
+    )
+    assert result.exit_code == 0, result.output
+    assert out.exists()
+    text = out.read_text(encoding="utf-8")
+    assert '<trans-unit id="http://example.org/Term|rdfs:label"' in text
+
+
 def test_workspace_declares_separate_dev_package() -> None:
     root = Path(__file__).resolve().parents[1]
     main = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))

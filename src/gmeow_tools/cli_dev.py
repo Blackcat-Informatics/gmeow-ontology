@@ -2503,5 +2503,55 @@ def merge(
     )
 
 
+@i18n_app.command(name="export-csv")
+def export_csv(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root to search for slices.",
+    ),
+    output: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--output",
+        "-o",
+        help="Output CSV file (default: stdout).",
+    ),
+) -> None:
+    """Export translated PO catalogs to a flat CSV file.
+
+    Discovers ``slices/*/*/i18n/*.po`` files, parses each entry's fuzzy flag,
+    and emits one row per translatable term/predicate with the slice name,
+    language, source string, and translation.
+    """
+    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_csv_export
+
+    write_csv_export(iter_po_catalogs(root), output)
+
+
+@i18n_app.command(name="export-xliff")
+def export_xliff(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root to search for slices.",
+    ),
+    output: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--output",
+        "-o",
+        help="Output XLIFF 1.2 file (default: stdout).",
+    ),
+) -> None:
+    """Export translated PO catalogs to an XLIFF 1.2 file.
+
+    Discovers ``slices/*/*/i18n/*.po`` files and emits one XLIFF ``<file>`` per
+    slice/language, with ``<trans-unit>`` elements keyed by
+    ``term_iri|predicate``.
+    """
+    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_xliff_export
+
+    write_xliff_export(iter_po_catalogs(root), output)
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

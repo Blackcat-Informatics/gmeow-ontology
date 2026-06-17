@@ -11,17 +11,20 @@ the canonical sources; this catalog is the shared library that operates on them.
 from __future__ import annotations
 
 import contextlib
+import csv
 import hashlib
 import re
-from collections.abc import Callable, Iterator
+import sys
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
+from xml.sax.saxutils import escape
 
 from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import DCTERMS, RDFS, SKOS
 
 from gmeow_tools.config import NAMESPACE, PREFIXES, PROJECT_ROOT
-from gmeow_tools.i18n_sync import PoEntry, parse_po
+from gmeow_tools.i18n_sync import PoEntry, PoParseError, parse_po
 from gmeow_tools.language_tags import _default_inverse_tag_map
 
 GMEOW = Namespace(NAMESPACE)
@@ -717,3 +720,185 @@ def write_pot(path: Path, entries: list[PoEntry]) -> None:
         fh.write("\n".join(lines))
         if not lines[-1].endswith("\n"):
             fh.write("\n")
+
+
+@dataclass(frozen=True, slots=True)
+class PoCatalogEntry:
+    """One PO catalog entry, including translator flags such as ``fuzzy``."""
+
+    msgctxt: str
+    msgid: str
+    msgstr: str
+    fuzzy: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class PoCatalog:
+    """A discovered PO catalog with its owning slice and parsed entries."""
+
+    path: Path
+    language: str
+    slice_name: str
+    slice_path: str
+    entries: list[PoCatalogEntry]
+
+
+def _split_po_blocks(text: str) -> list[str]:
+    """Split PO text into blank-line separated blocks."""
+    blocks: list[str] = []
+    current: list[str] = []
+    for line in text.splitlines():
+        if line.strip() == "":
+            if current:
+                blocks.append("\n".join(current))
+                current = []
+        else:
+            current.append(line)
+    if current:
+        blocks.append("\n".join(current))
+    return blocks
+
+
+def _is_fuzzy_block(block: str) -> bool:
+    """Return ``True`` if the PO block carries a ``fuzzy`` flag comment."""
+    for line in block.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#,"):
+            flags = [flag.strip() for flag in stripped[2:].split(",")]
+            if "fuzzy" in flags:
+                return True
+    return False
+
+
+def parse_po_catalog(text: str) -> list[PoCatalogEntry]:
+    """Parse a PO file into entries, preserving per-entry fuzzy flags.
+
+    The header entry (empty ``msgid``) and any entries without a ``msgctxt`` are
+    retained so callers can filter them as needed.
+    """
+    entries: list[PoCatalogEntry] = []
+    for block in _split_po_blocks(text):
+        if not any(
+            line.startswith(("msgctxt", "msgid")) for line in block.splitlines()
+        ):
+            continue
+        fuzzy = _is_fuzzy_block(block)
+        try:
+            parsed = parse_po(block, require_msgctxt=False)
+        except PoParseError:
+            continue
+        for entry in parsed:
+            # The PO header has an empty msgid; skip it like a structural entry.
+            if not entry.msgid:
+                continue
+            entries.append(
+                PoCatalogEntry(
+                    msgctxt=entry.msgctxt,
+                    msgid=entry.msgid,
+                    msgstr=entry.msgstr,
+                    fuzzy=fuzzy,
+                )
+            )
+    return entries
+
+
+def iter_po_catalogs(root: Path) -> Iterator[PoCatalog]:
+    """Yield every PO catalog discovered under ``<root>/slices/*/*/i18n/*.po``.
+
+    Each catalog carries the BCP-47 language parsed from its ``Language:``
+    header, the owning slice name (last directory segment), the relative slice
+    path, and all parsed entries.
+    """
+    for po_path in sorted(root.glob("slices/*/*/i18n/*.po")):
+        text = po_path.read_text(encoding="utf-8")
+        language = _language_from_po(text)
+        slice_dir = po_path.parent.parent
+        slice_name = slice_dir.name
+        slice_path = str(
+            po_path.parent.parent.relative_to(root)
+            if po_path.is_relative_to(root)
+            else slice_dir
+        )
+        yield PoCatalog(
+            path=po_path,
+            language=language,
+            slice_name=slice_name,
+            slice_path=slice_path,
+            entries=parse_po_catalog(text),
+        )
+
+
+def write_csv_export(catalogs: Iterable[PoCatalog], out: Path | None) -> None:
+    """Write the CSV export to *out*, or to stdout when *out* is ``None``."""
+    header = ["slice", "term_iri", "predicate", "language", "msgid", "msgstr", "fuzzy"]
+    rows: list[list[str]] = []
+    for catalog in catalogs:
+        for entry in catalog.entries:
+            if not entry.msgctxt or "|" not in entry.msgctxt:
+                continue
+            term_iri, predicate = entry.msgctxt.split("|", 1)
+            rows.append(
+                [
+                    catalog.slice_name,
+                    term_iri,
+                    predicate,
+                    catalog.language,
+                    entry.msgid,
+                    entry.msgstr,
+                    "true" if entry.fuzzy else "false",
+                ]
+            )
+
+    if out is None:
+        writer = csv.writer(sys.stdout)
+        writer.writerow(header)
+        writer.writerows(rows)
+    else:
+        with out.open("w", encoding="utf-8", newline="") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(header)
+            writer.writerows(rows)
+
+
+def _xml_escape(text: str) -> str:
+    """Escape text for XML character data."""
+    return escape(text, {'"': "&quot;"})
+
+
+def write_xliff_export(catalogs: Iterable[PoCatalog], out: Path | None) -> None:
+    """Write the XLIFF 1.2 export to *out*, or to stdout when *out* is ``None``."""
+    lines: list[str] = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">',
+    ]
+    for catalog in catalogs:
+        lines.append(
+            f'  <file original="{_xml_escape(catalog.slice_path)}" '
+            f'source-language="en" target-language="{_xml_escape(catalog.language)}" '
+            'datatype="plaintext">'
+        )
+        lines.append("    <body>")
+        for entry in catalog.entries:
+            if not entry.msgctxt or "|" not in entry.msgctxt:
+                continue
+            term_iri, predicate = entry.msgctxt.split("|", 1)
+            lines.append(
+                f'      <trans-unit id="{_xml_escape(entry.msgctxt)}" translate="yes">'
+            )
+            lines.append(f"        <source>{_xml_escape(entry.msgid)}</source>")
+            lines.append(f"        <target>{_xml_escape(entry.msgstr)}</target>")
+            lines.append(
+                "        <note>"
+                f"Term: {_xml_escape(term_iri)} Predicate: {_xml_escape(predicate)}"
+                "</note>"
+            )
+            lines.append("      </trans-unit>")
+        lines.append("    </body>")
+        lines.append("  </file>")
+    lines.append("</xliff>")
+
+    text = "\n".join(lines) + "\n"
+    if out is None:
+        sys.stdout.write(text)
+    else:
+        out.write_text(text, encoding="utf-8")
