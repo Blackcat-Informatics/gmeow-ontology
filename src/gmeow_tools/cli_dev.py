@@ -1878,11 +1878,13 @@ def logic_query(
     max_answers: int | None = typer.Option(
         None,
         "--max-answers",
+        min=0,
         help="Cap the answer set (status=partial when the cap is hit).",
     ),
     max_steps: int | None = typer.Option(
         None,
         "--max-steps",
+        min=0,
         help="Inference-count ceiling (status=exhausted when exceeded).",
     ),
     as_json: bool = typer.Option(
@@ -1920,9 +1922,10 @@ def logic_query(
         result = gmeow_logic.query(
             nquads, program, profile, world_iri, max_answers, max_steps
         )
-    except ValueError as exc:
+    except (ValueError, OverflowError) as exc:
         # Cut outside ProceduralPrologProfile, malformed input, ambiguous world,
-        # or a Scryer resolution error — all surface as a hard failure.
+        # a Scryer resolution error, or a budget value too large to convert —
+        # all surface as a hard failure.
         raise _fail(f"✗ query failed: {exc}") from exc
 
     if as_json:
