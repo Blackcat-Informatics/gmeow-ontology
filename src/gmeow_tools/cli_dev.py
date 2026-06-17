@@ -2229,11 +2229,18 @@ def extract_catalog(
         "-l",
         help="If given, write .po files for this language instead of .pot templates.",
     ),
+    terms_only: bool = typer.Option(
+        False,
+        "--terms-only",
+        help="Only extract ontology term strings, skip Markdown docs and templates.",
+    ),
 ) -> None:
     """Extract translatable ontology strings into gettext catalogs.
 
     Walks the merged ontology graph, groups translatable strings by owning
     slice, and emits one POT (or PO when --lang is given) file per slice.
+    When --terms-only is not given, also extracts slice guides, project docs,
+    README.md, and ontology-docs template strings.
     """
     from rdflib import Graph, Literal, URIRef
 
@@ -2241,8 +2248,11 @@ def extract_catalog(
     from gmeow_tools.i18n_catalog import (
         LOCALIZABLE_PREDICATES,
         build_pot,
+        extract_markdown,
+        extract_ontology_docs_templates,
         extract_terms,
         write_po,
+        write_pot,
     )
     from gmeow_tools.i18n_sync import PoEntry
     from gmeow_tools.slices import discover_slices
@@ -2303,8 +2313,52 @@ def extract_catalog(
         else:
             path.write_text(build_pot(keys), encoding="utf-8")
 
+    if not terms_only:
+        docs_output = output_dir / "docs"
+        docs_output.mkdir(parents=True, exist_ok=True)
+
+        md_sources: list[Path] = []
+        md_sources.extend(sorted(root.glob("slices/*/*/docs.md")))
+        md_sources.extend(sorted((root / "docs").glob("*.md")))
+        if (root / "README.md").is_file():
+            md_sources.append(root / "README.md")
+
+        for source in md_sources:
+            rel = source.relative_to(root)
+            entries = extract_markdown(source, rel_path=rel.as_posix())
+            ext = "po" if lang else "pot"
+            path = docs_output / f"{rel}.{ext}"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if lang:
+                po_entries = [
+                    PoEntry(
+                        msgctxt=entry.msgctxt,
+                        msgid=entry.msgid,
+                        msgstr=entry.msgid,
+                    )
+                    for entry in entries
+                ]
+                write_po(path, po_entries, lang)
+            else:
+                write_pot(path, entries)
+
+        template_entries = extract_ontology_docs_templates()
+        template_path = output_dir / f"ontology-docs-templates.{ext}"
+        if lang:
+            po_entries = [
+                PoEntry(
+                    msgctxt=entry.msgctxt,
+                    msgid=entry.msgid,
+                    msgstr=entry.msgid,
+                )
+                for entry in template_entries
+            ]
+            write_po(template_path, po_entries, lang)
+        else:
+            write_pot(template_path, template_entries)
+
     console.print(
-        f"[green]✓[/green] wrote {len(groups)} catalog(s) "
+        f"[green]✓[/green] wrote {len(groups)} term catalog(s) "
         f"({total_keys} keys) to {output_dir}"
     )
 

@@ -377,6 +377,30 @@ def test_dev_i18n_extract(runner: CliRunner, tmp_path: Path) -> None:
     ) in text
 
 
+def test_dev_i18n_extract_produces_docs_pot_files(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    out = tmp_path / "i18n"
+    result = runner.invoke(dev_app, ["i18n", "extract", "--output-dir", str(out)])
+    assert result.exit_code == 0, result.output
+    assert (out / "ontology-docs-templates.pot").exists(), result.output
+    readme_pot = out / "docs" / "README.md.pot"
+    assert readme_pot.exists(), result.output
+    assert 'msgctxt "README.md|' in readme_pot.read_text(encoding="utf-8")
+
+
+def test_dev_i18n_extract_terms_only_skips_docs(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    out = tmp_path / "i18n"
+    result = runner.invoke(
+        dev_app, ["i18n", "extract", "--output-dir", str(out), "--terms-only"]
+    )
+    assert result.exit_code == 0, result.output
+    assert not (out / "docs").exists()
+    assert not (out / "ontology-docs-templates.pot").exists()
+
+
 def test_dev_i18n_merge_outputs_multilingual_graph(
     runner: CliRunner, tmp_path: Path
 ) -> None:

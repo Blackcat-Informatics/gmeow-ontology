@@ -13,8 +13,12 @@ from gmeow_tools.i18n_catalog import (
     LOCALIZABLE_PREDICATES,
     TranslationKey,
     build_pot,
+    discover_doc_languages,
+    extract_markdown,
+    extract_ontology_docs_templates,
     extract_terms,
     load_po_catalog,
+    merge_markdown,
     merge_terms,
     write_po,
     write_pot,
@@ -278,3 +282,107 @@ def test_write_po_round_trip(tmp_path: Path) -> None:
     assert (
         catalog[(f"{NAMESPACE}Entity", str(RDFS.label), "x-gmeow-french")] == "Entité"
     )
+
+
+SAMPLE_MARKDOWN = """# Title
+
+First paragraph.
+Still first paragraph.
+
+Second paragraph with \"quotes\".
+
+```python
+def hello():
+    pass
+```
+
+Final paragraph.
+"""
+
+
+def test_extract_markdown_produces_expected_entries(tmp_path: Path) -> None:
+    source = tmp_path / "README.md"
+    source.write_text(SAMPLE_MARKDOWN, encoding="utf-8")
+    entries = extract_markdown(source, rel_path="README.md")
+
+    # Four non-empty segments: title, first paragraph, second paragraph, code
+    # block, final paragraph.
+    assert len(entries) == 5
+    assert all(entry.msgctxt.startswith("README.md|") for entry in entries)
+    assert entries[0].msgid == "# Title"
+    assert entries[1].msgid == "First paragraph.\nStill first paragraph."
+    assert 'Second paragraph with "quotes".' in entries[2].msgid
+    assert entries[3].msgid.startswith("```python")
+    assert entries[3].msgid.endswith("```")
+    assert entries[4].msgid == "Final paragraph."
+    assert all(entry.msgstr == "" for entry in entries)
+
+
+def test_merge_markdown_round_trip(tmp_path: Path) -> None:
+    source = tmp_path / "guide.md"
+    source.write_text(SAMPLE_MARKDOWN, encoding="utf-8")
+    entries = extract_markdown(source, rel_path="guide.md")
+
+    # Translate the second paragraph only.
+    translated = []
+    for entry in entries:
+        if entry.msgid == "First paragraph.\nStill first paragraph.":
+            translated.append(
+                PoEntry(
+                    msgctxt=entry.msgctxt,
+                    msgid=entry.msgid,
+                    msgstr="Premier paragraphe.\nToujours premier paragraphe.",
+                )
+            )
+        else:
+            translated.append(entry)
+
+    po_path = tmp_path / "guide.fr.po"
+    write_po(po_path, translated, lang="fr")
+
+    output = tmp_path / "guide.fr.md"
+    merge_markdown(source, po_path, output)
+    text = output.read_text(encoding="utf-8")
+
+    assert "Premier paragraphe." in text
+    assert "Toujours premier paragraphe." in text
+    assert "Second paragraph" in text
+    assert "```python" in text
+
+
+def test_merge_markdown_preserves_crlf(tmp_path: Path) -> None:
+    source = tmp_path / "guide.md"
+    source.write_text("Line one.\r\n\r\nLine two.", encoding="utf-8")
+    entries = extract_markdown(source, rel_path="guide.md")
+
+    po_path = tmp_path / "guide.fr.po"
+    write_po(po_path, entries, lang="fr")
+
+    output = tmp_path / "guide.fr.md"
+    merge_markdown(source, po_path, output)
+    with output.open("rb") as fh:
+        raw = fh.read()
+    assert b"\r\n" in raw
+
+
+def test_extract_ontology_docs_templates() -> None:
+    entries = extract_ontology_docs_templates()
+    assert entries
+    by_ctx = {entry.msgctxt: entry for entry in entries}
+    assert "ontology-docs-template|category_class" in by_ctx
+    assert by_ctx["ontology-docs-template|category_class"].msgid == "Classes"
+    assert by_ctx["ontology-docs-template|nav_home"].msgid == "Home"
+    assert all(entry.msgstr == "" for entry in entries)
+
+
+def test_discover_doc_languages_finds_slice_languages(tmp_path: Path) -> None:
+    # Create a minimal slice tree with French and English PO files.
+    slices_dir = tmp_path / "slices" / "core" / "lifecycle" / "i18n"
+    slices_dir.mkdir(parents=True)
+    (slices_dir / "en.po").write_text(
+        'msgid ""\nmsgstr ""\n"Language: en\\n"\n', encoding="utf-8"
+    )
+    (slices_dir / "fr.po").write_text(
+        'msgid ""\nmsgstr ""\n"Language: fr\\n"\n', encoding="utf-8"
+    )
+    assert discover_doc_languages(tmp_path) == ["fr"]
