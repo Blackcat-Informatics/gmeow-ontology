@@ -30,7 +30,7 @@ Tier-2 uplift backlog.
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |
-| epistemics | core | core | 6 | 5 | 13 | 0 | 2 | 18/18 | full |
+| epistemics | core | core | 6 | 5 | 13 | 0 | 3 | 18/18 | full |
 | events | core | core | 6 | 12 | 43 | 0 | 1 | 55/55 | full |
 | evidence | core | core | 2 | 5 | 5 | 0 | 1 | 10/10 | full |
 | expertise | core | core | 5 | 3 | 11 | 0 | 1 | 14/14 | full |
