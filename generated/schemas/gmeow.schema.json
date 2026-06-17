@@ -61522,6 +61522,23 @@
             "title": "JurisdictionTenure",
             "type": "object"
         },
+        "JustificationStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "JustificationStatus",
+            "type": "object"
+        },
+        "JustificationStatusEnum": {
+            "description": "",
+            "enum": [
+                "justificationStatusDefeated",
+                "justificationStatusGettier",
+                "justificationStatusRebutted",
+                "justificationStatusUndercut"
+            ],
+            "title": "JustificationStatusEnum",
+            "type": "string"
+        },
         "KeyScheme": {
             "additionalProperties": false,
             "description": "",

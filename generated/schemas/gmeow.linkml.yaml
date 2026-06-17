@@ -1728,6 +1728,9 @@ classes:
     - jurisdictionDeterminacy
     - jurisdictionPlace
     - jurisdictionPolity
+  JustificationStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/JustificationStatus
+    title: Justification Status
   KeyScheme:
     class_uri: https://blackcatinformatics.ca/gmeow/KeyScheme
     title: Key Scheme
@@ -5755,6 +5758,11 @@ slots:
     range: KnowledgeLevel
     domain: KnowledgeLevel
     multivalued: true
+  defeatedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/defeatedBy
+    title: defeated by
+    range: JustificationStatus
+    multivalued: true
   defeaterKind:
     slot_uri: https://blackcatinformatics.ca/gmeow/defeaterKind
     title: defeater kind
@@ -8450,6 +8458,11 @@ slots:
     range: Agent
     domain: JurisdictionTenure
     multivalued: false
+  justifiedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/justifiedBy
+    title: justified by
+    range: uriorcurie
+    multivalued: true
   keyAlgorithm:
     slot_uri: https://blackcatinformatics.ca/gmeow/keyAlgorithm
     title: key algorithm
@@ -15721,6 +15734,21 @@ enums:
       invoiceStatusSent:
         meaning: https://blackcatinformatics.ca/gmeow/invoiceStatusSent
         title: sent
+  JustificationStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/JustificationStatus
+    permissible_values:
+      justificationStatusDefeated:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusDefeated
+        title: defeated
+      justificationStatusGettier:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusGettier
+        title: Gettier case
+      justificationStatusRebutted:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusRebutted
+        title: rebutted
+      justificationStatusUndercut:
+        meaning: https://blackcatinformatics.ca/gmeow/justificationStatusUndercut
+        title: undercut
   KeySchemeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/KeyScheme
     permissible_values:

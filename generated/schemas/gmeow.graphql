@@ -1313,6 +1313,14 @@ enum InvoiceStatusEnum
     invoiceStatusSent
   }
 
+enum JustificationStatusEnum
+  {
+    justificationStatusDefeated
+    justificationStatusGettier
+    justificationStatusRebutted
+    justificationStatusUndercut
+  }
+
 enum KeySchemeEnum
   {
     keySchemeNostr
@@ -10784,6 +10792,10 @@ type JurisdictionTenure
     jurisdictionDeterminacy: [Determinacy]
     jurisdictionPlace: Place
     jurisdictionPolity: Agent
+  }
+
+type JustificationStatus
+  {
   }
 
 type KeyScheme

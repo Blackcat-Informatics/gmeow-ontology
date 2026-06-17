@@ -1293,6 +1293,13 @@ class InvoiceStatusEnum(str, Enum):
     sent = "invoiceStatusSent"
 
 
+class JustificationStatusEnum(str, Enum):
+    defeated = "justificationStatusDefeated"
+    Gettier_case = "justificationStatusGettier"
+    rebutted = "justificationStatusRebutted"
+    undercut = "justificationStatusUndercut"
+
+
 class KeySchemeEnum(str, Enum):
     Nostr = "keySchemeNostr"
     OpenPGP = "keySchemePGP"
@@ -17875,6 +17882,14 @@ class JournalEntry(Event):
     violates: Optional[list[Norm]] = Field(default=None, title="violates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/violates'} })
+
+
+class JustificationStatus(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/JustificationStatus',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Justification Status'})
+
+    pass
 
 
 class KeyScheme(ConfiguredBaseModel):
@@ -61393,6 +61408,7 @@ InvoiceStatus.model_rebuild()
 Issue.model_rebuild()
 Item.model_rebuild()
 JournalEntry.model_rebuild()
+JustificationStatus.model_rebuild()
 KeyScheme.model_rebuild()
 KinRelationship.model_rebuild()
 CoupleRelationship.model_rebuild()

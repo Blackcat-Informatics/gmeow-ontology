@@ -32,6 +32,13 @@ gmeow:DoxasticStandpointClaimShape
         sh:class [ owl:unionOf (gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState) ] ;
         sh:severity sh:Violation ;
         sh:message "If present, a justification ground (gmeow:justifiedBy) must be an EvidenceSpan, Attestation, or DoxasticState." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:defeatedBy ;
+        sh:minCount 0 ;
+        sh:class gmeow:JustificationStatus ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticStandpointClaim must point to a gmeow:JustificationStatus." ;
     ] .
 
 gmeow:DoxasticStateShape
@@ -72,6 +79,24 @@ gmeow:DoxasticStateShape
         sh:maxInclusive 1 ;
         sh:severity sh:Violation ;
         sh:message "If present, gmeow:credence must be an xsd:decimal in the closed interval [0,1]." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:justifiedBy ;
+        sh:minCount 0 ;
+        sh:or (
+            [ sh:class gmeow:EvidenceSpan ]
+            [ sh:class gmeow:Attestation ]
+            [ sh:class gmeow:DoxasticState ]
+        ) ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:justifiedBy must point to a gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:defeatedBy ;
+        sh:minCount 0 ;
+        sh:class gmeow:JustificationStatus ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:defeatedBy must point to a gmeow:JustificationStatus." ;
     ] .
 
 gmeow:DoxasticTenureShape

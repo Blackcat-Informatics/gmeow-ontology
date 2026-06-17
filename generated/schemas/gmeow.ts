@@ -1313,6 +1313,14 @@ export enum InvoiceStatusEnum {
     sent = "invoiceStatusSent",
 };
 
+export enum JustificationStatusEnum {
+
+    defeated = "justificationStatusDefeated",
+    Gettier_case = "justificationStatusGettier",
+    rebutted = "justificationStatusRebutted",
+    undercut = "justificationStatusUndercut",
+};
+
 export enum KeySchemeEnum {
 
     Nostr = "keySchemeNostr",
@@ -5270,6 +5278,11 @@ export interface JurisdictionTenure extends TimeScopedRelation {
     jurisdictionDeterminacy?: Determinacy[],
     jurisdictionPlace?: Place,
     jurisdictionPolity?: Agent,
+}
+
+
+
+export interface JustificationStatus {
 }
 
 
