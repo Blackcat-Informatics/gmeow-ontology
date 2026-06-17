@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import Graph, URIRef
+from rdflib import Graph, Literal, URIRef
 from rdflib.collection import Collection
 from rdflib.namespace import OWL, RDF, RDFS
 from rdflib.term import Node
@@ -125,6 +125,9 @@ def test_justified_by_has_named_domain_and_range() -> None:
     assert (prop, RDFS.domain, _t("JustificationSubject")) in g
     assert (prop, RDFS.range, _t("JustificationGround")) in g
 
+    # justifiedBy is non-functional — multiple grounds may coexist (Principle 9).
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in g
+
     subject_union = _union_members(g, _t("JustificationSubject"))
     assert subject_union == {_t("DoxasticState"), _t("StandpointClaim")}
 
@@ -194,16 +197,6 @@ def test_credence_and_confidence_are_distinct() -> None:
     assert (confidence, RDFS.subPropertyOf, credence) not in g
 
 
-def test_justified_by_property_constraints() -> None:
-    """gmeow:justifiedBy targets a JustificationSubject via a JustificationGround."""
-    g = _graph()
-    justified_by = _t("justifiedBy")
-    assert (justified_by, RDF.type, OWL.ObjectProperty) in g
-    assert (justified_by, RDFS.domain, _t("JustificationSubject")) in g
-    assert (justified_by, RDFS.range, _t("JustificationGround")) in g
-    assert (justified_by, RDF.type, OWL.FunctionalProperty) not in g
-
-
 def test_suppression_round_trip() -> None:
     """The flagship example retains superseded states and suppresses the tenure.
 
@@ -232,10 +225,11 @@ def test_suppression_round_trip() -> None:
     assert revised is not None
     assert original != revised
 
-    from rdflib import Literal
+    revised_interval = g.value(revised, _t("duringInterval"))
+    assert revised_interval is not None
 
     assert (original, _t("displayable"), Literal(False)) in g
-    assert (revised, _t("endedAtTime"), None) not in g
+    assert (revised_interval, _t("endedAtTime"), None) not in g
 
     original_state = g.value(original, _t("tenureOfDoxasticState"))
     revised_state = g.value(revised, _t("tenureOfDoxasticState"))
