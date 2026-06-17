@@ -607,6 +607,7 @@ def test_html_links_are_directory_index_safe(ontology_docs_tree: Path) -> None:
 
 @pytest.mark.ci_only
 def test_four_boxes_doctrine_page_exists(ontology_docs_tree: Path) -> None:
+    """The four-boxes doctrine page explains ABox/TBox/RBox/CBox roles."""
     doctrine = (ontology_docs_tree / "markdown" / "four-boxes" / "index.md").read_text(
         encoding="utf-8"
     )
@@ -620,6 +621,7 @@ def test_four_boxes_doctrine_page_exists(ontology_docs_tree: Path) -> None:
 
 @pytest.mark.ci_only
 def test_box_role_landing_pages_list_terms(ontology_docs_tree: Path) -> None:
+    """Each box-role landing page lists its representative term."""
     known_terms = {
         "abox": "gmeow:boxABox",
         "tbox": "gmeow:GraphBoxRole",
@@ -637,6 +639,7 @@ def test_box_role_landing_pages_list_terms(ontology_docs_tree: Path) -> None:
 
 @pytest.mark.ci_only
 def test_term_pages_link_to_box_role_pages(ontology_docs_tree: Path) -> None:
+    """Term pages include a box-roles section linking to role landing pages."""
     part_of = (
         ontology_docs_tree / "markdown" / "reference" / "properties" / "gmeow-partOf.md"
     )

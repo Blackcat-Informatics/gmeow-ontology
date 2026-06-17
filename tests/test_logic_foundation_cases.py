@@ -74,6 +74,7 @@ def _b(case: str) -> str:
 
 
 def _expected_facts() -> dict[str, set[tuple[str, str, str, str]]]:
+    """Return hand-computed discipline-fact sets for each foundation case."""
     f: dict[str, set[tuple[str, str, str, str]]] = {}
 
     # 1. exactly-one-stereotype:

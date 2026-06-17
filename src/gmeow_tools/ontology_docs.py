@@ -757,6 +757,7 @@ def _rewrite_site_paths(body: str, page_rel: Path, target: Path, site: Path) -> 
         current_dir = "."
 
     def repl(match: re.Match[str]) -> str:
+        """Rewrite a single href/src match to a site-relative URL."""
         attr, raw = match.groups()
         if not _is_rewriteable_url(raw):
             return match.group(0)
@@ -797,6 +798,7 @@ def _public_markdown_text(
     """Replace internal language tags before writing public docs artifacts."""
 
     def repl(match: re.Match[str]) -> str:
+        """Map an internal language tag to its public replacement."""
         if match.group(0).endswith("*"):
             return "private-use-language-tag"
         return tag_map.get(match.group(0).lower(), "und")
@@ -1011,20 +1013,24 @@ def _link_public_segment(
     """Link identifiers and external target names in a plain Markdown segment."""
 
     def repo_path_repl(match: re.Match[str]) -> str:
+        """Link a repository-relative Markdown path to its GitHub blob URL."""
         path = match.group(1)
         return f"[`{path}`]({_REPO_BLOB_URL}{path})"
 
     def external_repl(match: re.Match[str]) -> str:
+        """Link a prose external ontology name, or return the original text."""
         return _external_target_link(match.group(1), from_rel=from_rel) or match.group(
             1
         )
 
     def bare_repl(match: re.Match[str]) -> str:
+        """Link a bare GMEOW name when it resolves to exactly one term."""
         value = match.group(1)
         bare = _bare_gmeow_link(value, model=model, from_rel=from_rel)
         return bare if bare is not None else value
 
     def identifier_repl(match: re.Match[str]) -> str:
+        """Link a CURIE or Wikidata identifier, or return the original text."""
         linked = _public_identifier_link(
             match.group(0), model=model, from_rel=from_rel, code_label=code_label
         )
@@ -1750,6 +1756,7 @@ class _Writer:
     """Writes generated Markdown, HTML, CSS, and SVG files."""
 
     def __init__(self, outdir: Path, *, source_hash: str = "") -> None:
+        """Create a writer that prepares fresh markdown and site directories."""
         self.root = outdir
         self.markdown = outdir / "markdown"
         self.site = outdir / "site"
