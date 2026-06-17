@@ -2877,9 +2877,10 @@ def _reference_index(model: DocsModel) -> Page:
     return Page(Path("reference") / "index.md", "Reference", "\n".join(lines))
 
 
-def _category_index(category: str, terms: list[DocTerm]) -> Page:
+def _category_index(category: str, terms: list[DocTerm], model: DocsModel) -> Page:
     """Render one category index."""
     label = _CATEGORY_LABELS[category]
+    from_rel = Path("reference") / _CATEGORY_DIRS[category] / "index.md"
     lines = [
         f"# {label}",
         "",
@@ -2890,14 +2891,17 @@ def _category_index(category: str, terms: list[DocTerm]) -> Page:
     ]
     for term in terms:
         link = _markdown_link(f"`{term.curie}`", Path(term.filename))
-        roles = ", ".join(f"`{role}`" for role in term.box_roles) or "-"
+        roles = (
+            ", ".join(_box_role_link(role, model, from_rel) for role in term.box_roles)
+            or "-"
+        )
         lines.append(
             f"| {link} | {_escape_md_cell(term.label)} | `{term.owner or '-'}` | "
             f"{roles} | {len(term.linkages)} |"
         )
     lines.append("")
     return Page(
-        Path("reference") / _CATEGORY_DIRS[category] / "index.md",
+        from_rel,
         label,
         "\n".join(lines),
     )
@@ -2915,9 +2919,14 @@ def _term_page(term: DocTerm, model: DocsModel) -> Page:
     if term.owner:
         lines.append(f"- **Defined by:** `{term.owner}`")
     if term.box_roles:
-        lines.append(
-            "- **Box roles:** " + ", ".join(f"`{role}`" for role in term.box_roles)
+        from_rel = _term_md_rel(term)
+        role_links = ", ".join(
+            _box_role_link(role, model, from_rel) for role in term.box_roles
         )
+        doctrine_link = _relative_page_link(
+            "What is this?", Path("four-boxes") / "index.md", from_rel
+        )
+        lines.append(f"- **Box roles:** {role_links} ({doctrine_link})")
     lines.append("")
     if term.definition:
         lines.extend([term.definition, ""])
@@ -3918,6 +3927,7 @@ def _all_pages(model: DocsModel) -> list[Page]:
             _category_index(
                 category,
                 sorted(by_category[category], key=lambda t: t.curie),
+                model,
             )
         )
     pages.extend(_term_page(term, model) for term in model.terms)

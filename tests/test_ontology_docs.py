@@ -232,9 +232,11 @@ def test_reference_pages_surface_graph_box_roles(ontology_docs_tree: Path) -> No
         ontology_docs_tree / "markdown" / "reference" / "properties" / "index.md"
     ).read_text(encoding="utf-8")
 
-    assert "- **Box roles:** [`gmeow:boxRBox`](../individuals/gmeow-boxRBox.md)" in text
+    assert "- **Box roles:**" in text
+    assert "[RBox role](../boxes/rbox.md)" in text
+    assert "[What is this?](../../four-boxes/index.md)" in text
     assert "| [`gmeow:partOf`](gmeow-partOf.md)" in index
-    assert "[`gmeow:boxRBox`](../individuals/gmeow-boxRBox.md)" in index
+    assert "[RBox role](../boxes/rbox.md)" in index
 
 
 @pytest.mark.ci_only
