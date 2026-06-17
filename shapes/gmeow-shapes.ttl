@@ -2570,16 +2570,16 @@ gmeow:DeceptionEventShape
     sh:property [
         sh:path gmeow:heldStandpoint ;
         sh:minCount 1 ;
-        sh:class gmeow:StandpointClaim ;
+        sh:class gmeow:DoxasticStandpointClaim ;
         sh:severity sh:Violation ;
-        sh:message "A deception event must carry at least one held standpoint (gmeow:heldStandpoint) of type gmeow:StandpointClaim." ;
+        sh:message "A deception event must carry at least one held standpoint (gmeow:heldStandpoint) of type gmeow:DoxasticStandpointClaim." ;
     ] ;
     sh:property [
         sh:path gmeow:projectedStandpoint ;
         sh:minCount 1 ;
-        sh:class gmeow:StandpointClaim ;
+        sh:class gmeow:DoxasticStandpointClaim ;
         sh:severity sh:Violation ;
-        sh:message "A deception event must carry at least one projected standpoint (gmeow:projectedStandpoint) of type gmeow:StandpointClaim." ;
+        sh:message "A deception event must carry at least one projected standpoint (gmeow:projectedStandpoint) of type gmeow:DoxasticStandpointClaim." ;
     ] .
 
 # A deception cue observation must carry vantage and observationResult.

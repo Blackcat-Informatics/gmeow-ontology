@@ -24,6 +24,32 @@ def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
 
 
+def _doxastic_claim(
+    g: Graph,
+    claim: URIRef,
+    agent: URIRef,
+    proposition: URIRef,
+    method: URIRef = EX.method1,
+) -> URIRef:
+    """Add a DoxasticStandpointClaim backed by a DoxasticState.
+
+    The claim is explicitly typed as both gmeow:DoxasticStandpointClaim and
+    gmeow:StandpointClaim so the SHACL engine (which does not perform subclass
+    reasoning over the data graph) recognises it for the
+    gmeow:doxasticClaim range on the backing state.
+    """
+    state = URIRef(str(claim) + "State")
+    g.add((claim, RDF.type, GMEOW.DoxasticStandpointClaim))
+    g.add((claim, RDF.type, GMEOW.StandpointClaim))
+    g.add((claim, GMEOW.observationMethod, method))
+    g.add((claim, GMEOW.claimOfBelief, state))
+    g.add((state, RDF.type, GMEOW.DoxasticState))
+    g.add((state, GMEOW.epistemicAgent, agent))
+    g.add((state, GMEOW.doxasticContent, proposition))
+    g.add((state, GMEOW.doxasticClaim, claim))
+    return state
+
+
 def test_deception_event_type_exists() -> None:
     graph = _graph()
     assert (GMEOW.eventTypeDeception, RDF.type, GMEOW.EventType) in graph
@@ -132,12 +158,13 @@ def test_standpoint_divergence_coexists() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDeception))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
 
     result = run_shacl(g)
@@ -149,12 +176,13 @@ def test_deception_event_shacl_passes() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDeception))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     g.add((EX.cue1, RDF.type, GMEOW.Observation))
     g.add((EX.cue1, GMEOW.vantage, EX.analyst))
@@ -171,12 +199,13 @@ def test_deception_cue_shacl_passes() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDeception))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     g.add((EX.cue1, RDF.type, GMEOW.Observation))
     g.add((EX.cue1, GMEOW.vantage, EX.analyst))
@@ -270,12 +299,13 @@ def test_paltering_implicates_structure() -> None:
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypePaltering))
     g.add((EX.event1, GMEOW.implicates, EX.propositionPprime))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
 
     result = run_shacl(g)
@@ -288,12 +318,13 @@ def test_self_deception_same_agent() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeSelfDeception))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     # Same agent in both roles via distinct participations.
     g.add((EX.partDeceiver, RDF.type, GMEOW.Participation))
@@ -314,12 +345,13 @@ def test_distortion_shacl_passes() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDistortion))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     g.add((EX.partSpin, RDF.type, GMEOW.Participation))
     g.add((EX.partSpin, GMEOW.participationEvent, EX.event1))
@@ -337,7 +369,8 @@ def test_licensed_falsehood_not_a_lie() -> None:
     This test verifies (a) the vocabulary terms exist in the ontology, and
     (b) the inline fiction structure passes SHACL validation. The full safety
     property (fiction claim is NOT returned by the lie query) is exercised in
-    tests/test_competency.py::test_competency_deception_licensed_falsehood_query."""
+    tests/test_competency.py::test_competency_deception_licensed_falsehood_query.
+    """
     g = Graph()
     g.add((EX.fictionClaim, RDF.type, GMEOW.StandpointClaim))
     g.add(
@@ -393,12 +426,13 @@ def test_fabrication_refuted_provenance() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeFabrication))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     # The fabricated work has a failed verification result (evidence, not axiom).
     g.add((EX.work1, RDF.type, GMEOW.CreativeWork))
@@ -418,12 +452,13 @@ def test_forgery_failed_signature_structure() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeForgery))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     # Forged work counterpartOf genuine work.
     g.add((EX.forgedWork, RDF.type, GMEOW.CreativeWork))
@@ -445,12 +480,13 @@ def test_impersonation_facet_subject_mismatch() -> None:
     g = Graph()
     g.add((EX.event1, RDF.type, GMEOW.Event))
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeImpersonation))
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.propA, RDF.type, GMEOW.Proposition))
+    g.add((EX.propB, RDF.type, GMEOW.Proposition))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
-    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
+    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     # Projected identity facet's subject is the victim, not the deceiver.
     g.add((EX.facet1, RDF.type, GMEOW.IdentityFacet))
@@ -487,13 +523,14 @@ def test_disinformation_propagation_chain() -> None:
     # --- Hop 0: Disinformation origin ---
     g.add((EX.originEvent, RDF.type, GMEOW.Event))
     g.add((EX.originEvent, GMEOW.eventType, GMEOW.eventTypeDisinformation))
+    g.add((EX.deceiver, RDF.type, GMEOW.Agent))
+    g.add((EX.originHeldProp, RDF.type, GMEOW.Proposition))
+    g.add((EX.originProjectedProp, RDF.type, GMEOW.Proposition))
     # held ≠ projected
     g.add((EX.originEvent, GMEOW.heldStandpoint, EX.originHeld))
     g.add((EX.originEvent, GMEOW.projectedStandpoint, EX.originProjected))
-    g.add((EX.originHeld, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.originProjected, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.originHeld, GMEOW.observationMethod, EX.method1))
-    g.add((EX.originProjected, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.originHeld, EX.deceiver, EX.originHeldProp)
+    _doxastic_claim(g, EX.originProjected, EX.deceiver, EX.originProjectedProp)
     # deceptive intent claim present
     g.add((EX.originEvent, GMEOW.deceptiveIntentClaim, EX.originIntent))
     g.add((EX.originIntent, RDF.type, GMEOW.StandpointClaim))
@@ -507,11 +544,12 @@ def test_disinformation_propagation_chain() -> None:
     # --- Hop 1: Dupe resharing (misinformation at this node) ---
     g.add((EX.dupeEvent, RDF.type, GMEOW.Event))
     g.add((EX.dupeEvent, GMEOW.eventType, GMEOW.eventTypeDeception))
+    g.add((EX.dupe, RDF.type, GMEOW.Agent))
+    g.add((EX.dupeProp, RDF.type, GMEOW.Proposition))
     # held ≈ projected (same claim)
     g.add((EX.dupeEvent, GMEOW.heldStandpoint, EX.dupeBelief))
     g.add((EX.dupeEvent, GMEOW.projectedStandpoint, EX.dupeBelief))
-    g.add((EX.dupeBelief, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.dupeBelief, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.dupeBelief, EX.dupe, EX.dupeProp)
     g.add((EX.dupeBelief, GMEOW.claimVeridicality, GMEOW.veridicalityUntrue))
     # NO deceptiveIntentClaim — the dupe is sincere
     # dupe role
@@ -523,10 +561,11 @@ def test_disinformation_propagation_chain() -> None:
     # --- Hop 2: Downstream resharing (misinformation at this node) ---
     g.add((EX.downstreamEvent, RDF.type, GMEOW.Event))
     g.add((EX.downstreamEvent, GMEOW.eventType, GMEOW.eventTypeDeception))
+    g.add((EX.downstream, RDF.type, GMEOW.Agent))
+    g.add((EX.downstreamProp, RDF.type, GMEOW.Proposition))
     g.add((EX.downstreamEvent, GMEOW.heldStandpoint, EX.downstreamBelief))
     g.add((EX.downstreamEvent, GMEOW.projectedStandpoint, EX.downstreamBelief))
-    g.add((EX.downstreamBelief, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.downstreamBelief, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.downstreamBelief, EX.downstream, EX.downstreamProp)
     g.add((EX.downstreamBelief, GMEOW.claimVeridicality, GMEOW.veridicalityUntrue))
     # NO deceptiveIntentClaim
 
@@ -547,30 +586,33 @@ def test_disinformation_boundary_query() -> None:
     # Populate the chain in the graph
     g.add((EX.originEvent, RDF.type, GMEOW.Event))
     g.add((EX.originEvent, GMEOW.eventType, GMEOW.eventTypeDisinformation))
+    g.add((EX.deceiver, RDF.type, GMEOW.Agent))
+    g.add((EX.originHeldProp, RDF.type, GMEOW.Proposition))
+    g.add((EX.originProjectedProp, RDF.type, GMEOW.Proposition))
     g.add((EX.originEvent, GMEOW.heldStandpoint, EX.originHeld))
     g.add((EX.originEvent, GMEOW.projectedStandpoint, EX.originProjected))
-    g.add((EX.originHeld, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.originProjected, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.originHeld, GMEOW.observationMethod, EX.method1))
-    g.add((EX.originProjected, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.originHeld, EX.deceiver, EX.originHeldProp)
+    _doxastic_claim(g, EX.originProjected, EX.deceiver, EX.originProjectedProp)
     g.add((EX.originEvent, GMEOW.deceptiveIntentClaim, EX.originIntent))
     g.add((EX.originIntent, RDF.type, GMEOW.StandpointClaim))
     g.add((EX.originIntent, GMEOW.observationMethod, EX.method1))
 
     g.add((EX.dupeEvent, RDF.type, GMEOW.Event))
     g.add((EX.dupeEvent, GMEOW.eventType, GMEOW.eventTypeDeception))
+    g.add((EX.dupe, RDF.type, GMEOW.Agent))
+    g.add((EX.dupeProp, RDF.type, GMEOW.Proposition))
     g.add((EX.dupeEvent, GMEOW.heldStandpoint, EX.dupeBelief))
     g.add((EX.dupeEvent, GMEOW.projectedStandpoint, EX.dupeBelief))
-    g.add((EX.dupeBelief, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.dupeBelief, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.dupeBelief, EX.dupe, EX.dupeProp)
     g.add((EX.dupeBelief, GMEOW.claimVeridicality, GMEOW.veridicalityUntrue))
 
     g.add((EX.downstreamEvent, RDF.type, GMEOW.Event))
     g.add((EX.downstreamEvent, GMEOW.eventType, GMEOW.eventTypeDeception))
+    g.add((EX.downstream, RDF.type, GMEOW.Agent))
+    g.add((EX.downstreamProp, RDF.type, GMEOW.Proposition))
     g.add((EX.downstreamEvent, GMEOW.heldStandpoint, EX.downstreamBelief))
     g.add((EX.downstreamEvent, GMEOW.projectedStandpoint, EX.downstreamBelief))
-    g.add((EX.downstreamBelief, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.downstreamBelief, GMEOW.observationMethod, EX.method1))
+    _doxastic_claim(g, EX.downstreamBelief, EX.downstream, EX.downstreamProp)
     g.add((EX.downstreamBelief, GMEOW.claimVeridicality, GMEOW.veridicalityUntrue))
 
     g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
