@@ -408,6 +408,23 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         }
     }
 
+    // Precompute per-property (domain, range, functional) once — O(M) — so the
+    // class loop below does not re-query the store for every (class × property)
+    // pair (R8 / R9 hoist).
+    struct PropInfo {
+        domains: HashSet<String>,
+        ranges: HashSet<String>,
+        functional: bool,
+    }
+    let prop_infos: Vec<PropInfo> = gmeow_object_properties
+        .iter()
+        .map(|iri| PropInfo {
+            domains: object_iris(store, iri, rdfs::DOMAIN),
+            ranges: object_iris(store, iri, rdfs::RANGE),
+            functional: is_functional(store, iri),
+        })
+        .collect();
+
     let mut problems: Vec<String> = Vec::new();
     for cls in gmeow_classes(store, cfg) {
         let ancestors = proper_ancestors(store, &cls);
@@ -431,17 +448,15 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         }
 
         let mut ends = 0;
-        for prop in &gmeow_object_properties {
-            let domains = object_iris(store, prop, rdfs::DOMAIN);
-            let ranges = object_iris(store, prop, rdfs::RANGE);
-            let domain_hits = domains.intersection(&relator_terms).next().is_some();
-            let range_hits = ranges.intersection(&relator_terms).next().is_some();
+        for info in &prop_infos {
+            let domain_hits = info.domains.intersection(&relator_terms).next().is_some();
+            let range_hits = info.ranges.intersection(&relator_terms).next().is_some();
             let mut relata: HashSet<String> = HashSet::new();
             if domain_hits {
-                relata.extend(ranges.iter().cloned());
+                relata.extend(info.ranges.iter().cloned());
             }
             if range_hits {
-                relata.extend(domains.iter().cloned());
+                relata.extend(info.domains.iter().cloned());
             }
             for t in &relator_terms {
                 relata.remove(t);
@@ -450,7 +465,7 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
             if relata.is_empty() {
                 continue;
             }
-            ends += if is_functional(store, prop) { 1 } else { 2 };
+            ends += if info.functional { 1 } else { 2 };
         }
         if ends < 2 {
             problems.push(format!(
@@ -731,11 +746,14 @@ fn bridged_pairs(store: &Store, axes: &[String]) -> Vec<(String, String)> {
         seen
     };
 
+    // Precompute reachability for every axis once — O(K) traversals instead of
+    // O(K²) — so the orthogonality check reads the precomputed sets (R10 hoist).
+    let reach: Vec<HashSet<String>> = axes.iter().map(|a| reachable(a)).collect();
+
     let mut out: Vec<(String, String)> = Vec::new();
     for (i, a) in axes.iter().enumerate() {
-        let reach_a = reachable(a);
-        for b in &axes[i + 1..] {
-            if reach_a.contains(b) || reachable(b).contains(a) {
+        for (j, b) in axes[i + 1..].iter().enumerate() {
+            if reach[i].contains(b) || reach[i + 1 + j].contains(a) {
                 out.push((a.clone(), b.clone()));
             }
         }

@@ -372,7 +372,8 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
         // Check 2: standard annotation predicate on a GMEOW-authored subject.
         if let (NamedOrBlankNode::NamedNode(subj), Some(lit)) = (&quad.subject, literal) {
             if is_gmeow_term(subj.as_str(), cfg) {
-                if let Some(msg) = check_annotation_literal(subj.as_str(), predicate_iri, lit, cfg)
+                if let Some(msg) =
+                    check_annotation_literal(subj.as_str(), predicate_iri, lit, cfg, &x_gmeow)
                 {
                     report.errors.push(msg);
                 }
@@ -387,15 +388,18 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
 /// error only when the literal has a language, is not an internal `x-gmeow-*`
 /// tag, the predicate is NOT in the GMEOW namespace, and the predicate IS one of
 /// the standard annotation predicates.
+///
+/// `internal_re` is the pre-compiled `x-gmeow-*` regex passed in by the caller
+/// so it is not recompiled on every invocation (R11 / R12 hoist).
 fn check_annotation_literal(
     subject: &str,
     predicate: &str,
     obj: &Literal,
     cfg: &LintConfig,
+    internal_re: &Regex,
 ) -> Option<String> {
     let lang = obj.language()?;
-    let internal = Regex::new(r"(?i)^x-gmeow-[a-z0-9\-]+$").expect("static regex");
-    if internal.is_match(lang) {
+    if internal_re.is_match(lang) {
         return None;
     }
     if predicate.starts_with(&cfg.namespace) {
