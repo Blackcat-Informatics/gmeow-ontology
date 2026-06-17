@@ -10,7 +10,8 @@ from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.statement_compile import emit_owl
 from gmeow_tools.statement_dsl import load_statement_dsl
-from gmeow_tools.validate import ValidationResult, run_shacl
+from gmeow_tools.validate import ValidationResult
+from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/music/")

@@ -17,10 +17,7 @@ from functools import lru_cache, partial
 from importlib import metadata
 from pathlib import Path
 
-import pyoxigraph
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import OWL, SKOS
-from rdflib.term import Node
+import gmeow_validate
 
 from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
@@ -37,25 +34,39 @@ from gmeow_tools.config import (
     SLICES_DIR,
     STATEMENT_DSL_DIR,
 )
-from gmeow_tools.graph import iter_source_files, load_merged_graph
-from gmeow_tools.language_tags import check_annotation_literal
-from gmeow_tools.reasoning_lint import reasoning_invariants
+from gmeow_tools.graph import iter_source_files
 from gmeow_tools.slices import (
     iter_slice_example_files,
     iter_slice_module_files,
     iter_slice_shape_files,
 )
 
-_DEFINITION = SKOS.definition
-_USE_WHEN = URIRef(NAMESPACE + "useWhen")
-_AVOID_WHEN = URIRef(NAMESPACE + "avoidWhen")
-_HOW_TO_USE = URIRef(NAMESPACE + "howToUse")
-_USE_FOR_CONSUMER = URIRef(NAMESPACE + "useForConsumer")
-_AVOID_FOR_CONSUMER = URIRef(NAMESPACE + "avoidForConsumer")
-_PROJECTION_CONTEXT = URIRef(NAMESPACE + "ProjectionContext")
-_TURTLE = pyoxigraph.RdfFormat.TURTLE
+#: CamelCase tokens that mark a selector privileging one co-equal claim (P9).
+_SELECTOR_TOKENS = frozenset({"primary", "preferred", "default", "main"})
 
-type _OxParseResult = tuple[tuple[pyoxigraph.Quad, ...] | None, Exception | None]
+
+def _lint_config() -> gmeow_validate.LintConfig:
+    """Build the typed Rust lint config from the Python single-source constants.
+
+    Carries ``config.NAMESPACE``/``config.ONTOLOGY_IRI``, the P9 selector
+    tokens, the core-slice IRIs (the Tier-1 grading set), and the standard
+    annotation predicates the Check-2 language-tag policy polices (#579). The
+    Rust engine owns the lint logic; Python owns the registry and constants.
+    """
+    from gmeow_tools.language_tags import _ANNOTATION_PREDICATES
+
+    core_slice_iris = [
+        s.iri  # type: ignore[attr-defined]
+        for s in _discover_slices_cached().values()
+        if s.tier == "core"  # type: ignore[attr-defined]
+    ]
+    return gmeow_validate.LintConfig(
+        str(NAMESPACE),
+        str(ONTOLOGY_IRI),
+        sorted(_SELECTOR_TOKENS),
+        core_slice_iris,
+        sorted(str(p) for p in _ANNOTATION_PREDICATES),
+    )
 
 
 @lru_cache(maxsize=4)
@@ -117,6 +128,12 @@ class ValidationResult:
         self.warnings.extend(other.warnings)
 
 
+# DECISION (#579): KEEP this `.cache/validate` layer for this PR. It skips
+# re-running SHACL over unchanged inputs; removing it now risks a CI-time
+# regression with no offsetting benefit while the Rust validation path is new.
+# Re-assessing whether Rust-native revalidation is fast enough to drop the cache
+# is a tracked follow-up. See docs/validation-thresholds.md ("Validation cache
+# decision").
 _VALIDATION_CACHE_DIR = PROJECT_ROOT / ".cache" / "validate"
 
 
@@ -140,11 +157,12 @@ def _validation_toolchain_salt() -> str:
     """Return a cache salt for the SHACL validation toolchain versions.
 
     The production validation path is ``gmeow_shacl`` (the Rust validator) over
-    pyoxigraph-ingested data (#578). pyshacl/rdflib no longer gate the SHACL
-    result, so they are not part of the salt — one cache-invalidation regime.
+    oxigraph-ingested data (#578/#579). The legacy Python SHACL engine no longer
+    gates the result, so its versions are not part of the salt — one
+    cache-invalidation regime.
     """
     parts: list[str] = []
-    for package in ("gmeow-shacl", "pyoxigraph"):
+    for package in ("gmeow-shacl", "gmeow-validate"):
         try:
             version = metadata.version(package)
         except metadata.PackageNotFoundError:
@@ -215,37 +233,19 @@ def _cached_result(
     return result
 
 
-@lru_cache(maxsize=512)
-def _parse_file_ox(path: Path) -> _OxParseResult:
-    """Parse a single Turtle file with pyoxigraph, returning (quads, error).
-
-    Syntax validation and the sameAs ban scan overlapping source files. Keeping
-    that pass on pyoxigraph avoids building short-lived rdflib graphs for gates
-    that only need parse success plus a predicate/object scan.
-    """
-    try:
-        return tuple(pyoxigraph.parse(path.read_bytes(), format=_TURTLE)), None
-    except Exception as exc:
-        return None, exc
-
-
-def _ox_term_display(term: object) -> str:
-    """Return a readable RDF term string for pyoxigraph-backed diagnostics."""
-    if isinstance(term, pyoxigraph.NamedNode):
-        return term.value
-    if isinstance(term, pyoxigraph.BlankNode):
-        return f"_:{term.value}"
-    return str(term)
-
-
 def check_syntax() -> ValidationResult:
-    """Parse every source Turtle file individually to catch syntax errors."""
-    result = ValidationResult()
-    for source in iter_source_files():
-        _quads, exc = _parse_file_ox(source)
-        if exc is not None:
-            result.errors.append(f"syntax error in {source}: {exc}")
-    return result
+    """Parse every source Turtle file individually to catch syntax errors.
+
+    Runs through the Rust ``gmeow_validate`` extension (#579): the per-file
+    oxigraph parse and the ``"syntax error in {path}: {exc}"`` framing live in
+    Rust now, with no Python pyoxigraph fallback (the extension is a hard
+    dependency of the validation path).
+    """
+    report = gmeow_validate.check_syntax([str(p) for p in iter_source_files()])
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 def _authored_fixtures() -> list[Path]:
@@ -274,6 +274,11 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
 
     Returns:
         Validation result with one error per banned triple.
+
+    The scan runs through the Rust ``gmeow_validate`` extension (#579): the
+    per-quad ``owl:sameAs`` check, the namespace/allowlist filtering, and the
+    exact error framing live in Rust. There is no Python pyoxigraph fallback —
+    the extension is a hard dependency of the validation path.
     """
     if paths is None:
         paths = [
@@ -282,108 +287,18 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
         ]
     if not paths:
         raise ValueError("check_sameas_ban: paths to audit must not be empty")
-    result = ValidationResult()
-    for source in paths:
-        quads, exc = _parse_file_ox(source)
-        if exc is not None:
-            result.errors.append(f"failed to parse {source}: {exc}")
-            continue
-        assert quads is not None
-        for quad in quads:
-            subject = quad.subject
-            predicate = quad.predicate
-            obj_term = quad.object
-            if not isinstance(
-                predicate, pyoxigraph.NamedNode
-            ) or predicate.value != str(OWL.sameAs):
-                continue
-            if not isinstance(obj_term, pyoxigraph.NamedNode):
-                continue
-            obj = obj_term.value
-            if obj.startswith(NAMESPACE):
-                continue
-            subject_text = _ox_term_display(subject)
-            if (subject_text, obj) in _SAMEAS_ALLOWLIST:
-                continue
-            result.errors.append(
-                f"{source}: banned owl:sameAs to external entity "
-                f"{subject_text} owl:sameAs {obj} (Principle 5); "
-                f"use skos:exactMatch or gmeow:authorityLink"
-            )
-    return result
-
-
-def _is_gmeow_term(term: URIRef) -> bool:
-    """Return whether an IRI is the GMEOW root or lives in its namespace."""
-    s = str(term)
-    return s.startswith(NAMESPACE) or s == ONTOLOGY_IRI
-
-
-_TERM_KIND_ORDER = (
-    "ontology",
-    "class",
-    "property",
-    "annotation property",
-    "datatype",
-    "individual",
-)
-
-
-def _term_kind(graph: Graph, term: URIRef) -> str:
-    """Return the primary structural kind of a GMEOW term based on its rdf:type."""
-    types = set(graph.objects(term, RDF.type))
-    if OWL.Ontology in types:
-        return "ontology"
-    if OWL.Class in types:
-        return "class"
-    if OWL.AnnotationProperty in types:
-        return "annotation property"
-    if OWL.ObjectProperty in types or OWL.DatatypeProperty in types:
-        return "property"
-    if RDFS.Datatype in types:
-        return "datatype"
-    return "individual"
-
-
-def _collect_typed_terms(graph: Graph) -> dict[URIRef, str]:
-    """Map every GMEOW-namespaced term with an rdf:type to its primary kind.
-
-    Queries by type rather than scanning every subject, then resolves
-    multi-typed terms to the most specific kind using the canonical priority.
-    """
-    terms: dict[URIRef, str] = {}
-    typed_queries = (
-        OWL.Ontology,
-        OWL.Class,
-        OWL.ObjectProperty,
-        OWL.DatatypeProperty,
-        OWL.AnnotationProperty,
-        RDFS.Datatype,
+    report = gmeow_validate.check_sameas_ban(
+        [str(p) for p in paths],
+        str(NAMESPACE),
+        [(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
     )
-    for rdf_type in typed_queries:
-        for term in graph.subjects(RDF.type, rdf_type):
-            if not isinstance(term, URIRef) or not _is_gmeow_term(term):
-                continue
-            current = terms.get(term)
-            kind = _term_kind(graph, term)
-            if current is None or _TERM_KIND_ORDER.index(kind) < _TERM_KIND_ORDER.index(
-                current
-            ):
-                terms[term] = kind
-    # Any remaining GMEOW subjects with an explicit rdf:type are treated as individuals.
-    for term in set(graph.subjects(RDF.type, None)):
-        if isinstance(term, URIRef) and _is_gmeow_term(term) and term not in terms:
-            terms[term] = "individual"
-    return terms
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
-#: CamelCase tokens that mark a selector privileging one co-equal claim (P9).
-_SELECTOR_TOKENS = frozenset({"primary", "preferred", "default", "main"})
-
-_CAMEL_SPLIT = re.compile(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])")
-
-
-def term_naming_lint(graph: Graph) -> ValidationResult:
+def term_naming_lint(source_paths: list[str]) -> ValidationResult:
     """Principle 9 by annotation (#281): no selector names on ontology terms.
 
     Extends :func:`gmeow_tools.statement_lint.no_preferred_rank` from
@@ -393,24 +308,22 @@ def term_naming_lint(graph: Graph) -> ValidationResult:
     value-vocabulary names (``scriptRolePrimary``, ``sourceTierPrimary``)
     carry an explicit ``gmeow:namingNote`` justification — the lint enforces
     the judgment instead of relying on audit-time discretion.
+
+    Args:
+        source_paths: The Turtle source file paths to lint (the validation path
+            passes ``iter_source_files()``; tests serialize a synthetic graph to
+            a temp N-Triples file and pass its path — graph-free here, #579).
+
+    Routed through the Rust ``gmeow_validate.term_naming_lint`` engine (#579):
+    the CamelCase split, selector-token match, and ``gmeow:namingNote`` escape
+    hatch all live in Rust over an oxigraph store built from the source paths.
+    Python supplies only the typed config.
     """
-    naming_note = URIRef(NAMESPACE + "namingNote")
-    result = ValidationResult()
-    for term, kind in sorted(_collect_typed_terms(graph).items()):
-        local = str(term).removeprefix(NAMESPACE)
-        tokens = {t.lower() for t in _CAMEL_SPLIT.findall(local)}
-        offending = tokens & _SELECTOR_TOKENS
-        if not offending:
-            continue
-        if next(graph.objects(term, naming_note), None) is not None:
-            continue
-        result.errors.append(
-            f"{kind} gmeow:{local} carries the selector token "
-            f"{sorted(offending)[0]!r} (Principle 9: co-equal claims have no "
-            f"primary/preferred/default/main); rename it, or justify a "
-            f"value-vocabulary use with gmeow:namingNote"
-        )
-    return result
+    report = gmeow_validate.term_naming_lint(source_paths, _lint_config())
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 _SLICES_CACHE: dict[str, object] = {}
@@ -425,7 +338,7 @@ def _discover_slices_cached() -> dict[str, object]:
     return _SLICES_CACHE
 
 
-def structural_lint(graph: Graph) -> ValidationResult:
+def structural_lint(source_paths: list[str]) -> ValidationResult:
     """Check that every GMEOW term is fully annotated.
 
     Every GMEOW-namespaced ontology header, class, property, annotation
@@ -436,164 +349,71 @@ def structural_lint(graph: Graph) -> ValidationResult:
     multiple undocumented direct subclasses.
 
     Args:
-        graph: The merged ontology graph.
+        source_paths: The Turtle source file paths to lint (the validation path
+            passes ``iter_source_files()``; tests serialize a synthetic graph to
+            a temp N-Triples file and pass its path — graph-free here, #579).
 
     Returns:
         The validation result.
+
+    Routed through the Rust ``gmeow_validate.structural_lint`` engine (#579):
+    the per-term annotation checks, Tier-1 depth grading, consumer-context
+    check, dangling-target check, comprehensiveness heuristic, and the two
+    language-tag policy checks (Check 1 / Check 2, with the legacy ``Literal``
+    repr framing reproduced byte-exact) all live in Rust over an oxigraph
+    store built from the source paths. Python supplies only the typed config
+    (namespace, core-slice IRIs, annotation predicates).
     """
-    result = ValidationResult()
-    typed = _collect_typed_terms(graph)
-
-    for term, kind in sorted(typed.items(), key=lambda x: str(x[0])):
-        if (term, RDFS.label, None) not in graph:
-            result.errors.append(f"{kind} {term} is missing rdfs:label")
-        if (term, _DEFINITION, None) not in graph:
-            result.errors.append(f"{kind} {term} is missing skos:definition")
-        if (term, RDFS.isDefinedBy, None) not in graph:
-            result.errors.append(f"{kind} {term} is missing rdfs:isDefinedBy")
-
-    declared = set(typed)
-
-    # Tier-1 depth, graded (#325/#471): public-facing terms — classes and
-    # object/datatype properties in CORE slices — should also carry advisory
-    # useWhen/howToUse metadata; worked skos:example coverage is nudged only
-    # after howToUse exists, so warnings stay additive instead of duplicative.
-    # WARNINGS for now; severity is promoted once coverage is high (tracked by
-    # the module-status matrix). Annotation properties, individuals, and
-    # extension-tier terms are exempt at this grade.
-    core_slice_iris = {
-        URIRef(s.iri)  # type: ignore[attr-defined]
-        for s in _discover_slices_cached().values()
-        if s.tier == "core"  # type: ignore[attr-defined]
-    }
-    for term, kind in sorted(typed.items(), key=lambda x: str(x[0])):
-        if kind not in ("class", "property"):
-            continue
-        defined_by = set(graph.objects(term, RDFS.isDefinedBy))
-        if not (defined_by & core_slice_iris):
-            continue
-        if (term, _USE_WHEN, None) not in graph:
-            result.warnings.append(
-                f"{kind} {term} is missing gmeow:useWhen (Tier-1 depth, #471)"
-            )
-        has_how_to_use = (term, _HOW_TO_USE, None) in graph
-        if not has_how_to_use:
-            result.warnings.append(
-                f"{kind} {term} is missing gmeow:howToUse (Tier-1 depth, #471)"
-            )
-        elif (term, SKOS.example, None) not in graph:
-            result.warnings.append(
-                f"{kind} {term} has gmeow:howToUse but no skos:example "
-                f"(Tier-1 depth, #471)"
-            )
-
-    for predicate in (_USE_FOR_CONSUMER, _AVOID_FOR_CONSUMER):
-        for subject, _, consumer in graph.triples((None, predicate, None)):
-            if (
-                not isinstance(consumer, URIRef)
-                or (
-                    consumer,
-                    RDF.type,
-                    _PROJECTION_CONTEXT,
-                )
-                not in graph
-            ):
-                result.errors.append(
-                    f"{predicate} on {subject} points to non-ProjectionContext "
-                    f"value {consumer}"
-                )
-
-    # Dangling GMEOW subclass/subproperty targets.
-    for predicate in (RDFS.subClassOf, RDFS.subPropertyOf):
-        for _, _, target in graph.triples((None, predicate, None)):
-            if (
-                isinstance(target, URIRef)
-                and _is_gmeow_term(target)
-                and target not in declared
-            ):
-                result.errors.append(
-                    f"dangling {predicate} target (undeclared GMEOW term): {target}"
-                )
-
-    # Comprehensiveness heuristic: if a GMEOW class has ≥3 direct subclasses
-    # in the GMEOW namespace and ≥3 of them lack skos:definition, warn about
-    # the parent being under-documented. This surfaces systematic gaps even
-    # when the basic per-term check catches each individually. Blank-node
-    # restrictions and non-GMEOW children are filtered out.
-    parent_to_children: dict[URIRef, list[URIRef]] = {}
-    for child, _, parent in graph.triples((None, RDFS.subClassOf, None)):
-        if (
-            isinstance(child, URIRef)
-            and _is_gmeow_term(child)
-            and isinstance(parent, URIRef)
-            and _is_gmeow_term(parent)
-        ):
-            parent_to_children.setdefault(parent, []).append(child)
-    for parent, children in parent_to_children.items():
-        if len(children) < 3:
-            continue
-        missing = [c for c in children if (c, _DEFINITION, None) not in graph]
-        if len(missing) >= 3:
-            result.warnings.append(
-                f"class {parent} has {len(missing)} of {len(children)} "
-                f"direct subclasses missing skos:definition "
-                f"(systematic documentation gap)"
-            )
-
-    # Ensure all language-tagged string literals on GMEOW properties
-    # use the GMEOW-internal 'x-gmeow-' prefix.
-    import re
-
-    x_gmeow_pattern = re.compile(r"^x-gmeow-[a-z0-9\-]+$", re.IGNORECASE)
-    for s, p, o in graph:
-        # Check 1: literal on a GMEOW-namespace predicate.
-        if (
-            str(p).startswith(NAMESPACE)
-            and isinstance(o, Literal)
-            and o.language
-            and not x_gmeow_pattern.match(o.language)
-        ):
-            msg = (
-                f"literal {o!r} (on subject {s}, predicate {p}) carries "
-                f"external or invalid language tag '{o.language}'; "
-                f"GMEOW internal data must use the private-use 'x-gmeow-' prefix."
-            )
-            result.errors.append(msg)
-
-        # Check 2: literal on a standard annotation predicate when the subject
-        # is a GMEOW-authored term.
-        if (
-            isinstance(s, URIRef)
-            and isinstance(p, URIRef)
-            and isinstance(o, Literal)
-            and _is_gmeow_term(s)
-        ):
-            anno_msg = check_annotation_literal(s, p, o)
-            if anno_msg:
-                result.errors.append(anno_msg)
-
-    return result
+    report = gmeow_validate.structural_lint(source_paths, _lint_config())
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
-def reasoning_lint(graph: Graph) -> ValidationResult:
+def reasoning_lint(source_paths: list[str]) -> ValidationResult:
     """Wrap the UFO anti-pattern checks as a :class:`ValidationResult`.
 
-    Each :mod:`gmeow_tools.reasoning_lint` violation (missing/conflicting gUFO
-    stereotype, identity conflict, anti-rigidity breach, under-mediated relator)
-    becomes an error so ``make validate`` fails if the meta-grounding is incomplete.
+    Args:
+        source_paths: The Turtle source file paths to check (the validation path
+            passes ``iter_source_files()`` — graph-free here, #579).
+
+    Routed through the Rust ``gmeow_validate.reasoning_invariants`` engine
+    (#579): the six OntoUML anti-pattern checks run over an oxigraph store built
+    from the source paths. Each violation (missing/conflicting gUFO stereotype,
+    identity conflict, anti-rigidity breach, under-mediated relator, co-equal
+    facet collapse, missing frame declaration) becomes an error so ``make
+    validate`` fails if the meta-grounding is incomplete.
     """
-    result = ValidationResult()
-    result.errors.extend(reasoning_invariants(graph))
-    return result
+    report = gmeow_validate.reasoning_invariants(source_paths, str(NAMESPACE))
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
-def run_shacl(
-    data_graph: Graph, *, shapes_path: Path = SHAPES_FILE
-) -> ValidationResult:
-    """Validate a data graph against the GMEOW SHACL shapes.
+def merged_ntriples(source_paths: list[str]) -> str:
+    """Build the merged graph from *source_paths* as canonical N-Triples (#579).
+
+    The graph-free SHACL data seam: the oxigraph store is built in Rust from the
+    Turtle paths and dumped to N-Triples, which ``run_shacl`` hands to
+    ``gmeow_shacl``. No Python graph object is ever constructed on the path.
+
+    Raises:
+        ValueError: If any source fails to parse (hard-fail, no fallback).
+    """
+    nt: str = gmeow_validate.merge_to_ntriples(source_paths)
+    return nt
+
+
+def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationResult:
+    """Validate an N-Triples data graph against the GMEOW SHACL shapes.
 
     Args:
-        data_graph: The merged ontology graph to validate.
+        data_nt: The data graph to validate, serialized as N-Triples (produced by
+            :func:`merged_ntriples` in Rust — graph-free on the validation path,
+            #579). Out-of-path callers holding a Python graph (tests,
+            ``audit.py``) serialize it to N-Triples themselves before calling.
         shapes_path: Path to the SHACL shapes Turtle file.
 
     Returns:
@@ -612,7 +432,7 @@ def run_shacl(
         raise FileNotFoundError(f"SHACL shapes not found: {shapes_path}")
 
     shapes_ttl = _shapes_turtle(shapes_path)
-    report = shacl_engine.validate_graph(data_graph, shapes_ttl)
+    report = shacl_engine.validate_nt(data_nt, shapes_ttl)
     result = ValidationResult()
     if report["conforms"]:
         return result
@@ -634,6 +454,8 @@ def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
     """Validate every ``.ttl`` file under *dsl_dir* against its SHACL shapes.
 
     Returns a :class:`ValidationResult` whose errors carry per-file provenance.
+    The merged N-Triples and the focus→file map are built in Rust
+    (``gmeow_validate.dsl_merge_with_provenance``) — graph-free here (#579).
     """
     from gmeow_tools.dsl_validate import (
         validate_mapping_dsl,
@@ -641,18 +463,11 @@ def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
     )
 
     result = ValidationResult()
-    graph = Graph()
-    node_to_file: dict[Node, Path] = {}
-    for path in sorted(dsl_dir.rglob("*.ttl")):
-        graph.parse(path, format="turtle")
-        file_graph = Graph().parse(path, format="turtle")
-        for subject in file_graph.subjects():
-            if isinstance(subject, URIRef) and subject not in node_to_file:
-                node_to_file[subject] = path
+    dsl_paths = [str(p) for p in sorted(dsl_dir.rglob("*.ttl"))]
     if label == "mapping":
-        violations = validate_mapping_dsl(graph, node_to_file)
+        violations = validate_mapping_dsl(dsl_paths)
     else:
-        violations = validate_statement_dsl(graph, node_to_file)
+        violations = validate_statement_dsl(dsl_paths)
     if violations:
         result.errors.append(
             f"{label} DSL SHACL violations:\n  " + "\n  ".join(violations)
@@ -669,24 +484,23 @@ def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
     every term and keeps ownership honest through merges and GTS composition
     (a term claiming a foreign owner, or the retired root-pointing form, is an
     error).
+
+    Routed through the Rust ``gmeow_validate.slice_ownership_lint`` engine
+    (#579): each module is parsed ALONE in Rust and its GMEOW subjects'
+    ``rdfs:isDefinedBy`` objects are equality-checked against the owning slice
+    IRI. Python supplies the ``(module_path, expected_slice_iri)`` registry —
+    the slice-IRI derivation (``NAMESPACE + slices/<dir>``) stays here so the
+    file→slice convention is owned in one place.
     """
-    result = ValidationResult()
     modules = iter_slice_module_files(root) if root else iter_slice_module_files()
-    for module in modules:
-        slice_iri = URIRef(f"{NAMESPACE}slices/{module.parent.name}")
-        graph = Graph()
-        graph.parse(module, format="turtle")
-        for subject, obj in graph.subject_objects(RDFS.isDefinedBy):
-            if (
-                isinstance(subject, URIRef)
-                and _is_gmeow_term(subject)
-                and obj != slice_iri
-            ):
-                result.errors.append(
-                    f"{module}: {subject} rdfs:isDefinedBy {obj} — must equal "
-                    f"the owning slice IRI {slice_iri} (#329)"
-                )
-    return result
+    module_specs = [
+        (str(module), f"{NAMESPACE}slices/{module.parent.name}") for module in modules
+    ]
+    report = gmeow_validate.slice_ownership_lint(module_specs, _lint_config())
+    return ValidationResult(
+        errors=list(report["errors"]),
+        warnings=list(report["warnings"]),
+    )
 
 
 def _shacl_cache_inputs(shapes_path: Path = SHAPES_FILE) -> list[Path]:
@@ -742,37 +556,66 @@ def _dsl_shacl_cache_key(dsl_dir: Path, label: str) -> str:
     )
 
 
-def _run_example_shacl(merged: Graph, data: Graph) -> ValidationResult:
-    """Validate one example graph against the merged ontology graph."""
-    return run_shacl(merged + data)
+def _run_example_shacl(source_paths: list[str], example: Path) -> ValidationResult:
+    """Validate one example merged with the ontology against the SHACL shapes.
+
+    The merge (ontology sources + the example file) → N-Triples is built in Rust
+    (``merge_to_ntriples``) — no Python graph object (#579).
+    """
+    data_nt = merged_ntriples([*source_paths, str(example)])
+    return run_shacl(data_nt)
+
+
+def check_example_coverage(root: Path | None = None) -> ValidationResult:
+    """Every slice MUST ship at least one validating example (#579).
+
+    A slice with no ``examples/*.ttl`` file is an ERROR, not a silent advisory
+    skip: examples are canonical worked data and the only thing that keeps a
+    slice's terms exercised against the live SHACL shapes. File discovery stays
+    in Python (the per-example SHACL validation runs through Rust in
+    :func:`check_examples`); this gate only asserts the example's PRESENCE.
+
+    Mirrors the ``slices/*/*/manifest.ttl`` iteration used by
+    :func:`guide_anchor_lint` and :func:`slice_ownership_lint`.
+    """
+    base = root if root is not None else SLICES_DIR
+    result = ValidationResult()
+    for manifest in sorted(base.glob("*/*/manifest.ttl")):
+        slice_dir = manifest.parent
+        if not any(slice_dir.glob("examples/*.ttl")):
+            result.errors.append(
+                f"slice {slice_dir.name}: no examples/*.ttl — every slice must "
+                f"ship at least one validating example (#579)"
+            )
+    return result
 
 
 def check_examples(
-    merged: Graph, *, base_cache_key: str | None = None
+    source_paths: list[str], *, base_cache_key: str | None = None
 ) -> ValidationResult:
     """Validate every slice example against the ontology + SHACL (#332).
 
     Examples are canonical worked data, not test scaffolding: each file is
-    parsed, merged with the ontology, and SHACL-validated in isolation. Results
+    merged with the ontology sources and SHACL-validated in isolation. Results
     are cached by ontology/shapes/example content so repeated local and CI runs
-    do not spend minutes revalidating unchanged examples.
+    do not spend minutes revalidating unchanged examples. The merge runs in Rust
+    over file paths (graph-free, #579); a per-example parse failure surfaces as a
+    ``ValueError`` framed against the example path.
     """
     result = ValidationResult()
     base_cache_key = base_cache_key or _merged_shacl_cache_key()
     for example in iter_slice_example_files():
         name = example.relative_to(SLICES_DIR).as_posix()
-        data = Graph()
+        example_key = _cache_key([base_cache_key, _files_cache_key([example])])
         try:
-            data.parse(example, format="turtle")
-        except Exception as exc:
+            shacl = _cached_result(
+                "example-shacl",
+                example_key,
+                partial(_run_example_shacl, source_paths, example),
+            )
+        except ValueError as exc:
             result.errors.append(f"example {name}: does not parse: {exc}")
             continue
-        example_key = _cache_key([base_cache_key, _files_cache_key([example])])
-        shacl = _cached_result(
-            "example-shacl",
-            example_key,
-            partial(_run_example_shacl, merged, data),
-        )
         for err in shacl.errors:
             result.errors.append(f"example {name}: {err}")
         for warn in shacl.warnings:
@@ -789,18 +632,30 @@ _MALFORMED_ANCHOR_PATTERN = re.compile(
 _STUB_MARKER = "This is a STUB guide"
 
 
-def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResult:
+def guide_anchor_lint(
+    source_paths: list[str], root: Path | None = None
+) -> ValidationResult:
     """Tier-2 structural binding (#325): guides are bound to the graph.
 
     Every slice must carry a non-stub ``docs.md`` whose ``### gmeow:X``
     heading anchors resolve to declared GMEOW terms — a renamed term breaks
     the build, and a slice without a guide fails. Anchors owned by another
     slice are legal cross-references; anchors matching no term are errors.
+
+    Args:
+        source_paths: The Turtle source file paths whose declared GMEOW terms
+            the anchors resolve against (the validation path passes
+            ``iter_source_files()`` — graph-free here, #579).
+        root: Override the slice-discovery root (tests).
+
+    The declared-term set is computed by the Rust
+    ``gmeow_validate.declared_terms`` engine (#579) over the source paths; the
+    markdown anchor parsing and resolution stay in Python (plain string IRIs).
     """
     from gmeow_tools.config import SLICES_DIR
 
     result = ValidationResult()
-    declared = set(_collect_typed_terms(graph))
+    declared = set(gmeow_validate.declared_terms(source_paths, _lint_config()))
     base = root if root is not None else SLICES_DIR
     for manifest in sorted(base.glob("*/*/manifest.ttl")):
         slice_dir = manifest.parent
@@ -828,7 +683,7 @@ def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResul
                 f"guides should be term-anchored (#325)"
             )
         for local in anchors:
-            term = URIRef(NAMESPACE + local)
+            term = NAMESPACE + local
             if term not in declared:
                 result.errors.append(
                     f"slice {name}: docs.md anchors gmeow:{local}, which is "
@@ -842,18 +697,28 @@ def validate_all() -> ValidationResult:
     result = check_syntax()
     result.extend(check_sameas_ban())
     if not result.ok:
-        # No point loading a merged graph if a file will not parse or the
+        # No point building the merged graph if a file will not parse or the
         # sameAs ban is violated.
         return result
-    merged = load_merged_graph()
-    result.extend(structural_lint(merged))
-    result.extend(term_naming_lint(merged))
+    # The merged ontology is passed to every gate as FILE PATHS — the Rust
+    # lints/SHACL build their own oxigraph store; no Python graph object is ever
+    # constructed on the validation path (#579).
+    source_paths = [str(p) for p in iter_source_files()]
+    result.extend(structural_lint(source_paths))
+    result.extend(term_naming_lint(source_paths))
     result.extend(slice_ownership_lint())
-    result.extend(guide_anchor_lint(merged))
-    result.extend(reasoning_lint(merged))
+    result.extend(guide_anchor_lint(source_paths))
+    result.extend(reasoning_lint(source_paths))
     shacl_key = _merged_shacl_cache_key()
-    result.extend(_cached_result("merged-shacl", shacl_key, lambda: run_shacl(merged)))
-    result.extend(check_examples(merged, base_cache_key=shacl_key))
+    result.extend(
+        _cached_result(
+            "merged-shacl",
+            shacl_key,
+            lambda: run_shacl(merged_ntriples(source_paths)),
+        )
+    )
+    result.extend(check_example_coverage())
+    result.extend(check_examples(source_paths, base_cache_key=shacl_key))
     result.extend(
         _cached_result(
             "dsl-shacl",

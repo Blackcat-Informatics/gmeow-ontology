@@ -108,7 +108,7 @@ def test_wellformed_aboutness_fixture_conforms() -> None:
     """A carrier can describe one thing while enacting another — both cells valid."""
     from pathlib import Path
 
-    from gmeow_tools.validate import run_shacl
+    from tests._graph_nt import run_shacl
 
     g = Graph()
     g.parse(
@@ -123,7 +123,7 @@ def test_malformed_aboutness_fixture_is_flagged() -> None:
     """hasAboutness must target a vocabulary IRI, never a free literal."""
     from pathlib import Path
 
-    from gmeow_tools.validate import run_shacl
+    from tests._graph_nt import run_shacl
 
     g = Graph()
     g.parse(

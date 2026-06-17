@@ -272,7 +272,11 @@ def _gate_round_trip(source: Graph, output: Graph) -> GateResult:
             f"{total_recovered}/{total_src} addressable source triples "
             f"recovered ({overall:.0f}%)"
         ),
-        metrics={"recall_pct": overall, "recovered": float(total_recovered)},
+        metrics={
+            "recall_pct": overall,
+            "recovered": float(total_recovered),
+            "addressable": float(total_src),
+        },
         detail=detail,
     )
 
@@ -427,7 +431,10 @@ def _run_range_shacl(output: Graph, detail: list[str]) -> int:
         shapes = _generate_range_shapes(prefix)
         if shapes is None:
             continue
-        report = shacl_engine.validate_graph(output, shapes.serialize(format="turtle"))
+        # acceptance.py keeps its rdflib graph; the validation seam is N-Triples
+        # now (#579), so serialize here before handing it to gmeow_shacl.
+        output_nt = output.serialize(format="nt", encoding="utf-8").decode("utf-8")
+        report = shacl_engine.validate_nt(output_nt, shapes.serialize(format="turtle"))
         if report["conforms"]:
             continue
         n = len(report["results"])
@@ -502,6 +509,26 @@ def run_acceptance(source_path: Path, *, descend: bool = True) -> FileAcceptance
 def default_corpus() -> list[Path]:
     """The vendored real-world snapshots (the un-gameable parity targets)."""
     return sorted(EXTERNAL_FIXTURES_DIR.glob("*.ttl"))
+
+
+def corpus_recall_pct(results: Iterable[FileAcceptance]) -> float:
+    """The corpus-AGGREGATE round-trip recall %, pooled over every source.
+
+    Mirrors :func:`_gate_round_trip`'s own ``overall`` (a single
+    ``Σ recovered / Σ addressable`` ratio, *not* a mean of per-file
+    percentages), so the aggregate floor and the per-file scoreboard are read off
+    the same numerator/denominator. The per-file round-trip gate stays
+    scoreboard/soft (honest-scoreboard doctrine, #450); this aggregate is the one
+    HARD floor the corpus must clear.
+    """
+    total_src = total_recovered = 0.0
+    for fa in results:
+        for gate in fa.gates:
+            if gate.name == "round-trip-superset":
+                total_recovered += gate.metrics.get("recovered", 0.0)
+                total_src += gate.metrics.get("addressable", 0.0)
+                break
+    return 100.0 * total_recovered / total_src if total_src else 100.0
 
 
 def render_report(results: list[FileAcceptance]) -> str:

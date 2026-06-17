@@ -29,7 +29,7 @@ gmeow:MembershipFillsPostOrgMismatchShape
     a sh:NodeShape ;
     rdfs:label "Membership fillsPost org mismatch warning"@x-gmeow-english ;
     sh:targetClass gmeow:Membership ;
-    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
+    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it
     sh:sparql [
         sh:message "A Membership fills a Post whose organization differs from the membership's organization." ;
         sh:select """
@@ -50,7 +50,7 @@ gmeow:MergerAcquisitionEventShape
     a sh:NodeShape ;
     rdfs:label "Merger / acquisition event shape"@x-gmeow-english ;
     sh:targetClass gmeow:Event ;
-    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
+    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it
     sh:sparql [
         sh:message "A merger or acquisition event should have at least 2 predecessor organizations and at least 1 successor organization." ;
         sh:select """
@@ -81,7 +81,7 @@ gmeow:SplitSpinOffEventShape
     a sh:NodeShape ;
     rdfs:label "Split / spin-off event shape"@x-gmeow-english ;
     sh:targetClass gmeow:Event ;
-    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
+    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it
     sh:sparql [
         sh:message "A split or spin-off event should have at least 1 predecessor organization and at least 2 successor organizations." ;
         sh:select """

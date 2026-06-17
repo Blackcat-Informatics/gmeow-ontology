@@ -200,11 +200,14 @@ def build_snapshot_bytes(
     generator's render and the reproducibility tests, so there is exactly
     one definition of "the snapshot" (Principle 4).
     """
-    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.graph import iter_source_files, load_merged_graph
     from gmeow_tools.validate import guide_anchor_lint
 
     graph = load_merged_graph(include_imports=False)
-    lint = guide_anchor_lint(graph)
+    # guide_anchor_lint is graph-free now (#579): it takes the source PATHS and
+    # builds its own oxigraph store. The graph above is still used by the doc-blob
+    # builders below.
+    lint = guide_anchor_lint([str(p) for p in iter_source_files(include_imports=False)])
     if lint.errors:
         details = "; ".join(lint.errors[:5])
         msg = (

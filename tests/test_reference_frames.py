@@ -3,7 +3,7 @@
 from rdflib import Graph, Literal, Namespace
 from rdflib.namespace import RDF, XSD
 
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 EX = Namespace("https://example.org/test/")
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")

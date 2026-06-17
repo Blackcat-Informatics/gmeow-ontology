@@ -6,14 +6,19 @@ into dataclass parsing. Violations are surfaced as structured, per-node
 diagnostics (focus node, path, message, source file) so malformed DSL cells
 fail with an RDF-native conformance report rather than a bare Python
 :exc:`CompileError`.
+
+The merged N-Triples and the focus→file provenance map are both built in Rust
+(``gmeow_validate.dsl_merge_with_provenance``): each ``.ttl`` file is parsed in
+order and every named subject is mapped to the FIRST file it appears in. This
+module therefore constructs no Python graph object at all — the validation path
+is graph-free end to end (#579).
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import Graph, URIRef
-from rdflib.term import Node
+import gmeow_validate
 
 from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
@@ -24,7 +29,7 @@ from gmeow_tools.shacl_engine import ShaclResult
 
 
 def _format_violations(
-    results: list[ShaclResult], node_to_file: dict[Node, Path]
+    results: list[ShaclResult], focus_to_file: dict[str, str]
 ) -> list[str]:
     """Extract structured SHACL results into readable, enriched lines.
 
@@ -47,36 +52,38 @@ def _format_violations(
         # Source provenance only applies to named-IRI focus nodes (gmeow_shacl
         # renders them as <iri>); blank nodes carry no file mapping.
         if focus is not None and focus.startswith("<") and focus.endswith(">"):
-            src = node_to_file.get(URIRef(focus[1:-1]))
+            src = focus_to_file.get(focus[1:-1])
             if src is not None:
                 parts.append(f"source={src}")
         violations.append(" | ".join(parts))
     return violations
 
 
-def _validate_dsl(
-    graph: Graph,
-    shapes_path: Path,
-    node_to_file: dict[Node, Path],
-) -> list[str]:
-    """Validate ``graph`` against the DSL shapes at ``shapes_path`` (gmeow_shacl).
+def _validate_dsl(dsl_paths: list[str], shapes_path: Path) -> list[str]:
+    """Validate the merged DSL ``dsl_paths`` against the shapes at ``shapes_path``.
 
+    Builds the merged N-Triples and the focus→file map in Rust, validates via
+    ``gmeow_shacl``, and enriches each violation with ``source=`` from the map.
     Returns a list of formatted violation strings (empty == conformant).
 
     Raises:
         FileNotFoundError: If the shapes file is missing.
-        ValueError: Propagated from ``gmeow_shacl`` on a parse/validate error
-            (hard-fail, never a silent conforms — P11/§11).
+        ValueError: Propagated from the Rust merge (a DSL file that fails to
+            parse) or from ``gmeow_shacl`` (a parse/validate error) — hard-fail,
+            never a silent conforms (P11/§11).
     """
     if not shapes_path.exists():
         raise FileNotFoundError(f"DSL SHACL shapes not found: {shapes_path}")
 
+    data_nt, focus_pairs = gmeow_validate.dsl_merge_with_provenance(dsl_paths)
+    focus_to_file: dict[str, str] = dict(focus_pairs)
+
     shapes_ttl = shapes_path.read_text(encoding="utf-8")
-    report = shacl_engine.validate_graph(graph, shapes_ttl)
+    report = shacl_engine.validate_nt(data_nt, shapes_ttl)
     if report["conforms"]:
         return []
 
-    violations = _format_violations(report["results"], node_to_file)
+    violations = _format_violations(report["results"], focus_to_file)
     # Defensive: a non-conforming report with no parseable results must still
     # surface (gmeow_shacl reports conforms == results-empty, so unreachable).
     if not violations:
@@ -84,29 +91,25 @@ def _validate_dsl(
     return violations
 
 
-def validate_mapping_dsl(graph: Graph, node_to_file: dict[Node, Path]) -> list[str]:
-    """Validate a merged mapping DSL graph.
+def validate_mapping_dsl(dsl_paths: list[str]) -> list[str]:
+    """Validate the merged mapping DSL sources.
 
     Args:
-        graph: The merged mapping DSL graph.
-        node_to_file: Mapping from named IRIs to the source ``.ttl`` file
-            they were first seen in.
+        dsl_paths: The mapping DSL ``.ttl`` source paths to merge and validate.
 
     Returns:
         A list of formatted violation strings; empty when conformant.
     """
-    return _validate_dsl(graph, MAPPING_DSL_SHAPES_FILE, node_to_file)
+    return _validate_dsl(dsl_paths, MAPPING_DSL_SHAPES_FILE)
 
 
-def validate_statement_dsl(graph: Graph, node_to_file: dict[Node, Path]) -> list[str]:
-    """Validate a merged statement DSL graph.
+def validate_statement_dsl(dsl_paths: list[str]) -> list[str]:
+    """Validate the merged statement DSL sources.
 
     Args:
-        graph: The merged statement DSL graph.
-        node_to_file: Mapping from named IRIs to the source ``.ttl`` file
-            they were first seen in.
+        dsl_paths: The statement DSL ``.ttl`` source paths to merge and validate.
 
     Returns:
         A list of formatted violation strings; empty when conformant.
     """
-    return _validate_dsl(graph, STATEMENT_DSL_SHAPES_FILE, node_to_file)
+    return _validate_dsl(dsl_paths, STATEMENT_DSL_SHAPES_FILE)

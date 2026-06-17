@@ -81,6 +81,9 @@ jobs:
       - name: Build + install gmeow_shacl extension (#576)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
+      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
       - name: gmeow_shacl extension imports
         run: uv run python -c "import gmeow_shacl; print('gmeow_shacl at', gmeow_shacl.__file__)"
 
@@ -143,6 +146,9 @@ jobs:
       # "No module named 'gmeow_logic'" and the Principle-7 gate is vacuous.
       - name: Build + install gmeow_logic extension (#504 — conformance resolves goals through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
+
+      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
 
       # CI-only Python tests cover heavyweight generated docs, GTS snapshot
       # determinism, and secondary export surfaces. Keep module scopes together
@@ -231,25 +237,14 @@ jobs:
       - name: Build + install gmeow_shacl extension (#578 — validate runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
+      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run --package gmeow-dev gmeow-dev validate
 
       - name: Engine cross-check (rdflib ≡ pyoxigraph on every query)
         run: uv run --package gmeow-dev gmeow-dev crosscheck-queries
-
-      - name: SHACL dual-run cross-check (pySHACL ≡ gmeow_shacl, #578 — report-only)
-        # Report-only this PR: the CLI writes the divergence ledger and prints any
-        # divergences but always exits 0. #579 makes this gate blocking and then
-        # removes pySHACL + the cross-check from the tree.
-        run: uv run --package gmeow-dev gmeow-dev shacl-crosscheck
-
-      - name: Upload SHACL divergence ledger
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: shacl-divergence-ledger
-          path: dist/shacl-divergence-ledger.ttl
-          if-no-files-found: ignore
 
       - name: Full-registry drift gate (statements has its own Docker-backed job)
         run: uv run --package gmeow-dev gmeow-dev check-generated --skip statements
@@ -263,8 +258,11 @@ jobs:
       - name: Wikidata QID/PID syntax gate
         run: uv run --package gmeow-dev gmeow-dev wikidata
 
-      - name: Coverage gaps
-        run: uv run --package gmeow-dev gmeow-dev coverage --gaps
+      - name: Vendored-entity coverage — hard class/predicate floors (#579)
+        run: uv run --package gmeow-dev gmeow-dev coverage --gaps --min-class 0.92 --min-predicate 0.85
+
+      - name: Transpile acceptance — hard aggregate recall floor (#579)
+        run: uv run --package gmeow-dev gmeow-dev acceptance --min-recall 60
 
       - name: Alignment direction lint
         run: uv run --package gmeow-dev gmeow-dev lint-alignment
@@ -380,6 +378,9 @@ jobs:
       - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
+      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
       - name: Build the pinned Jena image (RDF 1.2 engine) + pull ROBOT
         run: |
           JENA_IMAGE=$(uv run python -c "from gmeow_tools.config import JENA_IMAGE; print(JENA_IMAGE)")
@@ -417,6 +418,9 @@ jobs:
 
       - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
+
+      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
 
       - name: RDF 1.2 + OWL-form no-drift gate (pyoxigraph cross-check)
         run: uv run --package gmeow-dev gmeow-dev compile-statements-pyoxigraph

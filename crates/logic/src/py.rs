@@ -125,7 +125,7 @@ fn rule_iri_from_name(rule_name: Option<&str>) -> String {
 /// - `source_quad_ids` — list of IRI strings
 /// - `profile`         — IRI string
 /// - `budget_status`   — canonical lowercase string (`"ok"`, `"partial"`, `"exhausted"`)
-fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<PyObject> {
+fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>> {
     let d = PyDict::new(py);
     d.set_item("graph", dq.graph.as_str())?;
     d.set_item("subject", dq.subject.to_string())?;
@@ -137,7 +137,7 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<PyObject> 
     d.set_item("source_quad_ids", &dq.source_quad_ids)?;
     d.set_item("profile", &dq.profile)?;
     d.set_item("budget_status", dq.budget_status.as_str())?;
-    Ok(d.into())
+    Ok(d.into_any().unbind())
 }
 
 // ── materialize ───────────────────────────────────────────────────────────────
@@ -211,7 +211,7 @@ fn materialize(
     max_rule_firings: Option<u64>,
     max_answers: Option<u64>,
     time_ms: Option<u64>,
-) -> PyResult<Vec<PyObject>> {
+) -> PyResult<Vec<Py<PyAny>>> {
     // Start the post-fixpoint wall-clock the instant we enter (the chase itself is
     // not interruptible; `time_ms` bounds the post-chase decode/bookkeeping — see
     // the budget-governor docs above and the honesty paragraph in README.md).
@@ -264,7 +264,7 @@ fn materialize(
 
     // ── 4. Run the Nemo chase (GIL released) ─────────────────────────────────
     let rows_with_prov: Vec<ChaseRowWithProvenance> = py
-        .allow_threads(|| run_chase(rls))
+        .detach(|| run_chase(rls))
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("chase error: {e}")))?;
 
     // ── 5. Decode ChaseRows → DerivedQuads with real provenance ──────────────
@@ -342,7 +342,7 @@ fn materialize(
                         "row[{idx}] antecedent decode error: {e}"
                     ))
                 })?;
-            let source_refs: Vec<&str> = sources.iter().map(|s| s.as_str()).collect();
+            let source_refs: Vec<&str> = sources.iter().map(|s: &String| s.as_str()).collect();
             let deriv = mint_derivation_id(&rule, &source_refs);
             (rule, sources, deriv)
         };
@@ -511,7 +511,7 @@ fn apply_budget(
 ///
 /// Returns a Python `ValueError` if `rules` is not parseable Nemo `.rls`.
 #[pyfunction]
-fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<PyObject> {
+fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
     let verdict = certify_rules(rules, profile).map_err(|e| {
         pyo3::exceptions::PyValueError::new_err(format!("certify parse error: {e}"))
     })?;
@@ -523,7 +523,7 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<PyObject> {
     d.set_item("decidability_class", decidability_class)?;
     d.set_item("profile_id", profile_id)?;
     d.set_item("violations", violations)?;
-    Ok(d.into())
+    Ok(d.into_any().unbind())
 }
 
 // ── query ───────────────────────────────────────────────────────────────────
@@ -568,7 +568,7 @@ fn query(
     world_iri: Option<&str>,
     max_answers: Option<usize>,
     max_steps: Option<u64>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let value_err = |msg: String| pyo3::exceptions::PyValueError::new_err(msg);
 
     // 1. Load the materialized EDB into a world-indexed store.
@@ -619,7 +619,7 @@ fn query(
     let result = PyDict::new(py);
     result.set_item("bindings", bindings)?;
     result.set_item("status", answer.status.as_str())?;
-    Ok(result.into())
+    Ok(result.into_any().unbind())
 }
 
 // ── Module registration ───────────────────────────────────────────────────────

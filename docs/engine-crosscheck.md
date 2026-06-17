@@ -18,9 +18,8 @@ full-ontology validation is unchanged:
 
 - **Jena** emits the canonical RDF 1.2 lead artifact and runs OWL reasoning
   (ELK / HermiT via ROBOT). pyoxigraph does **not** reason.
-- **pyshacl / rdflib** remains the canonical SHACL engine. pyoxigraph does **not**
-  validate SHACL. (`run_shacl` now caches the parsed shapes graph, which is the
-  only SHACL speedup — the engine is unchanged.)
+- **`gmeow_shacl`** (Rust + oxigraph) is the canonical SHACL engine. pyoxigraph
+  does **not** validate SHACL.
 
 What licenses the suite to trust the fast engine is the **engine-equivalence
 gate** (`gmeow crosscheck-queries`, `make crosscheck`, and the CI `ontology`

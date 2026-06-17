@@ -166,7 +166,10 @@ def audit_graph(paths: list[Path], *, include_imports: bool = False) -> AuditRep
         union.add(triple)
     for path in paths:
         union.parse(path, format="turtle")
-    shacl = run_shacl(union)
+    # audit.py keeps its rdflib union; the SHACL seam is N-Triples now (#579), so
+    # serialize here before handing it to run_shacl.
+    union_nt = union.serialize(format="nt", encoding="utf-8").decode("utf-8")
+    shacl = run_shacl(union_nt)
     report.shacl_errors = shacl.errors
     report.shacl_warnings = shacl.warnings
     report.claims = _flat_claims(store, report)

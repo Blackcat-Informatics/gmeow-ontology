@@ -47,7 +47,7 @@ Tier-2 uplift backlog.
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | core | 0 | 15 | 17 | 17 | 0 | 0/32 | full |
+| logic | core | core | 0 | 15 | 17 | 17 | 1 | 0/32 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
@@ -60,7 +60,7 @@ Tier-2 uplift backlog.
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 51/51 | full |
 | places | core | core | 7 | 46 | 140 | 0 | 1 | 186/186 | full |
 | procedures | extension | extensions | 2 | 9 | 26 | 0 | 1 | - | full |
-| profiles | core | core | 3 | 1 | 4 | 0 | 0 | 4/5 | full |
+| profiles | core | core | 3 | 1 | 4 | 0 | 1 | 4/5 | full |
 | provenance | core | core | 3 | 4 | 9 | 0 | 1 | 10/13 | full |
 | quality | core | core | 2 | 2 | 2 | 0 | 1 | 4/4 | full |
 | rights | core | core | 4 | 22 | 48 | 0 | 1 | 70/70 | full |

@@ -6,9 +6,10 @@ Principles 4, 5, 6, 9, 11, 12, 15, 16.
 from __future__ import annotations
 
 from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from tests._graph_nt import run_shacl
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import ValidationResult, run_shacl
+from gmeow_tools.validate import ValidationResult
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 GUFO = Namespace("http://purl.org/nemo/gufo#")

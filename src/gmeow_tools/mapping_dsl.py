@@ -612,7 +612,6 @@ def load_dsl(src: Path = MAPPING_DSL_DIR) -> Dsl:
     process (true for the CLI, the test suite, and CI).
     """
     graph = Graph()
-    node_to_file: dict[Node, Path] = {}
     sources = sorted(src.rglob("*.ttl"))
     if src == MAPPING_DSL_DIR:
         # Slices carry their own mapping cells (slices/*/*/mappings/*.ttl,
@@ -620,12 +619,10 @@ def load_dsl(src: Path = MAPPING_DSL_DIR) -> Dsl:
         sources += iter_slice_mapping_files()
     for path in sources:
         graph.parse(path, format="turtle")
-        # Track source file for named IRIs (second parse is harmless).
-        file_graph = Graph().parse(path, format="turtle")
-        for subject in file_graph.subjects():
-            if isinstance(subject, URIRef) and subject not in node_to_file:
-                node_to_file[subject] = path
-    violations = validate_mapping_dsl(graph, node_to_file)
+    # SHACL validation + focus→file provenance run in Rust over the same source
+    # paths (#579): the compiler keeps the rdflib graph only for its dataclass
+    # extraction below.
+    violations = validate_mapping_dsl([str(path) for path in sources])
     if violations:
         raise CompileError(
             "mapping DSL SHACL violations:\n  " + "\n  ".join(violations)
