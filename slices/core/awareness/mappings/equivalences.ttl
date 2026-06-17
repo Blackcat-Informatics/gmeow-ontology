@@ -63,7 +63,7 @@ gmeow:eqAwareness001 a gmeow:TermEquivalence ;
 # reference. The shared notion is unarousable unresponsiveness, hence a low-confidence relatedMatch.
 gmeow:eqAwareness002 a gmeow:TermEquivalence ;
     rdfs:label "levelUnresponsive ↔ Glasgow Coma Scale low range relatedMatch"@x-gmeow-english ;
-    skos:definition "Loose relatedMatch (confidence 0.4) between gmeow:levelUnresponsive — the lowest arousal rung, the floor of coma — and the lowest range of the Glasgow Coma Scale. The shared notion is unarousable unresponsiveness; the GCS is a clinical scoring scale, gmeow:levelUnresponsive an ordinal arousal value, so the alignment is by reference and deliberately loose."@x-gmeow-english ;
+    skos:definition "Loose relatedMatch (confidence 0.3) between gmeow:levelUnresponsive — the lowest arousal rung, the floor of coma — and the lowest range of the Glasgow Coma Scale. The shared notion is unarousable unresponsiveness; the GCS is a clinical scoring scale, gmeow:levelUnresponsive an ordinal arousal value, so the alignment is by reference and deliberately loose."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     gmeow:alignSubject gmeow:levelUnresponsive ;
     gmeow:alignPredicate skos:relatedMatch ;
