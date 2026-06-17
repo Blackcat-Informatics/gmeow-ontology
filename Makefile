@@ -96,8 +96,13 @@ wikidata-audit: ## Audit fixtures and modules for Wikidata misuse (offline).
 coverage: ## Report how much of the vendored entity slice GMEOW covers (hard gate).
 	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
 
-acceptance: ## Score the full transpile against the real external/ snapshots (#450).
-	$(GMEOW_DEV) acceptance
+# The aggregate round-trip recall floor (#579). Set just below the current
+# measured corpus aggregate (paudley+bii ≈ 64%) with anti-flake margin. The
+# per-file gates stay scoreboard/soft; only this pooled aggregate is hard.
+ACCEPTANCE_MIN_RECALL ?= 60
+
+acceptance: ## Score the full transpile against external/ snapshots; hard aggregate recall floor (#450/#579).
+	$(GMEOW_DEV) acceptance --min-recall $(ACCEPTANCE_MIN_RECALL)
 
 crossref: ## Generate the CrossRef DOI deposit XML.
 	$(GMEOW_DEV) crossref
@@ -184,7 +189,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in its own CI job).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage reason verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason verify mappings-only lint-alignment
 	$(MAKE) test-fast
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed"

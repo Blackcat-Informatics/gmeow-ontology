@@ -1267,6 +1267,12 @@ def acceptance(
         "--floor",
         help="Use the per-term floor instead of the context-aware descent.",
     ),
+    min_recall: float | None = typer.Option(
+        None,
+        "--min-recall",
+        help="HARD aggregate floor (#579): if the corpus-aggregate round-trip "
+        "recall %% falls below this, fail with exit 1. Omit for report-only.",
+    ),
 ) -> None:
     """Score the full transpile against real data — the honest scoreboard (#450).
 
@@ -1275,9 +1281,20 @@ def acceptance(
     invariant (hard), external-validator (no x-gmeow leak hard; term-attestation
     and SHACL-from-vendored-axioms report-only), and the honest coverage report.
     The corpus is the verbatim ``external/`` snapshots — numbers that cannot be
-    moved by writing fixtures. A progress meter, not a CI blocker.
+    moved by writing fixtures.
+
+    The per-file round-trip gate stays a scoreboard (red until done). Passing
+    ``--min-recall`` adds a SEPARATE *aggregate* floor (#579): the pooled
+    Σ recovered / Σ addressable recall across the whole corpus must clear it, or
+    the command hard-fails — making the transpile gate block without demanding
+    100%% per-file recall (honest-scoreboard doctrine preserved).
     """
-    from gmeow_tools.acceptance import default_corpus, render_report, run_acceptance
+    from gmeow_tools.acceptance import (
+        corpus_recall_pct,
+        default_corpus,
+        render_report,
+        run_acceptance,
+    )
 
     sources = [source] if source is not None else default_corpus()
     if not sources:
@@ -1296,6 +1313,18 @@ def acceptance(
     for fa in results:
         verdict = "[green]PASS[/green]" if fa.passed else "[red]FAIL[/red]"
         err_console.print(f"{verdict} {fa.source}")
+
+    if min_recall is not None:
+        aggregate = corpus_recall_pct(results)
+        if aggregate < min_recall:
+            raise _fail(
+                f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
+                f"the floor {min_recall:.2f}% ({len(results)} source(s))"
+            )
+        err_console.print(
+            f"[green]✓[/green] corpus-aggregate round-trip recall "
+            f"{aggregate:.2f}% ≥ floor {min_recall:.2f}%"
+        )
 
 
 _EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")

@@ -261,6 +261,9 @@ jobs:
       - name: Coverage gaps
         run: uv run --package gmeow-dev gmeow-dev coverage --gaps
 
+      - name: Transpile acceptance — hard aggregate recall floor (#579)
+        run: uv run --package gmeow-dev gmeow-dev acceptance --min-recall 60
+
       - name: Alignment direction lint
         run: uv run --package gmeow-dev gmeow-dev lint-alignment
 
