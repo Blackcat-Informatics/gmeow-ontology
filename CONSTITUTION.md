@@ -386,20 +386,25 @@ so nothing is lost in the move from lint to logic.
 The native `logic:` solver is the **reasoning authority**; ELK, HermiT, and the Datalog / SHACL
 engines become **secondary validators of their projected fragments**. This supersedes the
 OWL-2-DL-core framing of Principles 2, 8, and 12 (annotated there). Correctness is **verified by
-construction** (Principle 7): a slow, correct Python oracle and a fast Rust core (oxigraph + Nemo +
-an embedded Prolog, bound by PyO3/wasm — the Principle 13 tool pattern, the #277 model) must pass
-**one shared, language-neutral conformance corpus** identically. The reasoner remains *our* quality
-assurance, never the consumer's prerequisite (Principle 13): the canon is maximal; the projections
-are what anyone else consumes.
+construction** (Principle 7): the **Rust core is canonical** (oxigraph + Nemo + an embedded Prolog,
+bound by PyO3 — the Principle 13 tool pattern, the #277 model), and every committed conformance
+golden is the derivation graph it produces. The slow, independent Python oracle is retained as a
+**secondary validator** — it must agree with the Rust core on the shared, language-neutral
+conformance corpus — but it is no longer the spec. The reasoner remains *our* quality assurance,
+never the consumer's prerequisite (Principle 13): the canon is maximal; the projections are what
+anyone else consumes.
 
-*Embodied in:* the GMEOW Logic design set
+*Embodied in:* the `logic:` implementation — the [`crates/logic`](./crates/logic) Rust core
+(the reasoning authority) and the Python runner / oracle in
+[`src/gmeow_tools/`](./src/gmeow_tools/), authored from the GMEOW Logic design set
 ([`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) and its semantics /
-runtime / migration / conformance siblings). *Tested by* (on landing): the logic conformance corpus
-(oracle ≡ engine, Principle 7), the `logic:` ↔ OWL round-trip isomorphism gate, and the
-foundation-conformance gate (the gUFO downcast passes `reasoning_lint.py` unchanged). This principle
-and its enforcement gates land **together with** the `logic:` implementation; until then it governs
-the design and ships as an amendment-in-the-open (see *Amending this Constitution*), with its
-machine-readable entry added to [`governance/constitution.ttl`](./governance/constitution.ttl).
+runtime / migration / conformance siblings). The EPIC (#497) has landed: its MVP ladder shipped as
+children #498–#506. *Tested by:* the logic conformance corpus (native solver ≡ committed goldens,
+Principle 7 — `meta:gate-logic-conformance`), the `logic:` → OWL / Datalog / N3 / gUFO round-trip
+isomorphism gate (`meta:gate-logic-round-trip`), and the foundation-conformance gate (the gUFO
+downcast passes `reasoning_lint.py` unchanged, evaluated natively — `meta:gate-foundation-conformance`).
+The machine-readable enforcement lives in
+[`governance/constitution.ttl`](./governance/constitution.ttl).
 
 ---
 

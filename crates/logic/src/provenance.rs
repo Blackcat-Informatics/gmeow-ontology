@@ -192,6 +192,27 @@ pub fn mint_reifier(s: &Term, p: &NamedNode, o: &Term) -> Result<String, String>
     Ok(format!("{}{}", REIFIER_PREFIX, digest))
 }
 
+/// Compute the reifier IRI from already-serialized N3 component strings.
+///
+/// `subject` and `predicate` are IRI strings (NOT N3-wrapped — this helper wraps
+/// them in `<...>`); `obj_n3` is the object already in canonical N3 form (`<iri>`
+/// for an IRI, `"lex"^^<dt>` for a literal, etc.) and is used **verbatim**.
+///
+/// This mirrors the Python `_reifier_from_quad` in `logic_explain.py` exactly:
+/// ```text
+/// payload = f"<{subject}> <{predicate}> {obj_n3}"
+/// digest  = sha1(payload.encode("utf-8")).hexdigest()
+/// iri     = f"{NAMESPACE}reifier/{digest}"
+/// ```
+///
+/// Used by the explanation engine ([`crate::explain`]), whose rows carry the
+/// object already as an N3 string (it never re-parses the object term).
+pub(crate) fn reifier_from_strings(subject: &str, predicate: &str, obj_n3: &str) -> String {
+    let canonical = format!("<{}> <{}> {}", subject, predicate, obj_n3);
+    let digest = sha1_hex(&canonical);
+    format!("{}{}", REIFIER_PREFIX, digest)
+}
+
 // ── mint_derivation_id ───────────────────────────────────────────────────────
 
 /// Compute the derivation IRI for a rule firing.

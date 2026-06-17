@@ -237,15 +237,29 @@ meta:tests-claim-pattern a meta:TestSuite ;
     meta:artifact "tests/test_audit.py", "tests/test_evals.py",
         "tests/fixtures/coverage/hallucination-kg.ttl" .
 
-meta:practice-logic-design a meta:Practice ;
-    rdfs:label "GMEOW Logic design set — amendment-in-the-open (Principle 17, pre-implementation)"@x-gmeow-english ;
-    rdfs:comment "Practice-only enforcement: Principle 17 governs the design while `logic:` is unimplemented, so it surfaces as a warning (never silently). On landing, this is replaced by the logic conformance corpus (oracle ≡ engine), the logic↔OWL round-trip gate, and the foundation-conformance gate."@en ;
-    meta:artifact "slices/core/logic/design/LOGIC.md",
-        "slices/core/logic/design/LOGIC-SEMANTICS.md",
-        "slices/core/logic/design/LOGIC-RUNTIME.md",
-        "slices/core/logic/design/LOGIC-MIGRATION.md",
-        "slices/core/logic/design/LOGIC-CONFORMANCE.md",
-        "slices/core/logic/design/LOGIC-REFERENCES.md" .
+# Principle 17 enforcement — the EPIC (#497) has landed (children #498–#506).
+# The design-stage `meta:practice-logic-design` placeholder is retired and
+# replaced by the three real gates promised in its retirement comment: the
+# conformance corpus (the native Rust solver ≡ the committed goldens), the
+# logic→OWL/Datalog/N3/gUFO round-trip, and the gUFO foundation downcast.
+# Rust is the reasoning authority (the "maximally use Rust" doctrine); the
+# Python oracle is a secondary validator (test_logic_oracle_engine_parity.py).
+meta:gate-logic-conformance a meta:Gate ;
+    rdfs:label "the logic: conformance corpus — native solver ≡ committed goldens (Principle 7/17)"@x-gmeow-english ;
+    meta:artifact "src/gmeow_tools/logic_runner.py", "conformance/logic/README.md" ;
+    meta:symbol "discover_cases", "run" ;
+    meta:makeTarget "conformance" ;
+    meta:cliCommand "conformance" .
+
+meta:gate-logic-round-trip a meta:Gate ;
+    rdfs:label "logic→OWL DL/EL, Datalog, N3, gUFO projection round-trip isomorphism + preservation ledger (#500)"@x-gmeow-english ;
+    meta:artifact "tests/test_logic_conformance.py", "src/gmeow_tools/logic_projections.py" ;
+    meta:symbol "project_nemo", "build_projection_report" .
+
+meta:gate-foundation-conformance a meta:Gate ;
+    rdfs:label "gUFO foundation downcast ≡ reasoning_lint verdicts — native Rust evaluator (#503/#641)"@x-gmeow-english ;
+    meta:artifact "tests/test_logic_foundation_lint_equivalence.py", "crates/logic/src/foundation.rs" ;
+    meta:symbol "evaluate" .
 
 # --------------------------------------------------------------------------- #
 # The principles
@@ -342,4 +356,5 @@ meta:Principle16 a meta:Principle ;
 meta:Principle17 a meta:Principle ;
     meta:number 17 ;
     meta:title "The logic itself is canonical — OWL is a projection of it, not its ceiling" ;
-    meta:enforcedBy meta:practice-logic-design .
+    meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
+        meta:gate-foundation-conformance .
