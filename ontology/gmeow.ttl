@@ -54,6 +54,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/expertise> ,
         <https://blackcatinformatics.ca/gmeow/slices/gender> ,
         <https://blackcatinformatics.ca/gmeow/slices/gts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/imagination> ,
         <https://blackcatinformatics.ca/gmeow/slices/inference> ,
         <https://blackcatinformatics.ca/gmeow/slices/inquiry> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,

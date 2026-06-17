@@ -906,6 +906,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -1024,6 +1033,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -11935,6 +11953,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -12053,6 +12080,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -21730,6 +21766,25 @@
               "contentDispositionInline"
             ],
             "title": "ContentDispositionEnum",
+            "type": "string"
+          },
+          "ContentOrigin": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ContentOrigin",
+            "type": "object"
+          },
+          "ContentOriginEnum": {
+            "description": "",
+            "enum": [
+              "originBelieved",
+              "originGenerated",
+              "originImagined",
+              "originPerceived",
+              "originRemembered",
+              "originSupposed"
+            ],
+            "title": "ContentOriginEnum",
             "type": "string"
           },
           "ContentSegment": {
@@ -96115,6 +96170,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "industryClassification": {
                 "items": {
                   "$ref": "#/$defs/Identifier"
@@ -96289,6 +96353,15 @@
               "subOrganizationOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -101341,6 +101414,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -101486,6 +101568,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -131146,6 +131237,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -131264,6 +131364,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -139444,6 +139553,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -139562,6 +139680,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },

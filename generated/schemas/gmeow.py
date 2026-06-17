@@ -484,6 +484,15 @@ class ContentDispositionEnum(str, Enum):
     inline = "contentDispositionInline"
 
 
+class ContentOriginEnum(str, Enum):
+    believed = "originBelieved"
+    generated = "originGenerated"
+    imagined = "originImagined"
+    perceived = "originPerceived"
+    remembered = "originRemembered"
+    supposed = "originSupposed"
+
+
 class ContentSegmentTypeEnum(str, Enum):
     back_matter = "segmentTypeBackMatter"
     chapter = "segmentTypeChapter"
@@ -3175,6 +3184,9 @@ class Agent(ConfiguredBaseModel):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    imagines: Optional[list[str]] = Field(default=None, title="imagines", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/imagines'} })
     inquiresInto: Optional[list[str]] = Field(default=None, title="inquires into", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inquiresInto'} })
@@ -3217,6 +3229,9 @@ class Agent(ConfiguredBaseModel):
     slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
+    supposes: Optional[list[str]] = Field(default=None, title="supposes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supposes'} })
     suspendsJudgementOn: Optional[list[str]] = Field(default=None, title="suspends judgement on", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/suspendsJudgementOn'} })
@@ -3852,6 +3867,14 @@ class ContentDisposition(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ContentDisposition',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Content Disposition'})
+
+    pass
+
+
+class ContentOrigin(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ContentOrigin',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Content Origin'})
 
     pass
 
@@ -30388,6 +30411,9 @@ class Organization(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    imagines: Optional[list[str]] = Field(default=None, title="imagines", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/imagines'} })
     inquiresInto: Optional[list[str]] = Field(default=None, title="inquires into", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inquiresInto'} })
@@ -30430,6 +30456,9 @@ class Organization(Agent):
     slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
+    supposes: Optional[list[str]] = Field(default=None, title="supposes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supposes'} })
     suspendsJudgementOn: Optional[list[str]] = Field(default=None, title="suspends judgement on", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/suspendsJudgementOn'} })
@@ -31690,6 +31719,9 @@ class Person(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    imagines: Optional[list[str]] = Field(default=None, title="imagines", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/imagines'} })
     inquiresInto: Optional[list[str]] = Field(default=None, title="inquires into", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inquiresInto'} })
@@ -31732,6 +31764,9 @@ class Person(Agent):
     slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
+    supposes: Optional[list[str]] = Field(default=None, title="supposes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supposes'} })
     suspendsJudgementOn: Optional[list[str]] = Field(default=None, title="suspends judgement on", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/suspendsJudgementOn'} })
@@ -42194,6 +42229,9 @@ class Sensor(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    imagines: Optional[list[str]] = Field(default=None, title="imagines", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/imagines'} })
     inquiresInto: Optional[list[str]] = Field(default=None, title="inquires into", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inquiresInto'} })
@@ -42236,6 +42274,9 @@ class Sensor(Agent):
     slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
+    supposes: Optional[list[str]] = Field(default=None, title="supposes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supposes'} })
     suspendsJudgementOn: Optional[list[str]] = Field(default=None, title="suspends judgement on", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/suspendsJudgementOn'} })
@@ -45543,6 +45584,9 @@ class SoftwareAgent(Agent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    imagines: Optional[list[str]] = Field(default=None, title="imagines", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/imagines'} })
     inquiresInto: Optional[list[str]] = Field(default=None, title="inquires into", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inquiresInto'} })
@@ -45585,6 +45629,9 @@ class SoftwareAgent(Agent):
     slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
+    supposes: Optional[list[str]] = Field(default=None, title="supposes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supposes'} })
     suspendsJudgementOn: Optional[list[str]] = Field(default=None, title="suspends judgement on", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/suspendsJudgementOn'} })
@@ -45670,6 +45717,9 @@ class Builder(SoftwareAgent):
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
+    imagines: Optional[list[str]] = Field(default=None, title="imagines", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/imagines'} })
     inquiresInto: Optional[list[str]] = Field(default=None, title="inquires into", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inquiresInto'} })
@@ -45712,6 +45762,9 @@ class Builder(SoftwareAgent):
     slogan: Optional[list[str]] = Field(default=None, title="slogan", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/slogan'} })
+    supposes: Optional[list[str]] = Field(default=None, title="supposes", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supposes'} })
     suspendsJudgementOn: Optional[list[str]] = Field(default=None, title="suspends judgement on", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/suspendsJudgementOn'} })
@@ -60766,6 +60819,7 @@ ConstraintOperator.model_rebuild()
 ContactPoint.model_rebuild()
 ContactPointType.model_rebuild()
 ContentDisposition.model_rebuild()
+ContentOrigin.model_rebuild()
 ContentSegmentType.model_rebuild()
 ContentTransferEncoding.model_rebuild()
 Contract.model_rebuild()

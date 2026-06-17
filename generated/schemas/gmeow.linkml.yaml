@@ -85,6 +85,7 @@ classes:
     - holdsAccount
     - holdsCredential
     - holdsKey
+    - imagines
     - inquiresInto
     - interestedIn
     - isAwareOf
@@ -99,6 +100,7 @@ classes:
     - remembers
     - seeksToKnow
     - slogan
+    - supposes
     - suspendsJudgementOn
     - telephone
     - understands
@@ -620,6 +622,9 @@ classes:
   ContentDisposition:
     class_uri: https://blackcatinformatics.ca/gmeow/ContentDisposition
     title: Content Disposition
+  ContentOrigin:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContentOrigin
+    title: Content Origin
   ContentSegment:
     class_uri: https://blackcatinformatics.ca/gmeow/ContentSegment
     title: Content Segment
@@ -5321,6 +5326,11 @@ slots:
     range: Language
     domain: Work
     multivalued: true
+  contentOrigin:
+    slot_uri: https://blackcatinformatics.ca/gmeow/contentOrigin
+    title: content origin
+    range: ContentOrigin
+    multivalued: true
   contractAddress:
     slot_uri: https://blackcatinformatics.ca/gmeow/contractAddress
     title: contract address
@@ -7926,6 +7936,17 @@ slots:
     range: decimal
     domain: MediaObject
     multivalued: false
+  imaginedWorld:
+    slot_uri: https://blackcatinformatics.ca/gmeow/imaginedWorld
+    title: imagined world
+    range: uriorcurie
+    multivalued: true
+  imagines:
+    slot_uri: https://blackcatinformatics.ca/gmeow/imagines
+    title: imagines
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
   implicates:
     slot_uri: https://blackcatinformatics.ca/gmeow/implicates
     title: implicates
@@ -11607,6 +11628,12 @@ slots:
     range: boolean
     domain: CitationAct
     multivalued: true
+  supposes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supposes
+    title: supposes
+    range: uriorcurie
+    domain: Agent
+    multivalued: true
   suspendsJudgementOn:
     slot_uri: https://blackcatinformatics.ca/gmeow/suspendsJudgementOn
     title: suspends judgement on
@@ -13500,6 +13527,27 @@ enums:
       contentDispositionInline:
         meaning: https://blackcatinformatics.ca/gmeow/contentDispositionInline
         title: inline
+  ContentOriginEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ContentOrigin
+    permissible_values:
+      originBelieved:
+        meaning: https://blackcatinformatics.ca/gmeow/originBelieved
+        title: believed
+      originGenerated:
+        meaning: https://blackcatinformatics.ca/gmeow/originGenerated
+        title: generated
+      originImagined:
+        meaning: https://blackcatinformatics.ca/gmeow/originImagined
+        title: imagined
+      originPerceived:
+        meaning: https://blackcatinformatics.ca/gmeow/originPerceived
+        title: perceived
+      originRemembered:
+        meaning: https://blackcatinformatics.ca/gmeow/originRemembered
+        title: remembered
+      originSupposed:
+        meaning: https://blackcatinformatics.ca/gmeow/originSupposed
+        title: supposed
   ContentSegmentTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContentSegmentType
     permissible_values:

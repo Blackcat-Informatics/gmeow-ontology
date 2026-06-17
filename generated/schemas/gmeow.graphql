@@ -434,6 +434,16 @@ enum ContentDispositionEnum
     contentDispositionInline
   }
 
+enum ContentOriginEnum
+  {
+    originBelieved
+    originGenerated
+    originImagined
+    originPerceived
+    originRemembered
+    originSupposed
+  }
+
 enum ContentSegmentTypeEnum
   {
     segmentTypeBackMatter
@@ -3353,6 +3363,7 @@ type Agent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -3367,6 +3378,7 @@ type Agent
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -4687,6 +4699,7 @@ type Builder
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -4701,6 +4714,7 @@ type Builder
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -5894,6 +5908,10 @@ type ContainmentTenure
   }
 
 type ContentDisposition
+  {
+  }
+
+type ContentOrigin
   {
   }
 
@@ -14834,6 +14852,7 @@ type Organization
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -14848,6 +14867,7 @@ type Organization
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -15379,6 +15399,7 @@ type Person
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -15393,6 +15414,7 @@ type Person
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -18946,6 +18968,7 @@ type Sensor
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -18960,6 +18983,7 @@ type Sensor
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -20010,6 +20034,7 @@ type SoftwareAgent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -20024,6 +20049,7 @@ type SoftwareAgent
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
