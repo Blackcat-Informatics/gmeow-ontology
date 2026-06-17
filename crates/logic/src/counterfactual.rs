@@ -42,6 +42,11 @@ use crate::versioning::{counterfactual_world_key, CounterfactualKeyInputs};
 /// its own `depth_budget(N)`.
 pub const DEFAULT_DEPTH_BUDGET: u64 = 4;
 
+/// Hard cap on the number of closest worlds an opt-in Lewis multi-world profile
+/// will enumerate. A closest-world set larger than this degrades to
+/// [`CfStatus::Incomplete`] rather than branching without bound.
+pub const DEFAULT_BRANCH_BUDGET: u64 = 16;
+
 /// Combined Nemo + Scryer solver version stamped into the counterfactual cache
 /// key. A bump in **either** backend must invalidate cached counterfactual
 /// worlds, so this is a single string that moves when the engine crate moves —
@@ -180,23 +185,18 @@ pub fn construct_and_resolve_cached(
     let entrench = Entrenchment::read_from_world(store, &base_world)?;
     let base_facts = base_world_facts(store, &base_world);
 
-    // (2) Resolve the antecedent into a deterministic per-slot value, arbitrating
-    //     internal over-determination by entrenchment. A genuine tie → Unknown.
-    let admitted = match resolve_antecedent(&cf.antecedent, &entrench)? {
-        AntecedentResolution::Facts(f) => f,
-        AntecedentResolution::Tie => {
-            return Ok(CfAnswer {
-                bindings: vec![],
-                status: CfStatus::Unknown,
-                cf_world,
-            });
-        }
-    };
+    // (2) Resolve the antecedent into per-slot maximal admissible values.
+    //     A unique maximum is the deterministic choice; an incomparable maximum
+    //     leaves several values — a genuine tie that the two profiles treat
+    //     differently (deterministic → unknown; Lewis → one closest world each).
+    let choices = slot_choices(&cf.antecedent, &entrench)?;
+    let world_count: usize = choices.iter().map(|c| c.values.len()).product();
+    let lewis = crate::profile_gate::lewis_mode(profile);
 
-    // (3) Compute the cache key over the exact inputs that determine the world.
+    // (3) Compute the cache key over the exact inputs that determine the world(s).
     let key = counterfactual_world_key(&CounterfactualKeyInputs {
         base_world_hash: hash_facts(&base_facts),
-        antecedent_hash: hash_facts(&admitted),
+        antecedent_hash: hash_choices(&choices),
         rule_set_hash: hash_rules(program),
         entrenchment_hash: entrench.hash(),
         profile: profile.to_owned(),
@@ -208,37 +208,63 @@ pub fn construct_and_resolve_cached(
     }
     cache.misses += 1;
 
-    // (4) Minimal AGM revision: B with each admitted slot overwritten by A.
-    //     A fresh, isolated named graph W_cf — the base graph is never touched.
-    let cf_store = WorldStore::new();
-    let admitted_slots: BTreeSet<(String, String)> = admitted
-        .iter()
-        .map(|(s, p, _)| (s.clone(), p.clone()))
-        .collect();
-    for (s, p, o) in &base_facts {
-        // Drop any base fact in a slot the antecedent overwrites (functional
-        // overwrite); copy the rest verbatim into W_cf.
-        if admitted_slots.contains(&(s.clone(), p.clone())) {
-            continue;
+    // (4) Profile-specific handling of an over-determined revision.
+    let early = if lewis.is_none() && world_count > 1 {
+        // Deterministic revision: a non-unique closest world is a genuine tie.
+        // The engine declines to branch and reports unknown.
+        Some(CfStatus::Unknown)
+    } else if lewis.is_some() && world_count as u64 > DEFAULT_BRANCH_BUDGET {
+        // Lewis multi-world: a closest-world set past the hard branch budget
+        // degrades to incomplete rather than enumerating without bound.
+        Some(CfStatus::Incomplete)
+    } else {
+        None
+    };
+    if let Some(status) = early {
+        let r = CfAnswer {
+            bindings: vec![],
+            status,
+            cf_world,
+        };
+        cache.entries.insert(key, r.clone());
+        return Ok(r);
+    }
+
+    // (5) Build each closest world (the cartesian product of per-slot choices) as
+    //     a *fresh* isolated named graph and resolve φ inside it. A single
+    //     deterministic world uses W_cf directly; Lewis branches get per-branch
+    //     graph IRIs. The base graph is never touched, so nothing leaks.
+    let worlds = cartesian(&choices);
+    let mut per_world: Vec<(BTreeSet<Binding>, CfStatus)> = Vec::with_capacity(worlds.len());
+    for (i, admitted) in worlds.iter().enumerate() {
+        let world_iri = if worlds.len() == 1 {
+            cf_world.clone()
+        } else {
+            format!("{cf_world}/lewis/{i}")
+        };
+        per_world.push(resolve_in_world(
+            &base_facts,
+            admitted,
+            program,
+            profile,
+            budget,
+            &world_iri,
+        )?);
+    }
+
+    let result = match lewis {
+        None => {
+            let (bindings, status) = per_world
+                .into_iter()
+                .next()
+                .expect("deterministic revision constructs exactly one world");
+            CfAnswer {
+                bindings: bindings.into_iter().collect(),
+                status,
+                cf_world,
+            }
         }
-        cf_store.insert_quad(&cf_world, s, p, o);
-    }
-    for (s, p, o) in &admitted {
-        cf_store.insert_quad(&cf_world, s, p, o);
-    }
-
-    // (5) Resolve φ inside W_cf via the v4 dispatcher (Horn rules over the revised
-    //     EDB). The constructed world is a separate graph; the goal binds only
-    //     against W_cf, so nothing leaks from or into the base store.
-    let cf_world_nn = oxigraph::model::NamedNode::new(&cf_world)
-        .map_err(|e| format!("invalid W_cf IRI {cf_world:?}: {e}"))?;
-    let foreign = WorldStoreForeign::from_world(&cf_store, &cf_world, profile)?;
-    let answer = dispatch_query(&foreign, &cf_store, &cf_world_nn, program, profile, budget)?;
-
-    let result = CfAnswer {
-        bindings: answer.bindings,
-        status: CfStatus::from_budget(answer.status),
-        cf_world,
+        Some(mode) => combine_lewis(mode, per_world, cf_world),
     };
     cache.entries.insert(key, result.clone());
     Ok(result)
@@ -246,25 +272,23 @@ pub fn construct_and_resolve_cached(
 
 // ── Antecedent resolution ────────────────────────────────────────────────────
 
-/// The outcome of resolving the antecedent's per-slot values.
-enum AntecedentResolution {
-    /// A unique ground fact per slot: `(subject, predicate, object)`.
-    Facts(Vec<(String, String, String)>),
-    /// Two `assume` atoms gave incomparable values for one slot — a genuine tie.
-    Tie,
+/// One functional slot's admissible values after entrenchment arbitration.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct SlotChoice {
+    subject: String,
+    predicate: String,
+    /// The maximal admissible values: exactly one when the slot has a unique
+    /// most-entrenched value; the incomparable maxima (≥2) on a genuine tie.
+    values: Vec<String>,
 }
 
-/// Resolve the antecedent atoms into one admitted fact per functional slot.
+/// Resolve the antecedent atoms into per-slot maximal admissible values.
 ///
 /// Atoms are grouped by `(subject, predicate)`. A slot with a single value admits
-/// it. A slot with multiple distinct values is internally over-determined; the
-/// **most-entrenched** value wins, and an incomparable maximum yields
-/// [`AntecedentResolution::Tie`].
-fn resolve_antecedent(
-    antecedent: &[QAtom],
-    entrench: &Entrenchment,
-) -> Result<AntecedentResolution, String> {
-    // slot (s, p) -> sorted distinct object values
+/// it. A slot with several distinct values is internally over-determined; the
+/// **most-entrenched** value(s) are kept — one when comparable, the incomparable
+/// maxima when not (a genuine tie surfaced to the caller as a multi-value slot).
+fn slot_choices(antecedent: &[QAtom], entrench: &Entrenchment) -> Result<Vec<SlotChoice>, String> {
     let mut slots: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
     for atom in antecedent {
         let s = const_iri(&atom.args[0])
@@ -274,21 +298,132 @@ fn resolve_antecedent(
         slots.entry((s, atom.pred.clone())).or_default().insert(o);
     }
 
-    let mut admitted: Vec<(String, String, String)> = Vec::new();
+    let mut choices: Vec<SlotChoice> = Vec::new();
     for ((s, p), values) in slots {
         let vals: Vec<String> = values.into_iter().collect();
-        let chosen = match vals.as_slice() {
-            [single] => single.clone(),
+        let maximal = match vals.as_slice() {
+            [single] => vec![single.clone()],
             _ => match entrench.most_entrenched(&vals) {
-                LeastEntrenched::Unique(v) => v,
-                LeastEntrenched::Tie(_) => return Ok(AntecedentResolution::Tie),
+                LeastEntrenched::Unique(v) => vec![v],
+                LeastEntrenched::Tie(t) => t,
                 LeastEntrenched::Empty => return Err("internal: empty antecedent slot".to_owned()),
             },
         };
-        admitted.push((s, p, chosen));
+        choices.push(SlotChoice {
+            subject: s,
+            predicate: p,
+            values: maximal,
+        });
     }
-    admitted.sort();
-    Ok(AntecedentResolution::Facts(admitted))
+    Ok(choices)
+}
+
+/// Enumerate the cartesian product of per-slot choices into one admitted fact-set
+/// per closest world. With no over-determination this is a single set; an empty
+/// antecedent yields one empty set (a world identical to the base).
+fn cartesian(choices: &[SlotChoice]) -> Vec<Vec<(String, String, String)>> {
+    let mut worlds: Vec<Vec<(String, String, String)>> = vec![vec![]];
+    for sc in choices {
+        let mut next: Vec<Vec<(String, String, String)>> = Vec::new();
+        for prefix in &worlds {
+            for v in &sc.values {
+                let mut extended = prefix.clone();
+                extended.push((sc.subject.clone(), sc.predicate.clone(), v.clone()));
+                next.push(extended);
+            }
+        }
+        worlds = next;
+    }
+    for w in &mut worlds {
+        w.sort();
+    }
+    worlds
+}
+
+/// Build one isolated world `world_iri` from `base_facts` with the `admitted`
+/// slots overwritten, then resolve `program`'s goal inside it. Returns the
+/// deduplicated binding set and the resolution status.
+fn resolve_in_world(
+    base_facts: &[(String, String, String)],
+    admitted: &[(String, String, String)],
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    world_iri: &str,
+) -> Result<(BTreeSet<Binding>, CfStatus), String> {
+    let cf_store = WorldStore::new();
+    let admitted_slots: BTreeSet<(String, String)> = admitted
+        .iter()
+        .map(|(s, p, _)| (s.clone(), p.clone()))
+        .collect();
+    for (s, p, o) in base_facts {
+        // Functional overwrite: drop base facts in any slot the antecedent sets.
+        if admitted_slots.contains(&(s.clone(), p.clone())) {
+            continue;
+        }
+        cf_store.insert_quad(world_iri, s, p, o);
+    }
+    for (s, p, o) in admitted {
+        cf_store.insert_quad(world_iri, s, p, o);
+    }
+
+    let world_nn = oxigraph::model::NamedNode::new(world_iri)
+        .map_err(|e| format!("invalid constructed world IRI {world_iri:?}: {e}"))?;
+    let foreign = WorldStoreForeign::from_world(&cf_store, world_iri, profile)?;
+    let answer = dispatch_query(&foreign, &cf_store, &world_nn, program, profile, budget)?;
+    Ok((
+        answer.bindings.into_iter().collect(),
+        CfStatus::from_budget(answer.status),
+    ))
+}
+
+/// Combine per-closest-world resolutions under a Lewis quantifier:
+/// **skeptical** keeps bindings true in *every* closest world (intersection);
+/// **credulous** keeps bindings true in *some* world (union). The combined status
+/// is the most-degraded per-world status (`ok` only if all worlds resolved `ok`).
+fn combine_lewis(
+    mode: crate::profile_gate::LewisMode,
+    per_world: Vec<(BTreeSet<Binding>, CfStatus)>,
+    cf_world: String,
+) -> CfAnswer {
+    use crate::profile_gate::LewisMode;
+    let status = per_world
+        .iter()
+        .map(|(_, s)| *s)
+        .fold(CfStatus::Ok, worst_status);
+
+    let mut iter = per_world.into_iter().map(|(b, _)| b);
+    let combined: BTreeSet<Binding> = match iter.next() {
+        None => BTreeSet::new(),
+        Some(first) => iter.fold(first, |acc, next| match mode {
+            LewisMode::Skeptical => acc.intersection(&next).cloned().collect(),
+            LewisMode::Credulous => acc.union(&next).cloned().collect(),
+        }),
+    };
+
+    CfAnswer {
+        bindings: combined.into_iter().collect(),
+        status,
+        cf_world,
+    }
+}
+
+/// Pick the more-degraded of two statuses for Lewis status folding.
+fn worst_status(a: CfStatus, b: CfStatus) -> CfStatus {
+    fn rank(s: CfStatus) -> u8 {
+        match s {
+            CfStatus::Ok => 0,
+            CfStatus::Partial => 1,
+            CfStatus::Exhausted => 2,
+            CfStatus::Incomplete => 3,
+            CfStatus::Unknown => 4,
+        }
+    }
+    if rank(a) >= rank(b) {
+        a
+    } else {
+        b
+    }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -329,6 +464,29 @@ fn hash_facts(facts: &[(String, String, String)]) -> [u8; 32] {
         buf.push_str("> <");
         buf.push_str(o);
         buf.push_str(">\n");
+    }
+    *blake3::hash(buf.as_bytes()).as_bytes()
+}
+
+/// BLAKE3 of the per-slot antecedent choices (subject, predicate, sorted values).
+/// Captures the full closest-world fan-out so the cache key distinguishes a
+/// deterministic single-value antecedent from an over-determined one.
+fn hash_choices(choices: &[SlotChoice]) -> [u8; 32] {
+    let mut buf = String::new();
+    for c in choices {
+        buf.push('<');
+        buf.push_str(&c.subject);
+        buf.push_str("> <");
+        buf.push_str(&c.predicate);
+        buf.push('>');
+        let mut vals = c.values.clone();
+        vals.sort();
+        for v in &vals {
+            buf.push_str(" <");
+            buf.push_str(v);
+            buf.push('>');
+        }
+        buf.push('\n');
     }
     *blake3::hash(buf.as_bytes()).as_bytes()
 }
@@ -583,5 +741,123 @@ mod tests {
         assert_eq!(CfStatus::Ok.as_str(), "ok");
         assert_eq!(CfStatus::Unknown.as_str(), "unknown");
         assert_eq!(CfStatus::Incomplete.as_str(), "incomplete");
+    }
+
+    // ── Lewis multi-world profile (opt-in, budget-capped) ─────────────────────
+
+    const LEWIS_SKEPTICAL: &str = "https://blackcatinformatics.ca/logic/LewisSkepticalProfile";
+    const LEWIS_CREDULOUS: &str = "https://blackcatinformatics.ca/logic/LewisCredulousProfile";
+
+    fn two_world_program() -> QProgram {
+        // {blue, green} are incomparable -> two closest worlds under Lewis.
+        parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:flag(ex:x, ex:blue)).\n\
+             :- assume(ex:flag(ex:x, ex:green)).\n\
+             ?- ex:flag(ex:x, Z).\n",
+        )
+        .unwrap()
+    }
+
+    fn seeded_base() -> WorldStore {
+        let store = WorldStore::new();
+        store.insert_quad(BASE, "https://ex/seed", "https://ex/p", "https://ex/o");
+        store
+    }
+
+    #[test]
+    fn lewis_skeptical_intersects_closest_worlds() {
+        let store = seeded_base();
+        let ans = construct_and_resolve(
+            &store,
+            &two_world_program(),
+            LEWIS_SKEPTICAL,
+            &Budget::default(),
+            4,
+        )
+        .unwrap();
+        assert_eq!(ans.status, CfStatus::Ok);
+        // Z=blue holds only in the blue-world, Z=green only in the green-world:
+        // the intersection is empty.
+        assert!(
+            ans.bindings.is_empty(),
+            "skeptical: no binding holds in every closest world: {ans:?}"
+        );
+    }
+
+    #[test]
+    fn lewis_credulous_unions_closest_worlds() {
+        let store = seeded_base();
+        let ans = construct_and_resolve(
+            &store,
+            &two_world_program(),
+            LEWIS_CREDULOUS,
+            &Budget::default(),
+            4,
+        )
+        .unwrap();
+        assert_eq!(ans.status, CfStatus::Ok);
+        // Union over both closest worlds: Z in {blue, green}.
+        let zs: BTreeSet<&str> = ans.bindings.iter().map(|b| b["Z"].as_str()).collect();
+        assert_eq!(
+            zs,
+            BTreeSet::from(["<https://ex/blue>", "<https://ex/green>"]),
+            "credulous: union of both closest worlds: {ans:?}"
+        );
+    }
+
+    #[test]
+    fn lewis_branch_budget_trips_to_incomplete() {
+        // 5 independent binary-incomparable slots -> 2^5 = 32 closest worlds,
+        // past DEFAULT_BRANCH_BUDGET (16) -> Incomplete.
+        let store = seeded_base();
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:a(ex:s1, ex:v1)).\n\
+             :- assume(ex:a(ex:s1, ex:w1)).\n\
+             :- assume(ex:a(ex:s2, ex:v2)).\n\
+             :- assume(ex:a(ex:s2, ex:w2)).\n\
+             :- assume(ex:a(ex:s3, ex:v3)).\n\
+             :- assume(ex:a(ex:s3, ex:w3)).\n\
+             :- assume(ex:a(ex:s4, ex:v4)).\n\
+             :- assume(ex:a(ex:s4, ex:w4)).\n\
+             :- assume(ex:a(ex:s5, ex:v5)).\n\
+             :- assume(ex:a(ex:s5, ex:w5)).\n\
+             ?- ex:a(ex:s1, Z).\n",
+        )
+        .unwrap();
+        let ans =
+            construct_and_resolve(&store, &prog, LEWIS_SKEPTICAL, &Budget::default(), 4).unwrap();
+        assert_eq!(
+            ans.status,
+            CfStatus::Incomplete,
+            "32 worlds exceeds the branch budget"
+        );
+    }
+
+    #[test]
+    fn lewis_does_not_change_deterministic_single_world() {
+        // A single-valued antecedent is one world even under a Lewis profile.
+        let store = WorldStore::new();
+        store.insert_quad(
+            BASE,
+            "https://ex/server",
+            "https://ex/status",
+            "https://ex/up",
+        );
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ?- ex:status(ex:server, Z).\n",
+        )
+        .unwrap();
+        let ans =
+            construct_and_resolve(&store, &prog, LEWIS_CREDULOUS, &Budget::default(), 4).unwrap();
+        assert_eq!(ans.status, CfStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1);
+        assert_eq!(ans.bindings[0]["Z"], "<https://ex/down>");
     }
 }

@@ -77,6 +77,47 @@ fn is_procedural_profile(profile: &str) -> bool {
         || profile.ends_with(PROCEDURAL_SHORT_NAME)
 }
 
+// ── Lewis multi-world profile recognition (#505) ─────────────────────────────
+
+/// The opt-in, budget-capped Lewis multi-world profiles. Non-default: Stratum-C
+/// resolves under the deterministic-revision profile unless one of these is named.
+pub const LEWIS_SKEPTICAL_PROFILE: &str =
+    "https://blackcatinformatics.ca/logic/LewisSkepticalProfile";
+/// Credulous counterpart of [`LEWIS_SKEPTICAL_PROFILE`].
+pub const LEWIS_CREDULOUS_PROFILE: &str =
+    "https://blackcatinformatics.ca/logic/LewisCredulousProfile";
+
+const LEWIS_SKEPTICAL_SHORT: &str = "LewisSkepticalProfile";
+const LEWIS_CREDULOUS_SHORT: &str = "LewisCredulousProfile";
+
+/// Lewis quantifier over the closest counterfactual worlds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LewisMode {
+    /// φ holds iff it holds in **every** closest world (intersection of answers).
+    Skeptical,
+    /// φ holds iff it holds in **some** closest world (union of answers).
+    Credulous,
+}
+
+/// Return the [`LewisMode`] a profile denotes, or `None` for the default
+/// deterministic-revision profile. Matching mirrors [`is_procedural_profile`]:
+/// full IRI, bare short name, or any prefixed form ending in the short name.
+pub fn lewis_mode(profile: &str) -> Option<LewisMode> {
+    if profile == LEWIS_SKEPTICAL_PROFILE
+        || profile == LEWIS_SKEPTICAL_SHORT
+        || profile.ends_with(LEWIS_SKEPTICAL_SHORT)
+    {
+        Some(LewisMode::Skeptical)
+    } else if profile == LEWIS_CREDULOUS_PROFILE
+        || profile == LEWIS_CREDULOUS_SHORT
+        || profile.ends_with(LEWIS_CREDULOUS_SHORT)
+    {
+        Some(LewisMode::Credulous)
+    } else {
+        None
+    }
+}
+
 // ── Unit tests ─────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -185,6 +226,35 @@ mod tests {
         assert!(check_cut_profile(&prog, HORN_PROFILE).is_ok());
         assert!(check_cut_profile(&prog, "").is_ok());
         assert!(check_cut_profile(&prog, "SomeRandomProfile").is_ok());
+    }
+
+    // ── Lewis profile recognition (#505) ──────────────────────────────────────
+
+    #[test]
+    fn lewis_mode_recognizes_full_iri_and_short_and_prefixed() {
+        assert_eq!(
+            lewis_mode(LEWIS_SKEPTICAL_PROFILE),
+            Some(LewisMode::Skeptical)
+        );
+        assert_eq!(
+            lewis_mode("LewisSkepticalProfile"),
+            Some(LewisMode::Skeptical)
+        );
+        assert_eq!(
+            lewis_mode("logic:LewisCredulousProfile"),
+            Some(LewisMode::Credulous)
+        );
+        assert_eq!(
+            lewis_mode(LEWIS_CREDULOUS_PROFILE),
+            Some(LewisMode::Credulous)
+        );
+    }
+
+    #[test]
+    fn lewis_mode_default_profiles_are_none() {
+        assert_eq!(lewis_mode(HORN_PROFILE), None);
+        assert_eq!(lewis_mode("PositiveHornProfile"), None);
+        assert_eq!(lewis_mode(""), None);
     }
 
     // ── No-write firewall ──────────────────────────────────────────────────────
