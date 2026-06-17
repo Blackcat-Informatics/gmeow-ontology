@@ -44,7 +44,7 @@ disagreement as coexisting standpoints instead of overwriting the loser.
   `displayable false` and closes its tenure while keeping the inference as audit — which
   *is* the memory's `revise()` operation.
 - **Authored once, then projected and linked widely.** Every fact is stated once across
-  GMEOW's **64 self-contained slices** and generated outward as lossy projections — OWL,
+  GMEOW's **self-contained slices** and generated outward as lossy projections — OWL,
   SHACL, JSON-LD, schema.org, citation and Crossref-deposit forms — while every term is
   maximally aligned to **85 external vocabularies** and authority identifiers (schema.org,
   Wikidata, PROV-O, FOAF, ORCID, DOI…), so a GMEOW graph is a first-class node in the
@@ -124,7 +124,7 @@ Cite them by number in issues and PRs.
   epistemics ship in the **core**, by commitment — a memory substrate that makes "what is a
   person" an optional add-on has already answered the question, badly.
 
-> **Status.** GMEOW now ships as **62 slices**, each with a full guide; 61 slice
+> **Status.** GMEOW now ships with **slices**, each with a full guide; slice
 > examples exercise the model and feed the full GTS bundle. The current surface covers
 > identity (entities, names, gender, sexuality, languages), social/contact/email/account
 > data, content/evidence/software, trust/attestation/crypto, skills, cognition,

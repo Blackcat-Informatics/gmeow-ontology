@@ -307,6 +307,13 @@ export enum CalendarSystemEnum {
     Persian_LEFT_PARENTHESISSolar_HijriRIGHT_PARENTHESIS_calendar = "calendarPersian",
 };
 
+export enum CalibrationStatusEnum {
+
+    overconfident = "overconfident",
+    underconfident = "underconfident",
+    well_calibrated = "wellCalibrated",
+};
+
 export enum CarrierMediumEnum {
 
     e_ink_file = "mediumEInkFile",
@@ -425,6 +432,16 @@ export enum ContentDispositionEnum {
 
     attachment = "contentDispositionAttachment",
     inline = "contentDispositionInline",
+};
+
+export enum ContentOriginEnum {
+
+    believed = "originBelieved",
+    generated = "originGenerated",
+    imagined = "originImagined",
+    perceived = "originPerceived",
+    remembered = "originRemembered",
+    supposed = "originSupposed",
 };
 
 export enum ContentSegmentTypeEnum {
@@ -844,6 +861,7 @@ export enum EventTypeEnum {
     promotion = "eventTypePromotion",
     push = "eventTypePush",
     recording_session = "eventTypeRecordingSession",
+    reflection = "eventTypeReflection",
     rehearsal = "eventTypeRehearsal",
     release = "eventTypeRelease",
     rename = "eventTypeRename",
@@ -3284,11 +3302,13 @@ export interface Agent {
     accepts?: string[],
     asks?: string[],
     attendsTo?: Entity[],
+    awareOfNotKnowing?: string[],
     believes?: string[],
     curiousAbout?: Entity[],
     doubts?: string[],
     email?: string[],
     endorses?: Agent[],
+    epistemicSelfTrust?: string[],
     founderOf?: Organization[],
     hasAgreement?: Agreement[],
     hasContactPoint?: ContactPoint[],
@@ -3301,6 +3321,7 @@ export interface Agent {
     holdsAccount?: OnlineAccount[],
     holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
+    imagines?: string[],
     inquiresInto?: string[],
     interestedIn?: Entity[],
     isAwareOf?: Entity[],
@@ -3315,6 +3336,7 @@ export interface Agent {
     remembers?: Entity[],
     seeksToKnow?: string[],
     slogan?: string[],
+    supposes?: string[],
     suspendsJudgementOn?: string[],
     telephone?: string[],
     understands?: Entity[],
@@ -3650,6 +3672,11 @@ export interface CalendarSystem {
 
 
 
+export interface CalibrationStatus {
+}
+
+
+
 export interface Capacity extends Measurement {
     capacityOf?: Location,
 }
@@ -3919,6 +3946,11 @@ export interface ContainmentTenure extends TimeScopedRelation {
 
 
 export interface ContentDisposition {
+}
+
+
+
+export interface ContentOrigin {
 }
 
 
@@ -5509,7 +5541,9 @@ export interface MentalMoment {
 export interface MentalProcess extends Event {
     experiencer?: Agent,
     mentalProcessType?: MentalProcessType[],
-    realizesMoment?: string[],
+    producesMentalMoment?: MentalMoment[],
+    realizesMentalMoment?: MentalMoment[],
+    updatesMentalTenure?: TimeScopedRelation[],
 }
 
 
@@ -5591,6 +5625,13 @@ export interface MessageParticipant {
 
 
 export interface MessageParticipantRole {
+}
+
+
+
+export interface MetacognitiveState extends MentalMoment {
+    calibration?: CalibrationStatus[],
+    metaTarget?: string[],
 }
 
 

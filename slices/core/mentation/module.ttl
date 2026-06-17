@@ -18,7 +18,7 @@
 DOCTRINE.
   * Occurrent umbrella: gmeow:MentalProcess rdfs:subClassOf gmeow:Event is the single home for every mental occurrence (perceiving, reasoning, imagining, remembering, dreaming), the perdurant sibling of the endurant gmeow:MentalMoment (kernel/cognition #556). One query returns an agent's whole mental timeline.
   * Value-vocab, not taxonomy (Principle 9): the kind of a process is a gmeow:mentalProcessType value (a gmeow:MentalProcessType individual), never a subclass of gmeow:MentalProcess. The one genuine subclass is gmeow:Experience — the phenomenally-conscious / qualia-bearing subset.
-  * The occurrent-to-endurant bridge gmeow:realizesMoment is open-range at this tier: it targets a gmeow:MentalMoment (subClassOf gufo:IntrinsicMode) once #556 lands; until then it points at any mode/claim a process produces. It is renamed from the design's 'realizes' to avoid the WEMI gmeow:realizes (creative-works) collision (Principle 4).
+  * Three precise occurrent-to-endurant bridges replace the former open-range gmeow:realizesMoment: gmeow:realizesMentalMoment (ontological participation — the process MANIFESTS a capacity/state/mode), gmeow:producesMentalMoment (creation — the process brings a NEW moment into being), gmeow:updatesMentalTenure (diachronic transition — the process CHANGES a held, time-scoped state/tenure). All three are non-functional ObjectProperties with domain gmeow:MentalProcess. The first two range over gmeow:MentalMoment; the third over gmeow:TimeScopedRelation. Renamed from the design's 'realizes' to avoid the WEMI gmeow:realizes (creative-works) collision (Principle 4).
   * Reparenting hooks stay open: gmeow:InferenceProcess (inference slice #581) and gmeow:LearningEvent (learning slice #584) declare rdfs:subClassOf gmeow:MentalProcess from their OWN slices, never pre-declared here."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -34,7 +34,7 @@ gmeow:MentalProcess
     skos:example "ex:morningReasoning a gmeow:MentalProcess ; gmeow:experiencer ex:lillith ; gmeow:mentalProcessType gmeow:processReasoning ."@x-gmeow-english ;
     gmeow:useWhen "Use as the umbrella for any mental OCCURRENCE that unfolds in time — a perceiving, reasoning, imagining, recollecting, or dreaming episode — so an agent's mental timeline is queryable as a single occurrent stream; the kind is a gmeow:mentalProcessType value."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for an enduring mental STATE (knowing, believing, desiring — those are endurant gmeow:MentalMoment modes, not occurrents) and avoid subclassing it to record a kind of process; the kind is a gmeow:mentalProcessType value, never a subclass (Principle 9). Only gmeow:Experience and own-slice reparents (gmeow:InferenceProcess, gmeow:LearningEvent) subclass it."@x-gmeow-english ;
-    gmeow:howToUse "Type the episode gmeow:MentalProcess, bind its bearer with gmeow:experiencer (functional), tag its kind(s) with gmeow:mentalProcessType, and link the endurant moment it settles via gmeow:realizesMoment; subclass it only from an owning slice (the inference / learning reparent hooks)."@x-gmeow-english ;
+    gmeow:howToUse "Type the episode gmeow:MentalProcess, bind its bearer with gmeow:experiencer (functional), tag its kind(s) with gmeow:mentalProcessType, and link the endurant moment it settles via gmeow:realizesMentalMoment (manifest), gmeow:producesMentalMoment (create), or gmeow:updatesMentalTenure (transition); subclass it only from an owning slice (the inference / learning reparent hooks)."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerInternalArchive,
         gmeow:consumerAgentMemory,
         gmeow:consumerResearchQueue ;
@@ -97,21 +97,40 @@ gmeow:mentalProcessType
     gmeow:howToUse "Attach one or more gmeow:MentalProcessType individuals to the process; combine several values when an episode genuinely spans kinds, and reserve true subclassing for gmeow:Experience and own-slice reparents."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .
 
-gmeow:realizesMoment
+gmeow:realizesMentalMoment
     a owl:ObjectProperty ;
     rdfs:domain gmeow:MentalProcess ;
-    rdfs:label "realizes moment"@x-gmeow-english ;
-    skos:definition "Relates a mental process to a mental moment it produces or updates — the occurrent-to-endurant bridge across the gUFO endurant/occurrent divide: a reasoning realizes a belief, a perceiving realizes a perceptual claim. NOT functional — one process may settle several moments."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN at this tier (the doxastic-spine precedent): it will point at a gmeow:MentalMoment (subClassOf gufo:IntrinsicMode) once the endurant umbrella lands with kernel/cognition #556; until then it may point at any reified mode, belief-state, or claim the process produces. Renamed from the design's 'realizes' to avoid colliding with the WEMI gmeow:realizes (Expression to Work) in the creative-works slice — Principle 4, one canonical term per concept."@x-gmeow-english ;
-    skos:example "ex:morningReasoning gmeow:realizesMoment ex:lillithKnowsPython ."@x-gmeow-english ;
-    gmeow:useWhen "Use to link a gmeow:MentalProcess to the endurant mental moment it produces or updates — the occurrent-to-endurant bridge across the gUFO divide (a reasoning realizes a knowing or belief, a perceiving realizes a perceptual claim)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid confusing it with the creative-works gmeow:realizes (Expression to Work — it was renamed precisely to avoid that collision, Principle 4) and avoid expecting it to be functional; one process may settle several moments. Do not use it to type the process kind (that is gmeow:mentalProcessType)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:realizesMoment from the process to the gmeow:MentalMoment (or, at this open tier, any mode/belief-state/claim) it settles; pair it with gmeow:experiencer so the realized moment and the producing episode share a bearer."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory,
-        gmeow:consumerResearchQueue ;
-    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerFoafExport ;
+    rdfs:range gmeow:MentalMoment ;
+    rdfs:label "realizes mental moment"@x-gmeow-english ;
+    skos:definition "Ontological participation: relates a mental process to a gmeow:MentalMoment it MANIFESTS — the process expresses or makes-present an already-potential capacity, state, or mode rather than creating a fresh one. NOT functional — one process may manifest several moments."@x-gmeow-english ;
+    skos:example "ex:morningPerception gmeow:realizesMentalMoment ex:perceivedMorningLight ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mental process MANIFESTS (makes present, actualises) an existing capacity or state — a perceiving that brings a latent perceptual faculty into actuation, a dreaming that expresses a creative capacity. The process is the occurrent face of something already in the agent's dispositional repertoire."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the process creates something genuinely new (use gmeow:producesMentalMoment) and avoid it when the process changes a held time-scoped tenure (use gmeow:updatesMentalTenure). Do not confuse with the creative-works gmeow:realizes (Expression to Work — Principle 4)."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:realizesMentalMoment from a gmeow:MentalProcess to the gmeow:MentalMoment it manifests; pair with gmeow:experiencer so the manifested moment and the producing episode share a bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .
+
+gmeow:producesMentalMoment
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MentalProcess ;
+    rdfs:range gmeow:MentalMoment ;
+    rdfs:label "produces mental moment"@x-gmeow-english ;
+    skos:definition "Creation: relates a mental process to a NEW gmeow:MentalMoment it brings into being — the process is the causal origin of a fresh belief, knowledge-state, or perceptual claim that did not exist beforehand. NOT functional — one process may produce several moments."@x-gmeow-english ;
+    skos:example "ex:solvingTheProof gmeow:producesMentalMoment ex:beliefQEDholds ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mental process is the causal origin of a NEW mental moment — a reasoning that settles a fresh belief, an abductive inference that produces a hypothesis, a perception that generates a new claim. The moment did not exist before the process ran."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the process merely manifests an existing capacity (use gmeow:realizesMentalMoment) and avoid it when the process transitions a held time-scoped tenure (use gmeow:updatesMentalTenure). Do not expect functional behaviour — one process may produce several distinct moments."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:producesMentalMoment from a gmeow:MentalProcess to the gmeow:MentalMoment it creates; pair with gmeow:experiencer so the produced moment and the originating episode share a bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .
+
+gmeow:updatesMentalTenure
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MentalProcess ;
+    rdfs:range gmeow:TimeScopedRelation ;
+    rdfs:label "updates mental tenure"@x-gmeow-english ;
+    skos:definition "Diachronic transition: relates a mental process to a gmeow:TimeScopedRelation (a held, time-scoped state or tenure) that the process CHANGES — the process revises, extends, or closes a belief tenure, a knowledge tenure, or any other time-scoped mental holding. NOT functional — one process may update several tenures."@x-gmeow-english ;
+    skos:example "ex:revisionEpisode gmeow:updatesMentalTenure ex:beliefTenureQEDholds ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mental process revises, extends, or closes an existing time-scoped holding — a deliberation that updates a belief tenure, a learning episode that revises a knowledge tenure, a recollection that reopens a suppressed tenure. The tenure already existed; the process changes its bounds or content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it when the process creates something entirely new (use gmeow:producesMentalMoment) and avoid it when the process merely manifests an existing capacity (use gmeow:realizesMentalMoment). Not functional — a single episode may update several concurrent tenures."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:updatesMentalTenure from a gmeow:MentalProcess to the gmeow:TimeScopedRelation whose bounds or content it changes; track the before/after state by reifying separate tenure individuals."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .
 
 # =========================================================================== #

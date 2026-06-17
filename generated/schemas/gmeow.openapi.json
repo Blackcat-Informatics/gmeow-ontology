@@ -735,6 +735,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -774,6 +783,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -882,6 +900,15 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "imagines": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -1006,6 +1033,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -11746,6 +11782,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -11785,6 +11830,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -11893,6 +11947,15 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "imagines": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -12017,6 +12080,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -12698,6 +12770,22 @@
               "calendarPersian"
             ],
             "title": "CalendarSystemEnum",
+            "type": "string"
+          },
+          "CalibrationStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "CalibrationStatus",
+            "type": "object"
+          },
+          "CalibrationStatusEnum": {
+            "description": "",
+            "enum": [
+              "overconfident",
+              "underconfident",
+              "wellCalibrated"
+            ],
+            "title": "CalibrationStatusEnum",
             "type": "string"
           },
           "Capacity": {
@@ -21678,6 +21766,25 @@
               "contentDispositionInline"
             ],
             "title": "ContentDispositionEnum",
+            "type": "string"
+          },
+          "ContentOrigin": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ContentOrigin",
+            "type": "object"
+          },
+          "ContentOriginEnum": {
+            "description": "",
+            "enum": [
+              "originBelieved",
+              "originGenerated",
+              "originImagined",
+              "originPerceived",
+              "originRemembered",
+              "originSupposed"
+            ],
+            "title": "ContentOriginEnum",
             "type": "string"
           },
           "ContentSegment": {
@@ -38345,6 +38452,7 @@
               "eventTypePromotion",
               "eventTypePush",
               "eventTypeRecordingSession",
+              "eventTypeReflection",
               "eventTypeRehearsal",
               "eventTypeRelease",
               "eventTypeRename",
@@ -39980,6 +40088,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -39998,9 +40115,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -40046,6 +40163,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -54478,6 +54604,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -54496,9 +54631,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -54544,6 +54679,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -74453,6 +74597,15 @@
                   "null"
                 ]
               },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "projectedStandpoint": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
@@ -74471,9 +74624,9 @@
                   "null"
                 ]
               },
-              "realizesMoment": {
+              "realizesMentalMoment": {
                 "items": {
-                  "type": "string"
+                  "$ref": "#/$defs/MentalMoment"
                 },
                 "type": [
                   "array",
@@ -74519,6 +74672,15 @@
               "temporalPrecision": {
                 "items": {
                   "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
                 },
                 "type": [
                   "array",
@@ -77511,6 +77673,32 @@
             ],
             "title": "MessageParticipantRoleEnum",
             "type": "string"
+          },
+          "MetacognitiveState": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "calibration": {
+                "items": {
+                  "$ref": "#/$defs/CalibrationStatus"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "metaTarget": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "MetacognitiveState",
+            "type": "object"
           },
           "MeterAssignment": {
             "additionalProperties": false,
@@ -95829,6 +96017,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -95868,6 +96065,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -96012,6 +96218,15 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "imagines": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -96192,6 +96407,15 @@
               "subOrganizationOf": {
                 "items": {
                   "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -100929,6 +101153,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -100968,6 +101201,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -101226,6 +101468,15 @@
                   "null"
                 ]
               },
+              "imagines": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "inquiresInto": {
                 "items": {
                   "type": "string"
@@ -101371,6 +101622,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -130860,6 +131120,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -130899,6 +131168,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -131007,6 +131285,15 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "imagines": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -131131,6 +131418,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },
@@ -139140,6 +139436,15 @@
                   "null"
                 ]
               },
+              "awareOfNotKnowing": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "believes": {
                 "items": {
                   "type": "string"
@@ -139179,6 +139484,15 @@
               "endorses": {
                 "items": {
                   "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "epistemicSelfTrust": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -139287,6 +139601,15 @@
               "holdsKey": {
                 "items": {
                   "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "imagines": {
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -139411,6 +139734,15 @@
                 ]
               },
               "slogan": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supposes": {
                 "items": {
                   "type": "string"
                 },

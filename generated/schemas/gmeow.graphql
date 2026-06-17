@@ -307,6 +307,13 @@ enum CalendarSystemEnum
     calendarPersian
   }
 
+enum CalibrationStatusEnum
+  {
+    overconfident
+    underconfident
+    wellCalibrated
+  }
+
 enum CarrierMediumEnum
   {
     mediumEInkFile
@@ -425,6 +432,16 @@ enum ContentDispositionEnum
   {
     contentDispositionAttachment
     contentDispositionInline
+  }
+
+enum ContentOriginEnum
+  {
+    originBelieved
+    originGenerated
+    originImagined
+    originPerceived
+    originRemembered
+    originSupposed
   }
 
 enum ContentSegmentTypeEnum
@@ -844,6 +861,7 @@ enum EventTypeEnum
     eventTypePromotion
     eventTypePush
     eventTypeRecordingSession
+    eventTypeReflection
     eventTypeRehearsal
     eventTypeRelease
     eventTypeRename
@@ -3326,11 +3344,13 @@ type Agent
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -3343,6 +3363,7 @@ type Agent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -3357,6 +3378,7 @@ type Agent
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -4658,11 +4680,13 @@ type Builder
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -4675,6 +4699,7 @@ type Builder
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -4689,6 +4714,7 @@ type Builder
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -4774,6 +4800,10 @@ type CalendarMethod
   }
 
 type CalendarSystem
+  {
+  }
+
+type CalibrationStatus
   {
   }
 
@@ -5878,6 +5908,10 @@ type ContainmentTenure
   }
 
 type ContentDisposition
+  {
+  }
+
+type ContentOrigin
   {
   }
 
@@ -8106,7 +8140,9 @@ type Experience
     violates: [Norm]
     experiencer: Agent
     mentalProcessType: [MentalProcessType]
-    realizesMoment: [String]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
   }
 
 type Expression
@@ -9850,7 +9886,9 @@ type InferenceProcess
     violates: [Norm]
     experiencer: Agent
     mentalProcessType: [MentalProcessType]
-    realizesMoment: [String]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
     hasInferenceCommitment: [InferenceCommitment]
   }
 
@@ -12259,7 +12297,9 @@ type MentalProcess
     violates: [Norm]
     experiencer: Agent
     mentalProcessType: [MentalProcessType]
-    realizesMoment: [String]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
   }
 
 type MentalProcessType
@@ -12614,6 +12654,12 @@ type MessageParticipant
 
 type MessageParticipantRole
   {
+  }
+
+type MetacognitiveState
+  {
+    calibration: [CalibrationStatus]
+    metaTarget: [String]
   }
 
 type MeterAssignment
@@ -14793,11 +14839,13 @@ type Organization
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -14810,6 +14858,7 @@ type Organization
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -14824,6 +14873,7 @@ type Organization
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -15336,11 +15386,13 @@ type Person
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -15353,6 +15405,7 @@ type Person
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -15367,6 +15420,7 @@ type Person
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -18901,11 +18955,13 @@ type Sensor
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -18918,6 +18974,7 @@ type Sensor
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -18932,6 +18989,7 @@ type Sensor
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]
@@ -19963,11 +20021,13 @@ type SoftwareAgent
     accepts: [String]
     asks: [String]
     attendsTo: [Entity]
+    awareOfNotKnowing: [String]
     believes: [String]
     curiousAbout: [Entity]
     doubts: [String]
     email: [String]
     endorses: [Agent]
+    epistemicSelfTrust: [String]
     founderOf: [Organization]
     hasAgreement: [Agreement]
     hasContactPoint: [ContactPoint]
@@ -19980,6 +20040,7 @@ type SoftwareAgent
     holdsAccount: [OnlineAccount]
     holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
+    imagines: [String]
     inquiresInto: [String]
     interestedIn: [Entity]
     isAwareOf: [Entity]
@@ -19994,6 +20055,7 @@ type SoftwareAgent
     remembers: [Entity]
     seeksToKnow: [String]
     slogan: [String]
+    supposes: [String]
     suspendsJudgementOn: [String]
     telephone: [String]
     understands: [Entity]

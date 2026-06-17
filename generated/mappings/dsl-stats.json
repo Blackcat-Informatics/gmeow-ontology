@@ -27,6 +27,7 @@
   "gmeow-graphrag.sssom.tsv": 6,
   "gmeow-gts.sssom.tsv": 3,
   "gmeow-images.sssom.tsv": 21,
+  "gmeow-imagination.sssom.tsv": 1,
   "gmeow-inference.sssom.tsv": 10,
   "gmeow-inquiry.sssom.tsv": 2,
   "gmeow-iso4217.sssom.tsv": 8,
@@ -61,8 +62,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1699,
+ "equivalences": 1700,
  "functions": 59,
- "mapping_sets": 60,
+ "mapping_sets": 62,
  "projections": 527
 }

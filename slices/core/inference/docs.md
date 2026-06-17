@@ -22,8 +22,8 @@ the design was corrected into two classes joined by a bridge:
 
 - **`gmeow:InferenceProcess`** `⊑ gmeow:MentalProcess` — the **occurrent** reasoning episode (a
   perdurant): the reasoning as it unfolds in time, borne by one `gmeow:experiencer`, carrying
-  `gmeow:mentalProcessType gmeow:processReasoning`, and `gmeow:realizesMoment` the belief it produces.
-  This is the reparenting hook the mentation slice reserves.
+  `gmeow:mentalProcessType gmeow:processReasoning`, and `gmeow:producesMentalMoment` the belief it
+  creates. This is the reparenting hook the mentation slice reserves.
 - **`gmeow:InferenceCommitment`** `⊑ gufo:Relator` — the **endurant** structured argument relation
   (premises × conclusion × warrant × defeaters), the reified Toulmin/Peircean commitment.
 - **`gmeow:hasInferenceCommitment`** bridges the process to the commitment it instantiates.
@@ -62,7 +62,7 @@ layer, that the agent reached a claim by deduction.
 
 The occurrent reasoning episode (`gufo:EventType ⊑ gmeow:MentalProcess`). Carries `gmeow:experiencer`,
 `gmeow:mentalProcessType gmeow:processReasoning`, a temporal frame (the events idiom), and
-`gmeow:realizesMoment` (the belief produced); reaches its argument via `gmeow:hasInferenceCommitment`.
+`gmeow:producesMentalMoment` (the belief created); reaches its argument via `gmeow:hasInferenceCommitment`.
 
 ### gmeow:InferenceCommitment
 

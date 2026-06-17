@@ -9,9 +9,11 @@
 #   gmeow:InferenceProcess  --hasInferenceCommitment-->  gmeow:InferenceCommitment
 #       (the occurrent reasoning episode)                  (the endurant argument)
 #            |                                                   |
-#       realizesMoment                                      conclusion
+#       producesMentalMoment                               conclusion
 #            v                                                   v
-#       the accepted belief  <--- (the winning hypothesis) ---  gmeow:StandpointClaim
+#       the accepted belief        is the agent's attitude    gmeow:StandpointClaim
+#       (gmeow:MentalMoment)        toward the winning ------> (the conclusion content)
+#                                   hypothesis
 #
 # A clinician observes a fever and reasons to its best explanation. Two
 # candidate hypotheses compete (gmeow:competesWith); each is scored by a
@@ -81,4 +83,13 @@ ex:diagnosticReasoning a gmeow:InferenceProcess ;
     gmeow:eventTime "2026-06-15T10:05:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:hasInferenceCommitment ex:abductiveCommitment ;     # occurrent -> endurant bridge
-    gmeow:realizesMoment ex:hypInfluenza .                    # the belief the reasoning produced
+    gmeow:producesMentalMoment ex:beliefInfluenza .           # production: reasoning creates this new belief (a MentalMoment)
+
+# --- The mental moment the reasoning produces (endurant doxastic mode) ------- #
+# Distinct from the StandpointClaim conclusion (ex:hypInfluenza, the content the
+# commitment concludes): this is the clinician's NEW belief — a gmeow:MentalMoment,
+# the moment the reasoning episode brings into being. Its bearer is the process's
+# gmeow:experiencer (ex:clinician); typed without asserting inherence (gufo:inheresIn
+# is the alignment target, not an asserted axiom — Principle 5).
+ex:beliefInfluenza a gmeow:MentalMoment ;
+    rdfs:label "The clinician's belief that the patient has influenza"@x-gmeow-english .
