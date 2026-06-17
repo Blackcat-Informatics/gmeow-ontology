@@ -18,6 +18,7 @@ import typer
 from rich.console import Console
 
 from gmeow_tools import __version__
+from gmeow_tools.config import PROJECT_ROOT
 from gmeow_tools.projections import PROFILES as _PROFILES
 
 if TYPE_CHECKING:
@@ -2234,6 +2235,93 @@ def conformance(
     if total_fail:
         raise _fail(f"✗ {total_fail} conformance case(s) failed — see diffs above")
     console.print("[green]✓ conformance: all cases passed[/green]")
+
+
+i18n_app = typer.Typer(help="Internationalization commands.", no_args_is_help=True)
+app.add_typer(i18n_app, name="i18n")
+
+
+@i18n_app.command(name="sync-english")
+def sync_english(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root to search for slices.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Report only; do not write changes.",
+    ),
+) -> None:
+    """Synchronize English translations from PO catalogs back to canonical sources.
+
+    Discovers ``en.po`` and ``*.md.po`` files under ``<root>/slices/**/i18n/``,
+    maps them to their canonical masters, and applies a 3-way merge.  ``en.po``
+    catalogs update sibling ``module.ttl`` and ``manifest.ttl`` files;
+    ``*.md.po`` catalogs update the matching ``*.md`` file in the same slice.
+    """
+    from gmeow_tools.i18n_sync import sync_english_file
+
+    po_files = sorted(root.glob("slices/**/i18n/*.po"))
+    changed_files: list[Path] = []
+    conflicts: list[str] = []
+    skipped: list[str] = []
+    unchanged = 0
+    processed = 0
+
+    for po_path in po_files:
+        slice_dir = po_path.parent.parent
+        source_paths: list[Path] = []
+
+        if po_path.name == "en.po":
+            source_paths = [
+                slice_dir / "module.ttl",
+                slice_dir / "manifest.ttl",
+            ]
+        elif po_path.name.endswith(".md.po"):
+            md_name = po_path.name[:-3]  # strip ".po" -> e.g. "docs.md"
+            source_paths = [slice_dir / md_name]
+        else:
+            continue
+
+        for source_path in source_paths:
+            if not source_path.is_file():
+                continue
+            report = sync_english_file(po_path, source_path, dry_run=dry_run)
+            processed += 1
+            changed_files.extend(report.changed_files)
+            conflicts.extend(report.conflicts)
+            skipped.extend(report.skipped)
+            unchanged += len(report.unchanged)
+
+    def _rel(path: Path) -> Path:
+        return (
+            path.relative_to(PROJECT_ROOT)
+            if path.is_relative_to(PROJECT_ROOT)
+            else path
+        )
+
+    for path in sorted(set(changed_files)):
+        status = "would change" if dry_run else "changed"
+        console.print(f"[green]{status}[/green] {_rel(path)}")
+    for conflict in conflicts:
+        err_console.print(f"[red]conflict[/red] {conflict}")
+    for skip in skipped:
+        err_console.print(f"[yellow]skip[/yellow] {skip}")
+
+    if conflicts:
+        raise _fail(
+            f"✗ {len(conflicts)} conflict(s), {len(changed_files)} file(s) "
+            f"changed, {unchanged} unchanged, {len(skipped)} skipped"
+        )
+
+    mode_note = " (dry run)" if dry_run else ""
+    console.print(
+        f"[green]✓{mode_note}[/green] {processed} source(s) synced: "
+        f"{len(changed_files)} changed, {len(conflicts)} conflicts, "
+        f"{len(skipped)} skipped, {unchanged} unchanged"
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover
