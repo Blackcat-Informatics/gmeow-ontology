@@ -24,13 +24,15 @@
 # --- A rule set MUST declare the semantic profile that governs it; a rule set
 #     with no declared profile is rejected by the compiler. This one is
 #     positive (negation-free), so it rides the monotonic Horn least-model
-#     semantics — the base case against which the richer profiles add cost.
-ex:mortalityRuleSet a logic:SemanticProfile ;
-    rdfs:label "the mortality rule set is read under positive Horn semantics"@x-gmeow-english .
-
-ex:declaredProfile rdfs:label
-    "rule set governed by logic:PositiveHornProfile"@x-gmeow-english ;
-    logic:complexityClass "PTIME-data (terminating, function-free Horn)" .
+#     semantics (logic:PositiveHornProfile) — the base case against which the
+#     richer profiles add cost.  No logic:RuleSet class is minted (the
+#     vocabulary is foundation-only); the rule set is modelled as a
+#     gmeow:InformationObject and linked to the REAL declared profile individual
+#     via rdfs:seeAlso, which is sufficient to make the pedagogical connection
+#     without inventing new vocabulary.
+ex:mortalityRuleSet a gmeow:InformationObject ;
+    rdfs:label "the mortality rule set is read under positive Horn semantics"@x-gmeow-english ;
+    rdfs:seeAlso logic:PositiveHornProfile .
 
 # --- A single derivation carrying all FOUR quantitative axes at once, to make
 #     plain that they are distinct and not interchangeable: a calibrated
