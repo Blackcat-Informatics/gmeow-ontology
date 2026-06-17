@@ -169,7 +169,7 @@ two ways:
   failed — the snapshot cannot prove a term is fabricated, only that it is
   unattested.
 - **range SHACL** (report-only) — SHACL node-shapes are *generated from* the
-  vocabularies' own `rdfs:range` axioms and run with `pyshacl`. RDFS range is
+  vocabularies' own `rdfs:range` axioms and run with `gmeow_shacl`. RDFS range is
   open-world (descriptive, not a constraint), so violations are surfaced for
   inspection rather than failed.
 

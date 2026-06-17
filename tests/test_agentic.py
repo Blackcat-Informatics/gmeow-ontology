@@ -18,7 +18,7 @@ import pytest
 from rdflib import OWL, RDF, RDFS, Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 GUFO = Namespace("http://purl.org/nemo/gufo#")

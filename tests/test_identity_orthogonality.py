@@ -21,7 +21,10 @@ from rdflib import OWL, RDF, RDFS, Graph, URIRef
 from rdflib.collection import Collection
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.reasoning_lint import coequal_facet_orthogonality
+
+# Graph-accepting shim: serialize a synthetic rdflib graph and route it through
+# the graph-free production reasoning check (#579).
+from tests._graph_nt import coequal_facet_orthogonality
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 

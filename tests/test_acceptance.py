@@ -15,10 +15,13 @@ from __future__ import annotations
 from rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.acceptance import (
+    FileAcceptance,
+    GateResult,
     _gate_external_validator,
     _gate_pure_gmeow,
     _gate_round_trip,
     _gate_size_invariant,
+    corpus_recall_pct,
     default_corpus,
     render_report,
     run_acceptance,
@@ -162,4 +165,71 @@ def test_run_acceptance_over_a_real_snapshot() -> None:
     assert fa.passed
     rt = next(g for g in fa.gates if g.name == "round-trip-superset")
     assert 0.0 <= rt.metrics["recall_pct"] <= 100.0
+    # the gate carries its own addressable denominator, so the corpus aggregate
+    # can pool Σ recovered / Σ addressable across files (#579).
+    assert "addressable" in rt.metrics
     assert "PASS" in render_report([fa])
+
+
+def _file_acceptance(recovered: int, addressable: int) -> FileAcceptance:
+    """A minimal FileAcceptance carrying just the round-trip gate metrics."""
+    pct = 100.0 * recovered / addressable if addressable else 100.0
+    gate = GateResult(
+        name="round-trip-superset",
+        passed=recovered == addressable,
+        hard=False,
+        summary=f"{recovered}/{addressable}",
+        metrics={
+            "recall_pct": pct,
+            "recovered": float(recovered),
+            "addressable": float(addressable),
+        },
+    )
+    return FileAcceptance(
+        source="synthetic.ttl",
+        source_triples=addressable,
+        output_triples=addressable * 2,
+        gates=[gate],
+    )
+
+
+def test_corpus_recall_pools_recovered_over_addressable() -> None:
+    """The aggregate is Σ recovered / Σ addressable, NOT a mean of per-file %s.
+
+    Two files at 50% and 100% over unequal denominators pool to the weighted
+    aggregate, mirroring _gate_round_trip's own `overall` (#579).
+    """
+    files = [_file_acceptance(5, 10), _file_acceptance(90, 90)]
+    # weighted: (5 + 90) / (10 + 90) = 95%, not the 75% unweighted mean.
+    assert corpus_recall_pct(files) == 95.0
+
+
+def test_corpus_recall_empty_corpus_is_full() -> None:
+    """No addressable triples ⇒ vacuously 100% (matches _gate_round_trip)."""
+    assert corpus_recall_pct([]) == 100.0
+    assert corpus_recall_pct([_file_acceptance(0, 0)]) == 100.0
+
+
+def test_acceptance_min_recall_floor_blocks_below_and_passes_at_or_above() -> None:
+    """The --min-recall floor hard-fails below and exits 0 at/above (#579).
+
+    Drives the CLI command directly so the exit semantics are pinned: the
+    per-file gates stay soft, the aggregate floor is the one hard line.
+    """
+    from typer.testing import CliRunner
+
+    from gmeow_tools.cli_dev import app
+
+    runner = CliRunner()
+
+    # below the measured aggregate (~64%): a 100% floor must hard-fail (exit 1).
+    fail = runner.invoke(app, ["acceptance", "--min-recall", "100"])
+    assert fail.exit_code == 1, fail.output
+
+    # at/below the measured aggregate: a 60% floor must pass (exit 0).
+    ok = runner.invoke(app, ["acceptance", "--min-recall", "60"])
+    assert ok.exit_code == 0, ok.output
+
+    # omitting the floor keeps report-only behaviour (always exit 0).
+    report_only = runner.invoke(app, ["acceptance"])
+    assert report_only.exit_code == 0, report_only.output

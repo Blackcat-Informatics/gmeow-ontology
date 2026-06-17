@@ -30,7 +30,7 @@ use crate::engine;
 ///   `"focus"`, `"path"`, `"value"`, `"severity"`, `"component"`,
 ///   `"source_shape"`, `"message"`.
 #[pyfunction]
-fn validate(py: Python<'_>, shapes_ttl: &str, data_nt: &str) -> PyResult<PyObject> {
+fn validate(py: Python<'_>, shapes_ttl: &str, data_nt: &str) -> PyResult<Py<PyAny>> {
     let report = engine::validate_graphs(data_nt, shapes_ttl)
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
 
@@ -51,7 +51,7 @@ fn validate(py: Python<'_>, shapes_ttl: &str, data_nt: &str) -> PyResult<PyObjec
     }
     out.set_item("results", results)?;
 
-    Ok(out.into())
+    Ok(out.into_any().unbind())
 }
 
 /// Python extension module `gmeow_shacl`.

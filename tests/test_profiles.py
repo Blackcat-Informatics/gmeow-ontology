@@ -6,7 +6,7 @@ from rdflib import Graph, Literal, Namespace
 from rdflib.namespace import OWL, RDF, RDFS, SKOS
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/test/")

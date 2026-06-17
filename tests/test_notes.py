@@ -15,7 +15,7 @@ from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"

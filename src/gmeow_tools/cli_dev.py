@@ -453,36 +453,6 @@ def crosscheck_queries() -> None:
     )
 
 
-@app.command(name="shacl-crosscheck")
-def shacl_crosscheck() -> None:
-    """Dual-run SHACL cross-check: pySHACL ≡ gmeow_shacl (#578, EPIC #575).
-
-    Validates the merged ontology + every slice example under BOTH engines and
-    compares their result key-sets, writing the divergence ledger. REPORT-ONLY:
-    it prints divergences and always exits 0; #579 makes it blocking and removes
-    pySHACL. The empty-ledger state is what licenses that next step.
-    """
-    from gmeow_tools.shacl_crosscheck import LEDGER_FILE, crosscheck_all, write_ledger
-
-    divergences = crosscheck_all()
-    write_ledger(divergences)
-    for d in divergences:
-        err_console.print(
-            f"[yellow]diverge[/yellow] [{d.side}] {d.unit}: {d.key} ({d.reason})"
-        )
-    if divergences:
-        console.print(
-            f"[yellow]⚠ {len(divergences)} SHACL divergence(s) between pySHACL and "
-            f"gmeow_shacl — recorded in {LEDGER_FILE.name} "
-            f"(report-only; #579 blocks)[/yellow]"
-        )
-    else:
-        console.print(
-            "[green]✓ pySHACL ≡ gmeow_shacl across the merged ontology + every "
-            "slice example (empty divergence ledger)[/green]"
-        )
-
-
 @app.command()
 def reason(
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
@@ -894,8 +864,30 @@ def coverage(
     show_gaps: bool = typer.Option(
         False, "--gaps", help="List the uncovered (gap) classes and predicates."
     ),
+    min_class: float | None = typer.Option(
+        None,
+        "--min-class",
+        help=(
+            "Hard floor for class coverage (0..1). Exit 1 if the measured "
+            "fraction is below it. Omit for report-only."
+        ),
+    ),
+    min_predicate: float | None = typer.Option(
+        None,
+        "--min-predicate",
+        help=(
+            "Hard floor for predicate coverage (0..1). Exit 1 if the measured "
+            "fraction is below it. Omit for report-only."
+        ),
+    ),
 ) -> None:
-    """Report how much of the vendored entity slice GMEOW covers."""
+    """Report how much of the vendored entity slice GMEOW covers.
+
+    With ``--min-class`` / ``--min-predicate`` the command becomes a HARD gate
+    (#579): a measured coverage fraction below either floor exits 1. The floors
+    are the project's vendored-entity coverage contract — the Makefile passes the
+    current measured values so any regression below them fails the build.
+    """
     from gmeow_tools.coverage import run_coverage
 
     report = run_coverage()
@@ -914,6 +906,17 @@ def coverage(
             err_console.print(f"[yellow]gap class[/yellow] {iri}")
         for iri in sorted(report.gap_predicates):
             err_console.print(f"[yellow]gap predicate[/yellow] {iri}")
+
+    if min_class is not None and report.class_coverage < min_class:
+        raise _fail(
+            f"✗ class coverage {report.class_coverage:.4f} is below the "
+            f"required floor {min_class:.4f}"
+        )
+    if min_predicate is not None and report.predicate_coverage < min_predicate:
+        raise _fail(
+            f"✗ predicate coverage {report.predicate_coverage:.4f} is below the "
+            f"required floor {min_predicate:.4f}"
+        )
 
 
 @app.command()
@@ -1264,6 +1267,12 @@ def acceptance(
         "--floor",
         help="Use the per-term floor instead of the context-aware descent.",
     ),
+    min_recall: float | None = typer.Option(
+        None,
+        "--min-recall",
+        help="HARD aggregate floor (#579): if the corpus-aggregate round-trip "
+        "recall %% falls below this, fail with exit 1. Omit for report-only.",
+    ),
 ) -> None:
     """Score the full transpile against real data — the honest scoreboard (#450).
 
@@ -1272,9 +1281,20 @@ def acceptance(
     invariant (hard), external-validator (no x-gmeow leak hard; term-attestation
     and SHACL-from-vendored-axioms report-only), and the honest coverage report.
     The corpus is the verbatim ``external/`` snapshots — numbers that cannot be
-    moved by writing fixtures. A progress meter, not a CI blocker.
+    moved by writing fixtures.
+
+    The per-file round-trip gate stays a scoreboard (red until done). Passing
+    ``--min-recall`` adds a SEPARATE *aggregate* floor (#579): the pooled
+    Σ recovered / Σ addressable recall across the whole corpus must clear it, or
+    the command hard-fails — making the transpile gate block without demanding
+    100%% per-file recall (honest-scoreboard doctrine preserved).
     """
-    from gmeow_tools.acceptance import default_corpus, render_report, run_acceptance
+    from gmeow_tools.acceptance import (
+        corpus_recall_pct,
+        default_corpus,
+        render_report,
+        run_acceptance,
+    )
 
     sources = [source] if source is not None else default_corpus()
     if not sources:
@@ -1293,6 +1313,18 @@ def acceptance(
     for fa in results:
         verdict = "[green]PASS[/green]" if fa.passed else "[red]FAIL[/red]"
         err_console.print(f"{verdict} {fa.source}")
+
+    if min_recall is not None:
+        aggregate = corpus_recall_pct(results)
+        if aggregate < min_recall:
+            raise _fail(
+                f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
+                f"the floor {min_recall:.2f}% ({len(results)} source(s))"
+            )
+        err_console.print(
+            f"[green]✓[/green] corpus-aggregate round-trip recall "
+            f"{aggregate:.2f}% ≥ floor {min_recall:.2f}%"
+        )
 
 
 _EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")

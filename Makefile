@@ -18,7 +18,8 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         logic-build logic-test logic-py conformance \
-        shacl-build shacl-test shacl-py shacl-crosscheck
+        shacl-build shacl-test shacl-py \
+        validate-build validate-test validate-py
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -45,9 +46,6 @@ validate: ## Validate syntax, term annotations, and SHACL (pure Python).
 
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
-
-shacl-crosscheck: ## Prove pySHACL and gmeow_shacl agree on every validation unit (report-only, #578).
-	$(GMEOW_DEV) shacl-crosscheck
 
 reason: ## Merge, validate OWL 2 DL profile, and check ELK consistency (Docker).
 	$(GMEOW_DEV) reason --reasoner ELK --exclude-tautologies structural
@@ -95,11 +93,16 @@ wikidata-coverage: ## Report Wikidata mapping coverage by domain (offline).
 wikidata-audit: ## Audit fixtures and modules for Wikidata misuse (offline).
 	$(GMEOW_DEV) wikidata --fixtures
 
-coverage: ## Report how much of the vendored entity slice GMEOW covers.
-	$(GMEOW_DEV) coverage --gaps
+coverage: ## Report how much of the vendored entity slice GMEOW covers (hard gate).
+	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
 
-acceptance: ## Score the full transpile against the real external/ snapshots (#450).
-	$(GMEOW_DEV) acceptance
+# The aggregate round-trip recall floor (#579). Set just below the current
+# measured corpus aggregate (paudley+bii ≈ 64%) with anti-flake margin. The
+# per-file gates stay scoreboard/soft; only this pooled aggregate is hard.
+ACCEPTANCE_MIN_RECALL ?= 60
+
+acceptance: ## Score the full transpile against external/ snapshots; hard aggregate recall floor (#450/#579).
+	$(GMEOW_DEV) acceptance --min-recall $(ACCEPTANCE_MIN_RECALL)
 
 crossref: ## Generate the CrossRef DOI deposit XML.
 	$(GMEOW_DEV) crossref
@@ -156,6 +159,15 @@ shacl-test: ## Run the gmeow-shacl unit + conformance tests.
 shacl-py: ## Build and install the gmeow_shacl Python extension (maturin develop).
 	uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
+validate-build: ## Build the gmeow-validate Rust crate (oxigraph validation-path lints).
+	cargo build -p gmeow-validate
+
+validate-test: ## Run the gmeow-validate unit + integration tests.
+	cargo test -p gmeow-validate
+
+validate-py: ## Build and install the gmeow_validate Python extension (maturin develop).
+	uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
 conformance: ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
 	$(GMEOW_DEV) conformance
 
@@ -177,7 +189,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in its own CI job).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage reason verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason verify mappings-only lint-alignment
 	$(MAKE) test-fast
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed"

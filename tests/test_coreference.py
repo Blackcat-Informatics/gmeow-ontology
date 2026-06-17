@@ -7,7 +7,7 @@ from rdflib import OWL, RDF, RDFS, Graph, URIRef
 from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import project_graph
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 SCHEMA = "https://schema.org/"

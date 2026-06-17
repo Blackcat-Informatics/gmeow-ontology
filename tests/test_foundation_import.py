@@ -28,7 +28,7 @@ from gmeow_tools.foundation_import import (
     load_records,
     run_import,
 )
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 CORP = Namespace("https://blackcatinformatics.ca/gmeow/corpus/foundation/")

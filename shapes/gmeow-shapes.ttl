@@ -327,7 +327,7 @@ gmeow:SupersededFacetSuppressionShape
     sh:targetClass gmeow:GenderExpression ;
     sh:targetClass gmeow:SexualOrientation ;
     sh:targetClass gmeow:RomanticOrientation ;
-    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
+    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it (a source may lag the flag)
     sh:sparql [
         sh:message "A superseded identity facet (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
         sh:select """
@@ -510,7 +510,7 @@ gmeow:WithdrawnStandpointSuppressionShape
     a sh:NodeShape ;
     rdfs:label "Withdrawn standpoint suppression shape"@x-gmeow-english ;
     sh:targetClass gmeow:StandpointTenure ;
-    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
+    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it (a source may lag the flag)
     sh:sparql [
         sh:message "A withdrawn standpoint (a StandpointTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
         sh:select """
@@ -613,7 +613,7 @@ gmeow:RightsStatementShape
     ] .
 
 # Every deontic rule regulates exactly one action (mirrors the someValuesFrom on
-# gmeow:ruleAction). Targets the concrete rule kinds directly — pyshacl does not
+# gmeow:ruleAction). Targets the concrete rule kinds directly — the SHACL engine does not
 # infer subclass membership, so targeting the abstract gmeow:Rule would miss
 # instances typed only as Permission / Prohibition / Duty.
 gmeow:RuleHasActionShape
@@ -2052,7 +2052,7 @@ gmeow:SelfPrivateEvidenceWarningShape
     a sh:NodeShape ;
     rdfs:label "Self/private-only evidence warning shape"@x-gmeow-english ;
     sh:targetClass gmeow:CitationAct ;
-    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
+    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it (a source may lag the flag)
     sh:sparql [
         sh:message "This citation relies solely on self-asserted or private evidence from a self/issuer-originated source — consider suppressing it from public projections (Principle 10)." ;
         sh:select """

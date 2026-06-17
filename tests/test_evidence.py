@@ -14,7 +14,8 @@ from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDF, RDFS, XSD
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import ValidationResult, run_shacl
+from gmeow_tools.validate import ValidationResult
+from tests._graph_nt import run_shacl
 
 EVIDENCE_FIXTURES = Path(__file__).parent / "fixtures" / "evidence"
 
