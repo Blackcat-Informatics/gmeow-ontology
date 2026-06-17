@@ -465,6 +465,16 @@ _DEFAULT_CONCERNS = {
     ),
 }
 
+_BOX_ROLE_CURIES = [
+    "gmeow:boxABox",
+    "gmeow:boxTBox",
+    "gmeow:boxRBox",
+    "gmeow:boxCBox",
+]
+
+_FOUR_BOXES_SOURCE = PROJECT_ROOT / "docs" / "four-boxes.md"
+_FOUR_BOXES_TITLE = "ABox, TBox, RBox, CBox in GMEOW"
+
 
 @dataclass(slots=True)
 class DocTerm:
@@ -665,6 +675,26 @@ def _exact_term_aliases(terms: Iterable[DocTerm]) -> set[str]:
 def _term_md_rel(term: DocTerm) -> Path:
     """Return the Markdown path for a term page."""
     return Path("reference") / _CATEGORY_DIRS[term.category] / term.filename
+
+
+def _box_role_slug(role_curie: str) -> str:
+    """Return a URL slug for a GMEOW graph-box role."""
+    return {
+        "gmeow:boxABox": "abox",
+        "gmeow:boxTBox": "tbox",
+        "gmeow:boxRBox": "rbox",
+        "gmeow:boxCBox": "cbox",
+    }.get(role_curie, role_curie.split(":", 1)[-1].lower())
+
+
+def _box_role_link(role_curie: str, model: DocsModel, from_rel: Path) -> str:
+    """Return a Markdown link to a box-role landing page."""
+    term = model.terms_by_curie.get(role_curie)
+    label = term.label if term is not None else role_curie
+    slug = _box_role_slug(role_curie)
+    target = Path("reference") / "boxes" / f"{slug}.md"
+    rel = posixpath.relpath(target.as_posix(), start=from_rel.parent.as_posix() or ".")
+    return f"[{label}]({rel})"
 
 
 def _site_path_for_md(site: Path, rel: Path) -> Path:
@@ -1948,6 +1978,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
       <a href="{prefix}recipes/">Recipes</a>
       <a href="{prefix}examples/">Examples</a>
       <a href="{prefix}concerns/">Concerns</a>
+      <a href="{prefix}four-boxes/">Four Boxes</a>
       <a href="{prefix}slices/">Slices</a>
       <a href="{prefix}adoption/">Adoption</a>
       <a href="{prefix}linkages/">Linkages</a>
@@ -3796,6 +3827,69 @@ def _statements_page(model: DocsModel) -> Page:
     )
 
 
+def _four_boxes_page(model: DocsModel) -> Page:
+    """Render the top-level four-box doctrine page."""
+    rel = Path("four-boxes") / "index.md"
+    source_text = _FOUR_BOXES_SOURCE.read_text(encoding="utf-8").rstrip()
+    # Drop the source's leading SPDX/HTML comments and first heading so the
+    # generated page keeps a single H1.
+    body = re.sub(r"^(<!--.*?-->\s*)+", "", source_text, flags=re.DOTALL)
+    body = re.sub(r"^#\s+[^\n]*\n+", "", body)
+
+    nav = [
+        "",
+        "## Box Role Landing Pages",
+        "",
+        *[f"- {_box_role_link(role, model, rel)}" for role in _BOX_ROLE_CURIES],
+        "",
+    ]
+    markdown = f"# {_FOUR_BOXES_TITLE}\n\n{body}\n" + "\n".join(nav)
+    return Page(rel, "Four Boxes", markdown)
+
+
+def _box_role_pages(model: DocsModel) -> list[Page]:
+    """Render one landing page for each graph-box role."""
+    pages: list[Page] = []
+    for role_curie in _BOX_ROLE_CURIES:
+        term = model.terms_by_curie.get(role_curie)
+        slug = _box_role_slug(role_curie)
+        rel = Path("reference") / "boxes" / f"{slug}.md"
+        title = term.label if term is not None else role_curie
+        doctrine_link = _relative_page_link(
+            "Four Boxes doctrine", Path("four-boxes") / "index.md", rel
+        )
+        members = sorted(
+            (t for t in model.terms if role_curie in t.box_roles),
+            key=lambda t: t.curie,
+        )
+        lines = [
+            f"# {title}",
+            "",
+            f"- **CURIE:** `{role_curie}`",
+            f"- **Doctrine:** {doctrine_link}",
+            "",
+        ]
+        if term is not None and term.definition:
+            lines.extend([term.definition, ""])
+        lines.append("## Terms")
+        lines.append("")
+        if members:
+            lines.append("| Term | Category | Label | Definition |")
+            lines.append("|---|---|---|---|")
+            for member in members:
+                term_link = _curie_link_from(member.curie, model, rel)
+                lines.append(
+                    f"| {term_link} | {member.category} | "
+                    f"{_escape_md_cell(member.label)} | "
+                    f"{_escape_md_cell(_short_text(member.definition, limit=180))} |"
+                )
+        else:
+            lines.append("No terms are annotated with this role yet.")
+        lines.append("")
+        pages.append(Page(rel, title, "\n".join(lines)))
+    return pages
+
+
 def _all_pages(model: DocsModel) -> list[Page]:
     """Render every Markdown page."""
     pages = [
@@ -3837,6 +3931,8 @@ def _all_pages(model: DocsModel) -> list[Page]:
     pages.append(_concern_index(model.concerns))
     pages.extend(_concern_page(concern) for concern in model.concerns)
     pages.append(_statements_page(model))
+    pages.append(_four_boxes_page(model))
+    pages.extend(_box_role_pages(model))
     return pages
 
 
@@ -4041,8 +4137,45 @@ def _search_index(model: DocsModel) -> list[dict[str, object]]:
                 "references.bib",
                 "references.csl.json",
             ],
-        }
+        },
+        {
+            "kind": "doctrine",
+            "title": "Four Boxes",
+            "path": _site_rel_for_md(Path("four-boxes") / "index.md").as_posix(),
+            "summary": ("ABox, TBox, RBox, and CBox doctrine for GMEOW graph layers."),
+            "keywords": [
+                "four boxes",
+                "abox",
+                "tbox",
+                "rbox",
+                "cbox",
+                "gmeow:graphBoxRole",
+            ],
+        },
     ]
+    for role_curie in _BOX_ROLE_CURIES:
+        term = model.terms_by_curie.get(role_curie)
+        slug = _box_role_slug(role_curie)
+        rel = Path("reference") / "boxes" / f"{slug}.md"
+        rows.append(
+            {
+                "kind": "box-role",
+                "title": term.label if term is not None else role_curie,
+                "curie": role_curie,
+                "path": _site_rel_for_md(rel).as_posix(),
+                "summary": _short_text(
+                    term.definition if term is not None else "", limit=320
+                ),
+                "keywords": sorted(
+                    {
+                        role_curie,
+                        slug,
+                        "graph box role",
+                        *(term.label.split() if term is not None else []),
+                    }
+                ),
+            }
+        )
     for term in model.terms:
         rows.append(
             {
@@ -4191,6 +4324,12 @@ def _llms_docs_text(model: DocsModel) -> str:
         links = _links_for_target(model, prefix)
         name = _external_targets().get(prefix, (prefix, "", "", ""))[0]
         lines.append(f"- {prefix}: {name}; linkage rows {len(links)}")
+    lines.extend(["", "## Four Boxes"])
+    for role_curie in _BOX_ROLE_CURIES:
+        term = model.terms_by_curie.get(role_curie)
+        label = term.label if term is not None else role_curie
+        count = sum(1 for t in model.terms if role_curie in t.box_roles)
+        lines.append(f"- {role_curie}: {label}; {count} annotated terms")
     lines.extend(["", "## References"])
     lines.append(
         "- references: generated bibliography from metadata/references.ttl; "
@@ -4390,6 +4529,7 @@ def ontology_docs_inputs() -> Sequence[Path]:
         Path(__file__).with_name("self_desc.py"),
         PROJECT_ROOT / "metadata" / "gmeow-self.ttl",
         Path(__file__).with_name("assets") / "simple.css",
+        PROJECT_ROOT / "docs" / "four-boxes.md",
         ONTOLOGY_DOCS_GRAPH_INPUT,
         REFERENCES_MD_FILE,
         STATEMENT_RDF12_FILE,
