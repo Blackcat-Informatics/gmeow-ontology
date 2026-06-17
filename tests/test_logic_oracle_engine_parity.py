@@ -405,19 +405,31 @@ def test_oracle_engine_parity(case_dir: Path) -> None:
     # ALL present in the oracle's explanation cited-IRI set.
     # (This is a subset check — the engine may not produce every IRI the oracle
     # cites; we only assert no hallucinated IRIs appear on the engine side.)
-    from gmeow_tools.logic_explain import explain  # local import to avoid CI overhead
-
+    # The native explanation engine (``gmeow_logic.explain``, issue #497) is
+    # already bound at module scope via importorskip.
     engine_rule_iris: set[str] = {
         str(d["rule_iri"])
         for d in engine_dicts
         if str(d["rule_iri"]) != "https://blackcatinformatics.ca/logic/assert"
     }
 
-    # Collect ALL cited IRIs from the oracle's explanation pool.
+    # Collect ALL cited IRIs from the oracle's explanation pool, via the native
+    # engine over the oracle's materialized quads (one explanation per quad).
+    explain_payload = [
+        {
+            "graph": oq.graph,
+            "subject": oq.subject,
+            "predicate": oq.predicate,
+            "obj": oq.obj,
+            "derivation_id": oq.derivation_id,
+            "rule_iri": oq.rule_iri,
+            "source_quad_ids": list(oq.source_quad_ids),
+        }
+        for oq in oracle_result.quads
+    ]
     oracle_cited_all: set[str] = set()
-    for oq in oracle_result.quads:
-        exp = explain(oracle_result, oq, onto_graph=None)
-        oracle_cited_all.update(exp.cited_iris)
+    for exp_row in gmeow_logic.explain(explain_payload):
+        oracle_cited_all.update(str(c) for c in exp_row["cited_iris"])
 
     for eng_rule_iri in engine_rule_iris:
         assert eng_rule_iri in oracle_cited_all, (

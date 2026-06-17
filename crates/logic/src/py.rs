@@ -748,6 +748,96 @@ fn foundation(
     Ok(out)
 }
 
+/// `explain(quads) -> list[dict]` — native explanation skeletons (issue #497).
+///
+/// Reconstructs the derivation tree for every quad in `quads` (one explanation per
+/// input quad, IN INPUT ORDER) and returns the cited-IRI skeleton — the conformance
+/// surface.  This is the byte-faithful Rust port of the retired Python explanation
+/// oracle (`gmeow_tools.logic_explain`); prose rendering is intentionally not
+/// reproduced (the runner compares only `cited_iris` and matches by
+/// `target_quad_reifier`).
+///
+/// # Arguments
+///
+/// - `quads` — a `list[dict]`, each with keys `graph`, `subject`, `predicate`,
+///   `obj` (object in canonical N3 form), `derivation_id`, `rule_iri`, and
+///   `source_quad_ids` (a `list[str]` of antecedent reifier IRIs).
+///
+/// # Returns
+///
+/// A `list[dict]` (one per input quad, same order) with keys:
+/// - `target_quad_reifier` (str)
+/// - `world_iri` (str)
+/// - `target_derivation_id` (str)
+/// - `cited_iris` (sorted `list[str]`)
+/// - `step_skeleton` (`list[dict]`, each `{derivation_id, rule_iri, term_iris}`).
+///
+/// # Errors
+///
+/// Raises `ValueError` for a malformed input row (missing/ill-typed key) and
+/// `RuntimeError` for a reconstruction failure (unresolved antecedent, cycle).
+#[pyfunction]
+fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyAny>>> {
+    use crate::explain::{explain_all, Row};
+
+    fn get_str(d: &Bound<'_, PyDict>, key: &str) -> PyResult<String> {
+        let item = d.get_item(key)?.ok_or_else(|| {
+            pyo3::exceptions::PyValueError::new_err(format!("explain: row missing key {key:?}"))
+        })?;
+        item.extract::<String>().map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err(format!("explain: key {key:?} must be a str"))
+        })
+    }
+
+    let mut rows: Vec<Row> = Vec::with_capacity(quads.len());
+    for d in &quads {
+        let sources_item = d.get_item("source_quad_ids")?.ok_or_else(|| {
+            pyo3::exceptions::PyValueError::new_err("explain: row missing key \"source_quad_ids\"")
+        })?;
+        let source_quad_ids: Vec<String> = sources_item.extract().map_err(|_| {
+            pyo3::exceptions::PyValueError::new_err(
+                "explain: key \"source_quad_ids\" must be a list[str]",
+            )
+        })?;
+        rows.push(Row {
+            graph: get_str(d, "graph")?,
+            subject: get_str(d, "subject")?,
+            predicate: get_str(d, "predicate")?,
+            obj: get_str(d, "obj")?,
+            derivation_id: get_str(d, "derivation_id")?,
+            rule_iri: get_str(d, "rule_iri")?,
+            source_quad_ids,
+        });
+    }
+
+    let explanations = explain_all(&rows)
+        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("explain failed: {e}")))?;
+
+    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(explanations.len());
+    for exp in &explanations {
+        let d = PyDict::new(py);
+        d.set_item("target_quad_reifier", exp.target_quad_reifier.as_str())?;
+        d.set_item("world_iri", exp.world_iri.as_str())?;
+        d.set_item("target_derivation_id", exp.target_derivation_id.as_str())?;
+        // cited_iris is a BTreeSet — already sorted; emit as a list[str].
+        let cited: Vec<&str> = exp.cited_iris.iter().map(String::as_str).collect();
+        d.set_item("cited_iris", cited)?;
+
+        let steps = PyList::empty(py);
+        for step in &exp.step_skeleton {
+            let sd = PyDict::new(py);
+            sd.set_item("derivation_id", step.derivation_id.as_str())?;
+            sd.set_item("rule_iri", step.rule_iri.as_str())?;
+            let terms: Vec<&str> = step.term_iris.iter().map(String::as_str).collect();
+            sd.set_item("term_iris", terms)?;
+            steps.append(sd)?;
+        }
+        d.set_item("step_skeleton", steps)?;
+        out.push(d.into_any().unbind());
+    }
+    Ok(out)
+}
+
 // ── Module registration ───────────────────────────────────────────────────────
 
 /// Python extension module `gmeow_logic`.
@@ -755,6 +845,7 @@ fn foundation(
 /// Exposes:
 /// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
 /// - `foundation(input, anti_rigidity_policy=None) -> list[dict]` (issue #636)
+/// - `explain(quads) -> list[dict]` — cited-IRI explanation skeletons (issue #497)
 /// - `certify(rules, profile) -> dict`
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
 ///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
@@ -762,6 +853,7 @@ fn foundation(
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
     m.add_function(wrap_pyfunction!(foundation, m)?)?;
+    m.add_function(wrap_pyfunction!(explain, m)?)?;
     m.add_function(wrap_pyfunction!(certify, m)?)?;
     m.add_function(wrap_pyfunction!(query, m)?)?;
     Ok(())

@@ -403,6 +403,81 @@ class MaterializationResult:
 
 
 # --------------------------------------------------------------------------- #
+# Explanation IR (issue #497)
+# --------------------------------------------------------------------------- #
+#
+# The explanation *engine* is native Rust (``gmeow_logic.explain``); the Python
+# oracle module (``logic_explain.py``) is retired.  These two containers are the
+# pure IR/data the runner maps the native rows onto — they live here alongside
+# DerivedQuad/MaterializationResult (the other materialization IR), so any
+# consumer can import them without depending on the retired module.
+
+
+class ExplanationStep(NamedTuple):
+    """One node in the derivation tree, in the explanation skeleton.
+
+    Field-compatible with the retired ``logic_explain.ExplanationStep``.  The
+    conformance gate compares only the cited-IRI/rule-IRI skeleton, so the
+    runner populates the subset of fields the native engine returns
+    (``derivation_id``, ``rule_iri``, ``term_iris``); the remaining fields carry
+    deterministic defaults so existing constructors keep working.
+
+    Attributes:
+        derivation_id: Stable IRI for this derivation step.
+        rule_iri: IRI of the rule that produced this quad (or the assert
+            sentinel for asserted facts).
+        quad_reifier: Reifier IRI for the (S, P, O) triple.
+        subject_iri: IRI string of the quad subject.
+        predicate_iri: IRI string of the quad predicate.
+        obj_n3: N3 representation of the quad object.
+        graph_iri: World (named graph) IRI.
+        term_iris: Sorted tuple of term IRIs cited at this step.
+        source_step_ids: Derivation IDs of the antecedent steps.
+        is_asserted: True if this quad was an input fact (rule_iri == assert).
+        depth: Depth in the derivation tree (0 = the target quad).
+    """
+
+    derivation_id: str
+    rule_iri: str
+    quad_reifier: str = ""
+    subject_iri: str = ""
+    predicate_iri: str = ""
+    obj_n3: str = ""
+    graph_iri: str = ""
+    term_iris: tuple[str, ...] = ()
+    source_step_ids: tuple[str, ...] = ()
+    is_asserted: bool = False
+    depth: int = 0
+
+
+class Explanation(NamedTuple):
+    """The full explanation skeleton for a single derived (or asserted) quad.
+
+    Field-compatible with the retired ``logic_explain.Explanation`` (minus the
+    ``as_markdown`` prose machinery, which the conformance gate never compared).
+    The native ``gmeow_logic.explain`` produces the cited-IRI skeleton; the
+    runner maps each returned dict onto this container.
+
+    Attributes:
+        target_derivation_id: The derivation_id of the quad being explained.
+        target_quad_reifier: The reifier IRI of the target quad's (S, P, O).
+            This is the key the conformance runner matches explanations by.
+        world_iri: The named graph (world) the target quad lives in.
+        step_skeleton: Ordered :class:`ExplanationStep` sequence (DFS order).
+        cited_iris: The complete cited-IRI set — the conformance surface.
+        prose_lines: Retained for backwards-compatible construction only; the
+            native engine never populates it (defaults to empty).
+    """
+
+    target_derivation_id: str
+    target_quad_reifier: str
+    world_iri: str
+    step_skeleton: tuple[ExplanationStep, ...]
+    cited_iris: frozenset[str]
+    prose_lines: tuple[str, ...] = ()
+
+
+# --------------------------------------------------------------------------- #
 # Skolemization
 # --------------------------------------------------------------------------- #
 

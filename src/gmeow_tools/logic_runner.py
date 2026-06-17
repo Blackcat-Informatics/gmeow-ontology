@@ -3,9 +3,9 @@
 """Conformance runner for the Logic v1 monotonic core (issue #501, Task 7).
 
 This module is the **Python oracle runner** — it wires :mod:`~.logic_frontend`,
-:mod:`~.logic_materialize`, :mod:`~.logic_projections`, and :mod:`~.logic_explain`
-into the single ``run()`` function required by the runner contract in
-``conformance/logic/runner/README.md``.
+:mod:`~.logic_materialize`, :mod:`~.logic_projections`, and the native
+``gmeow_logic.explain`` engine into the single ``run()`` function required by the
+runner contract in ``conformance/logic/runner/README.md``.
 
 Runner contract
 ---------------
@@ -72,13 +72,14 @@ from gmeow_tools.logic_certify import (
     certify_program,
     stratify,
 )
-from gmeow_tools.logic_explain import Explanation, explain
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
 from gmeow_tools.logic_ir import LogicAxiom, LogicProgram, SemanticProfileId
 from gmeow_tools.logic_materialize import (
     _ASSERT_RULE_IRI,
     BudgetParams,
     DerivedQuad,
+    Explanation,
+    ExplanationStep,
     MaterializationError,
     MaterializationResult,
     materialize_program,
@@ -149,9 +150,9 @@ class RunnerOutputs:
 
         projections: All projection back-ends + ledger.  **Populated**.
 
-        explanations: Per-derived-quad explanation skeletons.  **Populated**
-            (one :class:`~.logic_explain.Explanation` per derived quad, ordered
-            by world then quad position).
+        explanations: Per-quad explanation skeletons.  **Populated**
+            (one :class:`~.logic_materialize.Explanation` per quad, in
+            ``result.quads`` order).
 
         verdicts: World-indexed truth verdicts JSON dict.  **Populated** as a
             minimal ``{world_iri: {"quads": n, "status": "consistent"}}``
@@ -370,34 +371,78 @@ def _run_projections(program: LogicProgram) -> ProjectionOutputs:
 
 
 def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
-    """Produce explanation skeletons for every derived quad in ``result``.
+    """Produce explanation skeletons for every quad in ``result``.
 
-    Asserted quads (rule_iri == ``logic:assert``) are included — their
-    explanation is trivial (depth-0 step, the fact itself).  The list is
-    sorted by (graph, subject, predicate, object) for determinism.
+    The explanation *engine* is native Rust (``gmeow_logic.explain``, issue
+    #497): the retired Python oracle (``logic_explain.py``) is gone and there is
+    no fallback (no-optionality doctrine — a missing extension is a hard
+    failure, mirroring :func:`_materialize_foundation`).  One explanation is
+    produced per quad, in ``result.quads`` order; asserted quads (rule_iri ==
+    ``logic:assert``) get a trivial depth-0 explanation.
 
     Args:
         result: The materialization result.
 
     Returns:
-        A tuple of :class:`~.logic_explain.Explanation` objects, one per quad.
+        A tuple of :class:`~.logic_materialize.Explanation` objects, one per
+        quad, in input order.
 
     Raises:
-        RunnerError: If an explanation cannot be built for any quad.
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard
+            fail), or if the native engine rejects the proof trace.
     """
-    from gmeow_tools.logic_explain import ExplainError
+    if not result.quads:
+        return ()
+
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            "gmeow_logic native extension is not installed but explanations were "
+            "requested — run 'make logic-py' first: "
+            f"{exc}"
+        ) from exc
+
+    # Build the payload list of dicts from the materialized quads (one per quad,
+    # preserving order).  The native engine reads the same seam fields the Python
+    # oracle did: graph/subject/predicate/obj/derivation_id/rule_iri/source_quad_ids.
+    payload = [
+        {
+            "graph": quad.graph,
+            "subject": quad.subject,
+            "predicate": quad.predicate,
+            "obj": quad.obj,
+            "derivation_id": quad.derivation_id,
+            "rule_iri": quad.rule_iri,
+            "source_quad_ids": list(quad.source_quad_ids),
+        }
+        for quad in result.quads
+    ]
+
+    try:
+        rows = gmeow_logic.explain(payload)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(f"gmeow_logic.explain failed: {exc}") from exc
 
     explanations: list[Explanation] = []
-    for quad in result.quads:
-        try:
-            exp = explain(result, quad, onto_graph=None)
-            explanations.append(exp)
-        except ExplainError as exc:
-            raise RunnerError(
-                f"explain() failed for quad "
-                f"({quad.subject!r}, {quad.predicate!r}, {quad.obj!r}) "
-                f"in world {quad.graph!r}: {exc}"
-            ) from exc
+    for row in rows:
+        steps = tuple(
+            ExplanationStep(
+                derivation_id=str(step["derivation_id"]),
+                rule_iri=str(step["rule_iri"]),
+                term_iris=tuple(str(t) for t in step["term_iris"]),
+            )
+            for step in row["step_skeleton"]
+        )
+        explanations.append(
+            Explanation(
+                target_derivation_id=str(row["target_derivation_id"]),
+                target_quad_reifier=str(row["target_quad_reifier"]),
+                world_iri=str(row["world_iri"]),
+                step_skeleton=steps,
+                cited_iris=frozenset(str(c) for c in row["cited_iris"]),
+            )
+        )
 
     return tuple(explanations)
 
