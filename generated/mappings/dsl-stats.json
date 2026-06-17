@@ -33,7 +33,6 @@
   "gmeow-inquiry.sssom.tsv": 2,
   "gmeow-iso4217.sssom.tsv": 8,
   "gmeow-languages.sssom.tsv": 16,
-  "gmeow-learning.sssom.tsv": 6,
   "gmeow-lexicon.sssom.tsv": 9,
   "gmeow-lifecycle.sssom.tsv": 8,
   "gmeow-mentation.sssom.tsv": 1,
@@ -47,7 +46,7 @@
   "gmeow-places.sssom.tsv": 221,
   "gmeow-privacy.sssom.tsv": 24,
   "gmeow-procedures.sssom.tsv": 26,
-  "gmeow-properties.sssom.tsv": 95,
+  "gmeow-properties.sssom.tsv": 94,
   "gmeow-provenance.sssom.tsv": 13,
   "gmeow-quality.sssom.tsv": 10,
   "gmeow-qudt.sssom.tsv": 6,
@@ -64,8 +63,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1709,
+ "equivalences": 1702,
  "functions": 59,
- "mapping_sets": 64,
+ "mapping_sets": 63,
  "projections": 527
 }
