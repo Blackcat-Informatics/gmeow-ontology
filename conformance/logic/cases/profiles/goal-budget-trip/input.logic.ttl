@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/goal-budget-trip
+# Budget governor: max_answers=2 caps the recursive ancestor query at 2 results.
+# Chain a→b→c→d has 3 ancestors; the first 2 (b, c) are returned, status partial.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/goal-budget-trip/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: sort used by the projection back-ends.
+ex:Person a logic:Kind .

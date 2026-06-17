@@ -1,0 +1,9 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: recursive ancestor with budget cap (max_answers=2).
+% Full ancestor set over a→b→c→d would be {b,c,d}; capped at 2 → {b,c}, status partial.
+:- prefix(ex, 'https://example.org/profiles/goal-budget-trip/').
+ex:ancestor(X,Y) :- ex:parentOf(X,Y).
+ex:ancestor(X,Y) :- ex:parentOf(X,Z), ex:ancestor(Z,Y).
+?- ex:ancestor(ex:a, Y).

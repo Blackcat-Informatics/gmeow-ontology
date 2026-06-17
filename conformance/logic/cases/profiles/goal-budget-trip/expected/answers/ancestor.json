@@ -1,0 +1,11 @@
+{
+  "bindings": [
+    {
+      "Y": "<https://example.org/profiles/goal-budget-trip/b>"
+    },
+    {
+      "Y": "<https://example.org/profiles/goal-budget-trip/c>"
+    }
+  ],
+  "status": "partial"
+}

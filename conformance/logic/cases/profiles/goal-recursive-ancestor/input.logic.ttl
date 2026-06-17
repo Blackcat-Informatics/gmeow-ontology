@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/goal-recursive-ancestor
+# AC-1: recursive transitive backward goal — tabled resolution over a parentOf
+# chain a→b→c→d returns all reachable ancestors (b, c, d), status ok.
+#
+# No forward rules in this case: the schema declares ex:Person as a logic:Kind
+# for projection back-ends; the EDB facts live in input.nq.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/goal-recursive-ancestor/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: sort used by the projection back-ends.
+ex:Person a logic:Kind .

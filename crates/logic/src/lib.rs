@@ -7,33 +7,25 @@
 //! worlds as oxigraph named graphs and provides world-indexed entailment queries
 //! gated against the same language-neutral conformance corpus as `gmeow-gts`.
 //!
-//! Nemo-based rule evaluation and PyO3 bindings arrive in later tasks.
+//! This crate is single-target native only.
+//! Nemo-based rule evaluation and PyO3 bindings are unconditionally included.
 
+pub mod dispatch;
+pub mod encode;
+pub mod profile_gate;
 pub mod provenance;
+pub mod query_ir;
+pub mod reference_resolver;
+pub mod scryer_engine;
 pub mod seam;
 pub mod store;
 pub mod versioning;
 
-// PyO3 Python bindings — native targets only.
-// pyo3 physically cannot link into a wasm binary (the CPython C extension ABI
-// is unavailable on wasm32); this cfg is platform-correct, not optionality.
-#[cfg(not(target_arch = "wasm32"))]
+// PyO3 Python bindings.
 pub mod py;
 
-// Nemo reasoner bridge — native targets only.
-// Nemo's transitive deps (reqwest, tower-lsp) require OS networking unavailable
-// on wasm32; this cfg is platform-correct, not an optionality toggle.
-#[cfg(not(target_arch = "wasm32"))]
+// Nemo reasoner bridge.
 pub mod nemo_engine;
 
-// Static profile / decidability certifier — native targets only.
-// `certify` reuses Nemo's parser (via `nemo_engine::NemoParsedRules`) to extract
-// head/body predicates + negation from `.rls` text; it therefore lives under the
-// same `#[cfg(not(target_arch = "wasm32"))]` guard as `nemo_engine`.
-#[cfg(not(target_arch = "wasm32"))]
+// Static profile / decidability certifier.
 pub mod certify;
-
-// WebAssembly entry points — wasm32 target only.
-// wasm-bindgen binds to the JS host runtime which does not exist on native.
-#[cfg(target_arch = "wasm32")]
-pub mod wasm;
