@@ -34,8 +34,7 @@ from pathlib import Path
 
 from rdflib import Graph, URIRef
 from rdflib.namespace import OWL, RDF, RDFS
-
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
