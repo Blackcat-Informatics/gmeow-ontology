@@ -195,12 +195,12 @@ def test_credence_and_confidence_are_distinct() -> None:
 
 
 def test_justified_by_property_constraints() -> None:
-    """gmeow:justifiedBy is an open-range, non-functional object property hook."""
+    """gmeow:justifiedBy targets a JustificationSubject via a JustificationGround."""
     g = _graph()
     justified_by = _t("justifiedBy")
     assert (justified_by, RDF.type, OWL.ObjectProperty) in g
-    assert (justified_by, RDFS.domain, _t("DoxasticState")) in g
-    assert (justified_by, RDFS.range, None) not in g
+    assert (justified_by, RDFS.domain, _t("JustificationSubject")) in g
+    assert (justified_by, RDFS.range, _t("JustificationGround")) in g
     assert (justified_by, RDF.type, OWL.FunctionalProperty) not in g
 
 
