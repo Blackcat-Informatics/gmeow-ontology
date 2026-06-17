@@ -236,3 +236,26 @@ gmeow:subjectTaught
 gmeow:Teaching rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:teacher ; owl:someValuesFrom gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:learner ; owl:someValuesFrom gmeow:Agent ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:LearningEvent gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:LearningEventType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Teaching gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:fromLevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:learnedFrom gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:learner gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:learningBeingTaught gmeow:graphBoxRole gmeow:boxABox .
+gmeow:learningConceptFormation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:learningConsolidation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:learningSkillAcquisition gmeow:graphBoxRole gmeow:boxABox .
+gmeow:learningTransfer gmeow:graphBoxRole gmeow:boxABox .
+gmeow:learningType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:learningUnlearning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:produces gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/learning> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:subjectTaught gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:teacher gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:toLevel gmeow:graphBoxRole gmeow:boxRBox .

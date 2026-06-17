@@ -357,6 +357,9 @@ pub mod gmeow {
 
     pub const BOX_CBOX: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("https://blackcatinformatics.ca/gmeow/boxCBox");
+
+    pub const BOX_CONFIG_BOX: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("https://blackcatinformatics.ca/gmeow/boxConfigBox");
 }
 
 /// RDF namespace constants (`http://www.w3.org/1999/02/22-rdf-syntax-ns#`).

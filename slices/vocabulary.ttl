@@ -120,3 +120,19 @@ gmeow:builtAgainstCore a owl:DatatypeProperty ;
 # dcterms fields on the gmeow:Slice node: dcterms:title, dcterms:creator
 # (≥1), dcterms:identifier (an optional DOI). No new terms needed here.
 # --------------------------------------------------------------------------- #
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Slice gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:SliceTier gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:builtAgainstCore gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:providesSubcommand gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:slice-dsl gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:sliceConsumer gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:sliceDependsOn gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:sliceProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:sliceTier gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:tierCore gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:tierExtension gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .

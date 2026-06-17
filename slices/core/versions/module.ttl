@@ -212,3 +212,35 @@ gmeow:VersionMembership rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:versionMember ; owl:someValuesFrom gmeow:Entity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:versionSet ; owl:someValuesFrom gmeow:VersionSet ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:membershipAuthority ; owl:someValuesFrom gmeow:Agent ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:VersionMembership gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:VersionRole gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:VersionScale gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:VersionSet gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:membershipAuthority gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:membershipInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:roleCanonical gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleCollected gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleDeprecated gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleDraft gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleLTS gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleLatest gmeow:graphBoxRole gmeow:boxABox .
+gmeow:rolePublished gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleRevised gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleStable gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleVariant gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleWithdrawn gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleYanked gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleMajor gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleMinor gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleTrivial gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/versions> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:versionFingerprint gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:versionMember gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:versionRole gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:versionScale gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:versionSet gmeow:graphBoxRole gmeow:boxRBox .

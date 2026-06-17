@@ -228,3 +228,26 @@ gmeow:Tagging rdfs:subClassOf
 
 # Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:hasTag gmeow:pairsWith gmeow:Tagging .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Tag gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TagScheme gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Tagging gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:broaderTag gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasTag gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:isAbout gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrowerTag gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relatedTag gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/tags> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:tagInScheme gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:tagReview gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tagTodo gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tagUrgent gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taggingInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taggingScheme gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taggingTag gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taggingTagged gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taggingTagger gmeow:graphBoxRole gmeow:boxRBox .

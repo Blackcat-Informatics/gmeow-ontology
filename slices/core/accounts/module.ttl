@@ -200,3 +200,28 @@ gmeow:accountStatusDormant    a gmeow:AccountStatus ; rdfs:label "dormant"@x-gme
 gmeow:accountStatusDormant rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
 gmeow:accountStatusHistorical a gmeow:AccountStatus ; rdfs:label "historical"@x-gmeow-english ; skos:definition "A retired account, kept for the record (P10): the holder no longer uses it."@x-gmeow-english .
 gmeow:accountStatusHistorical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AccountStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:OnlineAccount gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:OnlineService gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ServiceStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:accountName gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:accountService gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:accountServiceHomepage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:accountStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:accountStatusActive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:accountStatusDormant gmeow:graphBoxRole gmeow:boxABox .
+gmeow:accountStatusHistorical gmeow:graphBoxRole gmeow:boxABox .
+gmeow:activityPubActor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:holdsAccount gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:nip05 gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:nostrPubkey gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:serviceShutdownDate gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:serviceStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:serviceStatusLive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:serviceStatusShutDown gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/accounts> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

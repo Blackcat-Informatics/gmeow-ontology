@@ -548,3 +548,49 @@ gmeow:deliversToAccount
     gmeow:avoidWhen "Avoid conflating the address with the account it delivers to (the address is a contact point, the account is where messages reside) and avoid using it for non-email channels."@x-gmeow-english ;
     gmeow:howToUse "Link the gmeow:EmailAddress to its delivery gmeow:OnlineAccount; the address carries the agent's tenure while the account anchors the stored messages."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AcquaintanceRelationship gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AddressTenure gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ContactPoint gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ContactPointType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:EmailAddress gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InstantMessageAddress gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InterpersonalRelationship gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:PostalAddress gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProfessionalRelationship gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TelephoneNumber gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:addressHolder gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:addressLocality gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:addressPlace gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:addressRegion gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:addressValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:contactPointProvider gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:contactPointType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:contactPointTypePersonal gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contactPointTypePersonalDomain gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contactPointTypeSupport gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contactPointTypeWork gmeow:graphBoxRole gmeow:boxABox .
+gmeow:countryCode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:deliversToAccount gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:domainPart gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:email gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:extendedAddress gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasAgreement gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasContactPoint gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasMet gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasUsed gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasWorkedWith gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:localPart gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:postOfficeBox gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:postalAddressFrame gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:postalCode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relationshipInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relationshipParty gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/contacts> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:streetAddress gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:telephone gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:tenuredContactPoint gmeow:graphBoxRole gmeow:boxRBox .

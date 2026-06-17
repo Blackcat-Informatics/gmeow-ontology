@@ -465,3 +465,52 @@ gmeow:derivationReconstruction
 gmeow:attestedForm       rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:derivationTarget   rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:derivationSource   rdfs:subPropertyOf gmeow:observedFeature .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:DerivationKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:EtymologicalDerivation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:LexicalForm gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:LexicalFormType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:LexicalItem gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:UsageAttestation gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:attestationInterval gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestedForm gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:attestedInContext gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestedInLanguage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:attestedInSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestedOnCarrier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:derivationAffixation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationBackFormation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationBorrowing gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationCalque gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationClipping gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationCompounding gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationEvidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:derivationFolkEtymology gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationInheritance gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:derivationReanalysis gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationReconstruction gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationSemanticShift gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationSoundChange gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationSpellingChange gmeow:graphBoxRole gmeow:boxABox .
+gmeow:derivationTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:derivationUnknownOrigin gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formNormalized gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:formReconstructed gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formRendered gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formRepresentation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:formSigned gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formSpoken gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formTranslated gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formTransliterated gmeow:graphBoxRole gmeow:boxABox .
+gmeow:formTransliterationScheme gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:formType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:formWritten gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasLexicalForm gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:lexicalItemLanguage gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/lexicon> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

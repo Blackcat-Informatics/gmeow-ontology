@@ -152,3 +152,34 @@ gmeow:appraisalQuality
     rdfs:label "appraisal quality"@x-gmeow-english ;
     skos:definition "The aesthetic quality a qualitative appraisal reads. NOT functional: one cell may attribute several coexisting qualities. Open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AestheticQuality gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Appraisal gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AppraisalDimension gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Emotion gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:EmotionType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:appraisalDimension gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:appraisalOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:appraisalQuality gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:appraisalValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dimensionArousal gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dimensionDominance gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dimensionValence gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionAnger gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionAnticipation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionBearer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:emotionDisgust gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionFear gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionJoy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionSadness gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionSurprise gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionTrust gmeow:graphBoxRole gmeow:boxABox .
+gmeow:emotionType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:qualityElegance gmeow:graphBoxRole gmeow:boxABox .
+gmeow:qualityKitsch gmeow:graphBoxRole gmeow:boxABox .
+gmeow:qualitySublimity gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/affect> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

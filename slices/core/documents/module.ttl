@@ -761,3 +761,75 @@ gmeow:depictedIn
     gmeow:avoidWhen "Avoid asserting it directly when you have already stated gmeow:depicts (read this as its inverse) and avoid it for richer depiction metadata — that is a gmeow:DepictionUsage relator."@x-gmeow-english ;
     gmeow:howToUse "Prefer asserting gmeow:depicts and read gmeow:depictedIn as its inverse; reach for it explicitly only in entity-rooted projections where the inverse direction is natural."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Article gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:BookRelease gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Collection gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ContentSegment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ContentSegmentType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CreativeWork gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CreativeWorkTitle gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:DataFeed gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Dataset gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Document gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:FeedPosting gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:FeedPostingKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:LiteraryWork gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MediaObject gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Patent gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProfilePage gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:ReadingOrder gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SerialInstallment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SerialWork gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Service gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:WebPage gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:WebSite gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:abstract gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:bibliographicCitation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:caption gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:captureDevice gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:captureTime gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:colourspace gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:contentLanguage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dateAccepted gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dateAvailable gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dateCreated gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dateModified gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:datePublished gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dateSubmitted gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:depictedIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:depicts gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:extent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:feedPostingKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:feedPostingKindBlog gmeow:graphBoxRole gmeow:boxABox .
+gmeow:feedPostingKindMicroblog gmeow:graphBoxRole gmeow:boxABox .
+gmeow:feedPostingKindSocial gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasSegment gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasTitle gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:identifier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:imageOrientation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mediaType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:pageOfSite gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:pagePrincipalSubject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:pixelHeight gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:pixelWidth gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:quotedText gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:quotesContent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:segmentIndex gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:segmentOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:segmentType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:segmentTypeBackMatter gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentTypeChapter gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentTypeFrontMatter gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentTypeParagraph gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentTypeScene gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentTypeSection gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sharesContent gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/documents> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:tableOfContents gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:title gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:transcript gmeow:graphBoxRole gmeow:boxRBox .

@@ -133,3 +133,17 @@ gmeow:existenceDestructionEvent
 
 gmeow:EntityExistence rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:existenceEntity ; owl:someValuesFrom gmeow:Entity ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:EntityExistence gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:existenceCreationEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:existenceDestructionEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:existenceEntity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:existenceInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasCreationEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasDestructionEvent gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/lifecycle> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:supersededBy gmeow:graphBoxRole gmeow:boxRBox .

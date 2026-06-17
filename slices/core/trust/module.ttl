@@ -432,3 +432,43 @@ gmeow:verificationStatus
     gmeow:avoidWhen "Avoid for the algorithm used (gmeow:signatureAlgorithm) and for owner-trust in the signer (gmeow:TrustAssertion); the status is the check result, not the strength or the trust. It is functional — one outcome per signature."@x-gmeow-english ;
     gmeow:howToUse "Attach the outcome literal to the signature after verifying gmeow:signingKey against a gmeow:Certification; a competing verifier's differing result is recorded as a separate signature observation rather than overwriting this one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Certification gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CryptographicKey gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CryptographicSignature gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:KeyScheme gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:PGPSignature gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SMIMESignature gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TrustAssertion gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:accountKey gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:certificationLevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:certifiedIdentity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:certifiedKey gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:certifier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:endorses gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:fingerprint gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:holdsKey gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:introducerAmount gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:introducerDepth gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:keyAlgorithm gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:keyExpiresAt gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:keyId gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:keyMaterial gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:keyScheme gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:keySchemeNostr gmeow:graphBoxRole gmeow:boxABox .
+gmeow:keySchemePGP gmeow:graphBoxRole gmeow:boxABox .
+gmeow:keySchemeSSH gmeow:graphBoxRole gmeow:boxABox .
+gmeow:keySchemeX509 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:signatureAlgorithm gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:signedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:signingDomain gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:signingKey gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/trust> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:trustLevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:trustee gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:trustor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:verificationStatus gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .

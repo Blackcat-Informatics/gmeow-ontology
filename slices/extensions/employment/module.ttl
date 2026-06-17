@@ -145,3 +145,30 @@ gmeow:Employment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:employmentType ; owl:someValuesFrom gmeow:EmploymentType ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:membershipMember ; owl:someValuesFrom gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:membershipOrganization ; owl:someValuesFrom gmeow:Organization ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Employment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:EmploymentType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SeniorityLevel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:employmentCompensation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:employmentInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:employmentOccupation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:employmentRole gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:employmentSeniority gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:employmentType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:employmentTypeApprentice gmeow:graphBoxRole gmeow:boxABox .
+gmeow:employmentTypeContract gmeow:graphBoxRole gmeow:boxABox .
+gmeow:employmentTypeFreelance gmeow:graphBoxRole gmeow:boxABox .
+gmeow:employmentTypeFullTime gmeow:graphBoxRole gmeow:boxABox .
+gmeow:employmentTypeIntern gmeow:graphBoxRole gmeow:boxABox .
+gmeow:employmentTypePartTime gmeow:graphBoxRole gmeow:boxABox .
+gmeow:employmentTypeVolunteer gmeow:graphBoxRole gmeow:boxABox .
+gmeow:seniorityEntry gmeow:graphBoxRole gmeow:boxABox .
+gmeow:seniorityExecutive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:seniorityLead gmeow:graphBoxRole gmeow:boxABox .
+gmeow:seniorityMid gmeow:graphBoxRole gmeow:boxABox .
+gmeow:senioritySenior gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/employment> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

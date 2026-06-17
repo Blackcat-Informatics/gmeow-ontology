@@ -152,6 +152,7 @@ def test_graded_gate_warns_not_errors_on_missing_depth() -> None:
 def _tier_1_probe_graph(*, how_to_use: bool = False) -> Graph:
     graph = Graph()
     term = GM.ReviewDepthProbe
+    role = URIRef("https://example.org/boxTBox")
     graph.add((term, RDF.type, OWL.Class))
     graph.add((term, RDFS.label, Literal("review depth probe", lang="x-gmeow-english")))
     graph.add(
@@ -165,6 +166,8 @@ def _tier_1_probe_graph(*, how_to_use: bool = False) -> Graph:
         )
     )
     graph.add((term, RDFS.isDefinedBy, URIRef(GMEOW + "slices/kernel")))
+    graph.add((role, RDF.type, GM.GraphBoxRole))
+    graph.add((term, GM.graphBoxRole, role))
     if how_to_use:
         graph.add(
             (

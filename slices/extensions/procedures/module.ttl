@@ -493,3 +493,81 @@ gmeow:DataFlow rdfs:subClassOf
 gmeow:Execution rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:executesProcedure ; owl:someValuesFrom gmeow:Procedure ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:executesStep ; owl:someValuesFrom gmeow:ProcedureStep ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:BranchConditionType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ControlFlow gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:DataFlow gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Execution gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ExecutionStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Procedure gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProcedureStep gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProcedureType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:StepType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:branchConditionIf gmeow:graphBoxRole gmeow:boxABox .
+gmeow:branchConditionLoop gmeow:graphBoxRole gmeow:boxABox .
+gmeow:branchConditionParallel gmeow:graphBoxRole gmeow:boxABox .
+gmeow:branchConditionSwitch gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dataFlowEntity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dataFlowSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:dataFlowTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:executesProcedure gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:executesStep gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:executionParticipant gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:executionStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:executionStatusCancelled gmeow:graphBoxRole gmeow:boxABox .
+gmeow:executionStatusFailed gmeow:graphBoxRole gmeow:boxABox .
+gmeow:executionStatusPending gmeow:graphBoxRole gmeow:boxABox .
+gmeow:executionStatusRunning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:executionStatusSkipped gmeow:graphBoxRole gmeow:boxABox .
+gmeow:executionStatusSucceeded gmeow:graphBoxRole gmeow:boxABox .
+gmeow:flowGuard gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:flowIngestion1 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:flowIngestion2 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:flowIngestion3 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:flowIngestion4 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:flowIngestion5 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:flowOrder gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:flowSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:flowTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasProcedureStep gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSubProcedure gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:inquiryPriority gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:inquirySource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:inquiryStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:inquiryTheme gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:procedureIngestionCanonical gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureIngestionRawRoot gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureStepOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:procedureStepType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:procedureType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:procedureTypeAgentFlow gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureTypeBusinessProcess gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureTypeCiBuild gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureTypeDataPipeline gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureTypeIngestion gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureTypeLabProtocol gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureTypeRecipe gmeow:graphBoxRole gmeow:boxABox .
+gmeow:procedureTypeResearchPlan gmeow:graphBoxRole gmeow:boxABox .
+gmeow:resolvedByArtifact gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/procedures> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:stepEnactsProcedure gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:stepIngestionDerivedClaims gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:stepIngestionFileCopy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepIngestionOcrExtract gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepIngestionPrivacyPosture gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepIngestionRawRoot gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepIngestionUnresolvedLeads gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepInput gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:stepOutput gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:stepParameter gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:stepTypeAtomic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepTypeBranch gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepTypeEnd gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepTypeParallel gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepTypeStart gmeow:graphBoxRole gmeow:boxABox .
+gmeow:stepTypeSubprocess gmeow:graphBoxRole gmeow:boxABox .
+gmeow:subProcedureOf gmeow:graphBoxRole gmeow:boxRBox .

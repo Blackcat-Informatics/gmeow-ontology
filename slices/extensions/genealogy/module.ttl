@@ -246,3 +246,30 @@ gmeow:relationshipChild rdfs:subPropertyOf gmeow:observedFeature .
 
 # CoupleRelationship bridge.
 gmeow:hasPartner rdfs:subPropertyOf gmeow:observedFeature .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AdoptiveParentChild gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:BiologicalParentChild gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CoupleRelationship gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Family gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:FosterParentChild gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:KinRelationship gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ParentChildRelationship gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:StepParentChild gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:hasAncestor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasChild gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasCoupleEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasDescendant gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasFather gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasMother gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasParent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasPartner gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSibling gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSpouse gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relationshipChild gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relationshipParent gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/genealogy> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:withinFamily gmeow:graphBoxRole gmeow:boxRBox .

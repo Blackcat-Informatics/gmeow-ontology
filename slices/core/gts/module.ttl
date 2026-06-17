@@ -367,3 +367,47 @@ gmeow:opacityDamaged a gmeow:OpacityReason ; rdfs:label "damaged"@x-gmeow-englis
 #   gmeow:displayable        (kernel, P10) — suppress frames realize this in transport.
 #   gmeow:accordingTo / gmeow:standpointModality (standpoint) — annot-frame claims.
 #   gmeow:MediaObject        (documents)   — media blobs a document carries.
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:CodecClass gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:GTSCompaction gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:GTSDocument gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:GTSProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:GTSSegment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:OpacityReason gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:OpaqueFrame gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TransformCodec gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:codecBase64 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecBase85 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecClass gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:codecClassCompress gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecClassEncode gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecClassEncrypt gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecCoseEncrypt0 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecGzip gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecIdentity gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecLzma2 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:codecZstd gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:gtsHeadId gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:gtsProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:gtsProfileAiPackage gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:gtsProfileBundle gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:gtsProfileDist gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:gtsProfileEvidence gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox, gmeow:boxConfigBox .
+gmeow:gtsProfileGeneric gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:gtsProfileImage gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:gtsProfileOpaque gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:gtsSegment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:gtsSegmentIndex gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:gtsSegmentOf gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:opacityDamaged gmeow:graphBoxRole gmeow:boxABox .
+gmeow:opacityMissingKey gmeow:graphBoxRole gmeow:boxABox .
+gmeow:opacityReason gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:opacityUnknownCodec gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:opaqueFrameIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:sealedRecipient gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/gts> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:usesTransformCodec gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

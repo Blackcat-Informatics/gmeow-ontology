@@ -703,3 +703,100 @@ gmeow:hasNarrativeRole gmeow:pairsWith gmeow:RoleInNarrative .
 gmeow:motifOccursIn gmeow:pairsWith gmeow:NarrationUsage .
 gmeow:hasNarrativeFrameRelation gmeow:pairsWith gmeow:NarrativeFrameLink .
 gmeow:relatesToFrame gmeow:pairsWith gmeow:NarrativeFrameLink .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:ArcSample gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ArcType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CharacterArc gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Motif gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MotifKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Myth gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrationMode gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrationUsage gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativeFrameLink gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativeFrameRelation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativePosition gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativeReferenceFrame gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativeRole gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativeScope gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativeTimeAxis gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NarrativeTimeFrame gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:RoleInNarrative gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:affectedConsumerSurface gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:arcEvidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:arcFrame gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:arcSample gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:arcSubject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:arcType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:arcTypeComingOfAge gmeow:graphBoxRole gmeow:boxABox .
+gmeow:arcTypeCorruption gmeow:graphBoxRole gmeow:boxABox .
+gmeow:arcTypeFall gmeow:graphBoxRole gmeow:boxABox .
+gmeow:arcTypeQuest gmeow:graphBoxRole gmeow:boxABox .
+gmeow:arcTypeRecovery gmeow:graphBoxRole gmeow:boxABox .
+gmeow:arcTypeRedemption gmeow:graphBoxRole gmeow:boxABox .
+gmeow:atNarrativePosition gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:axisDiscourseTime gmeow:graphBoxRole gmeow:boxABox .
+gmeow:axisStoryTime gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contributesToFrame gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:developmentSignalEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:developmentSignalText gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:discourseTimeOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasMythTelling gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasNarrativeFrameRelation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasNarrativeRole gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:motifKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:motifKindLeitmotif gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motifKindRunningGag gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motifKindSymbol gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motifKindTaleType gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motifKindTheme gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motifKindTrope gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motifOccursIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mythFrame gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narratedIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrates gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrationDirect gmeow:graphBoxRole gmeow:boxABox .
+gmeow:narrationDream gmeow:graphBoxRole gmeow:boxABox .
+gmeow:narrationFlashback gmeow:graphBoxRole gmeow:boxABox .
+gmeow:narrationHypothetical gmeow:graphBoxRole gmeow:boxABox .
+gmeow:narrationLink gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrationMentioned gmeow:graphBoxRole gmeow:boxABox .
+gmeow:narrationMode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrationSegment gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrationSubject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrationUnreliable gmeow:graphBoxRole gmeow:boxABox .
+gmeow:narrativeFrameLinkRelation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrativeFrameLinkSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:narrativeFrameLinkTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrativeRoleBearer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrativeRoleScope gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrativeRoleValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:narrativeTimeAxis gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:positionFrame gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:positionLabel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:positionOrdinal gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:propagatesFrom gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:recurringRisk gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relatesToFrame gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relationAdaptationOf gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relationAlternateContinuity gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relationCanon gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relationCrossover gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relationExpandedUniverse gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relationFanon gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleAntagonist gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleConfidant gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleFoil gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleLoveInterest gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleMentor gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleProtagonist gmeow:graphBoxRole gmeow:boxABox .
+gmeow:roleTrickster gmeow:graphBoxRole gmeow:boxABox .
+gmeow:samplePosition gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:sampleState gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:sampleSubject gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/narrative> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:sourceFor gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:storyTimeOf gmeow:graphBoxRole gmeow:boxRBox .
