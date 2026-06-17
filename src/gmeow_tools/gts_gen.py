@@ -39,8 +39,10 @@ from gmeow_tools.slices import discover_slices
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-#: Default documentation archive language until a configurable resolver lands.
-_DEFAULT_DOC_LANG = "x-gmeow-english"
+#: Intentional canonical-carrier documentation archive language for bundled docs.
+#: ``x-gmeow-english`` is the one canonical source for docs embedded in the
+#: offline bundle (Principle 4). No configurable resolver is currently required.
+DEFAULT_DOC_ARCHIVE_LANG = "x-gmeow-english"
 
 #: Paths/files to skip when bundling project docs.
 _PROJECT_DOC_SKIP = frozenset({"_generated", ".gitignore", ".DS_Store"})
@@ -58,7 +60,7 @@ def _is_project_doc_path(path: Path) -> bool:
     return all(part not in _PROJECT_DOC_SKIP for part in path.parts)
 
 
-def _tar_directory(root: Path, lang: str = _DEFAULT_DOC_LANG) -> bytes:
+def _tar_directory(root: Path, lang: str = DEFAULT_DOC_ARCHIVE_LANG) -> bytes:
     """Return a deterministic, uncompressed tar of *root* under *lang/*."""
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w") as tar:

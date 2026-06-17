@@ -107,6 +107,23 @@ def test_describe_unknown_language_fails(runner: CliRunner) -> None:
     assert "Available languages" in result.output
 
 
+def test_describe_unknown_language_error_is_content_aware(runner: CliRunner) -> None:
+    """When content is limited, the error list does not advertise the full catalog."""
+    mock_view = MagicMock()
+    mock_view.tag_map.return_value = {
+        "x-gmeow-english": "en",
+        "x-gmeow-french": "fr",
+        "x-gmeow-chinese": "zh",
+    }
+    mock_view.available_languages.return_value = frozenset({"en", "fr"})
+
+    with patch("gmeow_tools.cli._bundle_view", return_value=mock_view):
+        result = runner.invoke(public_app, ["describe", "Person", "--lang", "notatag"])
+    assert result.exit_code != 0
+    assert "Available languages: en, fr" in result.output
+    assert "zh" not in result.output
+
+
 def test_describe_fallback_marker_for_missing_language(runner: CliRunner) -> None:
     """The bundled snapshot only carries English, so a French request falls back."""
     result = runner.invoke(public_app, ["describe", "Person", "--lang", "fr"])
@@ -121,6 +138,22 @@ def test_describe_env_language_rejected_if_unknown(runner: CliRunner) -> None:
     assert "unknown language tag" in result.output.lower()
 
 
+def test_describe_explicit_empty_lang_overrides_env(runner: CliRunner) -> None:
+    """--lang '' wins over GMEOW_LANG and selects the default English carrier."""
+    with patch.dict("os.environ", {"GMEOW_LANG": "fr"}):
+        result = runner.invoke(public_app, ["describe", "Person", "--lang", ""])
+    assert result.exit_code == 0, result.output
+    assert "fallback: en" not in result.output
+
+
+def test_describe_env_empty_lang_defaults_to_english(runner: CliRunner) -> None:
+    """An empty GMEOW_LANG env value maps to the default English carrier."""
+    with patch.dict("os.environ", {"GMEOW_LANG": ""}):
+        result = runner.invoke(public_app, ["describe", "Person"])
+    assert result.exit_code == 0, result.output
+    assert "Person" in result.output
+
+
 def test_export_respects_language_selector(runner: CliRunner, tmp_path: Path) -> None:
     out = tmp_path / "export"
     result = runner.invoke(public_app, ["export", "--out", str(out), "--lang", "fr"])
@@ -130,6 +163,21 @@ def test_export_respects_language_selector(runner: CliRunner, tmp_path: Path) ->
     text = classes_csv.read_text(encoding="utf-8")
     assert "label_fr" in text
     assert "label_fallback" in text
+
+
+def test_export_lang_flag_wins_over_env(runner: CliRunner, tmp_path: Path) -> None:
+    """--lang wins over GMEOW_LANG when exporting CSVs."""
+    out = tmp_path / "export"
+    with patch.dict("os.environ", {"GMEOW_LANG": "en"}):
+        result = runner.invoke(
+            public_app, ["export", "--out", str(out), "--lang", "fr"]
+        )
+    assert result.exit_code == 0, result.output
+    classes_csv = out / "gmeow-classes.csv"
+    assert classes_csv.exists()
+    header = classes_csv.read_text(encoding="utf-8").splitlines()[0]
+    assert "label_fr" in header
+    assert "label_en" not in header
 
 
 def test_create_docs_language_fallback(runner: CliRunner, tmp_path: Path) -> None:

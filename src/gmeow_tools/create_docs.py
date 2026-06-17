@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from gmeow_tools.config import FULL_PROFILE_IRI, NAMESPACE, ONTOLOGY_IRI, PREFIXES
-from gmeow_tools.export import Term, _marked, collect_terms, curie, fold_meta
+from gmeow_tools.export import Term, collect_terms, curie, fold_meta, marked
 from gmeow_tools.gts_views import FoldView, load_fold
 
 if TYPE_CHECKING:
@@ -156,13 +156,13 @@ def _write_term_file(out_dir: Path, term: Term, view: FoldView) -> None:
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     lines: list[str] = [
-        "# " + _marked(term.label or term.curie, term.label_fallback),
+        "# " + marked(term.label or term.curie, term.label_fallback),
         "",
         _BANNER,
     ]
 
     if term.definition:
-        lines.append(_marked(term.definition, term.definition_fallback))
+        lines.append(marked(term.definition, term.definition_fallback))
         lines.append("")
 
     term_tid = view.tid_of_iri(term.iri)

@@ -184,3 +184,61 @@ def test_snapshot_subjects_by_type_finds_classes(snapshot: FoldView) -> None:
     assert len(classes) > 100
     names = {snapshot.iri(t) for t in classes}
     assert NAMESPACE + "GTSDocument" in names
+
+
+def test_available_languages_includes_english_and_content_languages() -> None:
+    """Only languages with actual literals are advertised, plus the carrier."""
+    w = Writer(profile="dist")
+    rdf_type = RDF_NS + "type"
+    lang_class = NAMESPACE + "Language"
+    language_tag = NAMESPACE + "languageTag"
+    bcp47_tag = NAMESPACE + "bcp47Tag"
+    label = str(RDFS.label)
+
+    terms = [
+        Term(TermKind.IRI, rdf_type),  # 0
+        Term(TermKind.IRI, lang_class),  # 1
+        Term(TermKind.IRI, language_tag),  # 2
+        Term(TermKind.IRI, bcp47_tag),  # 3
+        Term(TermKind.IRI, label),  # 4
+        Term(TermKind.IRI, NAMESPACE + "English"),  # 5
+        Term(TermKind.LITERAL, "x-gmeow-english", lang="en"),  # 6
+        Term(TermKind.LITERAL, "en", lang="en"),  # 7
+        Term(TermKind.IRI, NAMESPACE + "French"),  # 8
+        Term(TermKind.LITERAL, "x-gmeow-french", lang="en"),  # 9
+        Term(TermKind.LITERAL, "fr", lang="en"),  # 10
+        Term(TermKind.IRI, NAMESPACE + "Chinese"),  # 11
+        Term(TermKind.LITERAL, "x-gmeow-chinese", lang="en"),  # 12
+        Term(TermKind.LITERAL, "zh", lang="en"),  # 13
+        Term(TermKind.IRI, NAMESPACE + "Thing"),  # 14
+        Term(TermKind.LITERAL, "Hello", lang="x-gmeow-english"),  # 15
+        Term(TermKind.LITERAL, "Bonjour", lang="x-gmeow-french"),  # 16
+    ]
+    w.add_terms(terms)
+    w.add_quads(
+        [
+            (5, 0, 1, None),  # English a Language
+            (5, 2, 6, None),  # English languageTag x-gmeow-english
+            (5, 3, 7, None),  # English bcp47Tag en
+            (8, 0, 1, None),  # French a Language
+            (8, 2, 9, None),  # French languageTag x-gmeow-french
+            (8, 3, 10, None),  # French bcp47Tag fr
+            (11, 0, 1, None),  # Chinese a Language
+            (11, 2, 12, None),  # Chinese languageTag x-gmeow-chinese
+            (11, 3, 13, None),  # Chinese bcp47Tag zh
+            (14, 4, 15, None),  # Thing label "Hello"@x-gmeow-english
+            (14, 4, 16, None),  # Thing label "Bonjour"@x-gmeow-french
+        ]
+    )
+    view = FoldView(read(w.to_bytes()))
+    available = view.available_languages()
+    assert "en" in available
+    assert "fr" in available
+    assert "zh" not in available
+
+
+def test_available_languages_on_real_snapshot_includes_english(
+    snapshot: FoldView,
+) -> None:
+    available = snapshot.available_languages()
+    assert "en" in available
