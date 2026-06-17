@@ -6,10 +6,33 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 
 # =========================================================================== #
 # Doxastic tier shapes (#560)
 # =========================================================================== #
+
+gmeow:DoxasticStandpointClaimShape
+    a sh:NodeShape ;
+    rdfs:label "DoxasticStandpointClaim well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:DoxasticStandpointClaim: at most one claimOfBelief link to a DoxasticState; optional justification grounds restricted to EvidenceSpan, Attestation, or DoxasticState."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:DoxasticStandpointClaim ;
+    sh:property [
+        sh:path gmeow:claimOfBelief ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:DoxasticState ;
+        sh:severity sh:Violation ;
+        sh:message "A DoxasticStandpointClaim may be linked to at most one DoxasticState via gmeow:claimOfBelief." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:justifiedBy ;
+        sh:minCount 0 ;
+        sh:class [ owl:unionOf (gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState) ] ;
+        sh:severity sh:Violation ;
+        sh:message "If present, a justification ground (gmeow:justifiedBy) must be an EvidenceSpan, Attestation, or DoxasticState." ;
+    ] .
 
 gmeow:DoxasticStateShape
     a sh:NodeShape ;

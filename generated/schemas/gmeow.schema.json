@@ -33297,6 +33297,208 @@
             "title": "DocumentationConcernEnum",
             "type": "string"
         },
+        "DoxasticStandpointClaim": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "argumentAcceptability": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "claimModality": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/StandpointModality"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "claimOfBelief": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DoxasticState"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "claimVeridicality": {
+                    "items": {
+                        "$ref": "#/$defs/ClaimVeridicality"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "competesWith": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "credibilityScore": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "defeaterKind": {
+                    "items": {
+                        "$ref": "#/$defs/DefeaterKind"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "explains": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "explanatoryScore": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "facetSubject": {
+                    "items": {
+                        "$ref": "#/$defs/Person"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "facetVantage": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "inferenceMode": {
+                    "items": {
+                        "$ref": "#/$defs/InferenceMode"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "inferredFrom": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observationMethod": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ObservationMethod"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "observationResult": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observationType": {
+                    "items": {
+                        "$ref": "#/$defs/ObservationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "observedFeature": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "perceptionEnvironment": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/SensoryEnvironment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "timbreObservationResult": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimbreDescriptor"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "vantage": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "DoxasticStandpointClaim",
+            "type": "object"
+        },
         "DoxasticState": {
             "additionalProperties": false,
             "description": "",

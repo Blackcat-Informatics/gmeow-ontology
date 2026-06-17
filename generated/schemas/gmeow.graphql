@@ -7374,6 +7374,31 @@ type DocumentationConcern
   {
   }
 
+type DoxasticStandpointClaim
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
+    argumentAcceptability: [Float]
+    claimModality: StandpointModality
+    claimVeridicality: [ClaimVeridicality]
+    competesWith: [StandpointClaim]
+    defeaterKind: [DefeaterKind]
+    explains: [String]
+    explanatoryScore: [Float]
+    inferenceMode: [InferenceMode]
+    inferredFrom: [String]
+    claimOfBelief: DoxasticState
+  }
+
 type DoxasticState
   {
     credence: [Float]

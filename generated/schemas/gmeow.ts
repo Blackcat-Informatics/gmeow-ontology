@@ -4394,6 +4394,12 @@ export interface DocumentationConcern {
 
 
 
+export interface DoxasticStandpointClaim extends StandpointClaim {
+    claimOfBelief?: DoxasticState,
+}
+
+
+
 export interface DoxasticState extends MentalMoment {
     credence?: number[],
     doxasticClaim?: StandpointClaim,

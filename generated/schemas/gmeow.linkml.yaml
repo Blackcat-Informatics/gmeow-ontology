@@ -951,6 +951,12 @@ classes:
   DocumentationConcern:
     class_uri: https://blackcatinformatics.ca/gmeow/DocumentationConcern
     title: Documentation Concern
+  DoxasticStandpointClaim:
+    class_uri: https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim
+    title: doxastic standpoint claim
+    is_a: StandpointClaim
+    slots:
+    - claimOfBelief
   DoxasticState:
     class_uri: https://blackcatinformatics.ca/gmeow/DoxasticState
     title: Doxastic State
@@ -5037,6 +5043,12 @@ slots:
     title: claim modality
     range: StandpointModality
     domain: StandpointClaim
+    multivalued: false
+  claimOfBelief:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimOfBelief
+    title: claim of belief
+    range: DoxasticState
+    domain: DoxasticStandpointClaim
     multivalued: false
   claimVeridicality:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimVeridicality
