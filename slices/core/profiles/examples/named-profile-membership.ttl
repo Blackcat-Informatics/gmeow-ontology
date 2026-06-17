@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the Profile meta-pattern in use: a closed descriptor schema
+# over an open value vocabulary, and an instance that claims conformance to it.
+#
+# A consumer declares a self-describing facet for a TAGGING (the reified
+# tagger × tagged × tag × scheme relator) WITHOUT minting per-tag subclasses.
+# It mints one gmeow:Profile that names (a) the class it applies to (the existing
+# gmeow:Tagging), (b) the descriptor properties that constitute the facet, and
+# (c) the open value vocabulary those descriptors draw from (the existing
+# gmeow:Tag, whose members are individuals, never subclasses — P9). Extension
+# happens by adding Tag INDIVIDUALS — each referenced as the value of the
+# gmeow:taggingTag descriptor — never by altering the closed descriptor set. A
+# concrete Tagging points at the Profile with gmeow:hasProfile, so a consumer
+# holding only the data can dereference the Profile and learn the complete
+# schema — the self-description that makes "extensible by construction" a
+# structure, not a slogan. The example mints no classes of its own (it reuses
+# gmeow:Tagging / gmeow:Tag / gmeow:TagScheme), and asserts no Expression-typed
+# value, so no P11 frame is required.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/profiles/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# --- The Profile: a closed descriptor schema for a tagging. It SELF-DESCRIBES —
+#     naming the class it governs (profileAppliesTo gmeow:Tagging), the
+#     descriptor properties (profileDescriptor), and the open value class
+#     (profileOpenValue gmeow:Tag) — so tooling reads the graph, not code. A
+#     Profile MUST carry a skos:definition.
+ex:profileTagging a gmeow:Profile ;
+    rdfs:label "Tagging Profile"@x-gmeow-english ;
+    skos:definition "The closed descriptor schema for a reified tagging: the entity tagged, the tag applied (drawn from the open gmeow:Tag vocabulary), the agent who applied it, and the scheme it belongs to. New tags extend the facet as data added to the open value class, with this descriptor set unchanged."@x-gmeow-english ;
+    gmeow:profileAppliesTo gmeow:Tagging ;
+    gmeow:profileDescriptor
+        gmeow:taggingTagged ,
+        gmeow:taggingTag ,
+        gmeow:taggingTagger ,
+        gmeow:taggingScheme ;
+    gmeow:profileOpenValue gmeow:Tag .
+
+# --- The OPEN value vocabulary in use: gmeow:Tag individuals, referenced below
+#     as the value of the gmeow:taggingTag descriptor. New tags are added HERE,
+#     as data — the descriptor schema above is never touched.
+ex:scheme a gmeow:TagScheme ; rdfs:label "Research topic keywords"@x-gmeow-english .
+ex:tagML a gmeow:Tag ;
+    rdfs:label "machine-learning"@x-gmeow-english ;
+    gmeow:tagInScheme ex:scheme .
+
+ex:alice a gmeow:Person ; gmeow:name "Alice"@x-gmeow-english .
+ex:paper a gmeow:CreativeWork ;
+    gmeow:title "A Survey of Transformer Architectures"@x-gmeow-english .
+
+# --- A concrete Tagging that CLAIMS CONFORMANCE: it carries gmeow:hasProfile
+#     pointing at the Profile whose descriptor schema governs it, and supplies
+#     descriptor values — including the open-vocabulary tag as the value of
+#     gmeow:taggingTag. A consumer can now validate this tagging's shape by
+#     dereferencing the Profile alone.
+ex:taggingML a gmeow:Tagging ;
+    gmeow:hasProfile ex:profileTagging ;
+    gmeow:taggingTagged ex:paper ;
+    gmeow:taggingTag    ex:tagML ;
+    gmeow:taggingTagger ex:alice ;
+    gmeow:taggingScheme ex:scheme .

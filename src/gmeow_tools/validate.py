@@ -560,6 +560,30 @@ def _run_example_shacl(source_paths: list[str], example: Path) -> ValidationResu
     return run_shacl(data_nt)
 
 
+def check_example_coverage(root: Path | None = None) -> ValidationResult:
+    """Every slice MUST ship at least one validating example (#579).
+
+    A slice with no ``examples/*.ttl`` file is an ERROR, not a silent advisory
+    skip: examples are canonical worked data and the only thing that keeps a
+    slice's terms exercised against the live SHACL shapes. File discovery stays
+    in Python (the per-example SHACL validation runs through Rust in
+    :func:`check_examples`); this gate only asserts the example's PRESENCE.
+
+    Mirrors the ``slices/*/*/manifest.ttl`` iteration used by
+    :func:`guide_anchor_lint` and :func:`slice_ownership_lint`.
+    """
+    base = root if root is not None else SLICES_DIR
+    result = ValidationResult()
+    for manifest in sorted(base.glob("*/*/manifest.ttl")):
+        slice_dir = manifest.parent
+        if not any(slice_dir.glob("examples/*.ttl")):
+            result.errors.append(
+                f"slice {slice_dir.name}: no examples/*.ttl — every slice must "
+                f"ship at least one validating example (#579)"
+            )
+    return result
+
+
 def check_examples(
     source_paths: list[str], *, base_cache_key: str | None = None
 ) -> ValidationResult:
@@ -687,6 +711,7 @@ def validate_all() -> ValidationResult:
             lambda: run_shacl(merged_ntriples(source_paths)),
         )
     )
+    result.extend(check_example_coverage())
     result.extend(check_examples(source_paths, base_cache_key=shacl_key))
     result.extend(
         _cached_result(
