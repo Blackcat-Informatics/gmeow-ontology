@@ -87,3 +87,14 @@ gmeow:supersedes
     gmeow:avoidWhen "Avoid for lineage containment (use gmeow:versionOf or gmeow:editionOf) and for cross-realm equivalence (use gmeow:counterpartOf); never delete or owl:sameAs the predecessor — suppress it from display with gmeow:displayable false if it should no longer surface."@x-gmeow-english ;
     gmeow:howToUse "Assert gmeow:supersedes from the successor to each predecessor (non-functional, so one successor may consolidate several); keep the superseded entities in the graph and mark them gmeow:displayable false when they should drop out of projections."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:authorityLink gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:counterpartOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:editionOf gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/coreference> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:supersedes gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:versionOf gmeow:graphBoxRole gmeow:boxRBox .

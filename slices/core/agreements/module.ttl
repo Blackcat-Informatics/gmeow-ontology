@@ -69,3 +69,14 @@ gmeow:foundedOn
     gmeow:avoidWhen "Avoid for the agreement's own parties (use gmeow:hasParty) and for the teleological goal of the bond (that rides the gmeow:Commitment); this property records what grounds the relator, not what it aims at."@x-gmeow-english ;
     gmeow:howToUse "Point the dependent relator at the gmeow:Agreement (or gmeow:Contract) it rests on; let the agreement carry the parties via gmeow:hasParty rather than re-stating them on the grounded relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Agreement gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AgreementName gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Contract gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:foundedOn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasParty gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/agreements> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

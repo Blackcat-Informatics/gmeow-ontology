@@ -204,3 +204,25 @@ gmeow:claimModality
 gmeow:StandpointTenure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:tenureStandpoint ; owl:someValuesFrom gmeow:Standpoint ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:standpointClaim ; owl:someValuesFrom gmeow:StandpointClaim ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Standpoint gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:StandpointModality gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:StandpointTenure gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:accordingTo gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:bullshit gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:claimModality gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:conceivable gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:probable gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:refuted gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:sharpens gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/standpoint> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:standpointClaim gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:standpointModality gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:tenurePosition gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:tenureStandpoint gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:unequivocal gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:universalStandpoint gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .

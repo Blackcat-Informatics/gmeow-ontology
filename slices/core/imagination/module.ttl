@@ -154,3 +154,20 @@ gmeow:imaginedWorld
     gmeow:avoidWhen "Avoid asserting the target as a logic:-namespaced triple or declaring logic as a dependency (the link is by reference, keeping the slice DL-clean) and avoid making it functional; a single rehearsal may branch into several imagined worlds."@x-gmeow-english ;
     gmeow:howToUse "Point the imagining act or supposition statement at the logic:World it explores (by reference, no asserted logic: triple); scope the as-if content to that world and read modal consequences off the logic: machinery, leaving world construction and search to the solver layer (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:ContentOrigin gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:contentOrigin gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:imaginedWorld gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:imagines gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:originBelieved gmeow:graphBoxRole gmeow:boxABox .
+gmeow:originGenerated gmeow:graphBoxRole gmeow:boxABox .
+gmeow:originImagined gmeow:graphBoxRole gmeow:boxABox .
+gmeow:originPerceived gmeow:graphBoxRole gmeow:boxABox .
+gmeow:originRemembered gmeow:graphBoxRole gmeow:boxABox .
+gmeow:originSupposed gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/imagination> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:supposes gmeow:graphBoxRole gmeow:boxRBox .

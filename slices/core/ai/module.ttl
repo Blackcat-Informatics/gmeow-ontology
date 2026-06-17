@@ -552,3 +552,60 @@ gmeow:methodNliDerivation a gmeow:ObservationMethod ;
     rdfs:label "NLI derivation"@x-gmeow-english ;
     skos:definition "The claim (typically a support/refute verdict) was derived by a natural-language-inference judgment over existing text."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Chunk gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Contradiction gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ContradictionKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MemoryItem gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MemoryKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ModelCard gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ModelInvocation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Prompt gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:PromptRole gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:PromptTemplate gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SupportPolarity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:chunkOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:contradictionKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:contradictionKindFactual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contradictionKindFraming gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contradictionKindNumeric gmeow:graphBoxRole gmeow:boxABox .
+gmeow:contradictionKindTemporal gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:contradictsClaim gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:describesModel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:detectedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:filledFrom gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:groundedIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasPrompt gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:memoryKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:memoryKindEpisodic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:memoryKindProcedural gmeow:graphBoxRole gmeow:boxABox .
+gmeow:memoryKindSemantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:memoryKindWorking gmeow:graphBoxRole gmeow:boxABox .
+gmeow:memoryOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:methodLlmExtraction gmeow:graphBoxRole gmeow:boxABox .
+gmeow:methodNliDerivation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modelContextWindow gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:modelProvider gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:modelTrainingCutoff gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:modelVersionTag gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:polarityNeutral gmeow:graphBoxRole gmeow:boxABox .
+gmeow:polarityRefutes gmeow:graphBoxRole gmeow:boxABox .
+gmeow:polaritySupports gmeow:graphBoxRole gmeow:boxABox .
+gmeow:promptRole gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:promptRoleAssistant gmeow:graphBoxRole gmeow:boxABox .
+gmeow:promptRoleSystem gmeow:graphBoxRole gmeow:boxABox .
+gmeow:promptRoleTool gmeow:graphBoxRole gmeow:boxABox .
+gmeow:promptRoleUser gmeow:graphBoxRole gmeow:boxABox .
+gmeow:samplingMaxTokens gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:samplingTemperature gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:samplingTopP gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/ai> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:spanEnd gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:spanOfChunk gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:spanStart gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:supportPolarity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:usedModel gmeow:graphBoxRole gmeow:boxRBox .

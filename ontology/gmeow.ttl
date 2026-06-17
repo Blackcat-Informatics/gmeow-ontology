@@ -82,3 +82,9 @@
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/trust> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+<https://blackcatinformatics.ca/gmeow> gmeow:graphBoxRole gmeow:boxTBox .

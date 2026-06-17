@@ -190,3 +190,26 @@ gmeow:processLearning
     rdfs:label "learning"@x-gmeow-english ;
     skos:definition "A learning episode — the occurrent that transitions an agent's knowledge or skill state (acquisition, being-taught, consolidation, transfer, unlearning). The occurrent face of a gmeow:LearningEvent (learning slice, #584); learning events carry it as their gmeow:mentalProcessType so they take a uniform place on the mental timeline alongside reasoning, perception, and dreaming."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Experience gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MentalProcess gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MentalProcessType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:experiencer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mentalProcessType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:processAttention gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processDeliberation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processDreaming gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processImagining gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processLearning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processMindWandering gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processPerception gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processReasoning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processRecollection gmeow:graphBoxRole gmeow:boxABox .
+gmeow:producesMentalMoment gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:realizesMentalMoment gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/mentation> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:updatesMentalTenure gmeow:graphBoxRole gmeow:boxRBox .

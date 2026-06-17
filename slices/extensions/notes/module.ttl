@@ -236,3 +236,40 @@ gmeow:Annotation rdfs:subClassOf
 
 gmeow:Highlight rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:annotationTargetSpan ; owl:someValuesFrom gmeow:EvidenceSpan ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Annotation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AnnotationMotivation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Bookmark gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Comment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Highlight gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Note gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:annotationBody gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:annotationMotivation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:annotationTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:annotationTargetSpan gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:commentParent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasDirectReply gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasReply gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasWikilink gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mentionedIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mentions gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:motivationAssessing gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationBookmarking gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationCommenting gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationDescribing gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationHighlighting gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationLinking gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationModerating gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationQuestioning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationReplying gmeow:graphBoxRole gmeow:boxABox .
+gmeow:motivationTagging gmeow:graphBoxRole gmeow:boxABox .
+gmeow:noteAuthor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:noteContent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:noteCreatedAt gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:noteModifiedAt gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relatedNote gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/notes> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

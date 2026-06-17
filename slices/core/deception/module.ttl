@@ -386,3 +386,44 @@ gmeow:eventTypeDisinformation
 # restrictions on gmeow:Event, keeping the core Event class clean for
 # non-deceptive events (birth, marriage, etc.). Principle 3.
 # =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:ClaimVeridicality gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:MaximViolationType gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:argumentAcceptability gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestationTypeFactCheck gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:claimVeridicality gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:credibilityScore gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:deceptionCue gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:deceptiveIntentClaim gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:eventTypeBullshit gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeDeception gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeDisinformation gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeDistortion gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeFabrication gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeForgery gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeImpersonation gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeLie gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeOmission gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypePaltering gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eventTypeSelfDeception gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:heldStandpoint gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:implicates gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:maximViolationManner gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:maximViolationQuality gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:maximViolationQuantity gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:maximViolationRelation gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:maximViolationType gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:projectedStandpoint gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:propagationMutationDistance gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:roleBeneficiaryOfDeception gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:roleDeceived gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:roleDeceiver gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:roleDupe gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:roleSpinDoctor gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+<https://blackcatinformatics.ca/gmeow/slices/deception> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:veridicalityLicensedFalsehood gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:veridicalityUntrue gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .

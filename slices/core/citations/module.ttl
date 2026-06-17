@@ -262,3 +262,38 @@ gmeow:isReferencedBy
 
 # Flat-first/reify-on-demand pairings, machine-usable.
 gmeow:cites gmeow:pairsWith gmeow:CitationAct .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:CitationAct gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CitationIntent gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ContributionDegree gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Selector gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SourceRole gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:citationIntent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:citedEntity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:cites gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:citingEntity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:degreeEqual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:degreeLead gmeow:graphBoxRole gmeow:boxABox .
+gmeow:degreeSupporting gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentBridgedByReference gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentCitesAsDataSource gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:intentConformsTo gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentDerivedFrom gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentDisagreesWith gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentDocuments gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentExtends gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentIsInspiredBy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentSupports gmeow:graphBoxRole gmeow:boxABox .
+gmeow:intentUsesMethodIn gmeow:graphBoxRole gmeow:boxABox .
+gmeow:isReferencedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:references gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:selectorLocator gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:selectorPage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:selectorTextPosition gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:selectorTextQuote gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/citations> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:viaSelector gmeow:graphBoxRole gmeow:boxRBox .

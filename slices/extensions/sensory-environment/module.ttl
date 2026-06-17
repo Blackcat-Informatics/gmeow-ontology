@@ -304,3 +304,41 @@ gmeow:SensoryEnvironment rdfs:subClassOf
 
 gmeow:SensoryPerception rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:perceptionEnvironment ; owl:someValuesFrom gmeow:SensoryEnvironment ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:CoordinateMatrix gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MentalReferenceFrame gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SensoryEnvironment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SensoryModality gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SensoryPerception gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:coordinateMatrixFrame gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:environmentAtInstant gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:environmentAtLocation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:environmentDuringInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasMeasuredCondition gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasPerceivedCondition gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:matrixShape gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:matrixValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:perceptionEnvironment gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:perceptionModality gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:referenceFrameAffectiveCircumplex gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameAudioSpectrum gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameCIELAB gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameCIEXYZ gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameCognitiveMapAllocentric gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameCognitiveMapEgocentric gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameConceptualSpace gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameImaginedSpace gmeow:graphBoxRole gmeow:boxABox .
+gmeow:referenceFrameThermalComfort gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensoryModality gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:sensoryModalityAirQuality gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensoryModalityAuditory gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensoryModalityGustatory gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensoryModalityOlfactory gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensoryModalityTactile gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensoryModalityThermal gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensoryModalityVisual gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/sensory-environment> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

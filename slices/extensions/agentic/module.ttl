@@ -62,3 +62,14 @@ gmeow:toolResult
     rdfs:label "tool result"@x-gmeow-english ;
     skos:definition "The verbatim result payload the tool returned, byte-faithful — the PAYLOAD of the event, never a forward entity link: an entity the call produced links back via gmeow:wasGeneratedBy (Principle 5). For large payloads store a content digest literal instead ('blake3:…'), as gmeow:toolArguments. Functional: one result record per call."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:ToolCall gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:calledByInvocation gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/agentic> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:toolArguments gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:toolResult gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:usedTool gmeow:graphBoxRole gmeow:boxRBox .
