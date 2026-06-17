@@ -14,33 +14,21 @@
     rdfs:label "GMEOW Dreaming Module"@x-gmeow-english ;
     skos:definition "The GMEOW Dreaming Module — a published extension-tier composition over the experiential/mentation layer: dreams, dream reports, and dream elements are built from gmeow:Experience, gmeow:AwarenessMode, gmeow:ContentOrigin, gmeow:LearningEvent, gmeow:Analogy, and metacognition with no new primitives."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
-    rdfs:comment """The dreaming slice is a pure composition over core GMEOW occurrent and awareness machinery. No new primitives are minted: the dreaming act is gmeow:processDreaming (mentation), the dream state is gmeow:modeDreaming or gmeow:modeREM (awareness), dreamt content is gmeow:originImagined (imagination), dream reports are recollection experiences, lucid dreaming is dreaming with online metacognition (awareness mode gmeow:modeLucidDreaming), and memory-consolidation dreaming is an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation routed through gmeow:Analogy and gmeow:learningConceptFormation.
+    rdfs:comment """The dreaming slice is a pure composition over core GMEOW occurrent and awareness machinery. No new primitives are minted.
+
+DREAM COMPOSITION.
+  * A dream is an instance of gmeow:Experience with:
+      - gmeow:mentalProcessType gmeow:processDreaming
+      - gmeow:awarenessMode value gmeow:modeDreaming or gmeow:modeREM
+      - gmeow:contentOrigin gmeow:originImagined
+  * Lucid dreaming = the same composition but with gmeow:awarenessMode gmeow:modeLucidDreaming.
+  * Memory-consolidation dreaming = an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation, recombining stored claims via gmeow:Analogy and gmeow:learningConceptFormation.
 
 DOCTRINE.
-  * No new primitives (Principle 4 / Principle 6): every class and property in this slice is composed from existing core classes and value vocabularies. The dream itself is a composed gmeow:Experience; the dream report is a composed recollection gmeow:Experience; dream elements are linked through one new object property whose domain is gmeow:Experience and whose range stays open.
-  * Co-equal vantage-indexed claims (Principle 9 / Principle 10): a dream report is a low-reliability recollection; competing reports, analyst interpretations, elementations, and lucidity attributions coexist as standpoint-indexed claims, with superseded claims suppressed by gmeow:displayable false rather than deleted.
-  * Composition, not taxonomy: finer dream kinds (lucid, REM, consolidation, recurring) are value-tagged or restriction-typed compositions, never subclasses of gmeow:Experience."""@x-gmeow-english ;
+  * No new primitives (Principle 4 / Principle 6): this slice adds only gmeow:DreamReport and gmeow:dreamElement. Every dream kind is composed from existing core classes and value vocabularies; the dream itself is a composed gmeow:Experience, the dream report is a composed recollection gmeow:Experience, and dream elements are linked through one new object property whose domain is gmeow:Experience and whose range stays open.
+  * Composition, not taxonomy: no subclassing of gmeow:Experience beyond what the mentation slice already allows. Finer dream kinds (lucid, REM, consolidation, recurring) are value-tagged or restriction-typed compositions, never subclasses of gmeow:Experience.
+  * Co-equal vantage-indexed claims (Principle 9 / Principle 10): a dream report is a low-reliability recollection; competing reports, analyst interpretations, elementations, and lucidity attributions coexist as standpoint-indexed claims, with superseded claims suppressed by gmeow:displayable false rather than deleted."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# DREAM — composed experiential episode
-# =========================================================================== #
-
-gmeow:Dream
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Experience ;
-    rdfs:label "Dream"@x-gmeow-english ;
-    skos:definition "A composed experiential episode — a gmeow:Experience whose mental-process kind is gmeow:processDreaming, whose awareness mode is gmeow:modeDreaming or gmeow:modeREM, and whose content carries gmeow:contentOrigin gmeow:originImagined. A pure composition over the mentation, awareness, and imagination slices with no new primitive."@x-gmeow-english ;
-    rdfs:comment """A dream is an Experience with:
-  * gmeow:mentalProcessType gmeow:processDreaming
-  * gmeow:awarenessMode value gmeow:modeDreaming or gmeow:modeREM
-  * gmeow:contentOrigin gmeow:originImagined
-
-Lucid dreaming is a dream whose awareness mode is gmeow:modeLucidDreaming — i.e., dreaming with online metacognition (awareness slice, by reference). Memory-consolidation dreaming is an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation, recombining stored claims via gmeow:Analogy and gmeow:learningConceptFormation (documented routing, not a new axiom)."""@x-gmeow-english ;
-    rdfs:subClassOf
-        [ a owl:Restriction ; owl:onProperty gmeow:mentalProcessType ; owl:hasValue gmeow:processDreaming ] ,
-        [ a owl:Restriction ; owl:onProperty gmeow:contentOrigin ; owl:hasValue gmeow:originImagined ] ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> .
 
 # =========================================================================== #
 # DREAM REPORT — recollection of a dream, treated as a low-reliability claim
@@ -51,9 +39,9 @@ gmeow:DreamReport
     rdfs:subClassOf gmeow:Experience ;
     rdfs:label "Dream Report"@x-gmeow-english ;
     skos:definition "A recollection experience in which an agent reports or recalls a dream — a gmeow:Experience whose mental-process kind is gmeow:processRecollection and whose content originates in imagination (gmeow:contentOrigin gmeow:originImagined). A standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist and superseded reports are suppressed, not deleted."@x-gmeow-english ;
-    rdfs:comment """Dream reports are co-equal vantage-indexed claims with low metacognitive reliability (Principle 9): the dreamer, an analyst, and a later interview may produce competing reports of the same dream episode, and all may coexist. A superseded report (for example, a corrected or withdrawn dream-journal entry) is suppressed with gmeow:displayable false rather than deleted (Principle 10).
+    rdfs:comment """A dream report is a recollection episode: an instance of gmeow:Experience with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin gmeow:originImagined. It is a claim about a prior dream episode, but modelled as the recollection process itself rather than as a propositional claim class, so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType, etc.) from gmeow:Experience.
 
-The report itself is a recollection episode: gmeow:mentalProcessType gmeow:processRecollection, gmeow:contentOrigin gmeow:originImagined."""@x-gmeow-english ;
+Dream reports are co-equal vantage-indexed claims with low metacognitive reliability (Principle 9): the dreamer, an analyst, and a later interview may produce competing reports of the same dream episode, and all may coexist. A superseded report (for example, a corrected or withdrawn dream-journal entry) is suppressed with gmeow:displayable false rather than deleted (Principle 10)."""@x-gmeow-english ;
     rdfs:subClassOf
         [ a owl:Restriction ; owl:onProperty gmeow:mentalProcessType ; owl:hasValue gmeow:processRecollection ] ,
         [ a owl:Restriction ; owl:onProperty gmeow:contentOrigin ; owl:hasValue gmeow:originImagined ] ;
@@ -76,6 +64,5 @@ gmeow:dreamElement
 # --------------------------------------------------------------------------- #
 
 <https://blackcatinformatics.ca/gmeow/slices/dreaming> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:Dream gmeow:graphBoxRole gmeow:boxTBox .
 gmeow:DreamReport gmeow:graphBoxRole gmeow:boxTBox .
 gmeow:dreamElement gmeow:graphBoxRole gmeow:boxRBox .
