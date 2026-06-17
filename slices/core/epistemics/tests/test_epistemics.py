@@ -16,6 +16,7 @@ from pathlib import Path
 from rdflib import Graph, URIRef
 from rdflib.collection import Collection
 from rdflib.namespace import OWL, RDF, RDFS
+from rdflib.term import Node
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 SKOS_DEFINITION = URIRef("http://www.w3.org/2004/02/skos/core#definition")
@@ -80,7 +81,7 @@ def test_no_factivity_no_truth_bit() -> None:
     assert (_t("knowsThat"), RDFS.range, None) not in g
 
 
-def _union_members(g: Graph, expr: URIRef) -> set[URIRef]:
+def _union_members(g: Graph, expr: Node) -> set[URIRef]:
     """Return the URIs inside an owl:unionOf class expression, if any.
 
     Handles both direct union expressions and unions nested via
@@ -93,7 +94,7 @@ def _union_members(g: Graph, expr: URIRef) -> set[URIRef]:
             list_node = g.value(equivalent, OWL.unionOf)
         if list_node is None:
             return set()
-    return set(Collection(g, list_node))
+    return {member for member in Collection(g, list_node) if isinstance(member, URIRef)}
 
 
 # ---------------------------------------------------------------------------
