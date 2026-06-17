@@ -235,11 +235,11 @@ def test_dev_cli_keeps_checkout_commands(runner: CliRunner) -> None:
     assert "validate" in result.output
 
 
-def test_dev_gts_cli_keeps_compile_commands(runner: CliRunner) -> None:
-    result = runner.invoke(dev_app, ["gts", "--help"])
+def test_dev_cli_has_compile_gts_commands(runner: CliRunner) -> None:
+    result = runner.invoke(dev_app, ["--help"])
     assert result.exit_code == 0
-    assert "compile" in result.output
-    assert "compile-full" in result.output
+    assert "compile-gts" in result.output
+    assert "compile-gts-full" in result.output
 
 
 def test_dev_i18n_help_lists_sync_english(runner: CliRunner) -> None:
