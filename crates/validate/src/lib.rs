@@ -22,6 +22,7 @@
 //! PyO3-free so the rlib links into the future Rust compiler without any Python
 //! dependency.
 
+pub mod cache;
 pub mod coverage;
 pub mod dsl;
 pub mod gufo;

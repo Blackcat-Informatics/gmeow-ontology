@@ -18,6 +18,10 @@ pub mod report;
 pub mod shapes;
 pub mod sparql;
 
+/// Crate version string for cache/toolchain salt parity with Python package
+/// versions (`metadata.version("gmeow-shacl")`).
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 // PyO3 bindings — native targets only (pyo3 cannot link into wasm32).
 #[cfg(not(target_arch = "wasm32"))]
 pub mod py;

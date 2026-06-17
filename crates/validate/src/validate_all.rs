@@ -19,6 +19,7 @@ use oxigraph::model::Term;
 use oxigraph::store::Store;
 use serde::{Deserialize, Serialize};
 
+use crate::cache::{CachedResult, ValidationCache};
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, ModuleSpec};
@@ -56,6 +57,10 @@ pub struct ValidateOptions {
     /// Turtle text of the statement DSL SHACL shapes. When provided, statement
     /// DSL SHACL validation is run in Rust.
     pub statement_shapes_ttl: Option<String>,
+    /// Project root for the content-addressed `.cache/validate` cache. When
+    /// `None`, caching is disabled; Task 4 wires Python to pass `PROJECT_ROOT`
+    /// so CI/local reruns share the same cache.
+    pub project_root: Option<PathBuf>,
 }
 
 /// The result of one validation phase.
@@ -115,25 +120,25 @@ impl ValidationRun {
         let mut warnings: Vec<String> = Vec::new();
 
         // Build the shared store once.
-        let store = timed(&mut timings, "build-store", options, || {
+        let store = timed(&mut timings, "build-store", options, None, || {
             let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
             store::build_store(&paths)
         })?;
 
         // Parse the normal SHACL shapes once.
-        let shapes = timed(&mut timings, "parse-shapes", options, || {
+        let shapes = timed(&mut timings, "parse-shapes", options, None, || {
             gmeow_shacl::engine::parse_shapes(shapes_ttl)
         })?;
 
         // Phase 1: Turtle syntax check.
-        let result = timed(&mut timings, "syntax", options, || {
+        let result = timed(&mut timings, "syntax", options, None, || {
             check_syntax(source_paths)
         })?;
         errors.extend(result.errors);
         warnings.extend(result.warnings);
 
         // Phase 2: owl:sameAs external-entity ban.
-        let result = timed(&mut timings, "sameas-ban", options, || {
+        let result = timed(&mut timings, "sameas-ban", options, None, || {
             check_sameas_ban(
                 source_paths,
                 &lint_config.namespace,
@@ -156,7 +161,7 @@ impl ValidationRun {
         }
 
         // Phase 3: structural lint.
-        let result = timed(&mut timings, "structural-lint", options, || {
+        let result = timed(&mut timings, "structural-lint", options, None, || {
             let report = lint::structural_lint(&store, lint_config);
             PhaseResult {
                 errors: report.errors,
@@ -167,7 +172,7 @@ impl ValidationRun {
         warnings.extend(result.warnings);
 
         // Phase 4: term-naming lint.
-        let result = timed(&mut timings, "term-naming-lint", options, || {
+        let result = timed(&mut timings, "term-naming-lint", options, None, || {
             let report = lint::term_naming_lint(&store, lint_config);
             PhaseResult {
                 errors: report.errors,
@@ -178,19 +183,19 @@ impl ValidationRun {
         warnings.extend(result.warnings);
 
         // Phase 5: slice-ownership lint.
-        let result = timed(&mut timings, "slice-ownership-lint", options, || {
+        let result = timed(&mut timings, "slice-ownership-lint", options, None, || {
             check_slice_ownership(&options.module_specs, lint_config)
         })?;
         errors.extend(result.errors);
         warnings.extend(result.warnings);
 
         // Phase 6: declared-term collection for Python's guide-anchor lint.
-        let declared_terms = timed(&mut timings, "declared-terms", options, || {
+        let declared_terms = timed(&mut timings, "declared-terms", options, None, || {
             lint::declared_terms(&store, lint_config)
         });
 
         // Phase 7: reasoning/gUFO invariants.
-        let result = timed(&mut timings, "reasoning-invariants", options, || {
+        let result = timed(&mut timings, "reasoning-invariants", options, None, || {
             let cfg = GufoConfig {
                 namespace: lint_config.namespace.clone(),
             };
@@ -202,26 +207,62 @@ impl ValidationRun {
         errors.extend(result.errors);
         warnings.extend(result.warnings);
 
+        // Initialize the content-addressed cache if a project root was supplied.
+        let cache = options.project_root.as_ref().map(ValidationCache::new);
+
         // Phase 8: merged SHACL validation against the shared store.
-        let result = timed(&mut timings, "merged-shacl", options, || {
+        let source_paths_buf: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
+        let merged_shacl_key = if let Some(cache) = cache.as_ref() {
+            let source_key = cache.files_cache_key(&source_paths_buf)?;
+            let shapes_key = ValidationCache::cache_key(&[shapes_ttl.as_bytes()]);
+            let salt = ValidationCache::toolchain_salt();
+            ValidationCache::cache_key(&[
+                source_key.as_bytes(),
+                shapes_key.as_bytes(),
+                salt.as_bytes(),
+            ])
+        } else {
+            ValidationCache::cache_key(&[shapes_ttl.as_bytes()])
+        };
+        let start = Instant::now();
+        let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
             let report = gmeow_shacl::engine::validate(&store, &shapes);
-            format_normal_shacl_results(&report)
-        });
+            Ok(format_normal_shacl_results(&report))
+        })?;
+        if options.timings {
+            timings.push(Timing {
+                phase: "merged-shacl".to_owned(),
+                elapsed_ms: start.elapsed().as_millis(),
+                metadata: meta,
+            });
+        }
         errors.extend(result.errors);
         warnings.extend(result.warnings);
 
         // Phase 9: example coverage check.
         if let Some(slices_dir) = &options.slices_dir {
-            let result = timed(&mut timings, "example-coverage", options, || {
+            let result = timed(&mut timings, "example-coverage", options, None, || {
                 check_example_coverage(slices_dir)
             })?;
             errors.extend(result.errors);
             warnings.extend(result.warnings);
 
             // Phase 10: per-example SHACL via scoped overlay.
-            let result = timed(&mut timings, "example-shacl", options, || {
-                check_examples(&store, &shapes, slices_dir)
-            })?;
+            let start = Instant::now();
+            let (result, meta) = check_examples(
+                &store,
+                &shapes,
+                slices_dir,
+                cache.as_ref(),
+                &merged_shacl_key,
+            )?;
+            if options.timings {
+                timings.push(Timing {
+                    phase: "example-shacl".to_owned(),
+                    elapsed_ms: start.elapsed().as_millis(),
+                    metadata: meta,
+                });
+            }
             errors.extend(result.errors);
             warnings.extend(result.warnings);
         }
@@ -229,9 +270,16 @@ impl ValidationRun {
         // Phase 11: mapping DSL SHACL.
         if !mapping_dsl_dir.is_empty() {
             if let Some(dsl_shapes_ttl) = &options.mapping_shapes_ttl {
-                let result = timed(&mut timings, "mapping-dsl-shacl", options, || {
-                    check_dsl(mapping_dsl_dir, dsl_shapes_ttl, "mapping")
-                })?;
+                let start = Instant::now();
+                let (result, meta) =
+                    check_dsl(mapping_dsl_dir, dsl_shapes_ttl, "mapping", cache.as_ref())?;
+                if options.timings {
+                    timings.push(Timing {
+                        phase: "mapping-dsl-shacl".to_owned(),
+                        elapsed_ms: start.elapsed().as_millis(),
+                        metadata: meta,
+                    });
+                }
                 errors.extend(result.errors);
                 warnings.extend(result.warnings);
             }
@@ -240,9 +288,20 @@ impl ValidationRun {
         // Phase 12: statement DSL SHACL.
         if !statement_dsl_dir.is_empty() {
             if let Some(dsl_shapes_ttl) = &options.statement_shapes_ttl {
-                let result = timed(&mut timings, "statement-dsl-shacl", options, || {
-                    check_dsl(statement_dsl_dir, dsl_shapes_ttl, "statement")
-                })?;
+                let start = Instant::now();
+                let (result, meta) = check_dsl(
+                    statement_dsl_dir,
+                    dsl_shapes_ttl,
+                    "statement",
+                    cache.as_ref(),
+                )?;
+                if options.timings {
+                    timings.push(Timing {
+                        phase: "statement-dsl-shacl".to_owned(),
+                        elapsed_ms: start.elapsed().as_millis(),
+                        metadata: meta,
+                    });
+                }
                 errors.extend(result.errors);
                 warnings.extend(result.warnings);
             }
@@ -281,7 +340,13 @@ impl ValidationRun {
 }
 
 /// Run `closure` and, if timings are enabled, record how long it took.
-fn timed<F, T>(timings: &mut Vec<Timing>, phase: &str, options: &ValidateOptions, closure: F) -> T
+fn timed<F, T>(
+    timings: &mut Vec<Timing>,
+    phase: &str,
+    options: &ValidateOptions,
+    metadata: Option<String>,
+    closure: F,
+) -> T
 where
     F: FnOnce() -> T,
 {
@@ -293,9 +358,49 @@ where
     timings.push(Timing {
         phase: phase.to_owned(),
         elapsed_ms: start.elapsed().as_millis(),
-        metadata: None,
+        metadata,
     });
     result
+}
+
+/// Convert a phase result into the cache serialization format.
+fn phase_to_cached(result: &PhaseResult) -> CachedResult {
+    CachedResult {
+        errors: result.errors.clone(),
+        warnings: result.warnings.clone(),
+    }
+}
+
+/// Look up a cached validation result or compute and store it.
+///
+/// Returns the phase result plus timing metadata describing whether the result
+/// came from the cache (`cache-hit`), was freshly computed (`cache-miss`), or
+/// could not be cached because no cache root was configured (`cache-disabled`).
+fn run_cached<F>(
+    cache: Option<&ValidationCache>,
+    kind: &str,
+    key: &str,
+    compute: F,
+) -> Result<(PhaseResult, Option<String>), String>
+where
+    F: FnOnce() -> Result<PhaseResult, String>,
+{
+    if let Some(cache) = cache {
+        if let Some(cached) = cache.read_cached_result(kind, key) {
+            return Ok((
+                PhaseResult {
+                    errors: cached.errors,
+                    warnings: cached.warnings,
+                },
+                Some("cache-hit".to_owned()),
+            ));
+        }
+        let result = compute()?;
+        cache.write_cached_result(kind, key, &phase_to_cached(&result))?;
+        Ok((result, Some("cache-miss".to_owned())))
+    } else {
+        Ok((compute()?, Some("cache-disabled".to_owned())))
+    }
 }
 
 /// Phase 1: parse every source Turtle file individually and collect syntax errors.
@@ -450,21 +555,60 @@ fn check_examples(
     store: &Store,
     shapes: &gmeow_shacl::shapes::Shapes,
     slices_dir: &str,
-) -> Result<PhaseResult, String> {
+    cache: Option<&ValidationCache>,
+    base_key: &str,
+) -> Result<(PhaseResult, Option<String>), String> {
     let mut result = PhaseResult::default();
-    for (name, path) in find_example_files(slices_dir)? {
-        let example_quads = parse_file(&path)?;
-        let inserted = scoped_overlay_insert(store, example_quads.iter());
-        let report = gmeow_shacl::engine::validate(store, shapes);
-        scoped_overlay_remove(store, &inserted);
+    let mut hits: usize = 0;
+    let mut misses: usize = 0;
 
-        let (violations, warnings) = partition_shacl_results(&report);
-        for v in violations {
-            result.errors.push(format!("example {name}: {v}"));
+    for (name, path) in find_example_files(slices_dir)? {
+        let example_key = if let Some(cache) = cache {
+            let file_key = cache.files_cache_key(std::slice::from_ref(&path))?;
+            ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
+        } else {
+            ValidationCache::cache_key(&[base_key.as_bytes(), path.to_string_lossy().as_bytes()])
+        };
+
+        let (example_result, meta) = run_cached(cache, "example-shacl", &example_key, || {
+            run_example_shacl(store, shapes, &path, &name)
+        })?;
+        match meta.as_deref() {
+            Some("cache-hit") => hits += 1,
+            Some("cache-miss") => misses += 1,
+            _ => {}
         }
-        for w in warnings {
-            result.warnings.push(format!("example {name}: {w}"));
-        }
+        result.errors.extend(example_result.errors);
+        result.warnings.extend(example_result.warnings);
+    }
+
+    let metadata = if cache.is_some() {
+        Some(format!("cache-hit:{hits};cache-miss:{misses}"))
+    } else {
+        Some("cache-disabled".to_owned())
+    };
+    Ok((result, metadata))
+}
+
+/// Validate one example file against the ontology + shapes via scoped overlay.
+fn run_example_shacl(
+    store: &Store,
+    shapes: &gmeow_shacl::shapes::Shapes,
+    path: &Path,
+    name: &str,
+) -> Result<PhaseResult, String> {
+    let example_quads = parse_file(path)?;
+    let inserted = scoped_overlay_insert(store, example_quads.iter());
+    let report = gmeow_shacl::engine::validate(store, shapes);
+    scoped_overlay_remove(store, &inserted);
+
+    let mut result = PhaseResult::default();
+    let (violations, warnings) = partition_shacl_results(&report);
+    for v in violations {
+        result.errors.push(format!("example {name}: {v}"));
+    }
+    for w in warnings {
+        result.warnings.push(format!("example {name}: {w}"));
     }
     Ok(result)
 }
@@ -528,32 +672,54 @@ fn partition_shacl_results(
 }
 
 /// Phase 11/12: validate a DSL directory against its dedicated SHACL shapes.
-fn check_dsl(dsl_dir: &str, shapes_ttl: &str, label: &str) -> Result<PhaseResult, String> {
+fn check_dsl(
+    dsl_dir: &str,
+    shapes_ttl: &str,
+    label: &str,
+    cache: Option<&ValidationCache>,
+) -> Result<(PhaseResult, Option<String>), String> {
     let paths = collect_ttl_paths(dsl_dir)?;
     if paths.is_empty() {
-        return Ok(PhaseResult::default());
+        return Ok((PhaseResult::default(), Some("no-inputs".to_owned())));
     }
-    let merge = dsl::merge_with_provenance(&paths)?;
-    let data_store = store::build_store_from_nt(&merge.data_nt)?;
-    let shapes = gmeow_shacl::engine::parse_shapes(shapes_ttl)?;
-    let report = gmeow_shacl::engine::validate(&data_store, &shapes);
 
-    let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
-    let violations = format_dsl_results(&report, &focus_to_file);
+    let key = if let Some(cache) = cache {
+        let file_key = cache.files_cache_key(&paths)?;
+        let shapes_key = ValidationCache::cache_key(&[shapes_ttl.as_bytes()]);
+        let salt = ValidationCache::toolchain_salt();
+        ValidationCache::cache_key(&[
+            file_key.as_bytes(),
+            shapes_key.as_bytes(),
+            label.as_bytes(),
+            salt.as_bytes(),
+        ])
+    } else {
+        ValidationCache::cache_key(&[dsl_dir.as_bytes(), label.as_bytes()])
+    };
 
-    let mut result = PhaseResult::default();
-    if !violations.is_empty() {
-        result.errors.push(format!(
-            "{label} DSL SHACL violations:\n  {}",
-            violations.join("\n  ")
-        ));
-    }
-    if !report.conforms && violations.is_empty() {
-        result
-            .errors
-            .push("SHACL validation failed: non-conforming with no results".to_owned());
-    }
-    Ok(result)
+    run_cached(cache, &format!("dsl-shacl/{label}"), &key, || {
+        let merge = dsl::merge_with_provenance(&paths)?;
+        let data_store = store::build_store_from_nt(&merge.data_nt)?;
+        let shapes = gmeow_shacl::engine::parse_shapes(shapes_ttl)?;
+        let report = gmeow_shacl::engine::validate(&data_store, &shapes);
+
+        let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
+        let violations = format_dsl_results(&report, &focus_to_file);
+
+        let mut result = PhaseResult::default();
+        if !violations.is_empty() {
+            result.errors.push(format!(
+                "{label} DSL SHACL violations:\n  {}",
+                violations.join("\n  ")
+            ));
+        }
+        if !report.conforms && violations.is_empty() {
+            result
+                .errors
+                .push("SHACL validation failed: non-conforming with no results".to_owned());
+        }
+        Ok(result)
+    })
 }
 
 /// Format DSL SHACL results with focus/path/message/source provenance.

@@ -113,6 +113,9 @@ struct PyValidateOptions {
     slices_dir: Option<String>,
     mapping_shapes_ttl: Option<String>,
     statement_shapes_ttl: Option<String>,
+    /// Project root used to locate `.cache/validate`. When `None`, the cache is
+    /// disabled. Task 4 wires Python to pass `PROJECT_ROOT`.
+    project_root: Option<String>,
 }
 
 #[pymethods]
@@ -125,6 +128,7 @@ impl PyValidateOptions {
         slices_dir = None,
         mapping_shapes_ttl = None,
         statement_shapes_ttl = None,
+        project_root = None,
     ))]
     fn new(
         timings: bool,
@@ -133,6 +137,7 @@ impl PyValidateOptions {
         slices_dir: Option<String>,
         mapping_shapes_ttl: Option<String>,
         statement_shapes_ttl: Option<String>,
+        project_root: Option<String>,
     ) -> Self {
         Self {
             timings,
@@ -141,6 +146,7 @@ impl PyValidateOptions {
             slices_dir,
             mapping_shapes_ttl,
             statement_shapes_ttl,
+            project_root,
         }
     }
 }
@@ -154,6 +160,7 @@ impl PyValidateOptions {
             slices_dir: self.slices_dir.clone(),
             mapping_shapes_ttl: self.mapping_shapes_ttl.clone(),
             statement_shapes_ttl: self.statement_shapes_ttl.clone(),
+            project_root: self.project_root.as_ref().map(PathBuf::from),
         }
     }
 }

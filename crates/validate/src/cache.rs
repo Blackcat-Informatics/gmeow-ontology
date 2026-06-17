@@ -1,0 +1,216 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Content-addressed validation cache mirroring Python `.cache/validate`.
+//!
+//! The cache persists JSON objects `{"errors": [...], "warnings": [...]}` under
+//! `<project-root>/.cache/validate/<kind>/<key>.json`. Keys are short SHA-256
+//! hashes of NUL-delimited byte parts, matching the Python `_cache_key`
+//! algorithm. Invalidation is purely content-based; there is no TTL.
+
+use std::fs;
+use std::io::Write;
+use std::path::{Path, PathBuf};
+
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+/// A cached validation result.
+///
+/// Mirrors the JSON schema written by Python's `_write_cached_result`:
+/// `{"errors": [...], "warnings": [...]}`.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CachedResult {
+    /// Error diagnostics.
+    pub errors: Vec<String>,
+    /// Warning diagnostics.
+    pub warnings: Vec<String>,
+}
+
+impl CachedResult {
+    /// Merge another cached result into this one.
+    pub fn extend(&mut self, other: CachedResult) {
+        self.errors.extend(other.errors);
+        self.warnings.extend(other.warnings);
+    }
+}
+
+/// Manages the `.cache/validate` content-addressed cache.
+#[derive(Debug, Clone)]
+pub struct ValidationCache {
+    /// Project root: cache files live under `.cache/validate` here.
+    project_root: PathBuf,
+}
+
+impl ValidationCache {
+    /// Create a cache rooted at `<project_root>/.cache/validate`.
+    ///
+    /// `project_root` is resolved to an absolute path when possible so that
+    /// relative file cache keys match the Python `generator.source_hash`
+    /// behavior.
+    pub fn new(project_root: impl AsRef<Path>) -> Self {
+        let path = project_root.as_ref();
+        let resolved = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+        Self {
+            project_root: resolved,
+        }
+    }
+
+    /// Return the cache directory root (`<project_root>/.cache/validate`).
+    pub fn cache_dir(&self) -> PathBuf {
+        self.project_root.join(".cache").join("validate")
+    }
+
+    /// Return a short stable hash for cache-key parts.
+    ///
+    /// Mirrors Python `_cache_key`: SHA-256 over each part followed by a NUL
+    /// byte, truncated to 16 hex characters.
+    pub fn cache_key(parts: &[&[u8]]) -> String {
+        let mut h = Sha256::new();
+        for part in parts {
+            h.update(part);
+            h.update(b"\0");
+        }
+        hex_encode(&h.finalize())[..16].to_owned()
+    }
+
+    /// Return a content hash for a list of input files.
+    ///
+    /// Mirrors Python `generator.source_hash`: paths are resolved and sorted,
+    /// then each contributes its path (relative to the project root when
+    /// possible), file size, and raw content to a SHA-256 hash. Missing paths
+    /// are skipped with a warning to stderr rather than failing, matching the
+    /// Python lenient behavior.
+    pub fn files_cache_key(&self, paths: &[PathBuf]) -> Result<String, String> {
+        Self::files_cache_key_with_root(paths, &self.project_root)
+    }
+
+    /// Core implementation of [`files_cache_key`] with an explicit root.
+    pub fn files_cache_key_with_root(paths: &[PathBuf], root: &Path) -> Result<String, String> {
+        let mut h = Sha256::new();
+        let mut sorted: Vec<PathBuf> = paths
+            .iter()
+            .map(|p| p.canonicalize().unwrap_or_else(|_| p.clone()))
+            .collect();
+        sorted.sort();
+        for path in sorted {
+            if !path.exists() {
+                eprintln!("validation cache input missing: {}", path.display());
+                continue;
+            }
+            let rel = if let Ok(r) = path.strip_prefix(root) {
+                r.to_string_lossy().into_owned()
+            } else {
+                path.to_string_lossy().into_owned()
+            };
+            let meta =
+                fs::metadata(&path).map_err(|e| format!("metadata for {}: {e}", path.display()))?;
+            let bytes = fs::read(&path)
+                .map_err(|e| format!("read {} for cache key: {e}", path.display()))?;
+            h.update(rel.as_bytes());
+            h.update(meta.len().to_string().as_bytes());
+            h.update(&bytes);
+        }
+        Ok(hex_encode(&h.finalize())[..16].to_owned())
+    }
+
+    /// Return a cache salt for the SHACL validation toolchain versions.
+    ///
+    /// Mirrors Python `_validation_toolchain_salt`: hashes version strings for
+    /// `gmeow-shacl` and `gmeow-validate`. Because these are Rust crates, the
+    /// package version from `CARGO_PKG_VERSION` is used instead of Python
+    /// `importlib.metadata.version`.
+    pub fn toolchain_salt() -> String {
+        let validate_version = env!("CARGO_PKG_VERSION");
+        let shacl_version = gmeow_shacl::VERSION;
+        Self::cache_key(&[
+            format!("gmeow-validate={validate_version}").as_bytes(),
+            format!("gmeow-shacl={shacl_version}").as_bytes(),
+        ])
+    }
+
+    /// Read a cached result if present and valid.
+    pub fn read_cached_result(&self, kind: &str, key: &str) -> Option<CachedResult> {
+        let path = self.cache_path(kind, key);
+        let bytes = fs::read(&path).ok()?;
+        let result: CachedResult = serde_json::from_slice(&bytes).ok()?;
+        Some(result)
+    }
+
+    /// Persist a cached result atomically.
+    ///
+    /// Writes to a temporary file in the same directory and renames it into
+    /// place so concurrent readers never see a partial JSON object.
+    pub fn write_cached_result(
+        &self,
+        kind: &str,
+        key: &str,
+        result: &CachedResult,
+    ) -> Result<(), String> {
+        let path = self.cache_path(kind, key);
+        let parent = path
+            .parent()
+            .ok_or_else(|| format!("cache path has no parent: {}", path.display()))?;
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("create cache dir {}: {e}", parent.display()))?;
+
+        let payload =
+            serde_json::to_vec(result).map_err(|e| format!("serialize cached result: {e}"))?;
+
+        let tmp_name = format!(
+            ".{}.{}",
+            path.file_name().unwrap_or_default().to_string_lossy(),
+            std::process::id()
+        );
+        let tmp_path = parent.join(tmp_name);
+        let write_result: Result<(), String> = (|| {
+            let mut file = fs::File::create(&tmp_path)
+                .map_err(|e| format!("create temp cache file {}: {e}", tmp_path.display()))?;
+            file.write_all(&payload)
+                .map_err(|e| format!("write temp cache file {}: {e}", tmp_path.display()))?;
+            fs::rename(&tmp_path, &path).map_err(|e| {
+                format!(
+                    "rename cache file {} -> {}: {e}",
+                    tmp_path.display(),
+                    path.display()
+                )
+            })
+        })();
+        if write_result.is_err() {
+            let _ = fs::remove_file(&tmp_path);
+        }
+        write_result
+    }
+
+    /// Return the filesystem path for a cached result.
+    fn cache_path(&self, kind: &str, key: &str) -> PathBuf {
+        let safe_kind = sanitize_kind(kind);
+        self.cache_dir().join(safe_kind).join(format!("{key}.json"))
+    }
+}
+
+/// Replace any run of characters that are not alphanumeric, dot, underscore, or
+/// hyphen with a single hyphen, matching Python `_validation_cache_path`.
+fn sanitize_kind(kind: &str) -> String {
+    let mut out = String::with_capacity(kind.len());
+    let mut prev_dash = false;
+    for ch in kind.chars() {
+        if ch.is_ascii_alphanumeric() || ch == '.' || ch == '_' || ch == '-' {
+            out.push(ch);
+            prev_dash = false;
+        } else if !prev_dash {
+            out.push('-');
+            prev_dash = true;
+        }
+    }
+    out
+}
+
+/// Encode a byte slice as lowercase hexadecimal.
+fn hex_encode(bytes: &[u8]) -> String {
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        s.push_str(&format!("{b:02x}"));
+    }
+    s
+}
