@@ -581,234 +581,32 @@ def mcp_start() -> None:
     run()
 
 
-gts_app = typer.Typer(
+@app.command(
     name="gts",
-    help="Graph Transport Substrate (GTS) reader and transforms.",
-    no_args_is_help=True,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-app.add_typer(gts_app, name="gts")
+def gts_command(ctx: typer.Context) -> None:
+    """Dispatch to the external Graph Transport Substrate (GTS) CLI.
 
-
-@gts_app.command("info")
-def gts_info(
-    file: Path | None = typer.Argument(  # noqa: B008
-        None,
-        help="GTS file to summarise (default: bundled gmeow.gts).",
-    ),
-    no_verify: bool = typer.Option(
-        False, "--no-verify", help="Skip embedded-signature verification."
-    ),
-) -> None:
-    """Summarise a GTS file and any signature diagnostics."""
-    from gts.verify import format_fingerprint, verify_file
-
-    path = file or _default_gts_file()
-    graph = _read_gts_or_fail(path)
-    console.print(
-        f"[bold]{path.name}[/bold]: {len(graph.terms)} terms, "
-        f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
-        f"{len(graph.annotations)} annotations, {len(graph.blobs)} blobs, "
-        f"{len(graph.opaque)} opaque"
-    )
-    if not no_verify:
-        result = verify_file(path.read_bytes(), require_signatures=False)
-        if result.signed:
-            status = "[green]valid[/green]" if result.ok else "[red]FAILED[/red]"
-            console.print(
-                f"signatures: {result.signed} signed, {result.valid} valid, "
-                f"{result.invalid} invalid, {result.unverified} unverified - {status}"
-            )
-            if result.fingerprint:
-                console.print(
-                    f"transport key: [bold]"
-                    f"{format_fingerprint(result.fingerprint)}[/bold]"
-                )
-            if result.emojihash:
-                console.print(f"emoji hash:    {result.emojihash}")
-            if result.emojihash_labels:
-                console.print(f"emoji labels:  {result.emojihash_labels}")
-        else:
-            console.print("signatures: none")
-        for err in result.errors:
-            err_console.print(f"[red]{err}[/red]")
-        if result.signed and not result.ok:
-            raise _fail("signature verification failed")
-    for diag in graph.diagnostics:
-        err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
-
-
-@gts_app.command("verify")
-def gts_verify(
-    file: Path | None = typer.Argument(  # noqa: B008
-        None,
-        help="GTS file to verify (default: bundled gmeow.gts).",
-    ),
-    trusted_key: Path | None = typer.Option(  # noqa: B008
-        None,
-        "--trusted-key",
-        help="Out-of-band armored OpenPGP public key (overrides embedded key).",
-    ),
-) -> None:
-    """Verify every embedded COSE signature against the transport key."""
-    from gts.verify import format_fingerprint, verify_file
-
-    path = file or _default_gts_file()
-    data = _read_bytes_or_fail(path)
-    armored: str | None = None
-    if trusted_key is not None:
-        try:
-            armored = trusted_key.read_text(encoding="utf-8")
-        except OSError as exc:
-            raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
-    result = verify_file(data, armored_key=armored, require_signatures=True)
-    if result.fingerprint:
-        console.print(
-            f"transport key: [bold]{format_fingerprint(result.fingerprint)}[/bold]"
+    ``gmeow gts`` is a thin shim around the ``gts`` binary installed with the
+    ``gmeow-gts`` package. It forwards all arguments unchanged, automatically
+    injecting the bundled snapshot path for subcommands that expect a file.
+    """
+    exe = shutil.which("gts")
+    if exe is None:
+        raise _fail(
+            "gts binary not found. Install gmeow-gts: pip install gmeow-gts "
+            "(or cargo install gmeow-gts, etc.)"
         )
-        if result.emojihash:
-            console.print(f"emoji hash:    {result.emojihash}")
-        if result.emojihash_labels:
-            console.print(f"emoji labels:  {result.emojihash_labels}")
-        if result.randomart:
-            console.print(result.randomart)
-    console.print(
-        f"signatures: {result.signed} signed, {result.valid} valid, "
-        f"{result.invalid} invalid, {result.unverified} unverified"
-    )
-    for err in result.errors:
-        err_console.print(f"[red]{err}[/red]")
-    for diag in result.diagnostics:
-        err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
-    if not result.ok:
-        raise _fail("verification failed")
-    console.print("[green]verification passed[/green]")
-
-
-@gts_app.command("extract-key")
-def gts_extract_key(
-    file: Path | None = typer.Argument(  # noqa: B008
-        None,
-        help="GTS file to extract the key from (default: bundled gmeow.gts).",
-    ),
-    out: Path | None = typer.Option(  # noqa: B008
-        None, "--out", "-o", help="Write the armored public key here (else stdout)."
-    ),
-) -> None:
-    """Extract the embedded OpenPGP transport public key from a GTS file."""
-    from gts.verify import extract_transport_key
-
-    graph = _read_gts_or_fail(file or _default_gts_file())
-    transport = extract_transport_key(graph)
-    if transport is None:
-        raise _fail("no gts:transportKey found in file metadata")
-    armor = transport["gpg"]
-    if out is None:
-        console.print(armor, end="")
-        return
-    try:
-        out.write_text(armor, encoding="utf-8")
-    except OSError as exc:
-        raise _fail(f"cannot write {out}: {exc}") from exc
-    console.print(f"[green]wrote[/green] {out}")
-
-
-@gts_app.command("to-nq")
-def gts_to_nq(
-    file: Path | None = typer.Argument(  # noqa: B008
-        None,
-        help="GTS file to project (default: bundled gmeow.gts).",
-    ),
-    out: Path | None = typer.Option(  # noqa: B008
-        None, "--out", "-o", help="Write N-Quads here (else stdout)."
-    ),
-) -> None:
-    """Transform a GTS file to N-Quads."""
-    graph = _read_gts_or_fail(file or _default_gts_file())
-    text = gts.to_nquads(graph)
-    if out is None:
-        console.print(text, end="")
-        return
-    try:
-        out.write_text(text, encoding="utf-8")
-    except OSError as exc:
-        raise _fail(f"cannot write {out}: {exc}") from exc
-    console.print(f"[green]wrote[/green] {out}")
-
-
-@gts_app.command("from-rdf")
-def gts_from_rdf(
-    file: Path,
-    out: Path | None = typer.Option(  # noqa: B008
-        None, "--out", "-o", help="Output .gts path (default: <input>.gts)."
-    ),
-) -> None:
-    """Produce a GTS dist snapshot from an RDF file."""
-    from rdflib import Dataset, Graph
-    from rdflib.util import guess_format
-
-    from gmeow_tools.gts_producer import gts_from_graph
-
-    fmt = guess_format(str(file))
-    source: Graph = Dataset() if fmt in {"nquads", "trig", "json-ld"} else Graph()
-    try:
-        source.parse(str(file), format=fmt)
-    except (OSError, ValueError, SyntaxError) as exc:
-        raise _fail(f"cannot read or parse {file}: {exc}") from exc
-    data = gts_from_graph(source)
-    target = out or file.with_suffix(".gts")
-    try:
-        target.write_bytes(data)
-    except OSError as exc:
-        raise _fail(f"cannot write {target}: {exc}") from exc
-    console.print(f"[green]wrote[/green] {target} ({len(data)} bytes)")
-
-
-def _gts_to_db(file: Path | None, out: Path | None, suffix: str, kind: str) -> None:
-    """Shared body for the gts -> {sqlite,duckdb} transforms."""
-    from gmeow_tools.gts_db import to_duckdb, to_sqlite
-
-    path = file or _default_gts_file()
-    graph = _read_gts_or_fail(path)
-    target = out or (
-        _DEFAULT_OUT_ROOT / path.with_suffix(suffix).name
-        if file is None
-        else path.with_suffix(suffix)
-    )
-    writer = to_sqlite if kind == "sqlite" else to_duckdb
-    try:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        writer(graph, target)
-    except OSError as exc:
-        raise _fail(f"cannot write {target}: {exc}") from exc
-    console.print(f"[green]wrote[/green] {target}")
-
-
-@gts_app.command("to-sqlite")
-def gts_to_sqlite(
-    file: Path | None = typer.Argument(  # noqa: B008
-        None,
-        help="GTS file to convert (default: bundled gmeow.gts).",
-    ),
-    out: Path | None = typer.Option(  # noqa: B008
-        None, "--out", "-o", help="Output database path."
-    ),
-) -> None:
-    """Transform a GTS file to a SQLite database."""
-    _gts_to_db(file, out, ".sqlite", "sqlite")
-
-
-@gts_app.command("to-duckdb")
-def gts_to_duckdb(
-    file: Path | None = typer.Argument(  # noqa: B008
-        None,
-        help="GTS file to convert (default: bundled gmeow.gts).",
-    ),
-    out: Path | None = typer.Option(  # noqa: B008
-        None, "--out", "-o", help="Output database path."
-    ),
-) -> None:
-    """Transform a GTS file to a DuckDB database."""
-    _gts_to_db(file, out, ".duckdb", "duckdb")
+    forwarded = list(ctx.args)
+    if not forwarded:
+        forwarded = ["--help"]
+    elif forwarded[0] in {"info", "verify", "ls", "fold"} and (
+        len(forwarded) == 1 or forwarded[1].startswith("-")
+    ):
+        forwarded.insert(1, str(GTS_SNAPSHOT_FILE))
+    result = subprocess.run([exe, *forwarded], check=False)
+    sys.exit(result.returncode)
 
 
 @app.command(

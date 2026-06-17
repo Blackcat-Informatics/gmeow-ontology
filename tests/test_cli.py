@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import tomllib
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -12,6 +13,7 @@ from typer.testing import CliRunner
 
 from gmeow_tools.cli import app as public_app
 from gmeow_tools.cli_dev import app as dev_app
+from gmeow_tools.config import GTS_SNAPSHOT_FILE
 
 
 @pytest.fixture
@@ -156,7 +158,73 @@ def test_public_gts_cli_excludes_compile_commands(runner: CliRunner) -> None:
     assert result.exit_code == 0
     assert "compile-full" not in result.output
     assert "compile" not in result.output
-    assert "verify" in result.output
+    assert "Graph Transport Substrate" in result.output
+
+
+@patch("gmeow_tools.cli.shutil.which", return_value=None)
+def test_gts_shim_fails_when_binary_missing(_mock: Any, runner: CliRunner) -> None:
+    result = runner.invoke(public_app, ["gts", "info"])
+    assert result.exit_code != 0
+    assert "gts binary not found" in result.output
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_injects_snapshot_for_default_subcommands(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts", "info"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(
+        ["/fake/gts", "info", str(GTS_SNAPSHOT_FILE)], check=False
+    )
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_forwards_explicit_file(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts", "info", "myfile.gts"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(["/fake/gts", "info", "myfile.gts"], check=False)
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_forwards_non_default_command(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts", "compile"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(["/fake/gts", "compile"], check=False)
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_runs_help_when_no_args(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(["/fake/gts", "--help"], check=False)
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_injects_snapshot_before_flags(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts", "info", "--json"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(
+        ["/fake/gts", "info", str(GTS_SNAPSHOT_FILE), "--json"], check=False
+    )
 
 
 def test_dev_cli_keeps_checkout_commands(runner: CliRunner) -> None:
