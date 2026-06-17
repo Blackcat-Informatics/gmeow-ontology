@@ -186,6 +186,26 @@ impl PyValidationReport {
             d.set_item("component", r.source_constraint_component.as_str())?;
             d.set_item("source_shape", r.source_shape.to_string())?;
             d.set_item("message", r.message.clone())?;
+            if !r.source_box_roles.is_empty() {
+                let roles: Vec<&str> = r
+                    .source_box_roles
+                    .iter()
+                    .map(|role| role.as_str())
+                    .collect();
+                d.set_item("source_box_roles", roles)?;
+            }
+            if !r.path_box_roles.is_empty() {
+                let roles: Vec<&str> = r.path_box_roles.iter().map(|role| role.as_str()).collect();
+                d.set_item("path_box_roles", roles)?;
+            }
+            if !r.result_box_roles.is_empty() {
+                let roles: Vec<&str> = r
+                    .result_box_roles
+                    .iter()
+                    .map(|role| role.as_str())
+                    .collect();
+                d.set_item("result_box_roles", roles)?;
+            }
             list.append(d)?;
         }
         Ok(list.into_any().unbind())
