@@ -15,6 +15,7 @@ Covers:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -174,9 +175,17 @@ def test_logic_query_recursive_ancestor(runner: CliRunner) -> None:
         ],
     )
     assert result.exit_code == 0, f"Expected exit 0; got:\n{result.output}"
-    assert '"status": "ok"' in result.output
+    # Parse the JSON payload rather than asserting on formatting tokens, so the
+    # test is coupled to behaviour (status + bindings) not to dict rendering.
+    payload = json.loads(result.output)
+    assert payload["status"] == "ok"
     # Three ancestors (b, c, d) over the a→b→c→d chain.
-    assert result.output.count('"Y":') == 3, result.output
+    ys = {b["Y"] for b in payload["bindings"]}
+    assert ys == {
+        "<https://example.org/profiles/goal-recursive-ancestor/b>",
+        "<https://example.org/profiles/goal-recursive-ancestor/c>",
+        "<https://example.org/profiles/goal-recursive-ancestor/d>",
+    }, payload
 
 
 def test_logic_query_cut_rejected_outside_procedural(runner: CliRunner) -> None:
