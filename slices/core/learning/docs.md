@@ -33,8 +33,19 @@ The occurrent that transitions an agent along the cognition knowledge spectrum o
 proficiency scale — learning as it unfolds in time. A `gmeow:MentalProcess` (`gufo:EventType`), it is
 borne by exactly one `gmeow:experiencer` (inherited) and joins the agent's single occurrent
 mental-timeline stream. The **class** asserts that a learning process occurred; the **variety** is a
-`gmeow:LearningEventType` value carried by `gmeow:learningType` — no class-trivial value is minted
-for the learning-ness itself (the inference-slice precedent, Principle 4).
+`gmeow:LearningEventType` value carried by `gmeow:learningType` (Principle 9, never a subclass).
+
+**Timeline-parity fields — the cross-slice contract.** Like every sibling occurrent on the mental
+timeline, a `gmeow:LearningEvent` carries:
+
+- `gmeow:mentalProcessType gmeow:processLearning` — the uniform occurrent query handle (it mirrors
+  `gmeow:eventType`), declared once on the mentation spine, so a timeline query filtering by
+  `gmeow:mentalProcessType` surfaces learning episodes exactly as a `gmeow:InferenceProcess` carries
+  `gmeow:processReasoning`. This is the single canonical occurrent marker — no redundant second value
+  is minted (Principle 4); the orthogonal **variety** rides `gmeow:learningType`.
+- a temporal placement — `gmeow:eventTime` (an `xsd:dateTime`) **and** `gmeow:eventTemporalFrame
+  gmeow:temporalFrameUTCGregorian` (CONSTITUTION P11: a value asserted without its reference frame is
+  ill-formed).
 
 ## Learning event types
 
@@ -165,10 +176,10 @@ and is referenced in prose, not mapped as a `gmeow:TermEquivalence`.
 | Slice | Why |
 |---|---|
 | `kernel` | `gmeow:Agent` — the experiencer, teacher, and learner domain |
-| `mentation` | `gmeow:MentalProcess` (the reparenting hook `gmeow:LearningEvent` rdfs:subClassOf's under) and the inherited `gmeow:experiencer` |
+| `mentation` | `gmeow:MentalProcess` (the reparenting hook `gmeow:LearningEvent` rdfs:subClassOf's under), the inherited `gmeow:experiencer`, and `gmeow:mentalProcessType` / `gmeow:processLearning` — the mental-timeline marker every `gmeow:LearningEvent` carries |
 | `events` | `gmeow:Event` — the superclass `gmeow:MentalProcess` (hence `gmeow:LearningEvent`) reparents under; the `gmeow:Participation` relator idiom mirrored by `gmeow:Teaching` |
 | `cognition` | `gmeow:KnowledgeProficiency`, `gmeow:KnowledgeLevel`, and `gmeow:CognitiveState` — the knowledge-state targets of `gmeow:produces` / `gmeow:fromLevel` / `gmeow:toLevel` |
-| `expertise` | `gmeow:SkillProficiency` and `gmeow:ProficiencyLevel` — the skill-state targets of the same properties |
+| `expertise` | `gmeow:SkillProficiency` and `gmeow:ProficiencyLevel` — the skill-state targets of the same properties; the `gmeow:scaleDreyfus` skill scale and its `gmeow:dreyfus*` levels (expertise being their domain slice) referenced by `gmeow:fromLevel` / `gmeow:toLevel` |
 | `temporal` | `gmeow:TimeScopedRelation` (the proficiency-tenure parent) and `gmeow:duringInterval` for trajectory sequences |
 | `sources` | `gmeow:CreativeWork` — the primary open-range target of `gmeow:learnedFrom` |
 
@@ -177,8 +188,9 @@ and is referenced in prose, not mapped as a `gmeow:TermEquivalence`.
 `gmeow:TeachingShape` (`shapes.ttl`) pins the load-bearing closed-world rules:
 
 - **Exactly one teacher** — `sh:minCount 1 ; sh:maxCount 1` on `gmeow:teacher`, class `gmeow:Agent`.
-- **At least one learner** — `sh:minCount 1` on `gmeow:learner` — instruction with no one taught is
-  not a teaching.
+- **At least one learner, each a `gmeow:Agent`** — `sh:minCount 1 ; sh:class gmeow:Agent` on
+  `gmeow:learner` — instruction with no one being taught is not a teaching, and a learner must be an
+  agent (matching the `gmeow:teacher` constraint and the `rdfs:range gmeow:Agent`).
 - **At least one subject taught** — `sh:minCount 1` on `gmeow:subjectTaught` — instruction is always
   instruction in something.
 - **Teacher ≠ learner** — SPARQL constraint on `gmeow:TeachingShape`: a Teaching is violation if any
