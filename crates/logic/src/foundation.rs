@@ -1327,7 +1327,8 @@ fn anti_rigidity_obligations(
 ///
 /// # Errors
 ///
-/// Returns `Err` for an invalid IRI in the input, an unbound inequality-guard
+/// Returns `Err` for an invalid IRI in the input, a non-IRI (literal or blank-node)
+/// object — foundation requires all-IRI triples — an unbound inequality-guard
 /// variable, or any provenance recipe failure (e.g. an RDF-star term).
 pub fn evaluate(
     store: &WorldStore,
@@ -1350,10 +1351,21 @@ pub fn evaluate(
         for r in &raw {
             let subject = strip_angle(&r[0]).to_owned();
             let predicate = strip_angle(&r[1]).to_owned();
-            // The object may be an IRI (`<iri>`) — the foundation cases never carry
-            // literals.  A non-IRI object (literal) is left as-is and simply never
-            // matches an IRI-constant atom, so it is inert (echoed as an asserted quad).
-            let object = strip_angle(&r[2]).to_owned();
+            // Foundation requires all-IRI triples (no-optionality: no literal/blank
+            // support).  oxigraph renders an IRI object as `<iri>`; anything else is a
+            // literal or blank node, which can never match an IRI-constant atom and
+            // would later abort provenance minting (fact_reifier -> NamedNode::new)
+            // with an opaque error.  Reject it up front with a clear message instead.
+            let object = match strip_angle_opt(&r[2]) {
+                Some(iri) => iri.to_owned(),
+                None => {
+                    return Err(format!(
+                        "foundation requires IRI triples: non-IRI object {:?} \
+                         (subject {:?}, predicate {:?}) in world {world}",
+                        r[2], r[0], r[1]
+                    ));
+                }
+            };
             initial.push(Fact {
                 subject,
                 predicate,
