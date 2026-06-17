@@ -37,8 +37,9 @@ gmeow:TeachingShape
     sh:property [
         sh:path gmeow:learner ;
         sh:minCount 1 ;
+        sh:class gmeow:Agent ;
         sh:severity sh:Violation ;
-        sh:message "A Teaching must have at least one learner (gmeow:learner) — instruction with no one taught is not a teaching." ;
+        sh:message "A Teaching must have at least one learner (gmeow:learner), and each learner must be a gmeow:Agent — instruction with no one being taught is not a teaching." ;
     ] ;
     sh:property [
         sh:path gmeow:subjectTaught ;
